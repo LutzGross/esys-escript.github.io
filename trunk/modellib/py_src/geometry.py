@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -23,7 +23,10 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import Vector, sup, inf, whereZero, length, Scalar, Vector
 from esys.escript.modelframe import Model,ParameterSet
-import esys.finley
+try:
+    import esys.finley
+except ImportError:
+    raise ImportError("Finley module not available")
 
 class DomainReader(ParameterSet):
 #class DudleyReader(ParameterSet):

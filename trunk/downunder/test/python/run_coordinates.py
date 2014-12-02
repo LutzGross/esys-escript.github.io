@@ -27,7 +27,6 @@ import logging
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.downunder.coordinates import *
-from esys.ripley import Brick, Rectangle
 import esys.escript
 from esys.escript import Lsup, sin, cos
 import esys.escript.unitsSI as U
@@ -36,6 +35,12 @@ import sys
 from math import pi
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
+
+HAS_RIPLEY = True
+try:
+    from esys.ripley import Brick, Rectangle
+except ImportError as e:
+    HAS_RIPLEY = False
 
 try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
@@ -139,7 +144,8 @@ class Test_Coordinates(unittest.TestCase):
          self.assertAlmostEqual(sp.getAngularUnit(), 1*U.DEG, msg="wrong angular_unit")
          self.assertAlmostEqual(sp.getFlattening(), 0.003352810681182319, msg="wrong flattening")
          self.assertAlmostEqual(sp.getSemiMajorAxis(), 6378137, msg="wrong SemiMajorAxis")
-         
+
+    @unittest.skipIf(not HAS_RIPLEY, "Ripley domains unavailable")
     def test_CartesianTransformation3D(self):
       
          dom=Brick(NE,NE,NE, l0=10, l1=10, l2=10)
@@ -169,7 +175,8 @@ class Test_Coordinates(unittest.TestCase):
          self.assertTrue(error<=RTOL, "1-th scaling factor")  
          error=Lsup(s[2]-1.)
          self.assertTrue(error<=RTOL, "2-th scaling factor")   
-         
+
+    @unittest.skipIf(not HAS_RIPLEY, "Ripley domains unavailable")
     def test_CartesianTransformation2D(self):
       
          dom=Rectangle(NE,NE, l0=10, l1=10)
@@ -198,9 +205,8 @@ class Test_Coordinates(unittest.TestCase):
          
          error=Lsup(s[1]-1.)
          self.assertTrue(error<=RTOL, "1-th scaling factor")  
-         
-         
 
+    @unittest.skipIf(not HAS_RIPLEY, "Ripley domains unavailable")
     def test_SphericalTransformation3D(self):
       
          dom=Brick(NE,NE,NE, l0=90, l1=45, l2=10.)
@@ -238,7 +244,8 @@ class Test_Coordinates(unittest.TestCase):
          
          error=Lsup(s[2]-1./1000.)
          self.assertTrue(error<=RTOL/1000., "2-th scaling factor")   
-         
+
+    @unittest.skipIf(not HAS_RIPLEY, "Ripley domains unavailable")
     def test_SphericalTransformation2D(self):
       
          dom=Rectangle(NE,NE, l0=45., l1=10.)

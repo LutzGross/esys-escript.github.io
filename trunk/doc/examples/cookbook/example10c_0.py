@@ -25,9 +25,16 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.pycad import *
 from esys.pycad.gmsh import Design
-from esys.finley import MakeDomain
 from esys.escript.unitsSI import *
 from math import tan
+
+try:
+    # This imports the rectangle domain function 
+    from esys.finley import MakeDomain
+    HAVE_FINLEY = True
+except ImportError:
+    print("Finley module not available")
+    HAVE_FINLEY = False
 #the folder to put our outputs in, leave blank "" for script path 
 save_path= os.path.join("data","example10")
 #
@@ -138,51 +145,52 @@ def addVolume(front_left, back_left, front_right, back_right, PS, FF, map, filte
     
     
        
-layers_left_at_edge_at_front=setOffsetsFromThickness(layers_left_at_front)
-layers_right_at_edge_at_front=setOffsetsFromThickness(layers_right_at_front)
+if HAVE_FINLEY:
+    layers_left_at_edge_at_front=setOffsetsFromThickness(layers_left_at_front)
+    layers_right_at_edge_at_front=setOffsetsFromThickness(layers_right_at_front)
 
-layers_left_at_front=setVerticalPositionsFromDip(layers_left_at_edge_at_front, fault_dip_front)
-layers_right_at_front=setVerticalPositionsFromDip(layers_right_at_edge_at_front, fault_dip_front)
-
-
-layers_left_at_back=setBackLayers(layers_left_at_front, slop, fault_dip_back)
-layers_right_at_back=setBackLayers(layers_right_at_front, slop, fault_dip_back)
+    layers_left_at_front=setVerticalPositionsFromDip(layers_left_at_edge_at_front, fault_dip_front)
+    layers_right_at_front=setVerticalPositionsFromDip(layers_right_at_edge_at_front, fault_dip_front)
 
 
-left_front_edge=getCutLine(Point(0.,0.,0.), layers_left_at_front, offset=False)
-left_front_fault=getCutLine(Point(fault_mid_front-fault_w_front/2,0.,0.), layers_left_at_front, offset=True)
-
-right_front_fault=getCutLine(Point(fault_mid_front+fault_w_front/2,0.,0.), layers_right_at_front, offset=True)
-right_front_edge=getCutLine(Point(width,0.,0.), layers_right_at_front, offset=False)
-
-left_back_edge=getCutLine(Point(0.,length,0.), layers_left_at_back, offset=False)
-left_back_fault=getCutLine(Point(fault_mid_back-fault_w_back/2,length,0.), layers_left_at_back, offset=True)
-
-right_back_fault=getCutLine(Point(fault_mid_back+fault_w_back/2,length,0.), layers_right_at_back, offset=True)
-right_back_edge=getCutLine(Point(width,length,0.), layers_right_at_back, offset=False)
-
-PS={}
-FF=[]
-front_to_back_left_top, front_to_back_left_bot, PS, FF=addVolume(left_front_edge, left_back_edge, left_front_fault, left_back_fault, PS, FF, layers_left_at_front, filter_left=False)
-front_to_back_right_top, front_to_back_right_bot, PS, FF=addVolume(right_front_edge, right_back_edge, right_front_fault, right_back_fault, PS, FF, layers_right_at_front, filter_left=True)
-
-fault_line_top_front=Line(front_to_back_left_top.getStartPoint(), front_to_back_right_top.getStartPoint())
-fault_line_bot_front=Line(front_to_back_left_bot.getStartPoint(), front_to_back_right_bot.getStartPoint())
-fault_line_top_back=Line(front_to_back_left_top.getEndPoint(), front_to_back_right_top.getEndPoint())
-fault_line_bot_back=Line(front_to_back_left_bot.getEndPoint(), front_to_back_right_bot.getEndPoint())
-
-FF.append(PlaneSurface(CurveLoop(front_to_back_left_top,fault_line_top_back,-front_to_back_right_top,-fault_line_top_front)))
-FF.append(-PlaneSurface(CurveLoop(front_to_back_left_bot,fault_line_bot_back,-front_to_back_right_bot,-fault_line_bot_front)))
-
-FF.append(PlaneSurface(CurveLoop(*tuple([ -fault_line_top_front,fault_line_bot_front ]+left_front_fault+[ -l for l in right_front_fault ]))))
-FF.append(-PlaneSurface(CurveLoop(*tuple([ -fault_line_top_back,fault_line_bot_back ]+left_back_fault+[ -l for l in right_back_fault ]))))
+    layers_left_at_back=setBackLayers(layers_left_at_front, slop, fault_dip_back)
+    layers_right_at_back=setBackLayers(layers_right_at_front, slop, fault_dip_back)
 
 
-# war 120
-des=Design(dim=3, order=1, element_size = 400*m, keep_files=True)
-des.addItems(*tuple(PS.values()))
-des.addItems(PropertySet("fault",Volume(SurfaceLoop( *tuple(FF)))))
-des.setMeshFileName(os.path.join(save_path,"fault.msh"))
-dom=MakeDomain(des)
-dom.write(os.path.join(save_path,"fault.fly"))
+    left_front_edge=getCutLine(Point(0.,0.,0.), layers_left_at_front, offset=False)
+    left_front_fault=getCutLine(Point(fault_mid_front-fault_w_front/2,0.,0.), layers_left_at_front, offset=True)
+
+    right_front_fault=getCutLine(Point(fault_mid_front+fault_w_front/2,0.,0.), layers_right_at_front, offset=True)
+    right_front_edge=getCutLine(Point(width,0.,0.), layers_right_at_front, offset=False)
+
+    left_back_edge=getCutLine(Point(0.,length,0.), layers_left_at_back, offset=False)
+    left_back_fault=getCutLine(Point(fault_mid_back-fault_w_back/2,length,0.), layers_left_at_back, offset=True)
+
+    right_back_fault=getCutLine(Point(fault_mid_back+fault_w_back/2,length,0.), layers_right_at_back, offset=True)
+    right_back_edge=getCutLine(Point(width,length,0.), layers_right_at_back, offset=False)
+
+    PS={}
+    FF=[]
+    front_to_back_left_top, front_to_back_left_bot, PS, FF=addVolume(left_front_edge, left_back_edge, left_front_fault, left_back_fault, PS, FF, layers_left_at_front, filter_left=False)
+    front_to_back_right_top, front_to_back_right_bot, PS, FF=addVolume(right_front_edge, right_back_edge, right_front_fault, right_back_fault, PS, FF, layers_right_at_front, filter_left=True)
+
+    fault_line_top_front=Line(front_to_back_left_top.getStartPoint(), front_to_back_right_top.getStartPoint())
+    fault_line_bot_front=Line(front_to_back_left_bot.getStartPoint(), front_to_back_right_bot.getStartPoint())
+    fault_line_top_back=Line(front_to_back_left_top.getEndPoint(), front_to_back_right_top.getEndPoint())
+    fault_line_bot_back=Line(front_to_back_left_bot.getEndPoint(), front_to_back_right_bot.getEndPoint())
+
+    FF.append(PlaneSurface(CurveLoop(front_to_back_left_top,fault_line_top_back,-front_to_back_right_top,-fault_line_top_front)))
+    FF.append(-PlaneSurface(CurveLoop(front_to_back_left_bot,fault_line_bot_back,-front_to_back_right_bot,-fault_line_bot_front)))
+
+    FF.append(PlaneSurface(CurveLoop(*tuple([ -fault_line_top_front,fault_line_bot_front ]+left_front_fault+[ -l for l in right_front_fault ]))))
+    FF.append(-PlaneSurface(CurveLoop(*tuple([ -fault_line_top_back,fault_line_bot_back ]+left_back_fault+[ -l for l in right_back_fault ]))))
+
+
+    # war 120
+    des=Design(dim=3, order=1, element_size = 400*m, keep_files=True)
+    des.addItems(*tuple(PS.values()))
+    des.addItems(PropertySet("fault",Volume(SurfaceLoop( *tuple(FF)))))
+    des.setMeshFileName(os.path.join(save_path,"fault.msh"))
+    dom=MakeDomain(des)
+    dom.write(os.path.join(save_path,"fault.fly"))
 

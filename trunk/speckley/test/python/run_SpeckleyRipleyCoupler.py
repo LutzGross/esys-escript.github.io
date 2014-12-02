@@ -27,11 +27,23 @@ import os
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.escriptcore.domainCouplers import SpeckleyToRipley
-from esys.ripley import Rectangle as rRectangle, Brick as rBrick
 from esys.speckley import Rectangle as sRectangle, Brick as sBrick
-from esys.finley import Rectangle as fRectangle
 
+#domain families may not be present
+HAS_RIPLEY = True
+HAS_FINLEY = True
+try:
+    from esys.escriptcore.domainCouplers import SpeckleyToRipley
+    from esys.ripley import Rectangle as rRectangle, Brick as rBrick
+except ImportError as e:
+    HAS_RIPLEY = False
+
+try:
+    from esys.finley import Rectangle as fRectangle
+except ImportError as e:
+    HAS_FINLEY = False
+
+@unittest.skipIf(not HAS_RIPLEY, "Ripley domains not present")
 class Test_ripleyCoupler(unittest.TestCase):
 
     def calculateVariance(self, s, r):
@@ -209,6 +221,7 @@ class Test_ripleyCoupler(unittest.TestCase):
             with self.assertRaises(RuntimeError): #subdivision mismatch
                 self.calculateVariance(r, s)
 
+    @unittest.skipIf(not HAS_FINLEY, "Finley domains not present")
     def test_bad_domains(self):
         ranks = getMPISizeWorld()
         f = fRectangle(2*ranks - 1, 2, l0=1., l1=2., d0=ranks)

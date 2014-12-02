@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -36,6 +36,20 @@ from esys.weipa import saveSilo
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
 try:
+    from esys.ripley import Rectangle, Brick as rRect, rBrick
+    HAVE_RIPLEY = True
+except ImportError:
+    HAVE_RIPLEY = False
+
+try:
+    from esys.finley import Rectangle, Brick as fRect, fBrick
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
+
+
+
+try:
     TEST_DATA_ROOT=os.environ['DOWNUNDER_TEST_DATA_ROOT']
 except KeyError:
     TEST_DATA_ROOT='ref_data'
@@ -45,7 +59,8 @@ try:
 except KeyError:
     WORKDIR='.'
     
-writeFailMessage = "This feature (SimpleSEGYWriter.write()) depends on obspy, which is not installed, see https://github.com/obspy/obspy for install guide"
+writeFailMessage = "This feature (SimpleSEGYWriter.write()) depends on obspy,"+\
+" which is not installed, see https://github.com/obspy/obspy for install guide"
 
 
 class TestSeismicTools(unittest.TestCase):
@@ -115,16 +130,22 @@ class TestSeismicTools(unittest.TestCase):
                     "functionspace != solution for %s"%label)
 
     def test_sonicwave2D(self):
-        from esys.finley import Rectangle as fRect
-        from esys.ripley import Rectangle as rRect
-        for domType, impl in [(fRect, "finley"), (rRect, "ripley")]:
+        doms = []
+        if HAVE_RIPLEY:
+            doms.append((rRect, "ripley"))
+        if HAVE_FINLEY:
+            doms.append((fRect, "finley"))
+        for domType, impl in doms:
             domain=domType(5,5, diracPoints=[(0.5,1.)], diracTags=['sss'])
             self.sonicRunner(domain, "%s.Rectangle"%impl)
 
     def test_sonicwave3D(self):
-        from esys.finley import Brick as fBrick
-        from esys.ripley import Brick as rBrick
-        for domType, impl in [(fBrick, "finley"), (rBrick, "ripley")]:
+        doms = []
+        if HAVE_RIPLEY:
+            doms.append((rBrick, "ripley"))
+        if HAVE_FINLEY:
+            doms.append((fBrick, "finley"))
+        for domType, impl in doms:
             domain=domType(5,5,5, diracPoints=[(0.5,0.5,1.)], diracTags=['sss'])
             self.sonicRunner(domain, "%s.Brick"%impl)
                                   

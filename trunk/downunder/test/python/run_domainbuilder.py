@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -47,6 +47,12 @@ except KeyError:
     WORKDIR='.'
 
 try:
+    import esys.ripley
+    HAVE_RIPLEY = True
+except ImportError:
+    HAVE_RIPLEY = False
+
+try:
     import pyproj
     haveProj=True
 except ImportError:
@@ -56,6 +62,7 @@ NC_DATA1 = os.path.join(TEST_DATA_ROOT, 'zone51.nc')
 NC_DATA2 = os.path.join(TEST_DATA_ROOT, 'zone52.nc')
 
 @unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class TestDomainBuilderWithNetCdf(unittest.TestCase):
 
     # append custom messages instead of overwriting originals

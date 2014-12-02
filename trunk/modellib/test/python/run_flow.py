@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -38,10 +38,16 @@ else:
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.flow import SteadyIncompressibleFlow
+
+try:
+    import esys.finley
+    from esys.modellib.geometry import RectangularDomain,VectorConstrainerOverBox
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
 
 #Link() behaves badly inside a TestCase class
 def run(dom, stream):
@@ -87,7 +93,8 @@ class Test_RunFlow(unittest.TestCase):
     def tearDown(self):
         import sys
         sys.stdout = self.old
-    
+
+    @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
     def test_order2(self):
         dom=RectangularDomain()
         dom.order=2

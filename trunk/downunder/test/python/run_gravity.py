@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+"""2D gravity inversion example using synthetic data"""
+
 __copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -22,38 +24,72 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import os
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.downunder import *
 from esys.escript import unitsSI as U
 from esys.weipa import saveSilo
+import logging
 
-
-try: 
-   WORKDIR=os.environ['DOWNUNDER_WORKDIR']
+try:
+    import esys.ripley
+    HAVE_RIPLEY = True
+except ImportError:
+    HAVE_RIPLEY = False
+    
+try:
+    WORKDIR=os.environ['DOWNUNDER_WORKDIR']
 except KeyError:
-   WORKDIR='.'
+    WORKDIR='.'
 
-features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
-     x=22*U.km, y=3*U.km, depth=10*U.km, v_inner=200., v_outer=1e-6),\
-          SmoothAnomaly(lx=25*U.km, ly=20*U.km, lz=20*U.km,
-     x=40*U.km, y=1*U.km, depth=22*U.km, v_inner=-500., v_outer=1e-6),\
-          SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
-     x=68*U.km, y=3*U.km, depth=13*U.km, v_inner=200., v_outer=1e-6)]
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
+class Test_GravityInversion2D(unittest.TestCase):
+    def test_inversion(self):
+        #be quiet about it
+        logging.getLogger('inv.MinimizerLBFGS').setLevel(logging.CRITICAL)
+        logging.getLogger('inv.GravityInversion').setLevel(logging.CRITICAL)
 
-source=SyntheticFeatureData(DataSource.GRAVITY, DIM=2, number_of_elements=220, length=100*U.km, features=features)
-domainbuilder=DomainBuilder(dim=2)
-domainbuilder.addSource(source)
-domainbuilder.setElementPadding(20)
-domainbuilder.setVerticalExtents(depth=50*U.km, air_layer=20*U.km, num_cells=25)
+        # interesting parameters:
+        n_humps_h = 3
+        n_humps_v = 1
+        mu = 100
+        n_cells_in_data = 100
+        # ignore:
+        full_knowledge = False
+        depth_offset = 0. * U.km
+        #
+        DIM = 2
+        n_cells_in_data = max(n_humps_h*7, n_cells_in_data)
+        l_data = 100. * U.km
+        l_pad = 40. * U.km
+        THICKNESS = 20. * U.km
+        l_air = 20. * U.km
+        n_cells_v = max(int((2*l_air+THICKNESS+depth_offset)/ \
+                        l_data*n_cells_in_data + 0.5), 25)
 
-inv=GravityInversion()
-inv.setup(domainbuilder)
-inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(40)
-inv.getCostFunction().setTradeOffFactorsModels(10)
 
-rho_new=inv.run()
-print("rho_new = %s"%rho_new)
-print("rho = %s"%source.getReferenceProperty())
-g, chi = inv.getCostFunction().getForwardModel().getSurvey(0)
-saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceProperty(), g=g, chi=chi)
+        source=SyntheticData(DataSource.GRAVITY, n_length=n_humps_h,
+                n_depth=n_humps_v,
+                depth=THICKNESS+depth_offset, depth_offset=depth_offset,
+                DIM=DIM, number_of_elements=n_cells_in_data, length=l_data,
+                data_offset=0, full_knowledge=full_knowledge)
 
+        domainbuilder=DomainBuilder(dim=DIM)
+        domainbuilder.addSource(source)
+        domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset,
+                                         air_layer=l_air, num_cells=n_cells_v)
+        domainbuilder.setPadding(l_pad)
+        domainbuilder.fixDensityBelow(depth=THICKNESS+depth_offset)
+
+        inv=GravityInversion()
+        inv.setSolverTolerance(1e-4)
+        inv.setSolverMaxIterations(50)
+        inv.setup(domainbuilder)
+        inv.getCostFunction().setTradeOffFactorsModels(mu)
+
+        rho_new = inv.run()
+        rho_ref = source.getReferenceProperty()
+        g, chi = inv.getCostFunction().getForwardModel().getSurvey(0)
+
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)

@@ -29,6 +29,9 @@ def dumpPackage(mname, ignorelist, modset, banset):
   pack.write(mname+' Package\n')
   pack.write('='*len(mname)+'========\n\n')
   pack.write('.. py:module:: '+mname+'\n\n')
+  moddoc = inspect.getdoc(PP)
+  if moddoc:
+    pack.write("   "+moddoc.replace("\n\n", "\n").replace("\n", "\n   ") + "\n")
   #Automodule does not seem to do what we want so we need to drill down
   clist=[]
   flist=[]

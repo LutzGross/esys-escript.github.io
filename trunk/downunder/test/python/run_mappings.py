@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2012-2014 by University of Queensland
@@ -26,8 +26,13 @@ from esys.escriptcore.testing import *
 import sys
 from esys.escript import *
 from esys.downunder.mappings import *
-from esys.ripley import Rectangle
 import numpy
+
+try:
+    from esys.ripley import Rectangle
+    HAVE_RIPLEY = True
+except ImportError:
+    HAVE_RIPLEY = False
 
 class Test_LinearMapping(unittest.TestCase):
     def setUp(self):
@@ -52,7 +57,8 @@ class Test_LinearMapping(unittest.TestCase):
         v=self.mapping.getInverse(1.23)
         ref=(1.23-self.p0)/self.alpha
         self.assertAlmostEqual(v, ref)
-        
+
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class Test_AcousticVelocityMapping(unittest.TestCase):
     def setUp(self):
         self.fs=Function(Rectangle(40,40))
@@ -104,7 +110,7 @@ class Test_AcousticVelocityMapping(unittest.TestCase):
         m0=mp.getInverse( (s0_ref.real,s0_ref.imag))
         self.assertLess( Lsup(m0[0]), 1e-14)
         self.assertLess( Lsup(m0[1]), 1e-14)
-        
+
 class Test_BoundedRangeMapping(unittest.TestCase):
     def setUp(self):
         self.alpha=4.2

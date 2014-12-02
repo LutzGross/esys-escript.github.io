@@ -20,20 +20,7 @@ Import('*')
 local_env = env.Clone()
 
 # files defining test runs (passing in a release)
-testruns = [ \
-            'run_coordinates.py',\
-            'run_datasources.py',\
-            'run_domainbuilder.py',\
-            'run_forward.py',\
-            'run_regularization.py',\
-            'run_mappings.py',\
-            'run_minimizers.py',\
-            'run_inversioncostfunction.py',\
-            'inversion_gravity_2d.py',\
-            'inversion_magnetic_2d.py',\
-            'inversion_gravmag_2d.py',
-            'run_seismic.py'
-            ]
+testruns = Glob('run_*.py', strings=True)
 
 # all tests
 alltestruns = testruns

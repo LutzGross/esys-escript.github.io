@@ -87,8 +87,15 @@ except ImportError:
     import sys
     sys.exit(0)
 
-if 'NetCdfData' in dir():
-  work()
-else:
-  print("This example requires scipy's netcdf support which does not appear to be installed.")
+try:
+  import esys.ripley
+  HAVE_RIPLEY = True
+except ImportError:
+  HAVE_RIPLEY = False
 
+if 'NetCdfData' not in dir():
+    print("This example requires scipy's netcdf support which does not appear to be installed.")
+elif not HAVE_RIPLEY:
+    print("Ripley module required but not available")
+else:
+    work()
