@@ -192,8 +192,8 @@ $\sigma$ using the linear-elastic isotropic material model
 \sigma_{ij}=\lambda u_{k,k} \delta_{ij} + \mu ( u_{i,j} + u_{j,i})
 \end{eqnarray}
 where $\delta_{ij}$ is the Kronecker symbol and
-$\lambda$ and $\mu$ are the Lame coefficients. The following function
-takes the displacement \var{u} and the Lame coefficients \var{lam} and \var{mu}
+$\lambda$ and $\mu$ are the Lam\'e coefficients. The following function
+takes the displacement \var{u} and the Lam\'e coefficients \var{lam} and \var{mu}
 as arguments and returns the corresponding stress:
 \begin{python}
   from esys.escript import *
@@ -246,7 +246,7 @@ The number in each cell refers to the major rock type present in the cell
 \end{figure}
 
 \subsection{Tagged, Expanded and Constant Data}
-Material parameters such as the Lame coefficients are typically dependent on
+Material parameters such as the Lam\'e coefficients are typically dependent on
 rock types present in the area of interest.
 A common technique to handle these kinds of material parameters is
 \emph{tagging}\index{tagging}, which uses storage efficiently.
@@ -275,8 +275,8 @@ The \code{getStress} method does not need to be changed now that we are using ta
 \escript resolves the tags when \var{lam*trace(g)} is calculated.
 
 This brings us to a very important point about \escript.
-You can develop a simulation with constant Lame coefficients, and then later
-switch to tagged Lame coefficients without otherwise changing your \PYTHON script.
+You can develop a simulation with constant Lam\'e coefficients, and then later
+switch to tagged Lam\'e coefficients without otherwise changing your \PYTHON script.
 In short, you can use the same script for models with different domains and
 different types of input data.
 
