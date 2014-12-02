@@ -372,7 +372,7 @@ assigns new values to \var{omega}, \var{k}, \var{f}, \var{alpha}, \var{g},
 \end{methoddesc}
 
 \subsection{The \Lame Class}
-The \Lame class defines a Lame equation problem
+The \Lame class defines a Lam\'e equation problem
 \begin{equation}\label{LE.1}
 -(\mu (u_{i,j}+u_{j,i})+\lambda u_{k,k}\delta_{ij})_{j} = F_{i}-\sigma_{ij,j}
 \end{equation}
@@ -391,7 +391,7 @@ $f$ must be a \Vector in the \FunctionOnBoundary, and $q$ and $r$ must be a
 particular \FunctionSpace.
 
 \begin{classdesc}{Lame}{domain}
-opens a Lame equation on the \Domain domain. \Lame is derived from \LinearPDE.
+opens a Lam\'e equation on the \Domain domain. \Lame is derived from \LinearPDE.
 \end{classdesc}
 \begin{methoddesc}[Lame]{setValue}{ \optional{lame_lambda} \optional{, lame_mu} \optional{, F} \optional{, sigma} \optional{, f} \optional{, r} \optional{, q}}
 assigns new values to \var{lame_lambda}, \var{lame_mu}, \var{F}, \var{sigma},

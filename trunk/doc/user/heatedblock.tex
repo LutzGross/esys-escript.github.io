@@ -26,7 +26,7 @@ where the stress $\sigma$ is given by
  \sigma_{ij}= \lambda u_{k,k} \delta_{ij} + \mu ( u_{i,j} + u_{j,i})
  - (\lambda+\frac{2}{3} \mu)  \; \alpha  \;  (T-T_{ref})\delta_{ij} \;.
 \end{eqnarray}
-In this formula $\lambda$ and $\mu$ are the Lame coefficients, $\alpha$ is the
+In this formula $\lambda$ and $\mu$ are the Lam\'e coefficients, $\alpha$ is the
 temperature expansion coefficient, $T$ is the temperature distribution and $T_{ref}$ a reference temperature.
 Note that \eqn{HEATEDBLOCK general problem} is similar to \eqn{WAVE general problem}
 introduced in \Sec{WAVE CHAP} but the inertia term $\rho u_{i,tt}$
@@ -56,7 +56,7 @@ with a given positive constant $\beta$ and location $x^{c}$ in the domain.
 %Later in \Sec{MODELFRAME} we will use
 % $T$ from a time-dependent temperature diffusion problem as discussed in \Sec{DIFFUSION CHAP}.
 When we insert \eqn{HEATEDBLOCK linear elastic} we get a second order system
-of linear PDEs for the displacements $u$ which is called the Lame equation\index{Lame equation}.
+of linear PDEs for the displacements $u$ which is called the Lam\'e equation\index{Lam\'e equation}.
 We want to solve this using the \LinearPDE class.
 For a system of PDEs and a solution with several components the \LinearPDE class takes PDEs of the form
 \begin{equation}\label{LINEARPDE.SYSTEM.1 TUTORIAL}
@@ -100,10 +100,10 @@ defined by \eqn{LINEARPDE.SYSTEM.1 TUTORIAL} symmetric\index{symmetric PDE} if
 \begin{eqnarray}\label{LINEARPDE.SYSTEM.SYMMETRY TUTORIAL}
 A_{ijkl} =A_{klij} \\
 \end{eqnarray}
-This Lame equation is in fact symmetric, given the difference in $D$ and $d$ as compared to the scalar case.
+This Lam\'e equation is in fact symmetric, given the difference in $D$ and $d$ as compared to the scalar case.
 The \LinearPDE class is notified of this fact by calling its \method{setSymmetryOn} method.
 
-After we have solved the Lame equation we want to analyse the actual stress distribution.
+After we have solved the Lam\'e equation we want to analyse the actual stress distribution.
 Typically the von-Mises stress\index{von-Mises stress} defined by
 \begin{equation}
 \sigma_{mises} = \sqrt{
@@ -116,7 +116,7 @@ is used to detect material damage.
 Here we want to calculate the von-Mises stress and write it to a file for visualization.
 
 The following script, which is available in \file{heatedblock.py} in the
-\ExampleDirectory, solves the Lame equation and writes the displacements and
+\ExampleDirectory, solves the Lam\'e equation and writes the displacements and
 the von-Mises stress\index{von-Mises stress} into a file \file{deform.vtu} in
 the \VTK file format\index{scripts!\file{diffusion.py}}:
 \begin{python}
