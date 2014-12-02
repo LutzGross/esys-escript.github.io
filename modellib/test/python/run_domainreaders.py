@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -33,12 +33,21 @@ import os
 from subprocess import PIPE, Popen
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-import esys.finley
-import esys.dudley
+try:
+    import esys.dudley
+    HAVE_DUDLEY = True
+except ImportError:
+    HAVE_DUDLEY = False
 
-from esys.escript import getMPISizeWorld
+try:
+    import esys.finley
+    from esys.modellib.geometry import *
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
+
+from esys.escript import getMPISizeWorld, getEscriptParamInt
 from esys.escript.modelframe import DataSource
-from esys.modellib.geometry import *
 from esys.pycad.gmsh import *
 from esys.pycad import *
 
@@ -60,7 +69,7 @@ except OSError:
     pass
     
 @unittest.skipIf(GMSH is None, "gmsh not available")
-@unittest.skipIf(esys.escript.getEscriptParamInt("MPIBUILD",0)>0,
+@unittest.skipIf(getEscriptParamInt("MPIBUILD",0)>0,
         "not tested with MPI builds")
 class Test_domainReaders(unittest.TestCase):
     def domain_family(self, dommodule, f):
@@ -81,11 +90,14 @@ class Test_domainReaders(unittest.TestCase):
         r2.source=DataSource(uri=os.path.join(MODELLIB_WORKDIR,"TESTgmsh_test.msh"), fileformat="gmsh")
         r2.domain()
 
+    @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
     def test_domain_families(self):
         self.domain_family(None,os.path.join(MODELLIB_WORKDIR,'TESTnone'))
-        self.domain_family(esys.dudley,os.path.join(MODELLIB_WORKDIR,'TESTDud'))
+        if HAVE_DUDLEY:
+            self.domain_family(esys.dudley,os.path.join(MODELLIB_WORKDIR,'TESTDud'))
         self.domain_family(esys.finley,os.path.join(MODELLIB_WORKDIR,'TESTfin'))
-   
+
+    @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
     def test_finleyReader(self):
         self.domain_family(esys.finley,os.path.join(MODELLIB_WORKDIR,'TESTfin'))
         rf=FinleyReader(parameters=["fish","dummy"], debug=True)

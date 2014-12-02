@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -36,6 +36,18 @@ from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from esys.escript import getEscriptParamInt
 from esys.escript.pdetools import Locator
 
+try:
+    from esys.ripley import Rectangle, Brick as ripRectangle, ripBrick
+    HAVE_RIPLEY = True
+except ImportError as e:
+    HAVE_RIPLEY = False
+
+try:
+    from esys.finley import Rectangle as ripRectangle
+    HAVE_FINLEY = True
+except ImportError as e:
+    HAVE_FINLEY = False
+
 mpisize = getMPISizeWorld()
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
@@ -53,12 +65,12 @@ except KeyError:
     
 have_direct=getEscriptParamInt("PASO_DIRECT")   
 
-
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 @unittest.skipIf(mpisize>1 or have_direct!=1, "more than 1 MPI rank or missing direct solver")
 class TestAcousticInversion(unittest.TestCase):
     def test_API(self):
-        from esys.ripley import Rectangle
-        domain=Rectangle(20,20, diracPoints=[(0.5,1.)], diracTags=['sss'])
+
+        domain=ripRectangle(20,20, diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=2.
         
         
@@ -84,8 +96,7 @@ class TestAcousticInversion(unittest.TestCase):
         
     def test_numeric2DscaleF(self):
          
-        from esys.ripley import Rectangle
-        domain=Rectangle(100,100, diracPoints=[(0.5,1.)], diracTags=['sss'])
+        domain=ripRectangle(100,100, diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=2.
         
         # test solution is u = a * z where a is complex
@@ -169,8 +180,7 @@ class TestAcousticInversion(unittest.TestCase):
     
     def test_numeric2DnoscaleF(self):
          
-        from esys.ripley import Rectangle
-        domain=Rectangle(10,20, diracPoints=[(0.5,1.)], diracTags=['sss'])
+        domain=ripRectangle(10,20, diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=1.5
         
         # test solution is u = a * z where a is complex
@@ -229,10 +239,10 @@ class TestAcousticInversion(unittest.TestCase):
         d2=acw.getDefect(sigma2, *args)
         self.assertTrue( abs(d2-d0-integrate(dg0[1]*p))  < 1e-2  * abs(d2-d0) )
 
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class TestMT2DModelTEMode(unittest.TestCase):
     def test_API(self):
-        from esys.ripley import Rectangle
-        domain=Rectangle(19, 19, d1=mpisize)
+        domain=ripRectangle(19, 19, d1=mpisize)
         omega=2.
         x=[ [0.2,0.5], [0.3,0.5] ]
         Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
@@ -262,8 +272,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         SIGMA=15.
         k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
 
-        from esys.ripley import Rectangle
-        domain=Rectangle(199,199, d1=mpisize)
+        domain=ripRectangle(199,199, d1=mpisize)
 
         
         IMP=cmath.sqrt(1j*omega*mu0/SIGMA)
@@ -317,8 +326,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         SIGMA=15.
         k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
 
-        from esys.ripley import Rectangle
-        domain=Rectangle(99,99, d1=mpisize)
+        domain=ripRectangle(99,99, d1=mpisize)
 
         
         IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
@@ -366,14 +374,14 @@ class TestMT2DModelTEMode(unittest.TestCase):
         d1=acw.getDefect(SIGMA1, *args1)
         self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
 
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class TestSubsidence(unittest.TestCase):
     def test_PDE(self):
          
         lam=2.
         mu=1.
 
-        from esys.ripley import Brick
-        domain=Brick(20,20,19, d2=mpisize)
+        domain=ripBrick(20,20,19, d2=mpisize)
         
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
@@ -398,8 +406,7 @@ class TestSubsidence(unittest.TestCase):
         mu=1.
         
         INC=0.01 
-        from esys.ripley import Brick
-        domain=Brick(20,20,20*mpisize-1 , d2=mpisize)
+        domain=ripBrick(20,20,20*mpisize-1 , d2=mpisize)
         
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
@@ -429,6 +436,7 @@ class TestSubsidence(unittest.TestCase):
         ref=abs((d2-d0)/INC)
         self.assertTrue(abs((d2-d0)/INC+integrate(grad_d* dP)) < ref * 1.e-5) 
 
+@unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
 class TestDCResistivity(unittest.TestCase):
 
     def test_PDE2D(self):
@@ -437,8 +445,7 @@ class TestDCResistivity(unittest.TestCase):
 
         sigma0=1.
         electrodes=[(0.5-2*dx_tests,1.), (0.5-dx_tests,1.), (0.5+dx_tests,1.), (0.5+2*dx_tests,1.)]
-        from esys.finley import Rectangle
-        domain=Rectangle(20,20, d1=mpisize,  diracPoints=electrodes, diracTags=["sl0", "sl1", "sr0", "sr1"] )
+        domain=finRectangle(20,20, d1=mpisize,  diracPoints=electrodes, diracTags=["sl0", "sl1", "sr0", "sr1"] )
         loc=Locator(domain,electrodes[2:])
 
         # this creates some reference Data:
@@ -493,8 +500,7 @@ class TestDCResistivity(unittest.TestCase):
         sigma0=1.
         dx_tests=0.1 
         electrodes=[(0.5-2*dx_tests,1.), (0.5-dx_tests,1.), (0.5+dx_tests,1.), (0.5+2*dx_tests,1.)]
-        from esys.finley import Rectangle
-        domain=Rectangle(20,20, d1=mpisize,  diracPoints=electrodes, diracTags=["sl0", "sl1", "sr0", "sr1"] )
+        domain=finRectangle(20,20, d1=mpisize,  diracPoints=electrodes, diracTags=["sl0", "sl1", "sr0", "sr1"] )
         loc=Locator(domain,electrodes[2:])
 
         # arguments for DcRes
@@ -545,9 +551,9 @@ class TestDCResistivity(unittest.TestCase):
         self.assertTrue(abs((d4-d0)/INC-integrate(grad_d* dS)) < ref * 1.e-3) 
 
 class TestIsostaticPressure(unittest.TestCase):
+    @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
     def test_all(self):
-        from esys.ripley import Brick
-        domain=Brick(50,50,20*mpisize-1, d2=mpisize)
+        domain=ripBrick(50,50,20*mpisize-1, d2=mpisize)
 
         ps=IsostaticPressure(domain, level0=1., coordinates=None)
     

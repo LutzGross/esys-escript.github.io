@@ -16,7 +16,6 @@
 from esys.escript import getMPIWorldMax, getMPIRankWorld
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.finley import ReadGmsh, ReadMesh
 from esys.weipa import saveSilo
 from math import pi
 import esys.escript.pdetools           as pdetools
@@ -27,6 +26,11 @@ import os
 import logging
 logger=logging.getLogger('inv.DCResDomGenerator')
 
+HAS_FINLEY = True
+try:
+    from esys.finley import ReadGmsh, ReadMesh
+except ImportError as e:
+    HAS_FINLEY = False
 
 class DCResDomGenerator(object):
     """
@@ -46,6 +50,8 @@ class DCResDomGenerator(object):
         :type [(x,y,z)_start,(x,y,z)_extent]
         :
         """
+        if not HAS_FINLEY:
+            raise RuntimeError("Finley module not available")
         if(len(extents)==3 or len(extents)==4):
             self.__extents=extents
         else:

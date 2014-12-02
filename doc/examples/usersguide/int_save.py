@@ -27,46 +27,54 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import saveDataCSV, sup, interpolateTable
 import numpy
-from esys.finley import Rectangle
+try:
+    from esys.finley import Rectangle
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
 
-n=4		#Change this to whatever you like
-r=Rectangle(n,n)
-x=r.getX()
-x0=x[0]
-x1=x[1]    #we'll use this later
-toobig=100	#An exception will be thrown if interpolation produces a value larger than this
+if not HAVE_FINLEY:
+    print("Finley module not available")
+else:
 
-#First one dimensional interpolation
+    n=4		#Change this to whatever you like
+    r=Rectangle(n,n)
+    x=r.getX()
+    x0=x[0]
+    x1=x[1]    #we'll use this later
+    toobig=100	#An exception will be thrown if interpolation produces a value larger than this
 
-#In this example we will interpolate a sine curve
-#The values we take from the domain will range from 0 to 1 (inclusive)
+    #First one dimensional interpolation
 
-sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, -0.70710678118654746, -1, -0.70710678118654746, 0]
+    #In this example we will interpolate a sine curve
+    #The values we take from the domain will range from 0 to 1 (inclusive)
 
-numslices=len(sine_table)-1
+    sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, -0.70710678118654746, -1, -0.70710678118654746, 0]
 
-minval=0
-maxval=1
+    numslices=len(sine_table)-1
 
-step=sup(maxval-minval)/numslices	#The width of the gap between entries in the table
+    minval=0
+    maxval=1
 
-result=interpolateTable(sine_table, x0, minval, step, toobig)
+    step=sup(maxval-minval)/numslices	#The width of the gap between entries in the table
 
-#Now we save the input and output for comparison
+    result=interpolateTable(sine_table, x0, minval, step, toobig)
 
-saveDataCSV("1d.csv", inp=x0, out=result)
+    #Now we save the input and output for comparison
 
-#Now 2D interpolation
+    saveDataCSV("1d.csv", inp=x0, out=result)
 
-#This time the sine curve will be at full height along the x (ie x0) axis.
-#Its amplitude will decrease to a flat line along x1=1.1
+    #Now 2D interpolation
 
-#Interpolate works with numpy arrays so we'll use them
-st=numpy.array(sine_table)
+    #This time the sine curve will be at full height along the x (ie x0) axis.
+    #Its amplitude will decrease to a flat line along x1=1.1
 
-table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
+    #Interpolate works with numpy arrays so we'll use them
+    st=numpy.array(sine_table)
 
-#The y dimension should be the outer the dimension of the table
-#Note that the order of tuples for the 2nd and 3rd param is (x,y)
-result2=interpolateTable(table, x, (minval,0), (0.55, step), toobig)
-saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)
+    table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
+
+    #The y dimension should be the outer the dimension of the table
+    #Note that the order of tuples for the 2nd and 3rd param is (x,y)
+    result2=interpolateTable(table, x, (minval,0), (0.55, step), toobig)
+    saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)

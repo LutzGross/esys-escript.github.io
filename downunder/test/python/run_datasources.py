@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -31,6 +31,13 @@ from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
 from esys.downunder.coordinates import WGS84ReferenceSystem
+
+HAVE_RIPLEY = False
+try:
+    from esys.ripley import Rectangle
+except ImportError as e:
+    HAVE_RIPLEY = False
+
 
 try:
     import pyproj
@@ -87,6 +94,7 @@ class TestNumpyData(unittest.TestCase):
         self.assertRaises(ValueError, NumpyData, DataSource.GRAVITY, [1,2], [1,2], [2,3,2])
 
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+    @unittest.skipIf(not HAVE_RIPLEY, "ripley module not available")
     def test_numpy_data_1d(self):
         DIM=1
         testdata = np.arange(20)
@@ -134,6 +142,7 @@ class TestNumpyData(unittest.TestCase):
                 msg="Wrong values in padding area")
 
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+    @unittest.skipIf(not HAVE_RIPLEY, "ripley module not available")
     def test_numpy_data_2d(self):
         DIM=2
         testdata = np.arange(20*21).reshape(20,21)
@@ -183,6 +192,7 @@ class TestNumpyData(unittest.TestCase):
 
 
 @unittest.skipIf(not haveProj, 'pyproj not available')
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class TestErMapperData(unittest.TestCase):
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_ers32_with_padding(self):
@@ -246,11 +256,11 @@ class TestErMapperData(unittest.TestCase):
         self.assertAlmostEqual(np.abs(g_out-ERS_NULL).max(), 0.,
                 msg="Wrong values in padding area")
 
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 @unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestNetCdfData(unittest.TestCase):
     @unittest.skipIf(not haveProj, 'pyproj not available')
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
-    @unittest.skipIf(not haveProj, 'pyproj not available')
     def test_cdf_with_padding(self):
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()

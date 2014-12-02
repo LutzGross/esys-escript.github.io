@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2012-2014 by University of Queensland
@@ -24,12 +24,17 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 import sys
-import esys.ripley
 from esys.downunder import *
 from esys.escript import *
 import numpy as np
 
-                
+try:
+    import esys.ripley
+    HAVE_RIPLEY = True
+except ImportError:
+    HAVE_RIPLEY = False
+
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class Test_Regularizaton2D(unittest.TestCase):
     def setUp(self):
         self.domain = esys.ripley.Rectangle(20*getMPISizeWorld()-1,20*getMPISizeWorld()-1, d0=getMPISizeWorld()) # expected dimension 1mx1m

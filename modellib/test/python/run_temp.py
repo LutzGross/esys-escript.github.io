@@ -30,7 +30,13 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
-from esys.modellib.geometry import RectangularDomain,ScalarConstrainerOverBox
+try:
+    import esys.finley
+    from esys.modellib.geometry import RectangularDomain,ScalarConstrainerOverBox
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
+
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.temperature import TemperatureAdvection
@@ -94,7 +100,8 @@ class Test_RunTemp(unittest.TestCase):
     def tearDown(self):
         import sys
         sys.stdout = self.old
-    
+
+    @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
     def test_order2(self):
         dom=RectangularDomain()
         dom.order=2

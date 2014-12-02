@@ -80,7 +80,16 @@ try:
 except ImportError:
   havepyproj=False
 
-if havepyproj:
+try:
+  import esys.ripley
+  HAVE_RIPLEY = True
+except ImportError:
+  HAVE_RIPLEY = False
+
+
+if havepyproj and HAVE_RIPLEY:
   work()
-else:
+elif HAVE_RIPLEY:
   print("This example requires the pyproj package which does not appear to be accessible.")
+else:
+  print("This example requires the ripley module, which is not available")

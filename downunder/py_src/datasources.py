@@ -34,8 +34,13 @@ from esys.escript import ReducedFunction, FunctionOnBoundary, Scalar
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
-from esys.ripley import *
 from .coordinates import ReferenceSystem,  CartesianReferenceSystem
+
+HAS_RIPLEY = True
+try:
+    from esys.ripley import *
+except ImportError as e:
+    HAS_RIPLEY = False
 
 try:
     from scipy.io.netcdf import netcdf_file
@@ -731,6 +736,8 @@ class NetCdfData(DataSource):
         return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
+        if not HAS_RIPLEY:
+            raise RuntimeError("Ripley module not available for reading")
         FS=ReducedFunction(domain)
         nValues=self.__nPts
         # determine base location of this dataset within the domain
