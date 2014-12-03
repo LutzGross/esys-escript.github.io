@@ -18,7 +18,7 @@
 
 % grab the handy definitions and \usepackage statements etc
 \input{user_defs}
-\usepackage{upquote} %used to precent LaTeX from mucking up '
+\usepackage{upquote} %used to prevent LaTeX from mucking up '
 \usepackage{graphicx, subfigure}
 
 % \newcommand{\hackscore}{_}
@@ -34,8 +34,8 @@ Brisbane, Australia \\
 %Email: \email{esys@esscc.uq.edu.au}
 }
 \date{\today}
-%\release{3.4.1}
- \release{development}
+%\release{4.0}
+\release{development}
 
 \makeindex
 
@@ -58,29 +58,31 @@ Brisbane, Australia \\
 \input{docguide}
 
 \begin{abstract}\pdfbookmark[0]{Abstract}{abstract}%
-\escript is a python-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations.
-
-
-
-It consists of five major components
+\escript is a \PYTHON-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations.
+It consists of five major components:
 \begin{itemize}
 \item \escript core library
-\item finite element solver \finley (which uses fast vendor-supplied solvers or our paso linear solver library)
+\item finite element solvers \finley, \dudley, \ripley, and \speckley (which
+    use fast vendor-supplied solvers or the included \PASO linear solver library)
 \item the meshing interface \pycad
-\item a model library.
-\item an inversion library.
+\item a model library
+\item an inversion module.
 \end{itemize}
-The current version supports parallelization through both MPI for distributed
-memory and OpenMP for shared memory.
 
-In this release there are a number of small changes which are not backwards compatible.
-Please see Appendix~\ref{app:changes} to see if your scripts will be affected.
+All \escript modules should work under both \PYTHON 2 and \PYTHON 3, see
+Appendix~\ref{app:py3}.
+The current version supports parallelization through \MPI for distributed
+memory, \OPENMP for shared memory on CPUs, as well as \CUDA for some GPU-based
+solvers.
 
-If you use this software in your research, then we would appreciate (but do not require) a citation.
+This release comes with some significant changes and new features.
+Please see Appendix~\ref{app:changes} for a detailed list.
+
+If you use this software in your research, then we would appreciate (but do not
+require) a citation.
 Some relevant references can be found in Appendix~\ref{app:ourrefs}.
-
-For Python 3 support, see Appendix~\ref{app:py3}.
 \end{abstract}
+
 \input{currentdev}
 \cleardoublepage\pdfbookmark[0]{Contents}{contents}%
 \tableofcontents
