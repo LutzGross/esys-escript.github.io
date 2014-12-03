@@ -42,7 +42,7 @@ import numpy as np #Array package.
 import os, sys #This package is necessary to handle saving our data.
 try:
     # This imports the rectangle domain function 
-    from esys.finley import MakeDomain#Converter for escript
+    from esys.finley import Rectangle
     HAVE_FINLEY = True
 except ImportError:
     print("Finley module not available")

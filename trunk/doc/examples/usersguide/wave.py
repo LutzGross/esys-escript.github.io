@@ -31,7 +31,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.pdetools import Locator
 try:
-    from esys.dudley import Rectangle
+    from esys.dudley import Brick
     HAVE_DUDLEY = True
 except ImportError:
     HAVE_DUDLEY = False
