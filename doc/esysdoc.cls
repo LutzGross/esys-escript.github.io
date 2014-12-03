@@ -116,7 +116,7 @@
 \newcommand{\program}[1]{\textbf{\texttt{#1}}\xspace}
 % \newcommand{\env}[1]{\texttt{#1}\xspace}
 \newcommand{\var}[1]{\texttt{#1}\xspace}
-\newcommand{\kbd}[1]{\texttt{#1}}
+\newcommand{\kbd}[1]{\texttt{#1}\xspace}
 \newcommand{\function}[1]{\texttt{#1}}
 \newcommand{\class}[1]{\texttt{#1}}
 \newcommand{\exception}[1]{\texttt{#1}}
