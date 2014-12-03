@@ -22,6 +22,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 __author__="Cihan Altinay"
 
+import distutils.version as duv
+
 """
 Symbolic expression evaluator for escript
 """
@@ -81,9 +83,15 @@ class Evaluator(object):
             for s in subs.keys():
                 subs_dict[s.name] = subs[s]
             self.subs(**subs_dict)
-            self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["escript","numpy"],dummify=False))
+            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
+                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["escript","numpy"]))
+            else:
+                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["escript","numpy"],dummify=False))
         else:
-            self.lambdas.append(sympy.lambdify(sym, expression, ["escript","numpy"], dummify=False))
+            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
+                self.lambdas.append(sympy.lambdify(sym, expression, ["escript","numpy"]))
+            else:
+                self.lambdas.append(sympy.lambdify(sym, expression, ["escript","numpy"], dummify=False))
         return self
 
     def subs(self, **args):
