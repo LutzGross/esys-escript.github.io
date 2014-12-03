@@ -33,15 +33,18 @@ from esys.speckley import Rectangle as sRectangle, Brick as sBrick
 HAS_RIPLEY = True
 HAS_FINLEY = True
 try:
-    from esys.escriptcore.domainCouplers import SpeckleyToRipley
-    from esys.ripley import Rectangle as rRectangle, Brick as rBrick
+    from esys.ripley import Rectangle, Brick as rRectangle, rBrick
 except ImportError as e:
     HAS_RIPLEY = False
-
+    
 try:
     from esys.finley import Rectangle as fRectangle
 except ImportError as e:
     HAS_FINLEY = False
+
+if HAS_RIPLEY:
+    from esys.escriptcore.domainCouplers import SpeckleyToRipley
+
 
 @unittest.skipIf(not HAS_RIPLEY, "Ripley domains not present")
 class Test_ripleyCoupler(unittest.TestCase):

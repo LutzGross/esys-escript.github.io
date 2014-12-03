@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -24,18 +24,27 @@ __url__="https://launchpad.net/escript-finley"
 # $Id:$
 
 from esys.escript import *
-from esys.finley import Rectangle
 from esys.weipa import saveVTK
 from esys.escript.models import StokesProblemCartesian
-NE=25
-dom = Rectangle(NE,NE,order=-1, useElementsOnFace=0)  # use macro elements for pressure
-x = dom.getX()
-sc=StokesProblemCartesian(dom)
-mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1] 
-sc.initialize(eta=.01, fixed_u_mask= mask)
-v=Vector(0.,Solution(dom))
-v[0]+=whereZero(x[1]-1.)
-p=Scalar(0.,ReducedSolution(dom))
-v,p=sc.solve(v,p, verbose=True)
-saveVTK("u.vtu",velocity=v,pressure=p)
+
+try:
+    from esys.finley import Rectangle
+    HAVE_FINLEY = True
+except ImportError as e:
+    print("Finley module required but not available")
+    HAVE_FINLEY = False
+
+if HAVE_FINLEY:
+    NE=25
+    dom = Rectangle(NE,NE,order=-1, useElementsOnFace=0)  # use macro elements for pressure
+    x = dom.getX()
+    sc=StokesProblemCartesian(dom)
+    mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1] 
+    sc.initialize(eta=.01, fixed_u_mask= mask)
+    v=Vector(0.,Solution(dom))
+    v[0]+=whereZero(x[1]-1.)
+    p=Scalar(0.,ReducedSolution(dom))
+    v,p=sc.solve(v,p, verbose=True)
+    saveVTK("u.vtu",velocity=v,pressure=p)
+
 
