@@ -1,5 +1,4 @@
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
 ##############################################################################
 #
 # Copyright (c) 2008-2014 by University of Queensland
@@ -24,13 +23,12 @@ try:
     from esys.finley import Rectangle
     HAVE_FINLEY = True
 except ImportError:
+    print("Finley module required but not available")
     HAVE_FINLEY = False
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.models import StokesProblemCartesian
 from esys.weipa import saveVTK
-if not HAVE_FINLEY:
-    print("Finley module not available")
-else:
+if HAVE_FINLEY:
     #physical constants
     eta=1.0
     rho=100.0

@@ -29,11 +29,16 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escriptcore.escriptcpp import getMPISizeWorld, MPIBarrierWorld
-from esys.ripley import Rectangle as rRectangle
-from esys.ripley import Brick as rBrick
-from esys.speckley import Rectangle as sRectangle
-from esys.speckley import Brick as sBrick
-
+try:
+    from esys.ripley import Rectangle as rRectangle
+    from esys.ripley import Brick as rBrick
+except ImportError:
+    raise ImportError("Missing required ripley module")
+try:
+    from esys.speckley import Rectangle as sRectangle
+    from esys.speckley import Brick as sBrick
+except ImportError:
+    raise ImportError("Missing required ripley module")
 class SpeckleyToRipley(object):
     """
     A class for creating and storing a matching pair of domains from speckley

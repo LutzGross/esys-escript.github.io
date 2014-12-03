@@ -34,8 +34,9 @@ from .coordinates import ReferenceSystem, CartesianReferenceSystem
 
 try:
     from esys.ripley import Rectangle, Brick
+    HAVE_RIPLEY = True
 except ImportError:
-    raise ImportError("Ripley module not available")
+    HAVE_RIPLEY = False
 
 class DomainBuilder(object):
     """
@@ -62,6 +63,9 @@ class DomainBuilder(object):
                                  Cartesian coordinate system is used.
         :type reference_system: `ReferenceSystem`
         """
+
+        if not HAVE_RIPLEY:
+            raise ImportError("Ripley module not available")
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         if dim not in (2,3):
             raise ValueError("Number of dimensions must be 2 or 3")
