@@ -43,7 +43,7 @@ except ImportError as e:
     HAVE_RIPLEY = False
 
 try:
-    from esys.finley import Rectangle as ripRectangle
+    from esys.finley import Rectangle as finRectangle
     HAVE_FINLEY = True
 except ImportError as e:
     HAVE_FINLEY = False
