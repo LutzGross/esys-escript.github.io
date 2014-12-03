@@ -17,14 +17,14 @@
 \label{EXECUTION}
 
 \section{Overview}
-A typical way of starting your {\it escript} script \file{myscript.py} is with the \program{run-escript} command\index{run-escript}\footnote{The \program{run-escript} launcher is not supported under \WINDOWS yet.}.
+A typical way of starting your {\it escript} script \file{myscript.py} is with
+the \program{run-escript} command\index{run-escript}\footnote{The
+\program{run-escript} launcher is not supported under \WINDOWS.}.
 This command was renamed from \program{escript} (used in previous releases) to
 avoid clashing with an unrelated program installed by default on some systems.
-Most 3.1 releases\footnote{i.e. not \WINDOWS or Ubuntu 9.10} of \escript allow
-either \program{run-escript} or \program{escript} to be used but the latter
-name will be removed in future releases. To run your script, issue\footnote{For
-this discussion, it is assumed that \program{run-escript} is included in
-your \env{PATH} environment. See the installation guide for details.}
+To run your script, issue\footnote{For this discussion, it is assumed that
+\program{run-escript} is included in your \env{PATH} environment. See the
+installation guide for details.}
 \begin{verbatim}
 run-escript myscript.py
 \end{verbatim}
@@ -66,9 +66,10 @@ run-escript -n 8 -p 4 myscript.py
 Since threading has some performance advantages over processes, you may
 specify a number of threads as well:
 \begin{verbatim}
-run-escript -n 8 -p 4 -t 2 myscript.py
+run-escript -n 8 -p 2 -t 4 myscript.py
 \end{verbatim}
-This runs the script on 8 nodes, with 4 processes per node and 2 threads per process.
+This runs the script on 8 nodes, with 2 processes per node and 4 threads per
+process.
 
 \section{Options}
 The general form of the \program{run-escript} launcher is as follows:
@@ -91,6 +92,7 @@ The general form of the \program{run-escript} launcher is as follows:
 \optional{\programopt{-c}}
 \optional{\programopt{-i}}
 \optional{\programopt{-b}}
+\optional{\programopt{-m \var{tool}}}
 \optional{\var{file}}
 \optional{\var{ARGS}}
 
@@ -103,8 +105,8 @@ prompt (see \programopt{-i} for restrictions).
 The options have the following meaning:
 \begin{itemize}
 \item[\programopt{-n} \var{nn}] the number of compute nodes \var{nn} to be used.
-    The total number of process being used is $\var{nn} \cdot \var{ns}$.
-    This option overwrites the value of the \env{ESCRIPT_NUM_NODES}
+    The total number of processes being used is $\var{nn} \cdot \var{np}$.
+    This option overrides the value of the \env{ESCRIPT_NUM_NODES}
     environment variable. 
     If a \var{hostfile} is given (see below), the number of nodes needs to
     match the number of hosts given in that file.
@@ -113,7 +115,7 @@ The options have the following meaning:
     If \programopt{-n} is not set the number of hosts in the host file is
     used. The default value is 1.
  
-\item[\programopt{-p} \var{np}] the number of \MPI processes per node.
+\item[\programopt{-p} \var{np}] the number of \MPI processes (per node).
     The total number of processes to be used is $\var{nn} \cdot \var{np}$.
     This option overwrites the value of the \env{ESCRIPT_NUM_PROCS}
     environment variable.
@@ -164,29 +166,33 @@ The options have the following meaning:
     The option overwrites the value of the \env{ESCRIPT_STDFILES} environment
     variable.
 
-%\item[\programopt{-x}] interpret \var{file} as an {\it esysxml}\footnote{not released yet} task.
-%    This option is still experimental.
+\item[\programopt{-x}] runs everything within a new \emph{xterm} instance.
 
 \item[\programopt{-v}] prints some diagnostic information.
+
+\item[\programopt{-m} \var{tool}] runs under \emph{valgrind}. The argument
+    \var{tool} must be one of \var{m} (for memcheck), \var{c} (for callgrind),
+    or \var{h} (for cachegrind). Valgrind output is written to a file under
+    \file{valgrind_logs} as reported when {\it escript} terminates.
 \end{itemize}
 
 \subsection{Notes}
-\begin{itemize}
- \item Make sure that \program{mpiexec} is in your \env{PATH} if applicable. 
- \item For MPICH and INTELMPI and for the case a hostfile is present 
-\program{run-escript} will start the \program{mpd} daemon before execution.
-\end{itemize}
+The \program{run-escript} script is now generated at build time taking into
+account the \var{prelaunch}, \var{launcher}, and \var{postlaunch} settings
+passed to \program{scons}. This makes it possible to easily customize the
+script for different environments, such as batch systems (PBS, SLURM) and
+different implementations of MPI (Intel, SGI, OpenMPI, etc.).
 
 \section{Input and Output}
 When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) no
 input from the standard input is accepted.
 Standard output on any process other than the master process (\var{rank}= 0)
-will also not be available.
+will be silently discarded by default.
 Error output from any processor will be redirected to the node where \program{run-escript} has been invoked.
 If the \programopt{-o} option or \env{ESCRIPT_STDFILES} is set\footnote{That is, it has a non-empty value.},
 then the standard and error output from any process other than the master
-process will be written to files of the names \file{stdout_\var{r}.out}
-and \file{stderr_\var{r}.out} (where \var{r} is the rank of the process).
+process will be written to files of the names \file{stdout_R.out}
+and \file{stderr_R.out} (where \var{R} is the rank of the process).
 
 If files are created or read by individual \MPI processes with information
 local to the process (e.g. in the \function{dump} function)  and more than one

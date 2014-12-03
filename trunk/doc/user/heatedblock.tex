@@ -86,7 +86,7 @@ The characteristic function $q$ defining the locations and components where cons
 q_{i}(x)=\left\{
 \begin{array}{cl}
 1 & x_{i}=0\\
-0 & \mbox{otherwise}\\
+0 & \mbox{otherwise.}\\
 \end{array}
 \right.
 \end{equation}
@@ -95,7 +95,7 @@ are constant we may use $Y_{i}=(\lambda+\frac{2}{3} \mu) \; \alpha \; T_{i}$.
 However, this choice would lead to a different natural boundary condition
 which does not set the normal stress component as defined in \eqn{HEATEDBLOCK linear elastic} to zero.
 
-Analogously to the concept of symmetry for a single PDE, we call the PDE
+Analogous to the concept of symmetry for a single PDE, we call the PDE
 defined by \eqn{LINEARPDE.SYSTEM.1 TUTORIAL} symmetric\index{symmetric PDE} if
 \begin{eqnarray}\label{LINEARPDE.SYSTEM.SYMMETRY TUTORIAL}
 A_{ijkl} =A_{klij} \\
@@ -104,7 +104,7 @@ This Lam\'e equation is in fact symmetric, given the difference in $D$ and $d$ a
 The \LinearPDE class is notified of this fact by calling its \method{setSymmetryOn} method.
 
 After we have solved the Lam\'e equation we want to analyse the actual stress distribution.
-Typically the von-Mises stress\index{von-Mises stress} defined by
+Typically the \emph{von-Mises} stress\index{von-Mises stress} defined by
 \begin{equation}
 \sigma_{mises} = \sqrt{
 \frac{1}{2} ((\sigma_{00}-\sigma_{11})^2
@@ -172,7 +172,7 @@ the \VTK file format\index{scripts!\file{diffusion.py}}:
 
 \noindent Finally, the results can be visualized by calling
 \begin{verbatim}
-mayavi2 -d deform.vtu -f CellToPointData -m VelocityVector -m SurfaceMap
+mayavi2 -d deform.vtu -f CellToPointData -m Vectors -m Surface
 \end{verbatim}
 Note that the filter \text{CellToPointData} is applied to create a smoother
 representation of the von-Mises stress.

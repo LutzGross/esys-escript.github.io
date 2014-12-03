@@ -16,18 +16,18 @@
 \section{The Diffusion Problem}
 \label{DIFFUSION CHAP}
 
+\subsection{\label{DIFFUSION OUT SEC}Outline}
+In this section we will discuss how to solve a time-dependent temperature
+diffusion\index{diffusion equation} PDE for a given block of material.
+Within the block there is a heat source which drives the temperature diffusion.
+On the surface, energy can radiate into the surrounding environment.
+\fig{DIFFUSION FIG 1} shows the configuration.
+
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{DiffusionDomain}}
 \caption{Temperature Diffusion Problem with Circular Heat Source}
 \label{DIFFUSION FIG 1}
 \end{figure}
-
-\subsection{\label{DIFFUSION OUT SEC}Outline}
-In this chapter we will discuss how to solve a time-dependent temperature
-diffusion\index{diffusion equation} PDE for a given block of material.
-Within the block there is a heat source which drives the temperature diffusion.
-On the surface, energy can radiate into the surrounding environment.
-\fig{DIFFUSION FIG 1} shows the configuration.
 
 In the next \Sec{DIFFUSION TEMP SEC} we will present the relevant model.
 A time integration scheme is introduced to calculate the temperature at given time nodes $t^{(n)}$.
@@ -142,14 +142,14 @@ are considered on $\Gamma$:
 \begin{equation}\label{LINEARPDE.SINGLE.2 TUTORIAL}
 n_{j}A_{jl} u_{,l}+d u= y  \;.
 \end{equation}
-Notice that the coefficient $A$ is the same like in the PDE~\eqn{LINEARPDE.SINGLE.1 TUTORIAL}.
+Notice that the coefficient $A$ is the same as in the PDE~\eqn{LINEARPDE.SINGLE.1 TUTORIAL}.
 The coefficients $d$ and $y$ are each a \Scalar in the \FunctionOnBoundary.
 Constraints\index{constraint} for the solution prescribe the value of the
 solution at certain locations in the domain. They have the form
 \begin{equation}\label{LINEARPDE.SINGLE.3 TUTORIAL}
 u=r \mbox{ where } q>0
 \end{equation}
-$r$ and $q$ are each \Scalar where $q$ is the characteristic function\index{characteristic function} defining where the constraint is applied.
+Both $r$ and $q$ are a \Scalar where $q$ is the characteristic function\index{characteristic function} defining where the constraint is applied.
 The constraints defined by \eqn{LINEARPDE.SINGLE.3 TUTORIAL} override any
 other condition set by \eqn{LINEARPDE.SINGLE.1 TUTORIAL} or \eqn{LINEARPDE.SINGLE.2 TUTORIAL}.
 The \Poisson class of the \linearPDEs module, which we have already used in
@@ -193,8 +193,8 @@ The \method{getSolution} method solves the PDE and returns the solution
 \code{u} of the PDE. \function{kronecker} is an \escript function returning
 the Kronecker symbol.
 
-The coefficients can set by several calls to \method{setValue} where the order
-can be chosen arbitrarily. 
+The coefficients can be set by several calls to \method{setValue} in arbitrary
+order. 
 If a value is assigned to a coefficient several times, the last assigned value
 is used when the solution is calculated:
 \begin{python}
@@ -268,7 +268,7 @@ the \finley PDE solver:
 \end{python}
 To visualize the solution `x0.vtu' you can use the command
 \begin{verbatim}
-mayavi -d x0.vtu -m SurfaceMap
+mayavi -d x0.vtu -m Surface
 \end{verbatim}
 and it is easy to see that the solution $T=x_{0}$ is calculated.
  
@@ -283,7 +283,8 @@ one might expect that the error would be zero or in the order of machine
 precision (typically $\approx 10^{-15}$).
 However most PDE packages use an iterative solver which is terminated when a
 given tolerance has been reached. The default tolerance is $10^{-8}$.
-This value can be altered by using the \method{setTolerance} of the \LinearPDE class.
+This value can be altered by using the \method{setTolerance} method of the
+\LinearPDE class.
 
 \subsection{The Transition Problem}
 \label{DIFFUSION TRANS SEC}
@@ -396,13 +397,14 @@ The files contain the temperature distributions at time steps $1, 2, i,
 \centerline{\includegraphics[width=\figwidth]{DiffusionRes16}}
 \centerline{\includegraphics[width=\figwidth]{DiffusionRes32}}
 \centerline{\includegraphics[width=\figwidth]{DiffusionRes48}}
-\caption{Results of the Temperature Diffusion Problem for Time Steps 1, 16, 32 and 48}
+\caption{Results of the Temperature Diffusion Problem for Time Steps 1, 16, 32
+         and 48 (top to bottom)}
 \label{DIFFUSION FIG 2}
 \end{figure}
 \fig{DIFFUSION FIG 2} shows the result for some selected time steps.
 An easy way to visualize the results is the command
 \begin{verbatim}
-mayavi -d T.1.vtu -m SurfaceMap
+mayavi -d T.1.vtu -m Surface
 \end{verbatim}
 Use the \emph{Configure Data} window in mayavi to move forward and backward in time.
 

@@ -126,7 +126,7 @@ q_{i}(x) =
 \left\{
 \begin{array}{l l}
     1 & \quad \text{where $\|x-x_c\|\le R$}\\
-    0 & \quad \text{otherwise}
+    0 & \quad \text{otherwise.}
 \end{array}
 \right.
 \end{equation}
@@ -208,7 +208,7 @@ The statement
 \begin{python}
   mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING) 
 \end{python}
-switches on the use of an aggressive approximation of the PDE operator as a
+enables the use of an aggressive approximation of the PDE operator as a
 diagonal matrix formed from the coefficient \var{D}.
 The approximation allows, at the cost of additional error, very fast solution
 of the PDE, see also Section~\ref{LUMPING}.
@@ -326,7 +326,7 @@ everywhere in the domain.
 The script is available as \file{wave.py} in the \ExampleDirectory\index{scripts!\file{wave.py}}. 
 To visualize the results from the data directory:
 \begin{verbatim} 
-mayavi2 -d usoln.1.vtu -m SurfaceMap
+mayavi2 -d usoln.1.vtu -m Surface
 \end{verbatim}
 You can rotate this figure by clicking on it with the mouse and moving it around.
 Again use \emph{Configure Data} to move backward and forward in time, and
@@ -343,7 +343,7 @@ using \emph{Select Scalar}.
 It remains to show some possibilities to inspect the collected data
 \var{u_pc0}, \var{u_pc1} and \var{u_pc2}.
 One way is to write the data to a file and then use an external package such
-as \gnuplot, Excel or OpenOffice.org Calc to read the data for further analysis.
+as \gnuplot, LibreOffice Calc or Excel to read the data for further analysis.
 The following code shows one possible way to write the data to the file \file{./data/U_pc.csv}:
 \begin{python}
   u_pc_data=FileWriter('./data/U_pc.csv')
@@ -394,6 +394,6 @@ Both options for processing the point source data are included in the example
 file \file{wave.py}. There are other options available to process these data
 in particular through the \SCIPY package, e.g. Fourier transformations.
 It is beyond the scope of this user's guide to document the usage of
-\SCIPY for time series analysis but it is highly recommended that users use
-\SCIPY for any further data processing.
+\SCIPY for time series analysis but it is highly recommended to look in
+relevant readily available documentation.
 
