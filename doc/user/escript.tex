@@ -21,7 +21,7 @@ a function at points in a \Domain in such a way that the function will
 be useful for the Finite Element Method (FEM) simulation. It also
 provides what we call a function space that describes how the data is
 used in the simulation. Stored along with the data is information
-about the elements and nodes which will be used by \finley.
+about the elements and nodes which will be used by the domain (e.g. \finley).
 
 \subsection{Function spaces}
 In order to understand what we mean by the term 'function space',
@@ -54,8 +54,8 @@ The following generators for function spaces on a \Domain \var{mydomain} are com
 \item \var{ContinuousFunction(mydomain)}: continuous functions, e.g. a temperature distribution
 \item \var{Function(mydomain)}: general functions which are not necessarily continuous, e.g. a stress field
 \item \var{FunctionOnBoundary(mydomain)}: functions on the boundary of the domain, e.g. a surface pressure
-\item \var{FunctionOnContact0(mydomain)}: functions on side $0$ of the discontinuity
-\item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of the discontinuity
+\item \var{FunctionOnContact0(mydomain)}: functions on side $0$ of a discontinuity
+\item \var{FunctionOnContact1(mydomain)}: functions on side $1$ of a discontinuity
 \end{itemize}
 In some cases under-integration is used. For these cases the user may use a
 \FunctionSpace from the following list:
@@ -135,7 +135,7 @@ The \Shape of a \Data object is a tuple (list) \var{s} of integers.
 The length of \var{s} is the rank of the \Data object and the \var{i}-th
 index ranges between 0 and $\var{s[i]}-1$.
 For instance, a stress field has rank 2 and \Shape $(d,d)$ where $d$ is the
-spatial dimension.
+number of spatial dimensions.
 The following statement creates the \Data object \var{mydat} representing a
 continuous function with values of \Shape $(2,3)$ and rank $2$:
 \begin{python}
@@ -160,11 +160,12 @@ In the second case, the creator converts the initial value, which is a list of
 lists, into a \numpyNDA before creating the actual \Data object.
 
 For convenience \escript provides creators for the most common types
-of \Data objects in the following forms (\var{d} defines the spatial dimension):
+of \Data objects in the following forms (\var{d} defines the spatial
+dimensionality):
 \begin{itemize}
 \item \code{Scalar(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(,))}\\
     (each value is a scalar), e.g. a temperature field
-\item \code{Vector(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(d))}\\
+\item \code{Vector(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(d,))}\\
     (each value is a vector), e.g. a velocity field
 \item \code{Tensor(0, Function(mydomain))} equals \code{Data(0, Function(myDomain), (d,d))},
     e.g. a stress field
@@ -181,7 +182,7 @@ log), and they can be combined point-wise by applying arithmetic operations
 We emphasize that \escript itself does not handle any spatial dependencies as
 it does not know how values are interpreted by the processing PDE solver library.
 However \escript invokes interpolation if this is needed during data manipulations.
-Typically, this occurs in binary operations when both arguments belong to
+Typically, this occurs in binary operations when the arguments belong to
 different function spaces or when data are handed over to a PDE solver library
 which requires functions to be represented in a particular way.
 
@@ -203,9 +204,9 @@ as arguments and returns the corresponding stress:
     stress=lam*trace(g)*kronecker(d)+mu*(g+transpose(g))
     return stress
 \end{python}
-The variable \var{d} gives the spatial dimension of the domain on which the
-displacements are defined.
-\var{kronecker} returns the Kronecker symbol with indexes $i$ and $j$ running
+The variable \var{d} gives the spatial dimensionality of the domain on which
+the displacements are defined.
+\var{kronecker} returns the Kronecker symbol with indices $i$ and $j$ running
 from 0 to \var{d}-1.
 The call \var{grad(u)} requires the displacement field \var{u} to be in
 the \var{Solution} or \ContinuousFunction.
@@ -326,23 +327,24 @@ to generate \var{mydomain} to recreate it. However, in most cases using
 been applied.
 If \escript is running on more than one \MPI process \member{dump} will create
 an individual file for each process containing the local data.
-In order to avoid conflicts the file names are extended by the \MPI processor
-rank, that is instead of one file \file{dom.nc} you would get
-\file{dom.nc.0000}, \file{dom.nc.0001}, etc. You still call
-\code{LoadMesh("dom.nc")} to load the domain but you have to make sure that
-the appropriate file is accessible from the corresponding rank, and loading
-will only succeed if you run with as many processes as were used when calling
-\member{dump}.
+In order to avoid conflicts the \MPI processor
+rank is appended to the file names.
+That is instead of one file \file{dom.nc} you would get
+\file{dom.nc.0000}, \file{dom.nc.0001}, etc.
+You still call \code{LoadMesh("dom.nc")} to load the domain but you have to
+make sure that the appropriate file is accessible from the corresponding rank,
+and loading will only succeed if you run with as many processes as were used
+when calling \member{dump}.
 
 The function space of the \Data is stored in \file{x.nc}.
 If the \Data object is expanded, the number of data points in the file and of
 the \Domain for the particular \FunctionSpace must match.
 Moreover, the ordering of the values is checked using the reference
-identifiers provided by \FunctionSpace on the \Domain.
+identifiers provided by the \FunctionSpace on the \Domain.
 In some cases, data points will be reordered so be aware and confirm that you
 get what you wanted.
 
-A newer, more flexible way of saving and restoring \escript simulation data
+A more flexible way of saving and restoring \escript simulation data
 is through an instance of the \class{DataManager} class.
 It has the advantage of allowing to save and load not only a \Domain and
 \Data objects but also other values\footnote{The \PYTHON \emph{pickle} module
@@ -352,7 +354,7 @@ visualization so no extra calls to \code{saveVTK} etc. are needed.
 
 The following example shows how the \class{DataManager} class can be used.
 For an explanation of all member functions and options see the class reference
-section \ref{sec:datamanager}.
+Section \ref{sec:datamanager}.
 \begin{python}
   from esys.escript import DataManager, Scalar, Function
   from esys.finley import Rectangle
@@ -399,7 +401,7 @@ In this example, this call dumps \var{mydomain} and \var{val} to files
 in a restart directory and also stores \var{t} and \var{t_max} on disk.
 Additionally, it generates a \VTK file for visualization of the data.
 If the script would stop running before its completion for some reason (e.g.
-because its runtime limit was exceeded in a multiuser environment), you could
+because its runtime limit was exceeded in a batch job environment), you could
 simply run it again and it would resume at the point it stopped before.
 
 \section{\escript Classes}
@@ -414,7 +416,7 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
 
 \vspace{1em}\noindent The following methods are available:
 \begin{methoddesc}[Domain]{getDim}{}
-    returns the spatial dimension of the \Domain.
+    returns the number of spatial dimensions of the \Domain.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{dump}{filename}
@@ -424,14 +426,15 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
 \begin{methoddesc}[Domain]{getX}{}
     returns the locations in the \Domain. The \FunctionSpace of the returned
     \Data object is chosen by the \Domain implementation. Typically it will be
-    in the \Function.
+    in the \ContinuousFunction.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{setX}{newX}
     assigns new locations to the \Domain. \var{newX} has to have \Shape $(d,)$
-    where $d$ is the spatial dimension of the domain. Typically \var{newX}
+    where $d$ is the spatial dimensionality of the domain. Typically \var{newX}
     must be in the \ContinuousFunction but the space actually to be used
-    depends on the \Domain implementation.
+    depends on the \Domain implementation. Not all domain families support
+    setting locations.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{getNormal}{}
@@ -470,24 +473,24 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{onMasterProcessor}{}
-    returns \True if the processor is the master processor within the \MPI
-    processor group used by the \Domain. This is the processor with rank 0.
+    returns \True if the process is the master process within the \MPI
+    process group used by the \Domain. This is the process with rank 0.
     If \MPI support is not enabled the return value is always \True.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{getMPISize}{}
-    returns the number of \MPI processors used for this \Domain. If \MPI
+    returns the number of \MPI processes used for this \Domain. If \MPI
     support is not enabled 1 is returned.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{getMPIRank}{}
-    returns the rank of the processor executing the statement within the
-    \MPI processor group used by the \Domain. If \MPI support is not enabled
+    returns the rank of the process executing the statement within the
+    \MPI process group used by the \Domain. If \MPI support is not enabled
     0 is returned.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{MPIBarrier}{}
-    executes barrier synchronization within the \MPI processor group used by
+    executes barrier synchronization within the \MPI process group used by
     the \Domain. If \MPI support is not enabled, this command does nothing.
 \end{methoddesc}
 
@@ -502,7 +505,7 @@ A \Data object in a particular \FunctionSpace is represented by its values at
 \vspace{1em}\noindent The following methods are available:
 %
 \begin{methoddesc}[FunctionSpace]{getDim}{}
-    returns the spatial dimension of the \Domain of the \FunctionSpace.
+    returns the spatial dimensionality of the \Domain of the \FunctionSpace.
 \end{methoddesc}
 %
 \begin{methoddesc}[FunctionSpace]{getX}{}
@@ -744,10 +747,12 @@ which was created by \function{dump}.
 \end{funcdesc}
 
 \subsection{Generating random \Data objects}
-A \Data object filled with random values can be produced using the \function{RandomData}
-function.
-By default values are drawn uniformly at random from the interval $[0,1]$ (ie includes end points).
-You will need to supply a shape for the data points and a \FunctionSpace for the new \Data.
+A \Data object filled with random values can be produced using the
+\function{RandomData} function.
+By default values are drawn uniformly at random from the interval $[0,1]$ (i.e.
+including end points).
+The function takes a shape for the data points and a \FunctionSpace for the new
+\Data as arguments.
 For example:
 \begin{python}
 from esys.finley import *
@@ -757,7 +762,8 @@ domain=Rectangle(11,11)
 fs=ContinuousFunction(domain)
 d=RandomData((), fs)
 \end{python}
-would result in \var{d} being filled with scalar random data [\texttt{()} being an empty tuple].
+would result in \var{d} being filled with scalar random data since \texttt{()}
+is an empty tuple.
 
 \begin{python}
 from esys.finley import *
@@ -767,11 +773,12 @@ domain=Rectangle(11,11)
 fs=ContinuousFunction(domain)
 d=RandomData((2,2), fs)
 \end{python}
-would give \var{d} the same number of datapoints, but each point would be a $2\times 2$ matrix instead of
-a scalar.
+would give \var{d} the same number of data points, but each point would be a
+$2\times 2$ matrix instead of a scalar.
 
-By default, the seed used to generate the random values will be different each time.
-If necessary though, you can specify a seed to ensure the same sequence is produced.
+By default, the seed used to generate the random values will be different each
+time.
+If required, you can specify a seed to ensure the same sequence is produced.
 \begin{python}
 from esys.dudley import *
 from esys.escript import *
@@ -782,9 +789,11 @@ fs=Function(domain)
 d=RandomData((2,2), fs, seed)
 \end{python}
 
-The \var{seed} can be any integer value\footnote{which can be converted to a c++ long} but 0 is special.
-A seed of zero will cause escript to use a different seed each time. Also, note that the mechanism used
-to produce the random values could be different in different releases.
+The \var{seed} can be any integer value\footnote{which can be converted to a
+C++ long} but 0 is special.
+A seed of zero will cause \escript to use a different seed each time.
+Also, note that the mechanism used to produce the random values could be
+different in different releases.
 
 \noindent\textbf{Note for MPI users:}
 \textsl{
@@ -794,43 +803,52 @@ If you change the number of ranks, you will get different values for the same se
 }
 
 \subsubsection{Smoothed randoms}
-The \class{Ripley} domains support generating random scalars which are smoothed using gaussian blur.
-To use this, you need to supply the radius of the filter kernel (in elements) and the \var{sigma} value used in the filter.
+The \ripley domains (see Chapter \ref{chap:ripley}) support generating random
+scalars which are smoothed using Gaussian blur.
+To use this, you need to supply the radius of the filter kernel (in elements)
+and the \var{sigma} value used in the filter.
 For example:
 \begin{python}
 from esys.ripley import *
 from esys.escript import *
 
 fs=ContinuousFunction(Rectangle(11,11, d1=2,d0=2))
-d=RandomData((), fs, 0, ('gaussian',1,0.5))
+d=RandomData((), fs, 0, ('gaussian', 1, 0.5))
 \end{python}
-will use a filter that uses the immediate neighbours of each point with a sigma value of $0.5$.
-The random values will be different each time this code is executed due to the seed of $0$.
+will use a filter that uses the immediate neighbours of each point with a sigma
+value of $0.5$.
+The random values will be different each time this code is executed due to the
+seed of $0$.
 
-Ripley's gaussian smoothing has the following requirements.
+Ripley's Gaussian smoothing has the following requirements:
 \begin{enumerate}
- \item If MPI is in use, then each rank must have at least $5$ elements in it \emph{in each dimension}.
-   This value increases as the radius of the blur increases.
- \item The data being generated must be scalar. (You can generate random data objects for Ripley domains
- with whatever shape you require, you just can't smooth them unless that shape is scalar).
+    \item If \MPI is in use, then each rank must have at least $5$ elements in
+          it \emph{in each dimension}. This value increases as the radius of
+          the blur increases.
+    \item The data being generated must be scalar. (You can generate random
+          data objects for \ripley domains with whatever shape you require, you
+          just can't smooth them unless that shape is scalar).
 \end{enumerate}
-An exception will be raised if either of these requirements are not met. 
+An exception will be raised if either of these requirements is not met. 
 
-The components of the matrix used in the kernal for the 2D case are defined\cite{gaussfilter} by:
+The components of the matrix used in the kernal for the 2D case are
+defined\cite{gaussfilter} by:
 
 \[ G(x,y) = \frac{1}{2\pi\sigma^2} e^{-\frac{x^2+y^2}{2\sigma^2}} \]
 
-For the 3D case, we use:
+\noindent For the 3D case, we use:
 
 \[ G(x,y) = \frac{1}{(\sqrt{2\pi\sigma^2})^3} e^{-\frac{x^2+y^2+z^2}{2\sigma^2}} \]
 
 All distances ($x$,$y$,$z$) refer to the number of points from the centre point. 
-Eg. the closest neighbours have at least one distance of $1$, the next ``ring'' of neighbours have at least one $2$ and so on.
+That is, the closest neighbours have at least one distance of $1$, the next
+``ring'' of neighbours have at least one $2$ and so on.
 The matrix is normalised before use.
 
 \subsection{\Data methods}
 These are the most frequently used methods of the \Data class.
-A complete list of methods can be found on \ReferenceGuide.
+A complete list of methods can be found in the reference guide,
+see \ReferenceGuide.
 
 \begin{methoddesc}[Data]{getFunctionSpace}{}
 returns the \FunctionSpace of the object.
@@ -880,32 +898,8 @@ This section lists the most important functions for \Data class objects.
 A complete list and a more detailed description of the functionality can be
 found on \ReferenceGuide.
 
-\begin{funcdesc}{saveVTK}{filename, **kwdata}
-writes \Data defined by keywords to the file \var{filename} using the \VTK
-file format. The keyword is used as an identifier. The statement
-\begin{python}
-        saveVTK("out.vtu", temperature=T, velocity=v)
-\end{python}
-writes the scalar \var{T} as \var{temperature} and the vector \var{v} as
-\var{velocity} into the file \file{out.vtu}.
-Restrictions on the allowed combinations of \FunctionSpace apply.
-This method is deprecated and will be removed in a future version of escript.
-Use the weipa module instead!
-\end{funcdesc}
-
-\begin{funcdesc}{saveDX}{filename, **kwdata}
-writes \Data defined by keywords to the file \var{filename} using the \OpenDX
-file format. The keyword is used as an identifier. The statement
-\begin{python}
-        saveDX("out.dx", temperature=T, velocity=v)
-\end{python}
-writes the scalar \var{T} as \var{temperature} and the vector \var{v} as
-\var{velocity} into the file \file{out.dx}.
-Restrictions on the allowed combinations of \FunctionSpace apply.
-\end{funcdesc}
-
 \begin{funcdesc}{kronecker}{d}
-returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
+returns a \RankTwo in \FunctionSpace \var{d} such that
 \begin{equation}
 \code{kronecker(d)}\left[ i,j\right] = \left\{
 \begin{array}{l l}
@@ -919,20 +913,10 @@ If \var{d} is an integer a $(d,d)$ \numpy array is returned.
 
 \begin{funcdesc}{identityTensor}{d}
 is a synonym for \code{kronecker} (see above).
-% returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
-% \begin{equation}
-% \code{identityTensor(d)}\left[ i,j\right] = \left\{
-% \begin{array}{cc}
-% 1 & \mbox{ if } i=j \\
-% 0 & \mbox{ otherwise }
-% \end{array}
-% \right.
-% \end{equation}
-% If \var{d} is an integer a $(d,d)$ \numpy array is returned.
 \end{funcdesc}
 
 \begin{funcdesc}{identityTensor4}{d}
-returns a \RankFour \Data object in \FunctionSpace \var{d} such that
+returns a \RankFour in \FunctionSpace \var{d} such that
 \begin{equation}
 \code{identityTensor(d)}\left[ i,j,k,l\right] = \left\{
 \begin{array}{l l}
@@ -945,7 +929,7 @@ If \var{d} is an integer a $(d,d,d,d)$ \numpy array is returned.
 \end{funcdesc}
 
 \begin{funcdesc}{unitVector}{i,d}
-returns a \RankOne \Data object in \FunctionSpace \var{d} such that
+returns a \RankOne in \FunctionSpace \var{d} such that
 \begin{equation}
 \code{identityTensor(d)}\left[ j \right] = \left\{
 \begin{array}{l l}
@@ -1423,7 +1407,8 @@ For example, for $x=0$:
 print(result2*whereZero(x[0])) 
 \end{python}
 
-Now a 3D. Note that the parameter tuples should be $(x,y,z)$ but that in the interpolation table, $x$ is the innermost dimension.
+Finally let us look at a 3D example. Note that the parameter tuples should be
+$(x,y,z)$ but that in the interpolation table, $x$ is the innermost dimension.
 \begin{python}
 b=Brick(n,n,n)
 x3=b.getX()
@@ -1502,6 +1487,14 @@ A similar call to \texttt{nonuniformSlope} would produce a \Data object containi
 
 \subsection{The \var{DataManager} Class}
 \label{sec:datamanager}
+
+The \var{DataManager} class can be used to conveniently add checkpoint/restart
+functionality to \escript simulations.
+Once an instance is created \Data objects and other values can be added and
+dumped to disk by a single method call.
+If required the object can be set up to also save the data in a format suitable
+for visualization.
+Internally the \var{DataManager} interfaces with \weipa for this.
 
 \begin{classdesc}{DataManager}{formats=[RESTART], work_dir=".", restart_prefix="restart", do_restart=\True}
     initializes a new \var{DataManager} object which can be used to save,
@@ -1686,21 +1679,22 @@ creates an empty \Operator object.
 returns \True is the object is empty, \False otherwise.
 \end{methoddesc}
 
-\begin{methoddesc}[Operator]{setValue}{value}
-resets all entries in the object representation to \var{value}.
+\begin{methoddesc}[Operator]{resetValues}{}
+resets all entries in the operator.
 \end{methoddesc}
 
-\begin{methoddesc}[Operator]{solves}{rhs}
-solves the operator equation with right hand side \var{rhs}.
+\begin{methoddesc}[Operator]{solve}{rhs}
+    returns the solution \var{u} of: operator * \var{u} = \var{rhs}.
 \end{methoddesc}
 
 \begin{methoddesc}[Operator]{of}{u}
-applies the operator to the \Data object \var{u}.
+applies the operator to the \Data object \var{u}, i.e. performs a matrix-vector
+multiplication.
 \end{methoddesc}
 
 \begin{methoddesc}[Operator]{saveMM}{fileName}\index{Matrix Market}
 saves the object to a Matrix Market format file with name \var{fileName}, see
-\url{http://maths.nist.gov/MatrixMarket}
+\url{http://math.nist.gov/MatrixMarket}
 \end{methoddesc}
 
 \section{Physical Units}
@@ -1943,7 +1937,7 @@ data are appended at the end of the file.
 If running under \MPI, only the first processor (rank==0) will open the file
 and write to it.
 If \var{createLocalFiles} is set each individual processor will create a file
-where for any processor with rank>0 the file name is extended by its rank.
+where for any processor with rank $> 0$ the file name is extended by its rank.
 This option is normally used for debugging purposes only.
 \end{classdesc}
 
@@ -1975,37 +1969,43 @@ holds the file name.
 holds the line separator.
 \end{memberdesc}
 
+\noindent The following additional functions are available in the \escript
+module:
 \begin{funcdesc}{setEscriptParamInt}{name,value}
-assigns the integer value \var{value} to the parameter \var{name}.
-If \var{name}="TOO_MANY_LINES" conversion of any \Data object to a string
-switches to a condensed format if more than \var{value} lines would be created.
+assigns the integer value \var{value} to the internal Escript parameter
+\var{name}. This should be considered an advanced feature and it is generally
+not required to call this function. One parameter worth mentioning is
+\var{name}="TOO_MANY_LINES" which affects the conversion of \Data objects to a
+string. If more than \var{value} lines would be created, a condensed format is
+used instead which reports the minimum and maximum values and general
+information about the \Data object rather than all values.
 \end{funcdesc}
 
 \begin{funcdesc}{getEscriptParamInt}{name}
-returns the current value of integer parameter \var{name}.
+returns the current value of internal Escript parameter \var{name}.
 \end{funcdesc}
 
 \begin{funcdesc}{listEscriptParams}{a}
-returns a list of valid parameters and their description.
+returns a list of valid Escript parameters and their description.
 \end{funcdesc}
 
 \begin{funcdesc}{getMPISizeWorld}{}
-returns the number of \MPI processors in use in the \env{MPI_COMM_WORLD} processor group.
-If \MPI is not used 1 is returned.
+returns the number of \MPI processes in use in the \env{MPI_COMM_WORLD}
+process group. If \MPI is not used 1 is returned.
 \end{funcdesc}
 
 \begin{funcdesc}{getMPIRankWorld}{}
 returns the rank of the current process within the \env{MPI_COMM_WORLD}
-processor group. If \MPI is not used 0 is returned.
+process group. If \MPI is not used 0 is returned.
 \end{funcdesc}
 
 \begin{funcdesc}{MPIBarrierWorld}{}
-performs a barrier synchronization across all processors within the
-\env{MPI_COMM_WORLD} processor group.
+performs a barrier synchronization across all processes within the
+\env{MPI_COMM_WORLD} process group.
 \end{funcdesc}
 
 \begin{funcdesc}{getMPIWorldMax}{a}
-returns the maximum value of the integer \var{a} across all processors within
+returns the maximum value of the integer \var{a} across all processes within
 \env{MPI_COMM_WORLD}.
 \end{funcdesc}
 
