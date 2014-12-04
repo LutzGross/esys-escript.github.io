@@ -30,7 +30,7 @@ namespace esysUtils {
 class FileWriter
 {
 public:
-    FileWriter() : mpiRank(0), mpiSize(1) {}
+    FileWriter() : mpiSize(1) {}
 
 #ifdef ESYS_MPI
     FileWriter(MPI_Comm comm) : mpiComm(comm)
@@ -169,11 +169,11 @@ public:
     }
 
 private:
-    int mpiRank, mpiSize;
+    int mpiSize;
 #ifdef ESYS_MPI
+    int mpiRank;
     MPI_Comm mpiComm;
     MPI_File fileHandle;
-#else
     void* mpiComm;
 #endif
     std::ofstream ofs;

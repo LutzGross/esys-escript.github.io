@@ -38,7 +38,7 @@ namespace finley {
 Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, int reduced_order,
                  bool optimize)
 {
-    int numNodes, numDim, numEle, i0, i1;
+    int numNodes, numDim=0, numEle, i0, i1;
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
     char name[LenString_MAX],element_type[LenString_MAX],frm[20];
     char error_msg[LenErrorMsg_MAX];

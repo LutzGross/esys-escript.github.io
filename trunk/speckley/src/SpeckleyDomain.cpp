@@ -591,8 +591,7 @@ void SpeckleyDomain::Print_Mesh_Info(bool full) const
     }
 }
 
-int SpeckleyDomain::getSystemMatrixTypeId(int solver, int preconditioner,
-                                        int package, bool symmetry) const
+int SpeckleyDomain::getSystemMatrixTypeId(const boost::python::object& options) const
 {
 	throw SpeckleyException("System matrices not supported by Speckley");
 }

@@ -54,7 +54,7 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     }
 }
 
-const int PARAMTAG=120567;	// arbitrary value
+//const int PARAMTAG=120567;	// arbitrary value
 }
 
 bool AbstractReducer::hasValue()

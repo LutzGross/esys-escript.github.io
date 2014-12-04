@@ -476,8 +476,7 @@ public:
        \param package
        \param symmetry
     */
-    virtual int getSystemMatrixTypeId(int solver, int preconditioner,
-                                      int package, bool symmetry) const;
+    virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
     /**
        \brief
