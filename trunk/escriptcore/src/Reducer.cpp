@@ -54,7 +54,9 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     }
 }
 
-//const int PARAMTAG=120567;	// arbitrary value
+#ifdef ESYS_MPI
+const int PARAMTAG=120567;	// arbitrary value
+#endif
 }
 
 bool AbstractReducer::hasValue()
