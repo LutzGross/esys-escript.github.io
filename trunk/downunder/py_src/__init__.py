@@ -35,6 +35,7 @@ from .regularizations import *
 from .coordinates import *
 from .seismic import *
 from .domaingeneratordcresistivity import *
+from .dcresistivityforwardmodeling import *
 
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
