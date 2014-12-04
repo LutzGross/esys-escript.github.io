@@ -177,7 +177,7 @@ differential equations within \escript. The module \linearPDEs does not
 provide any solver capabilities in itself but hands the PDE over to the PDE
 solver library defined through the \Domain of the PDE, e.g. \finley.
 The general interface is provided through the \LinearPDE class. The \Poisson
-class which is also derived form the \LinearPDE class should be used to define
+class which is also derived form the \LinearPDE class can be used to define
 the Poisson equation\index{Poisson}.
 
 \subsection{\LinearPDE class}
@@ -255,7 +255,7 @@ returns the \Domain of the PDE.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getDim}{}
-returns the spatial dimension of the PDE.
+returns the number of spatial dimensions of the PDE.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getNumEquations}{}
@@ -283,7 +283,8 @@ returns \True if the PDE has been indicated to be symmetric, \False otherwise.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setSymmetryOn}{}
-indicates that the PDE is symmetric.
+indicates that the PDE is symmetric which enables the use of certain solvers
+and can potentially speed up the solver.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{setSymmetryOff}{}
@@ -306,12 +307,10 @@ returns the \Operator of the PDE.
 
 \begin{methoddesc}[LinearPDE]{getRightHandSide}{}
 returns the right hand side of the PDE as a \Data object.
-If \var{ignoreConstraint=True}, then the constraints are not considered when
-building up the right hand side.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getSystem}{}
-returns the \Operator and right hand side of the PDE.
+returns the \Operator and right hand side of the PDE as a tuple.
 \end{methoddesc}
 
 \begin{methoddesc}[LinearPDE]{getSolution}{}
@@ -496,30 +495,30 @@ returns a string reporting the current settings.
 returns the name as a string of a given key.
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setSolverMethod}{\optional{method=SolverOptions.DEFAULT}}
+\begin{methoddesc}[SolverOptions]{setSolverMethod}{method}
 sets the solver method to be used.
 Use \var{method}=\member{SolverOptions.DIRECT} to indicate that a direct
 rather than an iterative solver should be used and use
 \var{method}=\member{SolverOptions.ITERATIVE} to indicate that an iterative
 rather than a direct solver should be used.
 The value of \var{method} must be one of the constants:\\
- \member{SolverOptions.DEFAULT}\\
- \member{SolverOptions.DIRECT}\\
- \member{SolverOptions.CHOLEVSKY}\\
- \member{SolverOptions.PCG}\\
- \member{SolverOptions.CR}\\
- \member{SolverOptions.CGS}\\
- \member{SolverOptions.BICGSTAB}\\
- \member{SolverOptions.SSOR}\\
- \member{SolverOptions.GMRES}\\
- \member{SolverOptions.PRES20}\\
- \member{SolverOptions.ROWSUM_LUMPING}\\
- \member{SolverOptions.HRZ_LUMPING}\\
- \member{SolverOptions.ITERATIVE}\\
- \member{SolverOptions.NONLINEAR_GMRES}\\
- \member{SolverOptions.TFQMR}\\
- \member{SolverOptions.MINRES}\\
- \member{SolverOptions.GAUSS_SEIDEL}.\\
+ \member{SolverOptions.DEFAULT} -- use default solver depending on other options\\
+ \member{SolverOptions.DIRECT} -- use a direct solver if available\\
+ \member{SolverOptions.ITERATIVE} -- use a suitable iterative solver\\
+ \member{SolverOptions.BICGSTAB} -- Biconjugate Gradient Stabilized iterative method\\
+ \member{SolverOptions.CGLS} -- Conjugate Gradient with Least Squares method\\
+ \member{SolverOptions.CGS} -- Conjugate Gradient Square method\\
+ \member{SolverOptions.CHOLEVSKY} -- Direct solver based on LDLT factorization\\
+ \member{SolverOptions.CR} -- Conjugate Residual method\\
+ \member{SolverOptions.GMRES} -- Gram-Schmidt minimum residual method\\
+ \member{SolverOptions.HRZ_LUMPING} -- Matrix lumping using the HRZ approach\\
+ \member{SolverOptions.LSQR} -- Least squares based LSQR solver\\
+ \member{SolverOptions.MINRES} -- Minimum Residual method\\
+ \member{SolverOptions.NONLINEAR_GMRES} -- restarted GMRES for nonlinear systems\\
+ \member{SolverOptions.PCG} -- Preconditioned Conjugate Gradient method\\
+ \member{SolverOptions.PRES20} -- GMRES with restart after 20 steps and truncations after 5 residuals\\
+ \member{SolverOptions.ROWSUM_LUMPING} -- Matrix lumping using row sum\\
+ \member{SolverOptions.TFQMR} -- Transpose Free Quasi Minimum Residual method.\\
 Not all packages support all solvers. It can be assumed that a package makes a
 reasonable choice if it encounters an unknown solver.
 See Table~\ref{TAB FINLEY SOLVER OPTIONS 1} for the solvers supported by
@@ -530,16 +529,19 @@ See Table~\ref{TAB FINLEY SOLVER OPTIONS 1} for the solvers supported by
 returns the key of the solver method to be used. 
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setPreconditioner}{\optional{preconditioner=SolverOptions.JACOBI}}
+\begin{methoddesc}[SolverOptions]{setPreconditioner}{preconditioner}
 sets the preconditioner to be used.
 The value of \var{preconditioner} must be one of the constants:\\
- \member{SolverOptions.ILU0}\\
- \member{SolverOptions.JACOBI}\\
- \member{SolverOptions.AMG}\\
- \member{SolverOptions.REC_ILU}\\
- \member{SolverOptions.GAUSS_SEIDEL}\\
- \member{SolverOptions.RILU}\\
- \member{SolverOptions.NO_PRECONDITIONER}.\\
+ \member{SolverOptions.AMG} -- Algebraic Multi Grid\\
+ \member{SolverOptions.AMLI} -- Algebraic Multi Level Iteration\\
+ \member{SolverOptions.BOOMERAMG} -- Boomer AMG (using the hypre library)\\
+ \member{SolverOptions.GAUSS_SEIDEL} -- Gauss-Seidel\\
+ \member{SolverOptions.ILU0} -- Incomplete LU-factorization with no fill-in\\
+ \member{SolverOptions.ILUT} -- Incomplete LU-factorization with fill-in\\
+ \member{SolverOptions.JACOBI} -- Jacobi preconditioner\\
+ \member{SolverOptions.NO_PRECONDITIONER} -- do not apply a preconditioner\\
+ \member{SolverOptions.REC_ILU} -- recursive ILU0\\
+ \member{SolverOptions.RILU} -- relaxed ILU0.\\
 Not all packages support all preconditioners. It can be assumed that a package
 makes a reasonable choice if it encounters an unknown preconditioner.
 See Table~\ref{TAB FINLEY SOLVER OPTIONS 2} for the preconditioners supported
@@ -550,26 +552,39 @@ by \finley.
 returns the key of the preconditioner to be used.
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setPackage}{\optional{package=SolverOptions.DEFAULT}}
+\begin{methoddesc}[SolverOptions]{setPackage}{package}
 sets the solver package to be used as a solver.
-The value of \var{method} must be one of the constants:\\
- \member{SolverOptions.DEFAULT}\\
- \member{SolverOptions.PASO}\\
- \member{SolverOptions.SUPER_LU}\\
- \member{SolverOptions.PASTIX}\\
- \member{SolverOptions.MKL}\\
- \member{SolverOptions.UMFPACK}.\\
+The value of \var{package} must be one of the constants:\\
+ \member{SolverOptions.DEFAULT} -- choose a default depending on other options\\
+ \member{SolverOptions.CUSP} -- CUDA sparse linear algebra package\\
+ \member{SolverOptions.MKL} -- Intel MKL direct solver\\
+ \member{SolverOptions.PASO} -- built-in PASO solver library\\
+ \member{SolverOptions.PASTIX} -- Pastix direct solver package\\
+ \member{SolverOptions.SUPER_LU} -- Super LU solver package\\
+ \member{SolverOptions.UMFPACK} -- direct solver from the UMFPACK library.\\
 Not all packages are supported on all implementations. An exception may be
 thrown on some platforms if a particular package is requested.
 Currently \finley supports \member{SolverOptions.PASO} (as default) and, if
 available, \member{SolverOptions.MKL}\footnote{If the stiffness matrix is
 non-regular \MKL may return without returning a proper error code.
-If you observe suspicious solutions when using MKL, this may be causes by a
+If you observe suspicious solutions when using MKL, this may be caused by a
 non-invertible operator.} and \member{SolverOptions.UMFPACK}.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{getPackage}{}
 returns the solver package key.
+\end{methoddesc}
+
+\begin{methoddesc}[SolverOptions]{setSolverTarget}{target}
+sets the solver target, i.e. where the solver runs.
+The value of \var{target} must be one of the constants:\\
+ \member{SolverOptions.TARGET_CPU} -- run the solver on the CPU\\
+ \member{SolverOptions.TARGET_GPU} -- run the solver on the GPU.\\
+Currently only \ripley supports certain solvers on GPUs.
+\end{methoddesc}
+
+\begin{methoddesc}[SolverOptions]{getSolverTarget}{}
+returns the solver target key.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{resetDiagnostics}{\optional{all=False}}
@@ -608,15 +623,15 @@ If an exception has been thrown by the solver the status of this flag is undefin
 \end{methoddesc}
 
 
-\begin{methoddesc}[SolverOptions]{setReordering}{\optional{ordering=SolverOptions.DEFAULT_REORDERING}}
+\begin{methoddesc}[SolverOptions]{setReordering}{ordering}
 sets the key of the reordering method to be applied if supported by the solver.
 Some direct solvers support reordering to optimize compute time and storage
 use during elimination. The value of \var{ordering} must be one of the
 constants:\\
- \member{SolverOptions.NO_REORDERING}\\
- \member{SolverOptions.MINIMUM_FILL_IN}\\
- \member{SolverOptions.NESTED_DISSECTION}\\
- \member{SolverOptions.DEFAULT_REORDERING}.
+ \member{SolverOptions.DEFAULT_REORDERING} -- as recommended by the solver\\
+ \member{SolverOptions.MINIMUM_FILL_IN} -- reorder matrix to reduce fill-in during factorization\\
+ \member{SolverOptions.NESTED_DISSECTION} -- reorder matrix to improve load balancing during factorization\\
+ \member{SolverOptions.NO_REORDERING} -- no matrix reordering applied.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{getReordering}{}
@@ -701,11 +716,7 @@ sets interpolation method for \AMG to
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{getAMGInterpolation}{}
-returns the key 
-\member{CLASSIC_INTERPOLATION_WITH_FF_COUPLING},
-\member{CLASSIC_INTERPOLATION}, or
-\member{DIRECT_INTERPOLATION}
-of the interpolation method for \AMG.
+returns the key of the interpolation method for \AMG.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{setNumSweeps}{\optional{sweeps=2}}
@@ -715,8 +726,6 @@ sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
 \begin{methoddesc}[SolverOptions]{getNumSweeps}{}
 returns the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
 \end{methoddesc}
-
-
 
 \begin{methoddesc}[SolverOptions]{setNumPreSweeps}{\optional{sweeps=2}}
 sets the number of sweeps in the pre-smoothing step of \AMG.
@@ -764,7 +773,6 @@ on the coarsest level in a multi-level scheme.
 \begin{methoddesc}[SolverOptions]{getInnerTolerance}{}
 returns the relative tolerance for an inner iteration scheme.
 \end{methoddesc}
-
 
 \begin{methoddesc}[SolverOptions]{setRelaxationFactor}{\optional{factor=0.3}}
 sets the relaxation factor used to add dropped elements in \RILU to the main diagonal.
