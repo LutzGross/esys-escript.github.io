@@ -174,6 +174,7 @@ private:
     int mpiRank;
     MPI_Comm mpiComm;
     MPI_File fileHandle;
+#else
     void* mpiComm;
 #endif
     std::ofstream ofs;
