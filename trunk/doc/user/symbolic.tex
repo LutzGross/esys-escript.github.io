@@ -37,17 +37,17 @@ import esys.escript as es
 u = es.Symbol('u')
 p = 2*u**2 + 3*u + 1
 p2 = es.sin(u)
-p3 = p.diff(u)            #p3 = derivative of p with respect to u
+p3 = p.diff(u)              # p3 = derivative of p with respect to u
 evalu = es.Evaluator()
 evalu.addExpression(p)
 evalu.addExpression(p2)
 evalu.addExpression(p3)
 evalu.subs(u=2*es.symconstants.pi)
 evaluated=evalu.evaluate()
-print "p3=", p3                  #The symbols can be printed, this line will print p3.
+print("p3 =", p3)            # The symbols can be printed, this line will print p3.
 print(evaluated)
 \end{python}
-Running this code outputs:\\\texttt{p3= 4*u + 3\\(1 + 6*pi + 8*pi**2, 0, 3 + 8*pi)}.\\
+Running this code outputs:\\\texttt{p3 = 4*u + 3\\(1 + 6*pi + 8*pi**2, 0, 3 + 8*pi)}.\\
 To get the numeric value of the expression we replace \texttt{evalu.evaluate()}
 with \texttt{evalu.evaluate(evalf=True)}. This results in
 \texttt{(98.806, 0, 28.132)}.
