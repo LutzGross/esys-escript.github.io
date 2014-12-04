@@ -27,7 +27,7 @@
 
 Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order, bool optimize)
 {
-    dim_t numNodes, numDim, numEle, i0, i1;
+    dim_t numNodes, numDim=0, numEle, i0, i1;
     Dudley_Mesh *mesh_p = NULL;
     char name[LenString_MAX], element_type[LenString_MAX], frm[20];
     char error_msg[LenErrorMsg_MAX];

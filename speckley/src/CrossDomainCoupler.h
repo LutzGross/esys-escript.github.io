@@ -88,12 +88,12 @@ private:
     //coupling info
     bool hasLower[3];
     bool hasUpper[3];
-    int rank;
 
     //per interpolation
     mutable int numComp;
 
 #ifdef ESYS_MPI
+    int rank;
     MPI_Comm comm;
 #endif
 

@@ -43,7 +43,10 @@ bool probeInterpolationAcross(int fsType_source,
 }
 
 RipleyCoupler::RipleyCoupler(const speckley::SpeckleyDomain *speck,
-        const double s_dx[2], int rank) : speck(speck), rank(rank)
+        const double s_dx[2], int rank) : speck(speck)
+#ifdef ESYS_MPI
+, rank(rank)
+#endif
 {
     const int *splits = speck->getNumSubdivisionsPerDim();
     const dim_t *elements = speck->getNumElementsPerDim();

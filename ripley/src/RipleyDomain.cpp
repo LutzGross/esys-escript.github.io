@@ -1004,6 +1004,20 @@ void RipleyDomain::addPDEToTransportProblem(
     assemblePDEDirac(&tm, source, coefs, assembler);
 }
 
+void RipleyDomain::addPDEToTransportProblem(
+                     escript::AbstractTransportProblem& tp, escript::Data& source,
+                     const escript::Data& M,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
+                     const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact,const escript::Data& y_contact,
+                     const escript::Data& d_dirac,const escript::Data& y_dirac) const
+{
+    throw RipleyException("Programmer error: incorrect version of addPDEToTransportProblem called");
+
+}
+
+
 void RipleyDomain::setNewX(const escript::Data& arg)
 {
     throw RipleyException("setNewX(): operation not supported");

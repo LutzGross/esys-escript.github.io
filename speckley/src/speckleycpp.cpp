@@ -425,7 +425,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param type:\n:type type: ``int``"
 )
         .def("getSystemMatrixTypeId",&speckley::SpeckleyDomain::getSystemMatrixTypeId,
-args("solver", "preconditioner", "package", "symmetry"),
+args("options"),
 ":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, preconditioner, and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
 ":param solver:\n:type solver: ``int``\n"

@@ -524,6 +524,18 @@ public:
                                     escript::Data& source, const DataMap& data,
                                     Assembler_ptr assembler) const;
     /**
+      \brief Do not use. Throws exception.
+    */
+    virtual void addPDEToTransportProblem(
+                     escript::AbstractTransportProblem& tp, escript::Data& source,
+                     const escript::Data& M,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
+                     const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact,const escript::Data& y_contact,
+                     const escript::Data& d_dirac,const escript::Data& y_dirac) const;
+
+    /**
        \brief
        adds a PDE onto a transport problem
     */
