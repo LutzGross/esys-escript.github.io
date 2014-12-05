@@ -32,7 +32,7 @@ from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
 from esys.downunder.coordinates import WGS84ReferenceSystem
 
-HAVE_RIPLEY = False
+HAVE_RIPLEY = True
 try:
     from esys.ripley import Rectangle
 except ImportError as e:
