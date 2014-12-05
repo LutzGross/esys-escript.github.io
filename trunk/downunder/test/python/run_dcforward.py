@@ -36,7 +36,6 @@ class TestDCResistivityForward(unittest.TestCase):
 
         self.assertRaises(NotImplementedError, lambda:polepoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a, start, directionVector, numElectrodes))
         # delPhi=pps.getPotential()
-        # print "\n",delPhi
         # self.assertTrue(len(delPhi) == 9)
 
     def test_getpotential3dPolePole(self):
@@ -57,7 +56,11 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict["e4"]=[0.8*extents[0], 0.5*extents[1], 0,lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResPolePole%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            try:
+                dom = domGen.getDom(mshName=runName+".msh")
+            except RuntimeError as runErr:
+                if "Check gmsh is available" in runErr.args[0]:
+                    raise(unittest.SkipTest("gmsh not avaiable"))
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -69,11 +72,7 @@ class TestDCResistivityForward(unittest.TestCase):
         
         pps=polepoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a, midPoint, directionVector, numElectrodes)
         delPhi=pps.getPotential()
-        # print "\ndelphi =",delPhi
-        # print "primaryApparentRes =",pps.getApparentResistivityPrimary()
-        # print "secondaryApparentRes =",pps.getApparentResistivitySecondary()
         totalApparentResList = pps.getApparentResistivityTotal()
-        # print "TotalApparentRes =",totalApparentResList
         for i in totalApparentResList:
             self.assertTrue(abs(i-totalApparentRes) < 0.05 * totalApparentRes)
 
@@ -96,7 +95,11 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict["e4"]=[560., 0.5*extents[1], 0,lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResSchlum%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            try:
+                dom = domGen.getDom(mshName=runName+".msh")
+            except RuntimeError as runErr:
+                if "Check gmsh is available" in runErr.args[0]:
+                    raise(unittest.SkipTest("gmsh not avaiable"))
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -144,7 +147,11 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict[ "e11" ]= [72.0, 48.0, 0, lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            try:
+                dom = domGen.getDom(mshName=runName+".msh")
+            except RuntimeError as runErr:
+                if "Check gmsh is available" in runErr.args[0]:
+                    raise(unittest.SkipTest("gmsh not avaiable"))
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -160,14 +167,8 @@ class TestDCResistivityForward(unittest.TestCase):
         primaryApparentRes=dipdips.getApparentResistivityPrimary()
         SecondaryApparentRes=dipdips.getApparentResistivitySecondary()
         totalApparentRes=dipdips.getApparentResistivityTotal()
-        # print "\n",primaryApparentRes
-        # print "\n",SecondaryApparentRes
-
-        # for i in totalApparentRes:
-            # print i
         for i in totalApparentRes:
             for j in i:
-                # print abs(j-totalApparentResVal),totalApparentResVal*0.05
                 self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
 
 
@@ -201,7 +202,11 @@ class TestDCResistivityForward(unittest.TestCase):
 
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             runName="dc_forward/wenner%d-%d"%(lc,lc/lcDiv)
-            dom = domGen.getDom(mshName=runName+".msh")
+            try:
+                dom = domGen.getDom(mshName=runName+".msh")
+            except RuntimeError as runErr:
+                if "Check gmsh is available" in runErr.args[0]:
+                    raise(unittest.SkipTest("gmsh not avaiable"))
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -216,8 +221,6 @@ class TestDCResistivityForward(unittest.TestCase):
         primaryApparentRes=wenSurv.getApparentResistivityPrimary()
         SecondaryApparentRes=wenSurv.getApparentResistivitySecondary()
         totalApparentRes=wenSurv.getApparentResistivityTotal()
-        # print totalApparentRes
-        # print primaryApparentRes
         for i in totalApparentRes:
                 self.assertTrue(abs(i-totalApparentResVal ) < 0.05 * totalApparentResVal)
 
@@ -250,7 +253,11 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict[ "e11" ]= [72.0, 48.0, 0,  lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcRespoldip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            try:
+                dom = domGen.getDom(mshName=runName+".msh")
+            except RuntimeError as runErr:
+                if "Check gmsh is available" in runErr.args[0]:
+                    raise(unittest.SkipTest("gmsh not avaiable"))
         n=5
         totalApparentResVal = 130.
         primaryConductivity   =  Scalar(1/100., ContinuousFunction(dom))
@@ -266,14 +273,8 @@ class TestDCResistivityForward(unittest.TestCase):
         primaryApparentRes=poldips.getApparentResistivityPrimary()
         SecondaryApparentRes=poldips.getApparentResistivitySecondary()
         totalApparentRes=poldips.getApparentResistivityTotal()
-        # print "\n",primaryApparentRes
-        # print "\n",SecondaryApparentRes
-
-        # for i in totalApparentRes:
-            # print i
         for i in totalApparentRes:
             for j in i:
-                # print abs(j-totalApparentResVal),totalApparentResVal*0.05
                 self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
 
 ################################
