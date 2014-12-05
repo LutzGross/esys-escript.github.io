@@ -36,13 +36,13 @@ from esys.weipa import saveSilo
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
 try:
-    from esys.ripley import Rectangle, Brick as rRect, rBrick
+    from esys.ripley import Rectangle as rRect, Brick as rBrick
     HAVE_RIPLEY = True
 except ImportError:
     HAVE_RIPLEY = False
 
 try:
-    from esys.finley import Rectangle, Brick as fRect, fBrick
+    from esys.finley import Rectangle as fRect, Brick as fBrick
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False

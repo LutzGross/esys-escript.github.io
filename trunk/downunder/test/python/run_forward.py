@@ -37,7 +37,7 @@ from esys.escript import getEscriptParamInt
 from esys.escript.pdetools import Locator
 
 try:
-    from esys.ripley import Rectangle, Brick as ripRectangle, ripBrick
+    from esys.ripley import Rectangle as ripRectangle, Brick as ripBrick
     HAVE_RIPLEY = True
 except ImportError as e:
     HAVE_RIPLEY = False
