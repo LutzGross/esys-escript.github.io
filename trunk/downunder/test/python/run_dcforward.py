@@ -19,11 +19,18 @@ except KeyError:
 
 tmpDir=os.path.join(TEST_DATA_ROOT, "dc_forward")
 
+try:
+    from esys.finley import Rectangle, Brick
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
+
 
 mpisize = getMPISizeWorld()
+
+@unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
 class TestDCResistivityForward(unittest.TestCase):
-    def test_getpotential2d(self):
-        from esys.finley import Rectangle
+    def test_getPotential2d(self):
         dom=Rectangle(2000,2000,l0=1000,l1=-1000,d1=mpisize)
         extents=[1000,1000]
         primaryConductivity=Data(1/100., ContinuousFunction(dom))
@@ -34,12 +41,14 @@ class TestDCResistivityForward(unittest.TestCase):
         directionVector=[1]
         numElectrodes = 10
 
-        self.assertRaises(NotImplementedError, lambda:polepoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a, start, directionVector, numElectrodes))
+        self.assertRaises(NotImplementedError,
+                lambda:polepoleSurvey(dom, primaryConductivity,
+                        secondaryConductivity, current, a, start,
+                        directionVector, numElectrodes))
         # delPhi=pps.getPotential()
         # self.assertTrue(len(delPhi) == 9)
 
     def test_getpotential3dPolePole(self):
-        from esys.finley import Brick
         structured=False
         if structured:
             extents=[1000,1000,1000]
@@ -70,15 +79,14 @@ class TestDCResistivityForward(unittest.TestCase):
         midPoint = [0.5*extents[0],0.5*extents[1]]
         directionVector=[1.,0.]
         numElectrodes = 4
-        
+
         pps=polepoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a, midPoint, directionVector, numElectrodes)
         delPhi=pps.getPotential()
         totalApparentResList = pps.getApparentResistivityTotal()
         for i in totalApparentResList:
             self.assertTrue(abs(i-totalApparentRes) < 0.05 * totalApparentRes)
 
-    def test_getpotential3dSchlumberger(self):
-        from esys.finley import Brick
+    def test_getPotential3dSchlumberger(self):
         structured=True
         totalApparentRes = 130.
         if structured:
@@ -112,7 +120,7 @@ class TestDCResistivityForward(unittest.TestCase):
         a=2
         midPoint = [0.5*extents[0]+1,0.5*extents[1]]
         directionVector=[1.,0.]
-        schs=schlumbergerSurvey(dom, primaryConductivity, secondaryConductivity, current, a,n, midPoint, directionVector, numElectrodes)
+        schs=SchlumbergerSurvey(dom, primaryConductivity, secondaryConductivity, current, a,n, midPoint, directionVector, numElectrodes)
         schs.getPotential()
         primaryApparentRes=schs.getApparentResistivityPrimary()
         SecondaryApparentRes=schs.getApparentResistivitySecondary()
@@ -121,8 +129,7 @@ class TestDCResistivityForward(unittest.TestCase):
             for j in i:
                 self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
 
-    def test_getpotentialdipdip(self):
-        from esys.finley import Brick
+    def test_getPotentialDipDip(self):
         structured=False
         totalApparentRes = 130.
         if structured:
@@ -134,27 +141,29 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             electrodeDict={}
             lcDiv=10
-            #[28.0, 48.0, 0], [32.0, 48.0, 0], [36.0, 48.0, 0], [40.0, 48.0, 0], [44.0, 48.0, 0], [48.0, 48.0, 0], [52.0, 48.0, 0], [56.0, 48.0, 0], [60.0, 48.0, 0], [64.0, 48.0, 0], [68.0, 48.0, 0], [72.0, 48.0, 0]
-            electrodeDict[ "e0"  ]= [28.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e1"  ]= [32.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e2"  ]= [36.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e3"  ]= [40.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e4"  ]= [44.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e5"  ]= [48.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e6"  ]= [52.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e7"  ]= [56.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e8"  ]= [60.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e9"  ]= [64.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e10" ]= [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict[ "e11" ]= [72.0, 48.0, 0, lc/lcDiv]
+            #[28.0, 48.0, 0], [32.0, 48.0, 0], [36.0, 48.0, 0], [40.0, 48.0, 0],
+            #[44.0, 48.0, 0], [48.0, 48.0, 0], [52.0, 48.0, 0], [56.0, 48.0, 0],
+            #[60.0, 48.0, 0], [64.0, 48.0, 0], [68.0, 48.0, 0], [72.0, 48.0, 0]
+            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             try:
                 dom = domGen.getDom(mshName=runName+".msh")
             except RuntimeError as runErr:
                 if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not avaiable"))
-            raise runErr
+                    raise(unittest.SkipTest("gmsh not available"))
+                raise runErr
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -165,7 +174,7 @@ class TestDCResistivityForward(unittest.TestCase):
         a=4
         midPoint = [0.5*extents[0],0.5*extents[1] - 2]
         directionVector=[1.,0.]
-        dipdips=dipoledipoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a,n, midPoint, directionVector, numElectrodes)
+        dipdips=DipoleDipoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a,n, midPoint, directionVector, numElectrodes)
         dipdips.getPotential()
         primaryApparentRes=dipdips.getApparentResistivityPrimary()
         SecondaryApparentRes=dipdips.getApparentResistivitySecondary()
@@ -176,8 +185,7 @@ class TestDCResistivityForward(unittest.TestCase):
 
 
 
-    def test_getpotentialWener(self):
-        from esys.finley import Brick
+    def test_getPotentialWenner(self):
         structured=True
         totalApparentResVal = 130.
         if structured:
@@ -190,18 +198,18 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict={}
             lcDiv=10
 
-            electrodeDict[ "e0"  ] = [28.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e1"  ] = [32.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e2"  ] = [36.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e3"  ] = [40.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e4"  ] = [44.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e5"  ] = [48.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e6"  ] = [52.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e7"  ] = [56.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e8"  ] = [60.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e9"  ] = [64.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e10" ] = [68.0, 48.0, 0,   lc/lcDiv]
-            electrodeDict[ "e11" ] = [72.0, 48.0, 0,   lc/lcDiv]
+            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
 
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             runName="dc_forward/wenner%d-%d"%(lc,lc/lcDiv)
@@ -220,7 +228,8 @@ class TestDCResistivityForward(unittest.TestCase):
         a=2
         midPoint = [0.5*extents[0]+1,0.5*extents[1]]
         directionVector=[1.,0.]
-        wenSurv=wennerSurvey(dom, primaryConductivity, secondaryConductivity, current, a, midPoint, directionVector, numElectrodes)
+        wenSurv=WennerSurvey(dom, primaryConductivity, secondaryConductivity,
+                current, a, midPoint, directionVector, numElectrodes)
         wenSurv.getPotential()
         primaryApparentRes=wenSurv.getApparentResistivityPrimary()
         SecondaryApparentRes=wenSurv.getApparentResistivitySecondary()
@@ -229,8 +238,7 @@ class TestDCResistivityForward(unittest.TestCase):
                 self.assertTrue(abs(i-totalApparentResVal ) < 0.05 * totalApparentResVal)
 
 
-    def test_getpotentialpoldip(self):
-        from esys.finley import Brick
+    def test_getPotentialPolDip(self):
         structured=False
         totalApparentRes = 130.
         if structured:
@@ -242,19 +250,21 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             electrodeDict={}
             lcDiv=10
-            #[28.0, 48.0, 0], [32.0, 48.0, 0], [36.0, 48.0, 0], [40.0, 48.0, 0], [44.0, 48.0, 0], [48.0, 48.0, 0], [52.0, 48.0, 0], [56.0, 48.0, 0], [60.0, 48.0, 0], [64.0, 48.0, 0], [68.0, 48.0, 0], [72.0, 48.0, 0]
-            electrodeDict[ "e0"  ]= [28.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e1"  ]= [32.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e2"  ]= [36.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e3"  ]= [40.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e4"  ]= [44.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e5"  ]= [48.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e6"  ]= [52.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e7"  ]= [56.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e8"  ]= [60.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e9"  ]= [64.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e10" ]= [68.0, 48.0, 0,  lc/lcDiv]
-            electrodeDict[ "e11" ]= [72.0, 48.0, 0,  lc/lcDiv]
+            #[28.0, 48.0, 0], [32.0, 48.0, 0], [36.0, 48.0, 0], [40.0, 48.0, 0],
+            #[44.0, 48.0, 0], [48.0, 48.0, 0], [52.0, 48.0, 0], [56.0, 48.0, 0],
+            #[60.0, 48.0, 0], [64.0, 48.0, 0], [68.0, 48.0, 0], [72.0, 48.0, 0]
+            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcRespoldip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             try:
@@ -273,7 +283,9 @@ class TestDCResistivityForward(unittest.TestCase):
         a=4
         midPoint = [0.5*extents[0],0.5*extents[1] - 2]
         directionVector=[1.,0.]
-        poldips=poledipoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a,n, midPoint, directionVector, numElectrodes)
+        poldips=poledipoleSurvey(dom, primaryConductivity,
+                secondaryConductivity, current, a,n, midPoint,
+                directionVector, numElectrodes)
         poldips.getPotential()
         primaryApparentRes=poldips.getApparentResistivityPrimary()
         SecondaryApparentRes=poldips.getApparentResistivitySecondary()
@@ -285,5 +297,5 @@ class TestDCResistivityForward(unittest.TestCase):
 ################################
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-    
+
     

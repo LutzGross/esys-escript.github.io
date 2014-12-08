@@ -34,7 +34,7 @@ except ImportError as e:
 
 class DCResDomGenerator(object):
     """
-    This class is used to generate an escript domain which is suitable for 
+    This class is used to generate an escript domain which is suitable for
     solving dc resistivity problems
     """
     def __init__(self, extents, electrodeDict, lc=0.1, tmpDir=None, prism=None, bufferThickness=None):
@@ -44,7 +44,7 @@ class DCResDomGenerator(object):
         :param electrodeDict: dictionary to hold coords and characteristic length of
         points to be used as electrodes.
         :type electrodeDict: dictionary
-        :param lc: 
+        :param lc:
         :type float
         :param prism: provide start point,extents and a extrude depth for a cubic prism
         :type [(x,y,z)_start,(x,y,z)_extent]
@@ -67,12 +67,12 @@ class DCResDomGenerator(object):
         self.__points=[]
         self.__tmpDir=tmpDir
         self.__bufferThickness=bufferThickness
-        # logger.debug(electrodeDict) 
+        # logger.debug(electrodeDict)
 
         for i in electrodeDict:
             self.__tags.append(i)
             self.__points.append(electrodeDict[i][:-1])
-    
+
     def generateScriptFile(self):
        if self.__scriptname:
            os.unlink(self.__scriptname)
@@ -91,7 +91,7 @@ class DCResDomGenerator(object):
         frontStr="-out0[5],"
         backStr ="-out0[3],"
         out=""
-        
+
         if not self.__bufferThickness == None:
             out+="lc=%f;\n"%self.__lc
             out+="Point(1)={%f, %f, 0, lc};\n"%(-self.__bufferThickness , -self.__bufferThickness   )
@@ -126,13 +126,13 @@ class DCResDomGenerator(object):
             self.__pntList=str(range(5,pntCount))[1:-1]
             out+="Point{%s} In Surface{6};\n"%self.__pntList
             out+="Physical Volume(\"volume-%d\") = {%d} ;\n"%(1,1)
-            if self.__prism != None:    
+            if self.__prism != None:
                 out+="out[]=Extrude {0, 0, -10.000000} { Surface {7};};\n"
                 out+="Physical Volume(\"volume-%d\") = {%d} ;\n"%(2,2)
                 out+="s=newreg;\n"
                 out+="Compound Volume(s) = {1,2};\n"
                 out+="Physical Volume(\"volume-%d\") = {s} ;\n"%(3)
-            
+
         else:
             out+="lc=%f;\n"%self.__lc
             out+="Point(1)={0,-1,0,lc};\n"
@@ -149,9 +149,12 @@ class DCResDomGenerator(object):
             if self.__prism != None:
                 pntCount+=4
                 out+="Point(5)={%f, %f, -%f, lc};\n"%self.__prism[0]
-                out+="Point(6)={%f, %f, -%f, lc};\n"%((self.__prism[0][0]+self.__prism[1][0]), self.__prism[0][1],self.__prism[0][2]                   )
-                out+="Point(7)={%f, %f, -%f, lc};\n"%((self.__prism[0][0]+self.__prism[1][0]), (self.__prism[0][1]+self.__prism[1][1]),self.__prism[0][2])
-                out+="Point(8)={%f, %f, -%f, lc};\n"%(self.__prism[0][0]                     , (self.__prism[0][1]+self.__prism[1][1]),self.__prism[0][2])
+                out+="Point(6)={%f, %f, -%f, lc};\n"%((self.__prism[0][0]+self.__prism[1][0]),
+                        self.__prism[0][1],self.__prism[0][2])
+                out+="Point(7)={%f, %f, -%f, lc};\n"%((self.__prism[0][0]+self.__prism[1][0]),
+                        (self.__prism[0][1]+self.__prism[1][1]),self.__prism[0][2])
+                out+="Point(8)={%f, %f, -%f, lc};\n"%(self.__prism[0][0],
+                        (self.__prism[0][1]+self.__prism[1][1]),self.__prism[0][2])
                 out+="Line(5) = {5,6};\n"
                 out+="Line(6) = {7,6};\n"
                 out+="Line(7) = {7,8};\n"
@@ -166,7 +169,7 @@ class DCResDomGenerator(object):
 
             out+="out0[]=Extrude {0, 0, -%f} { Surface {6};};\n"%(self.__extents[2]+bufferThickness)
             out+="Physical Volume(\"volume-%d\") = {%d} ;\n"%(1,1)
-            if self.__prism != None:    
+            if self.__prism != None:
                 out+="out[]=Extrude {0, 0, -10.000000} { Surface {7};};\n"
                 out+="Physical Volume(\"volume-%d\") = {%d} ;\n"%(2,2)
                 out+="s=newreg;\n"
@@ -174,7 +177,7 @@ class DCResDomGenerator(object):
                 out+="Physical Volume(\"volume-%d\") = {s} ;\n"%(3)
             self.__pntList=str(range(5,pntCount))[1:-1]
             out+="Point{%s} In Surface{6};\n"%self.__pntList
-        
+
         out+="Physical Surface(\"Top\") = { -6 };\n"
         out+="Physical Surface(\"Bottom\") = { -out%d[0] };\n"%0
         out+="Physical Surface(\"Left\") = { %s };\n"%leftStr[:-1]
@@ -203,7 +206,7 @@ class DCResDomGenerator(object):
             out+="Field[4].FieldsList = {1, 3};\n"
             out+="Background Field = 4;\n"
             out+="Mesh.CharacteristicLengthExtendFromBoundary = 0;\n"
-        self.__scriptString=out   
+        self.__scriptString=out
 
     def generateLayedScriptString(self, interfaces):
         pntCount=5
@@ -216,10 +219,10 @@ class DCResDomGenerator(object):
 
         if not self.__bufferThickness == None:
             out+="lc=%f;\n"%self.__lc
-            out+="Point(1)={%f, %f, 0, lc};\n"%(-self.__bufferThickness , -self.__bufferThickness   )
-            out+="Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), -self.__bufferThickness  )
-            out+="Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), (self.__extents[1]+self.__bufferThickness)  )
-            out+="Point(4)={%f, %f, 0, lc};\n"%( -self.__bufferThickness, (self.__extents[1]+self.__bufferThickness) )
+            out+="Point(1)={%f, %f, 0, lc};\n"%(-self.__bufferThickness , -self.__bufferThickness)
+            out+="Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), -self.__bufferThickness)
+            out+="Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), (self.__extents[1]+ self.__bufferThickness))
+            out+="Point(4)={%f, %f, 0, lc};\n"%(-self.__bufferThickness, (self.__extents[1]+self.__bufferThickness))
             out+="Line(1) = {1,2} ;\n"
             out+="Line(2) = {3,2} ;\n"
             out+="Line(3) = {3,4} ;\n"
@@ -276,7 +279,7 @@ class DCResDomGenerator(object):
             out+="Point{%s} In Surface{6};\n"%self.__pntList
             out+="out0[]=Extrude {0, 0, -%f} { Surface {6};};\n"%interfaces[0]
             out+="Physical Volume(\"volume-%d\") = {%d} ;\n"%(0,1)
-            
+
             for i in range(1,len(interfaces)):
                 out+="out%d[]=Extrude {0, 0, -%f} { Surface {out%d[0]};};\n"%(i,interfaces[i],i-1)
                 out+="Physical Volume(\"volume-%d\") = {%d} ;\n"%(i,i+1)
@@ -284,7 +287,7 @@ class DCResDomGenerator(object):
                 rightStr+="-out%d[4],"%i
                 frontStr+="-out%d[5],"%i
                 backStr+= "-out%d[3],"%i
-        
+
 
         out+="Physical Surface(\"Top\") = { -6 };\n"
         out+="Physical Surface(\"Bottom\") = { -out%d[0] };\n"%i
@@ -314,35 +317,39 @@ class DCResDomGenerator(object):
             out+="Field[4].FieldsList = {1, 3};\n"
             out+="Background Field = 4;\n"
             out+="Mesh.CharacteristicLengthExtendFromBoundary = 0;\n"
-        self.__scriptString=out        
+        self.__scriptString=out
 
-    def runGmsh(self, args):
+    def __runGmsh(self, args):
         if getMPIRankWorld() == 0:
             import subprocess
             try:
-                ret = subprocess.call(args) // 256
-            except:
-                ret = 1
+                p = subprocess.Popen(args, stdout=os.devnull)
+                p.wait()
+                ret = p.returncode
+
+            except OSError as e:
+                ret = (getMPIRankWorld()+1)**2
+                raise e
         else:
             ret = 0
         ret=getMPIWorldMax(ret)
-        return ret    
+        return ret
 
     def getDom(self, mshName=None, interfaces=None):
         """
         generate the domain
-        :param interfaces, specify a list of interfaces for a layered model. Doing this will
-            ignore the z-extent. the layers will be tagged iterative from volume-0 to volume-(n-1)
-        :type interfaces, list    
+        :param interfaces: Specify a list of interfaces for a layered model. Doing this will
+            ignore the z-extent. The layers will be tagged iterative from volume-0 to volume-(n-1)
+        :type interfaces: list
         """
 
 
         if (mshName!=None and os.path.isfile(mshName)==True):
             if mshName[-4:]=='.msh':
-                dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
+                dom=ReadGmsh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
             elif mshName[-4:]=='.fly':
-                dom=ReadMesh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)
-            return dom 
+                dom=ReadMesh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
+            return dom
 
         if getMPIRankWorld() == 0:
             self.generateScriptFile()
@@ -351,21 +358,21 @@ class DCResDomGenerator(object):
             else:
                 self.generateLayedScriptString(interfaces)
             open(self.__scriptname, "w").write(self.__scriptString)
-            if mshName == None:    
+            if mshName == None:
                 exe="gmsh -3 -order 1 -v 3 %s"%self.__scriptname
             else:
                 exe="gmsh -3 -order 1 -o %s %s"%(mshName[:-4]+".msh", self.__scriptname) #add -v 3 for verbosity
             args=shlex.split(exe)
         else:
             args=""
-        ret=self.runGmsh(args)
+        ret=self.__runGmsh(args)
         if ret > 0:
             raise RuntimeError("Could not build mesh using: " + \
                     "%s"%" ".join(args) + "\nCheck gmsh is available")
         if mshName == None:
-            dom=ReadGmsh(self.__scriptname[:-4]+".msh" ,3,diracTags=self.__tags, diracPoints=self.__points)                  
+            dom=ReadGmsh(self.__scriptname[:-4]+".msh",3,diracTags=self.__tags, diracPoints=self.__points)
         else:
-            dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
+            dom=ReadGmsh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
         return dom
 
 
