@@ -60,7 +60,8 @@ class TestDCResistivityForward(unittest.TestCase):
                 dom = domGen.getDom(mshName=runName+".msh")
             except RuntimeError as runErr:
                 if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not avaiable"))
+                    raise(unittest.SkipTest("gmsh not available"))
+                raise runErr
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -100,6 +101,7 @@ class TestDCResistivityForward(unittest.TestCase):
             except RuntimeError as runErr:
                 if "Check gmsh is available" in runErr.args[0]:
                     raise(unittest.SkipTest("gmsh not avaiable"))
+            raise runErr
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -152,6 +154,7 @@ class TestDCResistivityForward(unittest.TestCase):
             except RuntimeError as runErr:
                 if "Check gmsh is available" in runErr.args[0]:
                     raise(unittest.SkipTest("gmsh not avaiable"))
+            raise runErr
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -207,6 +210,7 @@ class TestDCResistivityForward(unittest.TestCase):
             except RuntimeError as runErr:
                 if "Check gmsh is available" in runErr.args[0]:
                     raise(unittest.SkipTest("gmsh not avaiable"))
+                raise runErr
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -258,6 +262,7 @@ class TestDCResistivityForward(unittest.TestCase):
             except RuntimeError as runErr:
                 if "Check gmsh is available" in runErr.args[0]:
                     raise(unittest.SkipTest("gmsh not avaiable"))
+                raise runErr
         n=5
         totalApparentResVal = 130.
         primaryConductivity   =  Scalar(1/100., ContinuousFunction(dom))
