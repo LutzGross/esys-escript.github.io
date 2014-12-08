@@ -53,11 +53,11 @@ escript_opts_version = 202
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-ipo -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib'
+ld_extra = '-ipo-separate -shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib'
 ld_extra += ' -wd11021 '  #silence icpc warnings about symbols ipo can't see
 
 # Whether to treat compiler warnings as errors
@@ -210,6 +210,10 @@ build_shared = True
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+prelaunch = ""
+launcher = "srun --tasks=%N --ntasks-per-node=%p --cpus-per-task=%t %b"
+postlaunch = ""
 
 # Use intel's VSL library for random data
 # DEFAULT: False
