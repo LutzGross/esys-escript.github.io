@@ -1,3 +1,4 @@
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -351,7 +352,6 @@ class DCResDomGenerator(object):
             elif mshName[-4:]=='.fly':
                 dom=ReadMesh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
             return dom
-
         filename = "" #won't be used by non-0 ranks
         if getMPIRankWorld() == 0:
             filename = self.generateScriptFile(interfaces)

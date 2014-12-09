@@ -1,4 +1,19 @@
 from __future__ import print_function
+##############################################################################
+#
+# Copyright (c) 2003-2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
 from esys.escript import Data, kronecker, whereZero,inf,sup,ContinuousFunction,grad,Function,Lsup
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Locator
@@ -15,9 +30,9 @@ except NameError:
 class DcResistivityForward(object):
     """
     This class allows for the solution of dc resistivity forward problems via
-    the calculation of a primary and secondary potential. conductivity values
+    the calculation of a primary and secondary potential. Conductivity values
     are to be provided for the primary problem which is a homogenous half space
-    of a chosen conductivity and for the secondary potential. the primary
+    of a chosen conductivity and for the secondary problem which is typicaly 
     potential acts as a reference point and is implemented to avoid the use of
     diract delta functions.
     """
@@ -87,8 +102,8 @@ class SchlumbergerSurvey(DcResistivityForward):
         self.numElectrodes=numElectrodes
         self.delPhiPrimaryList=[]
         self.delPhiSecondaryList=[]
-        if ((numElectrodes%4) != 0 ):
-            raise ValueError("numElectrodes must be a multiple of 4 for schlumberger surveys")
+        if (numElectrodes < 4):
+            raise ValueError("numElectrodes must be greater than 4 for schlumberger surveys")
         if n > ((numElectrodes-2)//2):
             raise ValueError("specified n does not fit max n = %d"%((numElectrodes-2)//2))
         if len(directionVector) == 2:
@@ -147,7 +162,6 @@ class SchlumbergerSurvey(DcResistivityForward):
                 rsMagOne+=(whereZero(rsMagOne)*0.0000001)
                 rsMagTwo+=(whereZero(rsMagTwo)*0.0000001)
                 analyticPrimaryPot=(self.current/(2*pi*primCon*rsMagOne))-(self.current/(2*pi*primCon*rsMagTwo))
-
                 analyticRsOnePower=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**1.5
                 analyticRsOnePower = analyticRsOnePower+(whereZero(analyticRsOnePower)*0.0001)
                 analyticRsTwoPower=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**1.5
