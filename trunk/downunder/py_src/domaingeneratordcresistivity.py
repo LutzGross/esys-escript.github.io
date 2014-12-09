@@ -127,7 +127,7 @@ class DCResDomGenerator(object):
                 out.append("Point(%d)={%f,%f,%f,%f};\n"%(pntCount,pntInfo[0],pntInfo[1],pntInfo[2],pntInfo[3]))
                 pntCount+=1
             out.append("out0[]=Extrude {0, 0, -%f} { Surface {6};};\n"%(self.__extents[2]+self.__bufferThickness))
-            self.__pntList=str(range(5,pntCount))[1:-1]
+            self.__pntList=str([i for i in range(5,pntCount)])[1:-1]
             out.append("Point{%s} In Surface{6};\n"%self.__pntList)
             out.append("Physical Volume(\"volume-%d\") = {%d} ;\n"%(1,1))
             if self.__prism != None:
@@ -179,7 +179,7 @@ class DCResDomGenerator(object):
                 out.append("s=newreg;\n")
                 out.append("Compound Volume(s) = {1,2};\n")
                 out.append("Physical Volume(\"volume-%d\") = {s} ;\n"%(3))
-            self.__pntList=str(range(5,pntCount))[1:-1]
+            self.__pntList=str([i for i in range(5,pntCount)])[1:-1]
             out.append("Point{%s} In Surface{6};\n"%self.__pntList)
 
         out.append("Physical Surface(\"Top\") = { -6 };\n")
@@ -246,7 +246,7 @@ class DCResDomGenerator(object):
             out.append("out0[]=Extrude {0, 0, -%f} { Surface {6};};\n"%interfaces[0])
             out.append("Physical Volume(\"volume-%d\") = {%d} ;\n"%(1,1))
             #out.append("Point{%s} In Surface{out[0]};\n"%str(range(5,pntCount))[1:-1])
-            self.__pntList=str(range(5,pntCount))[1:-1]
+            self.__pntList=str([i for i in range(5,pntCount)])[1:-1]
             out.append("Point{%s} In Surface{6};\n"%self.__pntList)
             for i in range(1,len(interfaces)):
                 extentCount+=float(interfaces[i])
@@ -279,7 +279,7 @@ class DCResDomGenerator(object):
                 pntInfo=self.__electrodeDict[i]
                 out.append("Point(%d)={%f,%f,%f,%f};\n"%(pntCount,pntInfo[0],pntInfo[1],pntInfo[2],pntInfo[3]))
                 pntCount+=1
-            self.__pntList=str(range(5,pntCount))[1:-1]
+            self.__pntList=str([i for i in range(5,pntCount)])[1:-1]
             out.append("Point{%s} In Surface{6};\n"%self.__pntList)
             out.append("out0[]=Extrude {0, 0, -%f} { Surface {6};};\n"%interfaces[0])
             out.append("Physical Volume(\"volume-%d\") = {%d} ;\n"%(0,1))
