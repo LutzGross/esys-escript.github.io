@@ -229,6 +229,21 @@ class Test_RipleyDiracPoints(unittest.TestCase):
                 #remaining ranks must also exit, otherwise we'll lock up
                 self.assertEqual(global_result, 0, "One or more ranks failed")
 
+    def test_DDF_to_Continuous(self):
+        expected_value = self.numRanks*11
+        rectX, rectY = self.generateRects(self.longEdge,self.shortEdge)
+        for dom, point in [(rectX, (self.longEdge, self.shortEdge)),
+                           (rectY, (self.shortEdge, self.longEdge))]:
+            xDDF = Data(0, DiracDeltaFunctions(dom))
+            xDDF.setTaggedValue("test", expected_value)
+
+            X = dom.getX()
+            expected_data = whereZero(X[0]-point[0]) * whereZero(X[1]-point[1]) * expected_value
+            cont = interpolate(xDDF, ContinuousFunction(dom))
+            result = Lsup(expected_data - cont)
+            self.assertLess(result, 1e-15,
+                    "Interpolation failure, expected zero, got %g"%result)
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
