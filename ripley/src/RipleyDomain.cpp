@@ -471,6 +471,22 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         throw RipleyException(msg.str());
                 }
                 break;
+            case Points:
+                switch(outFS) {
+                    case Nodes:
+                        {
+                            const dim_t numComp = in.getDataPointSize();
+                            const int nDirac = m_diracPoints.size();
+                            target.requireWrite();
+#pragma omp parallel for
+                            for (int i = 0; i < nDirac; i++) {
+                                const double* src = in.getSampleDataRO(i);
+                                copy(src, src+numComp, target.getSampleDataRW(m_diracPoints[i].node));
+                            }
+                        }
+                
+                }
+                break;
             default:
                 throw RipleyException(msg.str());
         }
