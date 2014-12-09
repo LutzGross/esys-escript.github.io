@@ -46,11 +46,10 @@ class Test_SharedOnDudley(Test_Shared):
         del self.domain
         del self.tol
 
-@unittest.skip("Test not previously tested")
 class Test_DomainOnDudley(Test_Domain):
    def setUp(self):
        self.boundary_tag_list = [1, 2, 10, 20]
-       self.domain =Rectangle(NE,NE+1,2)
+       self.domain =Rectangle(NE,NE+1)
        self.rdomain=self.domain
 
    def tearDown(self):
@@ -99,13 +98,12 @@ class Test_DomainOnDudley(Test_Domain):
        if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
 
-@unittest.skip("Test not previously tested")
 class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):
-       self.domain =Rectangle(NE,NE+1,2)
-       self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
-       self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,2,integrationOrder=2)
-       self.domain_with_different_sample_ordering =Rectangle(NE,NE+1,2, optimize=True)
+       self.domain =Rectangle(NE,NE+1)
+       self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1)
+       self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,integrationOrder=2)
+       self.domain_with_different_sample_ordering =Rectangle(NE,NE+1, optimize=True)
        self.filename_base=DUDLEY_WORKDIR
        self.mainfs=Function(self.domain)
        self.otherfs=Solution(self.domain)
@@ -158,8 +156,6 @@ class Test_CSVOnDudley(Test_saveCSV):
                     [.05283121635129676, 0., .05283121635129676],
                     [.125, 0., .125]
                     ]
-        else:
-            print("Skipping some CSV tests on dudley since MPI size > 1")
 
     def tearDown(self):
         del self.domain
