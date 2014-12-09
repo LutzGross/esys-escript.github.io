@@ -34,7 +34,7 @@ try:
 except KeyError:
      SPECKLEY_WORKDIR='.'
 
-class Test_RipleyDiracPoints(unittest.TestCase):
+class Test_SpeckleyDiracPoints(unittest.TestCase):
     # constants
     numRanks = getMPISizeWorld()
     rank = getMPIRankWorld()
