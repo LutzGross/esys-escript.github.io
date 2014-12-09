@@ -43,17 +43,22 @@
 
 namespace finley {
 
-int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, char * error_msg, 
-            bool useMacroElements, const std::string fname, int numDim,double version, int order, int reduced_order) {
-    /* This function should read in the elements and distribute them to the apropriate process.
-     *
+int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, 
+        char * error_msg, bool useMacroElements, const std::string fname,
+        int numDim, double version, int order, int reduced_order) {
+    /*  
+     *  This function should read in the elements and distribute 
+     *  them to the apropriate process.
      */
-    int errorFlag=0, scan_ret, i, j, e,gmsh_type, element_dim, partition_id, itmp, elementary_id, numTags=0;
+    int errorFlag=0, scan_ret, i, j, e,gmsh_type, element_dim, partition_id;
+    int itmp, elementary_id, numTags=0;
     ElementTypeId final_element_type = NoRef;
     ElementTypeId final_face_element_type = NoRef;
     ElementTypeId contact_element_type = NoRef;
-    int numElements=0, numFaceElements=0, totalNumElements=0, numNodesPerElement=0, numNodesPerElement2;
-    const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
+    int numElements=0, numFaceElements=0, totalNumElements=0;
+    int numNodesPerElement=0, numNodesPerElement2;
+    const_ReferenceElementSet_ptr refPoints, refContactElements;
+    const_ReferenceElementSet_ptr refFaceElements, refElements;
     int *id, *tag, * vertices;
     ElementTypeId * element_type;
     if (mpi_info->rank == 0) {
@@ -76,7 +81,8 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
     }
 #endif
     
-    int chunkSize = totalNumElements / mpi_info->size + 1, chunkElements=0, chunkFaceElements=0, count=0 ,chunkOtherElements=0;
+    int chunkSize = totalNumElements / mpi_info->size + 1, chunkElements=0;
+    int chunkFaceElements=0, count=0 ,chunkOtherElements=0;
     id = new int[chunkSize+1];
     tag = new int[chunkSize+1];
     vertices = new int[chunkSize*MAX_numNodes_gmsh];
@@ -187,10 +193,10 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                     element_dim=0;
                     break;
                 default:
-                   element_type[count]=NoRef;
-                   element_dim=-1;
-                   sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname.c_str());
-                   errorFlag = 4;
+                    element_type[count]=NoRef;
+                    element_dim=-1;
+                    sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname.c_str());
+                    errorFlag = 4;
             }
             if (element_dim == numDim) {
                if (final_element_type == NoRef) {
@@ -217,13 +223,14 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                 chunkOtherElements++;
             }
             if(version <= 1.0){
-              scan_ret = fscanf(fileHandle_p, "%d %d %d", &tag[count], &elementary_id, &numNodesPerElement2);
-              FSCANF_CHECK(scan_ret);
-              partition_id = 1;
-              if (numNodesPerElement2 != numNodesPerElement) {
-                   sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", id[count], fname.c_str());
-                   errorFlag = 4;
-              }
+                scan_ret = fscanf(fileHandle_p, "%d %d %d", &tag[count],
+                    &elementary_id, &numNodesPerElement2);
+                FSCANF_CHECK(scan_ret);
+                partition_id = 1;
+                if (numNodesPerElement2 != numNodesPerElement) {
+                    sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", id[count], fname.c_str());
+                    errorFlag = 4;
+                }
             } else {
               scan_ret = fscanf(fileHandle_p, "%d", &numTags);
               FSCANF_CHECK(scan_ret);
