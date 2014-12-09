@@ -18,7 +18,7 @@
 #include "EscriptParams.h"
 #include <cstring>
 #include <boost/python/tuple.hpp>
-#include <cmath>			// to test if we know how to check for nan
+#include <cmath>                        // to test if we know how to check for nan
 
 
 #include "esysUtils/Esys_MPI.h"
@@ -26,7 +26,7 @@
 namespace escript
 {
 
-EscriptParams escriptParams;		// externed in header file
+EscriptParams escriptParams;                // externed in header file
 
 
 EscriptParams::EscriptParams()
@@ -34,8 +34,6 @@ EscriptParams::EscriptParams()
    too_many_lines=80;
    autolazy=0;
    too_many_levels=70;
-//    too_many_nodes=15000;
-   resolve_collective=0;
    lazy_str_fmt=0;
    lazy_verbose=0;
 
@@ -44,10 +42,39 @@ EscriptParams::EscriptParams()
 #else
    lapack_support=0;
 #endif
-			// These #defs are for performance testing only
-			// in general, I don't want people tweaking the
-			// default value using compiler options
-			// I've provided a python interface for that
+
+    gmsh = gmsh_mpi = 0;
+#if defined(GMSH) || defined(GMSH_MPI)
+    gmsh = 1;
+#endif
+    //only mark gmsh as mpi if escript built with mpi, otherwise comm_spawns
+    //might just fail terribly
+#if defined(GMSH_MPI) && defined(ESYS_MPI)
+    gmsh_mpi = 1;
+#endif
+
+#ifdef ESYS_MPI
+    amg_disabled=true;
+#else
+    amg_disabled=false;
+#endif
+
+    temp_direct_solver=false;   // This variable is to be removed once proper
+                                // SolverOptions support is in place
+#ifdef MKL
+    temp_direct_solver=true;
+#endif
+#ifdef USE_UMFPACK
+    temp_direct_solver=true;
+#endif
+#ifdef PASTIX
+    temp_direct_solver=true;
+#endif
+
+                        // These #defs are for performance testing only
+                        // in general, I don't want people tweaking the
+                        // default value using compiler options
+                        // I've provided a python interface for that
 #ifdef FAUTOLAZYON
    autolazy=1;
 #endif
@@ -61,26 +88,6 @@ EscriptParams::EscriptParams()
 #ifdef FRESCOLLECTOFF
    resolve_collective=0;
 #endif
-
-
-#ifdef ESYS_MPI
-	amg_disabled=true;
-#else
-	amg_disabled=false;
-#endif
-
-    temp_direct_solver=false;	// This variable is to be removed once proper
-				// SolverOptions support is in place
-#ifdef MKL
-    temp_direct_solver=true;
-#endif
-#ifdef USE_UMFPACK
-    temp_direct_solver=true;
-#endif
-#ifdef PASTIX
-    temp_direct_solver=true;
-#endif
-
 }
 
 int 
@@ -88,73 +95,73 @@ EscriptParams::getInt(const char* name, int sentinel) const
 {
    if (!strcmp(name,"TOO_MANY_LINES"))
    {
-	return too_many_lines;
+        return too_many_lines;
    }
    if (!strcmp(name,"AUTOLAZY"))
    {
-	return autolazy;
+        return autolazy;
    }
    if (!strcmp(name,"TOO_MANY_LEVELS"))
    {
-	return too_many_levels;
+        return too_many_levels;
    }
-//    if (!strcmp(name,"TOO_MANY_NODES"))
-//    {
-// 	return too_many_nodes;
-//    }
    if (!strcmp(name,"RESOLVE_COLLECTIVE"))
    {
-	return resolve_collective;
+        return resolve_collective;
    }
    if (!strcmp(name,"LAZY_STR_FMT"))
    {
-	return lazy_str_fmt;
+        return lazy_str_fmt;
    }
    if (!strcmp(name,"LAPACK_SUPPORT"))
    {
-	return lapack_support;
+        return lapack_support;
    }
    if (!strcmp(name, "NAN_CHECK"))
    {
-#ifdef isnan	
-	return 1;
+#ifdef isnan        
+        return 1;
 #else
-	return 0;
+        return 0;
 #endif
    }
    if (!strcmp(name,"LAZY_VERBOSE"))
    {
-	return lazy_verbose;
+        return lazy_verbose;
    }
    if (!strcmp(name, "DISABLE_AMG"))
    {
-	return amg_disabled;
+        return amg_disabled;
    }
    if (!strcmp(name, "MPIBUILD"))
    {
-#ifdef ESYS_MPI	   
-	return 1;
+#ifdef ESYS_MPI           
+        return 1;
 #else
-	return 0;
+        return 0;
 #endif
    }
    if (!strcmp(name, "PASO_DIRECT"))
    {
-	// This is not in the constructor because escriptparams could be constructed 
-	// before main (and hence no opportunity to call INIT)
-	#ifdef ESYS_MPI
-	    int size;
-	    if (MPI_Comm_size(MPI_COMM_WORLD, &size)!=MPI_SUCCESS)	// This would break in a subworld
-	    {
-		temp_direct_solver=false;	
-	    }
-	    if (size>1)
-	    {
-		temp_direct_solver=false;
-	    }
-	#endif   
-	return temp_direct_solver;
+        // This is not in the constructor because escriptparams could be constructed 
+        // before main (and hence no opportunity to call INIT)
+        #ifdef ESYS_MPI
+            int size;
+            if (MPI_Comm_size(MPI_COMM_WORLD, &size)!=MPI_SUCCESS)        // This would break in a subworld
+            {
+                temp_direct_solver=false;        
+            }
+            if (size>1)
+            {
+                temp_direct_solver=false;
+            }
+        #endif   
+        return temp_direct_solver;
    }
+    if (!strcmp(name, "GMSH_SUPPORT"))
+        return gmsh;
+    if (!strcmp(name, "GMSH_MPI"))
+        return gmsh_mpi;
    return sentinel;
 }
   
@@ -163,31 +170,27 @@ EscriptParams::setInt(const char* name, int value)
 {
    if (!strcmp(name,"TOO_MANY_LINES"))
    {
-	too_many_lines=value;
+        too_many_lines=value;
    }
    if (!strcmp(name,"AUTOLAZY"))
    {
-	autolazy=!(value==0);	// set to 1 or zero
+        autolazy=!(value==0);        // set to 1 or zero
    }
    if (!strcmp(name,"TOO_MANY_LEVELS"))
    {
-	too_many_levels=value;
+        too_many_levels=value;
    }
-//    if (!strcmp(name,"TOO_MANY_NODES"))
-//    {
-// 	too_many_nodes=value;
-//    }
    if (!strcmp(name,"RESOLVE_COLLECTIVE"))
    {
-	resolve_collective=value;
+        resolve_collective=value;
    }
    if (!strcmp(name,"LAZY_STR_FMT"))
    {
-	lazy_str_fmt=value;
+        lazy_str_fmt=value;
    }
    if (!strcmp(name,"LAZY_VERBOSE"))
    {
-	lazy_verbose=value;
+        lazy_verbose=value;
    }
    // Note: there is no way to modify the LAPACK_SUPPORT variable ATM
 }
@@ -214,7 +217,6 @@ EscriptParams::listEscriptParams()
    l.append(make_tuple("AUTOLAZY", autolazy, "{0,1} Operations involving Expanded Data will create lazy results."));
    l.append(make_tuple("RESOLVE_COLLECTIVE",resolve_collective ,"(TESTING ONLY) {0.1} Collective operations will resolve their data."));
    l.append(make_tuple("TOO_MANY_LEVELS", too_many_levels, "(TESTING ONLY) maximum levels allowed in an expression."));
-//    l.append(make_tuple("TOO_MANY_NODES", too_many_nodes, "(TESTING ONLY) maximum number of nodes in a expression."));
    l.append(make_tuple("LAZY_STR_FMT", lazy_str_fmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
    l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
    l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
@@ -224,4 +226,4 @@ EscriptParams::listEscriptParams()
 
 
 
-}	// end namespace
+}        // end namespace

@@ -47,12 +47,13 @@ private:
 	int too_many_lines;
 	int autolazy;
 	int too_many_levels;
-// 	int too_many_nodes;
 	int resolve_collective;
 	int lazy_str_fmt;
 	int lapack_support;
 	int lazy_verbose;
 	int amg_disabled;
+	int gmsh;
+	int gmsh_mpi;
 	mutable int temp_direct_solver;
 
 protected: 
@@ -63,7 +64,6 @@ protected:
   int getTOO_MANY_LINES() {return too_many_lines;}
   int getAUTOLAZY() { return autolazy;}
   int getTOO_MANY_LEVELS() {return too_many_levels;}
-//   int getTOO_MANY_NODES() {return too_many_nodes;}
   int getRESOLVE_COLLECTIVE() {return resolve_collective;}
   int getLAZY_STR_FMT() {return lazy_str_fmt;}
   int getLAZY_VERBOSE() {return lazy_verbose;}

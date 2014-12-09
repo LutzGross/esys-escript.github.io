@@ -41,6 +41,8 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
+HAVE_GMSH = getEscriptParamInt("GMSH_SUPPORT")
+GMSH_MPI = HAVE_GMSH and getEscriptParamInt("GMSH_MPI")
 
 mpisize = getMPISizeWorld()
 
@@ -68,6 +70,10 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[1000,1000,1000]
             dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
+            if GMSH_MPI:
+                raise unittest.SkipTest("MPI gmsh not currently supported")
+            if not HAVE_GMSH:
+                raise unittest.SkipTest("gmsh required for test")
             lc=50.0
             bufferThickness=3000
             extents=[1000,2000,2000]
@@ -79,13 +85,8 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict["e4"]=[0.8*extents[0], 0.5*extents[1], 0,lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResPolePole%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            try:
-                dom = domGen.getDom(mshName=runName+".msh")
-                os.unlink(runName+".msh")
-            except RuntimeError as runErr:
-                if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not available"))
-                raise runErr
+            dom = domGen.getDom(mshName=runName+".msh")
+            os.unlink(runName+".msh")
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -108,6 +109,10 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
+            if GMSH_MPI:
+                raise unittest.SkipTest("MPI gmsh not currently supported")
+            if not HAVE_GMSH:
+                raise unittest.SkipTest("gmsh required for test")
             lc=50.0
             bufferThickness=3000
             extents=[1000,2000,2000]
@@ -119,13 +124,8 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict["e4"]=[560., 0.5*extents[1], 0,lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResSchlum%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            try:
-                dom = domGen.getDom(mshName=runName+".msh")
-                os.unlink(runName+".msh")
-            except RuntimeError as runErr:
-                if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not avaiable"))
-            raise runErr
+            dom = domGen.getDom(mshName=runName+".msh")
+            os.unlink(runName+".msh")
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -153,6 +153,10 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
+            if GMSH_MPI:
+                raise unittest.SkipTest("MPI gmsh not currently supported")
+            if not HAVE_GMSH:
+                raise unittest.SkipTest("gmsh required for test")
             lc=10.0
             bufferThickness=300
             extents=[100,100,100]
@@ -172,13 +176,8 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            try:
-                dom = domGen.getDom(mshName=runName+".msh")
-                os.unlink(runName+".msh")
-            except RuntimeError as runErr:
-                if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not available"))
-                raise runErr
+            dom = domGen.getDom(mshName=runName+".msh")
+            os.unlink(runName+".msh")
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -205,6 +204,10 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
+            if GMSH_MPI:
+                raise unittest.SkipTest("MPI gmsh not currently supported")
+            if not HAVE_GMSH:
+                raise unittest.SkipTest("gmsh required for test")
             lc=50.0
             bufferThickness=3000
             extents=[1000,2000,2000]
@@ -226,13 +229,8 @@ class TestDCResistivityForward(unittest.TestCase):
 
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             runName="dc_forward/wenner%d-%d"%(lc,lc/lcDiv)
-            try:
-                dom = domGen.getDom(mshName=runName+".msh")
-                os.unlink(runName+".msh")
-            except RuntimeError as runErr:
-                if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not avaiable"))
-                raise runErr
+            dom = domGen.getDom(mshName=runName+".msh")
+            os.unlink(runName+".msh")
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -259,6 +257,10 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
+            if GMSH_MPI:
+                raise unittest.SkipTest("MPI gmsh not currently supported")
+            if not HAVE_GMSH:
+                raise unittest.SkipTest("gmsh required for test")
             lc=10.0
             bufferThickness=300
             extents=[100,100,100]
@@ -278,13 +280,8 @@ class TestDCResistivityForward(unittest.TestCase):
             electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcRespoldip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
-            try:
-                dom = domGen.getDom(mshName=runName+".msh")
-                os.unlink(runName+".msh")
-            except RuntimeError as runErr:
-                if "Check gmsh is available" in runErr.args[0]:
-                    raise(unittest.SkipTest("gmsh not avaiable"))
-                raise runErr
+            dom = domGen.getDom(mshName=runName+".msh")
+            os.unlink(runName+".msh")
         n=5
         totalApparentResVal = 130.
         primaryConductivity   =  Scalar(1/100., ContinuousFunction(dom))

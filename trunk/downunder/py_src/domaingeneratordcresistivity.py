@@ -33,6 +33,9 @@ try:
 except ImportError as e:
     HAS_FINLEY = False
 
+HAVE_GMSH = getEscriptParamInt("GMSH_SUPPORT")
+GMSH_MPI = HAVE_GMSH and getEscriptParamInt("GMSH_MPI")
+
 class DCResDomGenerator(object):
     """
     This class is used to generate an escript domain which is suitable for
@@ -322,6 +325,10 @@ class DCResDomGenerator(object):
         self.__scriptString = "".join(out)
 
     def __runGmsh(self, args, filename):
+        if not HAVE_GMSH:
+            raise RuntimeError("gmsh is not available to build meshfiles")
+        if GMSH_MPI:
+            raise RuntimeError("gmsh-mpi not currently supported with MPI builds of escript")
         if getMPIRankWorld() == 0:
             import subprocess
             try:
@@ -336,7 +343,8 @@ class DCResDomGenerator(object):
         else:
             ret = 0
         ret=getMPIWorldMax(ret)
-        return ret
+        if ret > 0:
+            raise RuntimeError("Failed to build mesh using: %s"%(" ".join(args)))
 
     def getDom(self, mshName=None, interfaces=None):
         """
@@ -352,6 +360,10 @@ class DCResDomGenerator(object):
             elif mshName[-4:]=='.fly':
                 dom=ReadMesh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
             return dom
+        #early exit so we don't even create files if we don't have to
+        if not HAVE_GMSH:
+            raise RuntimeError("gmsh is not available to build meshfiles")
+
         filename = "" #won't be used by non-0 ranks
         if getMPIRankWorld() == 0:
             filename = self.generateScriptFile(interfaces)
@@ -363,11 +375,7 @@ class DCResDomGenerator(object):
             args=shlex.split(exe)
         else:
             args=""
-        ret=self.__runGmsh(args, filename)
-
-        if ret > 0:
-            raise RuntimeError("Could not build mesh using: " + \
-                    "%s"%" ".join(args) + "\nCheck gmsh is available")
+        self.__runGmsh(args, filename)
 
         if mshName == None:
             dom=ReadGmsh(filename[:-4]+".msh",3,diracTags=self.__tags, diracPoints=self.__points)
