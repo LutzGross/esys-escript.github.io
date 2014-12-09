@@ -502,6 +502,12 @@ env=checkOptionalModules(env)
 ######## optional dependencies (netCDF, PAPI, MKL, UMFPACK, Lapack, Silo, ...)
 env=checkOptionalLibraries(env)
 
+#use gmsh info to set some defines
+if env['gmsh'] == 's':
+    env.Append(CPPDEFINES=['GMSH'])
+elif env['gmsh'] == 'm':
+    env.Append(CPPDEFINES=['GMSH','GMSH_MPI'])
+
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
 
