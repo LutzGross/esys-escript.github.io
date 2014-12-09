@@ -34,6 +34,8 @@ from esys.escript import unitsSI as U
 from esys.escript import *
 from esys.weipa import *
 
+haveNetcdf=(getEscriptParamInt("NETCDF_BUILD",0)==1)
+
 # Set parameters
 MAGNETIC_DATASET = 'data/MagneticSmall.nc'
 MAG_UNITS = U.Nano * U.Tesla
@@ -145,6 +147,8 @@ if 'NetCdfData' not in dir():
     print("This example requires scipy's netcdf support which does not appear to be installed.")
 elif not HAVE_RIPLEY:
     print("Ripley module not available")
+elif not haveNetcdf:
+    print("netCDF not available.")        
 else:
     work()
 

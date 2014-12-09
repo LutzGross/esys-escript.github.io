@@ -52,6 +52,7 @@ private:
 	int lapack_support;
 	int lazy_verbose;
 	int amg_disabled;
+	int has_netcdf;
 	int gmsh;
 	int gmsh_mpi;
 	mutable int temp_direct_solver;

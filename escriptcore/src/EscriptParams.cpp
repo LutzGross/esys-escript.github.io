@@ -36,7 +36,11 @@ EscriptParams::EscriptParams()
    too_many_levels=70;
    lazy_str_fmt=0;
    lazy_verbose=0;
-
+#ifdef USE_NETCDF
+   has_netcdf=1;
+#else   
+   has_netcdf=0;
+#endif   
 #ifdef USE_LAPACK
    lapack_support=1;
 #else
@@ -158,6 +162,10 @@ EscriptParams::getInt(const char* name, int sentinel) const
         #endif   
         return temp_direct_solver;
    }
+    if (!strcmp(name, "NETCDF_BUILD"))
+    {
+       return has_netcdf; 
+    }
     if (!strcmp(name, "GMSH_SUPPORT"))
         return gmsh;
     if (!strcmp(name, "GMSH_MPI"))
@@ -220,6 +228,7 @@ EscriptParams::listEscriptParams()
    l.append(make_tuple("LAZY_STR_FMT", lazy_str_fmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
    l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
    l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
+   l.append(make_tuple("NETCDF_BUILD", has_netcdf, "{0,1} Was this build made with netcdf libraries?"));
    return l;
 }
 
