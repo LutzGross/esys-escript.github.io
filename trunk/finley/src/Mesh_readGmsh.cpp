@@ -436,6 +436,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
                 mesh_p->Elements->Owner[e]=mpi_info->rank;
                 for (j = 0; j<  mesh_p->Elements->numNodes; ++j)  {
                     mesh_p->Elements->Nodes[INDEX2(j, e, mesh_p->Elements->numNodes)]=vertices[INDEX2(j,elementIndecies[e],MAX_numNodes_gmsh)];
+                    mesh_p->Nodes->Tag[vertices[INDEX2(j,elementIndecies[e],MAX_numNodes_gmsh)]-1]=tag[elementIndecies[e]];
                 }
             }
 
@@ -447,6 +448,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
                 mesh_p->FaceElements->Owner[e]=mpi_info->rank;
                 for (j=0; j<mesh_p->FaceElements->numNodes; ++j) {
                     mesh_p->FaceElements->Nodes[INDEX2(j, e, mesh_p->FaceElements->numNodes)]=vertices[INDEX2(j,faceElementIndecies[e],MAX_numNodes_gmsh)];
+                    mesh_p->Nodes->Tag[vertices[INDEX2(j,faceElementIndecies[e],MAX_numNodes_gmsh)]-1]=tag[faceElementIndecies[e]];
                 }
             }
         } else {
@@ -561,7 +563,7 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
     for (i=0; i<chunkNodes; i++) {
         mesh_p->Nodes->Id[i]                     = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        mesh_p->Nodes->Tag[i]=0;
+        mesh_p->Nodes->Tag[i]=i;
         
         for (j=0; j<numDim; j++) {
             mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)]  = tempCoords[i*numDim+j];
