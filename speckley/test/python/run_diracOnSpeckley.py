@@ -116,7 +116,7 @@ class Test_SpeckleyDiracPoints(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             Brick(2, 5, el, 5, d1=r, diracPoints=[(.0,)], diracTags=["test"])
 
-    def test_DDF_to_Continuous(self):
+    def test_DDF_to_Continuous_2D(self):
         expected_value = self.numRanks*11
         for order in range(2, 11):
             rectX, rectY = self.generateRects(order, self.longEdge, self.shortEdge)
@@ -127,6 +127,24 @@ class Test_SpeckleyDiracPoints(unittest.TestCase):
 
                 X = dom.getX()
                 expected_data = whereZero(X[0]-point[0]) * whereZero(X[1]-point[1]) * expected_value
+                cont = interpolate(xDDF, ContinuousFunction(dom))
+                result = Lsup(expected_data - cont)
+                self.assertLess(result, 1e-15,
+                        "Interpolation failure, expected zero, got %g"%result)
+
+    def test_DDF_to_Continuous_3D(self):
+        expected_value = self.numRanks*11
+        for order in range(2, 11):
+            doms, dims = self.generateBricks(order, self.longEdge,
+                    self.shortEdge, self.shortEdge)
+            for dom, point in zip(doms, dims):
+                xDDF = Data(0, DiracDeltaFunctions(dom))
+                xDDF.setTaggedValue("test", expected_value)
+
+                X = dom.getX()
+                expected_data = whereZero(X[0]-point[0]) \
+                        * whereZero(X[1]-point[1]) * whereZero(X[2]-point[2]) \
+                        * expected_value
                 cont = interpolate(xDDF, ContinuousFunction(dom))
                 result = Lsup(expected_data - cont)
                 self.assertLess(result, 1e-15,
