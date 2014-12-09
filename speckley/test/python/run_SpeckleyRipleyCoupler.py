@@ -33,7 +33,7 @@ from esys.speckley import Rectangle as sRectangle, Brick as sBrick
 HAS_RIPLEY = True
 HAS_FINLEY = True
 try:
-    from esys.ripley import Rectangle, Brick as rRectangle, rBrick
+    from esys.ripley import Rectangle as rRectangle, Brick as rBrick
 except ImportError as e:
     HAS_RIPLEY = False
     
