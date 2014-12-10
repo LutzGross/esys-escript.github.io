@@ -290,10 +290,10 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
                     }
                     
                     // reset arrays for next cpu
-#pragma omp parallel for private (i) schedule(static)
-                    for (i=0; i<chunkSize*MAX_numNodes_gmsh; i++) vertices[i] = -1;
-#pragma omp parallel for private (i) schedule(static)
-                    for (i=0; i<chunkSize; i++) {
+#pragma omp parallel for schedule(static)
+                    for (int i=0; i<chunkSize*MAX_numNodes_gmsh; i++) vertices[i] = -1;
+#pragma omp parallel for schedule(static)
+                    for (int i=0; i<chunkSize; i++) {
                         id[i] = -1;
                         tag[i] = -1;
                         element_type[i] = NoRef;
