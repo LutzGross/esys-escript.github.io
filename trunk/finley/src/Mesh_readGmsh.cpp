@@ -46,7 +46,8 @@ namespace finley {
 
 int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, 
         char * error_msg, bool useMacroElements, const std::string fname,
-        int numDim, double version, int order, int reduced_order) {
+        int numDim, double version, int order, int reduced_order,
+        std::map< int, int>& nodeIdMap) {
     /*  
      *  This function should read in the elements and distribute 
      *  them to the apropriate process.
@@ -442,7 +443,15 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         mesh_p->Elements->Owner[e]=mpi_info->rank;
         for (int j = 0; j < mesh_p->Elements->numNodes; ++j)  {
             mesh_p->Elements->Nodes[INDEX2(j, e, mesh_p->Elements->numNodes)]=vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)];
-            mesh_p->Nodes->Tag[vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]-1]=tag[elementIndices[e]];
+            
+            std::map<int,int>::iterator it;
+            it=nodeIdMap.find(vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]);
+            if(it == nodeIdMap.end()){
+                sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", 
+                    vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]);
+                throw FinleyAdapterException(error_msg);
+            }
+            mesh_p->Nodes->Tag[it->second]=tag[elementIndices[e]];
         }
     }
 
@@ -454,8 +463,14 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         mesh_p->FaceElements->Owner[e]=mpi_info->rank;
         for (int j=0; j<mesh_p->FaceElements->numNodes; ++j) {
             mesh_p->FaceElements->Nodes[INDEX2(j, e, mesh_p->FaceElements->numNodes)]=vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)];
-fprintf(stderr, "mesh_p->Nodes->Tag index %d, tag index %d, faceElementIndices index %d\n", vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)]-1, faceElementIndices[e], e);
-            mesh_p->Nodes->Tag[vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)]-1]=tag[faceElementIndices[e]];
+            std::map<int,int>::iterator it;
+            it=nodeIdMap.find(vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)]);
+            if(it == nodeIdMap.end()) {
+                sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", 
+                    vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]);
+                throw FinleyAdapterException(error_msg);
+            }
+            mesh_p->Nodes->Tag[it->second]=tag[elementIndices[e]];
         }
     }
 
@@ -468,7 +483,8 @@ fprintf(stderr, "mesh_p->Nodes->Tag index %d, tag index %d, faceElementIndices i
 }
 
 
-int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int numDim, char * error_msg) {
+int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int numDim, char * error_msg,
+    std::map< int, int>& nodeIdMap) {
     int j, scan_ret, numNodes=0, errorFlag=0;
     double rtmp0, rtmp1;
 
@@ -566,7 +582,7 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
         mesh_p->Nodes->Id[i]                     = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
         mesh_p->Nodes->Tag[i]=i;
-        
+        nodeIdMap[mesh_p->Nodes->Id[i]] = i;
         for (j=0; j<numDim; j++) {
             mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)]  = tempCoords[i*numDim+j];
         }
@@ -591,7 +607,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
     int i, tag_info[2], itmp;
     char line[LenString_MAX+1], name[LenString_MAX+1];
     char error_msg[LenErrorMsg_MAX];
-    
+    std::map< int, int> nodeIdMap;
 #ifdef Finley_TRACE
     double time0=timer();
 #endif
@@ -676,14 +692,15 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
         else if (logicFlag == 2) {
 
             nodesRead=true;
-            errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,error_msg); 
+            errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,error_msg, nodeIdMap); 
             logicFlag=0;     
         }
        
         /* elements */
         else if(logicFlag==3) {
             elementsRead=true;
-            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, error_msg, useMacroElements, fname, numDim, version, order, reduced_order);
+            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, error_msg, useMacroElements, 
+                    fname, numDim, version, order, reduced_order,nodeIdMap);
             logicFlag=0;
         }
          /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
