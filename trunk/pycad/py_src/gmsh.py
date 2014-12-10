@@ -159,11 +159,15 @@ class Design(design.AbstractDesign):
         """
         Cleans up.
         """
-        if not self.keepFiles():
+        try:
+          if not self.keepFiles():
             if not self.__scriptname_set: #i.e. it's a tempfile
                 os.unlink(self.getScriptFileName())
             if not self.__mshname_set: #i.e. it's a tempfile
                 os.unlink(self.getMeshFileName())
+        except OSError:
+	  pass	# The file might not have been created and there is nothing
+	  # to do about a "failure" here anyway
 
     def getCommandString(self):
         """
@@ -192,19 +196,26 @@ class Design(design.AbstractDesign):
         import shlex
         args=shlex.split(self.getCommandString())
         args[-1]=args[-1]%self.getScriptHandler()
-        # TODO: use gmshpy if available, e.g.:
-        #from gmshpy import *
-        #GmshOpenProject(self.getScriptHandler())
-        #model=GModel_current()
-        #Msg_SetVerbosity(3)
-        #model.mesh(self.getDim())
-        #model.writeMSH(self.getMeshFileName())
-        ret=runGmsh(args)
-        if ret > 0:
-            self.setKeepFilesOn() #no files to delete, so don't try to
-            raise RuntimeError("Could not build mesh using: " + \
+        
+        try:
+           import gmshpy
+           havepy=True
+        except ImportError:
+           havepy=False
+        if havepy:	  
+           gmshpy.GModel_readGEO(self.getScriptHandler())
+           model=gmshpy.GModel_current()
+           gmshpy.Msg_SetVerbosity(3)
+           model.mesh(self.getDim())
+           model.writeMSH(self.getMeshFileName())
+           return self.getMeshFileName()
+        else:
+           ret=runGmsh(args)
+           if ret > 0:
+               self.setKeepFilesOn() #no files to delete, so don't try to
+               raise RuntimeError("Could not build mesh using: " + \
                     "%s"%" ".join(args) + "\nCheck gmsh is available")
-        return self.getMeshFileName()
+           return self.getMeshFileName()
 
         
     def getScriptString(self):
