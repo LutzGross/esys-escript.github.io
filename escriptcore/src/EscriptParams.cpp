@@ -229,6 +229,8 @@ EscriptParams::listEscriptParams()
    l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
    l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
    l.append(make_tuple("NETCDF_BUILD", has_netcdf, "{0,1} Was this build made with netcdf libraries?"));
+   l.append(make_tuple("GMSH_SUPPORT", gmsh, "{0,1} Non-python GMSH support is available."));
+   l.append(make_tuple("GMSH_MPI", gmsh_mpi, "{0,1} Both GMSH and escript have MPI capabilities."));
    return l;
 }
 
