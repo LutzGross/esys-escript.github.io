@@ -25,39 +25,15 @@ from launchpad.
 \esfinley is primarily developed on Linux desktop, SGI ICE and \macosx systems.
 It can be installed in two ways:
 \begin{enumerate}
-  \item Binary packages -- ready to run with no compilation required.
-      Bundles are available for:
-      \begin{itemize}
-	  \item .deb files for Debian and Ubuntu Linux
-% 	  \item $32$bit Windows (requires some other packages to be installed).
-      \end{itemize}
-    Please see Appendix~\ref{chap:winstall} for Windows instructions.
-    The rest of this guide assumes you are using a posix like system.
+  \item Binary packages -- ready to run with no compilation required. These are available for recent Debian and Ubuntu distributions.
   \item From source -- that is, it must be compiled for your machine.
-  This will be required if there is no binary package 
-    for your machine or if extra functionality is required such as \mpi parallelisation.
+  This will be required if you are running anything other than Debian/Ubuntu 
+  or if extra functionality is required such as \mpi parallelisation.
 \end{enumerate}
-
-\emph{The major change from the point of view of installation is that we no longer provide binary packages compiled
-against the ``support bundles''.
-This means, there are no longer binary packages for MacOS or generic Linux.
-}
-One can still build from source and we have endevoured to make this process as straight forward as possible.
 
 See the site \url{https://answers.launchpad.net/escript-finley} for online help.
 Chapter~\ref{chap:bin} describes how to install binary packages on Debian/Ubuntu systems.
 Chapter~\ref{chap:source} covers installing from source.
-Appendix~\ref{chap:winstall} gives brief instructions for Windows.
 
 
-% \section{Significant changes since version 3.3}
-% 
-% \begin{itemize}
-%  \item The minimum Python version is now $2.6$.   
-% This means among other things that you can no longer build escript using the system Python from OSX Leopard.
-%  \item New [optional] symbolic support requires SymPy.   
-%  \item This release contains the \module{downunder} inversion module. Certain operations in this module \emph{may} require either 
-% \module{pyproj}\footnote{python-pyproj in Debian and Ubuntu} or \module{gdal}\footnote{python-gdal in Debian and Ubuntu}.
-% Escript will warn you if you try to do something which requires either package.
-% \end{itemize}
 
