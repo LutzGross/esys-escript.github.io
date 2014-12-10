@@ -202,12 +202,14 @@ class Design(design.AbstractDesign):
            havepy=True
         except ImportError:
            havepy=False
-        if havepy:	  
+        havepy=False   
+        if False:  #havepy:	  # will experiment with this after the release
            gmshpy.GModel_readGEO(self.getScriptHandler())
            model=gmshpy.GModel_current()
            gmshpy.Msg_SetVerbosity(3)
            model.mesh(self.getDim())
            model.writeMSH(self.getMeshFileName())
+           model.writeMSH("Bobgmsh.msh")
            return self.getMeshFileName()
         else:
            ret=runGmsh(args)
