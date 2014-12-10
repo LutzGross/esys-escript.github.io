@@ -469,7 +469,7 @@ fprintf(stderr, "mesh_p->Nodes->Tag index %d, tag index %d, faceElementIndices i
 
 
 int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int numDim, char * error_msg) {
-    int i, j, scan_ret, numNodes=0, errorFlag=0;
+    int j, scan_ret, numNodes=0, errorFlag=0;
     double rtmp0, rtmp1;
 
     if (mpi_info->rank == 0) {  /* Master */
@@ -503,7 +503,7 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
 
             if(!errorFlag){
                 chunkNodes=0;
-                for(i=0;i<chunkSize;i++){
+                for(int i=0;i<chunkSize;i++){
                     if(totalNodes>=numNodes) break;//sprintf(error_msg, "more "); errorFlag=4;
                     if (1 == numDim) {
                         scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &tempInts[i], &tempCoords[0+i*numDim], &rtmp0, &rtmp1);
@@ -561,8 +561,8 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
     mesh_p->Nodes->allocTable(chunkNodes);
     if (!noError()) return ERROR;
 
-#pragma omp parallel for private (i, j) schedule(static)
-    for (i=0; i<chunkNodes; i++) {
+#pragma omp parallel for private (j) schedule(static)
+    for (int i=0; i<chunkNodes; i++) {
         mesh_p->Nodes->Id[i]                     = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
         mesh_p->Nodes->Tag[i]=i;
