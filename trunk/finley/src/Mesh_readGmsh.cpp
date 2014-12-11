@@ -29,6 +29,8 @@
 #define FSCANF_CHECK(scan_ret) { if (scan_ret == EOF) { errorFlag = 1;} }
 #define MAX_numNodes_gmsh 20
 
+#define EARLY_EOF 1
+#define THROW_ERROR 4
 #define ERROR 6
 /*
     error flags include:
@@ -42,33 +44,188 @@
         6 - !noError
 */
 
+struct ElementInfo {
+    finley::ElementTypeId type;
+    int id;
+    int dim;
+    int *vertex;
+    int tag;
+};
+
+bool is_node_string(char *line) {
+    if (line == NULL)
+        return false;
+    return !strncmp(line, "$NOD", 4) || !strncmp(line, "$NOE", 4) 
+            || !strncmp(line, "$Nodes", 6);
+}
+
+bool is_endnode_string(char *line) {
+    if (line == NULL)
+        return false;
+    return !strncmp(line, "$ENDNOD", 7) || !strncmp(line, "$ENDNOE", 7) 
+            || !strncmp(line, "$EndNodes", 9);
+}
+
 namespace finley {
+
+int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
+        char *error_msg, const char *fname, bool useMacroElements)
+{
+    int gmsh_type = -1;
+    int numTags=0;
+    int scan_ret = fscanf(f, "%d %d", &e.id, &gmsh_type);
+    if (scan_ret == EOF)
+        return EARLY_EOF;
+    else if (scan_ret != 2) {
+        sprintf(error_msg, "malformed mesh file");
+        return THROW_ERROR;
+    }
+    int numNodesPerElement = 0;
+    switch (gmsh_type) {
+        case 1:  /* line order 1 */
+            e.type = Line2;
+            e.dim = 1;
+            numNodesPerElement = 2;
+            break;
+        case 2:  /* triangle order 1 */
+            e.type=Tri3;
+            numNodesPerElement= 3;
+            e.dim=2;
+            break;
+        case 3:  /* quadrilateral order 1 */
+            e.type=Rec4;
+            numNodesPerElement= 4;
+            e.dim=2;
+            break;
+        case 4:  /* tetrahedron order 1 */
+            e.type=Tet4;
+            numNodesPerElement= 4;
+            e.dim=3;
+            break;
+        case 5:  /* hexahedron order 1 */
+            e.type=Hex8;
+            numNodesPerElement= 8;
+            e.dim=3;
+            break;
+        case 8:  /* line order 2 */
+            if (useMacroElements) {
+                e.type=Line3Macro;
+            } else {
+                e.type=Line3;
+            }
+            numNodesPerElement= 3;
+            e.dim=1;
+            break;
+        case 9:  /* triangle order 2 */
+            if (useMacroElements) {
+                 e.type=Tri6Macro;
+            } else {
+                 e.type=Tri6;
+            }
+            numNodesPerElement= 6;
+            e.dim=2;
+            break;
+        case 10:  /* quadrilateral order 2 */
+            if (useMacroElements) {
+                e.type=Rec9Macro;
+            } else {
+                e.type=Rec9;
+            }
+            numNodesPerElement= 9;
+            e.dim=2;
+            break;
+        case 11:  /* tetrahedron order 2 */
+            if (useMacroElements) {
+                e.type=Tet10Macro;
+            } else {
+                e.type=Tet10;
+            }
+            numNodesPerElement= 10;
+            e.dim=3;
+            break;
+        case 16:  /* rectangular order 2 */
+            e.type=Rec8;
+            numNodesPerElement= 8;
+            e.dim=2;
+            break;
+        case 17:  /* hexahedron order 2 */
+            e.type=Hex20;
+            numNodesPerElement= 20;
+            e.dim=3;
+            break;
+        case 15 :  /* point */
+            e.type=Point1;
+            numNodesPerElement= 1;
+            e.dim=0;
+            break;
+        default:
+            e.type=NoRef;
+            e.dim=-1;
+            sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname);
+            return THROW_ERROR;
+    }
+    if (version <= 1.0){
+        int tmp = 0;
+        scan_ret = fscanf(f, "%d %*d %d", &e.tag, &tmp);
+        if (scan_ret == EOF)
+            return EARLY_EOF;
+        if (tmp != numNodesPerElement) {
+            sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", e.id, fname);
+            return THROW_ERROR;
+        }
+    } else {
+        scan_ret = fscanf(f, "%d", &numTags);
+        if (scan_ret == EOF)
+            return EARLY_EOF;
+        e.tag = 1;
+        for (int j = 0; j < numTags; j++){
+            int tmp = 0;
+            scan_ret = fscanf(f, "%d", &tmp);
+            if (scan_ret == EOF)
+                return EARLY_EOF;
+            if (j == 0) {
+              e.tag = tmp;
+            }
+            /* ignore any other tags, second tag would be elementary id,
+             third tag would be partition id */
+        }
+    }
+
+    if (!noError()) {
+        return ERROR;
+    }
+    for(int j = 0; j < numNodesPerElement; j++) {
+        scan_ret = fscanf(f, "%d", e.vertex+j);
+        if (scan_ret == EOF)
+            return EARLY_EOF;
+    }
+    return 0;
+}
+
+
 
 int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, 
         char * error_msg, bool useMacroElements, const std::string fname,
-        int numDim, double version, int order, int reduced_order,
-        std::map< int, int>& nodeIdMap) {
+        int numDim, double version, int order, int reduced_order) {
     /*  
      *  This function should read in the elements and distribute 
      *  them to the apropriate process.
      */
-    int errorFlag=0, scan_ret, gmsh_type, element_dim, partition_id;
-    int itmp, elementary_id, numTags=0;
+    int errorFlag=0;
+
     ElementTypeId final_element_type = NoRef;
     ElementTypeId final_face_element_type = NoRef;
     ElementTypeId contact_element_type = NoRef;
     int numElements=0, numFaceElements=0, totalNumElements=0;
-    int numNodesPerElement=0, numNodesPerElement2;
     const_ReferenceElementSet_ptr refPoints, refContactElements;
     const_ReferenceElementSet_ptr refFaceElements, refElements;
     int *id, *tag;
     ElementTypeId * element_type;
     if (mpi_info->rank == 0) {
-        scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
+        int scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
         FSCANF_CHECK(scan_ret);
     }
-
-         
+    
 #ifdef ESYS_MPI
     // Broadcast numNodes if there are multiple mpi procs
     if (mpi_info->size > 1) {
@@ -110,108 +267,36 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
     if (mpi_info->rank == 0) {
       /* read all in */
         for(int e = 0, count = 0; e < totalNumElements; e++, count++) {
-            scan_ret = fscanf(fileHandle_p, "%d %d", &id[count], &gmsh_type);
-            FSCANF_CHECK(scan_ret);
-            switch (gmsh_type) {
-                case 1:  /* line order 1 */
-                    element_type[count]=Line2;
-                    element_dim=1;
-                    numNodesPerElement=2;
-                    break;
-                case 2:  /* triangle order 1 */
-                    element_type[count]=Tri3;
-                    numNodesPerElement= 3;
-                    element_dim=2;
-                    break;
-                case 3:  /* quadrilateral order 1 */
-                    element_type[count]=Rec4;
-                    numNodesPerElement= 4;
-                    element_dim=2;
-                    break;
-                case 4:  /* tetrahedron order 1 */
-                    element_type[count]=Tet4;
-                    numNodesPerElement= 4;
-                    element_dim=3;
-                    break;
-                case 5:  /* hexahedron order 1 */
-                    element_type[count]=Hex8;
-                    numNodesPerElement= 8;
-                    element_dim=3;
-                    break;
-                case 8:  /* line order 2 */
-                    if (useMacroElements) {
-                        element_type[count]=Line3Macro;
-                    } else {
-                        element_type[count]=Line3;
-                    }
-                    numNodesPerElement= 3;
-                    element_dim=1;
-                    break;
-                case 9:  /* triangle order 2 */
-                    if (useMacroElements) {
-                         element_type[count]=Tri6Macro;
-                    } else {
-                         element_type[count]=Tri6;
-                    }
-                    numNodesPerElement= 6;
-                    element_dim=2;
-                    break;
-                case 10:  /* quadrilateral order 2 */
-                    if (useMacroElements) {
-                        element_type[count]=Rec9Macro;
-                    } else {
-                        element_type[count]=Rec9;
-                    }
-                    numNodesPerElement= 9;
-                    element_dim=2;
-                    break;
-                case 11:  /* tetrahedron order 2 */
-                    if (useMacroElements) {
-                        element_type[count]=Tet10Macro;
-                    } else {
-                        element_type[count]=Tet10;
-                    }
-                    numNodesPerElement= 10;
-                    element_dim=3;
-                    break;
-                case 16:  /* rectangular order 2 */
-                    element_type[count]=Rec8;
-                    numNodesPerElement= 8;
-                    element_dim=2;
-                    break;
-                case 17:  /* hexahedron order 2 */
-                    element_type[count]=Hex20;
-                    numNodesPerElement= 20;
-                    element_dim=3;
-                    break;
-                case 15 :  /* point */
-                    element_type[count]=Point1;
-                    numNodesPerElement= 1;
-                    element_dim=0;
-                    break;
-                default:
-                    element_type[count]=NoRef;
-                    element_dim=-1;
-                    sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname.c_str());
-                    errorFlag = 4;
+            struct ElementInfo element = {NoRef, 0, 0, &vertices[count*MAX_numNodes_gmsh], 0};
+            getSingleElement(fileHandle_p, numDim, version,
+                    element, error_msg, fname.c_str(), useMacroElements);
+            element_type[count] = element.type;
+            id[count] = element.id;
+            tag[count] = element.tag;
+            
+            /* for tet10 the last two nodes need to be swapped */
+            if ((element.type==Tet10) || (element.type == Tet10Macro)) {
+                int vertex = vertices[INDEX2(9,count,MAX_numNodes_gmsh)];
+                vertices[INDEX2(9,count,MAX_numNodes_gmsh)] = vertices[INDEX2(8,count,MAX_numNodes_gmsh)];
+                vertices[INDEX2(8,count,MAX_numNodes_gmsh)] = vertex;
             }
-            if (element_dim == numDim) {
+            
+            if (element.dim == numDim) {
                if (final_element_type == NoRef) {
-                  final_element_type = element_type[count];
-               } else if (final_element_type != element_type[count]) {
+                  final_element_type = element.type;
+               } else if (final_element_type != element.type) {
                    sprintf(error_msg,"Finley can handle a single type of internal elements only.");
-                   errorFlag = 4;
-                   
+                   errorFlag = THROW_ERROR;
                }
                elementIndices[chunkElements]=count;
                numElements++;
                chunkElements++;
-            } else if (element_dim == numDim-1) {
+            } else if (element.dim == numDim-1) {
                if (final_face_element_type == NoRef) {
-                  final_face_element_type = element_type[count];
-               } else if (final_face_element_type != element_type[count]) {
+                  final_face_element_type = element.type;
+               } else if (final_face_element_type != element.type) {
                    sprintf(error_msg,"Finley can handle a single type of face elements only.");
-                   errorFlag = 4;
+                   errorFlag = THROW_ERROR;
                }
                faceElementIndices[chunkFaceElements]=count;
                numFaceElements++;
@@ -219,90 +304,49 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
             } else{
                 chunkOtherElements++;
             }
-            if(version <= 1.0){
-                scan_ret = fscanf(fileHandle_p, "%d %d %d", &tag[count],
-                    &elementary_id, &numNodesPerElement2);
-                FSCANF_CHECK(scan_ret);
-                partition_id = 1;
-                if (numNodesPerElement2 != numNodesPerElement) {
-                    sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", id[count], fname.c_str());
-                    errorFlag = 4;
-                }
-            } else {
-              scan_ret = fscanf(fileHandle_p, "%d", &numTags);
-              FSCANF_CHECK(scan_ret);
-              elementary_id = tag[count] = partition_id = 1;
-              numNodesPerElement2=-1;
-              for(int j = 0; j < numTags; j++){
-                scan_ret = fscanf(fileHandle_p, "%d", &itmp);
-                FSCANF_CHECK(scan_ret);
-                if (j == 0) {
-                  tag[count] = itmp;
-                } else if (j == 1) {
-                  elementary_id = itmp;
-                } else if (j == 2) {
-                  partition_id = itmp;
-                }
-                /* ignore any other tags */
-              }
-            }
-
-            if (!noError()) {
-                errorFlag = 6;
-            }
-            for(int j = 0; j < numNodesPerElement; j++) {
-              scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,count,MAX_numNodes_gmsh)]);
-              FSCANF_CHECK(scan_ret);
-            }
-            /* for tet10 the last two nodes need to be swapped */
-            if ((element_type[count]==Tet10) || (element_type[count]==Tet10Macro)) {
-                itmp=vertices[INDEX2(9,count,MAX_numNodes_gmsh)];
-                vertices[INDEX2(9,count,MAX_numNodes_gmsh)]=vertices[INDEX2(8,count,MAX_numNodes_gmsh)];
-                vertices[INDEX2(8,count,MAX_numNodes_gmsh)]=itmp;
-            }
 #ifdef ESYS_MPI
             if(count < chunkSize - 1)
                 continue;
-            
             cpuId++;
             chunkInfo[0]=chunkElements;
             chunkInfo[1]=chunkFaceElements;
 
-            if(cpuId < mpi_info->size) {
-                if(!errorFlag){         
-                    MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
-                    MPI_Send(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, cpuId, 81720, mpi_info->comm);
-                    MPI_Send(id, chunkSize, MPI_INT, cpuId, 81721, mpi_info->comm);
-                    MPI_Send(tag, chunkSize, MPI_INT, cpuId, 81722, mpi_info->comm);
-                    MPI_Send(element_type, chunkSize, MPI_INT, cpuId, 81723, mpi_info->comm);
-                    MPI_Send(chunkInfo, 2, MPI_INT, cpuId, 81724, mpi_info->comm);
-                    MPI_Send(&(elementIndices[0]), chunkElements, MPI_INT, cpuId, 81725, mpi_info->comm);
-                    MPI_Send(&(faceElementIndices[0]), chunkFaceElements, MPI_INT, cpuId, 81726, mpi_info->comm);
-                } else{
-                    //let the remaining processes know something has gone wrong
-                    for(; cpuId<mpi_info->size; cpuId++) {
-                        MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
-                    }                    
-                    break;
-                }
-                
-                // reset arrays for next cpu
-#pragma omp parallel for schedule(static)
-                for (int i=0; i<chunkSize*MAX_numNodes_gmsh; i++)
-                    vertices[i] = -1;
-#pragma omp parallel for schedule(static)
-                for (int i=0; i<chunkSize; i++) {
-                    id[i] = -1;
-                    tag[i] = -1;
-                    element_type[i] = NoRef;
-                }
-                chunkElements=0;
-                chunkFaceElements=0;
-                chunkOtherElements=0;
-                count = 0;
+            if(cpuId >= mpi_info->size) {
+                continue;
             }
-#endif
+            if(!errorFlag){         
+                MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
+                MPI_Send(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, cpuId, 81720, mpi_info->comm);
+                MPI_Send(id, chunkSize, MPI_INT, cpuId, 81721, mpi_info->comm);
+                MPI_Send(tag, chunkSize, MPI_INT, cpuId, 81722, mpi_info->comm);
+                MPI_Send(element_type, chunkSize, MPI_INT, cpuId, 81723, mpi_info->comm);
+                MPI_Send(chunkInfo, 2, MPI_INT, cpuId, 81724, mpi_info->comm);
+                MPI_Send(&(elementIndices[0]), chunkElements, MPI_INT, cpuId, 81725, mpi_info->comm);
+                MPI_Send(&(faceElementIndices[0]), chunkFaceElements, MPI_INT, cpuId, 81726, mpi_info->comm);
+            } else{
+                //let the remaining processes know something has gone wrong
+                for(; cpuId<mpi_info->size; cpuId++) {
+                    MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
+                }                    
+                break;
+            }
             
+            // reset arrays for next cpu
+#pragma omp parallel for schedule(static)
+            for (int i=0; i<chunkSize*MAX_numNodes_gmsh; i++)
+                vertices[i] = -1;
+#pragma omp parallel for schedule(static)
+            for (int i=0; i<chunkSize; i++) {
+                id[i] = -1;
+                tag[i] = -1;
+                element_type[i] = NoRef;
+            }
+            chunkElements=0;
+            chunkFaceElements=0;
+            chunkOtherElements=0;
+            count = -1;
+#endif
+
             //end elment reading for loop
             if (errorFlag)
             {
@@ -442,14 +486,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         for (int j = 0; j < mesh_p->Elements->numNodes; ++j)  {
             int vertex = vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)];
             mesh_p->Elements->Nodes[INDEX2(j, e, mesh_p->Elements->numNodes)]=vertex;
-            
-            std::map<int,int>::iterator it;
-            it=nodeIdMap.find(vertex);
-            if(it == nodeIdMap.end()){
-                sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", vertex);
-                throw FinleyAdapterException(error_msg);
-            }
-            mesh_p->Nodes->Tag[it->second]=tag[elementIndices[e]];
         }
     }
 
@@ -462,14 +498,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         for (int j=0; j<mesh_p->FaceElements->numNodes; ++j) {
             int faceVertex = vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)];
             mesh_p->FaceElements->Nodes[INDEX2(j, e, mesh_p->FaceElements->numNodes)]= faceVertex;
-            std::map<int,int>::iterator it;
-            it=nodeIdMap.find(faceVertex);
-            if(it == nodeIdMap.end()) {
-                sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", 
-                    faceVertex);
-                throw FinleyAdapterException(error_msg);
-            }
-            mesh_p->Nodes->Tag[it->second]=tag[elementIndices[e]];
         }
     }
 
@@ -480,10 +508,70 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
     return errorFlag;
 }
 
+int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
+        int dim, double version, const char *fname)
+{
+    int numNodes=0;
 
-int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int numDim, char * error_msg,
-    std::map< int, int>& nodeIdMap) {
-    int scan_ret, numNodes=0, errorFlag=0;
+    if (fscanf(f, "%d", &numNodes) == EOF)
+        return EARLY_EOF;
+    for (int node = 0; node < numNodes; node++) {
+        int tmp = 0;
+        int scan_ret = fscanf(f, "%d %*e %*e %*e\n", &tmp);
+        if (scan_ret == EOF) {
+            return EARLY_EOF;
+        } else if (scan_ret != 1) {
+            sprintf(error_msg, "malformed meshfilea");
+            return THROW_ERROR;
+        }
+        tags[tmp] = -1;
+    }
+    char line[LenString_MAX] = {0};
+    if(fgets(line,LenString_MAX,f) == NULL) {
+        return 1;
+    }
+    if (!is_endnode_string(line)) {
+        sprintf(error_msg, "malformed meshfile, expected '$EndNodes', got '%s'", line);
+        return THROW_ERROR;
+    }
+    if(fgets(line,LenString_MAX,f) == NULL) {
+        return 1;
+    }
+    if (strncmp(line, "$ELM", 4) && strncmp(line, "$Elements", 9)) {
+        sprintf(error_msg, "malformed meshfile, expected '$Elements', got '%s'", line);
+        return THROW_ERROR;
+    }
+    int numElements = -1;
+    int scan_ret = fscanf(f, "%d\n", &numElements);
+    if (scan_ret == EOF) {
+        return EARLY_EOF;
+    } else if (scan_ret != 1) {
+        sprintf(error_msg, "malformed meshfile");
+        return THROW_ERROR;
+    }
+    struct ElementInfo e;
+    std::vector<int> v(MAX_numNodes_gmsh, -1);
+    e.vertex = &v[0];
+    
+    for (int element = 0; element < numElements; element++) {
+        getSingleElement(f, dim, version, e, error_msg, fname, false);
+        for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
+            std::map<int,int>::iterator it = tags.find(v[i]);
+            if (it == tags.end()) {
+                sprintf(error_msg, "element contains unknown node");
+                return THROW_ERROR;
+            }
+            // the last element containing a node is the tag that stays
+            tags[v[i]] = e.tag;
+        }
+    }
+    return 0;
+}
+
+int getNodes(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+        int numDim, char *error_msg, std::map< int, int>& tags, int errorFlag)
+{
+    int scan_ret, numNodes=0;
     double rtmp0, rtmp1;
 
     if (mpi_info->rank == 0) {  /* Master */
@@ -577,10 +665,9 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
 
 #pragma omp parallel for schedule(static)
     for (int i=0; i<chunkNodes; i++) {
-        mesh_p->Nodes->Id[i]                     = tempInts[i];
+        mesh_p->Nodes->Id[i] = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        mesh_p->Nodes->Tag[i]=i;
-        nodeIdMap[mesh_p->Nodes->Id[i]] = i;
+        mesh_p->Nodes->Tag[i] = tags[tempInts[i]]; //set tag of element
         for (int j=0; j<numDim; j++) {
             mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
@@ -605,7 +692,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
     int i, tag_info[2], itmp;
     char line[LenString_MAX+1], name[LenString_MAX+1];
     char error_msg[LenErrorMsg_MAX];
-    std::map< int, int> nodeIdMap;
+    std::map<int,int> nodeTags;
 #ifdef Finley_TRACE
     double time0=timer();
 #endif
@@ -625,7 +712,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
     }
     /* start reading */
     while(noError() && errorFlag==0) {
-        /* find line staring with $ */
+        /* find line starting with $ */
         if (mpi_info->rank == 0) {
             do {
                 if(fgets(line,LenString_MAX,fileHandle_p) == NULL) {
@@ -642,17 +729,12 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                     break;
                 }
             } while(line[0] != '$');
-        }
 
-
-        if (mpi_info->rank == 0 ) {
             if (!strncmp(&line[1], "MeshFormat", 10)) {
                 logicFlag = 1;
             }
 
-            else if ( !strncmp(&line[1], "NOD", 3)   ||
-                      !strncmp(&line[1], "NOE", 3)   ||
-                      !strncmp(&line[1], "Nodes", 5) ) {
+            else if (is_node_string(line)) {
                 logicFlag = 2;
             }
             else if(!strncmp(&line[1], "ELM", 3) ||
@@ -690,15 +772,47 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
         else if (logicFlag == 2) {
 
             nodesRead=true;
-            errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,error_msg, nodeIdMap); 
-            logicFlag=0;     
+            int mapsize = 0;
+            std::vector<int> sendable_map;
+            if (mpi_info->rank == 0) {
+                long current = ftell(fileHandle_p);
+                errorFlag = gather_nodes(fileHandle_p, nodeTags, error_msg,
+                        numDim, version, fname.c_str());
+                if (!errorFlag && fseek(fileHandle_p, current, SEEK_SET) < 0) {
+                        sprintf(error_msg, "Error in file operation");
+                        errorFlag = THROW_ERROR;
+                }
+#ifdef ESYS_MPI
+                mapsize = 2*nodeTags.size();
+                sendable_map.resize(mapsize);
+                std::map<int,int>::iterator i = nodeTags.begin();
+                for (int j = 0; i != nodeTags.end(); i++, j += 2) {
+                    sendable_map[j] = i->first;
+                    sendable_map[j + 1] = i->second;
+                }
+            }
+            MPI_Bcast(&mapsize, 1, MPI_INT, 0, mpi_info->comm);
+            if (mpi_info->rank != 0) {
+                sendable_map.resize(mapsize);
+            }
+            MPI_Bcast(&sendable_map[0], mapsize, MPI_INT, 0, mpi_info->comm);
+            if (mpi_info->rank != 0) {
+                for (int j = 0; j < mapsize; j += 2)
+                    nodeTags[sendable_map[j]] = sendable_map[j + 1];
+            }
+#else
+            }
+#endif
+            errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,
+                    error_msg, nodeTags, errorFlag); 
+            logicFlag=0;
         }
        
         /* elements */
         else if(logicFlag==3) {
             elementsRead=true;
             errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, error_msg, useMacroElements, 
-                    fname, numDim, version, order, reduced_order,nodeIdMap);
+                    fname, numDim, version, order, reduced_order);
             logicFlag=0;
         }
          /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
@@ -747,7 +861,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
             logicFlag=0;
         }
 
-        //read closing tag $EndElements
+        //read closing tag $EndTHING
         if(mpi_info->rank==0 && errorFlag!=5) {
             do {
                 if(fgets(line,LenString_MAX,fileHandle_p) == NULL) {
