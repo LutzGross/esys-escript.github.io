@@ -920,7 +920,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 
     // define how to get DOF values for controlled but other processors
 #ifdef BOUNDS_CHECK
-    if (offsetInShared[numNeighbors] >= numNodes*(p_max-p_min+1)) {
+    if (numNodes && offsetInShared[numNeighbors] >= numNodes*(p_max-p_min+1)) {
         printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__);
         exit(1);
     }
@@ -929,8 +929,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     for (int i=0; i<lastn; ++i)
         shared[i]=myLastDOF-myFirstDOF+i;
 
+    int *p = shared.empty() ? NULL : &shared[0];
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], &shared[0],
+            myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], p,
             &offsetInShared[0], 1, 0, MPIInfo));
 
     /////////////////////////////////
@@ -983,7 +984,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     }
 
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], &shared[0],
+            myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], p,
             &offsetInShared[0], 1, 0, MPIInfo));
 
     if (noError()) {
