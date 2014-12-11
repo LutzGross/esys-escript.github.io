@@ -61,7 +61,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
     int numNodesPerElement=0, numNodesPerElement2;
     const_ReferenceElementSet_ptr refPoints, refContactElements;
     const_ReferenceElementSet_ptr refFaceElements, refElements;
-    int *id, *tag, *vertices;
+    int *id, *tag;
     ElementTypeId * element_type;
     if (mpi_info->rank == 0) {
         scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
@@ -87,10 +87,10 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
     int chunkFaceElements=0, chunkOtherElements=0;
     id = new int[chunkSize+1];
     tag = new int[chunkSize+1];
-    vertices = new int[chunkSize*MAX_numNodes_gmsh];
+    std::vector<int>vertices(chunkSize*MAX_numNodes_gmsh, -1);
     element_type = new ElementTypeId[chunkSize+1];
-    std::vector<int> elementIndices (chunkSize);
-    std::vector<int> faceElementIndices (chunkSize);
+    std::vector<int> elementIndices (chunkSize, -1);
+    std::vector<int> faceElementIndices (chunkSize, -1);
     
 
 
@@ -99,17 +99,12 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
     int cpuId = 0;
 #endif
 
-#pragma omp parallel for schedule(static)
-    for (int i=0; i<chunkSize*MAX_numNodes_gmsh; i++)
-        vertices[i] = -1;
 
 #pragma omp parallel for schedule(static)
     for (int i=0; i<chunkSize; i++) {
         id[i] = -1;
         tag[i] = -1;
         element_type[i] = NoRef;
-        elementIndices[i]=-1;
-        faceElementIndices[i]=-1;
     }
     
     if (mpi_info->rank == 0) {
@@ -261,47 +256,50 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
             }
             /* for tet10 the last two nodes need to be swapped */
             if ((element_type[count]==Tet10) || (element_type[count]==Tet10Macro)) {
-                 itmp=vertices[INDEX2(9,count,MAX_numNodes_gmsh)];
-                 vertices[INDEX2(9,count,MAX_numNodes_gmsh)]=vertices[INDEX2(8,count,MAX_numNodes_gmsh)];
-                 vertices[INDEX2(8,count,MAX_numNodes_gmsh)]=itmp;
+                itmp=vertices[INDEX2(9,count,MAX_numNodes_gmsh)];
+                vertices[INDEX2(9,count,MAX_numNodes_gmsh)]=vertices[INDEX2(8,count,MAX_numNodes_gmsh)];
+                vertices[INDEX2(8,count,MAX_numNodes_gmsh)]=itmp;
             }
 #ifdef ESYS_MPI
-            if(chunkElements+chunkFaceElements + chunkOtherElements==chunkSize) {
-                cpuId++;
-                chunkInfo[0]=chunkElements;
-                chunkInfo[1]=chunkFaceElements;
+            if(count < chunkSize - 1)
+                continue;
+            
+            cpuId++;
+            chunkInfo[0]=chunkElements;
+            chunkInfo[1]=chunkFaceElements;
 
-                if(cpuId < mpi_info->size) {
-                    if(!errorFlag){         
+            if(cpuId < mpi_info->size) {
+                if(!errorFlag){         
+                    MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
+                    MPI_Send(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, cpuId, 81720, mpi_info->comm);
+                    MPI_Send(id, chunkSize, MPI_INT, cpuId, 81721, mpi_info->comm);
+                    MPI_Send(tag, chunkSize, MPI_INT, cpuId, 81722, mpi_info->comm);
+                    MPI_Send(element_type, chunkSize, MPI_INT, cpuId, 81723, mpi_info->comm);
+                    MPI_Send(chunkInfo, 2, MPI_INT, cpuId, 81724, mpi_info->comm);
+                    MPI_Send(&(elementIndices[0]), chunkElements, MPI_INT, cpuId, 81725, mpi_info->comm);
+                    MPI_Send(&(faceElementIndices[0]), chunkFaceElements, MPI_INT, cpuId, 81726, mpi_info->comm);
+                } else{
+                    //let the remaining processes know something has gone wrong
+                    for(; cpuId<mpi_info->size; cpuId++) {
                         MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
-                        MPI_Send(vertices, chunkSize*MAX_numNodes_gmsh, MPI_INT, cpuId, 81720, mpi_info->comm);
-                        MPI_Send(id, chunkSize, MPI_INT, cpuId, 81721, mpi_info->comm);
-                        MPI_Send(tag, chunkSize, MPI_INT, cpuId, 81722, mpi_info->comm);
-                        MPI_Send(element_type, chunkSize, MPI_INT, cpuId, 81723, mpi_info->comm);
-                        MPI_Send(chunkInfo, 2, MPI_INT, cpuId, 81724, mpi_info->comm);
-                        MPI_Send(&(elementIndices[0]), chunkElements, MPI_INT, cpuId, 81725, mpi_info->comm);
-                        MPI_Send(&(faceElementIndices[0]), chunkFaceElements, MPI_INT, cpuId, 81726, mpi_info->comm);
-                    } else{
-                        //let the remaining processes know something has gone wrong
-                        for(; cpuId<mpi_info->size; cpuId++) {
-                            MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
-                        }                    
-                        break;
-                    }
-                    
-                    // reset arrays for next cpu
-#pragma omp parallel for schedule(static)
-                    for (int i=0; i<chunkSize*MAX_numNodes_gmsh; i++) vertices[i] = -1;
-#pragma omp parallel for schedule(static)
-                    for (int i=0; i<chunkSize; i++) {
-                        id[i] = -1;
-                        tag[i] = -1;
-                        element_type[i] = NoRef;
-                    }
-                    chunkElements=0;
-                    chunkFaceElements=0;
-                    chunkOtherElements=0;
+                    }                    
+                    break;
                 }
+                
+                // reset arrays for next cpu
+#pragma omp parallel for schedule(static)
+                for (int i=0; i<chunkSize*MAX_numNodes_gmsh; i++)
+                    vertices[i] = -1;
+#pragma omp parallel for schedule(static)
+                for (int i=0; i<chunkSize; i++) {
+                    id[i] = -1;
+                    tag[i] = -1;
+                    element_type[i] = NoRef;
+                }
+                chunkElements=0;
+                chunkFaceElements=0;
+                chunkOtherElements=0;
+                count = 0;
             }
 #endif
             
@@ -319,7 +317,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
 
             MPI_Recv(&errorFlag, 1, MPI_INT,0, 81719, mpi_info->comm, &status);
             if(!errorFlag){
-                MPI_Recv(vertices, chunkSize*MAX_numNodes_gmsh, MPI_INT, 0, 81720, mpi_info->comm, &status);
+                MPI_Recv(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, 0, 81720, mpi_info->comm, &status);
                 MPI_Recv(id, chunkSize, MPI_INT, 0, 81721, mpi_info->comm, &status);
                 MPI_Recv(tag, chunkSize, MPI_INT, 0, 81722, mpi_info->comm, &status);
                 MPI_Recv(element_type, chunkSize, MPI_INT, 0, 81723, mpi_info->comm, &status);
@@ -442,13 +440,13 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         mesh_p->Elements->Color[e]=elementIndices[e];
         mesh_p->Elements->Owner[e]=mpi_info->rank;
         for (int j = 0; j < mesh_p->Elements->numNodes; ++j)  {
-            mesh_p->Elements->Nodes[INDEX2(j, e, mesh_p->Elements->numNodes)]=vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)];
+            int vertex = vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)];
+            mesh_p->Elements->Nodes[INDEX2(j, e, mesh_p->Elements->numNodes)]=vertex;
             
             std::map<int,int>::iterator it;
-            it=nodeIdMap.find(vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]);
+            it=nodeIdMap.find(vertex);
             if(it == nodeIdMap.end()){
-                sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", 
-                    vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]);
+                sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", vertex);
                 throw FinleyAdapterException(error_msg);
             }
             mesh_p->Nodes->Tag[it->second]=tag[elementIndices[e]];
@@ -462,12 +460,13 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         mesh_p->FaceElements->Color[e]=e;
         mesh_p->FaceElements->Owner[e]=mpi_info->rank;
         for (int j=0; j<mesh_p->FaceElements->numNodes; ++j) {
-            mesh_p->FaceElements->Nodes[INDEX2(j, e, mesh_p->FaceElements->numNodes)]=vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)];
+            int faceVertex = vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)];
+            mesh_p->FaceElements->Nodes[INDEX2(j, e, mesh_p->FaceElements->numNodes)]= faceVertex;
             std::map<int,int>::iterator it;
-            it=nodeIdMap.find(vertices[INDEX2(j,faceElementIndices[e],MAX_numNodes_gmsh)]);
+            it=nodeIdMap.find(faceVertex);
             if(it == nodeIdMap.end()) {
                 sprintf(error_msg, "id %d not found in nodeIdMap of gmshReader", 
-                    vertices[INDEX2(j,elementIndices[e],MAX_numNodes_gmsh)]);
+                    faceVertex);
                 throw FinleyAdapterException(error_msg);
             }
             mesh_p->Nodes->Tag[it->second]=tag[elementIndices[e]];
@@ -478,14 +477,13 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
     delete[] id;
     delete[] tag;
     delete[] element_type;
-    delete[] vertices;
     return errorFlag;
 }
 
 
 int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int numDim, char * error_msg,
     std::map< int, int>& nodeIdMap) {
-    int j, scan_ret, numNodes=0, errorFlag=0;
+    int scan_ret, numNodes=0, errorFlag=0;
     double rtmp0, rtmp1;
 
     if (mpi_info->rank == 0) {  /* Master */
@@ -577,14 +575,14 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
     mesh_p->Nodes->allocTable(chunkNodes);
     if (!noError()) return ERROR;
 
-#pragma omp parallel for private (j) schedule(static)
+#pragma omp parallel for schedule(static)
     for (int i=0; i<chunkNodes; i++) {
         mesh_p->Nodes->Id[i]                     = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
         mesh_p->Nodes->Tag[i]=i;
         nodeIdMap[mesh_p->Nodes->Id[i]] = i;
-        for (j=0; j<numDim; j++) {
-            mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)]  = tempCoords[i*numDim+j];
+        for (int j=0; j<numDim; j++) {
+            mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
 
     }
@@ -800,9 +798,11 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
         return NULL;
     }
     // resolve id's
-    if (noError()) mesh_p->resolveNodeIds();
+    if (noError())
+        mesh_p->resolveNodeIds();
     // rearrange elements
-    if (noError()) mesh_p->prepare(optimize);
+    if (noError()) 
+        mesh_p->prepare(optimize);
 
     if (!noError()) {
         delete mesh_p;
