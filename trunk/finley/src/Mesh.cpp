@@ -577,7 +577,10 @@ void Mesh::resolveNodeIds()
         newNodeFile->allocTable(newNumNodes);
     }
     if (noError()) {
-        newNodeFile->gather_global(newLocalToGlobalNodeLabels, Nodes);
+        if (len)
+            newNodeFile->gather_global(&newLocalToGlobalNodeLabels[0], Nodes);
+        else
+            newNodeFile->gather_global(NULL, Nodes);
     }
     if (noError()) {
         delete Nodes;
