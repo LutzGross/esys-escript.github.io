@@ -39,8 +39,9 @@ struct NodeMapping {
     /// theTarget[i]=unused means that no target is defined for FEM node i.
     void assign(const std::vector<int>& theTarget, int unused)
     {
+        const int *p = theTarget.empty() ? NULL : &theTarget[0];
         std::pair<int,int> range(
-            util::getFlaggedMinMaxInt(theTarget.size(), &theTarget[0], unused));
+            util::getFlaggedMinMaxInt(theTarget.size(), p, unused));
         if (range.first < 0) {
             setError(VALUE_ERROR, "NodeMapping: target has negative entry.");
             return;

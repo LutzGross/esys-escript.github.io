@@ -24,6 +24,8 @@
 #include "IndexList.h"
 #include <boost/scoped_array.hpp>
 
+#include "CPPAdapter/FinleyAdapterException.h"
+
 namespace finley {
 
 /// Constructor.
@@ -587,7 +589,8 @@ void Mesh::resolveNodeIds()
         Nodes=newNodeFile;
         // relabel nodes of the elements
         relabelElementNodes(globalToNewLocalNodeLabels, min_id);
-    }
+    } else
+        throw FinleyAdapterException("Errors occurred during node resolution");
 }
 
 /// sets new coordinates for the nodes
