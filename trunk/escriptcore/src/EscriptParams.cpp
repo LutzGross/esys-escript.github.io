@@ -20,7 +20,7 @@
 #include <boost/python/tuple.hpp>
 #include <cmath>                        // to test if we know how to check for nan
 
-
+#include "esysUtils/EsysException.h"
 #include "esysUtils/Esys_MPI.h"
 
 namespace escript
@@ -176,31 +176,21 @@ EscriptParams::getInt(const char* name, int sentinel) const
 void 
 EscriptParams::setInt(const char* name, int value)
 {
-   if (!strcmp(name,"TOO_MANY_LINES"))
-   {
-        too_many_lines=value;
-   }
-   if (!strcmp(name,"AUTOLAZY"))
-   {
-        autolazy=!(value==0);        // set to 1 or zero
-   }
-   if (!strcmp(name,"TOO_MANY_LEVELS"))
-   {
-        too_many_levels=value;
-   }
-   if (!strcmp(name,"RESOLVE_COLLECTIVE"))
-   {
-        resolve_collective=value;
-   }
-   if (!strcmp(name,"LAZY_STR_FMT"))
-   {
-        lazy_str_fmt=value;
-   }
-   if (!strcmp(name,"LAZY_VERBOSE"))
-   {
-        lazy_verbose=value;
-   }
    // Note: there is no way to modify the LAPACK_SUPPORT variable ATM
+    if (!strcmp(name,"TOO_MANY_LINES"))
+        too_many_lines=value;
+    else if (!strcmp(name,"AUTOLAZY"))
+        autolazy=!(value==0);        // set to 1 or zero
+    else if (!strcmp(name,"TOO_MANY_LEVELS"))
+        too_many_levels=value;
+    else if (!strcmp(name,"RESOLVE_COLLECTIVE"))
+        resolve_collective=value;
+    else if (!strcmp(name,"LAZY_STR_FMT"))
+        lazy_str_fmt=value;
+    else if (!strcmp(name,"LAZY_VERBOSE"))
+        lazy_verbose=value;
+    else
+       throw esysUtils::EsysException("Invalid parameter name");
 }
 
 void 
