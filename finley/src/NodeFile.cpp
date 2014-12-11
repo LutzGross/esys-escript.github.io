@@ -345,7 +345,7 @@ void NodeFile::gather(int* index, const NodeFile* in)
             numDim, Coordinates, in->Coordinates);
 }
 
-void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
+void NodeFile::gather_global(int *index, const NodeFile* in)
 {
     // get the global range of node ids
     const std::pair<int,int> id_range(in->getGlobalIdRange());
@@ -407,7 +407,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
 #endif
     buffer_rank=in->MPIInfo->rank;
     for (int p=0; p<in->MPIInfo->size; ++p) {
-        gatherEntries(numNodes, &index[0], distribution[buffer_rank],
+        gatherEntries(numNodes, index, distribution[buffer_rank],
                 distribution[buffer_rank+1], Id, Id_buffer, Tag, Tag_buffer,
                 globalDegreesOfFreedom, globalDegreesOfFreedom_buffer, numDim,
                 Coordinates, Coordinates_buffer);

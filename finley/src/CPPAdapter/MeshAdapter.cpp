@@ -2063,7 +2063,10 @@ const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
     Mesh* mesh=m_finleyMesh.get();
     switch(functionSpaceCode) {
         case Nodes:
-            return &mesh->Nodes->tagsInUse[0];
+            if (mesh->Nodes->tagsInUse.empty())
+                return NULL;
+            else
+                return &mesh->Nodes->tagsInUse[0];
         case ReducedNodes:
             throw FinleyAdapterException("Error - ReducedNodes does not support tags");
         case DegreesOfFreedom:
@@ -2072,17 +2075,29 @@ const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
             throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
         case Elements:
         case ReducedElements:
-            return &mesh->Elements->tagsInUse[0];
+            if (mesh->Elements->tagsInUse.empty())
+                return NULL;
+            else
+                return &mesh->Elements->tagsInUse[0];
         case FaceElements:
         case ReducedFaceElements:
-            return &mesh->FaceElements->tagsInUse[0];
+            if (mesh->FaceElements->tagsInUse.empty())
+                return NULL;
+            else
+                return &mesh->FaceElements->tagsInUse[0];
         case Points:
-            return &mesh->Points->tagsInUse[0];
+            if (mesh->Points->tagsInUse.empty())
+                return NULL;
+            else
+                return &mesh->Points->tagsInUse[0];
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            return &mesh->ContactElements->tagsInUse[0];
+            if (mesh->ContactElements->tagsInUse.empty())
+                return NULL;
+            else
+                return &mesh->ContactElements->tagsInUse[0];
         default:
             stringstream temp;
             temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;

@@ -75,7 +75,7 @@ public:
 
     void copyTable(int offset, int idOffset, int dofOffset, const NodeFile* in);
     void gather(int* index, const NodeFile* in);
-    void gather_global(const std::vector<int>& index, const NodeFile* in);
+    void gather_global(int* index, const NodeFile* in);
     void scatter(int* index, const NodeFile* in);
 
     void setCoordinates(const escript::Data& newX);
