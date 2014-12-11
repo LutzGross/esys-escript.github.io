@@ -772,7 +772,9 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
         else if (logicFlag == 2) {
 
             nodesRead=true;
+#ifdef ESYS_MPI
             int mapsize = 0;
+#endif
             std::vector<int> sendable_map;
             if (mpi_info->rank == 0) {
                 long current = ftell(fileHandle_p);
