@@ -166,8 +166,8 @@ class Design(design.AbstractDesign):
             if not self.__mshname_set: #i.e. it's a tempfile
                 os.unlink(self.getMeshFileName())
         except OSError:
-	  pass	# The file might not have been created and there is nothing
-	  # to do about a "failure" here anyway
+            pass # The file might not have been created and there is nothing
+                 # to do about a "failure" here anyway
 
     def getCommandString(self):
         """
