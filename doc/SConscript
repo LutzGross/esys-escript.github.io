@@ -140,6 +140,7 @@ sortOutExample('inversion/gravmag_nodriver.py')
 sortOutExample('inversion/mag_netcdf.py')
 sortOutExample('inversion/plot_ermapper.py', needsMPL=True, allowsMPI=False)
 sortOutExample('inversion/plot_netcdf.py', needsMPL=True, allowsMPI=False)
+sortOutExample('inversion/dc_forward.py', needsGMSH=True)
 example_deps.append('inversion/content.txt')
 example_deps.append('inversion/data/GravitySmall')
 example_deps.append('inversion/data/MagneticSmall')
@@ -153,6 +154,9 @@ example_deps.append('inversion/data/GravitySmall.nc')
 example_deps.append('inversion/data/MagneticSmall.nc')
 example_deps.append('inversion/data/QLDWestGravity.nc')
 example_deps.append('inversion/data/QLDWestMagnetic.nc')
+example_deps.append('inversion/data/HalfSphere_v1.4.msh')
+
+
 
 
 if len(skipped_tests)>0:
