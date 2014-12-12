@@ -561,8 +561,9 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
                 sprintf(error_msg, "element contains unknown node");
                 return THROW_ERROR;
             }
-            // the last element containing a node is the tag that stays
-            tags[v[i]] = e.tag;
+            // the first tagged element using a node tags that node too
+            if (it->second == -1 && e.tag != 0)
+                tags[v[i]] = e.tag;
         }
     }
     return 0;
@@ -667,7 +668,12 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     for (int i=0; i<chunkNodes; i++) {
         mesh_p->Nodes->Id[i] = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        mesh_p->Nodes->Tag[i] = tags[tempInts[i]]; //set tag of element
+        int tag = tags[tempInts[i]];
+        if (tag == -1) {
+            mesh_p->Nodes->Tag[i] = tempInts[i]; //set tag to node label
+        } else {
+            mesh_p->Nodes->Tag[i] = tag; //set tag of element
+        }
         for (int j=0; j<numDim; j++) {
             mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
@@ -793,18 +799,20 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                     sendable_map[j + 1] = i->second;
                 }
             }
-            MPI_Bcast(&mapsize, 1, MPI_INT, 0, mpi_info->comm);
-            if (mpi_info->rank != 0) {
-                sendable_map.resize(mapsize);
-            }
-            MPI_Bcast(&sendable_map[0], mapsize, MPI_INT, 0, mpi_info->comm);
-            if (mpi_info->rank != 0) {
-                for (int j = 0; j < mapsize; j += 2)
-                    nodeTags[sendable_map[j]] = sendable_map[j + 1];
-            }
-#else
-            }
+            if (mpi_info->size > 1) {
+                MPI_Bcast(&mapsize, 1, MPI_INT, 0, mpi_info->comm);
+                if (mpi_info->rank != 0) {
+                    sendable_map.resize(mapsize);
+                }
+                MPI_Bcast(&sendable_map[0], mapsize, MPI_INT, 0, mpi_info->comm);
+                if (mpi_info->rank != 0) {
+#pragma omp parallel for
+                    for (int j = 0; j < mapsize; j += 2)
+                        nodeTags[sendable_map[j]] = sendable_map[j + 1];
+                }
 #endif
+            }
+
             errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,
                     error_msg, nodeTags, errorFlag); 
             logicFlag=0;
