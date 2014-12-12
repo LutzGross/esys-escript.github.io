@@ -35,6 +35,11 @@ from esys.escript import *
 from esys.weipa import *
 
 haveNetcdf=(getEscriptParamInt("NETCDF_BUILD",0)==1)
+try:
+    import pyproj
+    havePyProj=True
+except ImportError:
+    havePyProj=False
 
 # Set parameters
 MAGNETIC_DATASET = 'data/MagneticSmall.nc'
@@ -148,7 +153,9 @@ if 'NetCdfData' not in dir():
 elif not HAVE_RIPLEY:
     print("Ripley module not available")
 elif not haveNetcdf:
-    print("netCDF not available.")        
+    print("netCDF not available.")     
+elif not havePyProj:
+    print("This example requires pyproj.")
 else:
     work()
 
