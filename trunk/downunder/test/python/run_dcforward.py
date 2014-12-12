@@ -107,7 +107,7 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes = 130.
         if structured:
             extents=[100,100,100]
-            dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
+            dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
             if GMSH_MPI:
                 raise unittest.SkipTest("MPI gmsh not currently supported")
@@ -131,10 +131,11 @@ class TestDCResistivityForward(unittest.TestCase):
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
         current=1000.
         numElectrodes = 12
-        midPoint = [0.5*extents[0]+1,0.5*extents[1]]
+        interval_a = 4
+        midPoint = [0.5*extents[0]+interval_a/2,0.5*extents[1]]
         directionVector=[1.,0.]
         interval_n = 5
-        interval_a = 2
+        
         schs=SchlumbergerSurvey(dom, primaryConductivity, secondaryConductivity,
                 current, interval_a, interval_n, midPoint, directionVector,
                 numElectrodes)
@@ -144,6 +145,7 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes=schs.getApparentResistivityTotal()
         for i in totalApparentRes:
             for j in i:
+                print (abs(j-totalApparentResVal) , 0.05 * totalApparentResVal)
                 self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
 
     def test_getPotentialDipDip(self):
@@ -177,7 +179,7 @@ class TestDCResistivityForward(unittest.TestCase):
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
-            os.unlink(runName+".msh")
+            # os.unlink(runName+".msh")
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
