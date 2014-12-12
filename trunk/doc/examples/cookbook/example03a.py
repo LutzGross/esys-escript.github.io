@@ -123,6 +123,14 @@ if HAVE_FINLEY:
     xi = np.linspace(0.0,mx,75)
     yi = np.linspace(0.0,my, 75)
 
+    #TO keep the version distributed with openSuse happy 
+    interp='nn'
+    try:
+        from mpl_toolkits.natgrid import _natgrid
+    except ImportError:
+        interp='linear'
+
+
     ########################################################START ITERATION
     while t<=tend:
           i+=1 #counter
@@ -131,7 +139,7 @@ if HAVE_FINLEY:
           T=mypde.getSolution()
           tempT = T.toListOfTuples()
           # grid the data.
-          zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
+          zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi,interp=interp)
           # contour the gridded data, plotting dots at the 
           # randomly spaced data points.
           pl.matplotlib.pyplot.autumn()
