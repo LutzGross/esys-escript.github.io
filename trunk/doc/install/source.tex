@@ -49,7 +49,7 @@ Note that:
 
 \subsection{What parallel technology do I need?}\label{sec:needpar}
 If you are using any version of Linux released in the past few years, then your system compiler will support 
-\openmp with no extra work; so you should use it.
+\openmp with no extra work (and give better performance); so you should use it.
 You will not need MPI unless your computer is some form of cluster.
 
 If you are using BSD or MacOSX and you are just experimenting with \escript, then performance is
@@ -58,7 +58,7 @@ This also applies if you write and polish your scripts on your computer and then
 If in the future you find escript useful and your scripts take significant time to run, then you may want to recompile 
 \escript with more options.
 
-In general, for a single computer, \openmp will give better performance (both time and memory), so use it if possible.
+
 
 Note that even if your version of \escript has support for \openmp or MPI, you will still need to tell the system to 
 use it when you run your scripts.
@@ -86,7 +86,7 @@ OSX 10.10& Yes & Yes\\\hline
 \end{tabular}
 \end{center}
 
-Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the 
+\noindent Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the 
 command \texttt{xcode-select --install} will allow you to download and install the commandline tools.}.
 
 \section{Building}\label{sec:build}
@@ -98,7 +98,7 @@ The \texttt{_options.py} files are located in the scons/templates directory. We 
 be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX 
 should be replaced with your computer's name.
 If your particular system is not in the list below, or if you want a more customised 
-build\footnote{for example, you want MPI functionality or you wish to use a different compiler}, 
+build, 
 see Section~\ref{sec:othersrc} for instructions.
 \begin{itemize}
  \item Debian - \ref{sec:debsrc}
@@ -117,12 +117,17 @@ All of these instructions assume that you have obtained the \escript source (and
 \subsection{Debian}\label{sec:debsrc}
 
 \begin{shellCode}
-sudo aptitude install python-dev python-numpy libboost-python-dev libnetcdf-dev
-sudo aptitude install scons lsb-release
+sudo aptitude install python-dev python-numpy libboost-python-dev libnetcdf-dev 
+sudo aptitude install scons lsb-release  libboost-random-dev
 sudo aptitude install python-sympy python-matplotlib python-scipy
 sudo aptitude install python-pyproj python-gdal 
 \end{shellCode}
 
+\noindent Once \textit{Jessie} is released (or if \textit{wheezy-backports} is in your \texttt{apt} sources) you can use:
+\begin{shellCode}
+sudo aptitude install gmsh 
+\end{shellCode}
+to add extra meshing functionality.
 
 \begin{optionalstep}
 If for some reason, you wish to rebuild the documentation, you would also need the following:
@@ -132,7 +137,7 @@ sudo aptitude install zip texlive-latex-extra latex-xcolor
 \end{shellCode}
 \end{optionalstep}
 
-\noindent In the source directory execute the following (substitute squeeze or wheezy as appropriate for XXXX):
+\noindent In the source directory execute the following (substitute wheezy for XXXX):
 \begin{shellCode}
 scons -j1 options_file=scons/templates/XXXX_options.py
 \end{shellCode}
@@ -146,10 +151,11 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 
 If you have not installed \texttt{aptitude}, then substitute \texttt{apt-get} in the following.
 \begin{shellCode}
-sudo aptitude install python-dev python-numpy libboost-python-dev libnetcdf-dev
+sudo aptitude install python-dev python-numpy libboost-python-dev 
+sudo aptitude install libnetcdf-dev libboost-random-dev
 sudo aptitude install scons lsb-release
 sudo aptitude install python-sympy python-matplotlib python-scipy
-sudo aptitude install python-pyproj python-gdal 
+sudo aptitude install python-pyproj python-gdal gmsh
 \end{shellCode}
 
 
@@ -174,25 +180,24 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 
 
 \subsection{OpenSuse}\label{sec:susesrc}
-These instructions were prepared using release $13.1$.
+These instructions were prepared using release $13.2$.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
-sudo zypper install libboost_python1_53_0 python-devel python-numpy 
-sudo zypper install python-scipy python-sympy python-matplotlib libnetcdf_c++-devel
-sudo zypper install gcc-c++ scons boost-devel netcdf-devel
+sudo zypper install libboost_python1_54_0 libboost_random1_54_0 
+sudo zypper python-devel python-numpy libnetcdf_c++-devel
+sudo zypper install python-scipy python-sympy python-matplotlib 
+sudo zypper install gcc gcc-c++ scons boost-devel netcdf-devel
 \end{shellCode}
 These will allow you to use most features except some parts of the \downunder inversion library.
 If you wish to use those, you will need some additional packages [python-pyproj, python-gdal].
-This can be done after Escript installation.
+This can be done now or after Escript installation.
 
-\begin{optionalstep}
-Add \url{http://ftp.suse.de/pub/opensuse/repositories/Application:/Geo/openSUSE_13.1/}
-to your repositories in \texttt{zypper}.
 \begin{shellCode}
-sudo zypper install python-pyproj, python-gdal
+sudo zypper addrepo \ 
+ http://ftp.suse.de/pub/opensuse/repositories/Application:/Geo/openSUSE_13.2/ osgf
+sudo zypper install python-pyproj python-gdal
 \end{shellCode}
-\end{optionalstep}
 
 Now to build escript itself.
 In the escript source directory:
@@ -208,13 +213,13 @@ scons -j1 py_tests options_file=scons/templates/opensuse13.1_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Centos}\label{sec:centossrc}
-These instructions were prepared using centos release $6.5$.
+These instructions were prepared using centos release $7.0$.
 The core of escript works, however some functionality is not availible because the default packages for some dependencies in Centos are too old.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
 yum install python-devel numpy scipy scons boost-devel
-yum install python-matplotlib gcc-c++
+yum install python-matplotlib gcc gcc-c++
 yum install boost-python 
 \end{shellCode}
 
@@ -225,11 +230,11 @@ NetCDF needs to be installed when you compile if you wish to use it.
 \begin{optionalstep}
 \noindent Add the \texttt{EPEL} repository.
 \begin{shellCode}
-rpm -U http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+yum install epel-release.noarch
 \end{shellCode}
 
 \begin{shellCode}
-yum install netcdf-devel gdal-python
+yum install netcdf-devel netcdf_cxx_devel gdal-python
 \end{shellCode}
 \end{optionalstep}
 
@@ -240,13 +245,13 @@ If it turns out to be necessary for your particular application, the source can 
 \noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/centos6.5_options.py
+scons -j1 options_file=scons/templates/centos7_0_options.py
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using release $20$.
+These instructions were prepared using release $21.5$.
 
 \noindent Install packages
 \begin{shellCode}
@@ -258,12 +263,12 @@ yum install boost-devel
 \noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/fedora18_options.py
+scons -j1 options_file=scons/templates/fedora21_5_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/fedora18_options.py 
+scons -j1 py_tests options_file=scons/templates/fedora21_5_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
@@ -323,46 +328,11 @@ scons -j1 options_file=scons/templates/homebrew_options.py
 
 
 \subsection{FreeBSD}\label{sec:freebsdsrc}
-\subsubsection{Release 9.1}
-The following passes the majority of tests but there is an issue related to
-some features in the inversion library.
-The list of installations ``works'' but is not guaranteed to be
-minimal\footnote{Depending on your needs you might be able to get by with a
-smaller set of packages.}.
 
-Install the following packages:
-\begin{itemize}
- \item python
- \item scons
- \item boost-python-libs
- \item bash
-\end{itemize}
+At time of writing, \texttt{numpy} does not install correctly on FreeBSD.
+Since \texttt{numpy} is a critical dependency for \escript, we have been unable to test on FreeBSD.
 
-Now install the following ports:
-\begin{itemize}
- \item science/py-scipy
- \item science/netcdf
- \item science/silo
- \item math/py-sympy
- \item graphics/py-pyproj
- \item graphics/py-gdal
- \item net/openmpi (optional)
-\end{itemize}
-
-You will need to add \texttt{/usr/local/mpi/openmpi/bin} to your path if you wish to build with MPI.
-
-Next choose (or create) your options file.
-In this case we have three prepared in the \texttt{scons/templates} directory:
-\begin{itemize}
- \item \texttt{freebsd91_options.py}
- \item \texttt{freebsd91_mpi_options.py}     If you would like to use MPI.
-\end{itemize}
-
-In the escript source directory (where ZZZ is your options file):
-\begin{shellCode}
-scons -j1 options_file=ZZZ
-\end{shellCode}
-
+\begin{comment}
 \subsubsection{Release 10.0}
 
 Install the following packages:
@@ -399,6 +369,7 @@ this can be fixed by adding a line to \texttt{/etc/libmap.conf}:
 libgcc_s.so.1 gcc47/libgcc_s.so.1
 \end{shellCode}
 
+\end{comment}
 \subsection{Other Systems / Custom Builds}\label{sec:othersrc}
 
 \escript has support for a number of optional packages.
@@ -422,19 +393,18 @@ For example, to enable OpenMP, change the line
 to
 \begin{verbatim}
 openmp = True 
-\end{verbatim}.
+\end{verbatim}
 
 If you are using libraries which are not installed in the standard places (or have different names) you will need to 
 change the relevant lines.
 A common need for this would be using a more recent version of the boost::python library.
-
 You can also change the compiler or the options passed to it by modifying the relevant lines.
 
 \subsubsection*{MPI}
 If you wish to enable or disable MPI, or if you wish to use a different implementation of MPI, you can use the \texttt{mpi}
 configuration variable.
-To disable MPI use, \verb|mpi = 'none'|.
 You will also need to ensure that the \texttt{mpi_prefix} and \texttt{mpi_libs} variables are uncommented and set correctly.
+To disable MPI use, \verb|mpi = 'none'|.
 
 \subsubsection{Python3}
 \escript works with \texttt{python3} but until recently, many distributions have not distributed python3 versions of their packages.
