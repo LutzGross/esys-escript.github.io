@@ -51,7 +51,7 @@ FINLEY_WORKDIR_PATH=FINLEY_WORKDIR
 
 TEST_FILE_PRE="test_"
 
-@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+@unittest.skipIf(mpisize>1, "multiple processes not supported for mesh writes")
 class Test_Generators(unittest.TestCase):
 
    def checker(self, dom, reference):
@@ -196,7 +196,7 @@ class Test_Generators(unittest.TestCase):
       my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
-@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+@unittest.skipIf(mpisize>1, "multiple processes not supported for mesh writes")
 class Test_GMSHReader(unittest.TestCase):
    def compare(self, test_file, reference_file):
       dom_string=open(test_file).read().splitlines()
@@ -256,7 +256,7 @@ class Test_GMSHReader(unittest.TestCase):
          dom.write(test)
          self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
-@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+@unittest.skipIf(mpisize>1, "multiple processes not supported for mesh writes")
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
        file="hex_2D_order2.msh"
