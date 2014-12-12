@@ -145,7 +145,6 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes=schs.getApparentResistivityTotal()
         for i in totalApparentRes:
             for j in i:
-                print (abs(j-totalApparentResVal) , 0.05 * totalApparentResVal)
                 self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
 
     def test_getPotentialDipDip(self):
@@ -179,7 +178,7 @@ class TestDCResistivityForward(unittest.TestCase):
             runName=os.path.join(TEST_DATA_ROOT, "dc_forward/dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=tmpDir,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
-            # os.unlink(runName+".msh")
+            os.unlink(runName+".msh")
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
