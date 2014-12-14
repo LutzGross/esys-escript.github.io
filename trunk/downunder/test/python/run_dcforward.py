@@ -100,7 +100,9 @@ class TestDCResistivityForward(unittest.TestCase):
         delPhi=pps.getPotential()
         totalApparentResList = pps.getApparentResistivityTotal()
         for i in totalApparentResList:
-            self.assertTrue(abs(i-totalApparentRes) < 0.05 * totalApparentRes)
+            res_a = abs(i-totalApparentResVal)
+            res_b = 0.05 * totalApparentResVal
+            self.assertLess(a, b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotential3dSchlumberger(self):
         structured=True
@@ -145,7 +147,9 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes=schs.getApparentResistivityTotal()
         for i in totalApparentRes:
             for j in i:
-                self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
+                res_a = abs(j-totalApparentResVal)
+                res_b = 0.05 * totalApparentResVal
+                self.assertLess(a, b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotentialDipDip(self):
         structured=False
@@ -196,7 +200,9 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes=dipdips.getApparentResistivityTotal()
         for i in totalApparentRes:
             for j in i:
-                self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
+                res_a = abs(j-totalApparentResVal)
+                res_b = 0.05 * totalApparentResVal
+                self.assertLess(a, b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotentialWenner(self):
         structured=True
@@ -248,7 +254,9 @@ class TestDCResistivityForward(unittest.TestCase):
         SecondaryApparentRes=wenSurv.getApparentResistivitySecondary()
         totalApparentRes=wenSurv.getApparentResistivityTotal()
         for i in totalApparentRes:
-                self.assertTrue(abs(i-totalApparentResVal ) < 0.05 * totalApparentResVal)
+            res_a = abs(i-totalApparentResVal)
+            res_b = 0.05 * totalApparentResVal
+            self.assertLess(a, b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
 
     def test_getPotentialPolDip(self):
@@ -302,7 +310,9 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes=poldips.getApparentResistivityTotal()
         for i in totalApparentRes:
             for j in i:
-                self.assertTrue(abs(j-totalApparentResVal) < 0.05 * totalApparentResVal)
+                res_a = abs(j-totalApparentResVal)
+                res_b = 0.05 * totalApparentResVal
+                self.assertLess(a, b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
 ################################
 if __name__ == '__main__':
