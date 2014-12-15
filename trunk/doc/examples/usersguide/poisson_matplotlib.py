@@ -23,7 +23,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import matplotlib
-matplotlib.use('agg')	#For interactive use, you can comment out this line
+matplotlib.use('agg')    #For interactive use, you can comment out this line
 #It's just here to make testing easier
 
 import numpy
@@ -35,36 +35,36 @@ from esys.finley import Rectangle
 
 #Testing whether we have a late enough version of matplotlib
 try:
-	matplotlib.mlab.griddata
+    matplotlib.mlab.griddata
 
-        # TO keep the version distributed by openSuse happy
-        interp='nn'
-        try:
-            from mpl_toolkits.natgrid import _natgrid
-        except ImportError:
-            interp='linear'
-	# generate domain:
-	mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
-	# define characteristic function of Gamma^D
-	x = mydomain.getX()
-	gammaD = whereZero(x[0])+whereZero(x[1])
-	# define PDE and get its solution u
-	mypde = Poisson(domain=mydomain)
-	mypde.setValue(f=1,q=gammaD)
-	u = mypde.getSolution()
-	
-	# interpolate u to a matplotlib grid:
-	x_grid = numpy.linspace(0.,1.,50)
-	y_grid = numpy.linspace(0.,1.,50)
-	x=mydomain.getX()[0].toListOfTuples()
-	y=mydomain.getX()[1].toListOfTuples()
-	z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
-	z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid,interp=interp )
-	# interpolate u to a rectangular grid:
-	matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
-	matplotlib.pyplot.savefig("u.png")
-	# uncomment this line if you want to interact with a plot window
-	#matplotlib.pyplot.show()
+    # TO keep the version distributed by openSuse happy
+    interp='nn'
+    try:
+        from mpl_toolkits.natgrid import _natgrid
+    except ImportError:
+        interp='linear'
+    # generate domain:
+    mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+    # define characteristic function of Gamma^D
+    x = mydomain.getX()
+    gammaD = whereZero(x[0])+whereZero(x[1])
+    # define PDE and get its solution u
+    mypde = Poisson(domain=mydomain)
+    mypde.setValue(f=1,q=gammaD)
+    u = mypde.getSolution()
+    
+    # interpolate u to a matplotlib grid:
+    x_grid = numpy.linspace(0.,1.,50)
+    y_grid = numpy.linspace(0.,1.,50)
+    x=mydomain.getX()[0].toListOfTuples()
+    y=mydomain.getX()[1].toListOfTuples()
+    z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
+    z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid,interp=interp )
+    # interpolate u to a rectangular grid:
+    matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
+    matplotlib.pyplot.savefig("u.png")
+    # uncomment this line if you want to interact with a plot window
+    #matplotlib.pyplot.show()
 
 except AttributeError:
-	print("Your version of matplotlib does not provide the griddata method.\nSkipping example.\n")
+    print("Your version of matplotlib does not provide the griddata method.\nSkipping example.\n")
