@@ -50,15 +50,8 @@ def toRegGrid(u, nx=50, ny=50):
    xi = np.linspace(inf(xx[0]),sup(xx[0]),nx)
    yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
 
-   #To keep the version distributed by openSuse happy
-   interp='nn'
-   try:
-       from mpl_toolkits.natgrid import _natgrid
-   except ImportError:
-       interp='linear'
-
    # interpolate u to grid
-   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi,interp=interp)
+   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi)
    return xi, yi, zi
 
 def subsample(u, nx=50, ny=50):
