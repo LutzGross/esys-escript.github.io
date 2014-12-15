@@ -339,7 +339,7 @@ class IsostaticPressure(object):
     """
     class to calculate isostatic pressure field correction due to gravity forces 
     """
-    def __init__(self, domain,
+    def __init__(self, domain, p0=0.,
                         level0=0, 
                         gravity0=-9.81 * U.m*U.sec**(-3),
                         background_density= 2670* U.kg*U.m**(-3),
@@ -350,6 +350,8 @@ class IsostaticPressure(object):
         
         :param domain: domain of the model
         :type domain: `Domain`
+        :param p0: pressure at level0
+        :type p0: scalar `Data` or ``float``
         :param background_density: defines background_density in kg/m^3
         :type background_density: ``float``
         :param coordinates: defines coordinate system to be used
@@ -370,12 +372,13 @@ class IsostaticPressure(object):
         self.__pde.setSymmetryOn()
 
         z = domain.getX()[DIM-1]
-        self.__pde.setValue(q=whereNonNegative(z-level0))
+        self.__pde.setValue(q=whereNonNegative(z-level0), r=p0)
 
         fw = self.__trafo.getScalingFactors()**2 * self.__trafo.getVolumeFactor()
         A=self.__pde.createCoefficient("A")
         for i in range(DIM): A[i,i]=fw[i]
         self.__pde.setValue(A=A)
+        z = Function(domain).getX()[DIM-1]
         self.__g_b= 4*PI*gravity_constant/self.__trafo.getScalingFactors()[DIM-1]*background_density*(level0-z) + gravity0
         self.__rho_b=background_density
         
@@ -394,10 +397,10 @@ class IsostaticPressure(object):
         if not g: g=Vector(0., Function(self.__domain))
         if not rho: rho=Scalar(0., Function(self.__domain))
         
-        g2=(rho * self.__g_b) * [0,0,1] + self.__rho_b  * g + rho * g 
+        g2=((rho+self.__rho_b) * self.__g_b) * [0,0,1] + self.__rho_b  * g + rho * g
         d=self.__trafo.getScalingFactors()
         V= self.__trafo.getVolumeFactor()
-        self.__pde.setValue(X= - g2*d*V )
+        self.__pde.setValue(X=g2*d*V)
         return self.__pde.getSolution()
 
     
