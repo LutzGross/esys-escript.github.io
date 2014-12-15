@@ -2,7 +2,7 @@ Source: python-escript
 Maintainer: Escript team <joelfenwick@uq.edu.au>
 Section: science
 Priority: extra
-Build-Depends: python-dev, python-numpy, libboost-python-dev, libnetcdf-dev, scons, zip, python-sphinx, doxygen, python-docutils, texlive, ghostscript, texlive-latex-extra, latex-xcolor, lsb-release
+Build-Depends: python-dev, python-numpy, libboost-python-dev, libboost-random-dev, libnetcdf-dev, scons, zip, python-sphinx, doxygen, python-docutils, texlive, ghostscript, texlive-latex-extra, latex-xcolor, lsb-release
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/escript-finley
 
@@ -13,7 +13,7 @@ Architecture: any
 Section: science
 Priority: extra
 Essential: no
-Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:netcdf}, libgomp1
+Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:boostrandom}, ${es:netcdf}, libgomp1
 Recommends: python-sympy, python-matplotlib, python-scipy
 Suggests: python-pyproj, python-gdal
 Conflicts: escript-noalias, escript
