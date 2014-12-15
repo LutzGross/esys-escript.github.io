@@ -806,7 +806,6 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                 }
                 MPI_Bcast(&sendable_map[0], mapsize, MPI_INT, 0, mpi_info->comm);
                 if (mpi_info->rank != 0) {
-#pragma omp parallel for
                     for (int j = 0; j < mapsize; j += 2)
                         nodeTags[sendable_map[j]] = sendable_map[j + 1];
                 }
