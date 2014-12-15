@@ -397,10 +397,10 @@ class IsostaticPressure(object):
         if not g: g=Vector(0., Function(self.__domain))
         if not rho: rho=Scalar(0., Function(self.__domain))
         
-        g2=((rho+self.__rho_b) * self.__g_b) * [0,0,1] + self.__rho_b  * g + rho * g
+        g2=(rho * self.__g_b) * [0,0,1] + self.__rho_b  * g + rho * g 
         d=self.__trafo.getScalingFactors()
         V= self.__trafo.getVolumeFactor()
-        self.__pde.setValue(X=g2*d*V)
+        self.__pde.setValue(X= - g2*d*V )
         return self.__pde.getSolution()
 
     
