@@ -1307,8 +1307,9 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
     }
 
     // for every internal edge in y
+    const dim_t order = m_order;
 #pragma omp parallel for
-    for (dim_t qy = m_order; qy < max_y - m_order; qy += m_order) {
+    for (dim_t qy = order; qy < max_y - order; qy += order) {
         for (dim_t qx = 0; qx < max_x; qx ++) {
             double *n_out = out.getSampleDataRW(qx + qy*max_x);
             for (int comp = 0; comp < numComp; comp++) {

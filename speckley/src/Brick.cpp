@@ -1428,8 +1428,9 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
         }
     }
     // for every non-border edge in z
+    const index_t order = m_order;
 #pragma omp parallel for
-    for (index_t qz = m_order; qz < max_z - m_order; qz += m_order) {
+    for (index_t qz = order; qz < max_z - order; qz += order) {
         for (index_t qy = 0; qy < max_y; qy++) {
             for (index_t qx = 0; qx < max_x; qx++) {
                 double *n_out = out.getSampleDataRW(INDEX3(qx, qy, qz, max_x, max_y));
