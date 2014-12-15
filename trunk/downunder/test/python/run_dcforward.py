@@ -311,7 +311,7 @@ class TestDCResistivityForward(unittest.TestCase):
         for i in totalApparentRes:
             for j in i:
                 res_a = abs(j-totalApparentResVal)
-                res_b = 0.05 * totalApparentResVal
+                res_b = 0.075 * totalApparentResVal
                 self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
 ################################
