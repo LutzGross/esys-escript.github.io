@@ -31,10 +31,12 @@ class DcResistivityForward(object):
     """
     This class allows for the solution of dc resistivity forward problems via
     the calculation of a primary and secondary potential. Conductivity values
-    are to be provided for the primary problem which is a homogenous half space
-    of a chosen conductivity and for the secondary problem which is typicaly 
-    potential acts as a reference point and is implemented to avoid the use of
-    diract delta functions.
+    are to be provided for the primary problem which is a homogeneous half space
+    of a chosen conductivity and for the secondary problem which typically 
+    varies it conductivity spatially across the domain. The primary potential
+    acts as a reference point typically based of some know reference conductivity
+    however any value will suffice. The primary potential is implemented to 
+    avoid the use of dirac delta functions.
     """
     def __init__(self):
         """
@@ -66,13 +68,13 @@ class DcResistivityForward(object):
 
 class SchlumbergerSurvey(DcResistivityForward):
     """
-    Schlumberger forward mode calculations
+    Schlumberger survey forward calculation
     """
     def __init__(self, domain, primaryConductivity, secondaryConductivity,
             current, a, n, midPoint, directionVector, numElectrodes):
         super(SchlumbergerSurvey, self).__init__()
         """
-        :param domain: domain of the model
+        :param domain: Domain of the model
         :type domain: `Domain`
         :param primaryConductivity: preset primary conductivity data object
         :type primaryConductivity: data
@@ -103,7 +105,7 @@ class SchlumbergerSurvey(DcResistivityForward):
         self.delPhiPrimaryList=[]
         self.delPhiSecondaryList=[]
         if (numElectrodes < 4):
-            raise ValueError("numElectrodes must be greater than 4 for schlumberger surveys")
+            raise ValueError("numElectrodes must atleast 4 for schlumberger surveys")
         if n > ((numElectrodes-2)//2):
             raise ValueError("specified n does not fit max n = %d"%((numElectrodes-2)//2))
         if len(directionVector) == 2:
@@ -187,6 +189,7 @@ class SchlumbergerSurvey(DcResistivityForward):
         self.delPhiPrimaryList=delPhiPrimaryList
         self.delPhiSecondaryList=delPhiSecondaryList
         self.delPhiTotalList = delPhiTotalList
+        return [delPhiPrimaryList, delPhiSecondaryList, delPhiTotalList]
 
     def getApparentResistivityPrimary(self):
         resistivityList = []
@@ -270,10 +273,8 @@ class WennerSurvey(DcResistivityForward):
         self.numElectrodes=numElectrodes
         self.delPhiSecondary=[]
         self.delPhiPrimary=[]
-        if ((numElectrodes%4) != 0 ):
-            raise ValueError("numElectrodes must be a multiple of 2 for Wenner surveys")
-
-
+        if (numElectrodes<4 ):
+            raise ValueError("numElectrodes must be atleast 4 for Wenner surveys")
         if len(directionVector) == 2:
             electrodes = []
             start=[]
@@ -434,8 +435,8 @@ class DipoleDipoleSurvey(DcResistivityForward):
         self.numElectrodes=numElectrodes
         self.delPhiPrimaryList=[]
         self.delPhiSecondaryList=[]
-        if ((numElectrodes%4) != 0 ):
-            raise ValueError("numElectrodes must be a multiple of 4 for schlumberger surveys")
+        if (numElectrodes<4 ):
+            raise ValueError("numElectrodes must be atleast 4 for DipoleDipole surveys")
         if n > (numElectrodes-3):
             raise ValueError("specified n does not fit max n = %d"%((numElectrodes-2)//2))
         if len(directionVector) == 2:
@@ -520,6 +521,7 @@ class DipoleDipoleSurvey(DcResistivityForward):
         self.delPhiPrimaryList=delPhiPrimaryList
         self.delPhiSecondaryList=delPhiSecondaryList
         self.delPhiTotalList = delPhiTotalList
+        return [delPhiPrimaryList, delPhiSecondaryList, delPhiTotalList]
 
     def getApparentResistivityPrimary(self):
         resistivityList = []
@@ -567,7 +569,7 @@ class DipoleDipoleSurvey(DcResistivityForward):
             resistivityList.append(resistivity)
         return resistivityList
 
-class poledipoleSurvey(DcResistivityForward):
+class PoleDipoleSurvey(DcResistivityForward):
     """
     Forward model class for a poledipole setup
     """
@@ -595,7 +597,7 @@ class poledipoleSurvey(DcResistivityForward):
         :type numElectrodes: int
         """
 
-        super(poledipoleSurvey, self).__init__()
+        super(PoleDipoleSurvey, self).__init__()
 
         self.domain=domain
         self.primaryConductivity=primaryConductivity
@@ -736,7 +738,7 @@ class poledipoleSurvey(DcResistivityForward):
             resistivityList.append(resistivity)
         return resistivityList
 
-class polepoleSurvey(DcResistivityForward):
+class PolePoleSurvey(DcResistivityForward):
     """
     Forward model class for a polepole setup
     """
@@ -762,7 +764,7 @@ class polepoleSurvey(DcResistivityForward):
         :type numElectrodes: int
         """
 
-        super(polepoleSurvey, self).__init__()
+        super(PolePoleSurvey, self).__init__()
         self.domain=domain
         self.primaryConductivity=primaryConductivity
         self.secondaryConductivity=secondaryConductivity
@@ -771,10 +773,8 @@ class polepoleSurvey(DcResistivityForward):
         self.numElectrodes=numElectrodes
         self.delPhiSecondary=[]
         self.delPhiPrimary=[]
-        if ((numElectrodes%2) != 0 ):
-            raise ValueError("numElectrodes must be a multiple of 2 for pole-pole surveys")
-
-
+        if ((numElectrodes<2) != 0 ):
+            raise ValueError("numElectrodes must be atleast 2 for pole-pole surveys")
         if len(directionVector) == 2:
             electrodes = []
             start=[]

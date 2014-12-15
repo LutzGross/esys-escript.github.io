@@ -60,7 +60,7 @@ class TestDCResistivityForward(unittest.TestCase):
         numElectrodes = 10
 
         self.assertRaises(NotImplementedError,
-                lambda:polepoleSurvey(dom, primaryConductivity,
+                lambda:PolePoleSurvey(dom, primaryConductivity,
                         secondaryConductivity, current, a, start,
                         directionVector, numElectrodes))
 
@@ -96,7 +96,7 @@ class TestDCResistivityForward(unittest.TestCase):
         directionVector=[1.,0.]
         numElectrodes = 4
 
-        pps=polepoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a, midPoint, directionVector, numElectrodes)
+        pps=PolePoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a, midPoint, directionVector, numElectrodes)
         delPhi=pps.getPotential()
         totalApparentResList = pps.getApparentResistivityTotal()
         for i in totalApparentResList:
@@ -301,7 +301,7 @@ class TestDCResistivityForward(unittest.TestCase):
         a=4
         midPoint = [0.5*extents[0],0.5*extents[1] - 2]
         directionVector=[1.,0.]
-        poldips=poledipoleSurvey(dom, primaryConductivity,
+        poldips=PoleDipoleSurvey(dom, primaryConductivity,
                 secondaryConductivity, current, a,n, midPoint,
                 directionVector, numElectrodes)
         poldips.getPotential()
