@@ -60,7 +60,14 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if HAVE_FINLEY:
+try:
+    from mpl_toolkits.natgrid import _natgrid
+    HAVE_NATGRID=True
+except ImportError:
+    HAVE_NATGRID=False
+
+
+if HAVE_FINLEY and HAVE_NATGRID:
     #################################################ESTABLISHING VARIABLES
     #PDE related
     mx = 600*m #meters - model length
@@ -123,14 +130,6 @@ if HAVE_FINLEY:
     xi = np.linspace(0.0,mx,75)
     yi = np.linspace(0.0,my, 75)
 
-    #TO keep the version distributed with openSuse happy 
-    interp='nn'
-    try:
-        from mpl_toolkits.natgrid import _natgrid
-    except ImportError:
-        interp='linear'
-
-
     ########################################################START ITERATION
     while t<=tend:
           i+=1 #counter
@@ -139,7 +138,7 @@ if HAVE_FINLEY:
           T=mypde.getSolution()
           tempT = T.toListOfTuples()
           # grid the data.
-          zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi,interp=interp)
+          zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
           # contour the gridded data, plotting dots at the 
           # randomly spaced data points.
           pl.matplotlib.pyplot.autumn()
