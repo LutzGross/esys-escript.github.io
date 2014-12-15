@@ -225,6 +225,10 @@ def saveVoxet(filename, **data):
         filename=filename+'.vo'
 
     origin, spacing, NE = domain.getGridParameters()
+
+    # Voxet "origin" actually refers to centre of first cell so shift:
+    origin = tuple([ origin[i] + spacing[i]/2. for i in range(len(origin)) ])
+
     # flip vertical origin
     origin=origin[:-1]+(-origin[-1],)
     axis_max=NE[:-1]+(-NE[-1],)
