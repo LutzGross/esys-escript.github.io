@@ -417,16 +417,35 @@ def checkOptionalLibraries(env):
     env['buildvars']['parmetis']=int(env['parmetis'])
 
     ######## gmsh (for tests)
-    try:
-        p=Popen(['gmsh', '-info'], stderr=PIPE)
-        _,e=p.communicate()
-        if e.split().count("MPI"):
-            env['gmsh']='m'
-        else:
-            env['gmsh']='s'
-    except OSError:
-        env['gmsh']=False
-    
+    env['gmsh'] = False
+    if env['IS_WINDOWS']:
+        try:
+            p=Popen(['gmsh', '-info'], stderr=PIPE)
+            _,e=p.communicate()
+            if e.split().count("MPI"):
+                env['gmsh']='m'
+            else:
+                env['gmsh']='s'
+            p.wait()
+        except OSError:
+            pass
+    else:
+        which = Popen(['which', 'gmsh'], stdout=PIPE)
+        path,_ = which.communicate()
+        if which.wait() == 0:
+            cmd = ['ldd', path[:-1]]
+            if env['IS_OSX']:
+                cmd = ['otool','-L', path[:-1]]
+            try:
+                p=Popen(cmd, stdout=PIPE)
+                gmshlibs,_ = p.communicate()
+                ret = p.wait()
+                if ret == 0 and 'libmpi' in gmshlibs:
+                    env['gmsh'] = 'm'
+                else:
+                    env['gmsh'] = 's'
+            except OSError:
+                pass
     
 ######## boost::iostreams
     if env['compressed_files']:
