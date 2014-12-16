@@ -736,12 +736,19 @@ def print_summary():
         print("         CppUnit:  YES")
     else:
         print("         CppUnit:  NO")
-    if env['gmsh']=='m':
-        print("            gmsh:  YES, MPI-ENABLED")
-    elif env['gmsh']=='s':
-        print("            gmsh:  YES")
+    if env['gmshpy']:
+        gmshpy=" + python module"
     else:
-        print("            gmsh:  NO")
+        gmshpy=""
+    if env['gmsh']=='m':
+        print("            gmsh:  YES, MPI-ENABLED"+gmshpy)
+    elif env['gmsh']=='s':
+        print("            gmsh:  YES"+gmshpy)
+    else:
+        if env['gmshpy']:
+            print("            gmsh:  python module only")
+        else:
+            print("            gmsh:  NO")
     print(    "            gzip:  " + ("YES" if env['compressed_files'] else "NO"))
 
     if ((fatalwarning != '') and (env['werror'])):
