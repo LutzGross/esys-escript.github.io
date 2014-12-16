@@ -123,8 +123,8 @@ class SchlumbergerSurvey(DcResistivityForward):
 
     def getPotential(self):
         """
-        returns a list containing 3 lists one for each the primary, secondary
-        and total potential.
+        Returns 3 list each made up of a number of list containing primary, secondary and total
+        potentials diferences. Each of the lists contain a list for each value of n.
         """
         coords=self.domain.getX()
         pde=LinearPDE(self.domain, numEquations=1)
@@ -454,8 +454,8 @@ class DipoleDipoleSurvey(DcResistivityForward):
 
     def getPotential(self):
         """
-        returns a list containing 3 lists one for each the primary, secondary
-        and total potential.
+        Returns 3 list each made up of a number of list containing primary, secondary and total
+        potentials diferences. Each of the lists contain a list for each value of n.
         """
         coords=self.domain.getX()
         pde=LinearPDE(self.domain, numEquations=1)
@@ -626,8 +626,8 @@ class PoleDipoleSurvey(DcResistivityForward):
 
     def getPotential(self):
         """
-        returns a list containing 3 lists one for each the primary, secondary
-        and total potential.
+        Returns 3 list each made up of a number of list containing primary, secondary and total
+        potentials diferences. Each of the lists contain a list for each value of n.
         """
 
         primCon=self.primaryConductivity

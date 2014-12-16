@@ -83,6 +83,8 @@ primaryApparentRes=schs.getApparentResistivityPrimary()
 SecondaryApparentRes=schs.getApparentResistivitySecondary()
 totalApparentRes=schs.getApparentResistivityTotal()
 
+print (schs.getElectrodes())
+
 n=1
 print ("Total:\n")
 for i in totalApparentRes:
