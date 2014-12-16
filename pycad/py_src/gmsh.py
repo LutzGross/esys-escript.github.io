@@ -203,9 +203,12 @@ class Design(design.AbstractDesign):
         except ImportError:
            havepy=False
         havepy=False   
-        if False:  #havepy:	  # will experiment with this after the release
+        if False: #havepy: # will experiment with this after the release
            gmshpy.GModel_readGEO(self.getScriptHandler())
            model=gmshpy.GModel_current()
+           linear=False
+           incomplete=False
+           model.setOrderN(self.getElementOrder(), linear, incomplete)
            gmshpy.Msg_SetVerbosity(3)
            model.mesh(self.getDim())
            model.writeMSH(self.getMeshFileName())
