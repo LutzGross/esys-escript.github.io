@@ -17,17 +17,16 @@
 \section{Introduction}
 DC resistivity surveys involve placing electrodes into the ground and injecting a current
 into them. The current propagates through the ground and generates a potential field.
-The change in potential between a set of electrodes can then be measured.
+The change in potential between an other set of electrodes can then be measured.
 
 As the separation between the electrodes increases, the current has a longer 
-distance to travel and will consequently travel deeper. This is not always true
+distance to travel and can potentially travel deeper. This is not necessarily the case 
 as a highly conductive layer will keep the current close to the surface.
 
-The final objective is to perform an inversion and develop a resistivity profile of the subsurface.
-This profile can then be matched up to known resistivities of material and used 
+The final objective is to perform an inversion and develop a resistivity image of the subsurface.
+This image can then be compared to known resistivities of material and used 
 to make inferences about the material contained in the subsurface.
-There are
-a number of different ways to set up a DC resistivity survey, each providing
+There are a number of different ways to set up a DC resistivity survey, each providing
 different spatial information\cite[pg 5]{LOKE2014}.
 
 Escript currently supports the forward modelling of DC resistivity surveys. Forward modelling
@@ -37,7 +36,7 @@ detailed in section \ref{sec:forward DCRES}.
 
 \section{Example}
 In this section we will look at an example forward problem. The domain consists of
-a homogenous half-space with a half-sphere embedded within it (Figure~\ref{fig:HalfSphere}). 
+a homogeneous half-space with a half-sphere embedded within it (Figure~\ref{fig:HalfSphere}). 
 In this example\footnote{The script is similar to
 \examplefile{dc_forward.py} within the \escript example file directory.}
  a Schlumberger survey is used.
@@ -112,7 +111,7 @@ for i in totalApparentRes:
 The example begins with constructing the domain, loaded from a pre-prepared
 \emph{gmsh} model. The \emph{gmsh} script used can be found in \examplefile{data/HalfSphere_v1.4.geo}.
 \emph{gmsh} can be used to generate the \texttt{msh} file. The values for primary and secondary 
-conductivity, in siemens per meter, are specified for the different regions. These regions have been tagged
+conductivity, in Siemens per meter, are specified for the different regions. These regions have been tagged
 in the \emph{gmsh} script. The survey is constructed to have 21 electrodes spanning from -5m to 5m
 in the $x$-axis, with a fixed interval between each electrode and the next in 
 line. These electrodes, once placed, are not moved for the remainder of the

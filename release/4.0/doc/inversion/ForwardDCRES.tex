@@ -30,7 +30,7 @@ The secondary potential is due to conductivity deviations
 from the background model and has its conductivity denoted as $\sigma_s$. 
 This approach effectively removes the singularities of the Dirac delta 
 source and provides more accurate results \cite{rucker2006three}.
-An analytical solution is available for the primary potential and is given by:
+An analytical solution is available for the primary potential of a uniform half-space due to a single pole source and is given by:
 \begin{equation} \label{ref:dcres:eq2}
 \phi_p = \frac{I}{2 \pi \sigma_1 R}
 \end{equation}
@@ -60,7 +60,7 @@ left-hand-side conforms to \escript coefficient $A$, whereas the right-hand-side
 with the coefficient $X$ (see User Guide).
 
 A number a of different configurations for electrode set-up are available \cite[pg 5]{LOKE2014}.
-An escript class is provided for each of the following survey types:
+An \escript class is provided for each of the following survey types:
 \begin{itemize}
 \item Wenner alpha
 \item Pole-Pole
@@ -111,9 +111,9 @@ constant.
 \item \texttt{a} is the electrode separation distance.
 \item \texttt{n} is the electrode separation distance multiplier.
 \item \texttt{midpoint} is the centre of the survey. Electrodes will spread from this point
-in the direction defined by direction vector and in the opposite direction, placing
+in the direction defined by the direction vector and in the opposite direction, placing
 half of the electrodes on either side.
-\item \texttt{directionVector} is defines the direction in which electrodes are spread.
+\item \texttt{directionVector} defines as the direction in which electrodes are spread.
 \item \texttt{numElectrodes} is the number of electrodes to be used in the survey.
 \end{itemize} 
 
@@ -151,3 +151,4 @@ value of $n$. This is generally the result of interest.
 
 The apparent resistivities are calculated by applying a geometric factor to the
 measured potentials.
+
