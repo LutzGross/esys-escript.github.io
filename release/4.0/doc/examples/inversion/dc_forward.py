@@ -15,8 +15,6 @@ from __future__ import print_function
 import esys.finley      as finley
 import esys.escript     as escript
 from esys.downunder     import *
-from esys.weipa         import saveSilo
-import sys
 import math
 
 
@@ -37,12 +35,12 @@ tag_p = {"domain" : 1/10.0, "sphere" :  1/10.0} # Primary (homogeneous).
 tag_s = {"domain" : 1/10.0, "sphere" :  1/1.0 } # Secondary.
 
 xe_0 = -5.0 # start X-coordinate
-nume =  21  # number of electrodes
+numEle =  21  # number of electrodes
 estp =  0.5 # step size
 n=9 # 
-midPoint = [xe_0 + (((nume-1)*estp)/2), 0, 0]
+midPoint = [xe_0 + (((numEle-1)*estp)/2), 0, 0]
 current = 1.0 # (Ampere)
-domain = finley.ReadGmsh(mesh_file, 3)#, diracTags=diracTags, diracPoints=diracPnts)
+domain = finley.ReadGmsh(mesh_file, 3)
 mesh_tags = escript.getTagNames(domain)
 directionVector = [1,0]
 
@@ -75,19 +73,19 @@ for tag in tag_p:
         sys.exit()
 
 # Expand the data objects for output.
-# print (mesh_tags)
 sig_p.expand()
 sig_s.expand()
-saveSilo("test",sig_p=sig_p,sig_s=sig_s)
 
-schs=SchlumbergerSurvey(domain, sig_p, sig_s, current, estp,n, midPoint, directionVector, nume)
+
+schs=SchlumbergerSurvey(domain, sig_p, sig_s, current, estp,n, midPoint, directionVector, numEle)
 pot=schs.getPotential()
 primaryApparentRes=schs.getApparentResistivityPrimary()
 SecondaryApparentRes=schs.getApparentResistivitySecondary()
 totalApparentRes=schs.getApparentResistivityTotal()
-j=1
+
+n=1
 print ("Total:\n")
 for i in totalApparentRes:
-    print ("n = %d:"%j)
+    print ("n = %d:"%n)
     print (i,"\n")
-    j=j+1
+    n=n+1
