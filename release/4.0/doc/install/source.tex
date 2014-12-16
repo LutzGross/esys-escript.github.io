@@ -94,7 +94,7 @@ command \texttt{xcode-select --install} will allow you to download and install t
 To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
 systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
-The \texttt{_options.py} files are located in the scons/templates directory. We suggest that the file most relavent to your os 
+The \texttt{_options.py} files are located in the \texttt{scons/templates} directory. We suggest that the file most relavent to your os 
 be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX 
 should be replaced with your computer's name.
 If your particular system is not in the list below, or if you want a more customised 
@@ -296,7 +296,7 @@ scons -j1 options_file=scons/templates/macports_options.py
 \end{shellCode}
 
 
-\subsection{MacOS (homebrew)}\label{sec:homebrewsrc}
+\subsection{MacOS 10.9, 10.10 (homebrew)}\label{sec:homebrewsrc}
 
 Note that these steps add ``non-official'' packages.
 You will also want to make sure that the homebrew Python is executed in preference to the system 
