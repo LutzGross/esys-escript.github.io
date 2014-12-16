@@ -239,6 +239,14 @@ def checkOptionalModules(env):
     if not detectModule(env, 'scipy'):
         env['warnings'].append("Cannot import scipy. NetCDF sources will not be available for inversions.")
 
+    ######## pyproj
+    if not detectModule(env, 'pyproj'):
+        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
+
+    ######## gdal
+    if not detectModule(env, 'gdal'):
+        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
+
     ######## sympy
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
@@ -249,13 +257,9 @@ def checkOptionalModules(env):
         if int(spl[0]) == 0 and int(spl[1]) < 7:
             env['sympy']=False
             env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-    ######## pyproj
-    if not detectModule(env, 'pyproj'):
-        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
 
-    ######## gdal
-    if not detectModule(env, 'gdal'):
-        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
+    ######## gmshpy
+    env['gmshpy'] = detectModule(env, 'gmshpy')
 
     return env
 
@@ -416,7 +420,7 @@ def checkOptionalLibraries(env):
         env['buildvars']['parmetis_lib_path']=parmetis_lib_path
     env['buildvars']['parmetis']=int(env['parmetis'])
 
-    ######## gmsh (for tests)
+    ######## gmsh (for pycad & tests)
     try:
         p=Popen(['gmsh', '-info'], stderr=PIPE)
         _,e=p.communicate()
@@ -426,9 +430,8 @@ def checkOptionalLibraries(env):
             env['gmsh']='s'
     except OSError:
         env['gmsh']=False
-    
-    
-######## boost::iostreams
+
+    ######## boost::iostreams
     if env['compressed_files']:
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
@@ -437,7 +440,7 @@ def checkOptionalLibraries(env):
         except RuntimeError as e:
             env['compressed_files'] = False
     env['buildvars']['compressed_files']=int(env['compressed_files'])
-    
+
     return env
 
 def checkPDFLatex(env):
