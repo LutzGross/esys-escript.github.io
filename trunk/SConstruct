@@ -195,6 +195,9 @@ if env['cuda']:
         env['NVCC'] = env['nvcc']
     env.Tool('nvcc')
 
+if 'dudley' in env['domains']:
+    env['domains'].append('finley')
+
 # create dictionary which will be populated with info for buildvars file
 env['buildvars']={}
 # create list which will be populated with warnings if there are any
