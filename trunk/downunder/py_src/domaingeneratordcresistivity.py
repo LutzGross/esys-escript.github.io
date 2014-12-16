@@ -325,24 +325,9 @@ class DCResDomGenerator(object):
         self.__scriptString = "".join(out)
 
     def __runGmsh(self, args, filename):
-        if not HAVE_GMSH:
-            raise RuntimeError("gmsh is not available to build meshfiles")
-        if GMSH_MPI:
-            raise RuntimeError("gmsh-mpi not currently supported with MPI builds of escript")
-        if getMPIRankWorld() == 0:
-            import subprocess
-            try:
-                p = subprocess.Popen(args, stdout=open(os.devnull, "w"))
-                p.wait()
-                ret = p.returncode
-                os.unlink(filename)
-            except OSError as e:
-                ret = 1
-                os.unlink(filename)
-                raise e
-        else:
-            ret = 0
-        ret=getMPIWorldMax(ret)
+        from esys.pycad.gmshrunner import runGmsh
+        ret = runGmsh(args)
+        os.unlink(filename)
         if ret > 0:
             raise RuntimeError("Failed to build mesh using: %s"%(" ".join(args)))
 
