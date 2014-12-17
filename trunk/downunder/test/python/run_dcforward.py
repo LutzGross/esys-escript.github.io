@@ -39,6 +39,7 @@ except ImportError:
 HAVE_GMSH = getEscriptParamInt("GMSH_SUPPORT")
 
 mpisize = getMPISizeWorld()
+mpirank = getMPIRankWorld()
 
 @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
 class TestDCResistivityForward(unittest.TestCase):
