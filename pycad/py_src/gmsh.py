@@ -189,7 +189,7 @@ class Design(design.AbstractDesign):
         """
 
         verbosity = 3
-        ret = gmshGeo2Msh(self.getScriptHander(), self.getMeshFileName(),
+        ret = gmshGeo2Msh(self.getScriptHandler(), self.getMeshFileName(),
                           self.getDim(), self.getElementOrder(), verbosity)
         if ret > 0:
             self.setKeepFilesOn() #no files to delete, so don't try to
