@@ -1,3 +1,4 @@
+%!TEX root = inversion.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2003-2014 by University of Queensland
 % http://www.uq.edu.au
@@ -14,7 +15,7 @@
 
 
 \section{MT inversion: 2D TE Mode}\label{sec:forward 2DMT TEMode}
-In this section we present the forward model for the magnetotelluric (MT)\index{magnetotelluric}\index{MT}inversion case~\cite{ChaveJones2012a} 
+In this section we present the forward model for the magnetotelluric (MT)\index{magnetotelluric}\index{MT}inversion case~\cite{chave2012magnetotelluric} 
 where we particularly looking into the two-dimensional case of the electrical field polarization\index{electrical field polarization}.
 For this case the horizontal electrical field $E_x$\index{electrical field} and the magnetic field $H_y$\index{magnetic field} component 
 for a given frequency $\omega$ are measured and the horizontal impedance $Z_{xy}$\index{impedance}  is recorded as the ratio of
@@ -123,7 +124,7 @@ q_{0,k}\hat{u}_{0,k}
 \end{equation}
 for all $q_i$ with $q_i=0$ on $\Gamma_{0}$. This equation is obtained from equation~(\ref{ref:2DMTTE:EQU:104}).
 With
-\begin{align}\label{ref:2DMTTE:EQU:202c}
+\begin{align}\label{ref:2DMTTE:EQU:202b}
 Y_0  = & \sum_{s} w^{(s)} \cdot \left(  u_0 - u_{0,1} \cdot d_0^{(s)} + u_{1,1} \cdot d_1^{(s)}  \right) \\
 Y_1  = & \sum_{s} w^{(s)} \cdot \left(  u_1 - u_{0,1} \cdot d_1^{(s)} - u_{1,1} \cdot d_0^{(s)}  \right)   \\
 X_{01}  = &  \sum_{s} w^{(s)} \cdot \left(    u_{0,1} \cdot ( ( d_0^{(s)})^2 + (d_1^{(s)})^2) -  u_0 \cdot d_0^{(s)} -  u_1 \cdot d_1^{(s)} \right)    \\
