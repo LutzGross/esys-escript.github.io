@@ -78,7 +78,8 @@ class TestDCResistivityForward(unittest.TestCase):
             runName=os.path.join(WORKDIR, "dcResPolePole%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
-            #if mpirank==0: os.unlink(runName+".msh")
+            if mpirank==0: 
+                os.unlink(runName+".msh")
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -117,7 +118,8 @@ class TestDCResistivityForward(unittest.TestCase):
             runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
-            #if mpirank==0: os.unlink(runName+".msh")
+            if mpirank==0: 
+                os.unlink(runName+".msh")
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -170,7 +172,8 @@ class TestDCResistivityForward(unittest.TestCase):
             runName=os.path.join(WORKDIR, "dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
-            #if mpirank==0: os.unlink(runName+".msh")
+            if mpirank==0: 
+                os.unlink(runName+".msh")
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -223,7 +226,8 @@ class TestDCResistivityForward(unittest.TestCase):
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             runName=os.path.join(WORKDIR, "wenner%d-%d"%(lc,lc/lcDiv))
             dom = domGen.getDom(mshName=runName+".msh")
-            #if mpirank==0: os.unlink(runName+".msh")
+            if mpirank==0: 
+                os.unlink(runName+".msh")
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -273,7 +277,8 @@ class TestDCResistivityForward(unittest.TestCase):
             runName=os.path.join(WORKDIR, "dcRespoldip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
-            #if mpirank==0: os.unlink(runName+".msh")
+            if mpirank==0: 
+                os.unlink(runName+".msh")
         n=5
         totalApparentResVal = 130.
         primaryConductivity   =  Scalar(1/100., ContinuousFunction(dom))
