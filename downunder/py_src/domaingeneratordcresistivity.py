@@ -14,16 +14,9 @@ from __future__ import print_function
 #
 ##############################################################################
 
-from esys.escript import getMPIWorldMax, getMPIRankWorld
 from esys.escript import *
-from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.weipa import saveSilo
 from math import pi
-import esys.escript.pdetools           as pdetools
 import tempfile, os
-import shlex
-import sys
-import os
 import logging
 logger=logging.getLogger('inv.DCResDomGenerator')
 
@@ -34,7 +27,6 @@ except ImportError as e:
     HAS_FINLEY = False
 
 HAVE_GMSH = getEscriptParamInt("GMSH_SUPPORT")
-GMSH_MPI = HAVE_GMSH and getEscriptParamInt("GMSH_MPI")
 
 class DCResDomGenerator(object):
     """
@@ -324,50 +316,37 @@ class DCResDomGenerator(object):
 
         self.__scriptString = "".join(out)
 
-    def __runGmsh(self, args, filename):
-        from esys.pycad.gmshrunner import runGmsh
-        ret = runGmsh(args)
-        os.unlink(filename)
-        if ret > 0:
-            raise RuntimeError("Failed to build mesh using: %s"%(" ".join(args)))
-
     def getDom(self, mshName=None, interfaces=None):
         """
-        generate the domain
-        :param interfaces: Specify a list of interfaces for a layered model. Doing this will
-            ignore the z-extent. The layers will be tagged iterative from volume-0 to volume-(n-1)
+        Generates the domain.
+        :param interfaces: Specify a list of interfaces for a layered model.
+                           Doing this will ignore the z-extent. The layers
+                           will be tagged iteratively from volume-0 to
+                           volume-(n-1).
         :type interfaces: list
         """
 
-        if (mshName!=None and os.path.isfile(mshName)==True):
+        if (mshName is not None and os.path.isfile(mshName)):
             if mshName[-4:]=='.msh':
-                dom=ReadGmsh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
+                dom=ReadGmsh(mshName, 3, diracTags=self.__tags, diracPoints=self.__points)
             elif mshName[-4:]=='.fly':
-                dom=ReadMesh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
+                dom=ReadMesh(mshName, diracTags=self.__tags, diracPoints=self.__points)
             return dom
-        #early exit so we don't even create files if we don't have to
+
+        # early exit so we don't even create files if we don't have to
         if not HAVE_GMSH:
             raise RuntimeError("gmsh is not available to build meshfiles")
 
-        filename = "" #won't be used by non-0 ranks
+        filename = "" # won't be used by non-0 ranks
         if getMPIRankWorld() == 0:
             filename = self.generateScriptFile(interfaces)
-
-            if mshName == None:
-                exe="gmsh -3 -order 1 -v 3 %s"%filename
-            else:
-                exe="gmsh -3 -order 1 -o %s %s"%(mshName[:-4]+".msh", filename) #add -v 3 for verbosity
-            args=shlex.split(exe)
+        verbosity = 3
+        if mshName is None:
+            mshName = filename[:-4]+".msh"
         else:
-            args=""
-        self.__runGmsh(args, filename)
+            mshName = mshName[:-4]+".msh"
 
-        if mshName == None:
-            dom=ReadGmsh(filename[:-4]+".msh",3,diracTags=self.__tags, diracPoints=self.__points)
-        else:
-            dom=ReadGmsh(mshName,3,diracTags=self.__tags, diracPoints=self.__points)
-            
-
+        gmshGeo2Msh(filename, mshName, 3, 1, verbosity)
+        dom=ReadGmsh(mshName, 3, diracTags=self.__tags, diracPoints=self.__points)
         return dom
-
 

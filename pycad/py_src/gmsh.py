@@ -39,7 +39,7 @@ from . import design
 import tempfile
 import os
 from .primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
-from esys.escript import getMPIWorldMax, getMPIRankWorld
+from esys.escript import getMPIWorldMax, getMPIRankWorld, gmshGeo2Msh
 from .transformations import DEG
 
 class Design(design.AbstractDesign):
@@ -173,15 +173,6 @@ class Design(design.AbstractDesign):
             pass # The file might not have been created and there is nothing
                  # to do about a "failure" here anyway
 
-    def getCommandString(self):
-        """
-        Returns the gmsh command line.
-        """
-        exe="gmsh -format %s -%s -order %s -v 3 -o '%s' '%%s'" % (
-                self.getFileFormat(), self.getDim(), self.getElementOrder(), self.getMeshFileName())
-
-        return exe
-
     def getScriptHandler(self):
         """
         Returns a handler to the script file to generate the geometry.
@@ -196,34 +187,15 @@ class Design(design.AbstractDesign):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in gmsh format is returned.
         """
-        from .gmshrunner import runGmsh
-        import shlex
-        args=shlex.split(self.getCommandString())
-        args[-1]=args[-1]%self.getScriptHandler()
 
-        try:
-            import gmshpy
-            havepy=True
-        except ImportError:
-            havepy=False
-        havepy=False
-        if havepy:
-            gmshpy.GModel_readGEO(self.getScriptHandler())
-            model=gmshpy.GModel_current()
-            linear=False
-            incomplete=False
-            model.setOrderN(self.getElementOrder(), linear, incomplete)
-            gmshpy.Msg_SetVerbosity(3)
-            model.mesh(self.getDim())
-            model.writeMSH(self.getMeshFileName())
-            return self.getMeshFileName()
-        else:
-            ret=runGmsh(args)
-            if ret > 0:
-                self.setKeepFilesOn() #no files to delete, so don't try to
-                raise RuntimeError("Could not build mesh using: " + \
-                    "%s"%" ".join(args) + "\nCheck gmsh is available")
-            return self.getMeshFileName()
+        verbosity = 3
+        ret = gmshGeo2Msh(self.getScriptHander(), self.getMeshFileName(),
+                          self.getDim(), self.getElementOrder(), verbosity)
+        if ret > 0:
+            self.setKeepFilesOn() #no files to delete, so don't try to
+            raise RuntimeError("Could not build mesh using gmsh.\n" + \
+                    "Is gmsh available?")
+        return self.getMeshFileName()
 
     def getScriptString(self):
         """

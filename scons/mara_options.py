@@ -27,8 +27,7 @@ nvccflags = "-ccbin=g++-4.8 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinlin
 #ld_extra = ''
 #werror = False
 #debug = True
-if debug:
-    ld_extra = '-fsanitize=address'
+#ld_extra = '-fsanitize=address'
 verbose = True
 openmp = True
 #omp_flags = '-fopenmp'

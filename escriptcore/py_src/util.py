@@ -50,6 +50,7 @@ from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
 from . import symbolic as sym
+from .gmshrunner import gmshGeo2Msh
 
 
 #=========================================================
