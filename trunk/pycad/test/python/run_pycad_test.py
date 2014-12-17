@@ -29,10 +29,9 @@ from esys.escriptcore.testing import *
 import math
 import numpy
 from esys.pycad import *
-from esys.pycad.design import AbstractDesign 
+from esys.pycad.design import AbstractDesign
 from esys.pycad.gmsh import Design as GMSHDesign
 from esys.pycad.extras import layer_cake
-# from esys.pycad.Triangle import Design as TriangleDesign
 
 try:
      PYCAD_TEST_DATA=os.environ['PYCAD_TEST_DATA']
@@ -47,10 +46,8 @@ except KeyError:
 #PYCAD_TEST_MESH_PATH=PYCAD_TEST_DATA+os.sep+"data_meshes"+os.sep
 #PYCAD_WORKDIR_PATH=PYCAD_WORKDIR+os.sep
 
-
-
 def _cross(x, y):
-    return numpy.array([x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]])
+    return numpy.array([x[1]*y[2] - x[2]*y[1], x[2]*y[0] - x[0]*y[2], x[0]*y[1] - x[1]*y[0]])
 
 
 class Test_PyCAD_Transformations(unittest.TestCase):
@@ -634,22 +631,21 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
    def test_ReversePrimitive(self):
          p=Primitive()
-      
          rp=ReversePrimitive(p)
          self.assertTrue(p.getID()==rp.getID(),"reverse primitive does not have same id like source")
          self.assertTrue(p==rp.getUnderlyingPrimitive(),"getUnderlyingPrimitive does return source.")
          self.assertTrue(p == -rp,"reverse or reverse does not return source.")
-           
+
    def test_Point(self):
        p=Point(1.,2.,3.,local_scale=9.)
-       
+
        id=p.getID()
        self.assertTrue(isinstance(id,int),"id number is not an integer")
        self.assertTrue(not id==Primitive().getID(),"id number is not unique")
-           
-       # check reverse point 
+
+       # check reverse point
        self.assertTrue(p == -p,"reverse is not working.")
-       
+
        # check history:
        hs=p.getPrimitives()
        self.assertTrue(len(hs)==1,"history must have length 1.")
@@ -666,7 +662,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.assertTrue(c[0]==1.,"x coordinate is not 1.")
        self.assertTrue(c[1]==2.,"y coordinate is not 2.")
        self.assertTrue(c[2]==3.,"z coordinate is not 3.")
- 
+
        # reset coordinates:
        p.setCoordinates([-1.,-2.,-3.])
        c=p.getCoordinates()
@@ -700,17 +696,17 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.assertTrue(p.isColocated(an_other_p),"p is not colocated with its copy.")
        self.assertTrue(an_other_p.isColocated(p),"the copy is not colocated with p.")
        self.assertTrue(an_other_p.getLocalScale()==3.,"copy has wrong local scale.")
-      
+
        # modify by Transformation:
        p.modifyBy(Dilation(-1))
        self.assertTrue(p.isColocated(Point(1.,2.,3.)),"in-place transformation failed")
-       
+
        # apply Transformation:
        dil_p=p.apply(Dilation(4))
        self.assertTrue(dil_p.isColocated(Point(4.,8.,12.)),"applying transformation failed")
        self.assertTrue(not dil_p.getID() == p.getID(),"transformed point has same Id")
        self.assertTrue(dil_p.getLocalScale()==3.,"transformed point  has wrong local scale.")
-        
+
        # overloaded add:
        shift_p=p+[1,1,1]
        self.assertTrue(shift_p.isColocated(Point(2,3.,4)),"applying shift by list failed")
@@ -777,7 +773,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p2=Point(2,2,2,0.3)
         p3=Point(3,3,3,0.4)
         p4=Point(1,2,3)
- 
+
         self.assertRaises(ValueError,Spline,p0)
         c=Spline(p0,p1,p2,p3)
 
@@ -844,14 +840,13 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(dccp[2].isColocated(Point(2,2,2)),"1st point of Dilation is is wrongly located.")
         self.assertTrue(not p3 == dccp[3],"4th point of Dilation is identical to source.")
         self.assertTrue(dccp[3].isColocated(Point(3,3,3)),"1st point of Dilation is is wrongly located.")
-   
+
    def test_ReverseSpline(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
         p2=Point(2,2,2,0.3)
         p3=Point(3,3,3,0.4)
         p4=Point(1,2,3)
- 
         CC0=Spline(p0,p1,p2,p3)
         c=-CC0
 
@@ -922,7 +917,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p2=Point(2,2,2,0.3)
         p3=Point(3,3,3,0.4)
         p4=Point(1,2,3)
- 
         self.assertRaises(ValueError,BezierCurve,p0)
         c=BezierCurve(p0,p1,p2,p3)
 
@@ -989,7 +983,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p2=Point(2,2,2,0.3)
         p3=Point(3,3,3,0.4)
         p4=Point(1,2,3)
- 
         self.assertRaises(ValueError,BSpline,p0)
         c=BSpline(p0,p1,p2,p3)
 
@@ -1063,7 +1056,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p2=Point(2,2,2,0.3)
         p3=Point(3,3,3,0.4)
         p4=Point(1,2,3)
- 
         CC0=BSpline(p0,p1,p2,p3)
         c=-CC0
 
@@ -1135,7 +1127,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
         p4=Point(1,2,3)
- 
         self.assertRaises(TypeError,Line,p0)
         self.assertRaises(TypeError,Line,p0,p1,p4)
 
@@ -1198,13 +1189,11 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(d[2] == False, "bump flag wrong")
         dc.resetElementDistribution()
         self.assertTrue(dc.getElementDistribution() == None, "resetted element distribution set.")
-        
 
    def test_ReverseLineSegment(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
         p4=Point(1,2,3)
- 
         self.assertRaises(TypeError,Line,p0)
         self.assertRaises(TypeError,Line,p0,p1,p4)
 
@@ -1268,14 +1257,13 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(d[2] == False, "bump flag wrong")
         dc.resetElementDistribution()
         self.assertTrue(dc.getElementDistribution() == None, "resetted element distribution set.")
-        
 
    def test_Arc(self):
         center=Point(0,0,0,0.1)
         p_start=Point(1,1,1,0.2)
         p_end=Point(1,2,3)
         p4=Point(10,2,3)
- 
+
         self.assertRaises(TypeError,Arc,Primitive())
 
         c=Arc(center,p_start,p_end)
@@ -1339,14 +1327,12 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(d[2] == False, "bump flag wrong")
         dc.resetElementDistribution()
         self.assertTrue(dc.getElementDistribution() == None, "resetted element distribution set.")
-        
 
    def test_ReverseArc(self):
         center=Point(0,0,0,0.1)
         p_start=Point(1,1,1,0.2)
         p_end=Point(1,2,3)
         p4=Point(10,2,3)
- 
         self.assertRaises(TypeError,Arc,Primitive())
 
         CC0=Arc(center,p_start,p_end)
@@ -1411,7 +1397,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(d[2] == False, "bump flag wrong")
         dc.resetElementDistribution()
         self.assertTrue(dc.getElementDistribution() == None, "resetted element distribution set.")
-        
 
    def test_Ellipse(self):
         center=Point(0,0,0,0.1)
@@ -1419,7 +1404,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p_start=Point(1,1,1,0.2)
         p_end=Point(1,2,3)
         p4=Point(10,2,3)
- 
         self.assertRaises(TypeError,Ellipse,Primitive())
         self.assertRaises(TypeError,Ellipse,center,center,p_start,p_end)
         self.assertRaises(TypeError,Ellipse,center,main_axis_point,p_start,p_start)
@@ -1496,7 +1480,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(d[2] == False, "bump flag wrong")
         dc.resetElementDistribution()
         self.assertTrue(dc.getElementDistribution() == None, "resetted element distribution set.")
-        
 
    def test_ReverseEllipse(self):
         center=Point(0,0,0,0.1)
@@ -1504,7 +1487,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         p_start=Point(1,1,1,0.2)
         p_end=Point(1,2,3)
         p4=Point(10,2,3)
- 
         self.assertRaises(TypeError,Ellipse,Primitive())
 
         CC0=Ellipse(center,main_axis_point,p_start,p_end)
@@ -1578,7 +1560,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(d[2] == False, "bump flag wrong")
         dc.resetElementDistribution()
         self.assertTrue(dc.getElementDistribution() == None, "resetted element distribution set.")
-        
 
    def test_CurveLoop(self):
         p0=Point(0,0,0,0.1)
@@ -1647,7 +1628,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(not l01 in cc,"copy uses l01.")
         self.assertTrue(not l12 in cc,"copy uses l12.")
         self.assertTrue(not l20 in cc,"copy uses l20.")
-         
+
         p0_m=Point(0,0,0)
         p1_m=Point(-1,-1,-1)
         p2_m=Point(-2,-2,-2)
@@ -1676,7 +1657,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(cc[cc.index(l12)].hasSameOrientation(l12),"l12 in modified object has wrong orientation.")
         self.assertTrue(l20 in cc,"l20 missed in  modified object.")
         self.assertTrue(cc[cc.index(l20)].hasSameOrientation(l20),"l20 in modified object has wrong orientation.")
-      
+
    def test_ReverseCurveLoop(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
@@ -1741,7 +1722,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(not l01 in cc,"copy uses l01.")
         self.assertTrue(not l12 in cc,"copy uses l12.")
         self.assertTrue(not l20 in cc,"copy uses l20.")
-         
+
         p0_m=Point(0,0,0)
         p1_m=Point(-1,-1,-1)
         p2_m=Point(-2,-2,-2)
@@ -1770,7 +1751,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(cc[cc.index(l12)].hasSameOrientation(-l12),"l12 in modified object has wrong orientation.")
         self.assertTrue(l20 in cc,"l20 missed in  modified object.")
         self.assertTrue(cc[cc.index(l20)].hasSameOrientation(-l20),"l20 in modified object has wrong orientation.")
-      
+
    def test_RuledSurface(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
@@ -1787,7 +1768,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         l12_3=Line(p1,p2)
         l20=Spline(p2,p4,p0)
 
-        cl1=CurveLoop(l01,l12_1,l20) 
+        cl1=CurveLoop(l01,l12_1,l20)
         cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
         cl3=CurveLoop(l01,l12_3,l20)
 
@@ -1810,7 +1791,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(crvs[crvs.index(l12_1)].hasSameOrientation(l12_1),"l12_1 has incorrect orientation.")
         self.assertTrue(l20 in crvs, "l20 is missing in boundary")
         self.assertTrue(crvs[crvs.index(l20)].hasSameOrientation(l20),"l12_1 has incorrect orientation.")
-               
 
         self.assertTrue(not s.isColocated(p4),"RuledSurface is colocated with point.")
         self.assertTrue(s.isColocated(s),"RuledSurface is not colocated with its self.")
@@ -1854,7 +1834,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(not p3 in cp, "copy is using p3")
         self.assertTrue(not p4 in cp, "copy is using p4")
         del cp
-         
+
         p0_m=Point(0,0,0)
         p1_m=Point(-1,-1,-1)
         p2_m=Point(-2,-2,-2)
@@ -1914,13 +1894,13 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         s.setRecombination(30*DEG)
         self.assertTrue(s.getRecombination() == 30*DEG, "recombination parameter wrong.")
         self.assertRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
-        
+
         # now the same but without holes:
         s=PlaneSurface(cl)
         self.assertTrue(s.getTransfiniteMeshing() == None, "transfinite meshing set.")
         self.assertRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
         self.assertRaises(ValueError,s.setTransfiniteMeshing)
-         
+
         l01.setElementDistribution(3)
         l12_1.setElementDistribution(3)
         l20.setElementDistribution(3)
@@ -1934,6 +1914,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(p2 in q[0], "p2 is missing.")
         s.resetTransfiniteMeshing()
         self.assertTrue(s.getTransfiniteMeshing() == None, "reset transfinite meshing failed.")
+
    def test_ReverseRuledSurface(self):
         p0=Point(0,0,0,0.1)
         p1=Point(1,1,1,0.2)
@@ -1950,7 +1931,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         l12_3=Line(p1,p2)
         l20=Spline(p2,p4,p0)
 
-        cl1=CurveLoop(l01,l12_1,l20) 
+        cl1=CurveLoop(l01,l12_1,l20)
         cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
         cl3=CurveLoop(l01,l12_3,l20)
 
@@ -1974,7 +1955,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(crvs[crvs.index(l12_1)].hasSameOrientation(-l12_1),"l12_1 has incorrect orientation.")
         self.assertTrue(l20 in crvs, "l20 is missing in boundary")
         self.assertTrue(crvs[crvs.index(l20)].hasSameOrientation(-l20),"l12_1 has incorrect orientation.")
-               
 
         self.assertTrue(not s.isColocated(p4),"RuledSurface is colocated with point.")
         self.assertTrue(s.isColocated(s),"RuledSurface is not colocated with its self.")
@@ -2018,7 +1998,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(not p3 in cp, "copy is using p3")
         self.assertTrue(not p4 in cp, "copy is using p4")
         del cp
-         
+
         p0_m=Point(0,0,0)
         p1_m=Point(-1,-1,-1)
         p2_m=Point(-2,-2,-2)
@@ -2078,13 +2058,13 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         s.setRecombination(30*DEG)
         self.assertTrue(s.getRecombination() == 30*DEG, "recombination parameter wrong.")
         self.assertRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
-        
+
         # now the same but without holes:
         s=PlaneSurface(cl1)
         self.assertTrue(s.getTransfiniteMeshing() == None, "transfinite meshing set.")
         self.assertRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
         self.assertRaises(ValueError,s.setTransfiniteMeshing)
-         
+
         l01.setElementDistribution(3)
         l12_1.setElementDistribution(3)
         l20.setElementDistribution(3)
@@ -2135,7 +2115,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         h_a=CurveLoop(a2,l6,l4)
 
         self.assertRaises(TypeError,PlaneSurface,l4)
-        # self.assertRaises(TypeError,PlaneSurface,cl_a,h) activate if check for points not on plane 
+        # self.assertRaises(TypeError,PlaneSurface,cl_a,h) activate if check for points not on plane
         # self.assertRaises(TypeError,PlaneSurface,cl,[h_a])
 
         s=PlaneSurface(cl,holes=[h])
@@ -2168,7 +2148,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(crvs[crvs.index(l5)].hasSameOrientation(l5),"l5 has incorrect orientation.")
         self.assertTrue(l6 in crvs, "l6 is missing in boundary")
         self.assertTrue(crvs[crvs.index(l6)].hasSameOrientation(l6),"l6 has incorrect orientation.")
-               
+
         self.assertTrue(not s.isColocated(p4),"PlaneSurface is colocated with point.")
         self.assertTrue(s.isColocated(s),"PlaneSurface is not colocated with its self.")
         self.assertTrue(s.isColocated(PlaneSurface(cl,holes=[h])),"PlaneSurface is not colocated with its copy.")
@@ -2234,7 +2214,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(not p5 in cp, "copy contains p5")
         self.assertTrue(not p6 in cp, "copy contains p6")
         del sp
-         
+
         p0_m=Point(0,0,0,0.1)
         p1_m=Point(-10,0,0,0.2)
         p2_m=Point(-10,-10,0,0.3)
@@ -2317,13 +2297,13 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         s.setRecombination(30*DEG)
         self.assertTrue(s.getRecombination() == 30*DEG, "recombination parameter wrong.")
         self.assertRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
-        
+
         # now the same but without holes:
         s=PlaneSurface(cl)
         self.assertTrue(s.getTransfiniteMeshing() == None, "transfinite meshing set.")
         self.assertRaises(ValueError,s.setTransfiniteMeshing,orientation="X")
         self.assertRaises(ValueError,s.setTransfiniteMeshing)
-         
+
         l0.setElementDistribution(6)
         l1.setElementDistribution(3)
         l2.setElementDistribution(6)
@@ -2339,7 +2319,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(p3 in q[0], "p3 is missing.")
         s.resetTransfiniteMeshing()
         self.assertTrue(s.getTransfiniteMeshing() == None, "reset transfinite meshing failed.")
-        
 
    def test_SurfaceLoop(self):
         p0=Point( 0, 0, 0,0.1)
@@ -2400,8 +2379,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         cl_m3=CurveLoop(-m23,-m37,-m76,-m62)
         s3=PlaneSurface(cl_l3,holes=[cl_m3])
         s3_v=PlaneSurface(cl_l3)
-     
-     
+
         cl_l4=CurveLoop(l20,-l26,l46,-l04)
         s4=PlaneSurface(cl_l4)
 
@@ -2413,7 +2391,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         cl_m7=CurveLoop(m13,m37,-m57,-m15)
         s7=PlaneSurface(cl_m7)
-        
+
         cl_m8=CurveLoop(m57,m76,-m46,-m54)
         s8=PlaneSurface(cl_m8)
 
@@ -2662,7 +2640,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(cc[cc.index(s10)].hasSameOrientation(-s10),"s10 in modified object has wrong orientation.")
         self.assertTrue(s10.isColocated(s10_m),"s10 in modified object as wrong location.")
 
-        
    def test_ReverseSurfaceLoop(self):
         p0=Point( 0, 0, 0,0.1)
         p1=Point(10, 0, 0,0.1)
@@ -2722,8 +2699,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         cl_m3=CurveLoop(-m23,-m37,-m76,-m62)
         s3=PlaneSurface(cl_l3,holes=[cl_m3])
         s3_v=PlaneSurface(cl_l3)
-     
-     
+
         cl_l4=CurveLoop(l20,-l26,l46,-l04)
         s4=PlaneSurface(cl_l4)
 
@@ -2735,7 +2711,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
 
         cl_m7=CurveLoop(m13,m37,-m57,-m15)
         s7=PlaneSurface(cl_m7)
-        
+
         cl_m8=CurveLoop(m57,m76,-m46,-m54)
         s8=PlaneSurface(cl_m8)
 
@@ -2749,7 +2725,6 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         # self.assertRaises(ValueError,SurfaceLoop,s1,s2,s3,s4,s5)
         # self.assertRaises(ValueError,SurfaceLoop,s1,s2,s3,s4,s5,s5)
 
-        
         CC0=SurfaceLoop(s1,s2,s3,s4,s5,s6,-s7,-s8,-s9,-s10)
         s=-CC0
 
@@ -3021,7 +2996,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         cl6=CurveLoop(-l54,l57,l76,-l46)
         s6=PlaneSurface(-cl6)
         s_out=SurfaceLoop(s1,s2,s3,s4,s5,s6)
- 
+
         p0_i=Point(-1,-1,-1,0.1)
         p1_i=Point(1,-1,-1,0.1)
         p2_i=Point(-1,1,-1,0.1)
@@ -3062,7 +3037,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         v=Volume(s_out,holes=[s_inner])
 
         self.assertRaises(NotImplementedError,v.__neg__)
-        
+
         cl2=v.getSurfaceLoop()
         self.assertTrue(s_out == cl2, " wrong boundary loops")
         self.assertTrue(s_out.hasSameOrientation(cl2),"cl has incorrect orientation.")
@@ -3357,7 +3332,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         # l46=Line(p4,p6)
         self.assertRaises(ValueError,v.setRecombination,-10*DEG)
         self.assertTrue(v.getTransfiniteMeshing() == None, "transfinite meshing set.")
-        
+
         v.setElementDistribution(6)
         self.assertTrue( l01.getElementDistribution()[0] == 6 , "element distribution wrong")
         self.assertTrue( l15.getElementDistribution()[0] == 6 , "element distribution wrong")
@@ -3396,12 +3371,13 @@ class Test_PyCAD_Primitives(unittest.TestCase):
         self.assertTrue(s5.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
         self.assertTrue(not s6.getTransfiniteMeshing() == None, "recombination parameter wrong.")
         self.assertTrue(s6.getTransfiniteMeshing()[1] == RuledSurface.RIGHT, "orientation is wrong.")
+
    def test_PropertySet1D(self):
        p0=Point(1.,2.,3.,local_scale=9.)
        p1=Point(0.,0.,0.,local_scale=9.)
        p3=Point(8.,6,6,local_scale=9.)
        p4=Point(8.,6,-6,local_scale=9.)
-       
+
        l0=Line(p0,p1)
        l1=Arc(p3,p1,p4)
        l2=Line(p4,p0)
@@ -3416,7 +3392,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.assertTrue(ps.getName() == "test1", "wrong new name")
 
        self.assertTrue(ps.getTag() == 9, "wrong tag")
-       
+
        self.assertRaises(TypeError,ps.addItem, p0)
        ps.addItem(l2)
        pp=ps.getItems()
@@ -3435,10 +3411,10 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.assertTrue(p1 in pp, "p1 missing in items.")
        self.assertTrue(p3 in pp, "p3 missing in items.")
        self.assertTrue(p4 in pp, "p4 missing in items.")
-       
+
        ps.clearItems()
        self.assertTrue(len(ps.getItems()) == 0, "cleaning items failed.")
-          
+
    def test_PropertySet2D(self):
        p0=Point(0,0,0,0.1)
        p1=Point(10,0,0,0.2)
@@ -3473,7 +3449,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.assertTrue(ps.getName() == "test1", "wrong new name")
 
        self.assertTrue(ps.getTag() == 19, "wrong tag")
-       
+
        pp=ps.getPrimitives()
        self.assertTrue(len(pp) == 18, "wrong number of items")
        self.assertTrue(ps in pp, "ps missing in items.")
@@ -3498,7 +3474,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        pp=ps.getItems()
        self.assertTrue(len(pp) == 1, "wrong number of items")
        self.assertTrue(s in pp, "s missing in items.")
-       
+
        ps.clearItems()
        self.assertTrue(len(ps.getItems()) == 0, "cleaning items failed.")
        ps.addItem(s)
@@ -3575,7 +3551,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        s_inner=SurfaceLoop(s1_i,s2_i,s3_i,s4_i,s5_i,s6_i)
 
        v=Volume(s_out,holes=[s_inner])
-          
+
        # create property set with dim:
        self.assertRaises(TypeError,PropertySet,"test0",v, p0)
 
@@ -3587,7 +3563,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        self.assertTrue(ps.getName() == "test1", "wrong new name")
 
        self.assertTrue(ps.getTag() == 69, "wrong tag")
-       
+
        pp=ps.getPrimitives()
        self.assertTrue(len(pp) == 68, "too many primitives.")
        self.assertTrue(ps in pp, "ps is missing")
@@ -3663,7 +3639,7 @@ class Test_PyCAD_Primitives(unittest.TestCase):
        pp=ps.getItems()
        self.assertTrue(len(pp) == 1, "wrong number of items")
        self.assertTrue(v in pp, "s missing in items.")
-       
+
        ps.clearItems()
        self.assertTrue(len(ps.getItems()) == 0, "cleaning items failed.")
        ps.addItem(v)
@@ -3682,7 +3658,6 @@ class Test_PyCAD_Design(unittest.TestCase):
 
        m.setMap(x=4,a=6)
        m.setMap(b=6,c=1)
-       
        t=m.getTags()
        self.assertTrue(len(t) == 4)
        self.assertTrue(1 in t)
@@ -3708,14 +3683,13 @@ class Test_PyCAD_Design(unittest.TestCase):
        self.assertTrue(t[4] == "x")
        self.assertTrue(t[5] == "x")
        self.assertTrue(t[6] == "b")
-       
+
        d=m.map(c=10, x = -10, b =60, default =1)
        self.assertTrue(d[1] == 10)
        self.assertTrue(d[4] == -10)
        self.assertTrue(d[5] == -10)
        self.assertTrue(d[6] == 60)
 
-      
        d=m.map(c=10, x = -10, default =60)
        self.assertTrue(d[1] == 10)
        self.assertTrue(d[4] == -10)
@@ -3737,7 +3711,6 @@ class Test_PyCAD_Design(unittest.TestCase):
        self.assertTrue(t[6] == "b")
 
    def test_Design(self):
-     
        d=AbstractDesign(dim=2, element_size=0.01, order=1, keep_files=False)
        # check dimension:
        self.assertRaises(ValueError,d.setDim,4)
@@ -3811,10 +3784,7 @@ class Test_PyCAD_Design(unittest.TestCase):
        self.assertTrue(isinstance(i,list))
        self.assertTrue(len(i)==0)
 
-
-       
    def test_GMSH(self):
-     
        d=GMSHDesign(dim=2, element_size=0.01, order=1, keep_files=False)
 
        script_name=d.getScriptFileName()
@@ -3830,7 +3800,7 @@ class Test_PyCAD_Design(unittest.TestCase):
        mesh_name=os.path.join(PYCAD_WORKDIR,"mesh.msh")
        d.setMeshFileName(mesh_name)
        self.assertTrue(mesh_name == d.getMeshFileName())
-       
+
        d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4)
        cmd=d.getCommandString()
        self.assertTrue("gmsh -format msh -2 -order 1 -v 3 -o '%s' '%s'"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd%os.path.join(".","script.geo"))
@@ -3866,10 +3836,10 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
-Point(2) = {1.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
-Point(3) = {1.00000000000000e+00 , 1.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
-Point(4) = {0.00000000000000e+00 , 1.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-02};
+Point(2) = {1.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-02};
+Point(3) = {1.00000000000000e+00, 1.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-02};
+Point(4) = {0.00000000000000e+00, 1.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-02};
 Line(5) = {1, 2};
 Line(6) = {2, 3};
 Line(7) = {3, 4};
@@ -3881,11 +3851,9 @@ Physical Line(12) = {5, 8};
 Physical Line(13) = {6, 7};
 Physical Surface(14) = {10};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
-       
    def not_yet_test_Triangle(self):
-     
        d=TriangleDesign(dim=2, keep_files=False)
 
        script_name=d.getScriptFileName()
@@ -3900,7 +3868,7 @@ Physical Surface(14) = {10};
        mesh_name=os.path.join(PYCAD_WORKDIR,"mesh")
        d.setMeshFileName(mesh_name)
        self.assertTrue(mesh_name == d.getMeshFileName())
-       
+
        d.setOptions(cmdLineArgs="-Qpqa7.5")
        cmd=d.getCommandString()
        self.assertTrue("triangle -Qpqa7.5 .%s"%(os.path.join(".","script.poly")) == cmd)
@@ -3936,16 +3904,14 @@ Physical Surface(14) = {10};
 # holes #
 0
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt, ref)
 
- 
    def test_generate_Spline(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        p0=Point(0,0,0,0.1)
        p1=Point(1,1,1,0.2)
        p2=Point(2,2,2,0.3)
        p3=Point(3,3,3,0.4)
- 
        d.addItems(Spline(p0,p1,p2,p3))
 
        scrpt=d.getScriptString()
@@ -3960,14 +3926,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03};
 Spline(5) = {1, 2, 3, 4};
 Physical Line(6) = {5};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_ReverseSpline(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -3975,7 +3941,6 @@ Physical Line(6) = {5};
        p1=Point(1,1,1,0.2)
        p2=Point(2,2,2,0.3)
        p3=Point(3,3,3,0.4)
- 
        CC0=Spline(p0,p1,p2,p3)
        d.addItems(-CC0)
 
@@ -3991,14 +3956,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03};
 Spline(5) = {1, 2, 3, 4};
 Physical Line(6) = {5};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_BezierCurve(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -4006,7 +3971,6 @@ Physical Line(6) = {5};
        p1=Point(1,1,1,0.2)
        p2=Point(2,2,2,0.3)
        p3=Point(3,3,3,0.4)
- 
        d.addItems(BezierCurve(p0,p1,p2,p3))
 
        scrpt=d.getScriptString()
@@ -4021,14 +3985,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03};
 Bezier(5) = {1, 2, 3, 4};
 Physical Line(6) = {5};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_BSpline(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -4036,7 +4000,6 @@ Physical Line(6) = {5};
        p1=Point(1,1,1,0.2)
        p2=Point(2,2,2,0.3)
        p3=Point(3,3,3,0.4)
- 
        self.assertRaises(ValueError,BSpline,p0)
        d.addItems(BSpline(p0,p1,p2,p3))
 
@@ -4052,14 +4015,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00, 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00, 4.00000000000000e-03};
 BSpline(5) = {1, 2, 3, 4};
 Physical Line(6) = {5};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_ReverseBSpline(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -4068,7 +4031,6 @@ Physical Line(6) = {5};
        p2=Point(2,2,2,0.3)
        p3=Point(3,3,3,0.4)
        p4=Point(1,2,3)
- 
        CC0=BSpline(p0,p1,p2,p3)
        d.addItems(-CC0)
 
@@ -4084,20 +4046,19 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00, 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00, 4.00000000000000e-03};
 BSpline(6) = {1, 2, 3, 4};
 Physical Line(7) = {6};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_LineSegment(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        p0=Point(0,0,0,0.1)
        p1=Point(1,1,1,0.2)
- 
        d.addItems(Line(p0,p1))
 
        scrpt=d.getScriptString()
@@ -4112,18 +4073,17 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
 Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
 Line(3) = {1, 2};
 Physical Line(4) = {3};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_ReverseLineSegment(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        p0=Point(0,0,0,0.1)
        p1=Point(1,1,1,0.2)
- 
        CC0=Line(p0,p1)
        d.addItems(-CC0)
 
@@ -4139,22 +4099,21 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
 Line(3) = {1, 2};
 Physical Line(4) = {3};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_Arc(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        center=Point(0,0,0,0.1)
        p_start=Point(1,1,1,0.2)
        p_end=Point(1,2,3)
- 
        d.addItems(Arc(center,p_start,p_end))
 
-       scrpt=d.getScriptString() 
+       scrpt=d.getScriptString()
        ref = \
 """// generated by esys.pycad
 General.Terminal = 1;
@@ -4166,24 +4125,23 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00, 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00, 2.00000000000000e-03};
+Point(3) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00, 1.00000000000000e-02};
 Circle(4) = {2, 1, 3};
 Physical Line(5) = {4};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_ReverseArc(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        center=Point(0,0,0,0.1)
        p_start=Point(1,1,1,0.2)
        p_end=Point(1,2,3)
- 
        CC0=Arc(center,p_start,p_end)
        d.addItems(-CC0)
 
-       scrpt=d.getScriptString() 
+       scrpt=d.getScriptString()
        ref = \
 """// generated by esys.pycad
 General.Terminal = 1;
@@ -4195,25 +4153,23 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(3) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02};
 Circle(4) = {2, 1, 3};
 Physical Line(5) = {4};
 """
-       self.assertTrue(scrpt == ref )
-       return
-  
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
+
    def test_generate_Ellipse(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        center=Point(0,0,0,0.1)
        mainax=Point(0,1,0,0.1)
        p_start=Point(1,1,1,0.2)
        p_end=Point(1,2,3)
- 
        d.addItems(Ellipse(center,mainax,p_start,p_end))
 
-       scrpt=d.getScriptString() 
+       scrpt=d.getScriptString()
        ref = \
 """// generated by esys.pycad
 General.Terminal = 1;
@@ -4225,14 +4181,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {0.00000000000000e+00 , 1.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(3) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(4) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {0.00000000000000e+00, 1.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(3) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(4) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02};
 Ellipse(5) = {3, 1, 2, 4};
 Physical Line(6) = {5};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_ReverseEllipse(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -4240,11 +4196,10 @@ Physical Line(6) = {5};
        mainax=Point(0,1,0,0.1)
        p_start=Point(1,1,1,0.2)
        p_end=Point(1,2,3)
- 
        CC0=Ellipse(center,mainax,p_start,p_end)
        d.addItems(-CC0)
 
-       scrpt=d.getScriptString() 
+       scrpt=d.getScriptString()
        ref = \
 """// generated by esys.pycad
 General.Terminal = 1;
@@ -4256,14 +4211,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {0.00000000000000e+00 , 1.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(3) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(4) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {0.00000000000000e+00, 1.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(3) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(4) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02};
 Ellipse(5) = {3, 1, 2, 4};
 Physical Line(6) = {5};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_RuledSurface(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -4281,7 +4236,7 @@ Physical Line(6) = {5};
        l12_3=Line(p1,p2)
        l20=Spline(p2,p4,p0)
 
-       cl1=CurveLoop(l01,l12_1,l20) 
+       cl1=CurveLoop(l01,l12_1,l20)
        cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
        cl3=CurveLoop(l01,l12_3,l20)
 
@@ -4299,11 +4254,11 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
-Point(5) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03};
+Point(5) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02};
 Line(7) = {1, 2};
 Circle(8) = {2, 4, 3};
 Spline(12) = {3, 5, 1};
@@ -4311,7 +4266,7 @@ Line Loop(13) = {7, 8, 12};
 Ruled Surface(16) = {13};
 Physical Surface(17) = {16};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_ReverseRuledSurface(self):
        d=GMSHDesign(dim=2, element_size=0.01)
@@ -4329,7 +4284,7 @@ Physical Surface(17) = {16};
        l12_3=Line(p1,p2)
        l20=Spline(p2,p4,p0)
 
-       cl1=CurveLoop(l01,l12_1,l20) 
+       cl1=CurveLoop(l01,l12_1,l20)
        cl2=CurveLoop(l01,l12_2_1,l12_2_2,l20)
        cl3=CurveLoop(l01,l12_3,l20)
 
@@ -4348,11 +4303,11 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {1.00000000000000e+00 , 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03 };
-Point(3) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03 };
-Point(4) = {3.00000000000000e+00 , 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03 };
-Point(5) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {1.00000000000000e+00, 1.00000000000000e+00, 1.00000000000000e+00 , 2.00000000000000e-03};
+Point(3) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 3.00000000000000e-03};
+Point(4) = {3.00000000000000e+00, 3.00000000000000e+00, 3.00000000000000e+00 , 4.00000000000000e-03};
+Point(5) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00 , 1.00000000000000e-02};
 Line(7) = {1, 2};
 Circle(8) = {2, 4, 3};
 Spline(12) = {3, 5, 1};
@@ -4360,7 +4315,7 @@ Line Loop(13) = {7, 8, 12};
 Ruled Surface(16) = {13};
 Physical Surface(17) = {16};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_PlaneSurface(self):
        d=GMSHDesign(dim=2, element_size=0.1)
@@ -4412,13 +4367,13 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
-Point(2) = {1.00000000000000e+01 , 0.00000000000000e+00, 0.00000000000000e+00 , 2.00000000000000e-02 };
-Point(3) = {1.00000000000000e+01 , 1.00000000000000e+01, 0.00000000000000e+00 , 3.00000000000000e-02 };
-Point(4) = {0.00000000000000e+00 , 1.00000000000000e+01, 3.00000000000000e+00 , 4.00000000000000e-02 };
-Point(5) = {5.00000000000000e+00 , 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(6) = {7.00000000000000e+00 , 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
-Point(7) = {5.00000000000000e+00 , 7.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02};
+Point(2) = {1.00000000000000e+01, 0.00000000000000e+00, 0.00000000000000e+00 , 2.00000000000000e-02};
+Point(3) = {1.00000000000000e+01, 1.00000000000000e+01, 0.00000000000000e+00 , 3.00000000000000e-02};
+Point(4) = {0.00000000000000e+00, 1.00000000000000e+01, 3.00000000000000e+00 , 4.00000000000000e-02};
+Point(5) = {5.00000000000000e+00, 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(6) = {7.00000000000000e+00, 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
+Point(7) = {5.00000000000000e+00, 7.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-03};
 Line(10) = {1, 2};
 Line(11) = {2, 3};
 Line(12) = {3, 4};
@@ -4431,7 +4386,7 @@ Line Loop(24) = {16, 17, 18};
 Plane Surface(29) = {23, 24};
 Physical Surface(30) = {29};
 """
-       self.assertTrue(scrpt == ref)
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_PlaneSurfaceTransfinite(self):
        d=GMSHDesign(dim=2, element_size=0.1)
@@ -4463,10 +4418,10 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
-Point(2) = {1.00000000000000e+01 , 0.00000000000000e+00, 0.00000000000000e+00 , 2.00000000000000e-02 };
-Point(3) = {1.00000000000000e+01 , 1.00000000000000e+01, 0.00000000000000e+00 , 3.00000000000000e-02 };
-Point(4) = {0.00000000000000e+00 , 1.00000000000000e+01, 0.00000000000000e+00 , 4.00000000000000e-02 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02};
+Point(2) = {1.00000000000000e+01, 0.00000000000000e+00, 0.00000000000000e+00 , 2.00000000000000e-02};
+Point(3) = {1.00000000000000e+01, 1.00000000000000e+01, 0.00000000000000e+00 , 3.00000000000000e-02};
+Point(4) = {0.00000000000000e+00, 1.00000000000000e+01, 0.00000000000000e+00 , 4.00000000000000e-02};
 Line(5) = {1, 2};
 Transfinite Line{5} = 4 Using Progression 1;
 Line(6) = {2, 3};
@@ -4480,9 +4435,8 @@ Plane Surface(10) = {9};
 Transfinite Surface{10} = {4,1,2,3} Left;
 Recombine Surface {10} = 30.000000;
 Physical Surface(11) = {10};
-
 """
-       self.assertTrue(scrpt.strip() == ref.strip())
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
 
    def test_generate_Volume(self):
@@ -4520,7 +4474,7 @@ Physical Surface(11) = {10};
        cl6=CurveLoop(-l54,l57,l76,-l46)
        s6=PlaneSurface(-cl6)
        s_out=SurfaceLoop(s1,s2,s3,s4,s5,s6)
- 
+
        p0_i=Point(-1,-1,-1,0.1)
        p1_i=Point(1,-1,-1,0.1)
        p2_i=Point(-1,1,-1,0.1)
@@ -4557,7 +4511,7 @@ Physical Surface(11) = {10};
 
        d.addItems(Volume(s_out,holes=[s_inner]))
 
-       scrpt=d.getScriptString(); 
+       scrpt=d.getScriptString();
        ref = \
 """// generated by esys.pycad
 General.Terminal = 1;
@@ -4569,14 +4523,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {-2.00000000000000e+00 , -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {2.00000000000000e+00 , -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(3) = {-2.00000000000000e+00 , 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(4) = {2.00000000000000e+00 , 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(5) = {-2.00000000000000e+00 , -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(6) = {2.00000000000000e+00 , -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(7) = {-2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(8) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
+Point(1) = {-2.00000000000000e+00, -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {2.00000000000000e+00, -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(3) = {-2.00000000000000e+00, 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(4) = {2.00000000000000e+00, 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(5) = {-2.00000000000000e+00, -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
+Point(6) = {2.00000000000000e+00, -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
+Point(7) = {-2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
+Point(8) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
 Line(9) = {1, 2};
 Line(10) = {2, 6};
 Line(11) = {6, 5};
@@ -4638,7 +4592,7 @@ Surface Loop(66) = {55, 57, 59, 61, 63, 65};
 Volume(67) = {33, 66};
 Physical Volume(68) = {67};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_VolumeTransfinite(self):
        d=GMSHDesign(dim=3, element_size=0.01)
@@ -4682,7 +4636,7 @@ Physical Volume(68) = {67};
        v.setTransfiniteMeshing()
        d.addItems(v)
 
-       scrpt=d.getScriptString(); 
+       scrpt=d.getScriptString();
        ref = \
 """// generated by esys.pycad
 General.Terminal = 1;
@@ -4694,14 +4648,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {-2.00000000000000e+00 , -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {2.00000000000000e+00 , -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(3) = {-2.00000000000000e+00 , 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(4) = {2.00000000000000e+00 , 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(5) = {-2.00000000000000e+00 , -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(6) = {2.00000000000000e+00 , -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(7) = {-2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(8) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
+Point(1) = {-2.00000000000000e+00, -2.00000000000000e+00, -2.00000000000000e+00, 1.00000000000000e-03};
+Point(2) = {2.00000000000000e+00, -2.00000000000000e+00, -2.00000000000000e+00, 1.00000000000000e-03};
+Point(3) = {-2.00000000000000e+00, 2.00000000000000e+00, -2.00000000000000e+00, 1.00000000000000e-03};
+Point(4) = {2.00000000000000e+00, 2.00000000000000e+00, -2.00000000000000e+00, 1.00000000000000e-03};
+Point(5) = {-2.00000000000000e+00, -2.00000000000000e+00, 2.00000000000000e+00, 1.00000000000000e-03};
+Point(6) = {2.00000000000000e+00, -2.00000000000000e+00, 2.00000000000000e+00, 1.00000000000000e-03};
+Point(7) = {-2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00, 1.00000000000000e-03};
+Point(8) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00, 1.00000000000000e-03};
 Line(9) = {1, 2};
 Transfinite Line{9} = 5 Using Progression 1;
 Line(10) = {2, 6};
@@ -4755,15 +4709,15 @@ Volume(34) = {33};
 Transfinite Volume{34};
 Physical Volume(35) = {34};
 """
-       self.assertTrue(scrpt == ref )
-       
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
+
    def test_generate_PropertySet1D(self):
        d=GMSHDesign(dim=2, element_size=0.01)
        p0=Point(1.,2.,3.,local_scale=9.)
        p1=Point(0.,0.,0.,local_scale=9.)
        p3=Point(8.,6,6,local_scale=9.)
        p4=Point(8.,6,-6,local_scale=9.)
-       
+
        l0=Line(p0,p1)
        l1=Arc(p3,p1,p4)
        l2=Line(p4,p0)
@@ -4782,17 +4736,17 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {1.00000000000000e+00 , 2.00000000000000e+00, 3.00000000000000e+00 , 9.00000000000000e-02 };
-Point(2) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 9.00000000000000e-02 };
-Point(3) = {8.00000000000000e+00 , 6.00000000000000e+00, 6.00000000000000e+00 , 9.00000000000000e-02 };
-Point(4) = {8.00000000000000e+00 , 6.00000000000000e+00, -6.00000000000000e+00 , 9.00000000000000e-02 };
+Point(1) = {1.00000000000000e+00, 2.00000000000000e+00, 3.00000000000000e+00 , 9.00000000000000e-02};
+Point(2) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 9.00000000000000e-02};
+Point(3) = {8.00000000000000e+00, 6.00000000000000e+00, 6.00000000000000e+00 , 9.00000000000000e-02};
+Point(4) = {8.00000000000000e+00, 6.00000000000000e+00, -6.00000000000000e+00 , 9.00000000000000e-02};
 Line(5) = {1, 2};
 Circle(6) = {2, 3, 4};
 Line(7) = {4, 1};
 Physical Line(8) = {5, 6, 7};
 """
-       self.assertTrue(scrpt == ref )
- 
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
+
    def test_generate_PropertySet2D(self):
        d=GMSHDesign(dim=2, element_size=0.1)
        p0=Point(0,0,0,0.1)
@@ -4811,7 +4765,7 @@ Physical Line(8) = {5, 6, 7};
        l4=Line(p4,p5)
        l5=Line(p5,p6)
        l6=Line(p6,p4)
-       
+
        l6.setElementDistribution(5,1.2,True)
        l5.setElementDistribution(5,0.8,False)
 
@@ -4834,13 +4788,13 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {0.00000000000000e+00 , 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02 };
-Point(2) = {1.00000000000000e+01 , 0.00000000000000e+00, 0.00000000000000e+00 , 2.00000000000000e-02 };
-Point(3) = {1.00000000000000e+01 , 1.00000000000000e+01, 0.00000000000000e+00 , 3.00000000000000e-02 };
-Point(4) = {0.00000000000000e+00 , 1.00000000000000e+01, 0.00000000000000e+00 , 4.00000000000000e-02 };
-Point(5) = {5.00000000000000e+00 , 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-04 };
-Point(6) = {7.00000000000000e+00 , 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-04 };
-Point(7) = {5.00000000000000e+00 , 7.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-04 };
+Point(1) = {0.00000000000000e+00, 0.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-02};
+Point(2) = {1.00000000000000e+01, 0.00000000000000e+00, 0.00000000000000e+00 , 2.00000000000000e-02};
+Point(3) = {1.00000000000000e+01, 1.00000000000000e+01, 0.00000000000000e+00 , 3.00000000000000e-02};
+Point(4) = {0.00000000000000e+00, 1.00000000000000e+01, 0.00000000000000e+00 , 4.00000000000000e-02};
+Point(5) = {5.00000000000000e+00, 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-04};
+Point(6) = {7.00000000000000e+00, 5.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-04};
+Point(7) = {5.00000000000000e+00, 7.00000000000000e+00, 0.00000000000000e+00 , 1.00000000000000e-04};
 Line(8) = {1, 2};
 Line(9) = {2, 3};
 Line(10) = {3, 4};
@@ -4855,7 +4809,7 @@ Line Loop(16) = {12, 13, 14};
 Plane Surface(17) = {15, 16};
 Physical Surface(18) = {17};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_generate_PropertySet3D(self):
        d=GMSHDesign(dim=3, element_size=0.01)
@@ -4929,7 +4883,7 @@ Physical Surface(18) = {17};
 
        v=Volume(s_out,holes=[s_inner])
        d.addItems(PropertySet("test0", v))
-       
+
        scrpt=d.getScriptString()
        ref = \
 """// generated by esys.pycad
@@ -4942,14 +4896,14 @@ Mesh.Smoothing = 1;
 Mesh.RandomFactor = 1.00000000000000e-09;
 Mesh.Algorithm = 1; // = MeshAdapt
 Mesh.Algorithm3D = 4; // = Frontal
-Point(1) = {-2.00000000000000e+00 , -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(2) = {2.00000000000000e+00 , -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(3) = {-2.00000000000000e+00 , 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(4) = {2.00000000000000e+00 , 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(5) = {-2.00000000000000e+00 , -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(6) = {2.00000000000000e+00 , -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(7) = {-2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
-Point(8) = {2.00000000000000e+00 , 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03 };
+Point(1) = {-2.00000000000000e+00, -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(2) = {2.00000000000000e+00, -2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(3) = {-2.00000000000000e+00, 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(4) = {2.00000000000000e+00, 2.00000000000000e+00, -2.00000000000000e+00 , 1.00000000000000e-03};
+Point(5) = {-2.00000000000000e+00, -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
+Point(6) = {2.00000000000000e+00, -2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
+Point(7) = {-2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
+Point(8) = {2.00000000000000e+00, 2.00000000000000e+00, 2.00000000000000e+00 , 1.00000000000000e-03};
 Line(9) = {1, 2};
 Line(10) = {2, 6};
 Line(11) = {6, 5};
@@ -5011,13 +4965,14 @@ Surface Loop(66) = {55, 57, 59, 61, 63, 65};
 Volume(67) = {33, 66};
 Physical Volume(68) = {67};
 """
-       self.assertTrue(scrpt == ref )
+       self.assertEqual(scrpt.replace(' ',''), ref.replace(' ',''))
 
    def test_layer_cake(self):
-       dom=layer_cake(GMSHDesign(dim=3, element_size=0.1),100.0,100.0,[10.,40.,80.,100.,150.])  
+       dom=layer_cake(GMSHDesign(dim=3, element_size=0.1),100.0,100.0,[10.,40.,80.,100.,150.])
        self.assertTrue(isinstance(dom,GMSHDesign),\
                          "LayerCake return is not a domain gmsh.Design.")
-        
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
