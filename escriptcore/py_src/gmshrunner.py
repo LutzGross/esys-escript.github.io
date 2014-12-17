@@ -72,7 +72,7 @@ def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
 
 def _runGmshMPI(geoFile, mshFile, numDim, order, verbosity):
     import shlex
-    from .util import runMPIProgram
+    from .escriptcpp import runMPIProgram
     from time import sleep
 
     cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
