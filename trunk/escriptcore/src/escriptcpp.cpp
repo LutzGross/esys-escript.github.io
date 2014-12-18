@@ -51,7 +51,7 @@ using namespace boost::python;
 
 /*! \mainpage Esys Documentation
  *
- * \version 3.4.2
+ * \version 4.0
  *
  * Main modules/namespaces:
  *
@@ -64,6 +64,8 @@ using namespace boost::python;
  * - \ref dudley
  *
  * - \ref ripley
+ * 
+ * - \ref speckley
  *
  * - \ref weipa
  *

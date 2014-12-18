@@ -405,6 +405,7 @@ if IS_WINDOWS:
         env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
 env['IS_WINDOWS']=IS_WINDOWS
+env['IS_OSX']=IS_OSX
 
 ###################### Copy required environment vars ########################
 

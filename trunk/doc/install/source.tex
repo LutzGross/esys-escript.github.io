@@ -94,7 +94,7 @@ command \texttt{xcode-select --install} will allow you to download and install t
 To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
 systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
-The \texttt{_options.py} files are located in the scons/templates directory. We suggest that the file most relavent to your os 
+The \texttt{_options.py} files are located in the \texttt{scons/templates} directory. We suggest that the file most relevant to your os 
 be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX 
 should be replaced with your computer's name.
 If your particular system is not in the list below, or if you want a more customised 
@@ -275,47 +275,36 @@ scons -j1 py_tests options_file=scons/templates/fedora21_5_options.py
 
 \subsection{MacOS 10.10 (macports)}\label{sec:macportsrc}
 
+The following will install the capabilities needed for the \texttt{macports_10.10_options.py} file.
+
 \begin{shellCode}
-port install python27
-port select --set python python27
-port install scons
-port install openmpi
-port install py27-numpy
-port install boost
-port install py27-sympy
-port select --set py-sympy py27-sympy
-install py27-scipy
-install py27-pyproj
-install py27-gdal
-install py27-netcdf4
-install netcdf-cxx
+sudo port install scons
+sudo port select --set python python27
+sudo port install boost
+sudo port install py27-numpy
+sudo port install py27-sympy
+sudo port select --set py-sympy py27-sympy
+sudo port install py27-scipy
+sudo port install py27-pyproj
+sudo port install py27-gdal
+sudo port install netcdf-cxx
+sudo port instal silo
 \end{shellCode}
 
 \begin{shellCode}
-scons -j1 options_file=scons/templates/macports_options.py 
+scons -j1 options_file=scons/templates/macports_10.10options.py 
 \end{shellCode}
 
 
-\subsection{MacOS (homebrew)}\label{sec:homebrewsrc}
+\subsection{MacOS 10.9, 10.10 (homebrew)}\label{sec:homebrewsrc}
 
-Note that these steps add ``non-official'' packages.
-You will also want to make sure that the homebrew Python is executed in preference to the system 
-Python\footnote{Putting \texttt{/usr/local/bin} at the front of your PATH is one way to do this.}.
+The following will install the capabilities needed for the \texttt{homebrew_10.10_options.py} file.
+OSX 10.9 can use the same file.
 
 \begin{shellCode}
-brew install python
 brew install scons
-brew install boost
-brew tap samueljohn/python
-brew tap homebrew/science
-pip install nose
-brew install gfortran
-brew install samueljohn/python/numpy
-brew install scipy
-brew install gdal
-brew install openmpi
-brew install matplotlib
-brew install netcdf --enable-cxx-compat
+brew install boost-python
+brew install homebrew/science/netcdf --with-cxx-compat
 \end{shellCode}
 
 There do not appear to be formulae for \texttt{sympy} or \texttt{pyproj} so if you wish to use those features, then
@@ -323,7 +312,7 @@ you will need to install them separately.
 
 
 \begin{shellCode}
-scons -j1 options_file=scons/templates/homebrew_options.py
+scons -j1 options_file=scons/templates/homebrew_10.10_options.py
 \end{shellCode}
 
 
