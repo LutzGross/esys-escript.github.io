@@ -353,15 +353,16 @@ then            #This could happen if the args were not a number
     die "Expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical!"
 fi
 
-# set up thread binding if unset
-if [ "$OMP_PROC_BIND" = "" ]; then
-    #Force OpenMP binding for Intel (and GCC, though GCC is on by default)
-    export OMP_PROC_BIND=true
-fi
-if [ "$KMP_AFFINITY" = "" ]; then
-    #Set the style of binding (overrides OMP_PROC_BIND in many cases)
-    export KMP_AFFINITY=verbose,compact
-fi
+# set up thread binding if unset -- disabled by default because it interfers
+# with MPI binding
+#if [ "$OMP_PROC_BIND" = "" ]; then
+#    #Force OpenMP binding for Intel (and GCC, though GCC is on by default)
+#    export OMP_PROC_BIND=true
+#fi
+#if [ "$KMP_AFFINITY" = "" ]; then
+#    #Set the style of binding (overrides OMP_PROC_BIND in many cases)
+#    export KMP_AFFINITY=verbose,compact
+#fi
 
 #
 # Test to ensure people aren't trying to combine interactive and multi-process

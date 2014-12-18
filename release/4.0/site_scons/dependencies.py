@@ -239,6 +239,14 @@ def checkOptionalModules(env):
     if not detectModule(env, 'scipy'):
         env['warnings'].append("Cannot import scipy. NetCDF sources will not be available for inversions.")
 
+    ######## pyproj
+    if not detectModule(env, 'pyproj'):
+        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
+
+    ######## gdal
+    if not detectModule(env, 'gdal'):
+        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
+
     ######## sympy
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
@@ -249,13 +257,9 @@ def checkOptionalModules(env):
         if int(spl[0]) == 0 and int(spl[1]) < 7:
             env['sympy']=False
             env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-    ######## pyproj
-    if not detectModule(env, 'pyproj'):
-        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
 
-    ######## gdal
-    if not detectModule(env, 'gdal'):
-        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
+    ######## gmshpy
+    env['gmshpy'] = detectModule(env, 'gmshpy')
 
     return env
 
@@ -456,7 +460,7 @@ def checkOptionalLibraries(env):
         except RuntimeError as e:
             env['compressed_files'] = False
     env['buildvars']['compressed_files']=int(env['compressed_files'])
-    
+
     return env
 
 def checkPDFLatex(env):
