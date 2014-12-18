@@ -230,8 +230,8 @@ silo_libs = ['siloh5']
 # %N = total number of processes, # %t = number of threads,
 # %f = name of hostfile, %h = comma-separated list of hosts,
 # %e = comma-separated list of environment variables to export
-#prelaunch = "EE=$(echo %e|sed -e 's/,/ -x /g')"
-#launcher = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --bynode --bind-to-none --host %h -np %N %b"
+#prelaunch = "EE=$(echo -x %e|sed -e 's/,/ -x /g')"
+#launcher = "mpirun --gmca mpi_warn_on_fork 0 ${EE} --bynode --bind-to-none --host %h -np %N %b"
 #postlaunch = ""
 
 #      
