@@ -35,4 +35,4 @@ silo_libs = ['siloh5', 'hdf5_openmpi']
 
 build_shared = False
 
-launcher = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} -np %N %b"
+launcher = "mpirun --gmca mpi_warn_on_fork 0 ${EE} -np %N %b"

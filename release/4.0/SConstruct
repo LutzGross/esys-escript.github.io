@@ -352,7 +352,7 @@ if env['prelaunch'] == 'default':
         env['prelaunch'] = "export I_MPI_PIN_DOMAIN=omp"
     elif env['mpi'] == 'OPENMPI':
         # transform comma-separated list to '-x a -x b -x c ...'
-        env['prelaunch'] = "EE=$(echo %e|sed -e 's/,/ -x /g')"
+        env['prelaunch'] = "EE=$(echo -x %e|sed -e 's/,/ -x /g')"
     elif env['mpi'] == 'MPT':
         env['prelaunch'] = "export MPI_NUM_MEMORY_REGIONS=0"
     elif env['mpi'] == 'MPICH2':
@@ -364,7 +364,7 @@ if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
     elif env['mpi'] == 'OPENMPI':
-        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
+        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
     elif env['mpi'] == 'MPT':
         env['launcher'] = "mpirun %h -np %p %b"
     elif env['mpi'] == 'MPICH':
