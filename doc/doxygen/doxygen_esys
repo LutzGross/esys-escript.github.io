@@ -663,6 +663,7 @@ INPUT                  = escriptcore/src \
                          pasowrap/src \
                          pythonMPI/src \
                          ripley/src \
+			 speckley/src \
                          weipa/src
 
 # This tag can be used to specify the character encoding of the source files

@@ -420,18 +420,38 @@ def checkOptionalLibraries(env):
         env['buildvars']['parmetis_lib_path']=parmetis_lib_path
     env['buildvars']['parmetis']=int(env['parmetis'])
 
-    ######## gmsh (for pycad & tests)
-    try:
-        p=Popen(['gmsh', '-info'], stderr=PIPE)
-        _,e=p.communicate()
-        if e.split().count("MPI"):
-            env['gmsh']='m'
-        else:
-            env['gmsh']='s'
-    except OSError:
-        env['gmsh']=False
-
-    ######## boost::iostreams
+    ######## gmsh (for tests)
+    env['gmsh'] = False
+    if env['IS_WINDOWS']:
+        try:
+            p=Popen(['gmsh', '-info'], stderr=PIPE)
+            _,e=p.communicate()
+            if e.split().count("MPI"):
+                env['gmsh']='m'
+            else:
+                env['gmsh']='s'
+            p.wait()
+        except OSError:
+            pass
+    else:
+        which = Popen(['which', 'gmsh'], stdout=PIPE)
+        path,_ = which.communicate()
+        if which.wait() == 0:
+            cmd = ['ldd', path[:-1]]
+            if env['IS_OSX']:
+                cmd = ['otool','-L', path[:-1]]
+            try:
+                p=Popen(cmd, stdout=PIPE)
+                gmshlibs,_ = p.communicate()
+                ret = p.wait()
+                if ret == 0 and 'libmpi' in gmshlibs:
+                    env['gmsh'] = 'm'
+                else:
+                    env['gmsh'] = 's'
+            except OSError:
+                pass
+    
+######## boost::iostreams
     if env['compressed_files']:
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
