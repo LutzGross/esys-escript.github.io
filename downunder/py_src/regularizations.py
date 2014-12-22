@@ -240,7 +240,7 @@ class Regularization(CostFunction):
             self.__useDiagonalHessianApproximation=True
         self._update_Hessian=True
 
-        self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)/2
+        self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)//2
         self.setTradeOffFactors()
         self.__vol_d=vol(self.__domain)
 

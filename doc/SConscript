@@ -39,9 +39,10 @@ else:
     p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import matplotlib;print(matplotlib.__version__);from matplotlib.mlab import griddata;print("1")'], stdout=PIPE)
     try:
         mplversion=p.stdout.readline().strip()
-        haveMPL=True
-        hgd=p.stdout.readline().strip()
-        haveGD=True
+        if mplversion!='':
+           haveMPL=True
+           hgd=p.stdout.readline().strip()
+           haveGD=True
     except IOError:
         pass
     p.wait()
