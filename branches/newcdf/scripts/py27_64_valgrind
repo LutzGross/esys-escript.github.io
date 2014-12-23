@@ -1,0 +1,955 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyAST_Compile
+   obj:/usr/bin/python2.7
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   fun:_PyString_Resize
+   fun:PyString_Format
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   fun:PyFrame_New
+   fun:PyEval_EvalFrameEx
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   fun:PyFrame_New
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   fun:PyFrame_New
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   fun:PyFrame_New
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   fun:_PyString_Resize
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   fun:_PyString_Resize
+   fun:PyString_Format
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   fun:PyFrame_New
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   fun:_PyString_Resize
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   fun:PyNode_AddChild
+   fun:PyParser_AddToken
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   fun:PyNode_AddChild
+   fun:PyParser_AddToken
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   fun:_PyString_Resize
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:_ZN5boost6python3apipLIPKcEERNS1_6objectES6_RKT_
+   fun:_ZN5boost6python7objects8function16add_to_namespaceERKNS0_3api6objectEPKcS6_S8_
+}
+
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   fun:PyAST_Compile
+   obj:/usr/bin/python2.7
+   fun:PyRun_InteractiveOneFlags
+   fun:PyRun_InteractiveLoopFlags
+   fun:PyRun_AnyFileExFlags
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   fun:PyAST_Compile
+   obj:/usr/bin/python2.7
+   fun:PyRun_InteractiveOneFlags
+   fun:PyRun_InteractiveLoopFlags
+   fun:PyRun_AnyFileExFlags
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:PyAST_Compile
+   obj:/usr/bin/python2.7
+}
+
+
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyImport_ExecCodeModuleEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyEval_CallObjectWithKeywords
+   fun:PyEval_EvalFrameEx
+   fun:PyEval_EvalCodeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyImport_ImportModuleLevel
+   obj:/usr/bin/python2.7
+   fun:_PyCodec_Lookup
+   fun:PyCodec_Encoder
+   fun:Py_InitializeEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+   obj:/usr/bin/python2.7
+   fun:PyParser_ASTFromFile
+   fun:PyRun_InteractiveOneFlags
+   fun:PyRun_InteractiveLoopFlags
+   fun:PyRun_AnyFileExFlags
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+   obj:/usr/bin/python2.7
+   fun:PyParser_ASTFromFile
+   fun:PyRun_InteractiveOneFlags
+   fun:PyRun_InteractiveLoopFlags
+   fun:PyRun_AnyFileExFlags
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+   obj:/usr/bin/python2.7
+   fun:PyParser_ASTFromFile
+   fun:PyRun_InteractiveOneFlags
+   fun:PyRun_InteractiveLoopFlags
+   fun:PyRun_AnyFileExFlags
+   fun:Py_Main
+   fun:(below main)
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyDict_SetItem
+   fun:_PyModule_Clear
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:PyImport_Cleanup
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:_PyImport_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:_PyImport_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:_PyImport_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:_PyImport_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:_PyImport_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyInterpreterState_Clear
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyInterpreterState_Clear
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyInterpreterState_Clear
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyInterpreterState_Clear
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   fun:PyInterpreterState_Clear
+   fun:Py_Finalize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+   fun:PyInterpreterState_Clear
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   fun:PyDict_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   fun:PyDict_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyDict_Fini
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyGrammar_RemoveAccelerators
+   fun:Py_Finalize
+   fun:Py_Main
+   fun:(below main)
+}
