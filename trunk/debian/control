@@ -20,6 +20,20 @@ Conflicts: escript-noalias, escript
 Replaces: escript-noalias, escript
 Homepage: https://launchpad.net/escript-finley
 
+Package: python3-escript
+Description: Escript/Finley finite elements python system.
+ Solve partial differential equations using finite element methods.
+Architecture: any
+Section: science
+Priority: extra
+Essential: no
+Depends: ${es:python3}, python3-numpy, ${es:boostpy3}, ${es:boostrandom3}, ${es:netcdf}, libgomp1
+Recommends: python3-sympy, python3-matplotlib, python3-scipy
+Suggests: python3-pyproj, python3-gdal
+Conflicts: escript-noalias, escript, python-escript(<=4.0)
+Replaces: escript-noalias, escript
+Homepage: https://launchpad.net/escript-finley
+
 Package: python-escript-doc
 Description: Documentation for Escript/Finley.
  Solve partial differential equations using finite element methods.
