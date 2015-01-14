@@ -52,6 +52,10 @@ NE=4 # number elements, must be even
 
 class Test_UtilOnFinley(Test_util,Test_symfuncs,Test_util_NaN_funcs):
    def setUp(self):
+       try:
+           self.workdir=os.environ['FINLEY_WORKDIR']
+       except KeyError:
+           self.workdir='.'
        self.domain =Rectangle(NE,NE+1,2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
    def tearDown(self):

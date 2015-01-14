@@ -132,6 +132,7 @@ class Test_TableInterpolationOnRipley(Test_TableInterpolation):
 
 class Test_CSVOnRipley(Test_saveCSV):
     def setUp(self):
+        self.workdir=RIPLEY_WORKDIR
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspaces=[ContinuousFunction, Function, ReducedFunction,
                              FunctionOnBoundary, ReducedFunctionOnBoundary]
