@@ -58,6 +58,11 @@ class Test_UtilOnRipley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+        try:
+            self.workdir=os.environ['RIPLEY_WORKDIR']
+        except KeyError:
+            self.workdir='.'
+
     def tearDown(self):
         del self.functionspace
         del self.domain

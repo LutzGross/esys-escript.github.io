@@ -43,6 +43,11 @@ try:
 except KeyError:
      DUDLEY_TEST_DATA='.'
 
+try:
+     DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
+except KeyError:
+     DUDLEY_WORKDIR='.'
+
 DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 
@@ -52,6 +57,8 @@ class Test_UtilOnDudley(Test_util,Test_symfuncs):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,1)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+       self.workdir=DUDLEY_WORKDIR
+
    def tearDown(self):
        del self.functionspace
        del self.domain
