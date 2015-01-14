@@ -194,11 +194,13 @@ zwidth/3), 900, True)
                    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
 
 class Test_saveCSV(unittest.TestCase):
+   def setUp(self):
+        self.workdir=ESCRIPT_WORKDIR
 
    def test_csv_header_separator_and_append(self):
         X=self.domain.getX()
         X0=X[0]
-        fname=os.path.join(ESCRIPT_WORKDIR, "test_save1.csv")
+        fname=os.path.join(self.workdir, "test_save1.csv")
         saveDataCSV(fname, C=X, D=X0)
         self.assertTrue(os.path.exists(fname), "test file not created")
         saveDataCSV(fname,append=True, J=X0, H=X)
@@ -227,7 +229,7 @@ class Test_saveCSV(unittest.TestCase):
             FS=self.functionspaces[i]
             X=FS(self.domain).getX()
             X0=X[0]
-            fname=os.path.join(ESCRIPT_WORKDIR, "test_save2.csv")
+            fname=os.path.join(self.workdir, "test_save2.csv")
             saveDataCSV(fname,C=X, D=X0)
             f=open(fname,'r')
             # test number of rows written

@@ -134,6 +134,7 @@ class Test_TableInterpolationOnDudley(Test_TableInterpolation):
 
 class Test_CSVOnDudley(Test_saveCSV):
     def setUp(self):
+        self.workdir=DUDLEY_WORKDIR
         NE0=NE
         NE1=NE+1
         self.domain=Rectangle(NE0,NE1)
