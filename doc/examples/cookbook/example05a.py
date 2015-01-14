@@ -56,7 +56,13 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if HAVE_FINLEY:
+try:
+    from mpl_toolkits.natgrid import _natgrid
+    HAVE_NATGRID=True
+except ImportError:
+    HAVE_NATGRID=False
+
+if HAVE_FINLEY and HAVE_NATGRID:
     #################################################ESTABLISHING VARIABLES
     #set modal to 1 for a syncline or -1 for an anticline structural 
     #configuration
