@@ -346,7 +346,8 @@ class DCResDomGenerator(object):
         else:
             mshName = mshName[:-4]+".msh"
 
-        gmshGeo2Msh(filename, mshName, 3, 1, verbosity)
+        if gmshGeo2Msh(filename, mshName, 3, 1, verbosity)!=0:
+            raise RuntimeError("Call out to gmsh failed")
         dom=ReadGmsh(mshName, 3, diracTags=self.__tags, diracPoints=self.__points)
         return dom
 
