@@ -285,12 +285,12 @@ class DCResDomGenerator(object):
                 backStr+= "-out%d[3],"%i
 
 
-        out.append("Physical Surface(\"Top\") = { -6 };\n")
-        out.append("Physical Surface(\"Bottom\") = { -out%d[0] };\n"%i)
-        out.append("Physical Surface(\"Left\") = { %s };\n"%leftStr[:-1])
-        out.append("Physical Surface(\"Right\") = { %s };\n"%rightStr[:-1])
-        out.append("Physical Surface(\"Front\") = { %s };\n"%frontStr[:-1])
-        out.append("Physical Surface(\"Back\") = { %s };\n"%backStr[:-1])
+        # out.append("Physical Surface(\"Top\") = { -6 };\n")
+        # out.append("Physical Surface(\"Bottom\") = { -out%d[0] };\n"%i)
+        # out.append("Physical Surface(\"Left\") = { %s };\n"%leftStr[:-1])
+        # out.append("Physical Surface(\"Right\") = { %s };\n"%rightStr[:-1])
+        # out.append("Physical Surface(\"Front\") = { %s };\n"%frontStr[:-1])
+        # out.append("Physical Surface(\"Back\") = { %s };\n"%backStr[:-1])
         if not self.__bufferThickness == None:
             out.append("Field[1] = Box;\n")
             out.append("Field[1].VIn=lc;\n")
@@ -316,7 +316,7 @@ class DCResDomGenerator(object):
 
         self.__scriptString = "".join(out)
 
-    def getDom(self, mshName=None, interfaces=None):
+    def getDom(self, mshName=None, interfaces=None, reUse=False):
         """
         Generates the domain.
         :param interfaces: Specify a list of interfaces for a layered model.
@@ -324,9 +324,11 @@ class DCResDomGenerator(object):
                            will be tagged iteratively from volume-0 to
                            volume-(n-1).
         :type interfaces: list
+        :param reUse: should the msh be reused or should a new file be generated
+        :type reUse: bool
         """
 
-        if (mshName is not None and os.path.isfile(mshName)):
+        if (mshName is not None and os.path.isfile(mshName) and reUse==True):
             if mshName[-4:]=='.msh':
                 dom=ReadGmsh(mshName, 3, diracTags=self.__tags, diracPoints=self.__points)
             elif mshName[-4:]=='.fly':
