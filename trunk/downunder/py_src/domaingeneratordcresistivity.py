@@ -52,6 +52,9 @@ class DCResDomGenerator(object):
             self.__extents=extents
         else:
             raise ValueError("extents should be of length 3 or 4")
+        for i in electrodeDict:
+            if len(electrodeDict[i]) != 4:
+                raise ValueError("currently only 3d domains are supported electrodeDict elements must be of length 4)")
         self.__extentLen = len(self.__extents)
         self.__electrodeDict=electrodeDict
         self.__lc=lc
