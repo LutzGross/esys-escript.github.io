@@ -562,7 +562,8 @@ namespace finley {
               points.push_back(extract<double>(temp[k]));
           }
       }
-      int curmax=40; // bricks use up to 30
+      int curmax=40; // bricks use up to 200 but the existing tag check 
+		     // will find that
       TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
 		// first we work out what tags are already in use
       for (TagMap::iterator it=tagmap.begin();

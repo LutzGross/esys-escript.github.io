@@ -476,9 +476,6 @@ bool MPIScalarReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::
 bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
 {
 #ifdef ESYS_MPI
-    DataTypes::ValueType& vr=value.getExpandedVectorReference();
-    Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
-    DataTypes::ValueType& rr=value.getExpandedVectorReference();
     if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
     {
 	return false;
@@ -508,7 +505,7 @@ bool MPIScalarReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esy
 {
 #ifdef ESYS_MPI  
     MPI_Status stat;
-    if (MPI_Recv(value, 1, MPI_DOUBLE, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
+    if (MPI_Recv(&value, 1, MPI_DOUBLE, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
     {
 	return false;
     }
