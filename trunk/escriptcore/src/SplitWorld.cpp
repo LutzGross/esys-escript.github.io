@@ -26,6 +26,13 @@ using namespace boost::python;
 using namespace escript;
 namespace rs=escript::reducerstatus;
 
+
+double SplitWorld::getScalarVariable(const std::string& name)
+{
+    // do we have a variable of that name?
+    return localworld->getScalarVariable(name);
+}
+
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
     :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1), manualimport(false)
 {
@@ -227,6 +234,8 @@ void SplitWorld::runJobs()
 	std::vector<char> variableinterest;
 	do
 	{
+/*	  
+	  
 	      // make sure that any jobs which register as needing imports get them
 	      // first check local jobs to find out what they need
 	    if (!localworld->findImports(manualimport, err))
@@ -255,7 +264,8 @@ void SplitWorld::runJobs()
 		mres=4;
 		err="Error delivering local imports.";
 		break;
-	    }	  
+	    }	 
+*/	    
 	    // now we actually need to run the jobs
 	    // everybody will be executing their localworld's jobs
 	    int res=localworld->runJobs(err);	
@@ -274,7 +284,6 @@ void SplitWorld::runJobs()
 	    if (!localworld->localTransport(impexpdetail, err))
 	    {
 		mres=4;
-		err="Error in localTransport.";
 		break;
 	    }
 	    
@@ -342,7 +351,7 @@ void SplitWorld::addJob(boost::python::object creator, boost::python::tuple tup,
 {
     create.push_back(creator);
     tupargs.push_back(tup);
-    kwargs.push_back(kw);
+    kwargs.push_back(kw);  
 }
 
 // At some point, we may need there to be more isolation here

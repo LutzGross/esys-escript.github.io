@@ -172,7 +172,8 @@ bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
 	    }
 	    if (!(it->second)->valueCompatible(o2))
 	    {
-		errmsg="Attempt to export variable \""+name+"\" with an incompatible value.";
+		errmsg="Attempt to export variable \""+name+"\" with an incompatible value. Using ";
+		errmsg+=(it->second)->description();
 		return false;
 	    }
 	    if (!(it->second)->reduceLocalValue(o2, errmsg))
@@ -208,6 +209,22 @@ bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
     }     
     return true;      
 }
+
+double SubWorld::getScalarVariable(const std::string& name)
+{
+      str2reduce::iterator it=reducemap.find(name);
+      if (it==reducemap.end())
+      {
+	  throw SplitWorldException("No variable of that name.");
+      }
+      if (dynamic_cast<MPIScalarReducer*>(it->second.get())==0)
+      {
+	  throw SplitWorldException("Variable is not scalar.");
+      }
+      return dynamic_cast<MPIScalarReducer*>(it->second.get())->getDouble();
+}
+
+
 /*
 // Deal with the i-th job's exports
 bool SubWorld::processExportsLocal(size_t i, std::string& errmsg)
@@ -438,6 +455,7 @@ char SubWorld::runJobs(std::string& errormsg)
     int ret=0;
     try
     {
+std::cout <<  jobvec.size() << " jobs\n";     
 	for (size_t i=0;i<jobvec.size();++i)
 	{
 	    boost::python::object result=jobvec[i].attr("work")();

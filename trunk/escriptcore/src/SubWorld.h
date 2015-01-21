@@ -56,6 +56,7 @@ public:
     bool reduceRemoteValues();    
     bool amLeader();	// true if this proc is the leader for its world
     
+    double getScalarVariable(const std::string& name);
     
 private:
     esysUtils::JMPI everyone;	// communicator linking all procs in all subworlds
