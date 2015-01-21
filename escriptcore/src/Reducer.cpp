@@ -41,6 +41,22 @@ Reducer_ptr makeDataReducer(std::string type)
     return Reducer_ptr(m);    
 }
 
+Reducer_ptr makeScalarReducer(std::string type)
+{
+    MPI_Op op;
+    if (type=="SUM")
+    {
+	op=MPI_SUM;
+    }
+    else
+    {
+	throw SplitWorldException("Unsupported operation for makeScalarReducer.");
+    }
+    MPIScalarReducer* m=new MPIScalarReducer(op);
+    return Reducer_ptr(m);    
+}
+
+
 }
 
 namespace
@@ -54,6 +70,14 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     }
 }
 
+void combineDouble(double& d1, const double d2, MPI_Op op)
+{
+    if (op==MPI_SUM)
+    {
+	d1+=d2;
+    }  
+}
+
 #ifdef ESYS_MPI
 const int PARAMTAG=120567;	// arbitrary value
 #endif
@@ -63,6 +87,12 @@ bool AbstractReducer::hasValue()
 {
     return valueadded;
 }
+
+double AbstractReducer::getDouble(const std::string& name)
+{
+    throw SplitWorldException("This reducer is not able to provide a single scalar.");  
+}
+
 
 
 
@@ -80,11 +110,17 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     }
 }
 
+
 void MPIDataReducer::setDomain(escript::Domain_ptr d)
 {
     dom=d;
 }
 
+std::string MPIDataReducer::description()
+{
+    std::string op="SUM";
+    return "Reducer("+op+") for Data objects"; 
+}
 
 bool MPIDataReducer::valueCompatible(boost::python::object v)
 {
@@ -328,4 +364,172 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
       }
 #endif      
       return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MPIScalarReducer::MPIScalarReducer(MPI_Op op)
+  : reduceop(op)
+{
+    valueadded=false;
+    if (op==MPI_SUM)
+    {
+	// deliberately left blank
+    }
+    else
+    {
+	throw SplitWorldException("Unsupported MPI_Op");
+    }
+}
+
+void MPIScalarReducer::setDomain(escript::Domain_ptr d)
+{
+    // deliberately left blank
+}
+
+std::string MPIScalarReducer::description()
+{
+    std::string op="SUM";
+    return "Reducer("+op+") for double scalars"; 
+}
+
+bool MPIScalarReducer::valueCompatible(boost::python::object v)
+{
+    extract<double> ex(v);
+    if (!ex.check())
+    {
+	return false;
+    }
+    return true;
+}
+
+
+bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& errstring)
+{
+    extract<double> ex(v);
+    if (!ex.check())
+    {
+	errstring="reduceLocalValue: expected double value. Got something else.";
+	return false;
+    }
+    if (!valueadded)	// first value so answer becomes this one
+    {
+	value=ex();
+    }
+    else
+    {
+	combineDouble(value, ex(), reduceop);
+    }
+    return true;
+}
+
+void MPIScalarReducer::reset()
+{
+    valueadded=false;
+    value=0;
+}
+
+bool MPIScalarReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)
+{
+    return true;
+}
+
+// By the time this function is called, we know that all the values 
+// are compatible
+bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
+{
+#ifdef ESYS_MPI
+    DataTypes::ValueType& vr=value.getExpandedVectorReference();
+    Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
+    DataTypes::ValueType& rr=value.getExpandedVectorReference();
+    if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+    return true;
+#else
+    return true;
+#endif
+}
+
+// populate a vector of ints with enough information to ensure two values are compatible
+// or to construct a container for incomming data
+// Format for this:
+//  [0]    Type of Data:  {0 : error,  1: DataEmpty, 10: constant, 11:tagged, 12:expanded}
+//  [1]    Functionspace type code
+//  [2]    Only used for tagged --- gives the number of tags (which exist in the data object)
+//  [3..6] Components of the shape  
+void MPIScalarReducer::getCompatibilityInfo(std::vector<unsigned>& params)
+{
+    params.resize(1);	// in case someone tries to do something with it
+}
+
+
+	// Get a value for this variable from another process
+	// This is not a reduction and will replace any existing value
+bool MPIScalarReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+{
+#ifdef ESYS_MPI  
+    MPI_Status stat;
+    if (MPI_Recv(value, 1, MPI_DOUBLE, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+#endif    
+    return true;
+}
+
+	// Send a value to this variable to another process
+	// This is not a reduction and will replace any existing value    
+bool MPIScalarReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)
+{
+#ifdef ESYS_MPI  
+      if (MPI_Send(&value, 1, MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+      {
+	  return false;
+      }
+#endif      
+      return true;
+}
+
+double MPIScalarReducer::getDouble()
+{
+    return value;
 }

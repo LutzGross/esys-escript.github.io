@@ -42,6 +42,7 @@ public:
     void clearActiveJobs();
     void clearAllJobs();
 
+    double getScalarVariable(const std::string& name);
     
     
     

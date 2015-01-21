@@ -128,6 +128,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   
 
   class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
+  
   def("makeDataReducer", escript::makeDataReducer, (arg("op")), "Creates an object to combine values.\n\n"
   ":param op: name of the operation to use.\n:type op: `str`");
 
@@ -139,11 +140,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
   
   
   def("makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
+  def("makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
 
       
   class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
-    .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld");
+    .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
+      .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable);
     
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
