@@ -78,7 +78,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     index_t *partition = NULL;
     paso::Pattern_ptr pattern;
     Esys_MPI_rank myRank, current_rank, rank;
-    float *xyz = NULL;
+    real_t *xyz = NULL;
     int c;
 
 #ifdef ESYS_MPI
@@ -105,7 +105,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     for (p = 0; p < mpiSize; ++p)
 	len = MAX(len, distribution[p + 1] - distribution[p]);
     partition = new  index_t[len];	/* len is used for the sending around of partition later on */
-    xyz = new  float[myNumVertices * dim];
+    xyz = new  real_t[myNumVertices * dim];
     partition_count = new  dim_t[mpiSize + 1];
     new_distribution = new  dim_t[mpiSize + 1];
     newGlobalDOFID = new  index_t[len];
@@ -125,7 +125,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    if ((k >= 0) && (k < myNumVertices))
 	    {
 		for (j = 0; j < dim; ++j)
-		    xyz[k * dim + j] = (float)(in->Nodes->Coordinates[INDEX2(j, i, dim)]);
+		    xyz[k * dim + j] = (real_t)(in->Nodes->Coordinates[INDEX2(j, i, dim)]);
 	    }
 	}
 
@@ -167,10 +167,10 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 		    int ncon = 1;
 		    int edgecut;
 		    int options[2];
-		    float *tpwgts = new  float[ncon * mpiSize];
-		    float *ubvec = new  float[ncon];
+		    real_t *tpwgts = new real_t[ncon * mpiSize];
+		    real_t *ubvec = new real_t[ncon];
 		    for (i = 0; i < ncon * mpiSize; i++)
-			tpwgts[i] = 1.0 / (float)mpiSize;
+			tpwgts[i] = 1.0 / (real_t)mpiSize;
 		    for (i = 0; i < ncon; i++)
 			ubvec[i] = 1.05;
 		    options[0] = 3;
