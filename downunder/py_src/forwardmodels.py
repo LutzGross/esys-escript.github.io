@@ -989,8 +989,8 @@ class DcRes(ForwardModel):
             raise ValueError("sampleTags and delphi_in must have the same length.")  
         if not len(sampleTags)>0:
             raise ValueError("sampleTags list is empty.")    
-        if not isinstance(sampleTags[0], tuple):
-            raise ValueError("sampleTags must be a list of tuple.")    
+        if not isinstance(sampleTags[0], tuple) and not isinstance(sampleTags[0], list):
+            raise ValueError("sampleTags must be a list of tuples or a list of lists.")    
 
         if isinstance(w, float) or isinstance(w, int):
                w =[ float(w) for z in delphi_in]
@@ -1081,11 +1081,11 @@ class DcRes(ForwardModel):
         dom=self.__domain
         pde=self.setUpPDE()
         X=(self.__sigmaPrimary - sigma) * grad(self.__phiPrimary)
-        # print "+++++++++++++++++++"
-        # print "sigma=",sigma
-        # print "A=",A
-        # print "X=",X
-        # print "+++++++++++++++++++"
+        # print ("+++++++++++++++++++")
+        # print ("sigma=",sigma)
+        # print ("A=",sigma * kronecker(dom))
+        # print ("X=",X)
+        # print ("+++++++++++++++++++")
         pde.setValue(A=sigma * kronecker(dom),X=X)
         phi=pde.getSolution()        
         # print "got U Sol"
