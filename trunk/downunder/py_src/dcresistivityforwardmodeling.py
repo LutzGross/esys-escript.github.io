@@ -104,6 +104,10 @@ class SchlumbergerSurvey(DcResistivityForward):
         self.numElectrodes=numElectrodes
         self.delPhiPrimaryList=[]
         self.delPhiSecondaryList=[]
+        self.samples=[]
+        self.sources=[]
+        self.electrodeDict={}
+        self.electrodeTags=[]
         if (numElectrodes < 4):
             raise ValueError("numElectrodes must atleast 4 for schlumberger surveys")
         if n > ((numElectrodes-2)//2):
@@ -115,6 +119,8 @@ class SchlumbergerSurvey(DcResistivityForward):
             start.append(midPoint[1] - (((numElectrodes-1)*a)/2. * directionVector[1]))
             for i in range(numElectrodes):
                 electrodes.append([start[0]+(directionVector[0]*i*a), start[1]+(directionVector[1]*i*a),0])
+                self.electrodeTags.append("e%d"%i)
+                self.electrodeDict[self.electrodeTags[i]]=electrodes[i]
         else:
             raise NotImplementedError("2d forward model is not yet implemented please provide a 2 component directionVector for a 3d survey")
         self.electrodes=electrodes
@@ -161,8 +167,10 @@ class SchlumbergerSurvey(DcResistivityForward):
                 analyticRsTwo[1]=(coords[1]-self.electrodes[j + ((2*i) + 1)][1])
                 analyticRsTwo[2]=(coords[2])
                 rsMagTwo=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**0.5
+                self.sources.append([self.electrodeTags[j], self.electrodeTags[j + ((2*i) + 1)]])
                 rsMagOne+=(whereZero(rsMagOne)*0.0000001)
                 rsMagTwo+=(whereZero(rsMagTwo)*0.0000001)
+                
                 analyticPrimaryPot=(self.current/(2*pi*primCon*rsMagOne))-(self.current/(2*pi*primCon*rsMagTwo))
                 analyticRsOnePower=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**1.5
                 analyticRsOnePower = analyticRsOnePower+(whereZero(analyticRsOnePower)*0.0001)
@@ -177,10 +185,11 @@ class SchlumbergerSurvey(DcResistivityForward):
                 pde.setValue(X=X)
                 u=pde.getSolution()
                 loc=Locator(self.domain,[self.electrodes[j+i],self.electrodes[j+i+1]])
+                self.samples.append([self.electrodeTags[j+i],self.electrodeTags[j+i+1]])
                 valPrimary=loc.getValue(analyticPrimaryPot)
                 valSecondary=loc.getValue(u)
-                delPhiPrimary.append(valPrimary[0]-valPrimary[1])
-                delPhiSecondary.append(valSecondary[0]-valSecondary[1])
+                delPhiPrimary.append(valPrimary[1]-valPrimary[0])
+                delPhiSecondary.append(valSecondary[1]-valSecondary[0])
                 delPhiTotal.append(delPhiPrimary[j]+delPhiSecondary[j])
             delPhiPrimaryList.append(delPhiPrimary)
             delPhiSecondaryList.append(delPhiSecondary)
@@ -201,7 +210,7 @@ class SchlumbergerSurvey(DcResistivityForward):
         for i in self.delPhiPrimaryList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1))*pi*self.a)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1))*pi*self.a)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -217,7 +226,7 @@ class SchlumbergerSurvey(DcResistivityForward):
         for i in self.delPhiSecondaryList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1))*pi*self.a)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1))*pi*self.a)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -227,16 +236,28 @@ class SchlumbergerSurvey(DcResistivityForward):
         n=self.n
         if (self.delPhiSecondaryList==[]):
             self.getPotential()
-
+            
         nCount=1
         for i in self.delPhiTotalList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1))*pi*self.a)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1))*pi*self.a)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
 
+    def getSourcesSamples(self):
+        """
+        return a list of tuples of sample locations followed by a list of tuples
+        of source locations.
+        """
+        return self.samples, self.sources
+
+    def getElectrodeDict(self):
+        """
+        retuns the electrode dictionary
+        """
+        return self.electrodeDict
 
 class WennerSurvey(DcResistivityForward):
     """
@@ -351,8 +372,8 @@ class WennerSurvey(DcResistivityForward):
                 loc=Locator(self.domain,[self.electrodes[i+1],self.electrodes[i+2]])
                 valPrimary=loc.getValue(analyticPrimaryPot)
                 valSecondary=loc.getValue(u)
-                delPhiPrimary.append(valPrimary[0]-valPrimary[1])
-                delPhiSecondary.append(valSecondary[0]-valSecondary[1])
+                delPhiPrimary.append(valPrimary[1]-valPrimary[0])
+                delPhiSecondary.append(valSecondary[1]-valSecondary[0])
                 delPhiTotal.append(delPhiPrimary[i]+delPhiSecondary[i])
         else:
             raise NotImplementedError("2d forward model is not yet implemented")
@@ -369,7 +390,7 @@ class WennerSurvey(DcResistivityForward):
             self.getPotential()
 
         for i in self.delPhiPrimary:
-            resistivity.append((i/self.current)*2*pi*self.a)
+            resistivity.append((-i/self.current)*2*pi*self.a)
 
         return resistivity
 
@@ -381,7 +402,7 @@ class WennerSurvey(DcResistivityForward):
             self.getPotential()
 
         for i in self.delPhiSecondary:
-            resistivity.append((i/self.current)*2*pi*self.a)
+            resistivity.append((-i/self.current)*2*pi*self.a)
 
         return resistivity
 
@@ -392,7 +413,7 @@ class WennerSurvey(DcResistivityForward):
                 self.getPotential()
 
             for i in range(len(self.delPhiSecondary)):
-                resistivity.append(((self.delPhiSecondary[i]+self.delPhiPrimary[i])/self.current)*2*pi*self.a)
+                resistivity.append((-(self.delPhiSecondary[i]+self.delPhiPrimary[i])/self.current)*2*pi*self.a)
 
             return resistivity
 
@@ -511,8 +532,8 @@ class DipoleDipoleSurvey(DcResistivityForward):
                 loc=Locator(self.domain,[self.electrodes[1+j+i],self.electrodes[j+i+2]])
                 valPrimary=loc.getValue(analyticPrimaryPot)
                 valSecondary=loc.getValue(u)
-                delPhiPrimary.append(valPrimary[0]-valPrimary[1])
-                delPhiSecondary.append(valSecondary[0]-valSecondary[1])
+                delPhiPrimary.append(valPrimary[1]-valPrimary[0])
+                delPhiSecondary.append(valSecondary[1]-valSecondary[0])
                 delPhiTotal.append(delPhiPrimary[j]+delPhiSecondary[j])
             delPhiPrimaryList.append(delPhiPrimary)
             delPhiSecondaryList.append(delPhiSecondary)
@@ -533,7 +554,7 @@ class DipoleDipoleSurvey(DcResistivityForward):
         for i in self.delPhiPrimaryList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1)*(nCount+2))*pi*self.a)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1)*(nCount+2))*pi*self.a)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -549,7 +570,7 @@ class DipoleDipoleSurvey(DcResistivityForward):
         for i in self.delPhiSecondaryList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1)*(nCount+2))*pi*self.a)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1)*(nCount+2))*pi*self.a)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -564,7 +585,7 @@ class DipoleDipoleSurvey(DcResistivityForward):
         for i in self.delPhiTotalList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1)*(nCount+2))*pi*self.a)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1)*(nCount+2))*pi*self.a)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -675,8 +696,8 @@ class PoleDipoleSurvey(DcResistivityForward):
                 loc=Locator(self.domain,[self.electrodes[i+j],self.electrodes[i+j+1]])
                 valPrimary=loc.getValue(analyticPrimaryPot)
                 valSecondary=loc.getValue(u)
-                delPhiPrimary.append(valPrimary[0]-valPrimary[1])
-                delPhiSecondary.append(valSecondary[0]-valSecondary[1])
+                delPhiPrimary.append(valPrimary[1]-valPrimary[0])
+                delPhiSecondary.append(valSecondary[1]-valSecondary[0])
                 delPhiTotal.append(delPhiPrimary[j]+delPhiSecondary[j])
 
             delPhiPrimaryList.append(delPhiPrimary)
@@ -702,7 +723,7 @@ class PoleDipoleSurvey(DcResistivityForward):
         for i in self.delPhiPrimaryList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1))*pi*self.a*2)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1))*pi*self.a*2)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -718,7 +739,7 @@ class PoleDipoleSurvey(DcResistivityForward):
         for i in self.delPhiSecondaryList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1))*pi*self.a*2)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1))*pi*self.a*2)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
@@ -733,7 +754,7 @@ class PoleDipoleSurvey(DcResistivityForward):
         for i in self.delPhiTotalList:
             resistivity=[]
             for j in i:
-                resistivity.append((j/self.current)*(nCount*(nCount+1))*pi*self.a*2)
+                resistivity.append((-j/self.current)*(nCount*(nCount+1))*pi*self.a*2)
             nCount=nCount+1
             resistivityList.append(resistivity)
         return resistivityList
