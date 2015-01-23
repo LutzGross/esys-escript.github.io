@@ -76,5 +76,5 @@ for single_processor_only in [True, False]:
       runs=[]
       for i in example_files:
           if i.startswith(d) and i.endswith('.py') and (single_processor_only == (i in example_files_no_mpi)): runs.append(os.path.split(i)[1])
-      TestGroups.append(GroupTest("$PYTHONRUNNER ",(),"",os.path.join("$BUILD_DIR/doc/examples/test",d),runs, single_processor_only=single_processor_only))
+      TestGroups.append(GroupTest("$PYTHONRUNNER ",(),"",os.path.join("$BATCH_ROOT/doc/examples",d),runs, single_processor_only=single_processor_only))
 
