@@ -217,6 +217,7 @@ class DcResMapping(Mapping):
     """DcResMapping
 
        sigma=sigma_reg * e^(k*m)     
+       sigma=sigma_reg +  k*m     
     """
     def __init__(self, sigma_prior, k=1.):
         self.__sigma0=sigma_prior
@@ -224,18 +225,22 @@ class DcResMapping(Mapping):
 
     def getValue(self, m):
         print ("in get value inf(m)=",inf(m)," sup(m)=", sup(m))
-        return self.__sigma0 * (self.__k*m)
+        s=self.__sigma0 + self.__k*m
+        print ("in get value inf(s)=",inf(s)," sup(s)=", sup(s))
+        return s
        
     def getDerivative(self, m):
         """
         returns the derivative of the mapping for m
         """
-        return self.__sigma0*self.__k*exp(self.__k*m)
+        return self.__k
+        #return self.__sigma0*self.__k*exp(self.__k*m)
 
     def getInverse(self, s):
         """
         returns the value of the inverse of the mapping for s
         """
+        return (s-self.__sigma0) * self.__k
         ms=whereZero(s)
         ms0=whereZero(self.__sigma0)
         m=1/self.__k* log(((1-ms)*s+ms*1)/((1-ms0)*self.__sigma0+ms0*1)) * (1-ms)*(1-ms0) 
