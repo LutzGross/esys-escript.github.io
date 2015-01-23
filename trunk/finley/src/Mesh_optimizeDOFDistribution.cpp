@@ -27,6 +27,9 @@
 #include "IndexList.h"
 #ifdef USE_PARMETIS
 #include <parmetis.h>
+#ifndef REALTYPEWIDTH
+typedef float real_t;
+#endif
 #endif
 #include <boost/scoped_array.hpp>
 
