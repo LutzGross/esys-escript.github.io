@@ -53,11 +53,11 @@ escript_opts_version = 202
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-ipo -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-ipo -sox -I/sw/pymodules/2.7/scipy-0.15.1-intel/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-ipo-separate -shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib'
+ld_extra = '-ipo-separate -shared-intel -L/sw/libs/hdf5/1.8.14/lib'
 ld_extra += ' -wd11021 '  #silence icpc warnings about symbols ipo can't see
 
 # Whether to treat compiler warnings as errors
@@ -90,19 +90,19 @@ openmp = True
 mpi = 'INTELMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/sw/sdev/intel/impi/5.0.1.035/intel64'
+mpi_prefix = '/sw/intel/impi/5.0.2.044/intel64'
 
 # MPI libraries to link against
 #mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/sw/libs/boost/1.55.0'
+boost_prefix = '/sw/libs/boost/1.57.0'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
-cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
+cppunit_prefix = '/sw/libs/cppunit/1.13.2'
 
 # CppUnit library/libraries to link against
 #cppunit_libs = ['cppunit']
@@ -122,10 +122,10 @@ netcdf_libs = ['netcdf_c++', 'netcdf', 'hdf5']
 parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
-parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
+parmetis_prefix = '/sw/libs/parmetis/4.0.3-impi'
 
 # parMETIS library/libraries to link against
-#parmetis_libs = ['parmetis', 'metis']
+parmetis_libs = ['parmetis']
 
 # Whether to use the Intel PAPI (Performance API) library
 # DEFAULT: False
@@ -146,7 +146,7 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composer_xe_2015/mkl/include', '/sw/sdev/intel/composer_xe_2015/mkl/lib/intel64']
+mkl_prefix = ['/sw/intel/composer_xe_2015.1.133/mkl/include', '/sw/intel/composer_xe_2015.1.133/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -166,7 +166,7 @@ mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 #boomeramg = True
 
 # Prefix or paths to BoomerAMG headers and libraries. See note above.
-boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
+boomeramg_prefix = '/sw/libs/hypre/2.0.0'
 
 # BoomerAMG library/libraries to link against
 boomeramg_libs = ['HYPRE']
@@ -188,7 +188,7 @@ lapack_libs = ['mkl_core']
 silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/sw/libs/silo/4.9.1'
+silo_prefix = '/sw/libs/silo/4.10.2'
 
 # SILO library/libraries to link against
 silo_libs = ['siloh5', 'hdf5']
@@ -212,7 +212,7 @@ build_shared = True
 # Do not change the following options unless you know what they do
 
 prelaunch = ""
-launcher = "srun --tasks=%N --ntasks-per-node=%p --cpus-per-task=%t %b"
+launcher = "srun --nodes=%n --ntasks-per-node=%p --cpus-per-task=%t --cpu_bind=verbose %b"
 postlaunch = ""
 
 # Use intel's VSL library for random data
@@ -225,7 +225,7 @@ postlaunch = ""
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2015'})]
+tools_names = [('intelc',{'topdir':'/sw/intel/composer_xe_2015.1.133'})]
 
 
 #iknowwhatimdoing = False
