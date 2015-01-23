@@ -51,241 +51,229 @@ int Check_Inputs_For_Parmetis(dim_t mpiSize, dim_t rank, dim_t * distribution, M
 
     if (rank == 0)
     {
-	for (i = 0; i < mpiSize; i++)
-	{
-	    len = distribution[i + 1] - distribution[i];
-	    if (len == 0)
-	    {
-		ret_val = 0;
-		break;
-	    }
-	}
+        for (i = 0; i < mpiSize; i++)
+        {
+            len = distribution[i + 1] - distribution[i];
+            if (len == 0)
+            {
+                ret_val = 0;
+                break;
+            }
+        }
     }
     MPI_Bcast(&ret_val, 1, MPI_INTEGER, 0, *comm);
     if (ret_val == 0)
-	printf("INFO: Parmetis is not used since some nodes have no vertex!\n");
+        printf("INFO: Parmetis is not used since some nodes have no vertex!\n");
     return ret_val;
 }
 #endif
 
-/************************************************************************************/
+/*****************************************************************************/
 
-void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
+void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
 {
+    if (in == NULL || in->Nodes == NULL)
+        return;
 
-    dim_t dim, i, j, k, myNumVertices, p, mpiSize, len, globalNumVertices, *partition_count = NULL, *new_distribution =
-	NULL, *loc_partition_count = NULL;
-    bool *setNewDOFId = NULL;
-    index_t myFirstVertex, myLastVertex, firstVertex, lastVertex, *newGlobalDOFID = NULL;
-    size_t mpiSize_size;
-    index_t *partition = NULL;
-    paso::Pattern_ptr pattern;
-    Esys_MPI_rank myRank, current_rank, rank;
+    dim_t i, k;
+    Esys_MPI_rank rank;
     int c;
 
-#ifdef ESYS_MPI
-    Esys_MPI_rank dest, source;
-    MPI_Status status;
-#endif
+    const Esys_MPI_rank myRank = in->MPIInfo->rank;
+    dim_t mpiSize = in->MPIInfo->size;
 
-    if (in == NULL)
-	return;
-    if (in->Nodes == NULL)
-	return;
+    // first step is to distribute the elements according to a global X of DOF
 
-    myRank = in->MPIInfo->rank;
-    mpiSize = in->MPIInfo->size;
-    mpiSize_size = mpiSize * sizeof(dim_t);
-    dim = in->Nodes->numDim;
-    /* first step is to distribute the elements according to a global X of DOF */
+    index_t myFirstVertex = distribution[myRank];
+    index_t myLastVertex = distribution[myRank + 1];
+    dim_t myNumVertices = myLastVertex - myFirstVertex;
+    dim_t globalNumVertices = distribution[mpiSize];
+    dim_t len = 0;
+    for (dim_t p = 0; p < mpiSize; ++p)
+        len = MAX(len, distribution[p + 1] - distribution[p]);
 
-    myFirstVertex = distribution[myRank];
-    myLastVertex = distribution[myRank + 1];
-    myNumVertices = myLastVertex - myFirstVertex;
-    globalNumVertices = distribution[mpiSize];
-    len = 0;
-    for (p = 0; p < mpiSize; ++p)
-	len = MAX(len, distribution[p + 1] - distribution[p]);
-    partition = new  index_t[len];	/* len is used for the sending around of partition later on */
-    partition_count = new  dim_t[mpiSize + 1];
-    new_distribution = new  dim_t[mpiSize + 1];
-    newGlobalDOFID = new  index_t[len];
-    setNewDOFId = new  bool[in->Nodes->numNodes];
-    if (!
-	(Dudley_checkPtr(partition) || Dudley_checkPtr(partition_count)
-	 || Dudley_checkPtr(partition_count) || Dudley_checkPtr(newGlobalDOFID) || Dudley_checkPtr(setNewDOFId)))
+    index_t* partition = new index_t[len];
+    dim_t* partition_count = new dim_t[mpiSize + 1];
+    dim_t* new_distribution = new dim_t[mpiSize + 1];
+    index_t* newGlobalDOFID = new index_t[len];
+    bool* setNewDOFId = new bool[in->Nodes->numNodes];
+    dim_t* recvbuf = new dim_t[mpiSize * mpiSize];
+
+#ifdef USE_PARMETIS
+    dim_t dim = in->Nodes->numDim;
+    real_t* xyz = new real_t[myNumVertices * dim];
+
+    /* set the coordinates: */
+    /* it is assumed that at least one node on this processor provides a coordinate */
+#pragma omp parallel for private(i,k)
+    for (i = 0; i < in->Nodes->numNodes; ++i)
     {
-	dim_t* recvbuf = new dim_t[mpiSize * mpiSize];
-
-#ifdef USE_PARMETIS
-        real_t* xyz = new real_t[myNumVertices * dim];
-
-	/* set the coordinates: */
-	/* it is assumed that at least one node on this processor provides a coordinate */
-#pragma omp parallel for private(i,j,k)
-	for (i = 0; i < in->Nodes->numNodes; ++i)
-	{
-	    k = in->Nodes->globalDegreesOfFreedom[i] - myFirstVertex;
-	    if ((k >= 0) && (k < myNumVertices))
-	    {
-		for (j = 0; j < dim; ++j)
-		    xyz[k * dim + j] = (real_t)(in->Nodes->Coordinates[INDEX2(j, i, dim)]);
-	    }
-	}
+        k = in->Nodes->globalDegreesOfFreedom[i] - myFirstVertex;
+        if ((k >= 0) && (k < myNumVertices))
+        {
+            for (dim_t j = 0; j < dim; ++j)
+                xyz[k * dim + j] = (real_t)(in->Nodes->Coordinates[INDEX2(j, i, dim)]);
+        }
+    }
 #endif // USE_PARMETIS
 
-	boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-	/* ksteube CSR of DOF IDs */
-	/* create the adjacency structure xadj and adjncy */
-	{
+    boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
+    /* ksteube CSR of DOF IDs */
+    /* create the adjacency structure xadj and adjncy */
+    {
 #pragma omp parallel
-	    {
-		/* ksteube build CSR format */
-		/*  insert contributions from element matrices into columns index index_list: */
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                myFirstVertex, myLastVertex, in->Elements,
-                in->Nodes->globalDegreesOfFreedom,
-                in->Nodes->globalDegreesOfFreedom);
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                myFirstVertex, myLastVertex, in->FaceElements,
-                in->Nodes->globalDegreesOfFreedom,
-                in->Nodes->globalDegreesOfFreedom);
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                myFirstVertex, myLastVertex, in->Points,
-                in->Nodes->globalDegreesOfFreedom,
-                in->Nodes->globalDegreesOfFreedom);
-	    }
+        {
+            /* ksteube build CSR format */
+            /*  insert contributions from element matrices into columns index index_list: */
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            myFirstVertex, myLastVertex, in->Elements,
+            in->Nodes->globalDegreesOfFreedom,
+            in->Nodes->globalDegreesOfFreedom);
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            myFirstVertex, myLastVertex, in->FaceElements,
+            in->Nodes->globalDegreesOfFreedom,
+            in->Nodes->globalDegreesOfFreedom);
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            myFirstVertex, myLastVertex, in->Points,
+            in->Nodes->globalDegreesOfFreedom,
+            in->Nodes->globalDegreesOfFreedom);
+        }
 
-	    /* create the local matrix pattern */
-	    pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list.get(), 0, globalNumVertices, 0);
+        /* create the local matrix pattern */
+        paso::Pattern_ptr pattern = paso::Pattern::fromIndexListArray(0,
+                myNumVertices, index_list.get(), 0, globalNumVertices, 0);
 
-	    if (Dudley_noError())
-	    {
+        if (Dudley_noError())
+        {
 #ifdef USE_PARMETIS
 
-		if (mpiSize > 1 && Check_Inputs_For_Parmetis(mpiSize, myRank, distribution, &(in->MPIInfo->comm)) > 0)
-		{
-		    int i;
-		    int wgtflag = 0;
-		    int numflag = 0;	/* pattern->ptr is C style: starting from 0 instead of 1 */
-		    int ncon = 1;
-		    int edgecut;
-		    int options[2];
-		    real_t *tpwgts = new real_t[ncon * mpiSize];
-		    real_t *ubvec = new real_t[ncon];
-		    for (i = 0; i < ncon * mpiSize; i++)
-			tpwgts[i] = 1.0 / (real_t)mpiSize;
-		    for (i = 0; i < ncon; i++)
-			ubvec[i] = 1.05;
-		    options[0] = 3;
-		    options[1] = 15;
-		    ParMETIS_V3_PartGeomKway(distribution, pattern->ptr, pattern->index, NULL, NULL, &wgtflag, &numflag, &dim, xyz, &ncon, &mpiSize, tpwgts, ubvec, options, &edgecut, partition,	/* new CPU ownership of elements */
-					     &(in->MPIInfo->comm));
-		    /* printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1)); */
-		    delete[] xyz;
-		    delete[] ubvec;
-		    delete[] tpwgts;
-		}
-		else
-		{
-		    for (i = 0; i < myNumVertices; ++i)
-			partition[i] = 0;	/* CPU 0 owns it */
-		}
+            if (mpiSize > 1 && Check_Inputs_For_Parmetis(mpiSize, myRank, distribution, &(in->MPIInfo->comm)) > 0)
+            {
+                int i;
+                int wgtflag = 0;
+                int numflag = 0;    /* pattern->ptr is C style: starting from 0 instead of 1 */
+                int ncon = 1;
+                int edgecut;
+                int options[2];
+                real_t *tpwgts = new real_t[ncon * mpiSize];
+                real_t *ubvec = new real_t[ncon];
+                for (i = 0; i < ncon * mpiSize; i++)
+                    tpwgts[i] = 1.0 / (real_t)mpiSize;
+                for (i = 0; i < ncon; i++)
+                    ubvec[i] = 1.05;
+                options[0] = 3;
+                options[1] = 15;
+                ParMETIS_V3_PartGeomKway(distribution, pattern->ptr,
+                        pattern->index, NULL, NULL, &wgtflag, &numflag, &dim,
+                        xyz, &ncon, &mpiSize, tpwgts, ubvec, options, &edgecut,
+                        partition, /* new CPU ownership of elements */
+                        &in->MPIInfo->comm);
+                //printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1));
+                delete[] xyz;
+                delete[] ubvec;
+                delete[] tpwgts;
+            }
+            else
+            {
+                for (i = 0; i < myNumVertices; ++i)
+                    partition[i] = 0;       /* CPU 0 owns it */
+            }
 #else
-		for (i = 0; i < myNumVertices; ++i)
-		    partition[i] = myRank;	/* CPU 0 owns it */
+            for (i = 0; i < myNumVertices; ++i)
+                partition[i] = myRank;      /* CPU 0 owns it */
 #endif // USE_PARMETIS
 
-	    }
+        }
 
-	    /* create a new distribution and labelling of the DOF */
-	    memset(new_distribution, 0, mpiSize_size);
-#pragma omp parallel private(loc_partition_count)
-	    {
-		loc_partition_count = new  dim_t[mpiSize];
-		memset(loc_partition_count, 0, mpiSize_size);
+        // create a new distribution and labelling of the DOF
+        const size_t mpiSize_size = mpiSize * sizeof(dim_t);
+        memset(new_distribution, 0, mpiSize_size);
+#pragma omp parallel
+        {
+            dim_t* loc_partition_count = new dim_t[mpiSize];
+            memset(loc_partition_count, 0, mpiSize_size);
 #pragma omp for private(i)
-		for (i = 0; i < myNumVertices; ++i)
-		    loc_partition_count[partition[i]]++;
+            for (i = 0; i < myNumVertices; ++i)
+                loc_partition_count[partition[i]]++;
 #pragma omp critical
-		{
-		    for (i = 0; i < mpiSize; ++i)
-			new_distribution[i] += loc_partition_count[i];
-		}
-		delete[] loc_partition_count;
-	    }
+            {
+                for (i = 0; i < mpiSize; ++i)
+                    new_distribution[i] += loc_partition_count[i];
+            }
+            delete[] loc_partition_count;
+        }
 #ifdef ESYS_MPI
-	    /* recvbuf will be the concatenation of each CPU's contribution to new_distribution */
-	    MPI_Allgather(new_distribution, mpiSize, MPI_INT, recvbuf, mpiSize, MPI_INT, in->MPIInfo->comm);
+        // recvbuf will be the concatenation of each CPU's contribution to
+        // new_distribution
+        MPI_Allgather(new_distribution, mpiSize, MPI_INT, recvbuf, mpiSize, MPI_INT, in->MPIInfo->comm);
 #else
-	    for (i = 0; i < mpiSize; ++i)
-		recvbuf[i] = new_distribution[i];
+        for (i = 0; i < mpiSize; ++i)
+            recvbuf[i] = new_distribution[i];
 #endif
-	    new_distribution[0] = 0;
-	    for (rank = 0; rank < mpiSize; rank++)
-	    {
-		c = 0;
-		for (i = 0; i < myRank; ++i)
-		    c += recvbuf[rank + mpiSize * i];
-		for (i = 0; i < myNumVertices; ++i)
-		{
-		    if (rank == partition[i])
-		    {
-			newGlobalDOFID[i] = new_distribution[rank] + c;
-			c++;
-		    }
-		}
-		for (i = myRank + 1; i < mpiSize; ++i)
-		    c += recvbuf[rank + mpiSize * i];
-		new_distribution[rank + 1] = new_distribution[rank] + c;
-	    }
-	    delete[] recvbuf;
+        new_distribution[0] = 0;
+        for (rank = 0; rank < mpiSize; rank++)
+        {
+            c = 0;
+            for (i = 0; i < myRank; ++i)
+                c += recvbuf[rank + mpiSize * i];
+            for (i = 0; i < myNumVertices; ++i)
+            {
+                if (rank == partition[i])
+                {
+                    newGlobalDOFID[i] = new_distribution[rank] + c;
+                    c++;
+                }
+            }
+            for (i = myRank + 1; i < mpiSize; ++i)
+                c += recvbuf[rank + mpiSize * i];
+            new_distribution[rank + 1] = new_distribution[rank] + c;
+        }
+        delete[] recvbuf;
 
-	    /* now the overlap needs to be created by sending the partition around */
+        // now the overlap needs to be created by sending the partition around
 #ifdef ESYS_MPI
-	    dest = esysUtils::mod_rank(mpiSize, myRank + 1);
-	    source = esysUtils::mod_rank(mpiSize, myRank - 1);
+        Esys_MPI_rank dest = esysUtils::mod_rank(mpiSize, myRank + 1);
+        Esys_MPI_rank source = esysUtils::mod_rank(mpiSize, myRank - 1);
 #endif
-	    current_rank = myRank;
+        Esys_MPI_rank current_rank = myRank;
 #pragma omp parallel for private(i)
-	    for (i = 0; i < in->Nodes->numNodes; ++i)
-		setNewDOFId[i] = TRUE;
+        for (i = 0; i < in->Nodes->numNodes; ++i)
+            setNewDOFId[i] = true;
 
-	    for (p = 0; p < mpiSize; ++p)
-	    {
+        for (dim_t p = 0; p < mpiSize; ++p)
+        {
+            index_t firstVertex = distribution[current_rank];
+            index_t lastVertex = distribution[current_rank + 1];
+#pragma omp parallel for private(i,k)
+            for (i = 0; i < in->Nodes->numNodes; ++i)
+            {
+                k = in->Nodes->globalDegreesOfFreedom[i];
+                if (setNewDOFId[i] && (firstVertex <= k) && (k < lastVertex))
+                {
+                    in->Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
+                    setNewDOFId[i] = false;
+                }
+            }
 
-		firstVertex = distribution[current_rank];
-		lastVertex = distribution[current_rank + 1];
-#pragma omp parallel for private(i,j,k)
-		for (i = 0; i < in->Nodes->numNodes; ++i)
-		{
-		    k = in->Nodes->globalDegreesOfFreedom[i];
-		    if (setNewDOFId[i] && (firstVertex <= k) && (k < lastVertex))
-		    {
-			in->Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
-			setNewDOFId[i] = FALSE;
-		    }
-		}
-
-		if (p < mpiSize - 1)
-		{		/* the final send can be skipped */
+            if (p < mpiSize - 1)
+            {               /* the final send can be skipped */
 #ifdef ESYS_MPI
-		    MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
-					 dest, in->MPIInfo->msg_tag_counter,
-					 source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                MPI_Status status;
+                MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
+                                     dest, in->MPIInfo->msg_tag_counter,
+                                     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
 #endif
-		    in->MPIInfo->msg_tag_counter++;
-		    current_rank = esysUtils::mod_rank(mpiSize, current_rank - 1);
-		}
-	    }
-	    for (i = 0; i < mpiSize + 1; ++i)
-		distribution[i] = new_distribution[i];
-	}
+                in->MPIInfo->msg_tag_counter++;
+                current_rank = esysUtils::mod_rank(mpiSize, current_rank - 1);
+            }
+        }
+        for (i = 0; i < mpiSize + 1; ++i)
+            distribution[i] = new_distribution[i];
     }
     delete[] newGlobalDOFID;
     delete[] setNewDOFId;
     delete[] new_distribution;
     delete[] partition_count;
     delete[] partition;
-    return;
 }
+
