@@ -81,7 +81,6 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     index_t *partition = NULL;
     paso::Pattern_ptr pattern;
     Esys_MPI_rank myRank, current_rank, rank;
-    real_t *xyz = NULL;
     int c;
 
 #ifdef ESYS_MPI
@@ -108,16 +107,18 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     for (p = 0; p < mpiSize; ++p)
 	len = MAX(len, distribution[p + 1] - distribution[p]);
     partition = new  index_t[len];	/* len is used for the sending around of partition later on */
-    xyz = new  real_t[myNumVertices * dim];
     partition_count = new  dim_t[mpiSize + 1];
     new_distribution = new  dim_t[mpiSize + 1];
     newGlobalDOFID = new  index_t[len];
     setNewDOFId = new  bool[in->Nodes->numNodes];
     if (!
-	(Dudley_checkPtr(partition) || Dudley_checkPtr(xyz) || Dudley_checkPtr(partition_count)
+	(Dudley_checkPtr(partition) || Dudley_checkPtr(partition_count)
 	 || Dudley_checkPtr(partition_count) || Dudley_checkPtr(newGlobalDOFID) || Dudley_checkPtr(setNewDOFId)))
     {
-	dim_t *recvbuf = new  dim_t[mpiSize * mpiSize];
+	dim_t* recvbuf = new dim_t[mpiSize * mpiSize];
+
+#ifdef USE_PARMETIS
+        real_t* xyz = new real_t[myNumVertices * dim];
 
 	/* set the coordinates: */
 	/* it is assumed that at least one node on this processor provides a coordinate */
@@ -131,6 +132,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 		    xyz[k * dim + j] = (real_t)(in->Nodes->Coordinates[INDEX2(j, i, dim)]);
 	    }
 	}
+#endif // USE_PARMETIS
 
 	boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
 	/* ksteube CSR of DOF IDs */
@@ -159,7 +161,6 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 
 	    if (Dudley_noError())
 	    {
-
 #ifdef USE_PARMETIS
 
 		if (mpiSize > 1 && Check_Inputs_For_Parmetis(mpiSize, myRank, distribution, &(in->MPIInfo->comm)) > 0)
@@ -181,6 +182,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 		    ParMETIS_V3_PartGeomKway(distribution, pattern->ptr, pattern->index, NULL, NULL, &wgtflag, &numflag, &dim, xyz, &ncon, &mpiSize, tpwgts, ubvec, options, &edgecut, partition,	/* new CPU ownership of elements */
 					     &(in->MPIInfo->comm));
 		    /* printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1)); */
+		    delete[] xyz;
 		    delete[] ubvec;
 		    delete[] tpwgts;
 		}
@@ -192,7 +194,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 #else
 		for (i = 0; i < myNumVertices; ++i)
 		    partition[i] = myRank;	/* CPU 0 owns it */
-#endif
+#endif // USE_PARMETIS
 
 	    }
 
@@ -285,6 +287,5 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     delete[] new_distribution;
     delete[] partition_count;
     delete[] partition;
-    delete[] xyz;
     return;
 }
