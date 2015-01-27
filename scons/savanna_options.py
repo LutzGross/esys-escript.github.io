@@ -95,6 +95,12 @@ mpi_prefix = '/sw/intel/impi/5.0.2.044/intel64'
 # MPI libraries to link against
 #mpi_libs = ['mpi']
 
+cuda = True
+nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
+
+# Prefix or paths to NVidia CUDA installation. See note above. [new in 202]
+cuda_prefix = ['/sw/libs/cuda/6.5/include', '/sw/libs/cuda/6.5/lib64']
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = '/sw/libs/boost/1.57.0'
 

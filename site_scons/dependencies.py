@@ -223,6 +223,17 @@ def checkNumpy(env):
 
     return conf.Finish()
 
+def checkCUDA(env):
+    try:
+        cuda_inc_path,cuda_lib_path=findLibWithHeader(env, 'cudart', 'thrust/version.h', env['cuda_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [cuda_inc_path])
+        env.AppendUnique(LIBPATH = [cuda_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], cuda_lib_path)
+        env['cuda']=True
+    except:
+        env['cuda']=False
+    return env
+
 def checkCppUnit(env):
     try:
         cppunit_inc_path,cppunit_lib_path=findLibWithHeader(env, env['cppunit_libs'], 'cppunit/TestFixture.h', env['cppunit_prefix'], lang='c++')
