@@ -87,7 +87,7 @@ vars.AddVariables(
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
-  ('thrust_prefix', 'Prefix/Paths to NVidia thrust installation', default_prefix),
+  ('cuda_prefix', 'Prefix/Paths to NVidia CUDA installation', default_prefix),
   BoolVariable('netcdf', 'Enable netCDF file support', False),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', ['netcdf_c++', 'netcdf']),
@@ -493,6 +493,7 @@ env=checkBoost(env)
 ######## NVCC version (optional)
 if env['cuda']:
     env=checkCudaVersion(env)
+    env=checkCUDA(env)
 
 ######## numpy (required) and numpy headers (optional)
 env=checkNumpy(env)
