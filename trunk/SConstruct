@@ -435,6 +435,10 @@ for key in set(env_export):
     except KeyError:
         pass
 
+for key in os.environ.keys():
+    if key.startswith("SLURM_"):
+        env['ENV'][key] = os.environ[key]
+
 try:
     env.PrependENVPath(LD_LIBRARY_PATH_KEY, os.environ[LD_LIBRARY_PATH_KEY])
 except KeyError:
