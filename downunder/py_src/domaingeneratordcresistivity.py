@@ -71,14 +71,14 @@ class DCResDomGenerator(object):
             self.__tags.append(i)
             self.__points.append(electrodeDict[i][:-1])
 
-    def generateScriptFile(self, interfaces=None):
+    def generateScriptFile(self, fieldSize, interfaces=None):
         fd, filename = tempfile.mkstemp(suffix=".geo", dir=self.__tmpDir)
         os.close(fd)
         
         if interfaces is None:
             self.generateScriptString()
         else:
-            self.generateLayedScriptString(interfaces)
+            self.generateLayedScriptString(interfaces, fieldSize)
         
         open(filename, "w").write(self.__scriptString)
         return filename
@@ -207,7 +207,7 @@ class DCResDomGenerator(object):
             out.append("Mesh.CharacteristicLengthExtendFromBoundary = 0;\n")
         self.__scriptString = "".join(out)
 
-    def generateLayedScriptString(self, interfaces):
+    def generateLayedScriptString(self, interfaces, fieldSize):
         pntCount=5
         leftStr ="-out0[2],"
         rightStr="-out0[4],"
@@ -253,7 +253,7 @@ class DCResDomGenerator(object):
                 backStr+= "-out%d[3],"%i
             i+=1
             out.append("out%d[]=Extrude {0, 0, -%f} { Surface {out%d[0]};};\n"%(i,self.__bufferThickness,i-1))
-            out.append("Physical Volume(\"volume-%d\") = {%d} ;\n"%(i+1,i+2))
+            out.append("Physical Volume(\"volume-%d\") = {%d} ;\n"%(i+1,i+1))
             leftStr+= "-out%d[2],"%i
             rightStr+="-out%d[4],"%i
             frontStr+="-out%d[5],"%i
@@ -310,8 +310,13 @@ class DCResDomGenerator(object):
             out.append("Field[3].IField = 2;\n")
             out.append("Field[3].LcMin = lc / 5;\n")
             out.append("Field[3].LcMax = 100*lc;\n")
-            out.append("Field[3].DistMin = 50;\n")
-            out.append("Field[3].DistMax = 100;\n")
+            if fieldSize == None:
+                out.append("Field[3].DistMin = 50.0;\n")
+                out.append("Field[3].DistMax = 100.0;\n")
+            else:
+                out.append("Field[3].DistMin = %g;\n"%fieldSize[0])
+                out.append("Field[3].DistMax = %g;\n"%fieldSize[1])
+
             out.append("Field[4] = Min;\n")
             out.append("Field[4].FieldsList = {1, 3};\n")
             out.append("Background Field = 4;\n")
@@ -319,7 +324,7 @@ class DCResDomGenerator(object):
 
         self.__scriptString = "".join(out)
 
-    def getDom(self, mshName=None, interfaces=None, reUse=False):
+    def getDom(self, fieldSize=None, mshName=None, interfaces=None, reUse=False):
         """
         Generates the domain.
         :param interfaces: Specify a list of interfaces for a layered model.
@@ -341,10 +346,10 @@ class DCResDomGenerator(object):
         # early exit so we don't even create files if we don't have to
         if not HAVE_GMSH:
             raise RuntimeError("gmsh is not available to build meshfiles")
-
         filename = "" # won't be used by non-0 ranks
         if getMPIRankWorld() == 0:
-            filename = self.generateScriptFile(interfaces)
+            filename = self.generateScriptFile(fieldSize, interfaces=interfaces)
+            self.filename = filename
         verbosity = 3
         if mshName is None:
             mshName = filename[:-4]+".msh"
@@ -356,3 +361,5 @@ class DCResDomGenerator(object):
         dom=ReadGmsh(mshName, 3, diracTags=self.__tags, diracPoints=self.__points)
         return dom
 
+    def getFileName(self):
+        return self.filename
