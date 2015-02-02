@@ -218,7 +218,7 @@ build_shared = True
 # Do not change the following options unless you know what they do
 
 prelaunch = ""
-launcher = "srun --nodes=%n --ntasks-per-node=%p --cpus-per-task=%t --cpu_bind=verbose %b"
+launcher = "srun --nodes=%n --ntasks=%N --ntasks-per-node=%p --cpus-per-task=%t --cpu_bind=verbose %b"
 postlaunch = ""
 
 # Use intel's VSL library for random data
