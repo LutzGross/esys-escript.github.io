@@ -86,9 +86,10 @@ class GroupTest(object):
         else:
             tt=""
         for d in self.mkdirs:
-            res=res+tt+"if [ ! -d "+str(d)+" ]\n"+tt+"then\n"+tt+"\tmkdir "+d+"\n"+tt+"fi\n"
+            res=res+tt+"if [ ! -d "+str(d)+" ]\n"+tt+"then\n"+tt+"\tmkdir -p "+str(d)+"\n"+tt+"fi\n"
         for v in self.evars:
             res=res+tt+"export "+str(v[0])+"="+str(v[1])+"\n"
+        res=res+tt+"if [ ! -d "+str(self.working_dir)+" ]\n"+tt+"then\n"+tt+"\tmkdir -p "+str(self.working_dir)+"\n"+tt+"fi\n"
         if len(self.python_dir)>0:
             res=res+tt+"export PYTHONPATH="+self.python_dir+":$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
         else:
