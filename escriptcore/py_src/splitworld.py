@@ -74,7 +74,7 @@ class Job(object):
     :var v: value to be imported
     :type v: ?
     """
-    pass
+    self.importedvalues[name]=v
   
   
   def getExportValue(self, name):

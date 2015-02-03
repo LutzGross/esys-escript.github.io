@@ -27,8 +27,8 @@ namespace bp=boost::python;
 using namespace esysUtils;
 namespace rs=escript::reducerstatus;
 
-SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldcount, unsigned int local_id)
-    :everyone(global), swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0), swcount(subworldcount), localid(local_id)
+SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldcount, unsigned int local_id, bool manualimport)
+    :everyone(global), swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0), swcount(subworldcount), localid(local_id), manualimports(manualimport)
 {
 
 
@@ -69,7 +69,7 @@ void SubWorld::clearJobs()
 }
 
   // query the jobs to find the names of requested imports
-bool SubWorld::findImports(bool manualimports, std::string& errmsg)
+bool SubWorld::findImports(std::string& errmsg)
 {
       // set all imports to false (if manual import is true) else set all to true
       // query each job:
@@ -127,9 +127,17 @@ bool SubWorld::deliverImports(std::string& errmsg)
       //		1) get its wantedvalues field
       //		2) check to ensure each value is actually a known variable
       //		3) set its value in import map to true
-    errmsg="Haven't implemented this bit yet.";
-    return false;
-//    return true;
+    for (size_t i=0;i<jobvec.size();++i)
+    {
+        for (str2bool::iterator it=importmap.begin();it!=importmap.end();++it)
+        {
+	    if (it->second)
+	    {
+                jobvec[i].attr("setImportValue")(it->first, reducemap[it->first]->getPyObj());
+	    }
+        }
+    }
+    return true;
 }
 
 
@@ -507,7 +515,7 @@ size_t SubWorld::getNumVars()
 }
 
 // if manual import is false, add this new variable to all the Jobs in this world
-void SubWorld::addVariable(std::string& name, Reducer_ptr& rp, bool manualimport)
+void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
 {
     if (reducemap.find(name)!=reducemap.end())
     {
@@ -516,7 +524,7 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp, bool manualimport
 	throw SplitWorldException(oss.str());    
     }
     reducemap[name]=rp;
-    if (!manualimport)
+    if (!manualimports)
     {
 	for (size_t i=0;i<jobvec.size();++i)
 	{

@@ -366,43 +366,10 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
       return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+boost::python::object MPIDataReducer::getPyObj()
+{
+    throw SplitWorldException("Not implemented yet.");
+}
 
 
 MPIScalarReducer::MPIScalarReducer(MPI_Op op)
@@ -530,3 +497,11 @@ double MPIScalarReducer::getDouble()
 {
     return value;
 }
+
+
+boost::python::object MPIScalarReducer::getPyObj()
+{
+    boost::python::object o(value);
+    return o;
+}
+

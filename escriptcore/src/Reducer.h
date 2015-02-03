@@ -77,7 +77,8 @@ public:
     virtual bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)=0;
     
     virtual double getDouble(const std::string& name);
-    
+   
+    virtual boost::python::object getPyObj()=0; 
 protected:
     bool valueadded;
     
@@ -121,7 +122,8 @@ public:
 	// Send a value to this variable to another process
 	// This is not a reduction and will replace any existing value    
     bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
-    
+    virtual boost::python::object getPyObj();
+
     
     
 private:    
@@ -163,7 +165,7 @@ public:
 	// This is not a reduction and will replace any existing value    
     bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
     double getDouble();
-    
+    virtual boost::python::object getPyObj(); 
     
 private:    
     double value;
