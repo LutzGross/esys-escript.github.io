@@ -67,15 +67,15 @@ class TestDCResistivityForward(unittest.TestCase):
         else:
             if not HAVE_GMSH:
                 raise unittest.SkipTest("gmsh required for test")
-            lc=50.0
+            lc=30.0
             bufferThickness=3000
             extents=[1000,2000,2000]
             electrodeDict={}
             lcDiv=10
-            electrodeDict["e1"]=[0.2*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e2"]=[0.4*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e3"]=[0.6*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e4"]=[0.8*extents[0], 0.5*extents[1], 0,lc/lcDiv]
+            electrodeDict["e1"]=[-0.4*extents[0], 0, 0,lc/lcDiv]
+            electrodeDict["e2"]=[-0.2*extents[0], 0, 0,lc/lcDiv]
+            electrodeDict["e3"]=[0.2*extents[0], 0, 0,lc/lcDiv]
+            electrodeDict["e4"]=[0.4*extents[0], 0, 0,lc/lcDiv]
             runName=os.path.join(WORKDIR, "dcResPolePole%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
@@ -86,7 +86,7 @@ class TestDCResistivityForward(unittest.TestCase):
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
         current=1000.
         a=4*0.05*extents[0]
-        midPoint = [0.5*extents[0],0.5*extents[1]]
+        midPoint = [0,0]
         directionVector=[1.,0.]
         numElectrodes = 4
 
@@ -95,7 +95,7 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentResList = pps.getApparentResistivityTotal()
         for i in totalApparentResList:
             res_a = abs(i-totalApparentRes)
-            res_b = 0.05 * totalApparentRes
+            res_b = 0.075 * totalApparentRes
             self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotential3dSchlumberger(self):
@@ -158,21 +158,21 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             electrodeDict={}
             lcDiv=10
-            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
+            electrodeDict["e0" ] = [-22.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e1" ] = [-18.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e2" ] = [-14.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e3" ] = [-10.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e4" ] = [-6.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e5" ] = [-2.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e6" ] = [ 2.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e7" ] = [ 6.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e8" ] = [ 10.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e9" ] = [ 14.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e10"] = [ 18.0, 0.0, 0, lc/lcDiv]
+            electrodeDict["e11"] = [ 22.0, 0.0, 0, lc/lcDiv]
             runName=os.path.join(WORKDIR, "dcResdipdip%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            dom = domGen.getDom(mshName=runName+".msh",reUse=False)
             if mpirank==0: 
                 os.unlink(runName+".msh")
         n=5
@@ -183,7 +183,7 @@ class TestDCResistivityForward(unittest.TestCase):
         numElectrodes = 12
         # a=(.8*extents[0])/numElectrodes
         a=4
-        midPoint = [0.5*extents[0],0.5*extents[1] - 2]
+        midPoint = [0,0]
         directionVector=[1.,0.]
         dipdips=DipoleDipoleSurvey(dom, primaryConductivity, secondaryConductivity, current, a,n, midPoint, directionVector, numElectrodes)
         dipdips.getPotential()

@@ -93,10 +93,10 @@ class DCResDomGenerator(object):
 
         if not self.__bufferThickness == None:
             out.append("lc=%f;\n"%self.__lc)
-            out.append("Point(1)={%f, %f, 0, lc};\n"%(-self.__bufferThickness , -self.__bufferThickness))
-            out.append("Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), -self.__bufferThickness))
-            out.append("Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), (self.__extents[1]+self.__bufferThickness)))
-            out.append("Point(4)={%f, %f, 0, lc};\n"%( -self.__bufferThickness, (self.__extents[1]+self.__bufferThickness)))
+            out.append("Point(1)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.-self.__bufferThickness) , (-self.__extents[1]/2.-self.__bufferThickness)))
+            out.append("Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.+self.__bufferThickness)  , (-self.__extents[1]/2.-self.__bufferThickness)))
+            out.append("Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.+self.__bufferThickness)  , (self.__extents[1]/2.+self.__bufferThickness)))
+            out.append("Point(4)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.-self.__bufferThickness) , (self.__extents[1]/2.+self.__bufferThickness)))
             out.append("Line(1) = {1,2} ;\n")
             out.append("Line(2) = {3,2} ;\n")
             out.append("Line(3) = {3,4} ;\n")
@@ -134,10 +134,10 @@ class DCResDomGenerator(object):
 
         else:
             out.append("lc=%f;\n"%self.__lc)
-            out.append("Point(1)={0,-1,0,lc};\n")
-            out.append("Point(2)={%f,-1,0,lc};\n"%self.__extents[0])
-            out.append("Point(3)={%f,%f,0,lc};\n"%(self.__extents[0],(self.__extents[1]+1)))
-            out.append("Point(4)={0,%f,0,lc};\n"%(self.__extents[1]+1))
+            out.append("Point(1)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.) , (-self.__extents[1]/2.)))
+            out.append("Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.)  , (-self.__extents[1]/2.)))
+            out.append("Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.)  , (self.__extents[1]/2.)))
+            out.append("Point(4)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.) , (self.__extents[1]/2.)))
             out.append("Line(1) = {1,2} ;\n")
             out.append("Line(2) = {3,2} ;\n")
             out.append("Line(3) = {3,4} ;\n")
@@ -187,10 +187,10 @@ class DCResDomGenerator(object):
             out.append("Field[1] = Box;\n")
             out.append("Field[1].VIn=lc;\n")
             out.append("Field[1].VOut=5*lc;\n")
-            out.append("Field[1].XMax=%f;\n"%self.__extents[0])
-            out.append("Field[1].XMin=0;\n")
-            out.append("Field[1].YMax=%f;\n"%self.__extents[1])
-            out.append("Field[1].YMin=0;\n")
+            out.append("Field[1].XMax=%f;\n"%(self.__extents[0]/2.))
+            out.append("Field[1].XMin=%f;\n"%(-self.__extents[0]/2.))
+            out.append("Field[1].YMax=%f;\n"%(self.__extents[1]/2.))
+            out.append("Field[1].YMin=%f;\n"%(-self.__extents[1]/2.))
             out.append("Field[1].ZMax=0;\n")
             out.append("Field[1].ZMin=-%f;\n"%self.__extents[2])
             out.append("Field[2] = Attractor;\n")
@@ -218,10 +218,10 @@ class DCResDomGenerator(object):
 
         if not self.__bufferThickness == None:
             out.append("lc=%f;\n"%self.__lc)
-            out.append("Point(1)={%f, %f, 0, lc};\n"%(-self.__bufferThickness , -self.__bufferThickness))
-            out.append("Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), -self.__bufferThickness))
-            out.append("Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]+self.__bufferThickness), (self.__extents[1]+ self.__bufferThickness)))
-            out.append("Point(4)={%f, %f, 0, lc};\n"%(-self.__bufferThickness, (self.__extents[1]+self.__bufferThickness)))
+            out.append("Point(1)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.-self.__bufferThickness) , (-self.__extents[1]/2.-self.__bufferThickness)))
+            out.append("Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.+self.__bufferThickness)  , (-self.__extents[1]/2.-self.__bufferThickness)))
+            out.append("Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.+self.__bufferThickness)  , (self.__extents[1]/2.+self.__bufferThickness)))
+            out.append("Point(4)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.-self.__bufferThickness) , (self.__extents[1]/2.+self.__bufferThickness)))
             out.append("Line(1) = {1,2} ;\n")
             out.append("Line(2) = {3,2} ;\n")
             out.append("Line(3) = {3,4} ;\n")
@@ -260,10 +260,10 @@ class DCResDomGenerator(object):
             backStr+= "-out%d[3],"%i
         else:
             out.append("lc=%f;\n"%self.__lc)
-            out.append("Point(1)={0,-1,0,lc};\n")
-            out.append("Point(2)={%f,-1,0,lc};\n"%self.__extents[0])
-            out.append("Point(3)={%f,%f,0,lc};\n"%(self.__extents[0],(self.__extents[1]+1)))
-            out.append("Point(4)={0,%f,0,lc};\n"%(self.__extents[1]+1))
+            out.append("Point(1)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.) , (-self.__extents[1]/2.)))
+            out.append("Point(2)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.)  , (-self.__extents[1]/2.)))
+            out.append("Point(3)={%f, %f, 0, lc};\n"%( (self.__extents[0]/2.)  , (self.__extents[1]/2.)))
+            out.append("Point(4)={%f, %f, 0, lc};\n"%( (-self.__extents[0]/2.) , (self.__extents[1]/2.)))
             out.append("Line(1) = {1,2} ;\n")
             out.append("Line(2) = {3,2} ;\n")
             out.append("Line(3) = {3,4} ;\n")
@@ -298,10 +298,10 @@ class DCResDomGenerator(object):
             out.append("Field[1] = Box;\n")
             out.append("Field[1].VIn=lc;\n")
             out.append("Field[1].VOut=5*lc;\n")
-            out.append("Field[1].XMax=%f;\n"%self.__extents[0])
-            out.append("Field[1].XMin=0;\n")
-            out.append("Field[1].YMax=%f;\n"%self.__extents[1])
-            out.append("Field[1].YMin=0;\n")
+            out.append("Field[1].XMax=%f;\n"%(self.__extents[0]/2.))
+            out.append("Field[1].XMin=%f;\n"%(-self.__extents[0]/2.))
+            out.append("Field[1].YMax=%f;\n"%(self.__extents[1]/2.))
+            out.append("Field[1].YMin=%f;\n"%(-self.__extents[1]/2.))
             out.append("Field[1].ZMax=0;\n")
             out.append("Field[1].ZMin=-%f;\n"%extentCount)
             out.append("Field[2] = Attractor;\n")
@@ -336,6 +336,8 @@ class DCResDomGenerator(object):
         :type reUse: bool
         """
 
+        filename = "" # won't be used by non-0 ranks
+        self.filename=filename
         if (mshName is not None and os.path.isfile(mshName) and reUse==True):
             if mshName[-4:]=='.msh':
                 dom=ReadGmsh(mshName, 3, diracTags=self.__tags, diracPoints=self.__points)
@@ -346,7 +348,7 @@ class DCResDomGenerator(object):
         # early exit so we don't even create files if we don't have to
         if not HAVE_GMSH:
             raise RuntimeError("gmsh is not available to build meshfiles")
-        filename = "" # won't be used by non-0 ranks
+        
         if getMPIRankWorld() == 0:
             filename = self.generateScriptFile(fieldSize, interfaces=interfaces)
             self.filename = filename
