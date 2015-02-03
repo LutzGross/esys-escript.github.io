@@ -76,7 +76,7 @@ public:
 	// This is not a reduction and will replace any existing value    
     virtual bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)=0;
     
-    virtual double getDouble(const std::string& name);
+    virtual double getDouble();
    
     virtual boost::python::object getPyObj()=0; 
 protected:
