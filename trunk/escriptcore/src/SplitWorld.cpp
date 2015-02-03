@@ -71,7 +71,7 @@ SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
 	subcom=esysUtils::makeInfo(0);
 	corrcom=esysUtils::makeInfo(0);
     #endif
-    localworld=SubWorld_ptr(new SubWorld(globalcom, subcom,corrcom, swcount, grank%wsize));
+    localworld=SubWorld_ptr(new SubWorld(globalcom, subcom,corrcom, swcount, grank%wsize,manualimport));
     localid=grank/wsize;
 }
 
@@ -234,16 +234,17 @@ void SplitWorld::runJobs()
 	std::vector<char> variableinterest;
 	do
 	{
-/*	  
+	  
 	  
 	      // make sure that any jobs which register as needing imports get them
 	      // first check local jobs to find out what they need
-	    if (!localworld->findImports(manualimport, err))
+	    if (!localworld->findImports(err))
 	    {
 		mres=4;
 		err="Error while finding imports.";
 		break;
 	    }
+/*	    
 	      // Now we find out what the other worlds want 
 	    if (!getVariableInterest(variableinterest))
 	    {
@@ -258,14 +259,14 @@ void SplitWorld::runJobs()
 		err="Error delivering global imports.";
 		break;
 	    }
-	      
+*/	      
 	    if (!localworld->deliverImports(err))
 	    {
 		mres=4;
 		err="Error delivering local imports.";
 		break;
 	    }	 
-*/	    
+    
 	    // now we actually need to run the jobs
 	    // everybody will be executing their localworld's jobs
 	    int res=localworld->runJobs(err);	
@@ -365,7 +366,7 @@ void SplitWorld::addVariable(std::string name, boost::python::object creator, bo
 	throw SplitWorldException("Creator function did not produce a reducer.");
     }
     Reducer_ptr rp=ex();
-    localworld->addVariable(name, rp, manualimport);
+    localworld->addVariable(name, rp);
 }
 
 

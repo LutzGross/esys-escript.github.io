@@ -29,7 +29,7 @@ namespace escript
 class SubWorld : public boost::enable_shared_from_this<SubWorld>
 {
 public:
-    SubWorld(esysUtils::JMPI& globalcom, esysUtils::JMPI& comm, esysUtils::JMPI& corr, unsigned int subworldcount, unsigned int local_id);
+    SubWorld(esysUtils::JMPI& globalcom, esysUtils::JMPI& comm, esysUtils::JMPI& corr, unsigned int subworldcount, unsigned int local_id, bool manualimport);
     ~SubWorld();
     void setDomain(Domain_ptr d);
     Domain_ptr getDomain();
@@ -39,7 +39,7 @@ public:
     char runJobs(std::string& errmsg);
     void clearJobs();
     void clearImportExports();
-    void addVariable(std::string&, Reducer_ptr& red, bool manualimport);
+    void addVariable(std::string&, Reducer_ptr& red);
     void removeVariable(std::string& name);  
     size_t getNumVars();
     
@@ -49,7 +49,7 @@ public:
     bool deliverImports(std::vector<char>& vb, std::string& errmsg);
     
     
-    bool findImports(bool manualimports, std::string& errmsg);
+    bool findImports(std::string& errmsg);
     bool deliverImports(std::string& errmsg);
     bool deliverGlobalImports(std::vector<char>& vb, std::string& errmsg);
     void getVariableStatus(std::vector<char>& vb);
@@ -74,6 +74,7 @@ typedef std::map<std::string, bool> str2bool;
     str2reduce reducemap;		// map: name ->reducer for that variable
     str2bool importmap;
 
+    bool manualimports;
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;
