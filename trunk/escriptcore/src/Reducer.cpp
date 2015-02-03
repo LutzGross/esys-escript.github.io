@@ -88,7 +88,7 @@ bool AbstractReducer::hasValue()
     return valueadded;
 }
 
-double AbstractReducer::getDouble(const std::string& name)
+double AbstractReducer::getDouble()
 {
     throw SplitWorldException("This reducer is not able to provide a single scalar.");  
 }
