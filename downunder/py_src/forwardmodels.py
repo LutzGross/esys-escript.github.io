@@ -958,7 +958,7 @@ class DcRes(ForwardModel):
     where p and q indate the 
 
     """
-    def __init__(self, domain, locator, delphi_in, sampleTags, phiPrimary, sigmaPrimary, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
+    def __init__(self, domain, locator, delphiIn, sampleTags, phiPrimary, sigmaPrimary, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
         
         """
         setup new ForwardModel
@@ -966,8 +966,8 @@ class DcRes(ForwardModel):
         :type: escript domain
         :param locator: contains locator to the measurement pairs
         :type: `list` of ``Locator``
-        :param: delphi_in: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only. 
-        :type delphi_in: tuple
+        :param: delphiIn: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only. 
+        :type delphiIn: tuple
         :param sampleTags:  tags of measurement points from which potential differences will be calculated.
         :type sampleTags: list of tuples
         :param phiPrimary: primary potential.
@@ -979,23 +979,23 @@ class DcRes(ForwardModel):
         self.__tol = tol
         self.__locator=locator
         self.__trafo=makeTranformation(domain, coordinates) 
-        self.__delphi_in=delphi_in
+        self.delphiIn=delphiIn
         self.__sampleTags = sampleTags
         self.__sigmaPrimary = sigmaPrimary
 
         if not isinstance(sampleTags, list):
             raise ValueError("sampleTags must be a list.")    
-        if not len(sampleTags) == len(delphi_in):
-            raise ValueError("sampleTags and delphi_in must have the same length.")  
+        if not len(sampleTags) == len(delphiIn):
+            raise ValueError("sampleTags and delphiIn must have the same length.")  
         if not len(sampleTags)>0:
             raise ValueError("sampleTags list is empty.")    
         if not isinstance(sampleTags[0], tuple) and not isinstance(sampleTags[0], list):
             raise ValueError("sampleTags must be a list of tuples or a list of lists.")    
 
         if isinstance(w, float) or isinstance(w, int):
-               w =[ float(w) for z in delphi_in]
+               w =[ float(w) for z in delphiIn]
                self.__w=w
-        if not len(w) == len(delphi_in):
+        if not len(w) == len(delphiIn):
                raise ValueError("Number of confidence factors and number of potential input values don't match.")
 
         self.__phiPrimary=phiPrimary
@@ -1118,7 +1118,7 @@ class DcRes(ForwardModel):
         # print "val=",val
         length=len(val)
         # print self.__sampleTags[0] 
-        if((self.__sampleTags[0][1]!="-" and (length%2) != 0) or (self.__sampleTags[0][1]!="-" and length/2 != len(self.__delphi_in))):
+        if((self.__sampleTags[0][1]!="-" and (length%2) != 0) or (self.__sampleTags[0][1]!="-" and length/2 != len(self.delphiIn))):
             raise ValueError("length of locator is wrong")
 
         delphi_calc=[]
@@ -1131,13 +1131,13 @@ class DcRes(ForwardModel):
         A=0
         if (self.__sampleTags[0][1]!="-"):
             for i in range(length//2):
-                A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
-                # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
+                A+=(self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)        
+                # print "delphi_calc[i]=",delphi_calc[i],"self.delphiIn[i]",self.delphiIn[i] 
         else:
             for i in range(length):
-                A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
-                # A+=(self.__w[i]*(self.__delphi_in[i]-delphi_calc[i])**2)        
-                # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
+                A+=(self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)        
+                # A+=(self.__w[i]*(self.delphiIn[i]-delphi_calc[i])**2)        
+                # print "delphi_calc[i]=",delphi_calc[i],"self.delphiIn[i]",self.delphiIn[i] 
         return  A/2
 
     def getGradient(self, sigma, phi, loc_phi):
@@ -1163,11 +1163,11 @@ class DcRes(ForwardModel):
             half = i//2
             # print(i)
             if sampleTags[half][1]!="-":
-                tmp=(val[i+1]-val[i]-self.__delphi_in[half])*self.__w[i]
+                tmp=(val[i+1]-val[i]-self.delphiIn[half])*self.__w[i]
             else:
-                tmp=(val[i]-self.__delphi_in[i//2]) *self.__w[i]
-                # tmp=self.__delphi_in[i/2]-val[i]
-            # print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
+                tmp=(val[i]-self.delphiIn[i//2]) *self.__w[i]
+                # tmp=self.delphiIn[i/2]-val[i]
+            # print ("in gradient","i=", i,"val[i]=",-val[i],"self.delphiIn[i/2]=",self.delphiIn[i/2])
             # print ("tmp=",tmp)
             sample = sampleTags[half]
             if sample[1]!="-":
