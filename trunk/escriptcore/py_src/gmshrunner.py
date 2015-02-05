@@ -42,14 +42,14 @@ GMSH_MPI = HAVE_GMSH and getEscriptParamInt("GMSH_MPI")
 
 def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
     if getMPIRankWorld() == 0:
-        gmshpy.Msg_SetVerbosity(verbosity)
+        #gmshpy.Msg_SetVerbosity(verbosity)
         gmshpy.GModel_readGEO(geoFile)
         model=gmshpy.GModel_current()
         linear=False
         incomplete=False
         model.setOrderN(order, linear, incomplete)
         model.mesh(numDim)
-        ret = model.writeMSH(mshFile)==1
+        ret = model.writeMSH(mshFile)==0 # 0 indicates error for gmshpy
         gmshpy.GmshClearProject()
     else:
         ret = 0
@@ -59,14 +59,17 @@ def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
 def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
     if getMPIRankWorld() == 0:
         import shlex, subprocess
-        cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
+        cmdline = "gmsh -format msh -%s -order %s -o '%s' '%s'"%(numDim, order, mshFile, geoFile)
         args = shlex.split(cmdline)
         try:
             ret = subprocess.call(args)
-        except:
+        except Exception as e:
             ret = 1
     else:
         ret = 0
+   
+    open(mshFile,"r")
+    open(geoFile,"r")
     ret=getMPIWorldMax(ret)
     return ret
 
