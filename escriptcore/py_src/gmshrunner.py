@@ -42,7 +42,7 @@ GMSH_MPI = HAVE_GMSH and getEscriptParamInt("GMSH_MPI")
 
 def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
     if getMPIRankWorld() == 0:
-        #gmshpy.Msg_SetVerbosity(verbosity)
+        gmshpy.Msg_SetVerbosity(verbosity)
         gmshpy.GModel_readGEO(geoFile)
         model=gmshpy.GModel_current()
         linear=False
@@ -68,8 +68,6 @@ def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
     else:
         ret = 0
    
-    open(mshFile,"r")
-    open(geoFile,"r")
     ret=getMPIWorldMax(ret)
     return ret
 
