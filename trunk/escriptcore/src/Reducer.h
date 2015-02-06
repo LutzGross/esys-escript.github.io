@@ -26,9 +26,11 @@ namespace escript
   
 namespace reducerstatus
 {
-const char NONE=0;  	// I have not value for this var and no interest in it
+const char NONE=0;  	// I have no value for this var and no interest in it
 const char INTERESTED=1;	// I am interested in this variable but I have no value for it
-const char HAVE=2;	// I have a new value for this variable
+const char OLD=2;	// I have a copy from elsewhere but no new values to contribute
+const char OLDINTERESTED=3;	// interested but only have a cached copy (no new values)
+const char NEW=4;	// I have a new value for this variable
 const char ERROR='!';	// Something bad happened  
 }
   
@@ -55,6 +57,12 @@ public:
 	// Must only be called on 
     virtual bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)=0; 
     
+
+	// send from proc 0 in the communicator to all others
+    virtual bool groupSend(MPI_Comm& com)=0;
+    
+	// reduction with some procs submitting identity values
+    virtual bool groupReduce(MPI_Comm& com, char mystate)=0;
     
 	// call to merge with values on other subworlds
 	// It does not take a value argument because local values should have 
@@ -62,7 +70,7 @@ public:
 	// Must only be called on participating SubWorlds
 	// the mpi_info holds a communicator linking corresponding processes
 	// in every participating subworld
-    virtual bool reduceRemoteValues(esysUtils::JMPI& mpi_info)=0;
+    virtual bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)=0;
     
 	// true if at least one localValue has been added
 	// used to check if this subworld should participate in remote merges
@@ -79,6 +87,8 @@ public:
     virtual double getDouble();
    
     virtual boost::python::object getPyObj()=0; 
+    
+    virtual void clear();
 protected:
     bool valueadded;
     
@@ -110,7 +120,7 @@ public:
     void getCompatibilityInfo(std::vector<unsigned>& params);
     
       // talk to corresponding processes in other subworlds
-    bool reduceRemoteValues(esysUtils::JMPI& mpi_info);
+    bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active);
     
       // human readable description
     std::string description();
@@ -124,7 +134,11 @@ public:
     bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
     virtual boost::python::object getPyObj();
 
+	// send from proc 0 in the communicator to all others
+    bool groupSend(MPI_Comm& com);
     
+	// reduction with some procs submitting identity values
+    bool groupReduce(MPI_Comm& com, char mystate);    
     
 private:    
     escript::Data value;
@@ -152,7 +166,7 @@ public:
     void getCompatibilityInfo(std::vector<unsigned>& params);
     
       // talk to corresponding processes in other subworlds
-    bool reduceRemoteValues(esysUtils::JMPI& mpi_info);
+    bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active);
     
       // human readable description
     std::string description();
@@ -167,9 +181,16 @@ public:
     double getDouble();
     virtual boost::python::object getPyObj(); 
     
+    	// send from proc 0 in the communicator to all others
+    bool groupSend(MPI_Comm& com);
+    
+	// reduction with some procs submitting identity values
+    bool groupReduce(MPI_Comm& com, char mystate);
+    
 private:    
     double value;
     MPI_Op reduceop;
+    double identity;
 };
 
 
