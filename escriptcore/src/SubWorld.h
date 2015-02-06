@@ -58,6 +58,12 @@ public:
     
     double getScalarVariable(const std::string& name);
     
+    
+    bool synchVariableInfo(std::string& err);
+    bool synchVariableValues(std::string& err);    
+    void ageVariables();
+    void resetInterest();    
+    
 private:
     esysUtils::JMPI everyone;	// communicator linking all procs in all subworlds
     esysUtils::JMPI swmpi;	// communicator linking all procs in this subworld
@@ -71,10 +77,28 @@ private:
     
 typedef std::map<std::string, Reducer_ptr> str2reduce;  
 typedef std::map<std::string, bool> str2bool;
+typedef std::map<std::string, char> str2char;
     str2reduce reducemap;		// map: name ->reducer for that variable
+    str2char varstate;		// using the state values from Reducer.h
     str2bool importmap;
 
     bool manualimports;
+    
+#ifdef ESYS_MPI    
+    std::vector<char> globalvarinfo;	// info about which worlds want which vars
+    
+    bool makeComm(MPI_Comm& sourcecom, MPI_Comm& subcom,std::vector<int>& members);
+
+
+    // a group with NEW nodes at the front and INT and OLDINT at the back
+    // NONE worlds get an empty communicator
+    bool makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com);
+
+    // A group with a single OLD or OLDINT at the front and all the INT worlds 
+    // following it
+    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com);    
+    
+#endif
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;

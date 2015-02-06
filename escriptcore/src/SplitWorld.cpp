@@ -225,54 +225,40 @@ bool SplitWorld::getVariableInterest(std::vector<char>& vb)
 void SplitWorld::runJobs()
 {
     esysUtils::NoCOMM_WORLD ncw;	// it's destructor will unset the flag
+    localworld->resetInterest();    
     try 
     {
 	distributeJobs();
 	int mres=0;
 	std::string err;
 	std::vector<char> impexpdetail;
-	std::vector<char> variableinterest;
+	std::vector<char> variableinterest(localworld->getNumVars(), reducerstatus::NONE);
 	do
 	{
-	  
-	  
-	      // make sure that any jobs which register as needing imports get them
-	      // first check local jobs to find out what they need
-	    if (!localworld->findImports(err))
+std::cout << "runJobs loop\n";	  
+		// find out which variables each world wants
+	    if (!localworld->synchVariableInfo(err))
 	    {
 		mres=4;
-		err="Error while finding imports.";
 		break;
 	    }
-/*	    
-	      // Now we find out what the other worlds want 
-	    if (!getVariableInterest(variableinterest))
+	    
+		// distribute values to worlds as needed
+	    if (!localworld->synchVariableValues(err))
 	    {
 		mres=4;
-		err="Error while gathering variable use information.";
 		break;
 	    }
-	      // If there are any variables which are needed but not present on local
-	    if (!localworld->deliverGlobalImports(variableinterest, err))
-	    {
-		mres=4;
-		err="Error delivering global imports.";
-		break;
-	    }
-*/	      
+		// give values to jobs
 	    if (!localworld->deliverImports(err))
 	    {
 		mres=4;
-		err="Error delivering local imports.";
 		break;
-	    }	 
-    
+	    }
 	    // now we actually need to run the jobs
 	    // everybody will be executing their localworld's jobs
 	    int res=localworld->runJobs(err);	
 
-// 	    // take this opportunity to clean up (the python side)
-// 	    localworld->clearImportExports();
 	    // now we find out about the other worlds
 	    if (!checkResultInt(res, mres, globalcom))
 	    {
@@ -288,22 +274,29 @@ void SplitWorld::runJobs()
 		break;
 	    }
 	    
-	      // at this point, the remote world has all the reductions done
-	      // now we need to do the global merges
-	      
-	    if (!localworld->checkRemoteCompatibility(err))
-	    {
-		mres=4;
-		err="Error in checkRemoteCompatibility.";
-		break;
-	    }
-	    if (!localworld->reduceRemoteValues())
-	    {
-		mres=4;
-		err="Error in reduceRemoteValue.";
-		break;	      
-	    }	    
+
 	} while (mres==1);
+	
+	  // at this point, the remote world has all the reductions done
+	  // now we need to do the global merges
+	if (!localworld->checkRemoteCompatibility(err))
+	{
+	    mres=4;
+	    err="Error in checkRemoteCompatibility.";
+	}
+	
+// 	    // Need to make sure we have updated info about who needs what
+// 	if (!localworld->synchVariableInfo(err))
+// 	{
+// 	    mres=4;
+// 	    return;
+// 	}	
+// 	if (!localworld->reduceRemoteValues(err))
+// 	{
+// 	    mres=4;
+// 	    return;	      
+// 	}
+
 	if (mres==0)
 	{
 	    clearAllJobs();
@@ -330,7 +323,6 @@ void SplitWorld::runJobs()
 	else if (mres==4)
 	{
 	    throw SplitWorldException("While processing exports: "+err);
-	
 	}
 	else
 	{ 

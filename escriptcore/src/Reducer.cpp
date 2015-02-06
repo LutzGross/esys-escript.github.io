@@ -93,7 +93,10 @@ double AbstractReducer::getDouble()
     throw SplitWorldException("This reducer is not able to provide a single scalar.");  
 }
 
-
+void AbstractReducer::clear()
+{
+    valueadded=false;
+}
 
 
 MPIDataReducer::MPIDataReducer(MPI_Op op)
@@ -222,8 +225,12 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 
 // By the time this function is called, we know that all the values 
 // are compatible
-bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
+bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
 {
+    if (!active)
+    {
+	return false;	// shutting down this option until I implement it
+    }
 #ifdef ESYS_MPI
     DataTypes::ValueType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
@@ -372,13 +379,25 @@ boost::python::object MPIDataReducer::getPyObj()
 }
 
 
+	// send from proc 0 in the communicator to all others
+bool MPIDataReducer::groupSend(MPI_Comm& com)
+{
+    throw SplitWorldException("Not implemented yet.");
+}
+
+bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
+{
+    throw SplitWorldException("Not implemented yet.");
+}
+
+
 MPIScalarReducer::MPIScalarReducer(MPI_Op op)
   : reduceop(op)
 {
     valueadded=false;
     if (op==MPI_SUM)
     {
-	// deliberately left blank
+	identity=0;
     }
     else
     {
@@ -419,6 +438,7 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
     if (!valueadded)	// first value so answer becomes this one
     {
 	value=ex();
+	valueadded=true;
     }
     else
     {
@@ -440,13 +460,19 @@ bool MPIScalarReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::
 
 // By the time this function is called, we know that all the values 
 // are compatible
-bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
+bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
 {
 #ifdef ESYS_MPI
+    if (!active)
+    {
+        value=identity;
+    }
+std::cout << "Value in " << value << std::endl;    
     if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
     {
 	return false;
     }
+std::cout << "Value out " << value << std::endl;    
     return true;
 #else
     return true;
@@ -505,3 +531,13 @@ boost::python::object MPIScalarReducer::getPyObj()
     return o;
 }
 
+	// send from proc 0 in the communicator to all others
+bool MPIScalarReducer::groupSend(MPI_Comm& com)
+{
+    throw SplitWorldException("Not implemented yet.");
+}
+
+bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
+{
+    throw SplitWorldException("Not implemented yet.");
+}
