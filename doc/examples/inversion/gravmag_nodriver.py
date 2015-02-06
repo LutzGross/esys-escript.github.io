@@ -2,7 +2,7 @@ from __future__ import division
 from __future__ import print_function
 ##############################################################################
 #
-# Copyright (c) 2012-2014 by University of Queensland
+# Copyright (c) 2012-2015 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -20,7 +20,7 @@ Advanced 3D gravity/magnetic joint inversion example without using any
 inversion drivers
 """
 
-__copyright__="""Copyright (c) 2012-2014 by University of Queensland
+__copyright__="""Copyright (c) 2012-2015 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0

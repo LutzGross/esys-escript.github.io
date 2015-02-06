@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2010-2014 by University of Queensland
+* Copyright (c) 2010-2015 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
