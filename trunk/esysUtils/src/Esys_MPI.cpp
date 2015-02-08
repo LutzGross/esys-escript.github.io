@@ -168,7 +168,7 @@ bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
   int errorGlobal = errorLocal;
 
 #ifdef ESYS_MPI
-  if (!checkResult(errorLocal, errorGlobal, mpi_info->comm))
+  if (!checkResult(errorLocal, errorGlobal, mpi_info))
   {
       return false;
   }
@@ -181,21 +181,82 @@ bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
   return (errorGlobal==0);
 }
 
-/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
-bool esysUtils::checkResult(int& input, int& output, MPI_Comm& comm)
+// Throw all values in and get the maximum --- used for error checking.
+// This used to be implemented as a simple AllReduce.
+// However, if there are other (overlapping) communicators in the system, they don't
+// react well to getting unexpected/untagged messages.
+// To avoid this, we do individual sends to the root which sends the result back.
+bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
 {
 #ifdef ESYS_MPI
-    output=0;
-    if (MPI_Allreduce(&input, &output, 1, MPI_INT, MPI_MAX, comm)!=MPI_SUCCESS)
+    const int leader=0;
+    const int BIGTAG=esysUtils::getSubWorldTag();
+    if (info->size==1)
     {
-	return false;
+	mres=res;
+	return true;
+    }
+    else
+    {
+	if (info->rank!=leader)
+	{
+	    if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
+	    {
+		return false;
+	    }
+	    if (MPI_Recv(&mres, 1, MPI_INT, leader, BIGTAG, info->comm,0)!=MPI_SUCCESS)
+	    {
+		return false;
+	    }
+	}
+	else
+	{
+	    MPI_Request* reqs=new MPI_Request[info->size-1];
+	    int* eres=new int[info->size-1];
+	    for (int i=0;i<info->size-1;++i)
+	    {
+		MPI_Irecv(eres+i, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
+	    }
+	    if (MPI_Waitall(info->size-1, reqs, 0)!=MPI_SUCCESS)
+	    {
+		delete[] reqs;
+		return false;
+	    }
+	    // now we have them all, find the max
+	    mres=res;
+	    for (int i=0;i<info->size-1;++i)
+	    {
+		if (mres<eres[i])
+		{
+		    mres=eres[i];
+		}
+	    }
+	    // now we know what the result should be
+	    // send it to the others
+	    for (int i=0;i<info->size-1;++i)
+	    {
+		MPI_Isend(&mres, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
+	    }
+	    if (MPI_Waitall(info->size-1, reqs,0)!=MPI_SUCCESS)
+	    {
+		return false;
+	    }
+	}
+      
     }
     return true;
 #else
-    output=input;
+    mres=res;
     return true;
 #endif
 }
+
+
+
+
+
+
+
 
 
 

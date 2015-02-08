@@ -134,9 +134,13 @@ inline std::string appendRankToFileName(const std::string &fileName,
 // ensure that the any ranks with an empty src argument end up with the string from
 // one of the other ranks
 // with no-mpi, it makes dest point at a copy of src
+ESYSUTILS_DLL_API
 bool shipString(const char* src, char** dest, MPI_Comm& comm);
 
-bool checkResult(int& input, int& output, MPI_Comm& comm);
+
+// Everyone puts in their error code and everyone gets the largest one
+ESYSUTILS_DLL_API
+bool checkResult(int input, int& output, const JMPI& comm);
 
 
 // Do not cope with nested calls
