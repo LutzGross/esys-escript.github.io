@@ -25,6 +25,7 @@ sources = """
     error.cpp
     esysExceptionTranslator.cpp
     blocktimer.cpp
+    pyerr.cpp
 """.split()
 
 headers = """
@@ -41,6 +42,7 @@ headers = """
     mem.h
     index.h
     maths.h
+    pyerr.h
     system_dep.h
     types.h
 """.split()
