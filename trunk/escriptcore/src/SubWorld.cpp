@@ -16,6 +16,7 @@
 
 #include "SubWorld.h"
 #include "SplitWorldException.h"
+#include "esysUtils/pyerr.h"
 
 #include <boost/python/import.hpp>
 #include <boost/python/dict.hpp>
@@ -68,6 +69,8 @@ void SubWorld::clearJobs()
     jobvec.clear();
 }
 
+/*
+
   // query the jobs to find the names of requested imports
 bool SubWorld::findImports(std::string& errmsg)
 {
@@ -117,6 +120,8 @@ bool SubWorld::findImports(std::string& errmsg)
     }
     return true;
 }
+
+*/
 
 // this will give the imported values to interested jobs
 bool SubWorld::deliverImports(std::string& errmsg)
@@ -179,7 +184,7 @@ bool SubWorld::deliverImports(std::string& errmsg)
 // The order of the variables is determined by the order of keys in the reducemap
 // Q: Why does it take chars then?
 // A: Because I want raw storage that I can pass via MPI and vector<bool> is special cased.
-bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
+bool SubWorld::localTransport(/*std::vector<char>& vb, */ std::string& errmsg)
 {
     for (size_t i=0;i<jobvec.size();++i)
     {  
@@ -223,7 +228,7 @@ bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
 	}
     }
 
-	// If we get here, all of the (local) exports worked
+/*	// If we get here, all of the (local) exports worked
 	// Now, lets make a record for distrubtion    
     size_t l=reducemap.size();
     vb.resize(l*2);
@@ -246,10 +251,53 @@ bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
 	{
 	    vb[i+l]=0;	  
 	}
-    }     
+    }   */  
     return true;      
 }
 
+void SubWorld::debug()
+{
+    using namespace std;
+    using namespace escript::reducerstatus;
+    std::cout << "Variables:\n";
+    int i=0;
+    for (str2char::iterator it=varstate.begin();it!=varstate.end();++it,++i)
+    {
+	std::cout << it->first << ": ";
+	switch (it->second)
+	{
+	  case NONE: cout << "NONE "; break;
+	  case INTERESTED: cout << "INTR "; break;
+	  case OLDINTERESTED: cout << "OINT "; break;
+	  case OLD: cout << "OLD  "; break;
+	  case NEW: cout << "NEW  "; break;
+	}
+#ifdef ESYS_MPI	
+	if (!globalvarinfo.empty())
+	{
+	    for (int j=i;j<globalvarinfo.size();j+=getNumVars())
+	    {
+		switch (globalvarinfo[j])
+		{
+		    case NONE: cout << "NONE "; break;
+		    case INTERESTED: cout << "INTR "; break;
+		    case OLDINTERESTED: cout << "OINT "; break;
+		    case OLD: cout << "OLD  "; break;
+		    case NEW: cout << "NEW  "; break;		  
+		}
+	    }
+	}
+#endif	
+	cout << endl;
+      
+    }
+  
+}
+
+
+// not to be called while running jobs
+// The tricky bit, is that this could be be called between job runs
+// this means that the values of variables may not have been synched yet
 double SubWorld::getScalarVariable(const std::string& name)
 {
       str2reduce::iterator it=reducemap.find(name);
@@ -257,6 +305,32 @@ double SubWorld::getScalarVariable(const std::string& name)
       {
 	  throw SplitWorldException("No variable of that name.");
       }
+	  // need to indicate we are interested in the variable
+      if (varstate[name]==rs::NONE)
+      {
+	  varstate[name]=rs::INTERESTED;
+      }
+      else if (varstate[name]==rs::OLD)
+      {
+	  varstate[name]=rs::OLDINTERESTED;
+      }
+	  // anything else, indicates interest anyway
+#ifdef ESYS_MPI
+      std::string errmsg;
+      if (globalvarinfo.empty())	// because a variable may have been removed or added since
+      {
+
+	  if (!synchVariableInfo(errmsg))
+	  {
+	      throw SplitWorldException(std::string("(Getting scalar --- Variable information) ")+errmsg);
+	  }
+      }
+      if (!synchVariableValues(errmsg))
+      {
+	  throw SplitWorldException(std::string("(Getting scalar --- Variable value) ")+errmsg);
+      }
+#endif
+	  
       if (dynamic_cast<MPIScalarReducer*>(it->second.get())==0)
       {
 	  throw SplitWorldException("Variable is not scalar.");
@@ -466,6 +540,8 @@ bool SubWorld::reduceRemoteValues(std::string& err)
 	int newcount=0;	// who has a new version
 	int oldcount=0;	// who has an old version
 	int oldintcount=0;
+
+std::cout << "Variable named " << it->first << std::endl;	
 	
 	    // loop over all the instructions about this variable
 	for (int i=0+vnum;i<globalvarinfo.size();i+=getNumVars())
@@ -480,7 +556,10 @@ bool SubWorld::reduceRemoteValues(std::string& err)
 			oldintcount++;
 			break;
 	    }
+std::cout << "   " << i%getNumVars() << " " << (int)globalvarinfo[i] << std::endl;
 	}
+std::cout << 	needcount << ", " << newcount << ", " << oldcount << ", " << oldintcount;
+std::cout << std::endl;
 	if (newcount>0)
 	{
 	    varswithupdates.push_back(it->first);
@@ -655,8 +734,15 @@ bool SubWorld::deliverGlobalImports(std::vector<char>& vb, std::string& errmsg)
 bool SubWorld::synchVariableInfo(std::string& err)
 {
 
-    if (!manualimports)
+    if (!manualimports)	
     {
+	    // import all known variables _BUT_ don't import something if noone has a value
+	    // for it
+/*
+	    ARG chicken and egg here.    In order to add interest, I need to know
+	    which vars in the system have values, ....
+	    but this is the routine which is supposed to do that!!!!
+*/	    
 	for (str2char::iterator it=varstate.begin();it!=varstate.end();++it)
 	{
 	    if (it->second==rs::NONE)
@@ -745,6 +831,13 @@ bool SubWorld::synchVariableInfo(std::string& err)
 // merge / ship values as required
 bool SubWorld::synchVariableValues(std::string& err)
 {
+    return reduceRemoteValues(err);
+/*  
+  
+  
+  
+  
+  
 #ifdef ESYS_MPI  
     // so now, everybody knows what everyone else wants
     size_t maxv=std::numeric_limits<size_t>::max();   // largest possible value in size_t
@@ -753,15 +846,20 @@ bool SubWorld::synchVariableValues(std::string& err)
     char error=0;
     for (size_t i=0;i<nv;++i, ++rmi)
     {
+std::cout << "Considering variable " << i << std::endl;      
 	size_t earliest=maxv;
 	char lookingfor=rs::OLD;
 	    // check to see if anyone has an updated copy of this variable
 	for (int s=0;s<swcount;++s)
 	{
+std::cout << "    " << s << " " << (int)globalvarinfo[s*nv+i] << " ";
+	  
 	    if (globalvarinfo[s*nv+i]==rs::NEW)	// This world has a copy of the value
 	    {
 		lookingfor=rs::NEW;    
+std::cout << "Found";		
 	    }
+std::cout << std::endl;	    
 	}
 	
 	for (int s=0;s<swcount;++s)
@@ -838,9 +936,11 @@ bool SubWorld::synchVariableValues(std::string& err)
 	}
     }
     return true;
+*/    
   
 }
 
+/*
 // Resize the vector so it holds the current number of variables
 // walk along all variables in the maps and determine, what our interest is in each one
 void SubWorld::getVariableStatus(std::vector<char>& vb)
@@ -864,7 +964,7 @@ void SubWorld::getVariableStatus(std::vector<char>& vb)
 	}
     }
 }
-
+*/
 
 // if 4, a Job performed an invalid export
 // if 3, a Job threw an exception 
@@ -873,6 +973,8 @@ void SubWorld::getVariableStatus(std::vector<char>& vb)
 // if 0, all jobs in this world returned True
 char SubWorld::runJobs(std::string& errormsg)
 {
+    std::cout << "Running jobs\n";
+    debug();  
     errormsg.clear();
     bp::object gettrace=bp::import("traceback").attr("format_exc");
     int ret=0;
@@ -896,30 +998,11 @@ char SubWorld::runJobs(std::string& errormsg)
     } 
     catch (boost::python::error_already_set e)
     {
-	using namespace boost::python;
-  	PyObject* ptype=0;
- 	PyObject* pvalue=0;
- 	PyObject* ptraceback=0;
- 	PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-	PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
- 
-	PyObject* errobj=PyObject_Str(pvalue);
-
-#ifdef ESPYTHON3	
-	PyObject* rr=PyUnicode_AsASCIIString(errobj);
-	errormsg=PyBytes_AsString(rr);
-	Py_XDECREF(rr);
-#else
-	errormsg=PyString_AsString(errobj);
-#endif
-	Py_XDECREF(errobj);
-
-	Py_XDECREF(ptype);
-	Py_XDECREF(pvalue);
-	Py_XDECREF(ptraceback);
- 	
+	getStringFromPyException(e, errormsg);      
 	return 3;
     }  
+    std::cout << "***********\n"; 
+    debug();
     return ret;
 }
 
@@ -938,7 +1021,6 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
 	throw SplitWorldException(oss.str());    
     }
     reducemap[name]=rp;
-    importmap[name]=false;
     varstate[name]=reducerstatus::NONE;
     if (!manualimports)
     {
@@ -947,12 +1029,14 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
 	    jobvec[i].attr("requestImport")(name);
 	}
     }
+#ifdef ESYS_MPI
+
+#endif
 }
 
 void SubWorld::removeVariable(std::string& s)
 {
     reducemap.erase(s);
-    importmap.erase(s);
     varstate.erase(s);
 #ifdef ESYS_MPI    
     globalvarinfo.resize(0);	// a size of 0 indicates the info is invalid
