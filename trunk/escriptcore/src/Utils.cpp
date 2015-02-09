@@ -163,6 +163,147 @@ ESCRIPT_DLL_API int getMPIWorldSum(const int val) {
   return out;
 }
 
+#define CHILD_FAIL 2
+#define CHILD_COMPLETE 4
+
+#ifndef _WIN32
+#ifdef ESYS_MPI
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <errno.h>
+#include <arpa/inet.h>
+int prepareSocket(unsigned short *port, int *key) {
+    if (getMPIRankWorld() != 0)
+        return 0;
+    int sfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sfd < 0) {
+        perror("socket creation failure");
+        return -1;
+    }
+    int opt = 1;
+    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0) {
+        perror("socket option setting failure");
+        close(sfd);
+        return -1;
+    }
+
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(0);
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+    if (bind(sfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("bind failure");
+        close(sfd);
+        return -1;
+    }
+
+    if (listen(sfd, SOMAXCONN) < 0) {
+        perror("listen failure");
+        close(sfd);
+        return -1;
+    }
+    
+    struct sockaddr actual;
+    unsigned int size = sizeof(actual);
+    if (getsockname(sfd, &actual, &size) < 0) {
+        perror("failed when determining bound port number");
+        close(sfd);
+        return -1;
+    }
+    
+    //if size > sizeof(actual), some info was truncated, but certainly not port
+    
+    *port = ntohs(((struct sockaddr_in *) &actual)->sin_port);
+
+    unsigned int seed = time(NULL) % UINT_MAX;
+    *key = rand_r(&seed);
+    return sfd;
+}
+
+int check_data(unsigned int max, fd_set *all, fd_set *valid, int key, int sfd) {
+    int ret = 0;
+    for (int i = 0; i <= max; i++) {
+        if (i == sfd)
+            continue;
+        if (FD_ISSET(i, all)) {
+            int provided = 0;
+            if (recv(i, &provided, sizeof(int), MSG_WAITALL) == sizeof(int)
+                    && provided == key) {
+                char deadspace[1024];
+                while ((provided = recv(i, deadspace, 1024, 0))) {
+                    if (provided == -1) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            continue;
+                        } else {
+                            perror("connection failure");
+                            return CHILD_FAIL;
+                        }
+                    }
+                }
+                return CHILD_COMPLETE;
+            } else {
+                FD_CLR(i, all);
+                close(i);
+            }
+        }
+    }
+    return ret;
+}
+
+void close_all(unsigned int maxfd, fd_set *all) {
+    for (int i = 0; i <= maxfd; i++) {
+        if (FD_ISSET(i, all))
+            close(i);
+    }
+}
+int waitForCompletion(int sfd, int key) {
+    if (getMPIRankWorld() != 0)
+        return 0;
+    int timeout = 10; //max of 10 seconds with no communication
+    
+    fd_set all, valid; 
+    FD_ZERO(&all);
+    FD_SET(sfd, &all);
+    time_t last_good_time = time(NULL);
+    unsigned int maxfd = sfd;
+    while (time(NULL) - last_good_time < timeout) {
+        struct timeval timer = {1,0}; //1 sec, 0 usec
+        int count = select(maxfd + 1, &all, NULL, NULL, &timer);
+        if (count == -1) { //error
+            if (errno == EINTR) {
+                continue; //just a signal, continue as we were
+            } else {
+                perror("socket operation error");
+                close(sfd);
+                return -1;
+            }
+        } else if (FD_ISSET(sfd, &all)) { //new connection
+            int connection = accept(sfd, NULL, NULL);
+            if (connection > maxfd)
+                maxfd = connection;
+            FD_SET(connection, &all);
+            FD_CLR(connection, &valid);
+            time(&last_good_time);
+            count--;
+        }
+        if (count > 0) { //something to read, either connection key or state
+            int res = check_data(maxfd, &all, &valid, key, sfd);
+            if (res == CHILD_FAIL) {
+                return -1;
+            } else if (res == CHILD_COMPLETE) {
+                close_all(maxfd, &all);
+                return 0;
+            }
+        }
+    }
+    close_all(maxfd, &all);
+    fprintf(stderr, "Connection to child process timed out\n");
+    return -1;
+}
+#endif //ESYS_MPI
+#endif //not _WIN32
+
 ESCRIPT_DLL_API int runMPIProgram(boost::python::list args) {
 #ifdef ESYS_MPI
     MPI_Comm intercomm;
@@ -170,21 +311,57 @@ ESCRIPT_DLL_API int runMPIProgram(boost::python::list args) {
     int errors;
     int nargs = boost::python::extract<int>(args.attr("__len__")());
     std::string cmd = boost::python::extract<std::string>(args[0]);
-    std::vector<std::string> cpp_args(nargs);
+#ifdef _WIN32
     char** c_args = new char*[nargs];
-    char* c_cmd = const_cast<char*>(cmd.c_str());
+    char* c_cmd = const_cast<char*>(cmd.c_str());;
     // skip command name in argument list
     for (int i=1; i<nargs; i++) {
 	    cpp_args[i-1]=boost::python::extract<std::string>(args[i]);
         c_args[i-1]=const_cast<char*>(cpp_args[i-1].c_str());
     }
-    c_args[nargs-1]=NULL;
     MPI_Info_create(&info);
     MPI_Comm_spawn(c_cmd, c_args, 1, info, 0, MPI_COMM_WORLD, &intercomm, &errors);
     MPI_Info_free(&info);
     delete[] c_args;
+
     return errors;
-#else
+#else //#ifdef _WIN32
+    char** c_args = new char*[2+nargs];
+    std::vector<std::string> cpp_args(2+nargs);//allow for wrapper, port, and key
+    char c_cmd[] = "escript-overlord";
+    // skip command name in argument list
+    for (int i=1; i<nargs; i++) {
+	    cpp_args[i+1]=boost::python::extract<std::string>(args[i]);
+        c_args[i+1]=const_cast<char*>(cpp_args[i+1].c_str());
+    }
+    unsigned short port = 0;
+    int key = 0;
+    int sock = prepareSocket(&port, &key);
+    if (getMPIWorldSum(sock) < 0)
+        return -1;
+    c_args[nargs+1]=NULL;
+    char portstr[20] = {'\0'}, keystr[20] = {'\0'};
+    sprintf(portstr, "%d", port);
+    sprintf(keystr, "%d", key);
+    c_args[0] = portstr;
+    c_args[1] = keystr;
+    c_args[2] = const_cast<char*>(cmd.c_str());
+    
+    MPI_Info_create(&info);
+    //force the gmsh process to run on this host as well for network comm
+    char hostname[MPI_MAX_PROCESSOR_NAME];
+    int temp = MPI_MAX_PROCESSOR_NAME;
+    MPI_Get_processor_name(hostname, &temp);
+    char hoststr[] = "host"; //for warnings
+    MPI_Info_set(info, hoststr, hostname);
+    MPI_Comm_spawn(c_cmd, c_args, 1, info, 0, MPI_COMM_WORLD, &intercomm, &errors);
+    MPI_Info_free(&info);
+    delete[] c_args;
+    if (errors != MPI_SUCCESS)
+        return errors;
+    return getMPIWorldMax(waitForCompletion(sock, key));
+#endif //#ifdef _WIN32/else
+#else //#ifdef ESYS_MPI
     std::string cmd;
     int nargs = boost::python::extract<int>(args.attr("__len__")());
     for (int i=0; i<nargs; i++) {
@@ -192,8 +369,10 @@ ESCRIPT_DLL_API int runMPIProgram(boost::python::list args) {
         cmd+=" ";
     }
     return system(cmd.c_str());
-#endif
+#endif //#ifdef ESYS_MPI/else
 }
+#undef CHILD_COMPLETE
+#undef CHILD_FAIL
 
 ESCRIPT_DLL_API double getMachinePrecision() {
    return DBL_EPSILON;

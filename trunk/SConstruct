@@ -542,6 +542,7 @@ if not env['verbose']:
 # remove obsolete files
 if not env['usempi']:
     Execute(Delete(os.path.join(env['libinstall'], 'pythonMPI')))
+    Execute(Delete(os.path.join(env['bininstall'], 'escript-overlord')))
     Execute(Delete(os.path.join(env['libinstall'], 'pythonMPIredirect')))
 
 from grouptest import *
@@ -565,6 +566,7 @@ Export(
 
 #do not auto build
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
+env.SConscript(dirs = ['tools/overlord'], variant_dir='$BUILD_DIR/$PLATFORM/tools/overlord', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
 env.SConscript(dirs = ['escript/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
@@ -653,7 +655,8 @@ if 'speckley' in env['domains']: build_all_list += ['build_speckley']
 build_all_list += ['build_weipa']
 if not IS_WINDOWS and 'finley' in env['domains']:
     build_all_list += ['build_escriptreader']
-if env['usempi']:   build_all_list += ['build_pythonMPI']
+if env['usempi']:
+    build_all_list += ['build_pythonMPI', 'build_overlord']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -672,7 +675,8 @@ if not IS_WINDOWS and 'finley' in env['domains']:
 install_all_list += ['install_downunder_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
-if env['usempi']:   install_all_list += ['install_pythonMPI']
+if env['usempi']:
+    install_all_list += ['install_pythonMPI', 'install_overlord']
 env.Alias('install_all', install_all_list)
 
 # Default target is install
