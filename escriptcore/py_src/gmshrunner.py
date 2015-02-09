@@ -79,10 +79,11 @@ def _runGmshMPI(geoFile, mshFile, numDim, order, verbosity):
     cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
     args = shlex.split(cmdline)
     ret = runMPIProgram(args)
-    # runMPIProgram returns immediately so wait 'a bit' to let gmsh finish
-    # (which is still not guaranteed, see bug #33)
-    sleep(10)
-    return ret
+    # on Windows runMPIProgram returns immediately so wait 'a bit' to let gmsh finish
+    import os
+    if os.name = "nt":
+        sleep(10)
+    return ret #already MPI distributed
 
 def gmshGeo2Msh(geoFile, mshFile, numDim, order=1, verbosity=0):
     """
