@@ -81,7 +81,7 @@ def _runGmshMPI(geoFile, mshFile, numDim, order, verbosity):
     ret = runMPIProgram(args)
     # on Windows runMPIProgram returns immediately so wait 'a bit' to let gmsh finish
     import os
-    if os.name = "nt":
+    if os.name == "nt":
         sleep(10)
     return ret #already MPI distributed
 
