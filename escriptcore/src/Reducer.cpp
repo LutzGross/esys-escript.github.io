@@ -375,19 +375,19 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
 
 boost::python::object MPIDataReducer::getPyObj()
 {
-    throw SplitWorldException("Not implemented yet.");
+    throw SplitWorldException("getPyObj Not implemented yet.");
 }
 
 
 	// send from proc 0 in the communicator to all others
 bool MPIDataReducer::groupSend(MPI_Comm& com)
 {
-    throw SplitWorldException("Not implemented yet.");
+    throw SplitWorldException("groupSend Not implemented yet.");
 }
 
 bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
 {
-    throw SplitWorldException("Not implemented yet.");
+    throw SplitWorldException("groupReduce Not implemented yet.");
 }
 
 
@@ -534,10 +534,16 @@ boost::python::object MPIScalarReducer::getPyObj()
 	// send from proc 0 in the communicator to all others
 bool MPIScalarReducer::groupSend(MPI_Comm& com)
 {
-    throw SplitWorldException("Not implemented yet.");
+    throw SplitWorldException("groupSend Not implemented yet.");
 }
 
 bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
 {
-    throw SplitWorldException("Not implemented yet.");
+    double answer=0;
+    if (MPI_Allreduce((mystate==reducerstatus::NEW)?&value:&identity, &answer, 1, MPI_DOUBLE, reduceop, com)==MPI_SUCCESS)
+    {
+	value=answer;
+	return true;
+    }
+    return false;
 }

@@ -107,46 +107,6 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
     return object();	// return None
 }
 
-/*
-// Update the vector to indicate the interest of all subworlds in each variable
-bool SplitWorld::getVariableInterest(std::vector<char>& vb)
-{
-
-	std::vector<char> lvec;
-	localworld->getVariableStatus(lvec);	// this tells us what our local world wants  
-	
-	vb.resize(localworld->getNumVars()*swcount);
-
-      // now we need to ask all the world leaders about their involvement
-#ifdef ESYS_MPI
-    if (localworld->amLeader())
-    {
-	// The leaders of each world, send their variable information to the proc "0" in
-	// the global world (which will be the leader of subworld "0").
-	//    There is an issue here if this operation fails
-	if (MPI_Gather(&lvec[0], localworld->getNumVars(), MPI_CHAR, &vb[0], vb.size(), 
-		   MPI_CHAR, 0, localworld->getCorrMPI()->comm)!=MPI_SUCCESS) 
-	{
-	    for (size_t i=0;i<vb.size();++i)
-	    {
-		vb[i]=rs::ERROR;
-	    }
-	}
-    }
-    // now share the combined info with all processes
-    if ((MPI_Bcast(&vb[0], vb.size(), MPI_CHAR, 0, globalcom->comm)!=MPI_SUCCESS)
-	  || (vb[0]==rs::ERROR))
-    {
-	return false;
-    }
-#else
-      // since there is only one world, we just copy lvec to global
-    vb=lvec;
-#endif  
-    return true;
-}
-*/
-
 
 // Executes all pending jobs on all subworlds
 void SplitWorld::runJobs()
