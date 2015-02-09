@@ -26,12 +26,14 @@ namespace escript
   
 namespace reducerstatus
 {
-const char NONE=0;  	// I have no value for this var and no interest in it
-const char INTERESTED=1;	// I am interested in this variable but I have no value for it
-const char OLD=2;	// I have a copy from elsewhere but no new values to contribute
-const char OLDINTERESTED=3;	// interested but only have a cached copy (no new values)
-const char NEW=4;	// I have a new value for this variable
-const char ERROR='!';	// Something bad happened  
+  
+// Because these may be used in loops, the values must form a contiguous block (except ERROR)  
+const unsigned char NONE=0;  	// I have no value for this var and no interest in it
+const unsigned char INTERESTED=1;	// I am interested in this variable but I have no value for it
+const unsigned char OLD=2;	// I have a copy from elsewhere but no new values to contribute
+const unsigned char OLDINTERESTED=3;	// interested but only have a cached copy (no new values)
+const unsigned char NEW=4;	// I have a new value for this variable
+const unsigned char ERROR='!';	// Something bad happened  
 }
   
 // There is currently no way to get a completely generic result out of this

@@ -80,15 +80,19 @@ private:
     
 typedef std::map<std::string, Reducer_ptr> str2reduce;  
 typedef std::map<std::string, bool> str2bool;
-typedef std::map<std::string, char> str2char;
+typedef std::map<std::string, unsigned char> str2char;
     str2reduce reducemap;		// map: name ->reducer for that variable
     str2char varstate;		// using the state values from Reducer.h
-//     str2bool importmap;
 
     bool manualimports;
     
 #ifdef ESYS_MPI    
-    std::vector<char> globalvarinfo;	// info about which worlds want which vars
+    std::vector<unsigned char> globalvarinfo;	// info about which worlds want which vars
+typedef std::map<unsigned char, int> countmap;
+typedef std::map<std::string, countmap> str2countmap;
+    str2countmap globalvarcounts;
+    bool globalinfoinvalid;
+    
     
     bool makeComm(MPI_Comm& sourcecom, MPI_Comm& subcom,std::vector<int>& members);
 
