@@ -66,6 +66,13 @@ class Job(object):
     self.importedvalues={}      # name:values of which this jobs wants to use
     self.exportedvalues={}      # name:values exported by this job
     
+    
+  def wantValue(self, name):
+    """
+    Register your interest in importing a variable with the given name
+    """
+    self.wantedvalues.append(name)
+    
   def setImportValue(self, name, v):
     """
     Use to make a value available to the job (ie called from outside the job)
@@ -99,12 +106,13 @@ class Job(object):
   def importValue(self, name):
     """
     For use inside the work() method.
-    :var name: label for imported value. Returns None if import not present.
+    :var name: label for imported value.
     :type name: ``str``
     """
     if name in self.importedvalues:
         return self.importedvalues[name]
     else:
+        raise KeyError("Attempt to import variable \'"+name+"\' which is not available to this job.")
         return None
 
   def clearExports(self):

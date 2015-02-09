@@ -62,7 +62,7 @@ private:
     bool manualimport;		// if false, all reduced vars will be shipped to all subworlds    
     void clearPendingJobs();
     void distributeJobs();
-    bool getVariableInterest(std::vector<char>& vb);    
+/*    bool getVariableInterest(std::vector<char>& vb);    */
 };
 
 

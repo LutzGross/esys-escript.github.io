@@ -43,20 +43,23 @@ public:
     void removeVariable(std::string& name);  
     size_t getNumVars();
     
-    bool localTransport(std::vector<char>& vb, std::string& errmsg);
+    bool localTransport(/*std::vector<char>& vb, */ std::string& errmsg);
     bool checkRemoteCompatibility(std::string& errmsg);
     bool reduceRemoteValues(std::string& errmsg);
     bool deliverImports(std::vector<char>& vb, std::string& errmsg);
     
     
-    bool findImports(std::string& errmsg);
+//    bool findImports(std::string& errmsg);
     bool deliverImports(std::string& errmsg);
     bool deliverGlobalImports(std::vector<char>& vb, std::string& errmsg);
-    void getVariableStatus(std::vector<char>& vb);
+    /*void getVariableStatus(std::vector<char>& vb); */
     bool reduceRemoteValues();    
     bool amLeader();	// true if this proc is the leader for its world
     
     double getScalarVariable(const std::string& name);
+    
+    void debug();
+    
     
     
     bool synchVariableInfo(std::string& err);
@@ -80,7 +83,7 @@ typedef std::map<std::string, bool> str2bool;
 typedef std::map<std::string, char> str2char;
     str2reduce reducemap;		// map: name ->reducer for that variable
     str2char varstate;		// using the state values from Reducer.h
-    str2bool importmap;
+//     str2bool importmap;
 
     bool manualimports;
     

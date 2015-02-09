@@ -18,6 +18,7 @@
 #include "AbstractDomain.h"
 #include "SplitWorldException.h"
 #include "SplitWorldException.h"
+#include "esysUtils/pyerr.h"
 
 #include <iostream>
 #include <sstream>
@@ -106,83 +107,7 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
     return object();	// return None
 }
 
-
-namespace
-{
-
-// Throw all values in and get the maximum
-// This is not an AllReduce because we need to use Tagged Communication so as not to interfere with 
-// other messages / collective ops which the SubWorld's Jobs might be using
-// This is implemented by sending to rank 0
-bool checkResultInt(int res, int& mres, esysUtils::JMPI& info)
-{
-#ifdef ESYS_MPI
-    const int leader=0;
-    const int BIGTAG=esysUtils::getSubWorldTag();
-    if (info->size==1)
-    {
-	mres=res;
-	return true;
-    }
-    else
-    {
-	if (info->rank!=leader)
-	{
-	    if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
-	    {
-		return false;
-	    }
-	    if (MPI_Recv(&mres, 1, MPI_INT, leader, BIGTAG, info->comm,0)!=MPI_SUCCESS)
-	    {
-		return false;
-	    }
-	}
-	else
-	{
-	    MPI_Request* reqs=new MPI_Request[info->size-1];
-	    int* eres=new int[info->size-1];
-	    for (int i=0;i<info->size-1;++i)
-	    {
-		MPI_Irecv(eres+i, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
-	    }
-	    if (MPI_Waitall(info->size-1, reqs, 0)!=MPI_SUCCESS)
-	    {
-		delete[] reqs;
-		return false;
-	    }
-	    // now we have them all, find the max
-	    mres=res;
-	    for (int i=0;i<info->size-1;++i)
-	    {
-		if (mres<eres[i])
-		{
-		    mres=eres[i];
-		}
-	    }
-	    // now we know what the result should be
-	    // send it to the others
-	    for (int i=0;i<info->size-1;++i)
-	    {
-		MPI_Isend(&mres, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
-	    }
-	    if (MPI_Waitall(info->size-1, reqs,0)!=MPI_SUCCESS)
-	    {
-		return false;
-	    }
-	}
-      
-    }
-    return true;
-#else
-    mres=res;
-    return true;
-#endif
-}
-
-
-}
-
-
+/*
 // Update the vector to indicate the interest of all subworlds in each variable
 bool SplitWorld::getVariableInterest(std::vector<char>& vb)
 {
@@ -220,6 +145,8 @@ bool SplitWorld::getVariableInterest(std::vector<char>& vb)
 #endif  
     return true;
 }
+*/
+
 
 // Executes all pending jobs on all subworlds
 void SplitWorld::runJobs()
@@ -231,7 +158,7 @@ void SplitWorld::runJobs()
 	distributeJobs();
 	int mres=0;
 	std::string err;
-	std::vector<char> impexpdetail;
+// 	std::vector<char> impexpdetail;
 	std::vector<char> variableinterest(localworld->getNumVars(), reducerstatus::NONE);
 	do
 	{
@@ -242,13 +169,16 @@ std::cout << "runJobs loop\n";
 		mres=4;
 		break;
 	    }
-	    
+std::cout << "pre-synch\n";
+localworld->debug();	    
 		// distribute values to worlds as needed
 	    if (!localworld->synchVariableValues(err))
 	    {
 		mres=4;
 		break;
 	    }
+std::cout << "pre-imports\n";
+localworld->debug();
 		// give values to jobs
 	    if (!localworld->deliverImports(err))
 	    {
@@ -260,7 +190,7 @@ std::cout << "runJobs loop\n";
 	    int res=localworld->runJobs(err);	
 
 	    // now we find out about the other worlds
-	    if (!checkResultInt(res, mres, globalcom))
+	    if (!esysUtils::checkResult(res, mres, globalcom))
 	    {
 		throw SplitWorldException("MPI appears to have failed.");
 	    }
@@ -268,7 +198,7 @@ std::cout << "runJobs loop\n";
 	    {
 	      break; 
 	    }
-	    if (!localworld->localTransport(impexpdetail, err))
+	    if (!localworld->localTransport(/*impexpdetail,*/ err))
 	    {
 		mres=4;
 		break;
@@ -284,19 +214,8 @@ std::cout << "runJobs loop\n";
 	    mres=4;
 	    err="Error in checkRemoteCompatibility.";
 	}
-	
-// 	    // Need to make sure we have updated info about who needs what
-// 	if (!localworld->synchVariableInfo(err))
-// 	{
-// 	    mres=4;
-// 	    return;
-// 	}	
-// 	if (!localworld->reduceRemoteValues(err))
-// 	{
-// 	    mres=4;
-// 	    return;	      
-// 	}
 
+	localworld->debug();
 	if (mres==0)
 	{
 	    clearAllJobs();
@@ -388,6 +307,7 @@ void SplitWorld::clearActiveJobs()
 // All the job params are known on all the ranks.
 void SplitWorld::distributeJobs()
 {
+    std::string errmsg;
     unsigned int numjobs=create.size()/swcount;
     unsigned int start=create.size()/swcount*localid;
     if (localid<create.size()%swcount)
@@ -416,20 +336,35 @@ void SplitWorld::distributeJobs()
     catch (boost::python::error_already_set e)
     {
 	errstat=1;
+	getStringFromPyException(e, errmsg);
     }
     jobcounter+=create.size();
     clearPendingJobs();
     
     // MPI check to ensure that it worked for everybody
     int mstat=0;
-    if (!esysUtils::checkResult(errstat, mstat, globalcom->comm))
+    if (!esysUtils::checkResult(errstat, mstat, globalcom))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }
     
+      // Now we need to find out if anyone else had an error      
+    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    {
+	throw SplitWorldException("MPI appears to have failed.");
+    }
+    errstat=mstat;  
+      
     if (errstat==1)
     {
-	throw SplitWorldException("distributeJobs: Job creation failed.");
+	char* resultstr=0;
+	// now we ship around the error message - This should be safe since
+	// eveyone must have finished their Jobs to get here
+	if (!esysUtils::shipString(errmsg.c_str(), &resultstr, globalcom->comm))
+	{
+	    throw SplitWorldException("MPI appears to have failed.");
+	}      
+	throw SplitWorldException(std::string("(During Job creation/distribution) ")+resultstr);
 	clearActiveJobs();
     }
 }
