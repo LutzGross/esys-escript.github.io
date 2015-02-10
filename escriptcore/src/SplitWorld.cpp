@@ -118,27 +118,21 @@ void SplitWorld::runJobs()
 	distributeJobs();
 	int mres=0;
 	std::string err;
-// 	std::vector<char> impexpdetail;
 	std::vector<char> variableinterest(localworld->getNumVars(), reducerstatus::NONE);
 	do
-	{
-std::cout << "runJobs loop\n";	  
+	{  
 		// find out which variables each world wants
 	    if (!localworld->synchVariableInfo(err))
 	    {
 		mres=4;
 		break;
 	    }
-std::cout << "pre-synch\n";
-localworld->debug();	    
 		// distribute values to worlds as needed
 	    if (!localworld->synchVariableValues(err))
 	    {
 		mres=4;
 		break;
 	    }
-std::cout << "pre-imports\n";
-localworld->debug();
 		// give values to jobs
 	    if (!localworld->deliverImports(err))
 	    {
@@ -148,7 +142,6 @@ localworld->debug();
 	    // now we actually need to run the jobs
 	    // everybody will be executing their localworld's jobs
 	    int res=localworld->runJobs(err);	
-
 	    // now we find out about the other worlds
 	    if (!esysUtils::checkResult(res, mres, globalcom))
 	    {
@@ -163,8 +156,6 @@ localworld->debug();
 		mres=4;
 		break;
 	    }
-	    
-
 	} while (mres==1);
 	
 	  // at this point, the remote world has all the reductions done
@@ -174,8 +165,6 @@ localworld->debug();
 	    mres=4;
 	    err="Error in checkRemoteCompatibility.";
 	}
-
-	localworld->debug();
 	if (mres==0)
 	{
 	    clearAllJobs();
@@ -249,7 +238,7 @@ void SplitWorld::removeVariable(std::string name)
 void SplitWorld::clearAllJobs()
 {
     clearPendingJobs();
-    clearActiveJobs();
+//     clearActiveJobs();
 }
 
 void SplitWorld::clearPendingJobs()
@@ -259,10 +248,10 @@ void SplitWorld::clearPendingJobs()
     kwargs.clear();
 }
 
-void SplitWorld::clearActiveJobs()
-{
-    localworld->clearJobs();
-}
+// void SplitWorld::clearActiveJobs()
+// {
+//     localworld->clearJobs();
+// }
 
 // All the job params are known on all the ranks.
 void SplitWorld::distributeJobs()
@@ -325,7 +314,6 @@ void SplitWorld::distributeJobs()
 	    throw SplitWorldException("MPI appears to have failed.");
 	}      
 	throw SplitWorldException(std::string("(During Job creation/distribution) ")+resultstr);
-	clearActiveJobs();
     }
 }
 

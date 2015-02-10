@@ -60,11 +60,13 @@ public:
     virtual bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)=0; 
     
 
+#ifdef ESYS_MPI  
 	// send from proc 0 in the communicator to all others
     virtual bool groupSend(MPI_Comm& com)=0;
     
 	// reduction with some procs submitting identity values
-    virtual bool groupReduce(MPI_Comm& com, char mystate)=0;
+    virtual bool groupReduce(MPI_Comm& com, char mystate)=0;  
+#endif  
     
 	// call to merge with values on other subworlds
 	// It does not take a value argument because local values should have 
@@ -92,6 +94,7 @@ public:
     
     virtual void clear();
 protected:
+
     bool valueadded;
     
 };

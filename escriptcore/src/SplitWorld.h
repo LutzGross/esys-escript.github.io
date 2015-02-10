@@ -24,7 +24,14 @@
 namespace escript
 {
 
-/** class to hold a collection of MPI processes and a communicator linking them
+/** 
+ * Provides an interface to a collection of subworlds.
+ * Variables are declared and jobs are submitted using this interface.
+ * Internally, the work is done by a local subworld instance (and associated communicators which 
+ * this process belongs to). The local subworld will communicate with subworlds 
+ * in other processes as needed.
+ * The main reason for this class, is to insulate users from the MPI type thinking needed for
+ * subworlds and instead provide an interface which allows them to think about subworlds as a group.
 */
 class SplitWorld
 {
@@ -39,7 +46,7 @@ public:
     
     void addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs);
     void removeVariable(std::string name);    
-    void clearActiveJobs();
+//    void clearActiveJobs();
     void clearAllJobs();
 
     double getScalarVariable(const std::string& name);
