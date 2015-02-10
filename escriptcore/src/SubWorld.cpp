@@ -105,15 +105,10 @@ bool SubWorld::deliverImports(std::string& errmsg)
     return true;
 }
 
-
-// takes a vector of bools of size 2*number of variables
-// Each entry in the first group is true if this subworld has at least one job which exports that variable.
-// Each entry in the second group is true if there is at least one Job in this world which wishes
-// to import that variable.
 // The order of the variables is determined by the order of keys in the reducemap
 // Q: Why does it take chars then?
 // A: Because I want raw storage that I can pass via MPI and vector<bool> is special cased.
-bool SubWorld::localTransport(/*std::vector<char>& vb, */ std::string& errmsg)
+bool SubWorld::localTransport(std::string& errmsg)
 {
     for (size_t i=0;i<jobvec.size();++i)
     {  

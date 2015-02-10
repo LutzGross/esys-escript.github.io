@@ -61,28 +61,30 @@ public:
     void removeVariable(std::string& name);  
     size_t getNumVars();
     
-    bool localTransport(std::string& errmsg);
-    bool checkRemoteCompatibility(std::string& errmsg);
+    bool localTransport(std::string& errmsg);	// gather exported values from jobs
+    bool checkRemoteCompatibility(std::string& errmsg);	// check to ensure values
+						// in all worlds are compatible
     
-    bool deliverImports(std::string& errmsg);
-    bool deliverGlobalImports(std::vector<char>& vb, std::string& errmsg); 
+    bool deliverImports(std::string& errmsg);	// load imports into Job objects
     bool amLeader();	// true if this proc is the leader for its world
     
     double getScalarVariable(const std::string& name);
     
-    void debug();
+    void debug();	// print out current state information
     
     
     
     bool synchVariableInfo(std::string& err);
     bool synchVariableValues(std::string& err);    
-    void ageVariables();
     void resetInterest();    
     
 private:
     esysUtils::JMPI everyone;	// communicator linking all procs in all subworlds
     esysUtils::JMPI swmpi;	// communicator linking all procs in this subworld
     esysUtils::JMPI corrmpi;	// communicator linking corresponding procs in all subworlds
+				// eg: If this proc is the first in its domain, then corrmpi
+				//     links to the other "first in its domain" processes.
+				//      (So one in each SubWorld).
     escript::Domain_ptr domain;
     std::vector<boost::python::object> jobvec;	// jobs in the current batch
     
