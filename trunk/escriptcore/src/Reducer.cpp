@@ -531,6 +531,8 @@ boost::python::object MPIScalarReducer::getPyObj()
     return o;
 }
 
+#ifdef ESYS_MPI
+
 	// send from proc 0 in the communicator to all others
 bool MPIScalarReducer::groupSend(MPI_Comm& com)
 {
@@ -547,3 +549,5 @@ bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
     }
     return false;
 }
+
+#endif

@@ -199,7 +199,7 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
     else
     {
 	if (info->rank!=leader)
-	{
+	{  
 	    if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
 	    {
 		return false;
@@ -216,7 +216,7 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
 	    for (int i=0;i<info->size-1;++i)
 	    {
 		MPI_Irecv(eres+i, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
-	    }
+	    }  
 	    if (MPI_Waitall(info->size-1, reqs, 0)!=MPI_SUCCESS)
 	    {
 		delete[] reqs;
@@ -243,7 +243,7 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
 	    }
 	}
       
-    }
+    } 
     return true;
 #else
     mres=res;

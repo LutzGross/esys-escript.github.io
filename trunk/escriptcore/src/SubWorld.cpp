@@ -30,8 +30,10 @@ namespace rs=escript::reducerstatus;
 
 SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldcount, unsigned int local_id, bool manualimport)
     :everyone(global), swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0), 
-    swcount(subworldcount), localid(local_id), manualimports(manualimport),
-    globalinfoinvalid(true)
+    swcount(subworldcount), localid(local_id), manualimports(manualimport)
+#ifdef ESYS_MPI    
+    ,globalinfoinvalid(true)
+#endif    
 {
 
 
@@ -296,7 +298,7 @@ bool SubWorld::makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
 			  members.push_back(i/getNumVars());
 			  break;
 	      }
-	  }		
+	  }
 	  return makeComm(srccom, com, members);
       }
       else	// for people not in involved in the value shipping
@@ -694,9 +696,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 // if 0, all jobs in this world returned True
 char SubWorld::runJobs(std::string& errormsg)
 {
-    debug();  
     errormsg.clear();
-//    bp::object gettrace=bp::import("traceback").attr("format_exc");
     int ret=0;
     try
     {
