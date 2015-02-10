@@ -46,7 +46,7 @@ public:
     
     void addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs);
     void removeVariable(std::string name);    
-//    void clearActiveJobs();
+
     void clearAllJobs();
 
     double getScalarVariable(const std::string& name);
@@ -69,7 +69,7 @@ private:
     bool manualimport;		// if false, all reduced vars will be shipped to all subworlds    
     void clearPendingJobs();
     void distributeJobs();
-/*    bool getVariableInterest(std::vector<char>& vb);    */
+
 };
 
 

@@ -24,7 +24,25 @@
 namespace escript
 {
   
-/** class to hold a collection of MPI processes and a communicator linking them
+/** This class represents a collection of MPI processes which will execute a number of Jobs (in series).
+ * There could be a number of SubWorlds (executing jobs in parallel) in the overall system.
+ * All jobs running in a SubWorld will use a common domain object.
+ * After each job runs, any values it exports will be merged into local reducer objects.
+ * Global (ie with the participation of other SubWorlds) reductions and interworld transfers
+ * are handled after the current batch of jobs have completed.
+ * That is, variable values should not be considered up to date until the whole batch is complete.
+ * Further, after a batch has completed, multiple subworlds may have copies of the variable,
+ * if the variable is modified in a later batch, this may result in unwanted double counting.
+ * eg: v (reduce:+)
+ * Batch 1:
+ *   world 1:   v+=1,2,3  --- local v=6
+ *   world 2:   v+=1,2    --- local v=3
+ * What is the value of v in this split world?   v=9
+ * 
+ * Batch 2:
+ *   world 1:  v+=1   --- local v=1+9
+ *   world 2:  v+=1   --- local v=1+9
+ * What is the value of v? 20, not 11
 */
 class SubWorld : public boost::enable_shared_from_this<SubWorld>
 {
@@ -35,25 +53,19 @@ public:
     Domain_ptr getDomain();
     esysUtils::JMPI& getMPI();
     esysUtils::JMPI& getCorrMPI();
-    void addJob(boost::python::object j);
-    char runJobs(std::string& errmsg);
-    void clearJobs();
-    void clearImportExports();
+    void addJob(boost::python::object j);		// add a Job to the current batch
+    char runJobs(std::string& errmsg);		// run all jobs in the current batch
+    void clearJobs();				// remove all jobs in the current batch
+
     void addVariable(std::string&, Reducer_ptr& red);
     void removeVariable(std::string& name);  
     size_t getNumVars();
     
-    bool localTransport(/*std::vector<char>& vb, */ std::string& errmsg);
+    bool localTransport(std::string& errmsg);
     bool checkRemoteCompatibility(std::string& errmsg);
-    bool reduceRemoteValues(std::string& errmsg);
-    bool deliverImports(std::vector<char>& vb, std::string& errmsg);
     
-    
-//    bool findImports(std::string& errmsg);
     bool deliverImports(std::string& errmsg);
-    bool deliverGlobalImports(std::vector<char>& vb, std::string& errmsg);
-    /*void getVariableStatus(std::vector<char>& vb); */
-    bool reduceRemoteValues();    
+    bool deliverGlobalImports(std::vector<char>& vb, std::string& errmsg); 
     bool amLeader();	// true if this proc is the leader for its world
     
     double getScalarVariable(const std::string& name);
@@ -72,14 +84,13 @@ private:
     esysUtils::JMPI swmpi;	// communicator linking all procs in this subworld
     esysUtils::JMPI corrmpi;	// communicator linking corresponding procs in all subworlds
     escript::Domain_ptr domain;
-    std::vector<boost::python::object> jobvec;
+    std::vector<boost::python::object> jobvec;	// jobs in the current batch
     
     
     unsigned int swcount;		// number of subwords
     unsigned int localid;    	// my position within the sequence
     
 typedef std::map<std::string, Reducer_ptr> str2reduce;  
-typedef std::map<std::string, bool> str2bool;
 typedef std::map<std::string, unsigned char> str2char;
     str2reduce reducemap;		// map: name ->reducer for that variable
     str2char varstate;		// using the state values from Reducer.h
