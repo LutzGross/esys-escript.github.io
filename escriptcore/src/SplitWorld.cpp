@@ -118,10 +118,9 @@ void SplitWorld::runJobs()
 	distributeJobs();
 	int mres=0;
 	std::string err;
-	std::vector<char> variableinterest(localworld->getNumVars(), reducerstatus::NONE);
 	do
 	{  
-		// find out which variables each world wants
+		// find out which variables each world has and wants
 	    if (!localworld->synchVariableInfo(err))
 	    {
 		mres=4;
@@ -167,7 +166,7 @@ void SplitWorld::runJobs()
 	    err="Error in checkRemoteCompatibility.";
 	}
 	if (mres==0)	
-	{
+	{  
 	    return;
 	}
 	else if (mres==2)
@@ -203,6 +202,8 @@ void SplitWorld::runJobs()
 	clearAllJobs();
 	throw e;
     }
+std::cout << "End of RunJobs\n";    
+localworld->debug();        
 }
 
 /**

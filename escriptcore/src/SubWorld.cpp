@@ -174,21 +174,41 @@ void SubWorld::debug()
 #ifdef ESYS_MPI
 	if (!globalinfoinvalid)
 	{
-	    for (str2countmap::iterator tt=globalvarcounts.begin(); tt!=globalvarcounts.end();++tt)
+	    cout << "{ ";
+	    for (unsigned char z=rs::NONE;z<=rs::NEW;++z)
 	    {
-		cout << "{ ";
-		for (unsigned char z=rs::NONE;z<=rs::NEW;++z)
-		{
-		    cout << tt->second[z] << ' ';
-		  
-		}
-		cout << " } ";
+		cout << globalvarcounts[it->first][z] << ' ';
 	    }
+	    cout << " } ";
+	    
+	}
+	else
+	{
+	    cout << "(no valid global info)";
 	}
 #endif	
 	cout << endl;
-      
     }
+    
+#ifdef ESYS_MPI
+
+    if (!globalinfoinvalid)
+    {
+	cout << "[";
+	for (size_t i=0;i<globalvarinfo.size();++i)
+	{
+	    if (i%getNumVars()==0)
+	    {
+		cout << " ";
+	    }
+	    cout << (short)globalvarinfo[i];
+	}
+	cout << " ] ";
+	
+    }
+
+
+#endif
   
 }
 
@@ -222,7 +242,7 @@ double SubWorld::getScalarVariable(const std::string& name)
 	{
 	    throw SplitWorldException(std::string("(Getting scalar --- Variable information) ")+errmsg);
 	}
-    }
+    }  
     if (!synchVariableValues(errmsg))
     {
 	throw SplitWorldException(std::string("(Getting scalar --- Variable value) ")+errmsg);
@@ -334,9 +354,7 @@ bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
 
 bool SubWorld::synchVariableValues(std::string& err)
 {
-#ifdef ESYS_MPI  
-  
-  
+#ifdef ESYS_MPI    
     // There are three possibilities here but since all worlds have the same knowledge
     // we can be sure that they will all make the same choice
     // 1) No updates are required
@@ -354,20 +372,10 @@ bool SubWorld::synchVariableValues(std::string& err)
 	int newcount=0;	// who has a new version
 	int oldcount=0;	// who has an old version
 	int oldintcount=0;
-	    // loop over all the instructions about this variable
-	for (int i=0+vnum;i<globalvarinfo.size();i+=getNumVars())
-	{
-	    switch (globalvarinfo[i])
-	    {
-	      case rs::NEW: newcount++; break;
-	      case rs::INTERESTED: needcount++; break;
-	      case rs::OLD: oldcount++;	      
-	      case rs::OLDINTERESTED: 
-			needcount++;
-			oldintcount++;
-			break;
-	    }
-	}
+	newcount=globalvarcounts[it->first][rs::NEW];
+	oldcount=globalvarcounts[it->first][rs::OLD];
+	oldintcount=globalvarcounts[it->first][rs::OLDINTERESTED];
+	needcount=globalvarcounts[it->first][rs::INTERESTED]+oldintcount;
 	if (newcount>0)
 	{
 	    varswithupdates.push_back(it->first);
@@ -378,7 +386,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 	}
 	if (needcount>0 && (oldcount+newcount)==0)
 	{
-	    err="Job has asked to import a variable with no value.";
+	    err="Import attempted for a variable \""+(it->first)+"\" with no value.";
 	    return false;
 	}
 	    // worlds have the variable but noone is interested in it
@@ -442,7 +450,7 @@ bool SubWorld::synchVariableValues(std::string& err)
     }
 	// now we need to age any out of date copies of vars
     for (size_t i=0;i<varswithupdates.size();++i)
-    {
+    {      
         std::string vname=varswithupdates[i];
         	if (varstate[vname]==rs::NEW)
 	{
@@ -453,6 +461,9 @@ bool SubWorld::synchVariableValues(std::string& err)
 	    varstate[vname]=rs::NONE;
 	    reducemap[vname]->clear();
 	} 
+	globalvarcounts[vname][rs::NONE]+=globalvarcounts[vname][rs::OLD];
+	globalvarcounts[vname][rs::OLD]=globalvarcounts[vname][rs::NEW];
+	globalvarcounts[vname][rs::NEW]=0;
     }
 #endif    
     return true;    
@@ -562,8 +573,9 @@ bool SubWorld::synchVariableInfo(std::string& err)
     if (!manualimports)	
     {
 	    // import all known variables _BUT_ don't import something if noone has a value
-	    // for it   
-	for (str2char::iterator it=varstate.begin();it!=varstate.end();++it)
+	    // for it  
+	int vnum=0;
+	for (str2char::iterator it=varstate.begin();it!=varstate.end();++it, ++vnum)
 	{
 #ifdef ESYS_MPI
 	      // if at least one world has a value for a variable
@@ -582,11 +594,26 @@ bool SubWorld::synchVariableInfo(std::string& err)
 		    it->second=rs::OLDINTERESTED; 
 		}
 #ifdef ESYS_MPI
+		  // now we need to update the globalvarinfo to record all the extra interest
+		for (int j=vnum;j<globalvarinfo.size();j+=getNumVars())
+		{
+		    if (globalvarinfo[j]==rs::NONE)
+		    {
+			globalvarinfo[j]=rs::INTERESTED;
+		    }
+		    else if (globalvarinfo[j]==rs::OLD)
+		    {
+			globalvarinfo[j]=rs::OLDINTERESTED;
+		    }
+		  
+		}
 	    }
 #endif	
 	}
     }
-
+#ifdef ESYS_MPI    
+    globalinfoinvalid=false;
+#endif
 
     return true;
 }
