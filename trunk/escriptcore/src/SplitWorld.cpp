@@ -151,13 +151,14 @@ void SplitWorld::runJobs()
 	    {
 	      break; 
 	    }
-	    if (!localworld->localTransport(/*impexpdetail,*/ err))
+	    if (!localworld->localTransport(err))
 	    {
 		mres=4;
 		break;
 	    }
 	} while (mres==1);
 	
+	localworld->clearJobs();
 	  // at this point, the remote world has all the reductions done
 	  // now we need to do the global merges
 	if (!localworld->checkRemoteCompatibility(err))
@@ -165,9 +166,8 @@ void SplitWorld::runJobs()
 	    mres=4;
 	    err="Error in checkRemoteCompatibility.";
 	}
-	if (mres==0)
+	if (mres==0)	
 	{
-	    clearAllJobs();
 	    return;
 	}
 	else if (mres==2)
@@ -238,7 +238,7 @@ void SplitWorld::removeVariable(std::string name)
 void SplitWorld::clearAllJobs()
 {
     clearPendingJobs();
-//     clearActiveJobs();
+    localworld->clearJobs();
 }
 
 void SplitWorld::clearPendingJobs()
@@ -247,11 +247,6 @@ void SplitWorld::clearPendingJobs()
     tupargs.clear();
     kwargs.clear();
 }
-
-// void SplitWorld::clearActiveJobs()
-// {
-//     localworld->clearJobs();
-// }
 
 // All the job params are known on all the ranks.
 void SplitWorld::distributeJobs()

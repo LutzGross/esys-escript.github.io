@@ -241,18 +241,6 @@ double SubWorld::getScalarVariable(const std::string& name)
     return dynamic_cast<MPIScalarReducer*>(it->second.get())->getDouble();
 }
 
-
-// clears out all the old import and export values from _Jobs_
-// does not clear values out of reducers
-void SubWorld::clearImportExports()
-{
-    for (size_t i=0;i<jobvec.size();++i)
-    {
-	jobvec[i].attr("clearImports")();
-	jobvec[i].attr("clearExports")();
-    }
-}
-
 bool SubWorld::checkRemoteCompatibility(std::string& errmsg)
 {
     for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
@@ -349,7 +337,7 @@ bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
 #endif  
 
 
-bool SubWorld::reduceRemoteValues(std::string& err)
+bool SubWorld::synchVariableValues(std::string& err)
 {
 #ifdef ESYS_MPI  
   
@@ -480,81 +468,6 @@ bool SubWorld::amLeader()
     return swmpi->rank==0;
 }
 
-
-// Look at the vector of interest and send around variables to where they need to be
-// To try to make error reporting consistant, every variable transfer will be attempted,
-// even if an early one fails.
-bool SubWorld::deliverGlobalImports(std::vector<char>& vb, std::string& errmsg)
-{
-#ifdef ESYS_MPI  
-    size_t maxv=std::numeric_limits<size_t>::max();   // largest possible value in size_t
-    size_t nv=getNumVars();
-    str2reduce::iterator rmi=reducemap.begin();
-    char error=0;
-    for (size_t i=0;i<nv;++i, ++rmi)
-    {
-	size_t earliest=maxv;	
-	for (int s=0;s<swcount;++s)
-	{
-	    if (vb[s*nv+i]==rs::NEW)	// This world has a copy of the value
-	    {
-		earliest=s;	      
-	    }
-	}
-	if (earliest==maxv)
-	{
-	      // noone has a value for the requested variable
-	      // We could make that an error condition but for now, I'll let
-	      // any job scripts deal with that
-	    continue;
-	}
-	  // do I need that variable (but don't have a value)?
-	if (vb[localid*nv+i]==rs::INTERESTED)
-	{
-	    if (!rmi->second->recvFrom(localid, earliest, corrmpi)) 
-	    {
-		error=1;
-		errmsg="Error receving value for variable.";
-	    }
-	} 
-	else if (localid==earliest)	// we will be the one to ship the value to others
-	{
-	    for (unsigned int target=0;target<swcount;++target)	// look through all worlds and see who we need to send to
-	    {
-		if (vb[target*nv+i]==rs::INTERESTED)	// nobody who has the value will be marked as INTERESTED
-		{
-		    if (!rmi->second->sendTo(localid, target, corrmpi))
-		    {
-			error=1;
-			errmsg="Error sending value for variable.";
-		    }
-		}
-	    }
-	}
-    }
-      // It is possible that one or more subworlds were not participating in a failed transfer so we need to check
-    char nerr;
-    int mpierr=MPI_Allreduce(&error, &nerr, 1, MPI_UNSIGNED_CHAR, MPI_SUM, everyone->comm);
-    if (mpierr!=MPI_SUCCESS)
-    {
-	if (errmsg.empty())
-	{
-	    errmsg="Error checking for other errors.";
-	}
-	return false;
-    }
-    if (nerr)
-    {
-	errmsg="Another process experienced an error delivering variables.";
-	return false;
-    }
-    return !error;
-#else
-    return true;
-#endif    
-}
-
-
 // Find out which variables the local queued jobs are interested in
 // share that info around
 bool SubWorld::synchVariableInfo(std::string& err)
@@ -683,11 +596,11 @@ bool SubWorld::synchVariableInfo(std::string& err)
     return true;
 }
 
-// merge / ship values as required
-bool SubWorld::synchVariableValues(std::string& err)
-{
-    return reduceRemoteValues(err);
-}
+// // merge / ship values as required
+// bool SubWorld::synchVariableValues(std::string& err)
+// {
+//     return reduceRemoteValues(err);
+// }
 
 // if 4, a Job performed an invalid export
 // if 3, a Job threw an exception 
