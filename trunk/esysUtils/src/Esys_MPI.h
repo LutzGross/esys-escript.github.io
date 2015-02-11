@@ -47,6 +47,8 @@
 // MPI_Op replacements for non-MPI - these values are arbitrary
 
    #define MPI_SUM 100
+   #define MPI_MIN 101
+   #define MPI_MAX 102
 
 // end MPI_op
 
