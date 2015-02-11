@@ -14,6 +14,7 @@
 *****************************************************************************/
 
 #include <sstream>
+#include <limits>
 #include <boost/python/extract.hpp>
 #include <boost/scoped_array.hpp>
 
@@ -48,6 +49,14 @@ Reducer_ptr makeScalarReducer(std::string type)
     {
 	op=MPI_SUM;
     }
+    else if (type=="MAX")
+    {
+	op=MPI_MAX;
+    }
+    else if (type=="MIN")
+    {
+	op=MPI_MIN;
+    }
     else
     {
 	throw SplitWorldException("Unsupported operation for makeScalarReducer.");
@@ -76,6 +85,14 @@ void combineDouble(double& d1, const double d2, MPI_Op op)
     {
 	d1+=d2;
     }  
+    else if (op==MPI_MAX)
+    {
+	d1=(d2>d1)?d2:d1;
+    }
+    else if (op==MPI_MIN)
+    {
+	d1=(d2<d1)?d2:d1;      
+    }    
 }
 
 #ifdef ESYS_MPI
@@ -106,6 +123,7 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     if (op==MPI_SUM)
     {
 	// deliberately left blank
+	throw SplitWorldException("Unsupported MPI_Op");
     }
     else
     {
@@ -395,11 +413,19 @@ MPIScalarReducer::MPIScalarReducer(MPI_Op op)
   : reduceop(op)
 {
     valueadded=false;
-    if (op==MPI_SUM)
+    if (op==MPI_SUM)	// why not switch? because we don't know MPI_Op is scalar
     {
 	identity=0;
     }
-    else
+    else if (op==MPI_MAX)
+    {
+	identity=std::numeric_limits<double>::min();
+    }
+    else if (op==MPI_MIN)
+    {
+	identity=std::numeric_limits<double>::max();
+    }
+    else      
     {
 	throw SplitWorldException("Unsupported MPI_Op");
     }
@@ -412,7 +438,23 @@ void MPIScalarReducer::setDomain(escript::Domain_ptr d)
 
 std::string MPIScalarReducer::description()
 {
-    std::string op="SUM";
+    std::string op;
+    if (reduceop==MPI_SUM)
+    {
+	op="SUM";
+    }
+    else if (reduceop==MPI_MAX)
+    {
+	op="MAX";
+    } 
+    else if (reduceop==MPI_MIN)
+    {
+	op="MIN";
+    }
+    else
+    {
+	throw SplitWorldException("Unsupported MPI reduction operation");
+    }
     return "Reducer("+op+") for double scalars"; 
 }
 

@@ -163,6 +163,7 @@ void SubWorld::debug()
     for (str2char::iterator it=varstate.begin();it!=varstate.end();++it,++i)
     {
 	std::cout << it->first << ": ";
+	std::cout << reducemap[it->first]->description() << " ";
 	switch (it->second)
 	{
 	  case NONE: cout << "NONE "; break;

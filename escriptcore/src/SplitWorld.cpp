@@ -202,8 +202,6 @@ void SplitWorld::runJobs()
 	clearAllJobs();
 	throw e;
     }
-std::cout << "End of RunJobs\n";    
-localworld->debug();        
 }
 
 /**
