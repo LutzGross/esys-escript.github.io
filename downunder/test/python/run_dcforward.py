@@ -99,45 +99,53 @@ class TestDCResistivityForward(unittest.TestCase):
             self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotential3dSchlumberger(self):
-        structured=True
-        totalApparentRes = 130.
+        structured=False
+        numElectrodes = 12
+        directionVector=[1.,0.]
+        midPoint=[]
+        totalApparentResVal = 130.
+        current=0.5
+        interval_a = 5
+        interval_n = 5
+
+
         if structured:
-            extents=[100,100,100]
-            dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
+            #does not work because finley does not allow the specification of domain origin
+            extents=[200,200,200]
+            dom=Brick(25,25,25,l0=(-extents[0]/2,extents[0]/2),l1=(-extents[1]/2,extents[1]/2),l2=-extents[2])
+            midPoint = [0,0]
         else:
             if not HAVE_GMSH:
                 raise unittest.SkipTest("gmsh required for test")
-            lc=50.0
-            bufferThickness=3000
-            extents=[1000,2000,2000]
+            lc=10.0
+            bufferThickness=100
+            extents=[200,200,200]
+            midPoint = [0,0]
+            lcDiv=10.0
+            electrodes=[]
+            start=[]
+            start.append(midPoint[0] - (((numElectrodes-1)*interval_a)/2. * directionVector[0]))
+            start.append(midPoint[1] - (((numElectrodes-1)*interval_a)/2. * directionVector[1]))
+            electrodeTags=[]
             electrodeDict={}
-            lcDiv=10
-            electrodeDict["e1"]=[440., 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e2"]=[480., 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e3"]=[520., 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e4"]=[560., 0.5*extents[1], 0,lc/lcDiv]
+            for i in range(numElectrodes):
+                electrodes.append([start[0]+(directionVector[0]*i*interval_a), start[1]+(directionVector[1]*i*interval_a),0])
+                electrodeTags.append("e%d"%i)
+                electrodeDict[electrodeTags[i]]=[electrodes[i][0], electrodes[i][1], electrodes[i][2], lc/lcDiv]
             runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            dom = domGen.getDom(mshName=runName+".msh",fieldSize=[70,100])
+            fn = domGen.getFileName()
             if mpirank==0: 
                 os.unlink(runName+".msh")
-        totalApparentResVal = 130.
+            
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
-        secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
-        current=1000.
-        numElectrodes = 12
-        interval_a = 4
-        midPoint = [0.5*extents[0]+interval_a/2,0.5*extents[1]]
-        directionVector=[1.,0.]
-        interval_n = 5
-        
+        secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))    
         schs=SchlumbergerSurvey(dom, primaryConductivity, secondaryConductivity,
                 current, interval_a, interval_n, midPoint, directionVector,
                 numElectrodes)
-        schs.getPotential()
-        primaryApparentRes=schs.getApparentResistivityPrimary()
-        SecondaryApparentRes=schs.getApparentResistivitySecondary()
-        totalApparentRes=schs.getApparentResistivityTotal()
+        potentials=schs.getPotentialAnalytic()
+        totalApparentRes=schs.getApparentResistivity(potentials[2])
         for i in totalApparentRes:
             for j in i:
                 res_a = abs(j-totalApparentResVal)

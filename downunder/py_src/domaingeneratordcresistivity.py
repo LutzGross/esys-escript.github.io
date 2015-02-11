@@ -65,6 +65,7 @@ class DCResDomGenerator(object):
         self.__points=[]
         self.__tmpDir=tmpDir
         self.__bufferThickness=bufferThickness
+        self.filename=""
         # logger.debug(electrodeDict)
 
         for i in electrodeDict:
@@ -76,14 +77,14 @@ class DCResDomGenerator(object):
         os.close(fd)
         
         if interfaces is None:
-            self.generateScriptString()
+            self.generateScriptString(fieldSize)
         else:
             self.generateLayedScriptString(interfaces, fieldSize)
         
         open(filename, "w").write(self.__scriptString)
         return filename
 
-    def generateScriptString(self):
+    def generateScriptString(self,fieldSize):
         pntCount=5
         leftStr ="-out0[2],"
         rightStr="-out0[4],"
@@ -199,8 +200,12 @@ class DCResDomGenerator(object):
             out.append("Field[3].IField = 2;\n")
             out.append("Field[3].LcMin = lc / 5;\n")
             out.append("Field[3].LcMax = 100*lc;\n") # this value is so high because It should not play a role in field 4
-            out.append("Field[3].DistMin = 50;\n")
-            out.append("Field[3].DistMax = 100;\n")
+            if fieldSize == None:
+                out.append("Field[3].DistMin = 50.0;\n")
+                out.append("Field[3].DistMax = 100.0;\n")
+            else:
+                out.append("Field[3].DistMin = %g;\n"%fieldSize[0])
+                out.append("Field[3].DistMax = %g;\n"%fieldSize[1])
             out.append("Field[4] = Min;\n")
             out.append("Field[4].FieldsList = {1, 3};\n")
             out.append("Background Field = 4;\n")
