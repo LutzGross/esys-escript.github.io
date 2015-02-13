@@ -561,7 +561,7 @@ bool SubWorld::synchVariableInfo(std::string& err)
 	globalvarcounts[it->first][rs::NEW]=0;
 	for (int j=p;j<globalvarinfo.size();j+=getNumVars())
 	{
-	    if (globalvarinfo[j]>=rs::NONE && globalvarinfo[j]<=rs::NEW)
+	    if (globalvarinfo[j]<=rs::NEW)
 	    {
 		globalvarcounts[it->first][globalvarinfo[j]]++;
 	    }
