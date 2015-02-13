@@ -578,7 +578,12 @@ boost::python::object MPIScalarReducer::getPyObj()
 	// send from proc 0 in the communicator to all others
 bool MPIScalarReducer::groupSend(MPI_Comm& com)
 {
-    throw SplitWorldException("groupSend Not implemented yet.");
+    if (MPI_Bcast(&value, 1, MPI_DOUBLE, 0, com)==MPI_SUCCESS)
+    {
+	valueadded=true;
+	return true;
+    }
+    return false;
 }
 
 bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
@@ -587,6 +592,7 @@ bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
     if (MPI_Allreduce((mystate==reducerstatus::NEW)?&value:&identity, &answer, 1, MPI_DOUBLE, reduceop, com)==MPI_SUCCESS)
     {
 	value=answer;
+	valueadded=true;
 	return true;
     }
     return false;

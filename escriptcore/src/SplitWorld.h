@@ -45,7 +45,8 @@ public:
     void addJob(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
     
     void addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs);
-    void removeVariable(std::string name);    
+    void removeVariable(std::string name); 
+    void clearVariable(std::string name); 
 
     void clearAllJobs();
 

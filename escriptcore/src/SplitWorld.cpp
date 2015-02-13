@@ -234,6 +234,14 @@ void SplitWorld::removeVariable(std::string name)
     localworld->removeVariable(name);
 }
 
+
+void SplitWorld::clearVariable(std::string name)
+{
+    localworld->clearVariable(name);
+}
+
+
+
 void SplitWorld::clearAllJobs()
 {
     clearPendingJobs();

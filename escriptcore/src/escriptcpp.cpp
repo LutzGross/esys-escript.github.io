@@ -146,7 +146,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
     .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
-      .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable);
+    .def("clearVariable", &escript::SplitWorld::clearVariable, arg("name"), "Remove the value from the named variable")
+    .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable);
     
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
