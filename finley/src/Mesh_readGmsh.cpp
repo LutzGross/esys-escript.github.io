@@ -742,7 +742,7 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     } else {
         chunkSize = (numNodes / mpi_info->size);
     }
-    int totalNodes=0, chunkNodes;
+    int totalNodes=0, chunkNodes = 0;
     int *tempInts = new int[chunkSize+1];        /* Stores the integer message data */
     double *tempCoords = new double[chunkSize*numDim]; /* Stores the double message data */
 
