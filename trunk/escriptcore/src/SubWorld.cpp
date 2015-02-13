@@ -28,6 +28,8 @@ namespace bp=boost::python;
 using namespace esysUtils;
 namespace rs=escript::reducerstatus;
 
+using namespace std;
+
 SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldcount, unsigned int local_id, bool manualimport)
     :everyone(global), swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0), 
     swcount(subworldcount), localid(local_id), manualimports(manualimport)
@@ -73,41 +75,141 @@ void SubWorld::clearJobs()
     jobvec.clear();
 }
 
+void SubWorld::setMyVarState(const std::string& vname, char state)
+{
+    setVarState(vname, state, localid);
+}
+
+void SubWorld::setAllVarsState(std::string& vname, char state)
+{
+#ifdef ESYS_MPI  
+      // we need to know where the variable is in thbe sequence
+    str2char::iterator it=varstate.find(vname);
+    size_t c=0;
+    for (;it!=varstate.end();++it,++c)
+    {
+	if (it->first==vname)
+	{
+	    break;
+	}
+    }
+    if (it==varstate.end())
+    {
+	return;
+    }
+    it->second=state;
+    c--;		// we now have the sequence position of the variable
+    for (char z=rs::NONE; z<=rs::NEW;++z)
+    {
+	globalvarcounts[vname][z]=0;
+    }
+    globalvarcounts[vname][state]=swcount;
+    if (!globalinfoinvalid)	// it will be updated in the next synch
+    {
+	for (size_t p=c;p<globalvarinfo.size();p+=getNumVars())
+	{
+	    globalvarinfo[p]=state;
+	}
+    }
+#else
+    varstate[vname]=state;
+#endif    
+  
+  
+}
+
+
+void SubWorld::setVarState(const std::string& vname, char state, int rank)
+{
+#ifdef ESYS_MPI  
+      // we need to know where the variable is in thbe sequence
+    str2char::iterator it;
+    size_t c=0;
+    for (it=varstate.begin();it!=varstate.end();++it,++c)
+    {
+	if (it->first==vname)
+	{
+	    break;
+	}
+    }
+    if (it==varstate.end())
+    {
+	return;
+    }
+    
+	// we now have the sequence position of the variable
+    if (!globalinfoinvalid)	// it will be updated in the next synch
+    {
+	unsigned char ostate=globalvarinfo[c+getNumVars()*rank];
+	globalvarinfo[c+getNumVars()*rank]=state;
+	globalvarcounts[vname][ostate]--;
+	globalvarcounts[vname][state]++;
+    }
+    if (rank==localid)	// we are updating our own state so we need to change "varstate"
+    {
+	it->second=state;
+    }
+#else
+    varstate[vname]=state;
+#endif
+}
+
+
 // this will give the imported values to interested jobs
 bool SubWorld::deliverImports(std::string& errmsg)
 {
     for (size_t i=0;i<jobvec.size();++i)
     {
-	bp::list wanted=bp::extract<bp::list>(jobvec[i].attr("wantedvalues"))();		  
-	for (size_t j=0;j<len(wanted);++j)
+	if (manualimports)
 	{
-	    bp::extract<std::string> exs(wanted[j]);	// must have been checked by now
-	    std::string n=exs();
-	      // now we need to check to see if this value is known
-	    str2reduce::iterator it=reducemap.find(n);
-	    if (it==reducemap.end())
+	    bp::list wanted=bp::extract<bp::list>(jobvec[i].attr("wantedvalues"))();		  
+	    for (size_t j=0;j<len(wanted);++j)
 	    {
-		errmsg="Attempt to import variable \""+n+"\". SplitWorld was not told about this variable.";
-		return false;
+		bp::extract<std::string> exs(wanted[j]);	// must have been checked by now
+		std::string n=exs();
+		  // now we need to check to see if this value is known
+		str2reduce::iterator it=reducemap.find(n);
+		if (it==reducemap.end())
+		{
+		    errmsg="Attempt to import variable \""+n+"\". SplitWorld was not told about this variable.";
+		    return false;
+		}
+		try
+		{
+		    jobvec[i].attr("setImportValue")(it->first, reducemap[it->first]->getPyObj());
+		}
+		catch (boost::python::error_already_set e)
+		{
+		    getStringFromPyException(e, errmsg);   	      
+		    return false;
+		} 
 	    }
-	    try
+	}
+	else
+	{
+	      // For automatic imports, we want to import "Everything" into every job.
+	      // However, we don't want to import things with no value yet
+	    for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
 	    {
-	        jobvec[i].attr("setImportValue")(it->first, reducemap[it->first]->getPyObj());
+		if (it->second->hasValue())
+		{		  
+		    try
+		    {
+			jobvec[i].attr("setImportValue")(it->first, it->second->getPyObj());
+		    }
+		    catch (boost::python::error_already_set e)
+		    {
+			getStringFromPyException(e, errmsg);   	      
+			return false;
+		    }
+		}
 	    }
-	    catch (boost::python::error_already_set e)
-	    {
-		getStringFromPyException(e, errmsg);   	      
-		return false;
-	  } 
-
 	}
     }
     return true;
 }
 
-// The order of the variables is determined by the order of keys in the reducemap
-// Q: Why does it take chars then?
-// A: Because I want raw storage that I can pass via MPI and vector<bool> is special cased.
+// Gather exported values from jobs and merge them in the reducer
 bool SubWorld::localTransport(std::string& errmsg)
 {
     for (size_t i=0;i<jobvec.size();++i)
@@ -148,7 +250,7 @@ bool SubWorld::localTransport(std::string& errmsg)
 	    {
 		return false;	// the error string will be set by the reduceLocalValue
 	    }
-	    varstate[name]=rs::NEW;
+	    setMyVarState(name, rs::NEW);
 	}
     } 
     return true;      
@@ -158,7 +260,18 @@ void SubWorld::debug()
 {
     using namespace std;
     using namespace escript::reducerstatus;
-    std::cout << "Variables:\n";
+    std::cout << "Variables:";
+#ifdef ESYS_MPI
+	if (!globalinfoinvalid)
+	{
+	    cout << "{ NONE INTR OLD OINT NEW }";
+	}
+	else
+	{
+	    cout << "(no valid global info)";
+	}
+#endif	    
+    std::cout << std::endl;
     int i=0;
     for (str2char::iterator it=varstate.begin();it!=varstate.end();++it,++i)
     {
@@ -210,6 +323,8 @@ void SubWorld::debug()
 
 
 #endif
+    std::cout << "Debug end\n";
+    std::cout.flush();
   
 }
 
@@ -227,23 +342,19 @@ double SubWorld::getScalarVariable(const std::string& name)
 	// need to indicate we are interested in the variable
     if (varstate[name]==rs::NONE)
     {
-	varstate[name]=rs::INTERESTED;
+	setMyVarState(name, rs::INTERESTED);
     }
     else if (varstate[name]==rs::OLD)
     {
-	varstate[name]=rs::OLDINTERESTED;
+      	setMyVarState(name, rs::OLDINTERESTED);
     }
 	// anything else, indicates interest anyway
 #ifdef ESYS_MPI
     std::string errmsg;
-    if (globalinfoinvalid)	// because a variable may have been removed or added since
+    if (!synchVariableInfo(errmsg))
     {
-
-	if (!synchVariableInfo(errmsg))
-	{
-	    throw SplitWorldException(std::string("(Getting scalar --- Variable information) ")+errmsg);
-	}
-    }  
+	throw SplitWorldException(std::string("(Getting scalar --- Variable information) ")+errmsg);
+    }
     if (!synchVariableValues(errmsg))
     {
 	throw SplitWorldException(std::string("(Getting scalar --- Variable value) ")+errmsg);
@@ -275,9 +386,13 @@ bool SubWorld::makeComm(MPI_Comm& sourcecom, MPI_Comm& subcom,std::vector<int>& 
 {
       MPI_Group sourceg, g;
       if (MPI_Comm_group(sourcecom, &sourceg)!=MPI_SUCCESS) {return false;}
-      if (MPI_Group_incl(sourceg, members.size(), &members[0], &g)!=MPI_SUCCESS) {return false;}
+      if (MPI_Group_incl(sourceg, members.size(), &members[0], &g)!=MPI_SUCCESS) {return false;}      
       // then create a communicator with that group
-      if (MPI_Comm_create(sourcecom, g, &subcom)!=MPI_SUCCESS) {return false;}
+      if (MPI_Comm_create(sourcecom, g, &subcom)!=MPI_SUCCESS) 
+      {
+	return false;
+	
+      }
       return true;
 }
 
@@ -308,7 +423,7 @@ bool SubWorld::makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
       else	// for people not in involved in the value shipping
       {		// This would be a nice time to use MPI_Comm_create_group
 		// but it does not exist in MPI2.1
-	  return MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &com)==MPI_SUCCESS;
+	  return MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &com);
       }
 }
 
@@ -340,13 +455,12 @@ bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
 			  break;
 	      }
 	  }		
-	  
-	  return makeComm(srccom, com, members)==MPI_SUCCESS;
+	  return makeComm(srccom, com, members);
       }
       else	// for people not in involved in the value shipping
       {		// This would be a nice time to use MPI_Comm_create_group
-		// but it does not exist in MPI2.1
-	  return MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &com)==MPI_SUCCESS;
+		// but it does not exist in MPI2.1	
+	  return MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &com);
       }
 }
 
@@ -385,7 +499,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 	{
 	    continue;		// noone cares about this variable
 	}
-	if (needcount>0 && (oldcount+newcount)==0)
+	if (needcount>0 && (oldcount+oldintcount+newcount)==0)
 	{
 	    err="Import attempted for a variable \""+(it->first)+"\" with no value.";
 	    return false;
@@ -410,7 +524,15 @@ bool SubWorld::synchVariableValues(std::string& err)
 		err="Error creating group for sharing values,";
 		return false;
 	    }
-	    it->second->groupSend(com);
+	    if (varstate[it->first]!=rs::NONE && varstate[it->first]!=rs::OLD)
+	    {
+		it->second->groupSend(com);
+		  // Now record the fact that we have the variable now
+		if (varstate[it->first]==rs::INTERESTED)
+		{
+		    setMyVarState(it->first, rs::OLDINTERESTED); 
+		}
+	    }
 	    // disolve the group
 	    MPI_Comm_free(&com);
 	    continue;
@@ -430,7 +552,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 	}
 	    // at this point, we need to ship info around but there are no updates
 	    // that is, we are shipping an old copy
-	    // picking a source arbitarily (the last one)
+	    // picking a source arbitarily (the first one in the array)
 	    
 	    // but first, eliminate the special case where the only interested ones
 	    // already have a copy
@@ -455,18 +577,15 @@ bool SubWorld::synchVariableValues(std::string& err)
         std::string vname=varswithupdates[i];
         	if (varstate[vname]==rs::NEW)
 	{
-	    varstate[vname]=rs::OLD;
+	    setMyVarState(vname, rs::OLD);
 	}
 	else if (varstate[vname]==rs::OLD)
 	{
-	    varstate[vname]=rs::NONE;
+	    setMyVarState(vname, rs::NONE);
 	    reducemap[vname]->clear();
-	} 
-	globalvarcounts[vname][rs::NONE]+=globalvarcounts[vname][rs::OLD];
-	globalvarcounts[vname][rs::OLD]=globalvarcounts[vname][rs::NEW];
-	globalvarcounts[vname][rs::NEW]=0;
+	}
     }
-#endif    
+#endif
     return true;    
 }
 
@@ -592,7 +711,7 @@ bool SubWorld::synchVariableInfo(std::string& err)
 		}
 		else if (it->second==rs::OLD)
 		{
-		    it->second=rs::OLDINTERESTED; 
+		    it->second=rs::OLDINTERESTED;
 		}
 #ifdef ESYS_MPI
 		  // now we need to update the globalvarinfo to record all the extra interest
@@ -601,10 +720,14 @@ bool SubWorld::synchVariableInfo(std::string& err)
 		    if (globalvarinfo[j]==rs::NONE)
 		    {
 			globalvarinfo[j]=rs::INTERESTED;
+			globalvarcounts[it->first][rs::NONE]--;
+			globalvarcounts[it->first][rs::INTERESTED]++;			
 		    }
 		    else if (globalvarinfo[j]==rs::OLD)
 		    {
 			globalvarinfo[j]=rs::OLDINTERESTED;
+			globalvarcounts[it->first][rs::OLD]--;
+			globalvarcounts[it->first][rs::OLDINTERESTED]++;			
 		    }
 		  
 		}
@@ -671,7 +794,6 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
     if (reducemap.find(name)!=reducemap.end())
     {
 	std::ostringstream oss;
-	oss << "There is already a variable called " << name;
 	throw SplitWorldException(oss.str());    
     }
     reducemap[name]=rp;
@@ -684,7 +806,7 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
 	}
     }
 #ifdef ESYS_MPI
-
+    globalinfoinvalid=true;	// since we need to regenerate globalvarinfo
 #endif
 }
 
@@ -697,6 +819,18 @@ void SubWorld::removeVariable(std::string& s)
     globalvarinfo.resize(0);
     globalvarcounts.erase(s);
 #endif    
+}
+
+void SubWorld::clearVariable(std::string& name)
+{
+    str2reduce::iterator it=reducemap.find(name);
+    if (it==reducemap.end())
+    {
+	return;
+    }
+    it->second->reset();
+      // if we got here, we must have a valid name so we can change state directly
+    setAllVarsState(name, rs::NONE);
 }
 
 void SubWorld::resetInterest()

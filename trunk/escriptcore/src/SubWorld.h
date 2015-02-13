@@ -59,6 +59,7 @@ public:
 
     void addVariable(std::string&, Reducer_ptr& red);
     void removeVariable(std::string& name);  
+    void clearVariable(std::string& name);
     size_t getNumVars();
     
     bool localTransport(std::string& errmsg);	// gather exported values from jobs
@@ -119,6 +120,11 @@ typedef std::map<std::string, countmap> str2countmap;
     bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com);    
     
 #endif
+    
+      // change the various views of a variable's state
+    void setMyVarState(const std::string& vname, char state);
+    void setVarState(const std::string& vname, char state, int rank);
+    void setAllVarsState(std::string& name, char state);
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;
