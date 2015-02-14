@@ -21,6 +21,10 @@
 
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "Mesh.h"
 #include "IndexList.h"
 #include <boost/scoped_array.hpp>

@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "SubWorld.h"
 #include "SplitWorldException.h"
 #include "esysUtils/pyerr.h"

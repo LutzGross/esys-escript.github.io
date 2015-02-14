@@ -1,3 +1,7 @@
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <esysUtils/index.h>
 #include <speckley/Rectangle.h>
 

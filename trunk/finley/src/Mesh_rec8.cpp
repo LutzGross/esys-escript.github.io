@@ -25,6 +25,9 @@
 
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "RectangularMesh.h"
 
 namespace finley {

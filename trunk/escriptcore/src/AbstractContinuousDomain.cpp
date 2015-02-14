@@ -14,7 +14,8 @@
 *
 *****************************************************************************/
 
-
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 #include "AbstractContinuousDomain.h"
 #include "Data.h"
 

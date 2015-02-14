@@ -21,6 +21,9 @@
 
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "Mesh.h"
 #include <cstdio>
 #include "CPPAdapter/FinleyAdapterException.h"

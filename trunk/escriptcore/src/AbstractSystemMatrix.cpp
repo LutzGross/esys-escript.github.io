@@ -14,7 +14,8 @@
 *
 *****************************************************************************/
 
-
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 #include "AbstractSystemMatrix.h" 
 #include "DataException.h"
 #include "Data.h"

@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <ripley/DefaultAssembler3D.h>
 #include <ripley/domainhelpers.h>
 

@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <weipa/RipleyDomain.h>
 #include <weipa/RipleyNodes.h>
 #include <weipa/DataVar.h>

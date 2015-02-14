@@ -14,7 +14,8 @@
 *
 *****************************************************************************/
 
-
+#define ESNEEDPYTHON
+#include "first.h"
 #include "system_dep.h"
 #include "esysExceptionTranslator.h" 
 #include <iostream>

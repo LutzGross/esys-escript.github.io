@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <weipa/DataVar.h>
 #include <weipa/DomainChunk.h>
 #include <weipa/ElementData.h>

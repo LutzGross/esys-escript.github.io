@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 
 #include "DataLazy.h"
 #include "esysUtils/Esys_MPI.h"

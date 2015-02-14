@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 
 #include "DataEmpty.h"
 #include "DataException.h"

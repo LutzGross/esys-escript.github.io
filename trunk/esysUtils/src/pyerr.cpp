@@ -13,6 +13,8 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "first.h"
 #include "pyerr.h"
 
 // Function factored out of SubWorld code

@@ -15,6 +15,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "EscriptParams.h"
 #include <cstring>
 #include <boost/python/tuple.hpp>

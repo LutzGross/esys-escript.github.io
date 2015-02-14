@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "Data.h"
 #include "FunctionSpace.h"
 #include "FunctionSpaceFactory.h"

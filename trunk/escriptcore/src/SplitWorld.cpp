@@ -13,6 +13,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "esysUtils/Esys_MPI.h"
 #include "SplitWorld.h"
 #include "AbstractDomain.h"

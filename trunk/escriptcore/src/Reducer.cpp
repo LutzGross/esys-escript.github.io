@@ -13,6 +13,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <sstream>
 #include <limits>
 #include <boost/python/extract.hpp>

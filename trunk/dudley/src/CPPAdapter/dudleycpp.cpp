@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 
 #ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"

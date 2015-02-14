@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 
 #include "FunctionSpace.h" 
 #include "FunctionSpaceException.h"

@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <pasowrap/PasoException.h>
 #include <pasowrap/TransportProblemAdapter.h>
 #include "MeshAdapter.h"

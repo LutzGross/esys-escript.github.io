@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <weipa/VisItControl.h>
 #include <weipa/EscriptDataset.h>
 

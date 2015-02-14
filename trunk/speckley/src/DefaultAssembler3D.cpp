@@ -13,6 +13,11 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
+
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <speckley/DefaultAssembler3D.h>
 #include <speckley/domainhelpers.h>
 #include <esysUtils/index.h>

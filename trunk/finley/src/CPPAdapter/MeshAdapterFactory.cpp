@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "MeshAdapterFactory.h"
 #include "esysUtils/blocktimer.h"
 #ifdef ESYS_MPI

@@ -34,6 +34,10 @@
 
 /*  Author: Lutz Gross, l.gross@uq.edu.au */
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "Assemble.h"
 #include "Util.h"
 

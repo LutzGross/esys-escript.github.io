@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "SystemMatrixAdapter.h" 
 #include <escript/SolverOptions.h>
 #include <paso/Solver.h>
