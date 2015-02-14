@@ -21,6 +21,8 @@
   of elements and assigns the value to each quadrature point in out.
 
 *****************************************************************************/
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 
 #include "Assemble.h"
 #include "Util.h"

@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <ripley/Rectangle.h>
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/LameAssembler2D.h>

@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "TransportProblemAdapter.h" 
 #include "SystemMatrixAdapter.h" 
 

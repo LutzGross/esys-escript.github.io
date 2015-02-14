@@ -21,6 +21,10 @@
 
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "IndexList.h"
 #include "ElementFile.h"
 

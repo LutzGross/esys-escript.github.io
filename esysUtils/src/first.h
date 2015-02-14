@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2015 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,20 +14,13 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+/* The purpose is to gather anything which "needs to be first include" */
 
+#ifndef esysutils_first_h
+#define esysutils_first_h
 
-#include <speckley/SpeckleyException.h>
+#ifdef ESNEEDPYTHON
+#include "Python.h"
+#endif
 
-namespace speckley {
-
-const std::string SpeckleyException::exceptionNameValue("SpeckleyException");
-
-const std::string& SpeckleyException::exceptionName() const
-{
-    return exceptionNameValue;
-}
-
-} // namespace speckley
-
+#endif

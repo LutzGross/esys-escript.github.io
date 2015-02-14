@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 
 #include "DataC.h"
 

@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 
 #include "MeshAdapter.h"
 #include "escript/Data.h"

@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <weipa/SpeckleyNodes.h>
 
 #ifndef VISIT_PLUGIN

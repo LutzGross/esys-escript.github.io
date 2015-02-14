@@ -21,6 +21,9 @@
 
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "Finley.h"
 #include "Util.h"
 #include "esysUtils/index.h"

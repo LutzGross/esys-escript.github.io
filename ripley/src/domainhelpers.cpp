@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <ripley/domainhelpers.h>
 #include <ripley/RipleyException.h>
 #include <cmath>

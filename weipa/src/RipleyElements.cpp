@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include <weipa/RipleyElements.h>
 #include <weipa/NodeData.h>
 

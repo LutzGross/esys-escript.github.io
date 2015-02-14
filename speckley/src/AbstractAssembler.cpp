@@ -12,6 +12,11 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
+
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <speckley/AbstractAssembler.h>
 
 namespace speckley {

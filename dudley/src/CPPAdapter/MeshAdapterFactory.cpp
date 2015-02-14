@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "MeshAdapterFactory.h"
 #include "DudleyError.h"
 #include "esysUtils/blocktimer.h"

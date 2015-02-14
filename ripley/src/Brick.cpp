@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include <ripley/Brick.h>
 #include <ripley/DefaultAssembler3D.h>
 #include <ripley/LameAssembler3D.h>

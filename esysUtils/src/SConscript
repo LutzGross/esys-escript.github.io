@@ -44,6 +44,7 @@ headers = """
     maths.h
     pyerr.h
     system_dep.h
+    first.h
     types.h
 """.split()
 
