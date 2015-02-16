@@ -72,7 +72,7 @@ namespace esysUtils {
 ESYSUTILS_DLL_API
 inline int getSubWorldTag()	
 {
-    return ('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W';  
+    return (('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W')%1010201;
 }
   
 class JMPI_;
