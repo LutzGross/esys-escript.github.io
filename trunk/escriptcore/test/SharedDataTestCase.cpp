@@ -15,6 +15,10 @@
 
 // The purpose of these tests is to check for unwanted sharing of between Data objects
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "SharedDataTestCase.h"
 #include "escript/Data.h"
 #include "escript/EscriptParams.h"

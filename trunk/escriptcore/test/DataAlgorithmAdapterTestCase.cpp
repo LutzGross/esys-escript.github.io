@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 
 #if (defined _WIN32) && (defined __INTEL_COMPILER)
 #include <mathimf.h>
