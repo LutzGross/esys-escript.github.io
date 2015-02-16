@@ -26,16 +26,7 @@
 #ifndef esysutils_system_dep_h
 #define esysutils_system_dep_h
 
-#if defined(_WIN32) && defined(__INTEL_COMPILER)
-/* The Intel compiler on windows has an "improved" math library compared to the usual Visual C++ one
-* In particular it has a acosh and other similar functions which aren't implemented in Visual C++ math.h
-* Note you will get a compile time error if any other header (including system ones) include math.h before mathimf.h
-* has been included. As a result system_dep.h must be included FIRST at all times (this prevents math.h from being included).
-*/
-#include <mathimf.h>
-#else
 #include <cmath>
-#endif
 
 #define ESYSUTILS_DLL_API
 
@@ -63,16 +54,5 @@
 #endif
 
 #define NO_ARG
-
-/* you'll need this one day. */
-#ifndef __const
-# if (defined __STDC__ && __STDC__) || defined __cplusplus
-#  define __const	const
-# else
-#  define __const
-# endif
-#endif
-
-
 
 #endif
