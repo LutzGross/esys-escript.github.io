@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #include "DataEmptyTestCase.h"
 
 #include "escript/DataEmpty.h"

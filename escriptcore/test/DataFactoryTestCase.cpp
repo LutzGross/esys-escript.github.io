@@ -14,6 +14,10 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
+
 #ifdef BADPYTHONMACROS
 // This hack is required for BSD/OSX builds with python 2.7
 // (and possibly others).  It must be the first include.

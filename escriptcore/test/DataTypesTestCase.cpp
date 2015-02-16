@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 
 #include "DataTypesTestCase.h"
 #include "escript/DataAlgorithm.h"

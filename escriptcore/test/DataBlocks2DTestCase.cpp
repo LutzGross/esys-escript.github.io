@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 
 #include "DataBlocks2DTestCase.h"
 #include "escript/DataBlocks2D.h"
