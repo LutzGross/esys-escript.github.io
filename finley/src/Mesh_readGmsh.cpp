@@ -108,20 +108,17 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         char *error_msg, const char *fname, bool useMacroElements)
 {
     int gmsh_type = -1;
-    int numTags=0;
+
     std::vector<char> line;
     if (!get_line(line, f))
         return EARLY_EOF;
     char *position = &line[0];
-    int scan_ret = sscanf(position, "%d %d", &e.id, &gmsh_type);
-    if (next_space(&position, 2) == NULL)
-            return EARLY_EOF;
-    if (scan_ret == EOF)
-        return EARLY_EOF;
-    else if (scan_ret != 2) {
+    if (sscanf(position, "%d %d", &e.id, &gmsh_type) != 2) {
         sprintf(error_msg, "malformed mesh file");
         return THROW_ERROR;
     }
+    if (next_space(&position, 2) == NULL)
+        return EARLY_EOF;
 
     int numNodesPerElement = 0;
     switch (gmsh_type) {
@@ -209,29 +206,22 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     }
     if (version <= 1.0){
         int tmp = 0;
-        int scan_ret = sscanf(position, "%d %*d %d", &e.tag, &tmp);
-        if (next_space(&position, 3) == NULL || scan_ret == EOF)
+        if (sscanf(position, "%d %*d %d", &e.tag, &tmp) == 0
+                || next_space(&position, 3) == NULL )
             return EARLY_EOF;
         if (tmp != numNodesPerElement) {
             sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", e.id, fname);
             return THROW_ERROR;
         }
     } else {
-        scan_ret = sscanf(position, "%d", &numTags);
-        if (scan_ret == EOF)
-            return EARLY_EOF;
         e.tag = 1;
-        if (next_space(&position, 2) == NULL)
-                return EARLY_EOF;
-        int tmp = 0;
-        scan_ret = sscanf(position, "%d", &tmp);
-        if (scan_ret == EOF)
+        int numTags=0; //this is garbage and never used
+        if (sscanf(position, "%d", &numTags) == 0 
+                || next_space(&position, 2) == NULL)
             return EARLY_EOF;
-        e.tag = tmp;
-        for(int j = 0; j< numTags; j++){
-            if (next_space(&position, 2) == NULL)
-                    return EARLY_EOF;
-        }
+        if (sscanf(position, "%d", &e.tag) == 0 
+                || next_space(&position, 1) == NULL)
+            return EARLY_EOF;
         /* ignore any other tags, second tag would be elementary id,
          third tag would be partition id */
     }
@@ -240,11 +230,9 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         return ERROR;
     }
     for(int j = 0; j < numNodesPerElement; j++) {
-        scan_ret = sscanf(position, "%d", e.vertex+j);
-        if (scan_ret == EOF)
+        if (sscanf(position, "%d", e.vertex+j) == 0 
+                || next_space(&position, 1) == NULL)
             return EARLY_EOF;
-        if (next_space(&position, 1) == NULL)
-                return EARLY_EOF;
     }
     return 0;
 }
