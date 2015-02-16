@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <vector>
 
 #include "Esys_MPI.h"
 #include "index.h"
@@ -27,7 +27,7 @@
 #include "EsysException.h"
 
 
-#include <iostream>	// temp for debugging
+#include <iostream>        // temp for debugging
 
 namespace esysUtils
 {
@@ -36,7 +36,7 @@ JMPI makeInfo(MPI_Comm comm, bool owncom)
 {
     if (esysUtils::NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
     {
-	throw esysUtils::EsysException("Attempt to use the MPI_COMM_WORLD communicator when it is blocked.");
+        throw esysUtils::EsysException("Attempt to use the MPI_COMM_WORLD communicator when it is blocked.");
     }
     JMPI_* p=new JMPI_(comm, owncom);
     return JMPI(p);
@@ -44,18 +44,18 @@ JMPI makeInfo(MPI_Comm comm, bool owncom)
 
 
 JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
-	: comm(mpicomm), ownscomm(owncom)
+        : comm(mpicomm), ownscomm(owncom)
 {
-	msg_tag_counter = 0;
+        msg_tag_counter = 0;
 #ifdef ESYS_MPI
-	if (MPI_Comm_rank(comm, &rank)!=MPI_SUCCESS || MPI_Comm_size(comm, &size)!=MPI_SUCCESS)
-	{
-	    Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
-	}
+        if (MPI_Comm_rank(comm, &rank)!=MPI_SUCCESS || MPI_Comm_size(comm, &size)!=MPI_SUCCESS)
+        {
+            Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
+        }
 #else
-	rank=0;
-	size=1;	
-#endif	
+        rank=0;
+        size=1;        
+#endif        
 }
 
 JMPI_::~JMPI_()
@@ -63,7 +63,7 @@ JMPI_::~JMPI_()
 #ifdef ESYS_MPI
     if (ownscomm)
     {
-	MPI_Comm_free(&comm);
+        MPI_Comm_free(&comm);
     }
 #endif
 }
@@ -193,57 +193,52 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
     const int BIGTAG=esysUtils::getSubWorldTag();
     if (info->size==1)
     {
-	mres=res;
-	return true;
+        mres=res;
+        return true;
+    }
+    if (info->rank!=leader)
+    {  
+        if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
+            return false;
+        MPI_Status status;
+        if (MPI_Recv(&mres, 1, MPI_INT, leader, BIGTAG, info->comm, &status)!=MPI_SUCCESS)
+            return false;
     }
     else
     {
-	if (info->rank!=leader)
-	{  
-	    if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
-	    {
-		return false;
-	    }
-	    if (MPI_Recv(&mres, 1, MPI_INT, leader, BIGTAG, info->comm,0)!=MPI_SUCCESS)
-	    {
-		return false;
-	    }
-	}
-	else
-	{
-	    MPI_Request* reqs=new MPI_Request[info->size-1];
-	    int* eres=new int[info->size-1];
-	    for (int i=0;i<info->size-1;++i)
-	    {
-		MPI_Irecv(eres+i, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
-	    }  
-	    if (MPI_Waitall(info->size-1, reqs, 0)!=MPI_SUCCESS)
-	    {
-		delete[] reqs;
-		return false;
-	    }
-	    // now we have them all, find the max
-	    mres=res;
-	    for (int i=0;i<info->size-1;++i)
-	    {
-		if (mres<eres[i])
-		{
-		    mres=eres[i];
-		}
-	    }
-	    // now we know what the result should be
-	    // send it to the others
-	    for (int i=0;i<info->size-1;++i)
-	    {
-		MPI_Isend(&mres, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
-	    }
-	    if (MPI_Waitall(info->size-1, reqs,0)!=MPI_SUCCESS)
-	    {
-		return false;
-	    }
-	}
+        std::vector<MPI_Status> status(info->size - 1);
+        MPI_Request* reqs=new MPI_Request[info->size-1];
+        int* eres=new int[info->size-1];
+        for (int i=0;i<info->size-1;++i)
+        {
+            MPI_Irecv(eres+i, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);          
+        }  
+        if (MPI_Waitall(info->size-1, reqs, &status[0])!=MPI_SUCCESS)
+        {
+            delete[] reqs;
+            return false;
+        }
+        // now we have them all, find the max
+        mres=res;
+        for (int i=0;i<info->size-1;++i)
+        {
+            if (mres<eres[i])
+            {
+                mres=eres[i];
+            }
+        }
+        // now we know what the result should be
+        // send it to the others
+        for (int i=0;i<info->size-1;++i)
+        {
+            MPI_Isend(&mres, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);          
+        }
+        if (MPI_Waitall(info->size-1, reqs, &status[0])!=MPI_SUCCESS)
+        {
+            return false;
+        }
       
-    } 
+    }
     return true;
 #else
     mres=res;
@@ -272,7 +267,7 @@ bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
     Esys_MPI_rank rank=0;
     if (MPI_Comm_rank( comm, &rank )!=MPI_SUCCESS)
     {
-	return false;	// we have no reason to believe MPI works anymore
+        return false;        // we have no reason to believe MPI works anymore
     }
     
     int slen=strlen(src);
@@ -283,44 +278,44 @@ bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
     int out;
     if (MPI_Allreduce(&in, &out, 1, MPI_INT, MPI_MAX, comm)!=MPI_SUCCESS)
     {
-	return false;
+        return false;
     }
-    if (out==-1)		// should not be called under these conditions, but noone had a string
+    if (out==-1)                // should not be called under these conditions, but noone had a string
     {
-	*dest=new char[1];
-	*dest[0]='\0';
-	return true;
+        *dest=new char[1];
+        *dest[0]='\0';
+        return true;
     }
     // since we will be using broadcast, we need to tell everyone how big the string is going to be
     // with an additional bcast
     
     if (MPI_Bcast(&slen, 1, MPI_INT, out, comm)!=MPI_SUCCESS)
     {
-	return false;
+        return false;
     }
     // now broadcast that string to everyone
     if (rank==out)
     {
-	// I could const _ cast src but instead I'll make a copy
-	
-	*dest=new char[slen+1];
-	strcpy(*dest, src);
-	
-	// this guy should just send the string
-	if (MPI_Bcast(*dest, slen+1, MPI_CHAR, out, comm)!=MPI_SUCCESS)
-	{
-	    return false;
-	}
-	return true;
+        // I could const _ cast src but instead I'll make a copy
+        
+        *dest=new char[slen+1];
+        strcpy(*dest, src);
+        
+        // this guy should just send the string
+        if (MPI_Bcast(*dest, slen+1, MPI_CHAR, out, comm)!=MPI_SUCCESS)
+        {
+            return false;
+        }
+        return true;
     }
     else
     {
-	*dest=new char[slen+1];
-	if (MPI_Bcast(*dest, slen+1, MPI_CHAR, out, comm)!=MPI_SUCCESS)
-	{
-	    return false;
-	}
-	return true;
+        *dest=new char[slen+1];
+        if (MPI_Bcast(*dest, slen+1, MPI_CHAR, out, comm)!=MPI_SUCCESS)
+        {
+            return false;
+        }
+        return true;
     }
 #else
     *dest=new char[strlen(src)+1];
@@ -340,7 +335,7 @@ esysUtils::NoCOMM_WORLD::NoCOMM_WORLD()
 {
     if (nocommworldplease)
     {
-	throw EsysException("NoCOMM_WORLD does not nest.");
+        throw EsysException("NoCOMM_WORLD does not nest.");
     }
     nocommworldplease=true;
 }
