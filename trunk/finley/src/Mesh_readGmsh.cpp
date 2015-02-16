@@ -95,6 +95,15 @@ bool get_line(std::vector<char>& line, FILE *file) {
 
 namespace finley {
 
+char *next_space(char **position, int count) {
+    for (int i = 0; i < count; i++) {
+        *position = strchr(*position, ' ');
+        if ((*position)++ == NULL)//move off the space
+            return NULL;
+    }
+    return *position;
+}
+
 int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         char *error_msg, const char *fname, bool useMacroElements)
 {
@@ -105,11 +114,8 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         return EARLY_EOF;
     char *position = &line[0];
     int scan_ret = sscanf(position, "%d %d", &e.id, &gmsh_type);
-    for (int i = 0; i < 2; i++) {
-        position = strchr(position, ' ');
-        if (position++ == NULL)//move off the space
+    if (next_space(&position, 2) == NULL)
             return EARLY_EOF;
-    } 
     if (scan_ret == EOF)
         return EARLY_EOF;
     else if (scan_ret != 2) {
@@ -204,7 +210,7 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     if (version <= 1.0){
         int tmp = 0;
         int scan_ret = sscanf(position, "%d %*d %d", &e.tag, &tmp);
-        if (scan_ret == EOF)
+        if (next_space(&position, 3) == NULL || scan_ret == EOF)
             return EARLY_EOF;
         if (tmp != numNodesPerElement) {
             sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", e.id, fname);
@@ -215,18 +221,16 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         if (scan_ret == EOF)
             return EARLY_EOF;
         e.tag = 1;
-        position = strchr(position, ' ');
-        if (position++ == NULL)
-            return EARLY_EOF;
+        if (next_space(&position, 2) == NULL)
+                return EARLY_EOF;
         int tmp = 0;
         scan_ret = sscanf(position, "%d", &tmp);
         if (scan_ret == EOF)
             return EARLY_EOF;
         e.tag = tmp;
         for(int j = 0; j< numTags; j++){
-            position = strchr(position, ' ');
-            if (position++ == NULL)
-                return EARLY_EOF;
+            if (next_space(&position, 2) == NULL)
+                    return EARLY_EOF;
         }
         /* ignore any other tags, second tag would be elementary id,
          third tag would be partition id */
@@ -239,9 +243,8 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         scan_ret = sscanf(position, "%d", e.vertex+j);
         if (scan_ret == EOF)
             return EARLY_EOF;
-        position = strchr(position, ' ');
-        if (position++ == NULL)
-            return EARLY_EOF;
+        if (next_space(&position, 1) == NULL)
+                return EARLY_EOF;
     }
     return 0;
 }
@@ -713,7 +716,7 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
         for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
             std::map<int,int>::iterator it = tags.find(v[i]);
             if (it == tags.end()) {
-                sprintf(error_msg, "element contains unknown node");
+                sprintf(error_msg, "element contains unknown node (node %d)", v[i]);
                 return THROW_ERROR;
             }
             // the first tagged element using a node tags that node too
@@ -1045,7 +1048,8 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
                 sprintf(error_msg, "Error in file operation");
                 errorFlag = THROW_ERROR;
             }
-
+            send_state(mpi_info, errorFlag, logicFlag);
+            check_error(errorFlag, fileHandle_p, error_msg);
 #ifdef ESYS_MPI
             int mapsize = 2*nodeTags.size();
             sendable_map.resize(mapsize);
@@ -1082,7 +1086,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
             scan_ret = sscanf(&names[0], "%d", &numNames);
             SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
-            // Broadcast numNodes if there are multiple mpi procs
+            // Broadcast numNames if there are multiple mpi procs
             if (mpi_info->size > 1) {
                 MPI_Bcast(&numNames, 1, MPI_INT,  0, mpi_info->comm);
             }
@@ -1180,6 +1184,8 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
         if (logicFlag == 2) {
             int mapsize = 0;
             std::vector<int> sendable_map;
+            recv_state(mpi_info, &errorFlag, &logicFlag);
+            check_error(errorFlag, NULL, error_msg);
             MPI_Bcast(&mapsize, 1, MPI_INT, 0, mpi_info->comm);
             sendable_map.resize(mapsize);
             MPI_Bcast(&sendable_map[0], mapsize, MPI_INT, 0, mpi_info->comm);
