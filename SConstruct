@@ -137,7 +137,6 @@ vars.AddVariables(
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
   BoolVariable('longindices', 'use long indices (for very large matrices)', False),
-  BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
   ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
   BoolVariable('papi', 'Enable PAPI', False),
@@ -293,9 +292,6 @@ if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']
     env['SHNVCCFLAGS'] = env['nvccflags'] + ' -shared'
-
-if env['BADPYTHONMACROS']:
-    env.Append(CPPDEFINES = ['BADPYTHONMACROS'])
 
 if env['longindices']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
