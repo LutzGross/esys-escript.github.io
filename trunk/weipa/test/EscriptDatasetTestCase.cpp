@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "EscriptDatasetTestCase.h"
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
