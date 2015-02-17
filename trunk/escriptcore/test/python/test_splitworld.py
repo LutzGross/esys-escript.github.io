@@ -347,7 +347,7 @@ class Test_SplitWorld(unittest.TestCase):
     """
     wc=getMPISizeWorld()//4
     sw=SplitWorld(wc)
-    buildDomains([sw]+self.domainpars)
+    buildDomains(sw,*self.domainpars)
     addVariable(sw, "answer", makeScalarReducer, "SUM")   
     addVariable(sw, "hanswer", makeScalarReducer, "SUM")  
     addVariable(sw, "v", makeScalarReducer, "MAX")
