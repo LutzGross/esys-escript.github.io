@@ -217,10 +217,10 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         e.tag = 1;
         int numTags=0; //this is garbage and never used
         if (sscanf(position, "%d", &numTags) == 0 
-                || next_space(&position, 2) == NULL)
+                || next_space(&position, 1) == NULL)
             return EARLY_EOF;
         if (sscanf(position, "%d", &e.tag) == 0 
-                || next_space(&position, 1) == NULL)
+                || next_space(&position, numTags) == NULL)
             return EARLY_EOF;
         /* ignore any other tags, second tag would be elementary id,
          third tag would be partition id */
@@ -983,9 +983,6 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     double version = 1.0;
     bool nodesRead=false, elementsRead=false;
     int format = 0, size = sizeof(double), scan_ret,  errorFlag=0, logicFlag=0;
-    int numNames=0;
-    int i, tag_info[2], itmp;
-    char name[LenString_MAX+1];
     std::vector<char> line;
     char error_msg[LenErrorMsg_MAX];
     std::map<int,int> nodeTags;
@@ -1071,6 +1068,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
             std::vector<char> names;
             if (!get_line(names, fileHandle_p))
                 errorFlag = EARLY_EOF;
+            int numNames=0;
             scan_ret = sscanf(&names[0], "%d", &numNames);
             SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
@@ -1079,26 +1077,33 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
                 MPI_Bcast(&numNames, 1, MPI_INT,  0, mpi_info->comm);
             }
 #endif
-            for (i = 0; i < numNames; i++) {
-                if (!get_line(names, fileHandle_p))
+            for (int i = 0; i < numNames; i++) {
+                std::vector<char> line;
+                char name[LenString_MAX] = {0};
+                if (!get_line(line, fileHandle_p))
                     errorFlag = EARLY_EOF;
-                scan_ret = sscanf(&(names[0]), "%d %d %s\n", &itmp, &(tag_info[0]), name);
-                SSCANF_CHECK(scan_ret);
-                //if (! (itmp == 2)) setError(IO_ERROR,"Mesh_readGmsh: expecting two entries per physical name.");
-                if ( strlen(name) < 3 ) setError(IO_ERROR,"Mesh_readGmsh: illegal tagname (\" missing?)");
-                if (! noError()) errorFlag = ERROR;
-                name[strlen(name)-1]='\0';
+                int tag_info[2] = {0};
+                char *position = &line[0];
+                //skip the first int, unsure why
+                if (next_space(&position, 1) == NULL 
+                        || sscanf(position, "%d", tag_info) != 1 
+                        || next_space(&position, 1) == NULL
+                        || sscanf(position, "%s", name) != 1) {
+                    setError(IO_ERROR,"Mesh_readGmsh: bad tagname");
+                }
+                if (!noError())
+                    errorFlag = ERROR;
+                name[strlen(name)-1]='\0'; //strip trailing "
                 //mpi broadcast the tag info
 
 #ifdef ESYS_MPI
                 if (mpi_info->size > 1) {
-                    tag_info[1]=strlen(name)+1;
+                    tag_info[1]=strlen(name) + 1; //include \0
                     MPI_Bcast(tag_info, 2, MPI_INT,  0, mpi_info->comm);
-                    MPI_Bcast(&name, tag_info[1], MPI_CHAR,  0, mpi_info->comm); //strlen + 1 for null terminator
+                    MPI_Bcast(&name, tag_info[1], MPI_CHAR,  0, mpi_info->comm);
                 }
 #endif
-
-                mesh_p->addTagMap(&name[1], tag_info[0]);
+                mesh_p->addTagMap(name+1, tag_info[0]); //skip leading "
 
             }
         }
