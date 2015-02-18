@@ -1257,7 +1257,7 @@ void MeshAdapter::setToSize(escript::Data& size) const
 //
 // sets the location of nodes
 //
-void MeshAdapter::setNewX(escript::Data& new_x)
+void MeshAdapter::setNewX(const escript::Data& new_x)
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));

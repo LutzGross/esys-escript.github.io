@@ -24,7 +24,7 @@
 
 /************************************************************************************/
 
-void Dudley_Mesh_setCoordinates(Dudley_Mesh * self, escript::Data* newX)
+void Dudley_Mesh_setCoordinates(Dudley_Mesh * self, const escript::Data* newX)
 {
     Dudley_NodeFile_setCoordinates(self->Nodes, newX);
 }
