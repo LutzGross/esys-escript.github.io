@@ -873,6 +873,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
         case Nodes:
             return &m_nodeId[0];
         case Elements:
+        case ReducedElements:
             return &m_elementId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
@@ -1146,9 +1147,33 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     throw SpeckleyException("Rectangle::addToMatrixAndRHS, adding to matrix not supported");
 }
 
+void Rectangle::reduceElements(escript::Data& out, const escript::Data& in) const
+{
+    if (m_order == 2) {
+        reduction_order2(in, out);
+    } else if (m_order == 3) {
+        reduction_order3(in, out);
+    } else if (m_order == 4) {
+        reduction_order4(in, out);
+    } else if (m_order == 5) {
+        reduction_order5(in, out);
+    } else if (m_order == 6) {
+        reduction_order6(in, out);
+    } else if (m_order == 7) {
+        reduction_order7(in, out);
+    } else if (m_order == 8) {
+        reduction_order8(in, out);
+    } else if (m_order == 9) {
+        reduction_order9(in, out);
+    } else if (m_order == 10) {
+        reduction_order10(in, out);
+    }
+}
+
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,
-                                           const escript::Data& in) const
+                                           const escript::Data& in,
+                                           bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
@@ -1156,6 +1181,11 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
     const int quads = m_order + 1;
     const int max_x = m_NN[0];
     out.requireWrite();
+    if (reduced) { //going to ReducedElements
+        escript::Data funcIn(in, escript::function(*this));
+        reduceElements(out, funcIn);
+        return;
+    }
 #pragma omp parallel for
     for (dim_t ey = 0; ey < NE1; ey++) {
         for (dim_t ex = 0; ex < NE0; ex++) {
@@ -1277,18 +1307,39 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
     const dim_t max_x = (m_order*NE0) + 1;
     const dim_t max_y = (m_order*NE1) + 1;
     out.requireWrite();
+    const int inFS = in.getFunctionSpace().getTypeCode();
     // the summation portion
-    for (dim_t colouring = 0; colouring < 2; colouring++) {
+    if (inFS == ReducedElements) {
+        for (dim_t colouring = 0; colouring < 2; colouring++) {
 #pragma omp parallel for
-        for (dim_t ey = colouring; ey < NE1; ey += 2) {
-            for (dim_t ex = 0; ex < NE0; ex++) {
-                dim_t start = ex*m_order + ey*max_x*m_order;
-                const double *e_in = in.getSampleDataRO(ex + ey*NE0);
-                for (int qy = 0; qy < quads; qy++) {
-                    for (int qx = 0; qx < quads; qx++) {
-                        double *n_out = out.getSampleDataRW(start + max_x*qy + qx);
-                        for (int comp = 0; comp < numComp; comp++) {
-                            n_out[comp] += e_in[INDEX3(comp, qx, qy, numComp, quads)];
+            for (dim_t ey = colouring; ey < NE1; ey += 2) {
+                for (dim_t ex = 0; ex < NE0; ex++) {
+                    dim_t start = ex*m_order + ey*max_x*m_order;
+                    const double *e_in = in.getSampleDataRO(ex + ey*NE0);
+                    for (int qy = 0; qy < quads; qy++) {
+                        for (int qx = 0; qx < quads; qx++) {
+                            double *n_out = out.getSampleDataRW(start + max_x*qy + qx);
+                            for (int comp = 0; comp < numComp; comp++) {
+                                n_out[comp] += e_in[comp];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else { //inFS == Elements
+        for (dim_t colouring = 0; colouring < 2; colouring++) {
+#pragma omp parallel for
+            for (dim_t ey = colouring; ey < NE1; ey += 2) {
+                for (dim_t ex = 0; ex < NE0; ex++) {
+                    dim_t start = ex*m_order + ey*max_x*m_order;
+                    const double *e_in = in.getSampleDataRO(ex + ey*NE0);
+                    for (int qy = 0; qy < quads; qy++) {
+                        for (int qx = 0; qx < quads; qx++) {
+                            double *n_out = out.getSampleDataRW(start + max_x*qy + qx);
+                            for (int comp = 0; comp < numComp; comp++) {
+                                n_out[comp] += e_in[INDEX3(comp, qx, qy, numComp, quads)];
+                            }
                         }
                     }
                 }

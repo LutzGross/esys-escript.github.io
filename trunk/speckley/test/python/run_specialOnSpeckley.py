@@ -234,6 +234,43 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
 class Test_Speckley(unittest.TestCase):
+    TOLERANCE = 1e-10
+    def test_Rectangle_ReducedFunction(self):
+        ranks = getMPISizeWorld()
+        for order in range(2, 11):
+            dom = Rectangle(order, 3, 3*ranks, l0=3, l1=3*ranks, d1=ranks)
+            X = dom.getX()
+            redData = interpolate(X, ReducedFunction(dom))
+            data = [(interpolate(redData, ReducedFunction(dom)), "ReducedFunction"),
+                    (interpolate(redData, Function(dom)), "Function"),
+                    (interpolate(redData, ContinuousFunction(dom)), "ContinuousFunction")]
+            for d, fs in data:
+                self.assertLess(inf(d-[0.5]*2), self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != 0"%(fs, order, inf(d-[0.5]*2)))
+                self.assertLess(sup(d[0]+0.5) - 3, self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != 3"%(fs, order, sup(d[0]+0.5)))
+                self.assertLess(sup(d[1]+0.5) - 3*ranks, self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != %g"%(fs, order, sup(d[1]+0.5), 3*ranks))
+
+    def test_Brick_ReducedFunction(self):
+        ranks = getMPISizeWorld()
+        for order in range(2, 11):
+            dom = Brick(order, 3, 3*ranks, 3, l0=3, l1=3*ranks, l2=3, d1=ranks)
+            X = dom.getX()
+            redData = interpolate(X, ReducedFunction(dom))
+            data = [(interpolate(redData, ReducedFunction(dom)), "ReducedFunction"),
+                    (interpolate(redData, Function(dom)), "Function"),
+                    (interpolate(redData, ContinuousFunction(dom)), "ContinuousFunction")]
+            for d, fs in data:
+                self.assertLess(inf(d-[0.5]*3), self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != 0"%(fs, order, inf(d-[0.5]*3)))
+                self.assertLess(sup(d[0]+0.5) - 3, self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != 3"%(fs, order, sup(d[0]+0.5)))
+                self.assertLess(sup(d[1]+0.5) - 3*ranks, self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != %g"%(fs, order, sup(d[1]+0.5), 3*ranks))
+                self.assertLess(sup(d[2]+0.5) - 3, self.TOLERANCE,
+                        "reduced->%s failure with order %d: %g != 3"%(fs, order, sup(d[2]+0.5)))
+
     def test_Rectangle_Function_gradient(self): #expanded and non-expanded
         ranks = getMPISizeWorld()
         for expanded in [True, False]:

@@ -31,12 +31,14 @@ sources = """
     Brick.cpp
     BrickGradients.cpp
     BrickIntegrals.cpp
+    BrickReductions.cpp
     DefaultAssembler2D.cpp
     DefaultAssembler3D.cpp
     domainhelpers.cpp
     Rectangle.cpp
     RectangleGradients.cpp
     RectangleIntegrals.cpp
+    RectangleReductions.cpp
     SpeckleyDomain.cpp
     SpeckleyException.cpp
 """.split()

@@ -224,11 +224,13 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                  const escript::Data& in) const;
+                                  const escript::Data& in,
+                                  bool reduced) const;
     virtual void interpolateElementsOnNodes(escript::Data& out,
                                 const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
+    virtual void reduceElements(escript::Data& out, const escript::Data& in) const;
 #ifdef ESYS_MPI
     virtual void balanceNeighbours(escript::Data& data, bool average) const;
 #endif
@@ -243,6 +245,16 @@ private:
     void gradient_order8(escript::Data&, const escript::Data&) const;
     void gradient_order9(escript::Data&, const escript::Data&) const;
     void gradient_order10(escript::Data&, const escript::Data&) const;
+
+    void reduction_order2(const escript::Data&, escript::Data&) const;
+    void reduction_order3(const escript::Data&, escript::Data&) const;
+    void reduction_order4(const escript::Data&, escript::Data&) const;
+    void reduction_order5(const escript::Data&, escript::Data&) const;
+    void reduction_order6(const escript::Data&, escript::Data&) const;
+    void reduction_order7(const escript::Data&, escript::Data&) const;
+    void reduction_order8(const escript::Data&, escript::Data&) const;
+    void reduction_order9(const escript::Data&, escript::Data&) const;
+    void reduction_order10(const escript::Data&, escript::Data&) const;
 
     void integral_order2(std::vector<double>&, const escript::Data&) const;
     void integral_order3(std::vector<double>&, const escript::Data&) const;

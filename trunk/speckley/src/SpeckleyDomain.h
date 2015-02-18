@@ -274,7 +274,7 @@ public:
 
     /**
        \brief
-       returns locations in the FEM nodes
+       returns locations in the SEM nodes
     */
     virtual escript::Data getX() const;
 
@@ -382,7 +382,7 @@ public:
        returns a function with reduced integration order FunctionSpace code
     */
     virtual int getReducedFunctionCode() const {
-        throw SpeckleyException("Speckley does not support reduced functionspaces");
+        return ReducedElements;
     }
 
     /**
@@ -399,7 +399,7 @@ public:
        FunctionSpace code
     */
     virtual int getReducedFunctionOnBoundaryCode() const {
-        throw SpeckleyException("Speckley does not support reduced function spaces");
+        throw SpeckleyException("Speckley does not support face elements");
     }
 
     /**
@@ -748,6 +748,9 @@ protected:
     void addPoints(const std::vector<double>& coords,
                    const std::vector<int>& tags);
 
+    /// expands ReducedFunction (in) to Function (out)
+    void multiplyData(escript::Data& out, const escript::Data& in) const;
+
     /***********************************************************************/
 
     /// returns the number of nodes per MPI rank
@@ -772,13 +775,17 @@ protected:
 
     /// interpolates data on nodes in 'in' onto elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                            const escript::Data& in) const = 0;
+                                            const escript::Data& in,
+                                            bool reduced) const = 0;
 
     /// interpolates data on elements in 'in' onto nodes in 'out'
     virtual void interpolateElementsOnNodes(escript::Data& out,
                         const escript::Data& in) const = 0;
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
+
+    /// interpolates from Element -> ReducedElement
+    virtual void reduceElements(escript::Data& out, const escript::Data& in) const = 0;
 
 #ifdef ESYS_MPI
     /// sum up overlapping edges of MPI ranks and average if average is true
