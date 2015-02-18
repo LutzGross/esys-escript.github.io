@@ -403,7 +403,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain
      assigns new location to the domain
   */
   DUDLEY_DLL_API
-  virtual void setNewX(escript::Data& arg);
+  virtual void setNewX(const escript::Data& arg);
 
   /**
      \brief
