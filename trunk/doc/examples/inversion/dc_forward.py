@@ -78,7 +78,7 @@ sig_s.expand()
 
 
 schs=SchlumbergerSurvey(domain, sig_p, sig_s, current, a, n, midPoint, directionVector, numEle)
-pot=schs.getPotential()
+pot=schs.getPotentialAnalytic()
 primaryApparentRes=schs.getApparentResistivityPrimary()
 SecondaryApparentRes=schs.getApparentResistivitySecondary()
 totalApparentRes=schs.getApparentResistivityTotal()
