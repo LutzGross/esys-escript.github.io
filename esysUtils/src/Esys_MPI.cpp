@@ -188,14 +188,14 @@ bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
 // To avoid this, we do individual sends to the root which sends the result back.
 bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
 {
-#ifdef ESYS_MPI
-    const int leader=0;
-    const int BIGTAG=esysUtils::getSubWorldTag();
     if (info->size==1)
     {
         mres=res;
         return true;
     }
+#ifdef ESYS_MPI
+    const int leader=0;
+    const int BIGTAG=esysUtils::getSubWorldTag();
     if (info->rank!=leader)
     {  
         if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
@@ -216,6 +216,7 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
         if (MPI_Waitall(info->size-1, reqs, &status[0])!=MPI_SUCCESS)
         {
             delete[] reqs;
+            delete[] eres;
             return false;
         }
         // now we have them all, find the max
@@ -227,6 +228,7 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
                 mres=eres[i];
             }
         }
+        delete[] eres;
         // now we know what the result should be
         // send it to the others
         for (int i=0;i<info->size-1;++i)
@@ -235,15 +237,14 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
         }
         if (MPI_Waitall(info->size-1, reqs, &status[0])!=MPI_SUCCESS)
         {
+            delete[] reqs;
             return false;
         }
+        delete[] reqs;
       
     }
-    return true;
-#else
-    mres=res;
-    return true;
 #endif
+    return true;
 }
 
 

@@ -461,10 +461,8 @@ public:
        returns the identifier of the matrix type to be used for the global
        stiffness matrix when a particular solver, package, preconditioner,
        and symmetric matrix is used
-       \param solver
-       \param preconditioner
-       \param package
-       \param symmetry
+       \param options a python object containing the solver, package,
+                preconditioner and symmetry
     */
     virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 

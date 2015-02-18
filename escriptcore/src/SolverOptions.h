@@ -635,7 +635,7 @@ public:
     /**
         Sets the symmetry flag for the coefficient matrix to ``flag``.
 
-        \param flag If true, the symmetry flag is set otherwise reset.
+        \param symmetry If true, the symmetry flag is set otherwise reset.
     */
     void setSymmetry(bool symmetry);
 
@@ -685,7 +685,7 @@ public:
     /**
         Sets the flag to indicate automatic selection of the inner tolerance.
 
-        \param adapt If ``true``, the inner tolerance is selected automatically
+        \param adaption If ``true``, the inner tolerance is selected automatically
     */
     void setInnerToleranceAdaption(bool adaption);
 
@@ -714,7 +714,7 @@ public:
     /**
         Sets the flag to indicate the acceptance of a failure of convergence.
 
-        \param accept If ``true``, any failure to achieve convergence is
+        \param acceptance If ``true``, any failure to achieve convergence is
                accepted.
     */
     void setAcceptanceConvergenceFailure(bool acceptance);
@@ -740,7 +740,7 @@ public:
     /**
         Sets the flag to use local preconditioning
 
-        \param use If ``true``, local proconditioning on each MPI rank is
+        \param local If ``true``, local proconditioning on each MPI rank is
                applied
     */
     void setLocalPreconditioner(bool local);
@@ -818,7 +818,8 @@ public:
     /**
         Sets the interpolation method for the AMG preconditioner.
 
-        \param method key of the interpolation method to be used, should be in
+        \param interpolation key of the interpolation method to be used,
+               should be in
                `SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING`,
                `SO_INTERPOLATION_CLASSIC`, `SO_INTERPOLATION_DIRECT`
     */
