@@ -112,11 +112,6 @@ ElementData_ptr SpeckleyDomain::getElementsForFunctionSpace(int fsCode) const
             result = cells;
             break;
 
-//        case speckley::ReducedFaceElements:
-//        case speckley::FaceElements:
-//            result = faces;
-//            break;
-
         default: {
             cerr << "Unsupported function space type " << fsCode
                 << "!" << endl;

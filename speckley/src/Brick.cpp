@@ -1037,6 +1037,7 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
         case Nodes:
             return &m_nodeId[0];
         case Elements:
+        case ReducedElements:
             return &m_elementId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
@@ -1369,23 +1370,48 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     const dim_t max_x = m_NN[0];
     const dim_t max_y = m_NN[1];
     const dim_t max_z = m_NN[2];
+    const int inFS = in.getFunctionSpace().getTypeCode();
     out.requireWrite();
     //init to zero so we can do some sums without undefined, may not be required
     memset(out.getSampleDataRW(0), 0, sizeof(double)*quads*quads*numComp);
     // the summation portion
-    for (dim_t colouring = 0; colouring < 2; colouring++) {
-#pragma omp parallel for
-        for (dim_t ez = colouring; ez < NE2; ez += 2) {
-            for (dim_t ey = 0; ey < NE1; ey++) {
-                for (dim_t ex = 0; ex < NE0; ex++) {
-                    dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
-                    const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
-                    for (int qz = 0; qz < quads; qz++) {
-                        for (int qy = 0; qy < quads; qy++) {
-                            for (int qx = 0; qx < quads; qx++) {
-                                double *n_out = out.getSampleDataRW(start + INDEX3(qx, qy, qz, max_x, max_y));
-                                for (dim_t comp = 0; comp < numComp; comp++) {
-                                    n_out[comp] += e_in[INDEX4(comp, qx, qy, qz, numComp, quads, quads)];
+    if (inFS == ReducedElements) {
+        for (dim_t colouring = 0; colouring < 2; colouring++) {
+    #pragma omp parallel for
+            for (dim_t ez = colouring; ez < NE2; ez += 2) {
+                for (dim_t ey = 0; ey < NE1; ey++) {
+                    for (dim_t ex = 0; ex < NE0; ex++) {
+                        dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
+                        const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
+                        for (int qz = 0; qz < quads; qz++) {
+                            for (int qy = 0; qy < quads; qy++) {
+                                for (int qx = 0; qx < quads; qx++) {
+                                    double *n_out = out.getSampleDataRW(start + INDEX3(qx, qy, qz, max_x, max_y));
+                                    for (dim_t comp = 0; comp < numComp; comp++) {
+                                        n_out[comp] += e_in[comp];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }        
+    } else {
+        for (dim_t colouring = 0; colouring < 2; colouring++) {
+    #pragma omp parallel for
+            for (dim_t ez = colouring; ez < NE2; ez += 2) {
+                for (dim_t ey = 0; ey < NE1; ey++) {
+                    for (dim_t ex = 0; ex < NE0; ex++) {
+                        dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
+                        const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
+                        for (int qz = 0; qz < quads; qz++) {
+                            for (int qy = 0; qy < quads; qy++) {
+                                for (int qx = 0; qx < quads; qx++) {
+                                    double *n_out = out.getSampleDataRW(start + INDEX3(qx, qy, qz, max_x, max_y));
+                                    for (dim_t comp = 0; comp < numComp; comp++) {
+                                        n_out[comp] += e_in[INDEX4(comp, qx, qy, qz, numComp, quads, quads)];
+                                    }
                                 }
                             }
                         }
@@ -1446,10 +1472,39 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     }
 }
 
+void Brick::reduceElements(escript::Data& out, const escript::Data& in) const
+{
+    if (m_order == 2) {
+        reduction_order2(in, out);
+    } else if (m_order == 3) {
+        reduction_order3(in, out);
+    } else if (m_order == 4) {
+        reduction_order4(in, out);
+    } else if (m_order == 5) {
+        reduction_order5(in, out);
+    } else if (m_order == 6) {
+        reduction_order6(in, out);
+    } else if (m_order == 7) {
+        reduction_order7(in, out);
+    } else if (m_order == 8) {
+        reduction_order8(in, out);
+    } else if (m_order == 9) {
+        reduction_order9(in, out);
+    } else if (m_order == 10) {
+        reduction_order10(in, out);
+    }
+}
+
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,
-                                       const escript::Data& in) const
+                                       const escript::Data& in,
+                                       bool reduced) const
 {
+    if (reduced) { //going to ReducedElements
+        escript::Data funcIn(in, escript::function(*this));
+        reduceElements(out, funcIn);
+        return;
+    }
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];

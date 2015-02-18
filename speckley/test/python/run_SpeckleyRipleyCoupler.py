@@ -55,6 +55,34 @@ class Test_ripleyCoupler(unittest.TestCase):
         sX = interpolate(sinput, Function(s))
         return actual - interpolate(sX, Function(r)) #actual - interpo...
 
+    def badInterpolations(self, speckley, ripley):
+        FS = Function(speckley)
+        FR = Function(ripley)
+        #bad speck -> good rip
+        with self.assertRaises(RuntimeError):
+            interpolate(speckley.getX(), FR)
+        with self.assertRaises(RuntimeError):
+            interpolate(Data(5, ReducedFunction(speckley)), FR)
+        #good speck -> bad rip
+        with self.assertRaises(RuntimeError):
+            interpolate(Data(5, FS), ReducedFunction(ripley))
+        with self.assertRaises(RuntimeError):
+            interpolate(Data(5, FS), ContinuousFunction(ripley))
+
+    def test_Rectangle_non_Function(self):
+        for order in range(2, 11):
+            coupler = SpeckleyToRipley(2, (2*getMPISizeWorld()*order,order),
+                    order=order, lengths=[3.*getMPISizeWorld(),2.])
+            self.badInterpolations(coupler.getSpeckley(), coupler.getRipley())
+
+    def test_Brick_non_Function(self):
+        for order in range(2, 11):
+            #values here are arbitrary, just has to be Bricks
+            coupler = SpeckleyToRipley(3, (2*getMPISizeWorld()*order,order,order),
+                    order=order, lengths=[3.*getMPISizeWorld(),2.,2.])
+            self.badInterpolations(coupler.getSpeckley(), coupler.getRipley())
+
+
     def test_Rectangle(self):
         for order in range(2,11):
             coupler = SpeckleyToRipley(2, (2*getMPISizeWorld()*order,order),
