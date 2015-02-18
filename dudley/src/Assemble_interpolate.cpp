@@ -30,8 +30,8 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * data,
-				 escriptDataC * interpolated_data)
+void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, const escript::Data* data,
+				 escript::Data* interpolated_data)
 {
     __const double *data_array;
     double *local_data = NULL;

@@ -30,7 +30,7 @@
 /* Unless the loops in here get complicated again this file should be compiled for loop unrolling */
 
 void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
-			      escriptDataC * grad_data, escriptDataC * data)
+			      escript::Data* grad_data, const escript::Data* data)
 {
     size_t localGradSize = 0;
     register dim_t e, q, l, s, n;

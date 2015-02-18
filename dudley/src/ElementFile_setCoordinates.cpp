@@ -24,7 +24,7 @@
 
 /************************************************************************************/
 
-void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escriptDataC * newX)
+void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escript::Data* newX)
 {
     /* self->volume_is_valid=FALSE;   
        self->DSDV_is_valid=FALSE;    
@@ -32,6 +32,3 @@ void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escriptDataC *
        self->X_is_valid=FALSE;          */
 }
 
-/*
-* $Log$
-*/

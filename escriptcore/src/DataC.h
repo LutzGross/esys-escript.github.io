@@ -19,26 +19,16 @@
 #define escript_DataC_20040611_H
 #include "system_dep.h"
 
-/**
-   \brief
-   Provide a wrapper around a Data object so Data may be accessed from C.
+#include "Data.h"
 
-   Description:
-   Provide a wrapper around a Data object so Data may be accessed from C.
 
-*/
-struct escriptDataC {
-  void* m_dataPtr;
-};
-
-typedef struct escriptDataC escriptDataC; 
 
 /**
    \brief
    Return the function space type code.
    \param data Input - C wrapper for Data.
 */
-ESCRIPT_DLL_API int getFunctionSpaceType(escriptDataC* data);
+ESCRIPT_DLL_API int getFunctionSpaceType(const escript::Data* data);
 
 /**
    \brief
@@ -62,7 +52,7 @@ ESCRIPT_DLL_API int getFunctionSpaceType(escriptDataC* data);
    Returns the true if the data are empty or data is NULL.
    \param data Input - C wrapper for Data.
 */
-ESCRIPT_DLL_API int isEmpty(escriptDataC* data);
+ESCRIPT_DLL_API int isEmpty(const escript::Data* data);
 
 /**
    \brief
@@ -71,7 +61,7 @@ ESCRIPT_DLL_API int isEmpty(escriptDataC* data);
    \param rank Input - number of dimensions.
    \param dimensions Input - 
 */
-ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, const int* dimensions);
+ESCRIPT_DLL_API int isDataPointShapeEqual(const escript::Data* data, int rank, const int* dimensions);
 /**
    \brief
    Return true if the number of data points per sample and the number 
@@ -81,7 +71,7 @@ ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, const in
    \param numDataPointsPerSample Input - number of data points per sample
    \param numSamples Input - number of samples
 */
-ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
+ESCRIPT_DLL_API int numSamplesEqual(const escript::Data* data, int numDataPointsPerSample,
 		    dim_t numSamples);
 
 /**
@@ -89,14 +79,14 @@ ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSamp
    Returns the number of data points per sample
    \param data Input - C wrapper for Data.
 */
-ESCRIPT_DLL_API int getNumDataPointsPerSample(escriptDataC* data);
+ESCRIPT_DLL_API int getNumDataPointsPerSample(const escript::Data* data);
 
 /**
    \brief
    Returns the rank of the point data for the data. 
    \param data Input - C wrapper for Data.
 */
-ESCRIPT_DLL_API int getDataPointRank(escriptDataC* data);
+ESCRIPT_DLL_API int getDataPointRank(const escript::Data* data);
 
 /**
    \brief
@@ -104,24 +94,14 @@ ESCRIPT_DLL_API int getDataPointRank(escriptDataC* data);
    \param data Input - C wrapper for Data.
    \param i Input - index of shape component.
 */
-ESCRIPT_DLL_API int getDataPointShape(escriptDataC* data, int i);
+ESCRIPT_DLL_API int getDataPointShape(const escript::Data* data, int i);
 
 /**
    \brief
    Return the number of doubles needed for each data point.
    \param data Input - C wrapper for Data.
 */
-ESCRIPT_DLL_API int getDataPointSize(escriptDataC* data);
-
-/*
-   \brief
-   Return the number of doubles stored for the Data object.
-   Argument data may be NULL, in which case 0 is returnd.
-   \param data Input - C wrapper for Data.
-
-This function has been removed because it does not make sense for LazyData
-*/
-/*ESCRIPT_DLL_API int getLength(escriptDataC* data);*/
+ESCRIPT_DLL_API int getDataPointSize(const escript::Data* data);
 
 /**
    \brief
@@ -131,7 +111,7 @@ This function has been removed because it does not make sense for LazyData
    \param data Input - C wrapper for Data.
    \return true if data is expanded or the data is lazy but would resolve to expanded. False otherwise.
 */
-ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
+ESCRIPT_DLL_API int isExpanded(const escript::Data* data);
 
 /**
    \brief
@@ -142,11 +122,11 @@ ESCRIPT_DLL_API int isExpanded(escriptDataC* data);
   \param sampleNo Input - The sample number.
 
 */
-ESCRIPT_DLL_API double __const * getSampleDataRO(escriptDataC* data, int sampleNo);
+ESCRIPT_DLL_API double const * getSampleDataRO(const escript::Data* data, int sampleNo);
 /* Placement of __const might be important. See .cpp */
 
 
-ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
+ESCRIPT_DLL_API double* getSampleDataRW(escript::Data* data, int sampleNo);
 
 
 /**
@@ -157,7 +137,7 @@ ESCRIPT_DLL_API double* getSampleDataRW(escriptDataC* data, int sampleNo);
   \param sampleNo Input - The sample number.
 
 */
-ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int sampleNo);
+ESCRIPT_DLL_API double const* getSampleDataROFast(const escript::Data* data, int sampleNo);
 
 /**
    \brief
@@ -166,7 +146,7 @@ ESCRIPT_DLL_API double __const* getSampleDataROFast(escriptDataC* data, int samp
   \param data Input - C wrapper for Data.
   \param sampleNo Input - The sample number.
 */
-ESCRIPT_DLL_API double* getSampleDataRWFast(escriptDataC* data, int sampleNo);
+ESCRIPT_DLL_API double* getSampleDataRWFast(escript::Data* data, int sampleNo);
 
 
 /**
@@ -177,7 +157,7 @@ ESCRIPT_DLL_API double* getSampleDataRWFast(escriptDataC* data, int sampleNo);
    \warning Please do not use this in new code.
   \param data Input - C wrapper for Data.
 */
-ESCRIPT_DLL_API double* getDataRW(escriptDataC* data);
+ESCRIPT_DLL_API double* getDataRW(escript::Data* data);
 
 
 /**
@@ -187,6 +167,6 @@ ESCRIPT_DLL_API double* getDataRW(escriptDataC* data);
    Do not create new Data objects based on this one between this call and 
    writing to the object.
 */
-ESCRIPT_DLL_API void requireWrite(escriptDataC* data);
+ESCRIPT_DLL_API void requireWrite(escript::Data* data);
 
 #endif

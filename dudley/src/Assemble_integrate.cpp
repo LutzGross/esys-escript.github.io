@@ -28,7 +28,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * data, double *out)
+void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, const escript::Data* data, double *out)
 {
 /*    type_t data_type=getFunctionSpaceType(data);*/
     dim_t numQuadTotal;

@@ -34,8 +34,8 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * lumpedMat,
-                                  escriptDataC * D, const bool useHRZ)
+void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data * lumpedMat,
+                                  const escript::Data * D, const bool useHRZ)
 {
 
     bool reducedIntegrationOrder = FALSE, expandedD;
@@ -54,14 +54,14 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 
     if (nodes == NULL || elements == NULL)
         return;
-    if (isEmpty(lumpedMat) || isEmpty(D))
+    if (lumpedMat->isEmpty() || D->isEmpty())
         return;
-    if (isEmpty(lumpedMat) && !isEmpty(D))
+    if (lumpedMat->isEmpty() && !D->isEmpty())
     {
         Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: coefficients are non-zero but no lumped matrix is given.");
         return;
     }
-    funcspace = getFunctionSpaceType(D);
+    funcspace = D->getFunctionSpace().getTypeCode();
     /* check if all function spaces are the same */
     if (funcspace == DUDLEY_ELEMENTS)
     {
@@ -105,7 +105,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     /*  check the dimensions: */
     if (p.numEqu == 1)
     {
-        if (!isEmpty(D))
+        if (!D->isEmpty())
         {
             if (!isDataPointShapeEqual(D, 0, dimensions))
             {
@@ -116,7 +116,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     }
     else
     {
-        if (!isEmpty(D))
+        if (!D->isEmpty())
         {
             dimensions[0] = p.numEqu;
             if (!isDataPointShapeEqual(D, 1, dimensions))
@@ -157,7 +157,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
               
               len_EM_lumpedMat = p.numShapes * p.numEqu;
 
-              expandedD = isExpanded(D);
+              expandedD = D->isExpanded();
               if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
               {
                   Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: Unable to locate shape function.");

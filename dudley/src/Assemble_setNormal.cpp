@@ -30,7 +30,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * normal)
+void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data* normal)
 {
     double *local_X = NULL, *dVdv = NULL, *normal_array;
     index_t sign;

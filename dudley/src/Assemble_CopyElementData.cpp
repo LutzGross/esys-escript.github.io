@@ -28,7 +28,7 @@
 /****************************************************************************************************************************/
 #include "ShapeTable.h"
 
-void Dudley_Assemble_CopyElementData(Dudley_ElementFile * elements, escriptDataC * out, escriptDataC * in)
+void Dudley_Assemble_CopyElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in)
 {
     dim_t n, q, numElements, numQuad;
     __const double *in_array;

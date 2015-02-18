@@ -30,7 +30,7 @@
 #endif
 
 /************************************************************************************/
-void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * element_size)
+void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data* element_size)
 {
 
     double *local_X = NULL, *element_size_array;

@@ -29,7 +29,7 @@
 
 #include "ShapeTable.h"
 
-void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escriptDataC * out, escriptDataC * in)
+void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in)
 {
     dim_t n, q, numElements, numQuad_in, numQuad_out, i;
     __const double *in_array;
