@@ -41,8 +41,6 @@ SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldco
     ,globalinfoinvalid(true)
 #endif    
 {
-
-
 }
 
 SubWorld::~SubWorld()
@@ -602,7 +600,6 @@ bool SubWorld::amLeader()
 // share that info around
 bool SubWorld::synchVariableInfo(std::string& err)
 {
-
     if (manualimports)		// manual control over imports
     {
 	for (size_t i=0;i<jobvec.size();++i)
@@ -638,7 +635,6 @@ bool SubWorld::synchVariableInfo(std::string& err)
 	    }
 	}
     }
-      
         // Make a vector to hold the info from the map (so we can send it around)
     std::vector<char> lb(getNumVars(), rs::NONE);
     size_t i=0;
@@ -672,7 +668,6 @@ bool SubWorld::synchVariableInfo(std::string& err)
 	err="Error while gathering variable use information.";
 	return false;	
     }
-    
       // now we convert that info into a form which is easier to read
     int p=0;  
     for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it,++p)
@@ -692,8 +687,6 @@ bool SubWorld::synchVariableInfo(std::string& err)
     }
     
 #endif    
-
-
     if (!manualimports)	
     {
 	    // import all known variables _BUT_ don't import something if noone has a value

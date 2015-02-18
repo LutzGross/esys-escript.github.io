@@ -81,7 +81,6 @@ class Job(object):
     :var v: value to be imported
     :type v: ?
     """
-    print ("Importing variable ",name," with value ",v)
     self.importedvalues[name]=v
   
   
@@ -110,11 +109,9 @@ class Job(object):
     :var name: label for imported value.
     :type name: ``str``
     """
-    print "importedvalues=",self.importedvalues
     if name in self.importedvalues:
         return self.importedvalues[name]
     else:
-        print ("In error handling, imported values are:",self.importedvalues)
         raise KeyError("Attempt to import variable \'"+name+"\' which is not available to this job.")
         return None
 

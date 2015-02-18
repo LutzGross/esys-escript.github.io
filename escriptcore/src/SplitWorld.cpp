@@ -122,45 +122,48 @@ void SplitWorld::runJobs()
 	distributeJobs();
 	int mres=0;
 	std::string err;
-	do
-	{  
-		// find out which variables each world has and wants
+	do	// only here so I can "break" to the end
+	{
+		// find out which variables each world has and wants  (global op)
 	    if (!localworld->synchVariableInfo(err))
 	    {
 		mres=4;
 		break;
 	    }
-		// distribute values to worlds as needed
+		// distribute values to worlds as needed  (global op)
 	    if (!localworld->synchVariableValues(err))
 	    {
 		mres=4;
 		break;
 	    }
-		// give values to jobs
+		// give values to jobs (local op)	
 	    if (!localworld->deliverImports(err))
 	    {
-		mres=4;
-		break;
+		mres=4;	// can't jump to the end because this is a local op
 	    }
-	    // now we actually need to run the jobs
-	    // everybody will be executing their localworld's jobs
-	    int res=localworld->runJobs(err);	
-	    // now we find out about the other worlds
-	    if (!esysUtils::checkResult(res, mres, globalcom))
+	    else	// import delivery was successful
 	    {
-		throw SplitWorldException("MPI appears to have failed.");
+	        // now we actually need to run the jobs
+	        // everybody will be executing their localworld's jobs
+	        mres=localworld->runJobs(err);	
+
+                if (mres<2)
+	        {
+                    if (!localworld->localTransport(err))
+		    {
+		        mres=4;		// both running jobs and local reduction are local ops
+		    }
+	        }
 	    }
-	    if (mres>1)	// 1 and 0 are normal returns, >1 is some sort of error
-	    {
-	      break; 
-	    }
-	    if (!localworld->localTransport(err))
-	    {
-		mres=4;
-		break;
-	    }
-	} while (mres==1);
-	
+
+	} while (false);
+        int res=mres;
+        // now we find out about the other worlds
+        if (!esysUtils::checkResult(res, mres, globalcom))
+        {
+	    throw SplitWorldException("MPI appears to have failed.");
+        }
+
 	localworld->clearJobs();
 	  // at this point, the remote world has all the reductions done
 	  // now we need to do the global merges
@@ -170,7 +173,7 @@ void SplitWorld::runJobs()
 	    err="Error in checkRemoteCompatibility.";
 	}
 	if (mres==0)	
-	{  
+	{  	
 	    return;
 	}
 	else if (mres==2)

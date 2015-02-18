@@ -133,7 +133,6 @@ class Test_SplitWorld(unittest.TestCase):
         self.exportValue("missing",0)   # undeclared
         return True
       if self.faultnum==4:
-	print "Doing faulty export"
         self.exportValue("answer","answer")  # type-mismatch in export
       return True
 
@@ -148,9 +147,8 @@ class Test_SplitWorld(unittest.TestCase):
       return True      
       
       
-  def xtest_faults(self):
+  def test_faults(self):
       for x in range(1,5):
-	print "--------------------"+str(x)+"----------------------------"
         sw=SplitWorld(getMPISizeWorld())
         buildDomains(sw,*self.domainpars)
         addVariable(sw, "answer", makeScalarReducer, "MAX") 
@@ -302,40 +300,55 @@ class Test_SplitWorld(unittest.TestCase):
     addVariable(sw, "hanswer", makeScalarReducer, "SUM")  
     addVariable(sw, "v", makeScalarReducer, "MAX")
     
+    tot=0
+    jobid=1
        #first put jobs of the same type close.
-    for x in range(0,wc//3):
+    for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.PoissonJob)
-    for x in range(0,wc//3):
+      jobid+=1
+    for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.HelmholtzJob)
-    for x in range(0,wc//3):
+      tot+=2*(jobid)
+      jobid+=1
+    for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.DummyJob)
+      jobid+=1
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
-    self.assertEquals(ha, 17)
+    self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")
+    tot=0
       # similar but separated by dummy Jobs
-    for x in range(0,wc//3):
+    for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.PoissonJob)
-    for x in range(0,wc//3):
+      jobid+=1
+    for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.DummyJob)      
-    for x in range(0,wc//3):
+      jobid+=1
+    for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.HelmholtzJob)
+      tot+=2*jobid
+      jobid+=1
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
-    self.assertEquals(ha, 17)
+    self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")   
       # mixed
-    for x in range(0, wc//2):
+    tot=0
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.HelmholtzJob)
+      tot+=2*jobid
       addJob(sw, Test_SplitWorld.DummyJob)
+      jobid+=2
       addJob(sw, Test_SplitWorld.PoissonJob)
+      jobid+=1
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
-    self.assertEquals(ha, 17)    
+    self.assertEquals(ha, tot)    
 
   @unittest.skipIf(getMPISizeWorld()%4!=0, "Test requires number of processes divisible by 4")
   def test_multiple_equations_size4world(self):
@@ -352,40 +365,55 @@ class Test_SplitWorld(unittest.TestCase):
     addVariable(sw, "hanswer", makeScalarReducer, "SUM")  
     addVariable(sw, "v", makeScalarReducer, "MAX")
     
+    jobid=1
+    tot=0
        #first put jobs of the same type close.
-    for x in range(0,wc//2):
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.PoissonJob)
-    for x in range(0,wc//2):
+      jobid+=1
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.HelmholtzJob)
-    for x in range(0,wc//2):
+      tot+=2*jobid
+      jobid+=1      
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.DummyJob)
+      jobid+=1
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
-    self.assertEquals(ha, 17)
+    self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")
+    tot=0
       # similar but separated by dummy Jobs
-    for x in range(0,wc//2):
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.PoissonJob)
-    for x in range(0,wc//2):
-      addJob(sw, Test_SplitWorld.DummyJob)      
-    for x in range(0,wc//2):
+      jobid+=1      
+    for x in range(0, max(wc//2,1)):
+      addJob(sw, Test_SplitWorld.DummyJob) 
+      jobid+=1     
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.HelmholtzJob)
+      tot+=2*jobid
+      jobid+=1
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
-    self.assertEquals(ha, 17)
+    self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")   
+    tot=0
       # mixed
-    for x in range(0, wc//2):
+    for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.HelmholtzJob)
+      tot+=2*jobid
+      jobid+=1
       addJob(sw, Test_SplitWorld.DummyJob)
       addJob(sw, Test_SplitWorld.PoissonJob)
+      jobid+=2
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
-    self.assertEquals(ha, 17)        
+    self.assertEquals(ha, tot)        
     
     
   def test_multiple_equations_smallworld(self):
