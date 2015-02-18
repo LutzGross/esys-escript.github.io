@@ -27,7 +27,7 @@
 
 /************************************************************************************/
 
-void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, escriptDataC * newX)
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, escript::Data* newX)
 {
     char error_msg[LenErrorMsg_MAX];
     size_t numDim_size;

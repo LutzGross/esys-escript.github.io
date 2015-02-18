@@ -138,8 +138,8 @@ void Dudley_NodeFile_setGlobalNodeIDIndexRange(index_t * min_id, index_t * max_i
 void Dudley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in);
 
 /* ===================== */
-void Dudley_NodeFile_setCoordinates(Dudley_NodeFile *, escriptDataC *);
-void Dudley_NodeFile_setTags(Dudley_NodeFile *, const int, escriptDataC *);
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile *, escript::Data *);
+void Dudley_NodeFile_setTags(Dudley_NodeFile *, const int, const escript::Data *);
 void Dudley_NodeFile_setTagsInUse(Dudley_NodeFile * in);
 
 #endif

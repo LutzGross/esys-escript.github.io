@@ -52,9 +52,9 @@
 /************************************************************************************/
 
 void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
-                         paso::SystemMatrix_ptr S, escriptDataC* F,
-                         escriptDataC* A, escriptDataC* B, escriptDataC* C,
-                         escriptDataC* D, escriptDataC* X, escriptDataC* Y)
+                         paso::SystemMatrix_ptr S, escript::Data* F,
+                         const escript::Data* A, const escript::Data* B, const escript::Data* C,
+                         const escript::Data* D, const escript::Data* X, const escript::Data* Y)
 {
     bool reducedIntegrationOrder = false;
     char error_msg[LenErrorMsg_MAX];

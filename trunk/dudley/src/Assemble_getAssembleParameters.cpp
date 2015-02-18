@@ -26,7 +26,7 @@
 /************************************************************************************/
 
 void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, paso::SystemMatrix_ptr S,
-				    escriptDataC * F, bool reducedIntegrationOrder, Dudley_Assemble_Parameters * parm)
+				    const escript::Data* F, bool reducedIntegrationOrder, Dudley_Assemble_Parameters * parm)
 {
     Dudley_resetError();
     parm->shapeFns = NULL;

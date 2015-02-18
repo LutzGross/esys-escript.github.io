@@ -128,7 +128,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *, index_t, index_t, bool);
 Dudley_Mesh *Dudley_Mesh_readGmsh(char *, index_t, index_t, index_t, bool, bool);
 void Dudley_Mesh_setOrders(Dudley_Mesh * in);
 
-void Dudley_Mesh_setCoordinates(Dudley_Mesh *, escriptDataC *);
+void Dudley_Mesh_setCoordinates(Dudley_Mesh *, escript::Data*);
 void Dudley_Mesh_setElements(Dudley_Mesh * self, Dudley_ElementFile * elements);
 void Dudley_Mesh_setFaceElements(Dudley_Mesh * self, Dudley_ElementFile * elements);
 void Dudley_Mesh_setPoints(Dudley_Mesh * self, Dudley_ElementFile * elements);

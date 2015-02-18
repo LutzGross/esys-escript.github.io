@@ -506,23 +506,6 @@ Data::initialise(const double value,
     }
 }
 
-
-escriptDataC
-Data::getDataC()
-{
-    escriptDataC temp;
-    temp.m_dataPtr=(void*)this;
-    return temp;
-}
-
-escriptDataC
-Data::getDataC() const
-{
-    escriptDataC temp;
-    temp.m_dataPtr=(void*)this;
-    return temp;
-}
-
 const bp::tuple
 Data::getShapeTuple() const
 {

@@ -28,7 +28,7 @@
 
 /************************************************************************************/
 
-void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, escriptDataC * mask)
+void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, const escript::Data* mask)
 {
     register dim_t n, q;
     dim_t numElements, numQuad;

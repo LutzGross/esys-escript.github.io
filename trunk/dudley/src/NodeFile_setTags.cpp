@@ -27,7 +27,7 @@
 
 /************************************************************************************/
 
-void Dudley_NodeFile_setTags(Dudley_NodeFile * self, const int newTag, escriptDataC * mask)
+void Dudley_NodeFile_setTags(Dudley_NodeFile * self, const int newTag, const escript::Data* mask)
 {
     register dim_t n;
     dim_t numNodes;

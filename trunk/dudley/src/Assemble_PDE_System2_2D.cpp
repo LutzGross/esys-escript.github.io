@@ -44,9 +44,9 @@
 /************************************************************************************/
 
 void Dudley_Assemble_PDE_System2_2D(Dudley_Assemble_Parameters p, Dudley_ElementFile * elements,
-				    paso::SystemMatrix_ptr Mat, escriptDataC * F,
-				    escriptDataC * A, escriptDataC * B, escriptDataC * C, escriptDataC * D,
-				    escriptDataC * X, escriptDataC * Y)
+				    paso::SystemMatrix_ptr Mat, escript::Data* F,
+				    const escript::Data* A, const escript::Data* B, const escript::Data* C, const escript::Data* D,
+				    const escript::Data* X, const escript::Data* Y)
 {
 
 #define DIM 2

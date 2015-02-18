@@ -22,158 +22,140 @@
 #include "Data.h"
 #include "DataTypes.h"
 
-int getFunctionSpaceType(struct escriptDataC* data) 
+int getFunctionSpaceType(const escript::Data* data) 
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getFunctionSpace().getTypeCode();
+  return data->getFunctionSpace().getTypeCode();
 }
 
 
-int isDataPointShapeEqual(struct escriptDataC* data, int rank, const int* dimensions)
+int isDataPointShapeEqual(const escript::Data* data, int rank, const int* dimensions)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return 1;
   } else {
-     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     return temp->isDataPointShapeEqual(rank, dimensions);
+     return data->isDataPointShapeEqual(rank, dimensions);
   }
 }
 
-int getNumDataPointsPerSample(struct escriptDataC* data) 
+int getNumDataPointsPerSample(const escript::Data* data) 
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return 0;
   } else {
-     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
+     if (data->isEmpty()) {
         return 0;
      } else {
-          return (temp->getNumDataPointsPerSample());
+          return (data->getNumDataPointsPerSample());
      }
   }
 }
 
-int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
+int numSamplesEqual(const escript::Data* data, int numDataPointsPerSample,
                     dim_t numSamples)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
      return 1;
   } else {
-     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     return temp->numSamplesEqual(numDataPointsPerSample, numSamples);
+     return data->numSamplesEqual(numDataPointsPerSample, numSamples);
   }
 }
 
-int getDataPointRank(struct escriptDataC* data)
+int getDataPointRank(const escript::Data* data)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == (const escript::Data*)0) {
        return 0;
   } else {
-       escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-       return temp->getDataPointRank();
+       return data->getDataPointRank();
   }
 }
 
-int getDataPointShape(struct escriptDataC* data,int i)
+int getDataPointShape(const escript::Data* data,int i)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return 0;
   } else {
-     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     int rank = temp->getDataPointRank();
+     int rank = data->getDataPointRank();
      if (i<0 || i>=rank) {
         return 1;
      } else {
-        const escript::DataTypes::ShapeType view=temp->getDataPointShape();
+        const escript::DataTypes::ShapeType& view=data->getDataPointShape();
         return view[i];
      }
   }
 }
 
-int getDataPointSize(struct escriptDataC* data)
+int getDataPointSize(const escript::Data* data)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getDataPointSize();
+  return data->getDataPointSize();
 }
 
-int getLength(struct escriptDataC* data)
+int getLength(const escript::Data* data)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getLength();
+  return data->getLength();
 }
 
-int isExpanded(struct escriptDataC* data)
+int isExpanded(const escript::Data* data)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return false;
   } else {
-     escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
+     if (data->isEmpty()) {
         return false;
      } else {
-        return temp->actsExpanded();
+        return data->actsExpanded();
      }
   }
 }
 
-int isEmpty(escriptDataC* data) 
+int isEmpty(const escript::Data* data) 
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return true;
   } else {
-      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-      return temp->isEmpty();
+      return data->isEmpty();
   }
 }
 
-// The unusual (for me) ordering of __const here is because I'm not sure
-// whether gcc would try to interpret __const as a function attribute rather than
-// a modifier on the return value. Putting it here should remove any ambiguity
-// I have used const rather than __const in the cpp because only c++ will be reading the cpp.
-double const* getSampleDataRO(struct escriptDataC* data, int sampleNo)
+double const* getSampleDataRO(const escript::Data* data, int sampleNo)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return NULL;
   } else {
-      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
+     if (data->isEmpty()) {
         return NULL;
      } else {
-        return temp->getSampleDataRO(sampleNo);
+        return data->getSampleDataRO(sampleNo);
      }
   }
 }
 
-double* getSampleDataRW(struct escriptDataC* data, int sampleNo)
+double* getSampleDataRW(escript::Data* data, int sampleNo)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return NULL;
   } else {
-      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
+     if (data->isEmpty()) {
         return NULL;
      } else {
-        return temp->getSampleDataRW(sampleNo);
+        return data->getSampleDataRW(sampleNo);
      }
   }
 }
 
-const double* getSampleDataROFast(struct escriptDataC* data, int sampleNo)
+const double* getSampleDataROFast(const escript::Data* data, int sampleNo)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getSampleDataRO(sampleNo);
+  return data->getSampleDataRO(sampleNo);
 }
 
-double* getSampleDataRWFast(struct escriptDataC* data, int sampleNo)
+double* getSampleDataRWFast(escript::Data* data, int sampleNo)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  return temp->getSampleDataRW(sampleNo);
+  return data->getSampleDataRW(sampleNo);
 }
 
-double* getDataRW(escriptDataC* data)
+double* getDataRW(escript::Data* data)
 {
-  escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-  if (temp->getNumSamples()>0)
+  
+  if (data->getNumSamples()>0)
   {
      requireWrite(data);
      return getSampleDataRWFast(data,0);
@@ -182,11 +164,11 @@ double* getDataRW(escriptDataC* data)
 }
 
 
-void requireWrite(escriptDataC* data)
+void requireWrite(escript::Data* data)
 {
-  if (data == (struct escriptDataC*)0) {
+  if (data == 0) {
        return;
   } else {
-      ((escript::Data*)(data->m_dataPtr))->requireWrite();
+      data->requireWrite();
   }
 }

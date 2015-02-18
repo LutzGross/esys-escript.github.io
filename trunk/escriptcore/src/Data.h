@@ -29,10 +29,6 @@
 #include "UnaryOp.h"
 #include "DataException.h"
 
-
-
-#include "DataC.h"
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -327,24 +323,6 @@ class Data {
   ESCRIPT_DLL_API
   int
   getTagNumber(int dpno);
-
-  /**
-     \brief
-     Return the C wrapper for the Data object.
-  */
-  ESCRIPT_DLL_API
-  escriptDataC
-  getDataC();
-
-
-
-  /**
-     \brief
-     Return the C wrapper for the Data object - const version.
-  */
-  ESCRIPT_DLL_API
-  escriptDataC
-  getDataC() const;
 
 
   /**

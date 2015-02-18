@@ -28,7 +28,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile * nodes, escriptDataC * x)
+void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile * nodes, escript::Data * x)
 {
     char error_msg[LenErrorMsg_MAX];
     dim_t n;
