@@ -22,6 +22,8 @@
 /* the elements offset to in->numElements+offset-1 in out will be overwritten */
 
 /************************************************************************************/
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
 
 #include "ElementFile.h"
 

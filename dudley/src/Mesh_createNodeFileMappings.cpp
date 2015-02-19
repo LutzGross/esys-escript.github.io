@@ -21,6 +21,9 @@
 
 /************************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "Mesh.h"
 #define UNUSED -1
 

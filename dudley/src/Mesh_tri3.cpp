@@ -23,6 +23,9 @@
 
 /************************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "TriangularMesh.h"
 
 Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
