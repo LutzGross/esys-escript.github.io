@@ -20,6 +20,9 @@
 
 /************************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "NodeFile.h"
 #include "Util.h"
 

@@ -20,6 +20,9 @@
 
 /************************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "IndexList.h"
 
 /* Translate from distributed/local array indices to global indices */

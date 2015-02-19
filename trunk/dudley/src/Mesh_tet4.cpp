@@ -24,6 +24,9 @@
 
 /************************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "TriangularMesh.h"
 
 /* Be careful reading this function. The X? and NStride? are 1,2,3 but the loop vars are 0,1,2 */

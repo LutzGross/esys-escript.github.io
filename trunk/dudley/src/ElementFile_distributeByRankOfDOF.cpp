@@ -19,6 +19,10 @@
 /*   Dudley: ElementFile: this will redistribute the Elements including overlap by */
 
 /************************************************************************************/
+
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "ElementFile.h"
 #ifdef _OPENMP
 #include <omp.h>

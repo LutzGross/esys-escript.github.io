@@ -26,6 +26,9 @@
 
 /************************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+
 #include "Mesh.h"
 #include "Util.h"
 
