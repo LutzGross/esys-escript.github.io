@@ -29,9 +29,9 @@ localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_
 alltestruns = testruns + localtestruns
 
 # test files are just compiled - none of those in pycad yet
-#sources = Glob('test_*.py')
-#test_pyc = env.PyCompile(sources)
-#env.Alias('build_py_tests', test_pyc)
+sources = Glob('run_*.py')
+test_pyc = env.PyCompile(sources)
+env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', Dir('#/pycad/test/python'))
