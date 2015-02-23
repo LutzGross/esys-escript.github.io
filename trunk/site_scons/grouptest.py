@@ -99,7 +99,7 @@ class GroupTest(object):
             res=res+tt+"echo Starting "+t+"\ndate\n"
             outputfile = ""
             if "examples" not in build_dir and "PYTHONRUNNER" in self.exec_cmd:
-                outputfile = " -outputfile={0}{1}".format(build_dir, t.replace(".py", ".skipped"))
+                outputfile = " -outputfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
             res += "{0}{1}{2}{3} || failed {2}\n".format(tt, self.exec_cmd, t, outputfile)
             res += tt+"echo Completed "+t+"\n"
         if self.single_processor_only:
