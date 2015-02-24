@@ -27,6 +27,7 @@ del py_wrapper_local_env['SHLIBPREFIX']
 sources = """
     AbstractContinuousDomain.cpp
     AbstractDomain.cpp
+    AbstractReducer.cpp
     AbstractSystemMatrix.cpp
     AbstractTransportProblem.cpp
     Data.cpp
@@ -53,7 +54,6 @@ sources = """
     NullDomain.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
-    Reducer.cpp
     SplitWorld.cpp
     SplitWorldException.cpp
     SubWorld.cpp
@@ -70,6 +70,7 @@ sources = """
 headers = """
     AbstractContinuousDomain.h
     AbstractDomain.h
+    AbstractReducer.h
     AbstractSystemMatrix.h
     AbstractTransportProblem.h
     BinaryOp.h
@@ -101,7 +102,6 @@ headers = """
     MPIDataReducer.h
     MPIScalarReducer.h
     Pointers.h
-    Reducer.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h

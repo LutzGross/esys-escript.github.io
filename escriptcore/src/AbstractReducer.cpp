@@ -22,7 +22,7 @@
 #include <boost/python/extract.hpp>
 #include <boost/scoped_array.hpp>
 
-#include "Reducer.h"
+#include "AbstractReducer.h"
 #include "SplitWorldException.h"
 
 using namespace boost::python;

@@ -20,7 +20,7 @@
 #include <boost/smart_ptr.hpp>
 #include "esysUtils/Esys_MPI.h"
 #include "SubWorld.h"
-#include "Reducer.h"
+#include "AbstractReducer.h"
 namespace escript
 {
 

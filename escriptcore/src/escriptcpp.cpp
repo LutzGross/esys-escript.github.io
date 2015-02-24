@@ -33,7 +33,7 @@
 #include "TestDomain.h"
 #include "SubWorld.h"
 #include "SplitWorld.h"
-#include "Reducer.h"
+#include "AbstractReducer.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
 #include "SolverOptions.h"
