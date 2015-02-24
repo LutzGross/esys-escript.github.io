@@ -22,6 +22,9 @@
 #include "SplitWorldException.h"
 #include "esysUtils/pyerr.h"
 
+#include "MPIDataReducer.h"
+#include "MPIScalarReducer.h"
+
 #include <boost/python/import.hpp>
 #include <boost/python/dict.hpp>
 
