@@ -240,3 +240,8 @@ tools_names = [('intelc',{'topdir':'/sw/intel/composer_xe_2015.1.133'})]
 
 #forcecollres = 'leave_alone'
 
+# uncomment the following four options to build with mpt (check modules!)
+#build_dir = 'buildmpt'
+#mpi = 'MPT'
+#mpi_prefix = '/opt/sgi/mpt/mpt-2.10'
+#parmetis_prefix = '/sw/libs/parmetis/4.0.3-mpt'
