@@ -96,7 +96,7 @@ public:
 protected:
 
     bool valueadded;
-    
+    static const int PARAMTAG;    
 };
 
 

@@ -36,6 +36,7 @@
 #include "AbstractReducer.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
+#include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "SolverOptionsException.h"
 
@@ -135,9 +136,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
 
   class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
   
-  def("makeDataReducer", escript::makeDataReducer, (arg("op")), "Creates an object to combine values.\n\n"
-  ":param op: name of the operation to use.\n:type op: `str`");
-
   // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one
   // These functions take a SplitWorld instance as their first parameter
   def("buildDomains", raw_function(escript::raw_buildDomains,2));
@@ -147,7 +145,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   
   def("makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
   def("makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
-
+//  def("makeLocalOnly", escript::makeNonReducedVariable, arg("dummy"), "Create a variable which is not connected to copies in other worlds.");
       
   class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")

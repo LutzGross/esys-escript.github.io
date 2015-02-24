@@ -28,12 +28,8 @@
 using namespace boost::python;
 using namespace escript;
 
-#ifdef ESYS_MPI
-namespace escript
-{
-const int PARAMTAG=120567;	// arbitrary value
-}
-#endif
+
+const int AbstractReducer::PARAMTAG=120567;
 
 bool AbstractReducer::hasValue()
 {

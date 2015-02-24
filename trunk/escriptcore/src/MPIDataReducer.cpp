@@ -61,13 +61,6 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
 
 }
 
-#ifdef ESYS_MPI
-namespace escript
-{
-extern const int PARAMTAG;
-}
-#endif
-
 MPIDataReducer::MPIDataReducer(MPI_Op op)
   : reduceop(op)
 {

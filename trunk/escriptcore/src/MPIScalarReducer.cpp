@@ -77,12 +77,6 @@ void combineDouble(double& d1, const double d2, MPI_Op op)
     }    
 }
 }
-#ifdef ESYS_MPI
-namespace escript
-{
-extern const int PARAMTAG;	// arbitrary value
-}
-#endif
 
 
 MPIScalarReducer::MPIScalarReducer(MPI_Op op)
