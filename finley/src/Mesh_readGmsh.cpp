@@ -992,6 +992,14 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     FILE * fileHandle_p = NULL;
 
     resetError();
+    std::size_t found = fname.find("\n");
+    if (found!=std::string::npos){
+        sprintf(error_msg, "file %s contains newline characters.", fname.c_str());
+        errorFlag=THROW_ERROR;
+        send_state(mpi_info, errorFlag, logicFlag);
+        throw FinleyAdapterException(error_msg);
+    }
+
     // allocate mesh
     Mesh* mesh_p = new Mesh(fname, numDim, mpi_info);
 
