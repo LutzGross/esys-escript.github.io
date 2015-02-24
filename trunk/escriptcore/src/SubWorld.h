@@ -19,7 +19,7 @@
 
 #include "esysUtils/Esys_MPI.h"
 #include "AbstractDomain.h"
-#include "Reducer.h"
+#include "AbstractReducer.h"
 
 namespace escript
 {
