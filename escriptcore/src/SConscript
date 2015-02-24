@@ -51,6 +51,8 @@ sources = """
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     NullDomain.cpp
+    MPIDataReducer.cpp
+    MPIScalarReducer.cpp
     Reducer.cpp
     SplitWorld.cpp
     SplitWorldException.cpp
@@ -96,6 +98,8 @@ headers = """
     LapackInverseHelper.h
     LocalOps.h
     NullDomain.h
+    MPIDataReducer.h
+    MPIScalarReducer.h
     Pointers.h
     Reducer.h
     SplitWorld.h

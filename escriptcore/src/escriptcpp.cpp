@@ -34,6 +34,8 @@
 #include "SubWorld.h"
 #include "SplitWorld.h"
 #include "Reducer.h"
+#include "MPIDataReducer.h"
+#include "MPIScalarReducer.h"
 #include "SolverOptions.h"
 #include "SolverOptionsException.h"
 
