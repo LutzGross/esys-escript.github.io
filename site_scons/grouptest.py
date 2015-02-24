@@ -70,7 +70,11 @@ class GroupTest(object):
         if stdloc:
             res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=\"run-escript -b $2\"\nPYTHONRUNNER=\"run-escript $2\"\nBATCH_ROOT=`pwd`\n"
         else:
-            res=res+"\nexport OLD_PYTHON=%s:$PYTHONPATH\nBINRUNNER=\"%s/bin/run-escript -b $2\"\nPYTHONRUNNER=\"%s/bin/run-escript $2 %s/tools/testrunner.py\"\nBATCH_ROOT=`pwd`\n"%(prefix,prefix,prefix,prefix)
+            res=res+"""\nexport OLD_PYTHON={0}:$PYTHONPATH
+BINRUNNER=\"{0}/bin/run-escript -b $2\"
+PYTHONRUNNER=\"{0}/bin/run-escript $2\"
+PYTHONTESTRUNNER=\"{0}/bin/run-escript $2 {0}/tools/testrunner.py\"
+BATCH_ROOT=`pwd`\n""".format(prefix)
         res=res+"BUILD_DIR=$1"+"/"+build_platform
         res=res+"\nif [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
         #res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
@@ -98,10 +102,12 @@ class GroupTest(object):
         for t in self.test_list:
             res=res+tt+"echo Starting "+t+"\ndate\n"
             outputfile = ""
+            cmd = self.exec_cmd
             if "examples" not in build_dir and "PYTHONRUNNER" in self.exec_cmd \
                     and "/tools/" not in build_dir:
                 outputfile = " -outputfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
-            res += "{0}{1}{2}{3} || failed {2}\n".format(tt, self.exec_cmd, t, outputfile)
+                cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
+            res += "{0}{1}{2}{3} || failed {2}\n".format(tt, cmd, t, outputfile)
             res += tt+"echo Completed "+t+"\n"
         if self.single_processor_only:
             res+="fi\n"
