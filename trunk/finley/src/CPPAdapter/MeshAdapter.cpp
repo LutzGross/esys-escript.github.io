@@ -2197,12 +2197,14 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
     Mesh* mesh=m_finleyMesh.get();
 
     if ( points.size() % dim != 0 ) {
-        throw FinleyAdapterException("Error - number of coords does not appear to be a multiple of dimension.");
+        char err[200];
+        sprintf(err,"Error - number of coords in diractags is %ld this should be a multiple of the specified dimension:%d.",points.size(),dim);
+        throw FinleyAdapterException(err);
     }
 
     if (numPoints != numTags)
     {
-	throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
+	   throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
     }
 
     if (numPoints > 0) {
