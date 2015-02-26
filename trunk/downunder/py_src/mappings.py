@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by University of Queensland
@@ -250,7 +250,7 @@ class DcResMapping(Mapping):
         if inf(((self.__sigma0*self.a)/s)) <= 1.:
             raise ValueError("sigma 0*a/s < 1 this is not valid as log cannot be 0 or negative")
         m= - 1./self.__k * log(((self.__sigma0*self.a)/(s-self.minVal))-1)
-        print "inv(s)=",m
+        print ("inv(s)=",m)
         return m 
         
 
