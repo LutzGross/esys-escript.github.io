@@ -218,18 +218,20 @@ class DcResMapping(Mapping):
         sigmoid mapping
         s=a/(1+e^(-k*m))    
     """
-    def __init__(self, sigma_prior, k=1., a=1000.):
+    def __init__(self, sigma_prior, k=1., a=0.01, minVal=1/1000.):
         self.__sigma0=sigma_prior
         self.__k=k
         self.a=a
+        self.minVal=minVal
     def getValue(self, m):
         print ("in get value inf(m)=",inf(m)," sup(m)=", sup(m))
         # s=self.__sigma0 + (self.__sigma0 * self.__k*m)
         # s=self.__sigma0*exp(self.__k*m)
         #### use sigmoid mapping
-        s=self.__sigma0*self.a / (1+exp(-self.__k * m))
+        s=(self.__sigma0*self.a / (1+exp(-self.__k * m))) + self.minVal
         print ("in get value inf(s)=",inf(s)," sup(s)=", sup(s))
-        print ("in get value 1/inf(s)=",1./inf(s)," 1/sup(s)=", 1./sup(s))
+        if sup(s)!=0 and inf(s)!=0:
+            print ("in get value 1/inf(s)=",1./inf(s)," 1/sup(s)=", 1./sup(s))
         return s
        
     def getDerivative(self, m):
@@ -246,8 +248,9 @@ class DcResMapping(Mapping):
         """
         # return (s-self.__sigma0) / (self.__sigma0 * self.__k)
         if inf(((self.__sigma0*self.a)/s)) <= 1.:
-            raise ValueError("sigma0*a/s < 1 this is not valid as log cannot be 0 or negative")
-        m= - 1./self.__k * log(((self.__sigma0*self.a)/s)-1)
+            raise ValueError("sigma 0*a/s < 1 this is not valid as log cannot be 0 or negative")
+        m= - 1./self.__k * log(((self.__sigma0*self.a)/(s-self.minVal))-1)
+        print "inv(s)=",m
         return m 
         
 
