@@ -688,6 +688,7 @@ env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
+Requires('py_tests', 'install_all')
 
 ##################### Targets to build the documentation #####################
 
