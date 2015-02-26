@@ -13,7 +13,7 @@
 *
 *****************************************************************************/
 
-#ifndef __ESCRIPT_DATAREDUCER_H
+#ifndef __ESCRIPT_DATAREDUCER_H__
 #define __ESCRIPT_DATAREDUCER_H__
 
 #include "esysUtils/Esys_MPI.h"
