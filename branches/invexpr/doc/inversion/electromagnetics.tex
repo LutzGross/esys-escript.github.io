@@ -1,0 +1,144 @@
+\setlength{\parindent}{0.5cm}
+\chapter{Electromagnetic Fields}\label{sec:electromagneticfields}
+A field is a spatial distribution of a quantity.  Variations in a field can be represented graphically by directed field lines called flux lines or stream lines.  Flux lines may arise from a vortex source which causes a circulation or curl of the field around it, or from a flow source which causes a net outward flow or divergence of the field from it.\footnote{The material of this chapter -- definitions and equations and their development -- has been sourced from Cheng \cite{Cheng1989}.}  The following sections develop models that describe steady electric fields arising from static electric charges, steady magnetic fields arising from electric charges in motion, steady electromagnetic fields arising from steady electric currents in conductors, and time-varying electromagnetic fields.
+
+
+\section{The Electrostatic Model}\label{sec:electrostatics}
+
+\section{The Magnetostatic Model}\label{sec:magnetostatics}
+An electric charge $q$ (C) with velocity $\mathbf{v}$ (m/s) experiences a force $\mathbf{F_m}$ (N) when placed in a steady magnetic field represented by $\mathbf{B}$:
+\begin{equation}\label{F m}
+\mathbf{F_m} = q \mathbf{v} \times \mathbf{B}
+\end{equation}
+Units for $\mathbf{B}$: $\left( \frac{\mathrm{N}}{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}} \right)$ or $\left( \frac{\mathrm{J}}{\mathrm{A} \cdot \mathrm{m^2}} \right)$ or (Wb/m$^2$) or (T).\footnote{Although $\mathbf{B}$ is described commonly as a density of the flux of the magnetic field (magnetic flux density), it is a direct measure of the \emph{strength} of the field, since it measures the \emph{force} exerted by the magnetic field on moving electric charges.  Similarly, $\mathbf{H}$ is described commonly as the magnetic field strength but is only indirectly a measure of the strength, since it is the product of the electric charges and their velocities per unit area of a surface through which the magnetic field they generate passes (see main text below); and so it may be better described as a density of the flux of the field (magnetic flux density).  Calling $\mathbf{B}$ the \emph{magnetic field strength} and $\mathbf{H}$ the \emph{magnetic flux density} has an analog in electric field theory 
+where $\mathbf{E}$, commonly described as the \emph{electric field strength}, measures the force exerted by the electric field on electric charges, and $\mathbf{D}$, commonly described as the \emph{electric flux density}, measures the electric charge per unit area of an enclosing surface through which the electric field that the charges generate passes.%they pass and around whose contour the magnetic field circulates.  Although calling $\mathbf{H}$ the \emph{magnetic flux density} is at odds with currently popular names, it does have an analog in electric field theory where $\mathbf{D}$, commonly described as the \emph{electric flux density}, measures the electric charge per unit area of an enclosing surface through which the electric field flows.
+}
+
+%Although calling $\mathbf{B}$ the \emph{magnetic field strength} is at odds with currently popular names, it does have an analog in electric field theory where $\mathbf{E}$, commonly described as the \emph{electric field strength}, measures the force exerted by the electric field on electric charges.  
+
+For a steady magnetic field in the absence of a magnetizable material the curl of $\mathbf{B}$ is proportional to the current density $\mathbf{J}$ (A/m$^2$) arising from free electric charges:
+\begin{equation}\label{curl B}
+\mathbf{\nabla} \times \mathbf{B} = \mu_0 \mathbf{J}
+\end{equation}
+or in integral form:
+\begin{equation}\label{int B.dl}
+\int_S (\mathbf{\nabla} \times \mathbf{B}) \cdot d\mathbf{s} = \oint_C \mathbf{B} \cdot d\mathbf{l} =  \mu_0 \int_S \mathbf{J} \cdot d\mathbf{s} = \mu_0 I
+\end{equation}
+{\noindent}where the surface integral of the circulation of $\mathbf{B}$ over the open surface $S$ equals the closed line integral of $\mathbf{B}$ along the contour $C$ bounding the surface by Stokes's theorem (or, the curl theorem); $\mu_0$, equal to $4 \pi \times 10^{-7}$ H/m (or N/A$^2$), is the magnetic field constant or the permeability of free space; and $I$ (A) is the current corresponding to $\mathbf{J}$.\\
+
+For a steady magnetic field in the presence of a magnetizable material the curl of $\mathbf{B}$ also depends on an equivalent magnetization current density $\mathbf{J_m}$ (A/m$^2$) arising from the magnetization of a medium from bound electric charges:
+\begin{equation}\label{curl B in}
+\mathbf{\nabla} \times \mathbf{B} = \mu_0 (\mathbf{J} + \mathbf{J_m})
+\end{equation}
+or in integral form:
+\begin{equation}\label{int B.dl in}
+\int_S (\mathbf{\nabla} \times \mathbf{B}) \cdot d\mathbf{s} = \oint_C \mathbf{B} \cdot d\mathbf{l} =  \mu_0 \int_S (\mathbf{J} + \mathbf{J_m}) \cdot d\mathbf{s} = \mu_0 (I + I_m)
+\end{equation}
+{\noindent}where $I_m$ (A) is the equivalent magnetization current corresponding to $\mathbf{J_m}$. $\mathbf{J_m}$ is the circulation of the magnetic polarization $\mathbf{M}$ (A/m) which is the density of magnetic dipole moments arising from the atoms in a material:
+\begin{equation}\label{J m}
+\mathbf{J_m} = \mathbf{\nabla} \times \mathbf{M}
+\end{equation}
+Substituting Eq.~\ref{J m} into Eq.~\ref{curl B in} yields one of the governing equations for the magnetostatic model:
+\begin{equation}\label{curl H}
+\mathbf{\nabla} \times \mathbf{H} = \mathbf{J}
+\end{equation}
+or in integral form:
+\begin{equation}\label{int H.dl}
+\int_S (\mathbf{\nabla} \times \mathbf{H}) \cdot d\mathbf{s} = \oint_C \mathbf{H} \cdot d\mathbf{l} =  \int_S \mathbf{J} \cdot d\mathbf{s} = I
+\end{equation}
+where the steady magnetic field is now represented by $\mathbf{H}$:
+\begin{equation}\label{H}
+\mathbf{H} = \frac{\mathbf{B}}{\mu_0} - \mathbf{M}
+\end{equation}
+Units for $\mathbf{H}$: $\left( \frac{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}}{\mathrm{m^2}} \right)$ or (A/m).\footnote{We have, then, in $\mathbf{B}$ and $\mathbf{H}$, two ways of taking the measure of a magnetic field.  One measure ($\mathbf{B}$) is calculation of the force exerted by the field on a unit electric charge having unit velocity $\left( \frac{\mathrm{N}}{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}} \right)$.  The other measure ($\mathbf{H}$) is calculation of the product of  the electric charges themselves and their velocities per unit area $\left( \frac{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}}{\mathrm{m^2}} \right)$ of the surface through which the generated magnetic field passes.  These two measures of the magnetic field have an analog in the measures of an electric field, where $\mathbf{E}$, the electric field strength, is a measure of the field as a force per unit electric charge (N/C), and $\mathbf{D}$, the electric flux density (or electric displacement), is a measure of 
+the field as the electric charges themselves per unit area (C/m$^2$) of the enclosing surface through which the generated electric field passes.}\\
+
+Because the divergence of the curl of a vector field is zero, finding the divergence of Eq.~\ref{curl H} yields:
+\begin{equation}\label{div J}
+\mathbf{\nabla} \cdot \mathbf{J} = 0
+\end{equation}
+{\noindent}The zero divergence of the current density requires steady currents in the magnetostatic model, although in the more general electromagnetic model currents may vary with time and may therefore have nonzero divergence.
+
+There are no flow sources for a magnetic field, only vortex sources: moving electric charges, around which magnetic fields circulate.  Magnetic flux lines in free space always close upon themselves, making them solenoidal.  Using $\mathbf{B}$ to represent the magnetic field, the divergence of $\mathbf{B}$ will always be zero, yielding the other governing equation for the magnetostatic model:
+\begin{equation}\label{div B}
+\mathbf{\nabla} \cdot \mathbf{B} = 0
+\end{equation}
+or in integral form:
+\begin{equation}\label{int B.ds}
+\int_V \mathbf{\nabla} \cdot \mathbf{B}\,dv = \oint_S \mathbf{B} \cdot d\mathbf{s} = 0
+\end{equation}
+{\noindent}where the volume integral of the divergence of $\mathbf{B}$ over the volume $V$ equals the total flux of $\mathbf{B}$ through the surface $S$ bounding the volume by Gauss's theorem (or, the divergence theorem).\\
+
+Within a magnetizable material the magnetic field is affected by the magnetic polarization $\mathbf{M}$ of the medium, which is not necessarily divergenceless.  Using $\mathbf{H}$ to represent the magnetic field, including the magnetization arising from bound charges, the divergence of $\mathbf{H}$ will not always be zero:
+\begin{equation}\label{div H}
+\mathbf{\nabla} \cdot \mathbf{H} = \frac{1}{\mu_0} \mathbf{\nabla} \cdot \mathbf{B} - \mathbf{\nabla} \cdot \mathbf{M} = - \mathbf{\nabla} \cdot \mathbf{M}
+\end{equation}
+Because the magnetic polarization does not exist outside a magnetizable material, in free space $\mathbf{H}$ is proportional to $\mathbf{B}$ and is then divergenceless:
+\begin{equation}\label{H free space}
+\mathbf{H} = \frac{\mathbf{B}}{\mu_0}
+\end{equation}
+
+Because $\mathbf{B}$ is divergenceless, and because the divergence of the curl of a vector field is also zero, $\mathbf{B}$ can be expressed as the curl of another vector field, the vector magnetic potential $\mathbf{A}$:
+\begin{equation}\label{curl A}
+\mathbf{B} = \mathbf{\nabla} \times \mathbf{A}
+\end{equation}
+Units for $\mathbf{A}$: $\left( \frac{\mathrm{J}}{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}} \right)$ or (N/A) or (Wb/m) or ($\mathrm{T} \cdot \mathrm{m}$).\\
+{\noindent}Thus:
+\begin{equation}\label{curl curl A}
+\mathbf{\nabla} \times \mathbf{\nabla} \times \mathbf{A} = \mu_0 \mathbf{J}
+\end{equation}
+{\noindent}Using the vector identity:
+\begin{equation}\label{identity}
+\mathbf{\nabla} \times \mathbf{\nabla} \times \mathbf{A} = \mathbf{\nabla} (\mathbf{\nabla} \cdot \mathbf{A}) - \mathbf{\nabla}^2 \mathbf{A}
+\end{equation}
+{\noindent}and choosing $\mathbf{A}$ to be divergenceless yields a vector Poisson's equation:
+\begin{equation}\label{vector Poisson}
+\mathbf{\nabla}^2 \mathbf{A} = -\mu_0\mathbf{J}
+\end{equation}
+{\noindent}The vector magnetic potential can therefore be expressed in terms of the volume integral of the current density:
+\begin{equation}\label{A}
+\mathbf{A} = \frac{\mu_0}{4 \pi} \int_V \frac{\mathbf{J}}{R}\,dv
+\end{equation}
+{\noindent}where $R$ is the distance from the moving electric charges that are generating the magnetic field.\\
+
+The vector magnetic potential $\mathbf{A}$ can thus be obtained from the current density $\mathbf{J}$, and $\mathbf{B}$ can then be obtained from $\mathbf{A}$.\\
+
+Although there is no net flow of the magnetic field in free space through an enclosing surface (see Eq.~\ref{int B.ds}), through a surface not bounding a volume there will be a net flow.  If $\mathbf{B}$, the force exerted on or by moving electric charges, is used to quantify the magnetic field, then  $\Phi_{\mathbf{B}}$ is the integral of $\mathbf{B}$ over an area of surface, which relates to the integral of the vector magnetic potential over a contour bounding the surface using the curl theorem:
+\begin{equation}\label{Phi B}
+\Phi_{\mathbf{B}} = \int_S \mathbf{B} \cdot d\mathbf{s} = \int_S (\mathbf{\nabla} \times \mathbf{A}) \cdot d\mathbf{s} = \oint_C \mathbf{A} \cdot d\mathbf{l}
+\end{equation}
+{\noindent}Units for $\Phi_{\mathbf{B}}$: $\left( \frac{\mathrm{N} \cdot \mathrm{m^2}}{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}} \right)$ or (J/A) or (Wb).\\
+The integral of $\mathbf{B}$ through an open surface (commonly called the flux of $\mathbf{B}$) is proportional (by the permeability of free space) to the product of the electric charges and their velocities which are generating the magnetic field through the surface.  This bears a resemblance to one form of Gauss's law which states that the net flux of $\mathbf{E}$ (electric field strength) in free space through a closed surface is proportional (by the permittivity of free space) to the electric charges enclosed by the surface.\\
+
+If $\mathbf{H}$, the density of moving electric charges, is used to quantify the magnetic field, then the flow of the magnetic field in free space through an open surface may also be expressed as the flux $\Phi_{\mathbf{H}}$ of $\mathbf{H}$ (which is now proportional to $\mathbf{B}$):
+\begin{equation}\label{H flux}
+\Phi_{\mathbf{H}} = \int_S \mathbf{H} \cdot d\mathbf{s} = \frac{1}{\mu_0} \int_S (\mathbf{\nabla} \times \mathbf{A}) \cdot d\mathbf{s} = \frac{1}{\mu_0} \oint_C \mathbf{A} \cdot d\mathbf{l}
+\end{equation}
+{\noindent}Units for $\Phi_{\mathbf{H}}$: $\left( \mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}\right)$ or ($\mathrm{A} \cdot \mathrm{m}$).\\
+The flux of $\mathbf{H}$ in free space through an open surface equals the electric charges multiplied by their velocities which are generating the magnetic field through the surface.  This also bears a resemblance to another form of Gauss's law which states that the net flux of $\mathbf{D}$ (electric flux density) through a closed surface equals the electric charges enclosed by the surface.\\
+
+When the magnetic properties of a medium are linear, the magnetization $\mathbf{M}$ is directly proportional to the magnitude of $\mathbf{H}$; when the properties are  also isotropic, $\mathbf{M}$ is also independent of the direction of $\mathbf{H}$ and the magnetization is formulated as:
+\begin{equation}\label{chi m}
+\mathbf{M} = \chi_m \mathbf{H}
+\end{equation}
+{\noindent}where $\chi_m$ is a dimensionless variable called the magnetic susceptibility, which is a function only of coordinates (that is, $\chi_m \equiv \chi_m(x,y,z)$ in a cartesian coordinate system) of the linear, isotropic medium.
+{\noindent}$\mathbf{H}$ and $\mathbf{B}$ are now related in the magnetostatic model (for linear, isotropic media) by the constitutive relation:
+\begin{equation}\label{H chi m}
+\mathbf{H} = \frac{1}{\mu} \mathbf{B}
+\end{equation}
+{\noindent}where $\mu = \mu_0 \mu_r$ (H/m) is the permeability of the medium and $\mu_r =  1 + \chi_m$, another dimensionless variable, is the relative permeability of the medium.  When, besides being linear and isotropic, the medium is homogeneous (a simple medium), the magnetic susceptibility, permeability and relative permeability, besides being independent of $\mathbf{H}$, are also independent of space coordinates and are thus constant.
+
+If there are no free currents, $\mathbf{H}$ does not circulate and Eq.~\ref{curl H} becomes:
+\begin{equation}\label{curl H J=0}
+\mathbf{\nabla} \times \mathbf{H} = 0
+\end{equation}
+{\noindent}and $\mathbf{H}$ can be expressed as the gradient of a scalar field, the scalar magnetic potential $W$ (A):
+\begin{equation}\label{grad W}
+\mathbf{H} = -\mathbf{\nabla}W
+\end{equation}
+
+
+\section{The Electromagnetostatic Model}\label{sec:electromagnetostatics}
+
+\section{The Electromagnetodynamic Model}\label{sec:electromagnetodynamics}
+
