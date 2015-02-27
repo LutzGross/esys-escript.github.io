@@ -65,6 +65,11 @@ public:
 	// reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);
     
+    bool localOnly()
+    {
+	return true;
+    }
+    
 private:    
     double value;
     double identity;

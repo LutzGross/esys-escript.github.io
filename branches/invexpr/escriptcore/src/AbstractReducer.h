@@ -93,6 +93,11 @@ public:
     virtual boost::python::object getPyObj()=0; 
     
     virtual void clear();
+    
+    virtual bool localOnly()
+    {
+	return false;
+    }
 protected:
 
     bool valueadded;

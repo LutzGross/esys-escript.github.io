@@ -487,6 +487,10 @@ bool SubWorld::synchVariableValues(std::string& err)
     int vnum=0;    
     for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it, ++vnum)
     {
+         if (it->second->localOnly())
+	 {
+	    continue;
+	 }
          // check to see if anyone needs it
 	int needcount=0; // who wants a new value
 	int newcount=0;	// who has a new version
@@ -741,12 +745,6 @@ bool SubWorld::synchVariableInfo(std::string& err)
 
     return true;
 }
-
-// // merge / ship values as required
-// bool SubWorld::synchVariableValues(std::string& err)
-// {
-//     return reduceRemoteValues(err);
-// }
 
 // if 4, a Job performed an invalid export
 // if 3, a Job threw an exception 

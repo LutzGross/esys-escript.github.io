@@ -23,4 +23,5 @@ boost_libs = ['boost_python-py27']
 lapack = 'clapack'
 
 silo = True
-
+mpi= 'OPENMPI'
+debug=False
