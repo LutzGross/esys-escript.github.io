@@ -326,6 +326,11 @@ void SplitWorld::distributeJobs()
     }
 }
 
+unsigned int SplitWorld::getWorldCount()
+{
+    return swcount;
+}
+
 
 namespace escript
 {
@@ -392,7 +397,5 @@ boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dic
     ws.addVariable(name, creator, ntup, kwargs);
     return object();
 }
-
-
 
 }

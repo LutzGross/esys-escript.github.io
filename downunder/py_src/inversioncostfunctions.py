@@ -30,6 +30,7 @@ from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
 from esys.escript import Data, inner
+from esys.escript import SplitWorld
 import numpy as np
 
 
@@ -74,7 +75,10 @@ class InversionCostFunction(MeteredCostFunction):
     """
     provides_inverse_Hessian_approximation=True
 
-    def __init__(self, regularization, mappings, forward_models):
+
+    #This is a test at hacking splitworld functionality into downunder
+    #In production code, we may need a new subclass for this
+    def __init__(self, regularization, mappings, forward_models, splitw=None, worldsinit_fn=None):
         """
         constructor for the cost function.
         Stores the supplied object references and sets default weights.
@@ -108,6 +112,13 @@ class InversionCostFunction(MeteredCostFunction):
         if isinstance(mappings, Mapping):
             mappings = [ mappings ]
 
+        if splitw is None:
+	  splitw=SplitWorld(1)
+	# calls worlds init in each of the subworlds 
+        if worldsinit_fn is not None:
+	  for i in range(0,splitw.getWorldCount()):
+	    addJob(sw, FunctionJob, worldsinit_fn)
+	    
         self.mappings=[]
         for i in range(len(mappings)):
             mm=mappings[i]
@@ -145,6 +156,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         if isinstance(forward_models, ForwardModel):
             forward_models = [ forward_models ]
+        temp_fwdmod=[]    
         self.forward_models=[]
         for i in range(len(forward_models)):
             f=forward_models[i]
@@ -163,7 +175,8 @@ class InversionCostFunction(MeteredCostFunction):
                     if k<0 or k> self.numMappings:
                         raise ValueError("mapping index %s in model %s is out of range."%(k,i))
                 fm=f[0]
-            self.forward_models.append((fm,idx))
+            temp_fwdmod.append((fm,idx))
+        self.forward_models=temp_fwdmod
         self.numModels=len(self.forward_models)
 
         trafo = self.regularization.getCoordinateTransformation()

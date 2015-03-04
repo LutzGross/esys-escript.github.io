@@ -143,3 +143,15 @@ class Job(object):
     A return value of False indicates work still to be done
     """
     return True
+
+class FunctionJob(Job):
+  """
+  Takes a python function (with no params) to be called as the work method
+  """
+  def __init__(self, fn):
+    super(FunctionJob, self).__init__()
+    self.__fn__ = fn
+    
+  def work(self):
+    self.__fn__()
+    return True
