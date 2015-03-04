@@ -50,7 +50,7 @@ class Regularization(CostFunction):
     """
     def __init__(self, domain, numLevelSets=1,
                        w0=None, w1=None, wc=None,
-                       location_of_set_m=Data(),
+                       location_of_set_m=None,
                        useDiagonalHessianApproximation=False, tol=1e-8,
                        coordinates=None,
                        scale=None, scale_c=None):
@@ -105,20 +105,11 @@ class Regularization(CostFunction):
         if wc is None and numLevelSets>1:
             raise ValueError("Values for wc must be given.")
 
+			
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
-        self.__domain=domain
-        DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
-        self.__trafo=makeTranformation(domain, coordinates)
-        self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
-        self.__pde.getSolverOptions().setTolerance(tol)
-        self.__pde.setSymmetryOn()
-        self.__pde.setValue(A=self.__pde.createCoefficient('A'), D=self.__pde.createCoefficient('D'), )
-        try:
-            self.__pde.setValue(q=location_of_set_m)
-        except IllegalCoefficientValue:
-            raise ValueError("Unable to set location of fixed level set function.")
-
+        self.__domain=domain
+		
         # =========== check the shape of the scales: ========================
         if scale is None:
             if numLevelSets == 1 :
@@ -148,90 +139,21 @@ class Regularization(CostFunction):
                 if not all( [ [ scale_c[l,k] > 0. for l in range(k) ] for k in range(1,numLevelSets) ]):
                     raise ValueError("All values in the lower triangle of scale_c must be positive.")
             else:
-                raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
-        # ===== check the shape of the weights: =============================
-        if w0 is not None:
-            w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
-            s0=w0.getShape()
-            if numLevelSets == 1:
-                if not s0 == () :
-                    raise ValueError("Unexpected shape %s for weight w0."%(s0,))
-            else:
-                if not s0 == (numLevelSets,):
-                    raise ValueError("Unexpected shape %s for weight w0."%(s0,))
-            if not self.__trafo.isCartesian():
-                w0*=self.__trafo.getVolumeFactor()
-        if not w1 is None:
-            w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
-            s1=w1.getShape()
-            if numLevelSets == 1 :
-                if not s1 == (DIM,) :
-                    raise ValueError("Unexpected shape %s for weight w1."%(s1,))
-            else:
-                if not s1 == (numLevelSets,DIM):
-                    raise ValueError("Unexpected shape %s for weight w1."%(s1,))
-            if not self.__trafo.isCartesian():
-                f=self.__trafo.getScalingFactors()**2*self.__trafo.getVolumeFactor()
-                if numLevelSets == 1:
-                    w1*=f
-                else:
-                    for i in range(numLevelSets): w1[i,:]*=f
-
-        if numLevelSets == 1:
-            wc=None
-        else:
-            wc = interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
-            sc=wc.getShape()
-            if not sc == (numLevelSets, numLevelSets):
-                raise ValueError("Unexpected shape %s for weight wc."%(sc,))
-            if not self.__trafo.isCartesian():
-                raise ValueError("Non-cartesian coordinates for cross-gradient term is not supported yet.")
-        # ============= now we rescale weights: =============================
-        L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
-        L4=1/np.sum(1/L2s)**2
-        if numLevelSets == 1:
-            A=0
-            if w0 is not None:
-                A = integrate(w0)
-            if w1 is not None:
-                A += integrate(inner(w1, 1/L2s))
-            if A > 0:
-                f = scale/A
-                if w0 is not None:
-                    w0*=f
-                if w1 is not None:
-                    w1*=f
-            else:
-                raise ValueError("Non-positive weighting factor detected.")
-        else: # numLevelSets > 1
-            for k in range(numLevelSets):
-                A=0
-                if w0 is not None:
-                    A = integrate(w0[k])
-                if w1 is not None:
-                    A += integrate(inner(w1[k,:], 1/L2s))
-                if A > 0:
-                    f = scale[k]/A
-                    if w0 is not None:
-                        w0[k]*=f
-                    if w1 is not None:
-                        w1[k,:]*=f
-                else:
-                    raise ValueError("Non-positive weighting factor for level set component %d detected."%k)
-
-                # and now the cross-gradient:
-                if wc is not None:
-                    for l in range(k):
-                        A = integrate(wc[l,k])/L4
-                        if A > 0:
-                            f = scale_c[l,k]/A
-                            wc[l,k]*=f
-#                       else:
-#                           raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k))
-
-        self.__w0=w0
-        self.__w1=w1
-        self.__wc=wc
+                raise ValueError("Unexpected shape %s for scale."%scale_c.shape)		
+		
+	if domain is None:
+	    if type(dimension)==int:
+#		  DIM=dimension
+#		  self.__trafo=None
+#		  self.__pde=None			  
+                  pass
+  	    else:
+		  raise ValueError("If domain is not provided, dimension must be given as an integer")
+	else:
+	    self.__domain=None  # bypass the already set check
+	    self.configure(domain, w0, w1, wc, location_of_set_m, useDiagonalHessianApproximation, tol,
+                       coordinates, scale, scale_c)
+#	    DIM=self.__domain.getDim()
 
         self.__pde_is_set=False
         if self.__numLevelSets > 1:
@@ -242,7 +164,112 @@ class Regularization(CostFunction):
 
         self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)//2
         self.setTradeOffFactors()
-        self.__vol_d=vol(self.__domain)
+
+    def configure(self, domain, 
+                       w0=None, w1=None, wc=None,
+                       location_of_set_m=None,
+                       useDiagonalHessianApproximation=False, tol=1e-8,
+                       coordinates=None,
+                       scale=None, scale_c=None):
+	if self.__domain is not None:
+	    raise ValueError("Attempt to configure a regularization which was already configured.")
+        self.__domain=domain
+	DIM=self.__domain.getDim()
+	if location_of_set_m is None:
+          location_of_set_m=Data()
+	self.__trafo=makeTranformation(domain, coordinates)
+	self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
+	self.__pde.getSolverOptions().setTolerance(tol)
+	self.__pde.setSymmetryOn()
+	self.__pde.setValue(A=self.__pde.createCoefficient('A'), D=self.__pde.createCoefficient('D'), )
+	try:
+	  self.__pde.setValue(q=location_of_set_m)
+	except IllegalCoefficientValue:
+	  raise ValueError("Unable to set location of fixed level set function.")
+	# ===== check the shape of the weights: =============================
+	if w0 is not None:
+	  w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
+	  s0=w0.getShape()
+	  if numLevelSets == 1:
+	    if not s0 == () :
+		raise ValueError("Unexpected shape %s for weight w0."%(s0,))
+	    else:
+		if not s0 == (numLevelSets,):
+		    raise ValueError("Unexpected shape %s for weight w0."%(s0,))
+	  if not self.__trafo.isCartesian():
+            w0*=self.__trafo.getVolumeFactor()
+	if not w1 is None:
+          w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
+          s1=w1.getShape()
+          if self.__numLevelSets == 1 :
+            if not s1 == (DIM,) :
+              raise ValueError("Unexpected shape %s for weight w1."%(s1,))
+          else:
+            if not s1 == (self.__numLevelSets,DIM):
+              raise ValueError("Unexpected shape %s for weight w1."%(s1,))
+          if not self.__trafo.isCartesian():
+            f=self.__trafo.getScalingFactors()**2*self.__trafo.getVolumeFactor()
+            if self.__numLevelSets == 1:
+              w1*=f
+            else:
+              for i in range(self.__numLevelSets): w1[i,:]*=f
+
+        if self.__numLevelSets == 1:
+          wc=None
+        else:
+          wc = interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
+          sc=wc.getShape()
+          if not sc == (self.__numLevelSets, self.__numLevelSets):
+            raise ValueError("Unexpected shape %s for weight wc."%(sc,))
+          if not self.__trafo.isCartesian():
+            raise ValueError("Non-cartesian coordinates for cross-gradient term is not supported yet.")
+        # ============= now we rescale weights: =============================
+	L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
+	L4=1/np.sum(1/L2s)**2
+	if self.__numLevelSets == 1:
+	  A=0
+	  if w0 is not None:
+	    A = integrate(w0)
+	  if w1 is not None:
+	    A += integrate(inner(w1, 1/L2s))
+	  if A > 0:
+	    f = scale/A
+	    if w0 is not None:
+	      w0*=f
+	    if w1 is not None:
+	      w1*=f
+	  else:
+	    raise ValueError("Non-positive weighting factor detected.")
+	else: # numLevelSets > 1
+	  for k in range(self.__numLevelSets):
+	    A=0
+	    if w0 is not None:
+	      A = integrate(w0[k])
+	    if w1 is not None:
+	      A += integrate(inner(w1[k,:], 1/L2s))
+	    if A > 0:
+	      f = scale[k]/A
+	      if w0 is not None:
+	        w0[k]*=f
+	      if w1 is not None:
+	        w1[k,:]*=f
+	    else:
+                raise ValueError("Non-positive weighting factor for level set component %d detected."%k)
+
+	    # and now the cross-gradient:
+	    if wc is not None:
+	      for l in range(k):
+	        A = integrate(wc[l,k])/L4
+                if A > 0:
+		  f = scale_c[l,k]/A
+		  wc[l,k]*=f
+#                       else:
+#                           raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k))
+
+        self.__w0=w0
+	self.__w1=w1
+	self.__wc=wc
+	self.__vol_d=vol(self.__domain)	
 
     def getDomain(self):
         """
@@ -250,6 +277,8 @@ class Regularization(CostFunction):
 
         :rtype: ``Domain``
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")
         return self.__domain
 
     def getCoordinateTransformation(self):
@@ -258,6 +287,8 @@ class Regularization(CostFunction):
 
         :rtype: `CoordinateTransformation`
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         return self.__trafo
 
     def getNumLevelSets(self):
@@ -274,6 +305,8 @@ class Regularization(CostFunction):
 
         :rtype: `LinearPDE`
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         return self.__pde
 
     def getDualProduct(self, m, r):
@@ -298,6 +331,8 @@ class Regularization(CostFunction):
 
         :rtype: ``int``
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         return self.__num_tradeoff_factors
 
     def setTradeOffFactors(self, mu=None):
@@ -314,6 +349,8 @@ class Regularization(CostFunction):
                    Values must be positive.
         :type mu: ``list`` of ``float`` or ```numpy.array```
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         numLS=self.getNumLevelSets()
         numTF=self.getNumTradeOffFactors()
         if mu is None:
@@ -340,6 +377,8 @@ class Regularization(CostFunction):
         :param mu: new values for the trade-off factors. Values must be positive.
         :type mu: ``float``, ``list`` of ``float`` or ```numpy.array```
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         numLS=self.getNumLevelSets()
         if mu is None:
             if numLS == 1:
@@ -381,6 +420,8 @@ class Regularization(CostFunction):
                      are used. Only value mu_c[l,k] for l<k are used.
         :type mu_c: ``float``, ``list`` of ``float`` or ``numpy.array``
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         numLS=self.getNumLevelSets()
         if mu_c is None or numLS < 2:
             self.__mu_c = np.ones((numLS,numLS))
@@ -401,6 +442,8 @@ class Regularization(CostFunction):
     def getArguments(self, m):
         """
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         return grad(m),
 
     def getValue(self, m, grad_m):
@@ -410,6 +453,8 @@ class Regularization(CostFunction):
 
         :rtype: ``float``
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         mu=self.__mu
         mu_c=self.__mu_c
         DIM=self.getDomain().getDim()
@@ -449,7 +494,8 @@ class Regularization(CostFunction):
 
         :note: This implementation returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj
         """
-
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")
         mu=self.__mu
         mu_c=self.__mu_c
         DIM=self.getDomain().getDim()
@@ -493,6 +539,8 @@ class Regularization(CostFunction):
     def getInverseHessianApproximation(self, m, r, grad_m, solve=True):
         """
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         if self._new_mu or self._update_Hessian:
             self._new_mu=False
             self._update_Hessian=False
@@ -556,6 +604,8 @@ class Regularization(CostFunction):
         """
         notifies the class to recalculate the Hessian operator.
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         if not self.__useDiagonalHessianApproximation:
             self._update_Hessian=True
 
@@ -567,5 +617,7 @@ class Regularization(CostFunction):
         :type m: `Data`
         :rtype: ``float``
         """
+        if self.__domain is None:
+	  raise ValueError("This regularization object has not been fully configured yet.")        
         return sqrt(integrate(length(m)**2)/self.__vol_d)
 

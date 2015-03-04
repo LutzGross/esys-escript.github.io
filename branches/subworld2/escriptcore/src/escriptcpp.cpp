@@ -151,9 +151,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
     .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
     .def("clearVariable", &escript::SplitWorld::clearVariable, arg("name"), "Remove the value from the named variable")
-    .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable);
+    .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable)
+    .def("getNumWords", &escript::SplitWorld::getWorldCount);
     
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
+  // Does anyone actually need to have one of these?
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
 /* end SubWorld things */
   
