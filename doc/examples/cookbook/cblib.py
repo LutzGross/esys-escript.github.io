@@ -51,7 +51,7 @@ def toRegGrid(u, nx=50, ny=50):
    yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
 
    # interpolate u to grid
-   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi)
+   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi, interp='linear')
    return xi, yi, zi
 
 def subsample(u, nx=50, ny=50):
