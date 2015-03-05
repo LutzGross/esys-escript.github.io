@@ -212,6 +212,9 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8);
+        vector<double> EM_F(8);
+
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -219,8 +222,8 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                     for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
+                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
@@ -2225,6 +2228,9 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8, 0);
+        vector<double> EM_F(8, 0);
+
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -2232,8 +2238,8 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                     for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
+                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
@@ -2672,6 +2678,9 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8*numEq*numComp, 0);
+        vector<double> EM_F(8*numEq, 0);
+
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -2679,8 +2688,8 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                     for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
+                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
@@ -4727,6 +4736,9 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8*numEq*numComp, 0);
+        vector<double> EM_F(8*numEq, 0);
+
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -4734,8 +4746,8 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                     for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
+                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
@@ -5131,19 +5143,20 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8);
+        vector<double> EM_F(8);
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5160,40 +5173,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double tmp8 = w2*(d_0 + d_3);
                                 const double tmp9 = w2*(d_1 + d_2);
                                 const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-                                EM_S[INDEX2(0,0,8)]+=d_0*w4 + d_3*w3 + tmp9;
-                                EM_S[INDEX2(0,2,8)]+=tmp6 + tmp7;
-                                EM_S[INDEX2(0,4,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(0,6,8)]+=tmp10;
-                                EM_S[INDEX2(2,0,8)]+=tmp6 + tmp7;
-                                EM_S[INDEX2(2,2,8)]+=d_1*w4 + d_2*w3 + tmp8;
-                                EM_S[INDEX2(2,4,8)]+=tmp10;
-                                EM_S[INDEX2(2,6,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(4,0,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(4,2,8)]+=tmp10;
-                                EM_S[INDEX2(4,4,8)]+=d_1*w3 + d_2*w4 + tmp8;
-                                EM_S[INDEX2(4,6,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(6,0,8)]+=tmp10;
-                                EM_S[INDEX2(6,2,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(6,4,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(6,6,8)]+=d_0*w3 + d_3*w4 + tmp9;
+                                EM_S[INDEX2(0,0,8)] = d_0*w4 + d_3*w3 + tmp9;
+                                EM_S[INDEX2(2,0,8)] = tmp6 + tmp7;
+                                EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(6,0,8)] = tmp10;
+                                EM_S[INDEX2(0,2,8)] = tmp6 + tmp7;
+                                EM_S[INDEX2(2,2,8)] = d_1*w4 + d_2*w3 + tmp8;
+                                EM_S[INDEX2(4,2,8)] = tmp10;
+                                EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(2,4,8)] = tmp10;
+                                EM_S[INDEX2(4,4,8)] = d_1*w3 + d_2*w4 + tmp8;
+                                EM_S[INDEX2(6,4,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(0,6,8)] = tmp10;
+                                EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(4,6,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(6,6,8)] = d_0*w3 + d_3*w4 + tmp9;
                             } else { // constant data
                                 const double wd0 = 4*d_p[0]*w2;
-                                EM_S[INDEX2(0,0,8)]+=4*wd0;
-                                EM_S[INDEX2(0,2,8)]+=2*wd0;
-                                EM_S[INDEX2(0,4,8)]+=2*wd0;
-                                EM_S[INDEX2(0,6,8)]+=  wd0;
-                                EM_S[INDEX2(2,0,8)]+=2*wd0;
-                                EM_S[INDEX2(2,2,8)]+=4*wd0;
-                                EM_S[INDEX2(2,4,8)]+=  wd0;
-                                EM_S[INDEX2(2,6,8)]+=2*wd0;
-                                EM_S[INDEX2(4,0,8)]+=2*wd0;
-                                EM_S[INDEX2(4,2,8)]+=  wd0;
-                                EM_S[INDEX2(4,4,8)]+=4*wd0;
-                                EM_S[INDEX2(4,6,8)]+=2*wd0;
-                                EM_S[INDEX2(6,0,8)]+=  wd0;
-                                EM_S[INDEX2(6,2,8)]+=2*wd0;
-                                EM_S[INDEX2(6,4,8)]+=2*wd0;
-                                EM_S[INDEX2(6,6,8)]+=4*wd0;
+                                EM_S[INDEX2(0,0,8)] = 4*wd0;
+                                EM_S[INDEX2(2,0,8)] = 2*wd0;
+                                EM_S[INDEX2(4,0,8)] = 2*wd0;
+                                EM_S[INDEX2(6,0,8)] =   wd0;
+                                EM_S[INDEX2(0,2,8)] = 2*wd0;
+                                EM_S[INDEX2(2,2,8)] = 4*wd0;
+                                EM_S[INDEX2(4,2,8)] =   wd0;
+                                EM_S[INDEX2(6,2,8)] = 2*wd0;
+                                EM_S[INDEX2(0,4,8)] = 2*wd0;
+                                EM_S[INDEX2(2,4,8)] =   wd0;
+                                EM_S[INDEX2(4,4,8)] = 4*wd0;
+                                EM_S[INDEX2(6,4,8)] = 2*wd0;
+                                EM_S[INDEX2(0,6,8)] =   wd0;
+                                EM_S[INDEX2(2,6,8)] = 2*wd0;
+                                EM_S[INDEX2(4,6,8)] = 2*wd0;
+                                EM_S[INDEX2(6,6,8)] = 4*wd0;
                             }
                         }
                         ///////////////
@@ -5208,15 +5221,23 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double y_3 = y_p[3];
                                 const double tmp0 = 6*w2*(y_1 + y_2);
                                 const double tmp1 = 6*w2*(y_0 + y_3);
-                                EM_F[0]+=tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                EM_F[2]+=tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                EM_F[4]+=tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                EM_F[6]+=tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                EM_F[0] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                EM_F[1] = 0;
+                                EM_F[2] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                EM_F[3] = 0;
+                                EM_F[4] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                EM_F[5] = 0;
+                                EM_F[6] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                EM_F[7] = 0;
                             } else { // constant data
-                                EM_F[0]+=36*w2*y_p[0];
-                                EM_F[2]+=36*w2*y_p[0];
-                                EM_F[4]+=36*w2*y_p[0];
-                                EM_F[6]+=36*w2*y_p[0];
+                                EM_F[0] = 36*w2*y_p[0];
+                                EM_F[1] = 0;
+                                EM_F[2] = 36*w2*y_p[0];
+                                EM_F[3] = 0;
+                                EM_F[4] = 36*w2*y_p[0];
+                                EM_F[5] = 0;
+                                EM_F[6] = 36*w2*y_p[0];
+                                EM_F[7] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
@@ -5232,14 +5253,13 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5256,40 +5276,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double tmp8 = w0*(d_0 + d_1);
                                 const double tmp9 = w1*(d_2 + d_3);
                                 const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-                                EM_S[INDEX2(1,1,8)]+=d_0*w4 + d_3*w3 + tmp7;
-                                EM_S[INDEX2(1,3,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(1,5,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(1,7,8)]+=tmp10;
-                                EM_S[INDEX2(3,1,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(3,3,8)]+=d_1*w4 + d_2*w3 + tmp6;
-                                EM_S[INDEX2(3,5,8)]+=tmp10;
-                                EM_S[INDEX2(3,7,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(5,1,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(5,3,8)]+=tmp10;
-                                EM_S[INDEX2(5,5,8)]+=d_1*w3 + d_2*w4 + tmp6;
-                                EM_S[INDEX2(5,7,8)]+=tmp8 + tmp9;
-                                EM_S[INDEX2(7,1,8)]+=tmp10;
-                                EM_S[INDEX2(7,3,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(7,5,8)]+=tmp8 + tmp9;
-                                EM_S[INDEX2(7,7,8)]+=d_0*w3 + d_3*w4 + tmp7;
+                                EM_S[INDEX2(1,1,8)] = d_0*w4 + d_3*w3 + tmp7;
+                                EM_S[INDEX2(3,1,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(5,1,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(7,1,8)] = tmp10;
+                                EM_S[INDEX2(1,3,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(3,3,8)] = d_1*w4 + d_2*w3 + tmp6;
+                                EM_S[INDEX2(5,3,8)] = tmp10;
+                                EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(1,5,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(3,5,8)] = tmp10;
+                                EM_S[INDEX2(5,5,8)] = d_1*w3 + d_2*w4 + tmp6;
+                                EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(1,7,8)] = tmp10;
+                                EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(7,7,8)] = d_0*w3 + d_3*w4 + tmp7;
                             } else { // constant data
                                 const double wd0 = 4*d_p[0]*w2;
-                                EM_S[INDEX2(1,1,8)]+=4*wd0;
-                                EM_S[INDEX2(1,3,8)]+=2*wd0;
-                                EM_S[INDEX2(1,5,8)]+=2*wd0;
-                                EM_S[INDEX2(1,7,8)]+=  wd0;
-                                EM_S[INDEX2(3,1,8)]+=2*wd0;
-                                EM_S[INDEX2(3,3,8)]+=4*wd0;
-                                EM_S[INDEX2(3,5,8)]+=  wd0;
-                                EM_S[INDEX2(3,7,8)]+=2*wd0;
-                                EM_S[INDEX2(5,1,8)]+=2*wd0;
-                                EM_S[INDEX2(5,3,8)]+=  wd0;
-                                EM_S[INDEX2(5,5,8)]+=4*wd0;
-                                EM_S[INDEX2(5,7,8)]+=2*wd0;
-                                EM_S[INDEX2(7,1,8)]+=  wd0;
-                                EM_S[INDEX2(7,3,8)]+=2*wd0;
-                                EM_S[INDEX2(7,5,8)]+=2*wd0;
-                                EM_S[INDEX2(7,7,8)]+=4*wd0;
+                                EM_S[INDEX2(1,1,8)] = 4*wd0;
+                                EM_S[INDEX2(3,1,8)] = 2*wd0;
+                                EM_S[INDEX2(5,1,8)] = 2*wd0;
+                                EM_S[INDEX2(7,1,8)] =   wd0;
+                                EM_S[INDEX2(1,3,8)] = 2*wd0;
+                                EM_S[INDEX2(3,3,8)] = 4*wd0;
+                                EM_S[INDEX2(5,3,8)] =   wd0;
+                                EM_S[INDEX2(7,3,8)] = 2*wd0;
+                                EM_S[INDEX2(1,5,8)] = 2*wd0;
+                                EM_S[INDEX2(3,5,8)] =   wd0;
+                                EM_S[INDEX2(5,5,8)] = 4*wd0;
+                                EM_S[INDEX2(7,5,8)] = 2*wd0;
+                                EM_S[INDEX2(1,7,8)] =   wd0;
+                                EM_S[INDEX2(3,7,8)] = 2*wd0;
+                                EM_S[INDEX2(5,7,8)] = 2*wd0;
+                                EM_S[INDEX2(7,7,8)] = 4*wd0;
                             }
                         }
                         ///////////////
@@ -5304,15 +5324,23 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double y_3 = y_p[3];
                                 const double tmp0 = 6*w2*(y_1 + y_2);
                                 const double tmp1 = 6*w2*(y_0 + y_3);
-                                EM_F[1]+=tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                EM_F[3]+=tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                EM_F[5]+=tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                EM_F[7]+=tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                EM_F[0] = 0;
+                                EM_F[1] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                EM_F[2] = 0;
+                                EM_F[3] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                EM_F[4] = 0;
+                                EM_F[5] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                EM_F[6] = 0;
+                                EM_F[7] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
                             } else { // constant data
-                                EM_F[1]+=36*w2*y_p[0];
-                                EM_F[3]+=36*w2*y_p[0];
-                                EM_F[5]+=36*w2*y_p[0];
-                                EM_F[7]+=36*w2*y_p[0];
+                                EM_F[0] = 0;
+                                EM_F[1] = 36*w2*y_p[0];
+                                EM_F[2] = 0;
+                                EM_F[3] = 36*w2*y_p[0];
+                                EM_F[4] = 0;
+                                EM_F[5] = 36*w2*y_p[0];
+                                EM_F[6] = 0;
+                                EM_F[7] = 36*w2*y_p[0];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
@@ -5328,14 +5356,13 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5352,40 +5379,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double tmp8 = w7*(d_1 + d_2);
                                 const double tmp9 = w5*(d_2 + d_3);
                                 const double tmp10 = w6*(d_0 + d_1);
-                                EM_S[INDEX2(0,0,8)]+=d_0*w9 + d_3*w8 + tmp8;
-                                EM_S[INDEX2(0,1,8)]+=tmp10 + tmp9;
-                                EM_S[INDEX2(0,4,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(0,5,8)]+=tmp7;
-                                EM_S[INDEX2(1,0,8)]+=tmp10 + tmp9;
-                                EM_S[INDEX2(1,1,8)]+=d_1*w9 + d_2*w8 + tmp6;
-                                EM_S[INDEX2(1,4,8)]+=tmp7;
-                                EM_S[INDEX2(1,5,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(4,0,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(4,1,8)]+=tmp7;
-                                EM_S[INDEX2(4,4,8)]+=d_1*w8 + d_2*w9 + tmp6;
-                                EM_S[INDEX2(4,5,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(5,0,8)]+=tmp7;
-                                EM_S[INDEX2(5,1,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(5,4,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(5,5,8)]+=d_0*w8 + d_3*w9 + tmp8;
+                                EM_S[INDEX2(0,0,8)] = d_0*w9 + d_3*w8 + tmp8;
+                                EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(5,0,8)] = tmp7;
+                                EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(1,1,8)] = d_1*w9 + d_2*w8 + tmp6;
+                                EM_S[INDEX2(4,1,8)] = tmp7;
+                                EM_S[INDEX2(5,1,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(1,4,8)] = tmp7;
+                                EM_S[INDEX2(4,4,8)] = d_1*w8 + d_2*w9 + tmp6;
+                                EM_S[INDEX2(5,4,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(0,5,8)] = tmp7;
+                                EM_S[INDEX2(1,5,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(4,5,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(5,5,8)] = d_0*w8 + d_3*w9 + tmp8;
                             } else { // constant data
                                 const double wd0 = 4*d_p[0]*w7;
-                                EM_S[INDEX2(0,0,8)]+=4*wd0;
-                                EM_S[INDEX2(0,1,8)]+=2*wd0;
-                                EM_S[INDEX2(0,4,8)]+=2*wd0;
-                                EM_S[INDEX2(0,5,8)]+=  wd0;
-                                EM_S[INDEX2(1,0,8)]+=2*wd0;
-                                EM_S[INDEX2(1,1,8)]+=4*wd0;
-                                EM_S[INDEX2(1,4,8)]+=  wd0;
-                                EM_S[INDEX2(1,5,8)]+=2*wd0;
-                                EM_S[INDEX2(4,0,8)]+=2*wd0;
-                                EM_S[INDEX2(4,1,8)]+=  wd0;
-                                EM_S[INDEX2(4,4,8)]+=4*wd0;
-                                EM_S[INDEX2(4,5,8)]+=2*wd0;
-                                EM_S[INDEX2(5,0,8)]+=  wd0;
-                                EM_S[INDEX2(5,1,8)]+=2*wd0;
-                                EM_S[INDEX2(5,4,8)]+=2*wd0;
-                                EM_S[INDEX2(5,5,8)]+=4*wd0;
+                                EM_S[INDEX2(0,0,8)] = 4*wd0;
+                                EM_S[INDEX2(1,0,8)] = 2*wd0;
+                                EM_S[INDEX2(4,0,8)] = 2*wd0;
+                                EM_S[INDEX2(5,0,8)] =   wd0;
+                                EM_S[INDEX2(0,1,8)] = 2*wd0;
+                                EM_S[INDEX2(1,1,8)] = 4*wd0;
+                                EM_S[INDEX2(4,1,8)] =   wd0;
+                                EM_S[INDEX2(5,1,8)] = 2*wd0;
+                                EM_S[INDEX2(0,4,8)] = 2*wd0;
+                                EM_S[INDEX2(1,4,8)] =   wd0;
+                                EM_S[INDEX2(4,4,8)] = 4*wd0;
+                                EM_S[INDEX2(5,4,8)] = 2*wd0;
+                                EM_S[INDEX2(0,5,8)] =   wd0;
+                                EM_S[INDEX2(1,5,8)] = 2*wd0;
+                                EM_S[INDEX2(4,5,8)] = 2*wd0;
+                                EM_S[INDEX2(5,5,8)] = 4*wd0;
                             }
                         }
                         ///////////////
@@ -5400,15 +5427,23 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double y_3 = y_p[3];
                                 const double tmp0 = 6*w7*(y_1 + y_2);
                                 const double tmp1 = 6*w7*(y_0 + y_3);
-                                EM_F[0]+=tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                EM_F[1]+=tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                EM_F[4]+=tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                EM_F[5]+=tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                EM_F[0] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                EM_F[1] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                EM_F[2] = 0;
+                                EM_F[3] = 0;
+                                EM_F[4] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                EM_F[5] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                EM_F[6] = 0;
+                                EM_F[7] = 0;
                             } else { // constant data
-                                EM_F[0]+=36*w7*y_p[0];
-                                EM_F[1]+=36*w7*y_p[0];
-                                EM_F[4]+=36*w7*y_p[0];
-                                EM_F[5]+=36*w7*y_p[0];
+                                EM_F[0] = 36*w7*y_p[0];
+                                EM_F[1] = 36*w7*y_p[0];
+                                EM_F[2] = 0;
+                                EM_F[3] = 0;
+                                EM_F[4] = 36*w7*y_p[0];
+                                EM_F[5] = 36*w7*y_p[0];
+                                EM_F[6] = 0;
+                                EM_F[7] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
@@ -5424,14 +5459,13 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5448,40 +5482,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double tmp8 = w7*(d_1 + d_2);
                                 const double tmp9 = w5*(d_2 + d_3);
                                 const double tmp10 = w6*(d_0 + d_1);
-                                EM_S[INDEX2(2,2,8)]+=d_0*w9 + d_3*w8 + tmp8;
-                                EM_S[INDEX2(2,3,8)]+=tmp10 + tmp9;
-                                EM_S[INDEX2(2,6,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(2,7,8)]+=tmp4;
-                                EM_S[INDEX2(3,2,8)]+=tmp10 + tmp9;
-                                EM_S[INDEX2(3,3,8)]+=d_1*w9 + d_2*w8 + tmp7;
-                                EM_S[INDEX2(3,6,8)]+=tmp4;
-                                EM_S[INDEX2(3,7,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(6,2,8)]+=tmp2 + tmp3;
-                                EM_S[INDEX2(6,3,8)]+=tmp4;
-                                EM_S[INDEX2(6,6,8)]+=d_1*w8 + d_2*w9 + tmp7;
-                                EM_S[INDEX2(6,7,8)]+=tmp5 + tmp6;
-                                EM_S[INDEX2(7,2,8)]+=tmp4;
-                                EM_S[INDEX2(7,3,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(7,6,8)]+=tmp5 + tmp6;
-                                EM_S[INDEX2(7,7,8)]+=d_0*w8 + d_3*w9 + tmp8;
+                                EM_S[INDEX2(2,2,8)] = d_0*w9 + d_3*w8 + tmp8;
+                                EM_S[INDEX2(3,2,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(7,2,8)] = tmp4;
+                                EM_S[INDEX2(2,3,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(3,3,8)] = d_1*w9 + d_2*w8 + tmp7;
+                                EM_S[INDEX2(6,3,8)] = tmp4;
+                                EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(3,6,8)] = tmp4;
+                                EM_S[INDEX2(6,6,8)] = d_1*w8 + d_2*w9 + tmp7;
+                                EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(2,7,8)] = tmp4;
+                                EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(7,7,8)] = d_0*w8 + d_3*w9 + tmp8;
                             } else { // constant data
                                 const double wd0 = 4*d_p[0]*w7;
-                                EM_S[INDEX2(2,2,8)]+=4*wd0;
-                                EM_S[INDEX2(2,3,8)]+=2*wd0;
-                                EM_S[INDEX2(2,6,8)]+=2*wd0;
-                                EM_S[INDEX2(2,7,8)]+=  wd0;
-                                EM_S[INDEX2(3,2,8)]+=2*wd0;
-                                EM_S[INDEX2(3,3,8)]+=4*wd0;
-                                EM_S[INDEX2(3,6,8)]+=  wd0;
-                                EM_S[INDEX2(3,7,8)]+=2*wd0;
-                                EM_S[INDEX2(6,2,8)]+=2*wd0;
-                                EM_S[INDEX2(6,3,8)]+=  wd0;
-                                EM_S[INDEX2(6,6,8)]+=4*wd0;
-                                EM_S[INDEX2(6,7,8)]+=2*wd0;
-                                EM_S[INDEX2(7,2,8)]+=  wd0;
-                                EM_S[INDEX2(7,3,8)]+=2*wd0;
-                                EM_S[INDEX2(7,6,8)]+=2*wd0;
-                                EM_S[INDEX2(7,7,8)]+=4*wd0;
+                                EM_S[INDEX2(2,2,8)] = 4*wd0;
+                                EM_S[INDEX2(3,2,8)] = 2*wd0;
+                                EM_S[INDEX2(6,2,8)] = 2*wd0;
+                                EM_S[INDEX2(7,2,8)] =   wd0;
+                                EM_S[INDEX2(2,3,8)] = 2*wd0;
+                                EM_S[INDEX2(3,3,8)] = 4*wd0;
+                                EM_S[INDEX2(6,3,8)] =   wd0;
+                                EM_S[INDEX2(7,3,8)] = 2*wd0;
+                                EM_S[INDEX2(2,6,8)] = 2*wd0;
+                                EM_S[INDEX2(3,6,8)] =   wd0;
+                                EM_S[INDEX2(6,6,8)] = 4*wd0;
+                                EM_S[INDEX2(7,6,8)] = 2*wd0;
+                                EM_S[INDEX2(2,7,8)] =   wd0;
+                                EM_S[INDEX2(3,7,8)] = 2*wd0;
+                                EM_S[INDEX2(6,7,8)] = 2*wd0;
+                                EM_S[INDEX2(7,7,8)] = 4*wd0;
                             }
                         }
                         ///////////////
@@ -5496,15 +5530,23 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double y_3 = y_p[3];
                                 const double tmp0 = 6*w7*(y_1 + y_2);
                                 const double tmp1 = 6*w7*(y_0 + y_3);
-                                EM_F[2]+=tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                EM_F[3]+=tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                EM_F[6]+=tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                EM_F[7]+=tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                EM_F[0] = 0;
+                                EM_F[1] = 0;
+                                EM_F[2] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                EM_F[3] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                EM_F[4] = 0;
+                                EM_F[5] = 0;
+                                EM_F[6] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                EM_F[7] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
                             } else { // constant data
-                                EM_F[2]+=36*w7*y_p[0];
-                                EM_F[3]+=36*w7*y_p[0];
-                                EM_F[6]+=36*w7*y_p[0];
-                                EM_F[7]+=36*w7*y_p[0];
+                                EM_F[0] = 0;
+                                EM_F[1] = 0;
+                                EM_F[2] = 36*w7*y_p[0];
+                                EM_F[3] = 36*w7*y_p[0];
+                                EM_F[4] = 0;
+                                EM_F[5] = 0;
+                                EM_F[6] = 36*w7*y_p[0];
+                                EM_F[7] = 36*w7*y_p[0];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
@@ -5520,14 +5562,13 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5544,40 +5585,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double tmp8 = w11*(d_2 + d_3);
                                 const double tmp9 = w10*(d_2 + d_3);
                                 const double tmp10 = w11*(d_0 + d_1);
-                                EM_S[INDEX2(0,0,8)]+=d_0*w14 + d_3*w13 + tmp3;
-                                EM_S[INDEX2(0,1,8)]+=tmp10 + tmp9;
-                                EM_S[INDEX2(0,2,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(0,3,8)]+=tmp2;
-                                EM_S[INDEX2(1,0,8)]+=tmp10 + tmp9;
-                                EM_S[INDEX2(1,1,8)]+=d_1*w14 + d_2*w13 + tmp6;
-                                EM_S[INDEX2(1,2,8)]+=tmp2;
-                                EM_S[INDEX2(1,3,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(2,0,8)]+=tmp4 + tmp5;
-                                EM_S[INDEX2(2,1,8)]+=tmp2;
-                                EM_S[INDEX2(2,2,8)]+=d_1*w13 + d_2*w14 + tmp6;
-                                EM_S[INDEX2(2,3,8)]+=tmp7 + tmp8;
-                                EM_S[INDEX2(3,0,8)]+=tmp2;
-                                EM_S[INDEX2(3,1,8)]+=tmp0 + tmp1;
-                                EM_S[INDEX2(3,2,8)]+=tmp7 + tmp8;
-                                EM_S[INDEX2(3,3,8)]+=d_0*w13 + d_3*w14 + tmp3;
+                                EM_S[INDEX2(0,0,8)] = d_0*w14 + d_3*w13 + tmp3;
+                                EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(2,0,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(3,0,8)] = tmp2;
+                                EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(1,1,8)] = d_1*w14 + d_2*w13 + tmp6;
+                                EM_S[INDEX2(2,1,8)] = tmp2;
+                                EM_S[INDEX2(3,1,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(0,2,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(1,2,8)] = tmp2;
+                                EM_S[INDEX2(2,2,8)] = d_1*w13 + d_2*w14 + tmp6;
+                                EM_S[INDEX2(3,2,8)] = tmp7 + tmp8;
+                                EM_S[INDEX2(0,3,8)] = tmp2;
+                                EM_S[INDEX2(1,3,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(2,3,8)] = tmp7 + tmp8;
+                                EM_S[INDEX2(3,3,8)] = d_0*w13 + d_3*w14 + tmp3;
                             } else { // constant data
                                 const double wd0 = 4*d_p[0]*w12;
-                                EM_S[INDEX2(0,0,8)]+=4*wd0;
-                                EM_S[INDEX2(0,1,8)]+=2*wd0;
-                                EM_S[INDEX2(0,2,8)]+=2*wd0;
-                                EM_S[INDEX2(0,3,8)]+=  wd0;
-                                EM_S[INDEX2(1,0,8)]+=2*wd0;
-                                EM_S[INDEX2(1,1,8)]+=4*wd0;
-                                EM_S[INDEX2(1,2,8)]+=  wd0;
-                                EM_S[INDEX2(1,3,8)]+=2*wd0;
-                                EM_S[INDEX2(2,0,8)]+=2*wd0;
-                                EM_S[INDEX2(2,1,8)]+=  wd0;
-                                EM_S[INDEX2(2,2,8)]+=4*wd0;
-                                EM_S[INDEX2(2,3,8)]+=2*wd0;
-                                EM_S[INDEX2(3,0,8)]+=  wd0;
-                                EM_S[INDEX2(3,1,8)]+=2*wd0;
-                                EM_S[INDEX2(3,2,8)]+=2*wd0;
-                                EM_S[INDEX2(3,3,8)]+=4*wd0;
+                                EM_S[INDEX2(0,0,8)] = 4*wd0;
+                                EM_S[INDEX2(1,0,8)] = 2*wd0;
+                                EM_S[INDEX2(2,0,8)] = 2*wd0;
+                                EM_S[INDEX2(3,0,8)] =   wd0;
+                                EM_S[INDEX2(0,1,8)] = 2*wd0;
+                                EM_S[INDEX2(1,1,8)] = 4*wd0;
+                                EM_S[INDEX2(2,1,8)] =   wd0;
+                                EM_S[INDEX2(3,1,8)] = 2*wd0;
+                                EM_S[INDEX2(0,2,8)] = 2*wd0;
+                                EM_S[INDEX2(1,2,8)] =   wd0;
+                                EM_S[INDEX2(2,2,8)] = 4*wd0;
+                                EM_S[INDEX2(3,2,8)] = 2*wd0;
+                                EM_S[INDEX2(0,3,8)] =   wd0;
+                                EM_S[INDEX2(1,3,8)] = 2*wd0;
+                                EM_S[INDEX2(2,3,8)] = 2*wd0;
+                                EM_S[INDEX2(3,3,8)] = 4*wd0;
                             }
                         }
                         ///////////////
@@ -5592,15 +5633,23 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double y_3 = y_p[3];
                                 const double tmp0 = 6*w12*(y_1 + y_2);
                                 const double tmp1 = 6*w12*(y_0 + y_3);
-                                EM_F[0]+=tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                EM_F[1]+=tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                EM_F[2]+=tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                EM_F[3]+=tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                EM_F[0] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                EM_F[1] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                EM_F[2] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                EM_F[3] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                EM_F[4] = 0;
+                                EM_F[5] = 0;
+                                EM_F[6] = 0;
+                                EM_F[7] = 0;
                             } else { // constant data
-                                EM_F[0]+=36*w12*y_p[0];
-                                EM_F[1]+=36*w12*y_p[0];
-                                EM_F[2]+=36*w12*y_p[0];
-                                EM_F[3]+=36*w12*y_p[0];
+                                EM_F[0] = 36*w12*y_p[0];
+                                EM_F[1] = 36*w12*y_p[0];
+                                EM_F[2] = 36*w12*y_p[0];
+                                EM_F[3] = 36*w12*y_p[0];
+                                EM_F[4] = 0;
+                                EM_F[5] = 0;
+                                EM_F[6] = 0;
+                                EM_F[7] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*k1+k0;
@@ -5616,14 +5665,13 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5640,40 +5688,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double tmp8 = w10*(d_0 + d_2);
                                 const double tmp9 = w11*(d_1 + d_3);
                                 const double tmp10 = w12*(d_0 + d_3);
-                                EM_S[INDEX2(4,4,8)]+=d_0*w14 + d_3*w13 + tmp7;
-                                EM_S[INDEX2(4,5,8)]+=tmp3 + tmp4;
-                                EM_S[INDEX2(4,6,8)]+=tmp1 + tmp2;
-                                EM_S[INDEX2(4,7,8)]+=tmp0;
-                                EM_S[INDEX2(5,4,8)]+=tmp3 + tmp4;
-                                EM_S[INDEX2(5,5,8)]+=d_1*w14 + d_2*w13 + tmp10;
-                                EM_S[INDEX2(5,6,8)]+=tmp0;
-                                EM_S[INDEX2(5,7,8)]+=tmp8 + tmp9;
-                                EM_S[INDEX2(6,4,8)]+=tmp1 + tmp2;
-                                EM_S[INDEX2(6,5,8)]+=tmp0;
-                                EM_S[INDEX2(6,6,8)]+=d_1*w13 + d_2*w14 + tmp10;
-                                EM_S[INDEX2(6,7,8)]+=tmp5 + tmp6;
-                                EM_S[INDEX2(7,4,8)]+=tmp0;
-                                EM_S[INDEX2(7,5,8)]+=tmp8 + tmp9;
-                                EM_S[INDEX2(7,6,8)]+=tmp5 + tmp6;
-                                EM_S[INDEX2(7,7,8)]+=d_0*w13 + d_3*w14 + tmp7;
+                                EM_S[INDEX2(4,4,8)] = d_0*w14 + d_3*w13 + tmp7;
+                                EM_S[INDEX2(5,4,8)] = tmp3 + tmp4;
+                                EM_S[INDEX2(6,4,8)] = tmp1 + tmp2;
+                                EM_S[INDEX2(7,4,8)] = tmp0;
+                                EM_S[INDEX2(4,5,8)] = tmp3 + tmp4;
+                                EM_S[INDEX2(5,5,8)] = d_1*w14 + d_2*w13 + tmp10;
+                                EM_S[INDEX2(6,5,8)] = tmp0;
+                                EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(4,6,8)] = tmp1 + tmp2;
+                                EM_S[INDEX2(5,6,8)] = tmp0;
+                                EM_S[INDEX2(6,6,8)] = d_1*w13 + d_2*w14 + tmp10;
+                                EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(4,7,8)] = tmp0;
+                                EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(7,7,8)] = d_0*w13 + d_3*w14 + tmp7;
                             } else { // constant data
                                 const double wd0 = 4*d_p[0]*w12;
-                                EM_S[INDEX2(4,4,8)]+=4*wd0;
-                                EM_S[INDEX2(4,5,8)]+=2*wd0;
-                                EM_S[INDEX2(4,6,8)]+=2*wd0;
-                                EM_S[INDEX2(4,7,8)]+=  wd0;
-                                EM_S[INDEX2(5,4,8)]+=2*wd0;
-                                EM_S[INDEX2(5,5,8)]+=4*wd0;
-                                EM_S[INDEX2(5,6,8)]+=  wd0;
-                                EM_S[INDEX2(5,7,8)]+=2*wd0;
-                                EM_S[INDEX2(6,4,8)]+=2*wd0;
-                                EM_S[INDEX2(6,5,8)]+=  wd0;
-                                EM_S[INDEX2(6,6,8)]+=4*wd0;
-                                EM_S[INDEX2(6,7,8)]+=2*wd0;
-                                EM_S[INDEX2(7,4,8)]+=  wd0;
-                                EM_S[INDEX2(7,5,8)]+=2*wd0;
-                                EM_S[INDEX2(7,6,8)]+=2*wd0;
-                                EM_S[INDEX2(7,7,8)]+=4*wd0;
+                                EM_S[INDEX2(4,4,8)] = 4*wd0;
+                                EM_S[INDEX2(5,4,8)] = 2*wd0;
+                                EM_S[INDEX2(6,4,8)] = 2*wd0;
+                                EM_S[INDEX2(7,4,8)] =   wd0;
+                                EM_S[INDEX2(4,5,8)] = 2*wd0;
+                                EM_S[INDEX2(5,5,8)] = 4*wd0;
+                                EM_S[INDEX2(6,5,8)] =   wd0;
+                                EM_S[INDEX2(7,5,8)] = 2*wd0;
+                                EM_S[INDEX2(4,6,8)] = 2*wd0;
+                                EM_S[INDEX2(5,6,8)] =   wd0;
+                                EM_S[INDEX2(6,6,8)] = 4*wd0;
+                                EM_S[INDEX2(7,6,8)] = 2*wd0;
+                                EM_S[INDEX2(4,7,8)] =   wd0;
+                                EM_S[INDEX2(5,7,8)] = 2*wd0;
+                                EM_S[INDEX2(6,7,8)] = 2*wd0;
+                                EM_S[INDEX2(7,7,8)] = 4*wd0;
                             }
                         }
                         ///////////////
@@ -5688,15 +5736,23 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 const double y_3 = y_p[3];
                                 const double tmp0 = 6*w12*(y_1 + y_2);
                                 const double tmp1 = 6*w12*(y_0 + y_3);
-                                EM_F[4]+=tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                EM_F[5]+=tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                EM_F[6]+=tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                EM_F[7]+=tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                EM_F[0] = 0;
+                                EM_F[1] = 0;
+                                EM_F[2] = 0;
+                                EM_F[3] = 0;
+                                EM_F[4] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                EM_F[5] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                EM_F[6] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                EM_F[7] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
                             } else { // constant data
-                                EM_F[4]+=36*w12*y_p[0];
-                                EM_F[5]+=36*w12*y_p[0];
-                                EM_F[6]+=36*w12*y_p[0];
-                                EM_F[7]+=36*w12*y_p[0];
+                                EM_F[0] = 0;
+                                EM_F[1] = 0;
+                                EM_F[2] = 0;
+                                EM_F[3] = 0;
+                                EM_F[4] = 36*w12*y_p[0];
+                                EM_F[5] = 36*w12*y_p[0];
+                                EM_F[6] = 36*w12*y_p[0];
+                                EM_F[7] = 36*w12*y_p[0];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
@@ -5726,45 +5782,50 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8);
+        vector<double> EM_F(8);
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            EM_S[INDEX2(0,0,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(2,0,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(4,0,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(6,0,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(0,2,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(2,2,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(4,2,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(6,2,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(0,4,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(2,4,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(4,4,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(6,4,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(0,6,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(2,6,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(4,6,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(6,6,8)]+=d_p[0]*w2;
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                            EM_S[INDEX2(0,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(0,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(0,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(0,6,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,6,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,6,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,6,8)] = d_p[0]*w2;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0]+=4*w2*y_p[0];
-                            EM_F[2]+=4*w2*y_p[0];
-                            EM_F[4]+=4*w2*y_p[0];
-                            EM_F[6]+=4*w2*y_p[0];
+                            EM_F[0] = 4*w2*y_p[0];
+                            EM_F[1] = 0;
+                            EM_F[2] = 4*w2*y_p[0];
+                            EM_F[3] = 0;
+                            EM_F[4] = 4*w2*y_p[0];
+                            EM_F[5] = 0;
+                            EM_F[6] = 4*w2*y_p[0];
+                            EM_F[7] = 0;
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
@@ -5779,40 +5840,43 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            EM_S[INDEX2(1,1,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(3,1,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(5,1,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(7,1,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(1,3,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(3,3,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(5,3,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(7,3,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(1,5,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(3,5,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(5,5,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(7,5,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(1,7,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(3,7,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(5,7,8)]+=d_p[0]*w2;
-                            EM_S[INDEX2(7,7,8)]+=d_p[0]*w2;
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                            EM_S[INDEX2(1,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(1,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(1,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(1,7,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,7,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,7,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,7,8)] = d_p[0]*w2;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
-                            EM_F[1]+=4*w2*y_p[0];
-                            EM_F[3]+=4*w2*y_p[0];
-                            EM_F[5]+=4*w2*y_p[0];
-                            EM_F[7]+=4*w2*y_p[0];
+                            EM_F[0] = 0;
+                            EM_F[1] = 4*w2*y_p[0];
+                            EM_F[2] = 0;
+                            EM_F[3] = 4*w2*y_p[0];
+                            EM_F[4] = 0;
+                            EM_F[5] = 4*w2*y_p[0];
+                            EM_F[6] = 0;
+                            EM_F[7] = 4*w2*y_p[0];
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
@@ -5827,40 +5891,43 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            EM_S[INDEX2(0,0,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(1,0,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(4,0,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(5,0,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(0,1,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(1,1,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(4,1,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(5,1,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(0,4,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(1,4,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(4,4,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(5,4,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(0,5,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(1,5,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(4,5,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(5,5,8)]+=d_p[0]*w1;
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                            EM_S[INDEX2(0,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(0,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(0,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(0,5,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,5,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,5,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,5,8)] = d_p[0]*w1;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0]+=4*w1*y_p[0];
-                            EM_F[1]+=4*w1*y_p[0];
-                            EM_F[4]+=4*w1*y_p[0];
-                            EM_F[5]+=4*w1*y_p[0];
+                            EM_F[0] = 4*w1*y_p[0];
+                            EM_F[1] = 4*w1*y_p[0];
+                            EM_F[2] = 0;
+                            EM_F[3] = 0;
+                            EM_F[4] = 4*w1*y_p[0];
+                            EM_F[5] = 4*w1*y_p[0];
+                            EM_F[6] = 0;
+                            EM_F[7] = 0;
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
@@ -5875,40 +5942,43 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            EM_S[INDEX2(2,2,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(3,2,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(6,2,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(7,2,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(2,3,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(3,3,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(6,3,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(7,3,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(2,6,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(3,6,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(6,6,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(7,6,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(2,7,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(3,7,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(6,7,8)]+=d_p[0]*w1;
-                            EM_S[INDEX2(7,7,8)]+=d_p[0]*w1;
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                            EM_S[INDEX2(2,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(2,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(2,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(2,7,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,7,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,7,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,7,8)] = d_p[0]*w1;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
-                            EM_F[2]+=4*w1*y_p[0];
-                            EM_F[3]+=4*w1*y_p[0];
-                            EM_F[6]+=4*w1*y_p[0];
-                            EM_F[7]+=4*w1*y_p[0];
+                            EM_F[0] = 0;
+                            EM_F[1] = 0;
+                            EM_F[2] = 4*w1*y_p[0];
+                            EM_F[3] = 4*w1*y_p[0];
+                            EM_F[4] = 0;
+                            EM_F[5] = 0;
+                            EM_F[6] = 4*w1*y_p[0];
+                            EM_F[7] = 4*w1*y_p[0];
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
@@ -5923,40 +5993,43 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            EM_S[INDEX2(0,0,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(1,0,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(2,0,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(3,0,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(0,1,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(1,1,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(2,1,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(3,1,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(0,2,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(1,2,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(2,2,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(3,2,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(0,3,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(1,3,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(2,3,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(3,3,8)]+=d_p[0]*w0;
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                            EM_S[INDEX2(0,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(0,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(0,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(0,3,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,3,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,3,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,3,8)] = d_p[0]*w0;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0]+=4*w0*y_p[0];
-                            EM_F[1]+=4*w0*y_p[0];
-                            EM_F[2]+=4*w0*y_p[0];
-                            EM_F[3]+=4*w0*y_p[0];
+                            EM_F[0] = 4*w0*y_p[0];
+                            EM_F[1] = 4*w0*y_p[0];
+                            EM_F[2] = 4*w0*y_p[0];
+                            EM_F[3] = 4*w0*y_p[0];
+                            EM_F[4] = 0;
+                            EM_F[5] = 0;
+                            EM_F[6] = 0;
+                            EM_F[7] = 0;
                         }
                         const index_t firstNode=m_NN[0]*k1+k0;
                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
@@ -5971,40 +6044,43 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8, 0);
-                        vector<double> EM_F(8, 0);
                         const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            EM_S[INDEX2(4,4,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(5,4,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(6,4,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(7,4,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(4,5,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(5,5,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(6,5,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(7,5,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(4,6,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(5,6,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(6,6,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(7,6,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(4,7,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(5,7,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(6,7,8)]+=d_p[0]*w0;
-                            EM_S[INDEX2(7,7,8)]+=d_p[0]*w0;
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                            EM_S[INDEX2(4,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(4,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(4,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(4,7,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,7,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,7,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,7,8)] = d_p[0]*w0;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
-                            EM_F[4]+=4*w0*y_p[0];
-                            EM_F[5]+=4*w0*y_p[0];
-                            EM_F[6]+=4*w0*y_p[0];
-                            EM_F[7]+=4*w0*y_p[0];
+                            EM_F[0] = 0;
+                            EM_F[1] = 0;
+                            EM_F[2] = 0;
+                            EM_F[3] = 0;
+                            EM_F[4] = 4*w0*y_p[0];
+                            EM_F[5] = 4*w0*y_p[0];
+                            EM_F[6] = 4*w0*y_p[0];
+                            EM_F[7] = 4*w0*y_p[0];
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
@@ -6052,19 +6128,21 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8*numEq*numComp, 0);
+        vector<double> EM_F(8*numEq, 0);
+
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6138,17 +6216,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double y_3 = y_p[INDEX2(k, 3, numEq)];
                                     const double tmp0 = 6*w2*(y_1 + y_2);
                                     const double tmp1 = 6*w2*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)]+=tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                    EM_F[INDEX2(k,2,numEq)]+=tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                    EM_F[INDEX2(k,4,numEq)]+=tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                    EM_F[INDEX2(k,6,numEq)]+=tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                    EM_F[INDEX2(k,1,numEq)] = 0;
+                                    EM_F[INDEX2(k,2,numEq)] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                    EM_F[INDEX2(k,3,numEq)] = 0;
+                                    EM_F[INDEX2(k,4,numEq)] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                    EM_F[INDEX2(k,5,numEq)] = 0;
+                                    EM_F[INDEX2(k,6,numEq)] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                    EM_F[INDEX2(k,7,numEq)] = 0;
                                 }
                             } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)]+=36*w2*y_p[k];
-                                    EM_F[INDEX2(k,2,numEq)]+=36*w2*y_p[k];
-                                    EM_F[INDEX2(k,4,numEq)]+=36*w2*y_p[k];
-                                    EM_F[INDEX2(k,6,numEq)]+=36*w2*y_p[k];
+                                    EM_F[INDEX2(k,0,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,1,numEq)] = 0;
+                                    EM_F[INDEX2(k,2,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,3,numEq)] = 0;
+                                    EM_F[INDEX2(k,4,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,5,numEq)] = 0;
+                                    EM_F[INDEX2(k,6,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,7,numEq)] = 0;
                                 }
                             }
                         }
@@ -6165,14 +6251,13 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6246,17 +6331,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double y_3 = y_p[INDEX2(k, 3, numEq)];
                                     const double tmp0 = 6*w2*(y_1 + y_2);
                                     const double tmp1 = 6*w2*(y_0 + y_3);
-                                    EM_F[INDEX2(k,1,numEq)]+=tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                    EM_F[INDEX2(k,3,numEq)]+=tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                    EM_F[INDEX2(k,5,numEq)]+=tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                    EM_F[INDEX2(k,7,numEq)]+=tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                    EM_F[INDEX2(k,0,numEq)] = 0;
+                                    EM_F[INDEX2(k,1,numEq)] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                    EM_F[INDEX2(k,2,numEq)] = 0;
+                                    EM_F[INDEX2(k,3,numEq)] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                    EM_F[INDEX2(k,4,numEq)] = 0;
+                                    EM_F[INDEX2(k,5,numEq)] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                    EM_F[INDEX2(k,6,numEq)] = 0;
+                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
                                 }
                             } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,1,numEq)]+=36*w2*y_p[k];
-                                    EM_F[INDEX2(k,3,numEq)]+=36*w2*y_p[k];
-                                    EM_F[INDEX2(k,5,numEq)]+=36*w2*y_p[k];
-                                    EM_F[INDEX2(k,7,numEq)]+=36*w2*y_p[k];
+                                    EM_F[INDEX2(k,0,numEq)] = 0;
+                                    EM_F[INDEX2(k,1,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,2,numEq)] = 0;
+                                    EM_F[INDEX2(k,3,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,4,numEq)] = 0;
+                                    EM_F[INDEX2(k,5,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,6,numEq)] = 0;
+                                    EM_F[INDEX2(k,7,numEq)] = 36*w2*y_p[k];
                                 }
                             }
                         }
@@ -6273,14 +6366,13 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6354,17 +6446,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double y_3 = y_p[INDEX2(k, 3, numEq)];
                                     const double tmp0 = 6*w7*(y_1 + y_2);
                                     const double tmp1 = 6*w7*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)]+=tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                    EM_F[INDEX2(k,1,numEq)]+=tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                    EM_F[INDEX2(k,4,numEq)]+=tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                    EM_F[INDEX2(k,5,numEq)]+=tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                    EM_F[INDEX2(k,1,numEq)] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                    EM_F[INDEX2(k,2,numEq)] = 0;
+                                    EM_F[INDEX2(k,3,numEq)] = 0;
+                                    EM_F[INDEX2(k,4,numEq)] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                    EM_F[INDEX2(k,5,numEq)] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                    EM_F[INDEX2(k,6,numEq)] = 0;
+                                    EM_F[INDEX2(k,7,numEq)] = 0;
                                 }
                             } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)]+=36*w7*y_p[k];
-                                    EM_F[INDEX2(k,1,numEq)]+=36*w7*y_p[k];
-                                    EM_F[INDEX2(k,4,numEq)]+=36*w7*y_p[k];
-                                    EM_F[INDEX2(k,5,numEq)]+=36*w7*y_p[k];
+                                    EM_F[INDEX2(k,0,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,1,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,2,numEq)] = 0;
+                                    EM_F[INDEX2(k,3,numEq)] = 0;
+                                    EM_F[INDEX2(k,4,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,5,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,6,numEq)] = 0;
+                                    EM_F[INDEX2(k,7,numEq)] = 0;
                                 }
                             }
                         }
@@ -6381,14 +6481,13 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6462,17 +6561,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double y_3 = y_p[INDEX2(k, 3, numEq)];
                                     const double tmp0 = 6*w7*(y_1 + y_2);
                                     const double tmp1 = 6*w7*(y_0 + y_3);
-                                    EM_F[INDEX2(k,2,numEq)]+=tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                    EM_F[INDEX2(k,3,numEq)]+=tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                    EM_F[INDEX2(k,6,numEq)]+=tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                    EM_F[INDEX2(k,7,numEq)]+=tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                    EM_F[INDEX2(k,0,numEq)] = 0;
+                                    EM_F[INDEX2(k,1,numEq)] = 0;
+                                    EM_F[INDEX2(k,2,numEq)] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                    EM_F[INDEX2(k,3,numEq)] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                    EM_F[INDEX2(k,4,numEq)] = 0;
+                                    EM_F[INDEX2(k,5,numEq)] = 0;
+                                    EM_F[INDEX2(k,6,numEq)] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
                                 }
                             } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,2,numEq)]+=36*w7*y_p[k];
-                                    EM_F[INDEX2(k,3,numEq)]+=36*w7*y_p[k];
-                                    EM_F[INDEX2(k,6,numEq)]+=36*w7*y_p[k];
-                                    EM_F[INDEX2(k,7,numEq)]+=36*w7*y_p[k];
+                                    EM_F[INDEX2(k,0,numEq)] = 0;
+                                    EM_F[INDEX2(k,1,numEq)] = 0;
+                                    EM_F[INDEX2(k,2,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,3,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,4,numEq)] = 0;
+                                    EM_F[INDEX2(k,5,numEq)] = 0;
+                                    EM_F[INDEX2(k,6,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,7,numEq)] = 36*w7*y_p[k];
                                 }
                             }
                         }
@@ -6489,14 +6596,13 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6570,17 +6676,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double y_3 = y_p[INDEX2(k, 3, numEq)];
                                     const double tmp0 = 6*w12*(y_1 + y_2);
                                     const double tmp1 = 6*w12*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)]+=tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                    EM_F[INDEX2(k,1,numEq)]+=tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                    EM_F[INDEX2(k,2,numEq)]+=tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                    EM_F[INDEX2(k,3,numEq)]+=tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                    EM_F[INDEX2(k,1,numEq)] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                    EM_F[INDEX2(k,2,numEq)] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                    EM_F[INDEX2(k,3,numEq)] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                    EM_F[INDEX2(k,4,numEq)] = 0;
+                                    EM_F[INDEX2(k,5,numEq)] = 0;
+                                    EM_F[INDEX2(k,6,numEq)] = 0;
+                                    EM_F[INDEX2(k,7,numEq)] = 0;
                                 }
                             } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)]+=36*w12*y_p[k];
-                                    EM_F[INDEX2(k,1,numEq)]+=36*w12*y_p[k];
-                                    EM_F[INDEX2(k,2,numEq)]+=36*w12*y_p[k];
-                                    EM_F[INDEX2(k,3,numEq)]+=36*w12*y_p[k];
+                                    EM_F[INDEX2(k,0,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,1,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,2,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,3,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,4,numEq)] = 0;
+                                    EM_F[INDEX2(k,5,numEq)] = 0;
+                                    EM_F[INDEX2(k,6,numEq)] = 0;
+                                    EM_F[INDEX2(k,7,numEq)] = 0;
                                 }
                             }
                         }
@@ -6597,14 +6711,13 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6678,17 +6791,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double y_3 = y_p[INDEX2(k, 3, numEq)];
                                     const double tmp0 = 6*w12*(y_1 + y_2);
                                     const double tmp1 = 6*w12*(y_0 + y_3);
-                                    EM_F[INDEX2(k,4,numEq)]+=tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                    EM_F[INDEX2(k,5,numEq)]+=tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                    EM_F[INDEX2(k,6,numEq)]+=tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                    EM_F[INDEX2(k,7,numEq)]+=tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                    EM_F[INDEX2(k,0,numEq)] = 0;
+                                    EM_F[INDEX2(k,1,numEq)] = 0;
+                                    EM_F[INDEX2(k,2,numEq)] = 0;
+                                    EM_F[INDEX2(k,3,numEq)] = 0;
+                                    EM_F[INDEX2(k,4,numEq)] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                    EM_F[INDEX2(k,5,numEq)] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                    EM_F[INDEX2(k,6,numEq)] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
                                 }
                             } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,4,numEq)]+=36*w12*y_p[k];
-                                    EM_F[INDEX2(k,5,numEq)]+=36*w12*y_p[k];
-                                    EM_F[INDEX2(k,6,numEq)]+=36*w12*y_p[k];
-                                    EM_F[INDEX2(k,7,numEq)]+=36*w12*y_p[k];
+                                    EM_F[INDEX2(k,0,numEq)] = 0;
+                                    EM_F[INDEX2(k,1,numEq)] = 0;
+                                    EM_F[INDEX2(k,2,numEq)] = 0;
+                                    EM_F[INDEX2(k,3,numEq)] = 0;
+                                    EM_F[INDEX2(k,4,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,5,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,6,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,7,numEq)] = 36*w12*y_p[k];
                                 }
                             }
                         }
@@ -6726,38 +6847,40 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
 
 #pragma omp parallel
     {
+        vector<double> EM_S(8*8*numEq*numComp, 0);
+        vector<double> EM_F(8*numEq, 0);
+
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w2;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]=tmp0;
                                 }
                             }
                         }
@@ -6767,10 +6890,14 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)]+=4*w2*y_p[k];
-                                EM_F[INDEX2(k,2,numEq)]+=4*w2*y_p[k];
-                                EM_F[INDEX2(k,4,numEq)]+=4*w2*y_p[k];
-                                EM_F[INDEX2(k,6,numEq)]+=4*w2*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,1,numEq)] = 0;
+                                EM_F[INDEX2(k,2,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,3,numEq)] = 0;
+                                EM_F[INDEX2(k,4,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,5,numEq)] = 0;
+                                EM_F[INDEX2(k,6,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,7,numEq)] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
@@ -6786,33 +6913,32 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k1=0; k1<NE1; ++k1) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w2;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]=tmp0;
                                 }
                             }
                         }
@@ -6822,10 +6948,14 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,1,numEq)]+=4*w2*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)]+=4*w2*y_p[k];
-                                EM_F[INDEX2(k,5,numEq)]+=4*w2*y_p[k];
-                                EM_F[INDEX2(k,7,numEq)]+=4*w2*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)] = 0;
+                                EM_F[INDEX2(k,1,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,2,numEq)] = 0;
+                                EM_F[INDEX2(k,3,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,4,numEq)] = 0;
+                                EM_F[INDEX2(k,5,numEq)] = 4*w2*y_p[k];
+                                EM_F[INDEX2(k,6,numEq)] = 0;
+                                EM_F[INDEX2(k,7,numEq)] = 4*w2*y_p[k];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
@@ -6841,33 +6971,32 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]=tmp0;
                                 }
                             }
                         }
@@ -6877,10 +7006,14 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)]+=4*w1*y_p[k];
-                                EM_F[INDEX2(k,1,numEq)]+=4*w1*y_p[k];
-                                EM_F[INDEX2(k,4,numEq)]+=4*w1*y_p[k];
-                                EM_F[INDEX2(k,5,numEq)]+=4*w1*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,1,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,2,numEq)] = 0;
+                                EM_F[INDEX2(k,3,numEq)] = 0;
+                                EM_F[INDEX2(k,4,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,5,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,6,numEq)] = 0;
+                                EM_F[INDEX2(k,7,numEq)] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
@@ -6896,33 +7029,32 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]=tmp0;
                                 }
                             }
                         }
@@ -6932,10 +7064,14 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,2,numEq)]+=4*w1*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)]+=4*w1*y_p[k];
-                                EM_F[INDEX2(k,6,numEq)]+=4*w1*y_p[k];
-                                EM_F[INDEX2(k,7,numEq)]+=4*w1*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)] = 0;
+                                EM_F[INDEX2(k,1,numEq)] = 0;
+                                EM_F[INDEX2(k,2,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,3,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,4,numEq)] = 0;
+                                EM_F[INDEX2(k,5,numEq)] = 0;
+                                EM_F[INDEX2(k,6,numEq)] = 4*w1*y_p[k];
+                                EM_F[INDEX2(k,7,numEq)] = 4*w1*y_p[k];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
@@ -6951,33 +7087,32 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]=tmp0;
                                 }
                             }
                         }
@@ -6987,10 +7122,14 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)]+=4*w0*y_p[k];
-                                EM_F[INDEX2(k,1,numEq)]+=4*w0*y_p[k];
-                                EM_F[INDEX2(k,2,numEq)]+=4*w0*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)]+=4*w0*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,1,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,2,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,3,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,4,numEq)] = 0;
+                                EM_F[INDEX2(k,5,numEq)] = 0;
+                                EM_F[INDEX2(k,6,numEq)] = 0;
+                                EM_F[INDEX2(k,7,numEq)] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*k1+k0;
@@ -7006,33 +7145,32 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     for (index_t k0=0; k0<NE0; ++k0) {
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
                         const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
+                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
-                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp0;
-                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]=tmp0;
+                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]=tmp0;
                                 }
                             }
                         }
@@ -7042,10 +7180,14 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,4,numEq)]+=4*w0*y_p[k];
-                                EM_F[INDEX2(k,5,numEq)]+=4*w0*y_p[k];
-                                EM_F[INDEX2(k,6,numEq)]+=4*w0*y_p[k];
-                                EM_F[INDEX2(k,7,numEq)]+=4*w0*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)] = 0;
+                                EM_F[INDEX2(k,1,numEq)] = 0;
+                                EM_F[INDEX2(k,2,numEq)] = 0;
+                                EM_F[INDEX2(k,3,numEq)] = 0;
+                                EM_F[INDEX2(k,4,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,5,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,6,numEq)] = 4*w0*y_p[k];
+                                EM_F[INDEX2(k,7,numEq)] = 4*w0*y_p[k];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
