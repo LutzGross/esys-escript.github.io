@@ -53,6 +53,7 @@ void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
 
 #pragma omp parallel
     {
+        std::vector<int> row_index(p.row_numShapesTotal);
         std::vector<double> EM_S(p.row_numShapesTotal*p.col_numShapesTotal);
         std::vector<double> EM_F(p.row_numShapesTotal);
 
@@ -126,7 +127,6 @@ void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
                         }
                         // add the element matrices onto the matrix and
                         // right hand side
-                        std::vector<int> row_index(p.row_numShapesTotal);
                         for (int q=0; q<p.row_numShapesTotal; q++)
                             row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
 
