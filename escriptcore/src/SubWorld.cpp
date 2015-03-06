@@ -775,7 +775,8 @@ char SubWorld::runJobs(std::string& errormsg)
     } 
     catch (boost::python::error_already_set e)
     {
-	getStringFromPyException(e, errormsg);      
+	//getStringFromPyException(e, errormsg);      
+	getTraceStringFromPyException(e, errormsg);
 	return 3;
     }  
     return ret;

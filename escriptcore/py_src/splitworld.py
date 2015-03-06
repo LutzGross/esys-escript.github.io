@@ -148,10 +148,11 @@ class FunctionJob(Job):
   """
   Takes a python function (with no params) to be called as the work method
   """
-  def __init__(self, fn):
-    super(FunctionJob, self).__init__()
+  def __init__(self, fn, *args, **kwargs):
+    super(FunctionJob, self).__init__(*args, **kwargs)
     self.__fn__ = fn
+    self.__calldict__ = kwargs
     
   def work(self):
-    self.__fn__()
+    self.__fn__(self, **self.__calldict__)
     return True

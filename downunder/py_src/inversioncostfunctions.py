@@ -30,7 +30,7 @@ from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
 from esys.escript import Data, inner
-from esys.escript import SplitWorld
+from esys.escript import SplitWorld, addJob, FunctionJob
 import numpy as np
 
 
@@ -75,10 +75,73 @@ class InversionCostFunction(MeteredCostFunction):
     """
     provides_inverse_Hessian_approximation=True
 
+    # returns lists of mappings and models where each one has a collection on indices
+    @staticmethod
+    def processMapsAndModels(mappings, forward_models, numLevelSets):
+        outmappings=[]
+        for i in range(len(mappings)):
+            mm=mappings[i]
+            if isinstance(mm, Mapping):
+                m=mm
+                if numLevelSets>1:
+                    idx=[ p for p in range(numLevelSets)]
+                else:
+                    idx=None
+            elif len(mm) == 1:
+                m=mm[0]
+                if numLevelSets>1:
+                    idx=[ p for p in range(numLevelSets)]
+                else:
+                    idx=None
+            else:
+                m=mm[0]
+                if isinstance(mm[1], int):
+                    idx=[mm[1]]
+                else:
+                    idx=list(mm[1])
+                if numLevelSets>1:
+                    for k in idx:
+                        if  k < 0  or k > numLevelSets-1:
+                            raise ValueError("level set index %s is out of range."%(k,))
 
+                else:
+                    if idx[0] != 0:
+                        raise ValueError("Level set index %s is out of range."%(k,))
+                    else:
+                        idx=None
+            outmappings.append((m,idx))
+        numMappings=len(outmappings)
+        if isinstance(forward_models, ForwardModel):
+            forward_models = [ forward_models ]
+        temp_fwdmod=[]    
+        for i in range(len(forward_models)):
+            f=forward_models[i]
+            if isinstance(f, ForwardModel):
+                idx=[0]
+                fm=f
+            elif len(f) == 1:
+                idx=[0]
+                fm=f[0]
+            else:
+                if isinstance(f[1],int):
+                    idx=[f[1]]
+                else:
+                    idx=list(f[1])
+                for k in idx:
+                    if k<0 or k> numMappings:
+                        raise ValueError("mapping index %s in model %s is out of range."%(k,i))
+                fm=f[0]
+            temp_fwdmod.append((fm,idx))         
+        return outmappings, temp_fwdmod
+    
+    
     #This is a test at hacking splitworld functionality into downunder
     #In production code, we may need a new subclass for this
-    def __init__(self, regularization, mappings, forward_models, splitw=None, worldsinit_fn=None):
+    # If splitw is supplied, jobs will be run in that split world.
+    # If worldsinit_fn is supplied (and spliw is present), then that function will be run on each
+    # world
+    def __init__(self, regularization, mappings, forward_models, splitw=None, worldsinit_fn=None, numLevelSets=None,
+       numModels=None, numMappings=None):
         """
         constructor for the cost function.
         Stores the supplied object references and sets default weights.
@@ -106,83 +169,37 @@ class InversionCostFunction(MeteredCostFunction):
         :param forward_models: `ForwardModel` or ``list``
         """
         super(InversionCostFunction, self).__init__()
-        self.regularization=regularization
-        self.numLevelSets = self.regularization.getNumLevelSets()
+        if regularization is not None:
+	  self.regularization=regularization
+	  self.numLevelSets = self.regularization.getNumLevelSets()
+	else:
+	  self.numLevelSets = numLevelSets
 
         if isinstance(mappings, Mapping):
             mappings = [ mappings ]
 
         if splitw is None:
 	  splitw=SplitWorld(1)
+	  
+	  
+	#temporary hack
+	if numModels<1:
+	  raise ValueError("numModels must be at least one")
+	#temporary hack
+	if numMappings<1:
+	  raise ValueError("numMappings must be at least one")
+	
 	# calls worlds init in each of the subworlds 
         if worldsinit_fn is not None:
-	  for i in range(0,splitw.getWorldCount()):
-	    addJob(sw, FunctionJob, worldsinit_fn)
+	  for i in range(0,splitw.getNumWorlds()):
 	    
-        self.mappings=[]
-        for i in range(len(mappings)):
-            mm=mappings[i]
-            if isinstance(mm, Mapping):
-                m=mm
-                if self.numLevelSets>1:
-                    idx=[ p for p in range(self.numLevelSets)]
-                else:
-                    idx=None
-            elif len(mm) == 1:
-                m=mm[0]
-                if self.numLevelSets>1:
-                    idx=[ p for p in range(self.numLevelSets)]
-                else:
-                    idx=None
-            else:
-                m=mm[0]
-                if isinstance(mm[1], int):
-                    idx=[mm[1]]
-                else:
-                    idx=list(mm[1])
-                if self.numLevelSets>1:
-                    for k in idx:
-                        if  k < 0  or k > self.numLevelSets-1:
-                            raise ValueError("level set index %s is out of range."%(k,))
-
-                else:
-                    if idx[0] != 0:
-                        raise ValueError("Level set index %s is out of range."%(k,))
-                    else:
-                        idx=None
-            self.mappings.append((m,idx))
-        self.numMappings=len(self.mappings)
-
-
-        if isinstance(forward_models, ForwardModel):
-            forward_models = [ forward_models ]
-        temp_fwdmod=[]    
-        self.forward_models=[]
-        for i in range(len(forward_models)):
-            f=forward_models[i]
-            if isinstance(f, ForwardModel):
-                idx=[0]
-                fm=f
-            elif len(f) == 1:
-                idx=[0]
-                fm=f[0]
-            else:
-                if isinstance(f[1],int):
-                    idx=[f[1]]
-                else:
-                    idx=list(f[1])
-                for k in idx:
-                    if k<0 or k> self.numMappings:
-                        raise ValueError("mapping index %s in model %s is out of range."%(k,i))
-                fm=f[0]
-            temp_fwdmod.append((fm,idx))
-        self.forward_models=temp_fwdmod
-        self.numModels=len(self.forward_models)
-
-        trafo = self.regularization.getCoordinateTransformation()
-        for m in self.forward_models:
-            if not m[0].getCoordinateTransformation() == trafo:
-                raise ValueError("Coordinate transformation for regularization and model don't match.")
+	    start=i*numModels//splitw.getNumWorlds()
+	    howmany=min(numModels-start+1,numModels% splitw.getNumWorlds())
+	    addJob(splitw, FunctionJob, worldsinit_fn, rangestart=start, rangelen=howmany, numLevelSets=self.numLevelSets)
+	  splitw.runJobs()
+        
+        self.numMappings=numMappings
+        self.numModels=numModels
 
         self.__num_tradeoff_factors = self.regularization.getNumTradeOffFactors() + self.numModels
         self.setTradeOffFactorsModels()
