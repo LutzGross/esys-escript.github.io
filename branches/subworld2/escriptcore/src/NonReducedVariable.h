@@ -24,12 +24,12 @@ namespace escript
 {
 
 // plugs into the import/export mechanism but stays on the 
-// subworld it was created by (no actual reduction takes place
+// subworld it was created by (no actual reduction takes place)
 class NonReducedVariable : public AbstractReducer
 {
 public:
     NonReducedVariable();
-    ~NonReducedVariable(){};
+    ~NonReducedVariable();
     
         // This is not a constructor parameter because 
         // if these are created outside the subworld, they won't have
@@ -50,12 +50,13 @@ public:
     std::string description();
     
 	// Get a value for this variable from another process
-	// This is not a reduction and will replace any existing value
+	// Throws an exception in this class since these variables are local world only
     bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo);
 
 	// Send a value to this variable to another process
-	// This is not a reduction and will replace any existing value    
-    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
+	// Throws an exception in this class since these variables are local world only
+    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);
+    
     double getDouble();
     virtual boost::python::object getPyObj(); 
     
@@ -71,15 +72,14 @@ public:
     }
     
 private:    
-    double value;
+    boost::python::object value;
     double identity;
 };
 
 
-Reducer_ptr makeNonReducedVariable(std::string type);
+Reducer_ptr makeNonReducedVariable();
 
-
-}
+}	// end escript namespace
 
 #endif // __ESCRIPT_NONREDUCEDVARIABLE_H__
 

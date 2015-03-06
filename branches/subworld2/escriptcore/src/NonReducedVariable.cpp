@@ -13,8 +13,13 @@
 *
 *****************************************************************************/
 
-
+#include "SplitWorldException.h"
 #include "NonReducedVariable.h"
+
+namespace escript
+{
+
+
 
 NonReducedVariable::NonReducedVariable()
 {
@@ -23,7 +28,7 @@ NonReducedVariable::NonReducedVariable()
 
 NonReducedVariable::~NonReducedVariable()
 {
-};
+}
 
 void NonReducedVariable::setDomain(escript::Domain_ptr d)
 {
@@ -75,12 +80,12 @@ std::string NonReducedVariable::description()
 
 bool NonReducedVariable::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
 {
-    return true;
+    throw SplitWorldException("Programming error: attempt to send a local variable to a different subworld."); 
 }
 
-bool NonReducedVariable::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+bool NonReducedVariable::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)
 {
-    return true;
+    throw SplitWorldException("Programming error: attempt to send a local variable to a different subworld.");   
 }
 
 double NonReducedVariable::getDouble()
@@ -103,9 +108,7 @@ bool NonReducedVariable::groupReduce(MPI_Comm& com, char mystate)
     return true;
 }
 
-namespace escript
-{
-Reducer_ptr makeNonReducedVariable(std::string type)
+Reducer_ptr makeNonReducedVariable()
 {
     NonReducedVariable* m=new NonReducedVariable();
     return Reducer_ptr(m);

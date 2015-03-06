@@ -24,4 +24,5 @@ from esys.escriptcore.escriptcpp import *
 from esys.escriptcore.util import *
 from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
+from esys.escriptcore.splitworld import *
 from esys.escriptcore.symbolic import *
