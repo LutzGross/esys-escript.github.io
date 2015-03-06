@@ -66,7 +66,7 @@ void getTraceStringFromPyException(boost::python::error_already_set e, std::stri
 	    
 	    while (tb!=object())
 	    {
-		int lineno=boost::python::extract<int>(tb.attr("tb_lasti"))();
+		int lineno=boost::python::extract<int>(tb.attr("tb_lineno"))();
 		boost::python::object code=tb.attr("tb_frame").attr("f_code");
 		std::string fname=boost::python::extract<std::string>(code.attr("co_filename"))();
 		std::string funct=boost::python::extract<std::string>(code.attr("co_name"))();
