@@ -44,6 +44,10 @@ void DefaultAssembler3D::collateFunctionSpaceTypes(vector<int>& fsTypes,
         fsTypes.push_back(coefs.find("Y")->second.getFunctionSpace().getTypeCode());
 }
 
+/****************************************************************************/
+// wrappers
+/****************************************************************************/
+
 void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
@@ -127,6 +131,9 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 
+/****************************************************************************/
+// PDE SINGLE
+/****************************************************************************/
 
 void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                                            const Data& A, const Data& B,
@@ -208,6 +215,8 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
     const int NE0 = m_NE[0];
     const int NE1 = m_NE[1];
     const int NE2 = m_NE[2];
+    const bool add_EM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
+    const bool add_EM_F = (!X.isEmpty() || !Y.isEmpty());
     rhs.requireWrite();
 
 #pragma omp parallel
@@ -220,16 +229,16 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
                 for (index_t k1=0; k1<NE1; ++k1) {
                     for (index_t k0=0; k0<NE0; ++k0)  {
-                        bool add_EM_S=false;
-                        bool add_EM_F=false;
-                        fill(EM_S.begin(), EM_S.end(), 0);
-                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
+                        if (add_EM_S)
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                        if (add_EM_F)
+                            fill(EM_F.begin(), EM_F.end(), 0);
+
                         ///////////////
                         // process A //
                         ///////////////
                         if (!A.isEmpty()) {
-                            add_EM_S = true;
                             const double* A_p = A.getSampleDataRO(e);
                             if (A.actsExpanded()) {
                                 const double A_00_0 = A_p[INDEX3(0,0,0,3,3)];
@@ -815,68 +824,68 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                                 const double tmp508 = w18*(A_12_0 + A_21_6);
                                 const double tmp509 = w4*(-A_12_7 - A_21_1);
                                 EM_S[INDEX2(0,0,8)]+=tmp198 + tmp200 + tmp214 + tmp259 + tmp262 + tmp289 + tmp294 + tmp299 + tmp303 + tmp304 + tmp307 + tmp309 + tmp343 + tmp347 + tmp362 + tmp363 + tmp379 + tmp380 + tmp381 + tmp382 + tmp383 + tmp384 + tmp385 + tmp386;
-                                EM_S[INDEX2(0,1,8)]+=tmp161 + tmp201 + tmp247 + tmp250 + tmp371 + tmp374 + tmp44 + tmp451 + tmp454 + tmp455 + tmp456 + tmp466 + tmp467 + tmp468 + tmp469 + tmp49 + tmp89 + tmp91 + tmp92 + tmp98;
-                                EM_S[INDEX2(0,2,8)]+=tmp135 + tmp236 + tmp238 + tmp240 + tmp242 + tmp244 + tmp39 + tmp41 + tmp432 + tmp436 + tmp440 + tmp441 + tmp490 + tmp491 + tmp492 + tmp493 + tmp61 + tmp68 + tmp70 + tmp71;
-                                EM_S[INDEX2(0,3,8)]+=tmp114 + tmp165 + tmp166 + tmp167 + tmp168 + tmp169 + tmp170 + tmp171 + tmp172 + tmp20 + tmp73 + tmp74 + tmp75 + tmp76 + tmp79 + tmp80;
-                                EM_S[INDEX2(0,4,8)]+=tmp1 + tmp127 + tmp131 + tmp141 + tmp145 + tmp146 + tmp148 + tmp15 + tmp189 + tmp190 + tmp192 + tmp193 + tmp2 + tmp243 + tmp246 + tmp406 + tmp407 + tmp408 + tmp409 + tmp5;
-                                EM_S[INDEX2(0,5,8)]+=tmp174 + tmp176 + tmp184 + tmp24 + tmp260 + tmp267 + tmp339 + tmp340 + tmp341 + tmp342 + tmp344 + tmp345 + tmp416 + tmp417 + tmp506 + tmp507;
-                                EM_S[INDEX2(0,6,8)]+=tmp21 + tmp258 + tmp266 + tmp274 + tmp337 + tmp398 + tmp422 + tmp424 + tmp428 + tmp430 + tmp447 + tmp449 + tmp496 + tmp497 + tmp498 + tmp499;
-                                EM_S[INDEX2(0,7,8)]+=tmp104 + tmp105 + tmp106 + tmp107 + tmp108 + tmp109 + tmp110 + tmp111 + tmp112 + tmp113 + tmp38 + tmp87;
                                 EM_S[INDEX2(1,0,8)]+=tmp145 + tmp148 + tmp161 + tmp201 + tmp202 + tmp210 + tmp371 + tmp374 + tmp440 + tmp441 + tmp450 + tmp451 + tmp452 + tmp453 + tmp454 + tmp455 + tmp456 + tmp457 + tmp89 + tmp91;
-                                EM_S[INDEX2(1,1,8)]+=tmp215 + tmp221 + tmp227 + tmp260 + tmp267 + tmp288 + tmp304 + tmp312 + tmp317 + tmp351 + tmp352 + tmp353 + tmp354 + tmp355 + tmp356 + tmp357 + tmp358 + tmp359 + tmp360 + tmp361 + tmp362 + tmp363 + tmp76 + tmp79;
-                                EM_S[INDEX2(1,2,8)]+=tmp166 + tmp169 + tmp172 + tmp196 + tmp197 + tmp198 + tmp199 + tmp20 + tmp200 + tmp21 + tmp73 + tmp74 + tmp75 + tmp77 + tmp80 + tmp82;
-                                EM_S[INDEX2(1,3,8)]+=tmp36 + tmp37 + tmp38 + tmp39 + tmp40 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp46 + tmp47 + tmp48 + tmp49 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55;
-                                EM_S[INDEX2(1,4,8)]+=tmp176 + tmp24 + tmp269 + tmp274 + tmp339 + tmp340 + tmp342 + tmp343 + tmp344 + tmp347 + tmp394 + tmp395 + tmp416 + tmp417 + tmp418 + tmp419;
-                                EM_S[INDEX2(1,5,8)]+=tmp112 + tmp12 + tmp123 + tmp13 + tmp141 + tmp142 + tmp143 + tmp146 + tmp147 + tmp149 + tmp16 + tmp277 + tmp278 + tmp279 + tmp280 + tmp281 + tmp282 + tmp6 + tmp92 + tmp98;
-                                EM_S[INDEX2(1,6,8)]+=tmp104 + tmp105 + tmp106 + tmp110 + tmp113 + tmp135 + tmp136 + tmp137 + tmp138 + tmp139 + tmp15 + tmp87;
-                                EM_S[INDEX2(1,7,8)]+=tmp114 + tmp184 + tmp225 + tmp232 + tmp329 + tmp330 + tmp332 + tmp334 + tmp335 + tmp337 + tmp338 + tmp421 + tmp464 + tmp465 + tmp504 + tmp505;
                                 EM_S[INDEX2(2,0,8)]+=tmp135 + tmp234 + tmp235 + tmp236 + tmp237 + tmp238 + tmp239 + tmp240 + tmp241 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp39 + tmp41 + tmp44 + tmp49 + tmp61 + tmp71;
-                                EM_S[INDEX2(2,1,8)]+=tmp114 + tmp120 + tmp167 + tmp170 + tmp198 + tmp20 + tmp200 + tmp24 + tmp443 + tmp444 + tmp73 + tmp74 + tmp75 + tmp80 + tmp81 + tmp83;
-                                EM_S[INDEX2(2,2,8)]+=tmp217 + tmp231 + tmp233 + tmp258 + tmp266 + tmp271 + tmp273 + tmp288 + tmp289 + tmp290 + tmp291 + tmp292 + tmp293 + tmp294 + tmp295 + tmp296 + tmp297 + tmp298 + tmp299 + tmp300 + tmp301 + tmp302 + tmp76 + tmp79;
-                                EM_S[INDEX2(2,3,8)]+=tmp101 + tmp156 + tmp157 + tmp204 + tmp205 + tmp368 + tmp371 + tmp372 + tmp374 + tmp375 + tmp377 + tmp437 + tmp438 + tmp439 + tmp440 + tmp441 + tmp442 + tmp85 + tmp87 + tmp99;
-                                EM_S[INDEX2(2,4,8)]+=tmp184 + tmp21 + tmp328 + tmp337 + tmp383 + tmp386 + tmp422 + tmp423 + tmp424 + tmp427 + tmp428 + tmp430 + tmp498 + tmp499 + tmp508 + tmp509;
-                                EM_S[INDEX2(2,5,8)]+=tmp104 + tmp106 + tmp108 + tmp111 + tmp113 + tmp15 + tmp160 + tmp161 + tmp162 + tmp163 + tmp164 + tmp38;
-                                EM_S[INDEX2(2,6,8)]+=tmp10 + tmp112 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp128 + tmp129 + tmp130 + tmp131 + tmp132 + tmp133 + tmp134 + tmp14 + tmp3 + tmp68 + tmp70 + tmp9;
-                                EM_S[INDEX2(2,7,8)]+=tmp166 + tmp175 + tmp176 + tmp178 + tmp179 + tmp180 + tmp183 + tmp187 + tmp270 + tmp272 + tmp274 + tmp284 + tmp285 + tmp364 + tmp365 + tmp366;
                                 EM_S[INDEX2(3,0,8)]+=tmp20 + tmp21 + tmp24 + tmp34 + tmp72 + tmp73 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79 + tmp80 + tmp81 + tmp82 + tmp83;
-                                EM_S[INDEX2(3,1,8)]+=tmp13 + tmp16 + tmp38 + tmp39 + tmp40 + tmp41 + tmp43 + tmp440 + tmp441 + tmp45 + tmp47 + tmp478 + tmp481 + tmp486 + tmp487 + tmp488 + tmp489 + tmp50 + tmp52 + tmp55;
-                                EM_S[INDEX2(3,2,8)]+=tmp101 + tmp14 + tmp204 + tmp205 + tmp367 + tmp368 + tmp369 + tmp370 + tmp371 + tmp372 + tmp373 + tmp374 + tmp375 + tmp376 + tmp377 + tmp378 + tmp44 + tmp49 + tmp87 + tmp9;
-                                EM_S[INDEX2(3,3,8)]+=tmp179 + tmp183 + tmp198 + tmp200 + tmp214 + tmp215 + tmp216 + tmp217 + tmp218 + tmp219 + tmp220 + tmp221 + tmp222 + tmp223 + tmp224 + tmp225 + tmp226 + tmp227 + tmp228 + tmp229 + tmp230 + tmp231 + tmp232 + tmp233;
-                                EM_S[INDEX2(3,4,8)]+=tmp104 + tmp106 + tmp112 + tmp113 + tmp135 + tmp137 + tmp139 + tmp160 + tmp161 + tmp164 + tmp471 + tmp473;
-                                EM_S[INDEX2(3,5,8)]+=tmp114 + tmp274 + tmp312 + tmp317 + tmp329 + tmp332 + tmp335 + tmp337 + tmp338 + tmp399 + tmp401 + tmp446 + tmp462 + tmp463 + tmp464 + tmp465;
-                                EM_S[INDEX2(3,6,8)]+=tmp166 + tmp175 + tmp176 + tmp177 + tmp178 + tmp180 + tmp181 + tmp184 + tmp187 + tmp271 + tmp273 + tmp283 + tmp284 + tmp285 + tmp286 + tmp287;
-                                EM_S[INDEX2(3,7,8)]+=tmp1 + tmp10 + tmp11 + tmp12 + tmp15 + tmp152 + tmp153 + tmp154 + tmp155 + tmp156 + tmp157 + tmp158 + tmp159 + tmp17 + tmp3 + tmp4 + tmp51 + tmp54 + tmp6 + tmp7;
                                 EM_S[INDEX2(4,0,8)]+=tmp1 + tmp127 + tmp131 + tmp141 + tmp146 + tmp15 + tmp153 + tmp154 + tmp188 + tmp189 + tmp190 + tmp191 + tmp192 + tmp193 + tmp194 + tmp195 + tmp68 + tmp70 + tmp92 + tmp98;
-                                EM_S[INDEX2(4,1,8)]+=tmp166 + tmp176 + tmp184 + tmp283 + tmp339 + tmp340 + tmp341 + tmp342 + tmp343 + tmp344 + tmp345 + tmp346 + tmp347 + tmp348 + tmp349 + tmp350;
-                                EM_S[INDEX2(4,2,8)]+=tmp114 + tmp274 + tmp337 + tmp383 + tmp386 + tmp422 + tmp424 + tmp426 + tmp428 + tmp429 + tmp430 + tmp445 + tmp446 + tmp447 + tmp448 + tmp449;
-                                EM_S[INDEX2(4,3,8)]+=tmp104 + tmp106 + tmp107 + tmp109 + tmp112 + tmp113 + tmp135 + tmp161 + tmp482 + tmp483 + tmp484 + tmp485;
-                                EM_S[INDEX2(4,4,8)]+=tmp118 + tmp121 + tmp214 + tmp215 + tmp216 + tmp217 + tmp220 + tmp222 + tmp253 + tmp254 + tmp255 + tmp256 + tmp257 + tmp258 + tmp259 + tmp260 + tmp261 + tmp262 + tmp263 + tmp264 + tmp265 + tmp266 + tmp267 + tmp268;
-                                EM_S[INDEX2(4,5,8)]+=tmp100 + tmp101 + tmp145 + tmp148 + tmp369 + tmp376 + tmp402 + tmp403 + tmp404 + tmp405 + tmp60 + tmp65 + tmp84 + tmp87 + tmp88 + tmp89 + tmp91 + tmp95 + tmp96 + tmp97;
-                                EM_S[INDEX2(4,6,8)]+=tmp243 + tmp246 + tmp38 + tmp43 + tmp476 + tmp477 + tmp478 + tmp479 + tmp480 + tmp481 + tmp57 + tmp58 + tmp61 + tmp63 + tmp64 + tmp66 + tmp69 + tmp71 + tmp90 + tmp94;
-                                EM_S[INDEX2(4,7,8)]+=tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp29 + tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35;
                                 EM_S[INDEX2(5,0,8)]+=tmp166 + tmp176 + tmp260 + tmp267 + tmp274 + tmp339 + tmp340 + tmp342 + tmp344 + tmp346 + tmp348 + tmp365 + tmp393 + tmp394 + tmp395 + tmp396;
-                                EM_S[INDEX2(5,1,8)]+=tmp112 + tmp12 + tmp123 + tmp124 + tmp126 + tmp140 + tmp141 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp147 + tmp148 + tmp149 + tmp150 + tmp151 + tmp51 + tmp54 + tmp6;
-                                EM_S[INDEX2(5,2,8)]+=tmp104 + tmp106 + tmp113 + tmp136 + tmp138 + tmp15 + tmp161 + tmp38 + tmp472 + tmp475 + tmp482 + tmp483;
-                                EM_S[INDEX2(5,3,8)]+=tmp184 + tmp21 + tmp312 + tmp317 + tmp327 + tmp328 + tmp329 + tmp330 + tmp331 + tmp332 + tmp333 + tmp334 + tmp335 + tmp336 + tmp337 + tmp338;
-                                EM_S[INDEX2(5,4,8)]+=tmp100 + tmp101 + tmp102 + tmp103 + tmp84 + tmp85 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91 + tmp92 + tmp93 + tmp94 + tmp95 + tmp96 + tmp97 + tmp98 + tmp99;
-                                EM_S[INDEX2(5,5,8)]+=tmp217 + tmp225 + tmp232 + tmp26 + tmp265 + tmp268 + tmp288 + tmp289 + tmp29 + tmp290 + tmp293 + tmp295 + tmp308 + tmp313 + tmp343 + tmp347 + tmp358 + tmp359 + tmp410 + tmp411 + tmp412 + tmp413 + tmp414 + tmp415;
-                                EM_S[INDEX2(5,6,8)]+=tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp20 + tmp22 + tmp24 + tmp25 + tmp28 + tmp30 + tmp32 + tmp35;
-                                EM_S[INDEX2(5,7,8)]+=tmp13 + tmp135 + tmp16 + tmp237 + tmp238 + tmp245 + tmp319 + tmp320 + tmp321 + tmp322 + tmp323 + tmp324 + tmp325 + tmp326 + tmp45 + tmp55 + tmp57 + tmp60 + tmp64 + tmp65;
                                 EM_S[INDEX2(6,0,8)]+=tmp114 + tmp184 + tmp258 + tmp266 + tmp337 + tmp420 + tmp421 + tmp422 + tmp423 + tmp424 + tmp425 + tmp426 + tmp427 + tmp428 + tmp429 + tmp430;
-                                EM_S[INDEX2(6,1,8)]+=tmp104 + tmp106 + tmp113 + tmp135 + tmp15 + tmp162 + tmp163 + tmp470 + tmp474 + tmp484 + tmp485 + tmp87;
-                                EM_S[INDEX2(6,2,8)]+=tmp10 + tmp112 + tmp123 + tmp125 + tmp127 + tmp128 + tmp130 + tmp131 + tmp132 + tmp156 + tmp157 + tmp243 + tmp246 + tmp278 + tmp279 + tmp3 + tmp500 + tmp501 + tmp502 + tmp503;
-                                EM_S[INDEX2(6,3,8)]+=tmp175 + tmp176 + tmp178 + tmp180 + tmp182 + tmp185 + tmp187 + tmp24 + tmp269 + tmp270 + tmp271 + tmp272 + tmp273 + tmp274 + tmp275 + tmp276;
-                                EM_S[INDEX2(6,4,8)]+=tmp38 + tmp42 + tmp43 + tmp53 + tmp56 + tmp57 + tmp58 + tmp59 + tmp60 + tmp61 + tmp62 + tmp63 + tmp64 + tmp65 + tmp66 + tmp67 + tmp68 + tmp69 + tmp70 + tmp71;
-                                EM_S[INDEX2(6,5,8)]+=tmp118 + tmp121 + tmp166 + tmp199 + tmp20 + tmp21 + tmp22 + tmp25 + tmp27 + tmp28 + tmp30 + tmp33 + tmp458 + tmp459 + tmp460 + tmp461;
-                                EM_S[INDEX2(6,6,8)]+=tmp179 + tmp183 + tmp215 + tmp255 + tmp26 + tmp261 + tmp288 + tmp29 + tmp298 + tmp300 + tmp304 + tmp316 + tmp318 + tmp351 + tmp354 + tmp355 + tmp383 + tmp386 + tmp387 + tmp388 + tmp389 + tmp390 + tmp391 + tmp392;
-                                EM_S[INDEX2(6,7,8)]+=tmp100 + tmp14 + tmp161 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp208 + tmp209 + tmp210 + tmp211 + tmp212 + tmp213 + tmp88 + tmp9 + tmp90 + tmp94;
                                 EM_S[INDEX2(7,0,8)]+=tmp104 + tmp106 + tmp112 + tmp113 + tmp38 + tmp470 + tmp471 + tmp472 + tmp473 + tmp474 + tmp475 + tmp87;
+                                EM_S[INDEX2(0,1,8)]+=tmp161 + tmp201 + tmp247 + tmp250 + tmp371 + tmp374 + tmp44 + tmp451 + tmp454 + tmp455 + tmp456 + tmp466 + tmp467 + tmp468 + tmp469 + tmp49 + tmp89 + tmp91 + tmp92 + tmp98;
+                                EM_S[INDEX2(1,1,8)]+=tmp215 + tmp221 + tmp227 + tmp260 + tmp267 + tmp288 + tmp304 + tmp312 + tmp317 + tmp351 + tmp352 + tmp353 + tmp354 + tmp355 + tmp356 + tmp357 + tmp358 + tmp359 + tmp360 + tmp361 + tmp362 + tmp363 + tmp76 + tmp79;
+                                EM_S[INDEX2(2,1,8)]+=tmp114 + tmp120 + tmp167 + tmp170 + tmp198 + tmp20 + tmp200 + tmp24 + tmp443 + tmp444 + tmp73 + tmp74 + tmp75 + tmp80 + tmp81 + tmp83;
+                                EM_S[INDEX2(3,1,8)]+=tmp13 + tmp16 + tmp38 + tmp39 + tmp40 + tmp41 + tmp43 + tmp440 + tmp441 + tmp45 + tmp47 + tmp478 + tmp481 + tmp486 + tmp487 + tmp488 + tmp489 + tmp50 + tmp52 + tmp55;
+                                EM_S[INDEX2(4,1,8)]+=tmp166 + tmp176 + tmp184 + tmp283 + tmp339 + tmp340 + tmp341 + tmp342 + tmp343 + tmp344 + tmp345 + tmp346 + tmp347 + tmp348 + tmp349 + tmp350;
+                                EM_S[INDEX2(5,1,8)]+=tmp112 + tmp12 + tmp123 + tmp124 + tmp126 + tmp140 + tmp141 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp147 + tmp148 + tmp149 + tmp150 + tmp151 + tmp51 + tmp54 + tmp6;
+                                EM_S[INDEX2(6,1,8)]+=tmp104 + tmp106 + tmp113 + tmp135 + tmp15 + tmp162 + tmp163 + tmp470 + tmp474 + tmp484 + tmp485 + tmp87;
                                 EM_S[INDEX2(7,1,8)]+=tmp21 + tmp225 + tmp232 + tmp274 + tmp329 + tmp332 + tmp333 + tmp335 + tmp336 + tmp337 + tmp338 + tmp397 + tmp398 + tmp399 + tmp400 + tmp401;
+                                EM_S[INDEX2(0,2,8)]+=tmp135 + tmp236 + tmp238 + tmp240 + tmp242 + tmp244 + tmp39 + tmp41 + tmp432 + tmp436 + tmp440 + tmp441 + tmp490 + tmp491 + tmp492 + tmp493 + tmp61 + tmp68 + tmp70 + tmp71;
+                                EM_S[INDEX2(1,2,8)]+=tmp166 + tmp169 + tmp172 + tmp196 + tmp197 + tmp198 + tmp199 + tmp20 + tmp200 + tmp21 + tmp73 + tmp74 + tmp75 + tmp77 + tmp80 + tmp82;
+                                EM_S[INDEX2(2,2,8)]+=tmp217 + tmp231 + tmp233 + tmp258 + tmp266 + tmp271 + tmp273 + tmp288 + tmp289 + tmp290 + tmp291 + tmp292 + tmp293 + tmp294 + tmp295 + tmp296 + tmp297 + tmp298 + tmp299 + tmp300 + tmp301 + tmp302 + tmp76 + tmp79;
+                                EM_S[INDEX2(3,2,8)]+=tmp101 + tmp14 + tmp204 + tmp205 + tmp367 + tmp368 + tmp369 + tmp370 + tmp371 + tmp372 + tmp373 + tmp374 + tmp375 + tmp376 + tmp377 + tmp378 + tmp44 + tmp49 + tmp87 + tmp9;
+                                EM_S[INDEX2(4,2,8)]+=tmp114 + tmp274 + tmp337 + tmp383 + tmp386 + tmp422 + tmp424 + tmp426 + tmp428 + tmp429 + tmp430 + tmp445 + tmp446 + tmp447 + tmp448 + tmp449;
+                                EM_S[INDEX2(5,2,8)]+=tmp104 + tmp106 + tmp113 + tmp136 + tmp138 + tmp15 + tmp161 + tmp38 + tmp472 + tmp475 + tmp482 + tmp483;
+                                EM_S[INDEX2(6,2,8)]+=tmp10 + tmp112 + tmp123 + tmp125 + tmp127 + tmp128 + tmp130 + tmp131 + tmp132 + tmp156 + tmp157 + tmp243 + tmp246 + tmp278 + tmp279 + tmp3 + tmp500 + tmp501 + tmp502 + tmp503;
                                 EM_S[INDEX2(7,2,8)]+=tmp173 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178 + tmp179 + tmp180 + tmp181 + tmp182 + tmp183 + tmp184 + tmp185 + tmp186 + tmp187 + tmp24;
+                                EM_S[INDEX2(0,3,8)]+=tmp114 + tmp165 + tmp166 + tmp167 + tmp168 + tmp169 + tmp170 + tmp171 + tmp172 + tmp20 + tmp73 + tmp74 + tmp75 + tmp76 + tmp79 + tmp80;
+                                EM_S[INDEX2(1,3,8)]+=tmp36 + tmp37 + tmp38 + tmp39 + tmp40 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp46 + tmp47 + tmp48 + tmp49 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55;
+                                EM_S[INDEX2(2,3,8)]+=tmp101 + tmp156 + tmp157 + tmp204 + tmp205 + tmp368 + tmp371 + tmp372 + tmp374 + tmp375 + tmp377 + tmp437 + tmp438 + tmp439 + tmp440 + tmp441 + tmp442 + tmp85 + tmp87 + tmp99;
+                                EM_S[INDEX2(3,3,8)]+=tmp179 + tmp183 + tmp198 + tmp200 + tmp214 + tmp215 + tmp216 + tmp217 + tmp218 + tmp219 + tmp220 + tmp221 + tmp222 + tmp223 + tmp224 + tmp225 + tmp226 + tmp227 + tmp228 + tmp229 + tmp230 + tmp231 + tmp232 + tmp233;
+                                EM_S[INDEX2(4,3,8)]+=tmp104 + tmp106 + tmp107 + tmp109 + tmp112 + tmp113 + tmp135 + tmp161 + tmp482 + tmp483 + tmp484 + tmp485;
+                                EM_S[INDEX2(5,3,8)]+=tmp184 + tmp21 + tmp312 + tmp317 + tmp327 + tmp328 + tmp329 + tmp330 + tmp331 + tmp332 + tmp333 + tmp334 + tmp335 + tmp336 + tmp337 + tmp338;
+                                EM_S[INDEX2(6,3,8)]+=tmp175 + tmp176 + tmp178 + tmp180 + tmp182 + tmp185 + tmp187 + tmp24 + tmp269 + tmp270 + tmp271 + tmp272 + tmp273 + tmp274 + tmp275 + tmp276;
                                 EM_S[INDEX2(7,3,8)]+=tmp0 + tmp1 + tmp10 + tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp16 + tmp17 + tmp18 + tmp19 + tmp2 + tmp3 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9;
+                                EM_S[INDEX2(0,4,8)]+=tmp1 + tmp127 + tmp131 + tmp141 + tmp145 + tmp146 + tmp148 + tmp15 + tmp189 + tmp190 + tmp192 + tmp193 + tmp2 + tmp243 + tmp246 + tmp406 + tmp407 + tmp408 + tmp409 + tmp5;
+                                EM_S[INDEX2(1,4,8)]+=tmp176 + tmp24 + tmp269 + tmp274 + tmp339 + tmp340 + tmp342 + tmp343 + tmp344 + tmp347 + tmp394 + tmp395 + tmp416 + tmp417 + tmp418 + tmp419;
+                                EM_S[INDEX2(2,4,8)]+=tmp184 + tmp21 + tmp328 + tmp337 + tmp383 + tmp386 + tmp422 + tmp423 + tmp424 + tmp427 + tmp428 + tmp430 + tmp498 + tmp499 + tmp508 + tmp509;
+                                EM_S[INDEX2(3,4,8)]+=tmp104 + tmp106 + tmp112 + tmp113 + tmp135 + tmp137 + tmp139 + tmp160 + tmp161 + tmp164 + tmp471 + tmp473;
+                                EM_S[INDEX2(4,4,8)]+=tmp118 + tmp121 + tmp214 + tmp215 + tmp216 + tmp217 + tmp220 + tmp222 + tmp253 + tmp254 + tmp255 + tmp256 + tmp257 + tmp258 + tmp259 + tmp260 + tmp261 + tmp262 + tmp263 + tmp264 + tmp265 + tmp266 + tmp267 + tmp268;
+                                EM_S[INDEX2(5,4,8)]+=tmp100 + tmp101 + tmp102 + tmp103 + tmp84 + tmp85 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91 + tmp92 + tmp93 + tmp94 + tmp95 + tmp96 + tmp97 + tmp98 + tmp99;
+                                EM_S[INDEX2(6,4,8)]+=tmp38 + tmp42 + tmp43 + tmp53 + tmp56 + tmp57 + tmp58 + tmp59 + tmp60 + tmp61 + tmp62 + tmp63 + tmp64 + tmp65 + tmp66 + tmp67 + tmp68 + tmp69 + tmp70 + tmp71;
                                 EM_S[INDEX2(7,4,8)]+=tmp114 + tmp117 + tmp119 + tmp166 + tmp171 + tmp20 + tmp22 + tmp25 + tmp26 + tmp28 + tmp29 + tmp30 + tmp460 + tmp461 + tmp494 + tmp495;
+                                EM_S[INDEX2(0,5,8)]+=tmp174 + tmp176 + tmp184 + tmp24 + tmp260 + tmp267 + tmp339 + tmp340 + tmp341 + tmp342 + tmp344 + tmp345 + tmp416 + tmp417 + tmp506 + tmp507;
+                                EM_S[INDEX2(1,5,8)]+=tmp112 + tmp12 + tmp123 + tmp13 + tmp141 + tmp142 + tmp143 + tmp146 + tmp147 + tmp149 + tmp16 + tmp277 + tmp278 + tmp279 + tmp280 + tmp281 + tmp282 + tmp6 + tmp92 + tmp98;
+                                EM_S[INDEX2(2,5,8)]+=tmp104 + tmp106 + tmp108 + tmp111 + tmp113 + tmp15 + tmp160 + tmp161 + tmp162 + tmp163 + tmp164 + tmp38;
+                                EM_S[INDEX2(3,5,8)]+=tmp114 + tmp274 + tmp312 + tmp317 + tmp329 + tmp332 + tmp335 + tmp337 + tmp338 + tmp399 + tmp401 + tmp446 + tmp462 + tmp463 + tmp464 + tmp465;
+                                EM_S[INDEX2(4,5,8)]+=tmp100 + tmp101 + tmp145 + tmp148 + tmp369 + tmp376 + tmp402 + tmp403 + tmp404 + tmp405 + tmp60 + tmp65 + tmp84 + tmp87 + tmp88 + tmp89 + tmp91 + tmp95 + tmp96 + tmp97;
+                                EM_S[INDEX2(5,5,8)]+=tmp217 + tmp225 + tmp232 + tmp26 + tmp265 + tmp268 + tmp288 + tmp289 + tmp29 + tmp290 + tmp293 + tmp295 + tmp308 + tmp313 + tmp343 + tmp347 + tmp358 + tmp359 + tmp410 + tmp411 + tmp412 + tmp413 + tmp414 + tmp415;
+                                EM_S[INDEX2(6,5,8)]+=tmp118 + tmp121 + tmp166 + tmp199 + tmp20 + tmp21 + tmp22 + tmp25 + tmp27 + tmp28 + tmp30 + tmp33 + tmp458 + tmp459 + tmp460 + tmp461;
                                 EM_S[INDEX2(7,5,8)]+=tmp135 + tmp238 + tmp320 + tmp324 + tmp325 + tmp326 + tmp431 + tmp432 + tmp433 + tmp434 + tmp435 + tmp436 + tmp45 + tmp51 + tmp54 + tmp55 + tmp57 + tmp64 + tmp90 + tmp94;
+                                EM_S[INDEX2(0,6,8)]+=tmp21 + tmp258 + tmp266 + tmp274 + tmp337 + tmp398 + tmp422 + tmp424 + tmp428 + tmp430 + tmp447 + tmp449 + tmp496 + tmp497 + tmp498 + tmp499;
+                                EM_S[INDEX2(1,6,8)]+=tmp104 + tmp105 + tmp106 + tmp110 + tmp113 + tmp135 + tmp136 + tmp137 + tmp138 + tmp139 + tmp15 + tmp87;
+                                EM_S[INDEX2(2,6,8)]+=tmp10 + tmp112 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp128 + tmp129 + tmp130 + tmp131 + tmp132 + tmp133 + tmp134 + tmp14 + tmp3 + tmp68 + tmp70 + tmp9;
+                                EM_S[INDEX2(3,6,8)]+=tmp166 + tmp175 + tmp176 + tmp177 + tmp178 + tmp180 + tmp181 + tmp184 + tmp187 + tmp271 + tmp273 + tmp283 + tmp284 + tmp285 + tmp286 + tmp287;
+                                EM_S[INDEX2(4,6,8)]+=tmp243 + tmp246 + tmp38 + tmp43 + tmp476 + tmp477 + tmp478 + tmp479 + tmp480 + tmp481 + tmp57 + tmp58 + tmp61 + tmp63 + tmp64 + tmp66 + tmp69 + tmp71 + tmp90 + tmp94;
+                                EM_S[INDEX2(5,6,8)]+=tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp20 + tmp22 + tmp24 + tmp25 + tmp28 + tmp30 + tmp32 + tmp35;
+                                EM_S[INDEX2(6,6,8)]+=tmp179 + tmp183 + tmp215 + tmp255 + tmp26 + tmp261 + tmp288 + tmp29 + tmp298 + tmp300 + tmp304 + tmp316 + tmp318 + tmp351 + tmp354 + tmp355 + tmp383 + tmp386 + tmp387 + tmp388 + tmp389 + tmp390 + tmp391 + tmp392;
                                 EM_S[INDEX2(7,6,8)]+=tmp100 + tmp156 + tmp157 + tmp161 + tmp201 + tmp204 + tmp205 + tmp207 + tmp208 + tmp209 + tmp211 + tmp247 + tmp248 + tmp249 + tmp250 + tmp251 + tmp252 + tmp60 + tmp65 + tmp88;
+                                EM_S[INDEX2(0,7,8)]+=tmp104 + tmp105 + tmp106 + tmp107 + tmp108 + tmp109 + tmp110 + tmp111 + tmp112 + tmp113 + tmp38 + tmp87;
+                                EM_S[INDEX2(1,7,8)]+=tmp114 + tmp184 + tmp225 + tmp232 + tmp329 + tmp330 + tmp332 + tmp334 + tmp335 + tmp337 + tmp338 + tmp421 + tmp464 + tmp465 + tmp504 + tmp505;
+                                EM_S[INDEX2(2,7,8)]+=tmp166 + tmp175 + tmp176 + tmp178 + tmp179 + tmp180 + tmp183 + tmp187 + tmp270 + tmp272 + tmp274 + tmp284 + tmp285 + tmp364 + tmp365 + tmp366;
+                                EM_S[INDEX2(3,7,8)]+=tmp1 + tmp10 + tmp11 + tmp12 + tmp15 + tmp152 + tmp153 + tmp154 + tmp155 + tmp156 + tmp157 + tmp158 + tmp159 + tmp17 + tmp3 + tmp4 + tmp51 + tmp54 + tmp6 + tmp7;
+                                EM_S[INDEX2(4,7,8)]+=tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp29 + tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35;
+                                EM_S[INDEX2(5,7,8)]+=tmp13 + tmp135 + tmp16 + tmp237 + tmp238 + tmp245 + tmp319 + tmp320 + tmp321 + tmp322 + tmp323 + tmp324 + tmp325 + tmp326 + tmp45 + tmp55 + tmp57 + tmp60 + tmp64 + tmp65;
+                                EM_S[INDEX2(6,7,8)]+=tmp100 + tmp14 + tmp161 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp208 + tmp209 + tmp210 + tmp211 + tmp212 + tmp213 + tmp88 + tmp9 + tmp90 + tmp94;
                                 EM_S[INDEX2(7,7,8)]+=tmp118 + tmp121 + tmp214 + tmp226 + tmp228 + tmp271 + tmp273 + tmp289 + tmp303 + tmp304 + tmp305 + tmp306 + tmp307 + tmp308 + tmp309 + tmp310 + tmp311 + tmp312 + tmp313 + tmp314 + tmp315 + tmp316 + tmp317 + tmp318;
                             } else { // constant data
                                 const double Aw00 = 8*A_p[INDEX2(0,0,3)]*w27;
@@ -901,68 +910,68 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                                 const double tmp10 = -Aw12 - Aw21;
                                 const double tmp11 = -Aw12 + Aw21;
                                 EM_S[INDEX2(0,0,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp0 + 2*tmp4 + 2*tmp10;
-                                EM_S[INDEX2(0,1,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp10 + 2*tmp1 + 2*tmp5;
-                                EM_S[INDEX2(0,2,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp3 + tmp4 + 2*tmp11;
-                                EM_S[INDEX2(0,3,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + tmp11 + 2*tmp2;
-                                EM_S[INDEX2(0,4,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + 2*tmp9 + tmp0;
-                                EM_S[INDEX2(0,5,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp6 + tmp1 + tmp9;
-                                EM_S[INDEX2(0,6,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + 2*tmp8 + tmp3 + tmp7;
-                                EM_S[INDEX2(0,7,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp2 + tmp6;
                                 EM_S[INDEX2(1,0,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + 2*tmp3 + tmp10;
-                                EM_S[INDEX2(1,1,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp6 + 2*tmp10 + 2*tmp2;
-                                EM_S[INDEX2(1,2,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + 2*tmp0 + tmp11 + tmp7;
-                                EM_S[INDEX2(1,3,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + tmp6 + 2*tmp11 + 2*tmp1;
-                                EM_S[INDEX2(1,4,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp4 + tmp3 + tmp9;
-                                EM_S[INDEX2(1,5,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp9 + tmp2 + 2*tmp5;
-                                EM_S[INDEX2(1,6,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp4 + tmp0;
-                                EM_S[INDEX2(1,7,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp1 + 2*tmp8;
                                 EM_S[INDEX2(2,0,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + tmp4 + 2*tmp1;
-                                EM_S[INDEX2(2,1,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + 2*tmp0 + tmp9;
-                                EM_S[INDEX2(2,2,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp8 + 2*tmp4 + 2*tmp2;
-                                EM_S[INDEX2(2,3,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp8 + 2*tmp3 + 2*tmp5;
-                                EM_S[INDEX2(2,4,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp1 + 2*tmp10 + tmp7;
-                                EM_S[INDEX2(2,5,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp10 + tmp0 + tmp6;
-                                EM_S[INDEX2(2,6,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + tmp2 + 2*tmp11;
-                                EM_S[INDEX2(2,7,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + 2*tmp6 + tmp3;
                                 EM_S[INDEX2(3,0,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp7 + tmp9 + 2*tmp2;
-                                EM_S[INDEX2(3,1,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + 2*tmp3 + tmp6;
-                                EM_S[INDEX2(3,2,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + tmp8 + 2*tmp1;
-                                EM_S[INDEX2(3,3,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp0 + 2*tmp6 + 2*tmp8;
-                                EM_S[INDEX2(3,4,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp2 + tmp4 + tmp10;
-                                EM_S[INDEX2(3,5,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp3 + 2*tmp10;
-                                EM_S[INDEX2(3,6,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + tmp1 + 2*tmp4;
-                                EM_S[INDEX2(3,7,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + tmp0 + 2*tmp11 + 2*tmp5;
                                 EM_S[INDEX2(4,0,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + tmp0 + 2*tmp11 + 2*tmp5;
-                                EM_S[INDEX2(4,1,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + tmp1 + 2*tmp4;
-                                EM_S[INDEX2(4,2,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp3 + 2*tmp10;
-                                EM_S[INDEX2(4,3,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp2 + tmp4 + tmp10;
-                                EM_S[INDEX2(4,4,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp0 + 2*tmp6 + 2*tmp8;
-                                EM_S[INDEX2(4,5,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + tmp8 + 2*tmp1;
-                                EM_S[INDEX2(4,6,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + 2*tmp3 + tmp6;
-                                EM_S[INDEX2(4,7,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp7 + tmp9 + 2*tmp2;
                                 EM_S[INDEX2(5,0,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + 2*tmp6 + tmp3;
-                                EM_S[INDEX2(5,1,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + tmp2 + 2*tmp11;
-                                EM_S[INDEX2(5,2,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp10 + tmp0 + tmp6;
-                                EM_S[INDEX2(5,3,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp1 + 2*tmp10 + tmp7;
-                                EM_S[INDEX2(5,4,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp8 + 2*tmp3 + 2*tmp5;
-                                EM_S[INDEX2(5,5,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp8 + 2*tmp4 + 2*tmp2;
-                                EM_S[INDEX2(5,6,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + 2*tmp0 + tmp9;
-                                EM_S[INDEX2(5,7,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + tmp4 + 2*tmp1;
                                 EM_S[INDEX2(6,0,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp1 + 2*tmp8;
-                                EM_S[INDEX2(6,1,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp4 + tmp0;
-                                EM_S[INDEX2(6,2,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp9 + tmp2 + 2*tmp5;
-                                EM_S[INDEX2(6,3,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp4 + tmp3 + tmp9;
-                                EM_S[INDEX2(6,4,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + tmp6 + 2*tmp11 + 2*tmp1;
-                                EM_S[INDEX2(6,5,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + 2*tmp0 + tmp11 + tmp7;
-                                EM_S[INDEX2(6,6,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp6 + 2*tmp10 + 2*tmp2;
-                                EM_S[INDEX2(6,7,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + 2*tmp3 + tmp10;
                                 EM_S[INDEX2(7,0,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp2 + tmp6;
+                                EM_S[INDEX2(0,1,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp10 + 2*tmp1 + 2*tmp5;
+                                EM_S[INDEX2(1,1,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp6 + 2*tmp10 + 2*tmp2;
+                                EM_S[INDEX2(2,1,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + 2*tmp0 + tmp9;
+                                EM_S[INDEX2(3,1,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + 2*tmp3 + tmp6;
+                                EM_S[INDEX2(4,1,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + tmp1 + 2*tmp4;
+                                EM_S[INDEX2(5,1,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + tmp2 + 2*tmp11;
+                                EM_S[INDEX2(6,1,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp4 + tmp0;
                                 EM_S[INDEX2(7,1,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + 2*tmp8 + tmp3 + tmp7;
+                                EM_S[INDEX2(0,2,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp3 + tmp4 + 2*tmp11;
+                                EM_S[INDEX2(1,2,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + 2*tmp0 + tmp11 + tmp7;
+                                EM_S[INDEX2(2,2,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp8 + 2*tmp4 + 2*tmp2;
+                                EM_S[INDEX2(3,2,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + tmp8 + 2*tmp1;
+                                EM_S[INDEX2(4,2,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp3 + 2*tmp10;
+                                EM_S[INDEX2(5,2,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp10 + tmp0 + tmp6;
+                                EM_S[INDEX2(6,2,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp9 + tmp2 + 2*tmp5;
                                 EM_S[INDEX2(7,2,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp6 + tmp1 + tmp9;
+                                EM_S[INDEX2(0,3,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + tmp11 + 2*tmp2;
+                                EM_S[INDEX2(1,3,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + tmp6 + 2*tmp11 + 2*tmp1;
+                                EM_S[INDEX2(2,3,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp8 + 2*tmp3 + 2*tmp5;
+                                EM_S[INDEX2(3,3,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp0 + 2*tmp6 + 2*tmp8;
+                                EM_S[INDEX2(4,3,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp2 + tmp4 + tmp10;
+                                EM_S[INDEX2(5,3,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp1 + 2*tmp10 + tmp7;
+                                EM_S[INDEX2(6,3,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp4 + tmp3 + tmp9;
                                 EM_S[INDEX2(7,3,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + 2*tmp9 + tmp0;
+                                EM_S[INDEX2(0,4,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + 2*tmp9 + tmp0;
+                                EM_S[INDEX2(1,4,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp4 + tmp3 + tmp9;
+                                EM_S[INDEX2(2,4,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp1 + 2*tmp10 + tmp7;
+                                EM_S[INDEX2(3,4,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp2 + tmp4 + tmp10;
+                                EM_S[INDEX2(4,4,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp0 + 2*tmp6 + 2*tmp8;
+                                EM_S[INDEX2(5,4,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp8 + 2*tmp3 + 2*tmp5;
+                                EM_S[INDEX2(6,4,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + tmp6 + 2*tmp11 + 2*tmp1;
                                 EM_S[INDEX2(7,4,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + tmp11 + 2*tmp2;
+                                EM_S[INDEX2(0,5,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + 2*tmp6 + tmp1 + tmp9;
+                                EM_S[INDEX2(1,5,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp9 + tmp2 + 2*tmp5;
+                                EM_S[INDEX2(2,5,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp10 + tmp0 + tmp6;
+                                EM_S[INDEX2(3,5,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp3 + 2*tmp10;
+                                EM_S[INDEX2(4,5,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + tmp8 + 2*tmp1;
+                                EM_S[INDEX2(5,5,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp8 + 2*tmp4 + 2*tmp2;
+                                EM_S[INDEX2(6,5,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + 2*tmp0 + tmp11 + tmp7;
                                 EM_S[INDEX2(7,5,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp3 + tmp4 + 2*tmp11;
+                                EM_S[INDEX2(0,6,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + 2*tmp8 + tmp3 + tmp7;
+                                EM_S[INDEX2(1,6,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp4 + tmp0;
+                                EM_S[INDEX2(2,6,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + 2*tmp7 + tmp2 + 2*tmp11;
+                                EM_S[INDEX2(3,6,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + tmp1 + 2*tmp4;
+                                EM_S[INDEX2(4,6,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + 2*tmp3 + tmp6;
+                                EM_S[INDEX2(5,6,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp5 + 2*tmp0 + tmp9;
+                                EM_S[INDEX2(6,6,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp6 + 2*tmp10 + 2*tmp2;
                                 EM_S[INDEX2(7,6,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + tmp10 + 2*tmp1 + 2*tmp5;
+                                EM_S[INDEX2(0,7,8)]+=   Aw00 +   Aw11 +   Aw22 + tmp8 + tmp2 + tmp6;
+                                EM_S[INDEX2(1,7,8)]+=  -Aw00 + 2*Aw11 + 2*Aw22 + tmp5 + tmp1 + 2*tmp8;
+                                EM_S[INDEX2(2,7,8)]+= 2*Aw00 -   Aw11 + 2*Aw22 + tmp11 + 2*tmp6 + tmp3;
+                                EM_S[INDEX2(3,7,8)]+=-2*Aw00 - 2*Aw11 + 4*Aw22 + tmp0 + 2*tmp11 + 2*tmp5;
+                                EM_S[INDEX2(4,7,8)]+= 2*Aw00 + 2*Aw11 -   Aw22 + tmp7 + tmp9 + 2*tmp2;
+                                EM_S[INDEX2(5,7,8)]+=-2*Aw00 + 4*Aw11 - 2*Aw22 + 2*tmp9 + tmp4 + 2*tmp1;
+                                EM_S[INDEX2(6,7,8)]+= 4*Aw00 - 2*Aw11 - 2*Aw22 + 2*tmp7 + 2*tmp3 + tmp10;
                                 EM_S[INDEX2(7,7,8)]+=-4*Aw00 - 4*Aw11 - 4*Aw22 + 2*tmp0 + 2*tmp4 + 2*tmp10;
                             }
                         }
@@ -970,7 +979,6 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                         // process B //
                         ///////////////
                         if (!B.isEmpty()) {
-                            add_EM_S=true;
                             const double* B_p=B.getSampleDataRO(e);
                             if (B.actsExpanded()) {
                                 const double B_0_0 = B_p[INDEX2(0,0,3)];
@@ -1262,136 +1270,136 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                                 const double tmp262 = w32*(-B_2_1 - B_2_3);
                                 const double tmp263 = w43*(-B_2_4 - B_2_6);
                                 EM_S[INDEX2(0,0,8)]+=-B_0_0*w47 - B_0_1*w38 - B_0_6*w30 - B_0_7*w46 + B_1_0*w44 - B_1_2*w39 - B_1_5*w31 + B_1_7*w45 - B_2_0*w40 - B_2_3*w32 - B_2_4*w43 - B_2_7*w41 + tmp132 + tmp133 + tmp208 + tmp209 + tmp210 + tmp211;
-                                EM_S[INDEX2(0,1,8)]+=-B_0_0*w38 - B_0_1*w47 - B_0_6*w46 - B_0_7*w30 + tmp128 + tmp129 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp247 + tmp248 + tmp249;
-                                EM_S[INDEX2(0,2,8)]+=-B_1_0*w39 + B_1_2*w44 + B_1_5*w45 - B_1_7*w31 + tmp138 + tmp139 + tmp140 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp173 + tmp179;
-                                EM_S[INDEX2(0,3,8)]+=tmp100 + tmp101 + tmp102 + tmp103 + tmp42 + tmp43 + tmp96 + tmp97 + tmp98 + tmp99;
-                                EM_S[INDEX2(0,4,8)]+=-B_2_0*w43 - B_2_3*w41 - B_2_4*w40 - B_2_7*w32 + tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp92 + tmp93;
-                                EM_S[INDEX2(0,5,8)]+=tmp190 + tmp193 + tmp195 + tmp196 + tmp197 + tmp199 + tmp224 + tmp225 + tmp226 + tmp227;
-                                EM_S[INDEX2(0,6,8)]+=tmp234 + tmp235 + tmp238 + tmp239 + tmp240 + tmp241 + tmp260 + tmp261 + tmp262 + tmp263;
-                                EM_S[INDEX2(0,7,8)]+=tmp60 + tmp61 + tmp62 + tmp63 + tmp64 + tmp65;
                                 EM_S[INDEX2(1,0,8)]+=B_0_0*w47 + B_0_1*w38 + B_0_6*w30 + B_0_7*w46 + tmp148 + tmp149 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp247 + tmp248 + tmp249;
-                                EM_S[INDEX2(1,1,8)]+=B_0_0*w38 + B_0_1*w47 + B_0_6*w46 + B_0_7*w30 + B_1_1*w44 - B_1_3*w39 - B_1_4*w31 + B_1_6*w45 - B_2_1*w40 - B_2_2*w32 - B_2_5*w43 - B_2_6*w41 + tmp152 + tmp155 + tmp164 + tmp165 + tmp168 + tmp169;
-                                EM_S[INDEX2(1,2,8)]+=tmp103 + tmp40 + tmp42 + tmp43 + tmp46 + tmp47 + tmp48 + tmp97 + tmp98 + tmp99;
-                                EM_S[INDEX2(1,3,8)]+=-B_1_1*w39 + B_1_3*w44 + B_1_4*w45 - B_1_6*w31 + tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp29;
-                                EM_S[INDEX2(1,4,8)]+=tmp193 + tmp199 + tmp214 + tmp215 + tmp216 + tmp217 + tmp224 + tmp225 + tmp226 + tmp227;
-                                EM_S[INDEX2(1,5,8)]+=-B_2_1*w43 - B_2_2*w41 - B_2_5*w40 - B_2_6*w32 + tmp72 + tmp73 + tmp82 + tmp83 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
-                                EM_S[INDEX2(1,6,8)]+=tmp60 + tmp61 + tmp62 + tmp65 + tmp80 + tmp81;
-                                EM_S[INDEX2(1,7,8)]+=tmp180 + tmp183 + tmp185 + tmp186 + tmp187 + tmp189 + tmp254 + tmp255 + tmp256 + tmp257;
                                 EM_S[INDEX2(2,0,8)]+=-B_1_0*w44 + B_1_2*w39 + B_1_5*w31 - B_1_7*w45 + tmp138 + tmp139 + tmp140 + tmp141 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp147;
-                                EM_S[INDEX2(2,1,8)]+=tmp100 + tmp101 + tmp102 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp49 + tmp96;
-                                EM_S[INDEX2(2,2,8)]+=-B_0_2*w47 - B_0_3*w38 - B_0_4*w30 - B_0_5*w46 + B_1_0*w39 - B_1_2*w44 - B_1_5*w45 + B_1_7*w31 - B_2_1*w32 - B_2_2*w40 - B_2_5*w41 - B_2_6*w43 + tmp153 + tmp154 + tmp164 + tmp165 + tmp166 + tmp167;
-                                EM_S[INDEX2(2,3,8)]+=-B_0_2*w38 - B_0_3*w47 - B_0_4*w46 - B_0_5*w30 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp222 + tmp223;
-                                EM_S[INDEX2(2,4,8)]+=tmp228 + tmp231 + tmp233 + tmp234 + tmp235 + tmp237 + tmp260 + tmp261 + tmp262 + tmp263;
-                                EM_S[INDEX2(2,5,8)]+=tmp60 + tmp61 + tmp63 + tmp64 + tmp94 + tmp95;
-                                EM_S[INDEX2(2,6,8)]+=-B_2_1*w41 - B_2_2*w43 - B_2_5*w32 - B_2_6*w40 + tmp70 + tmp71 + tmp72 + tmp73 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79;
-                                EM_S[INDEX2(2,7,8)]+=tmp107 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159 + tmp160 + tmp161 + tmp162 + tmp163;
                                 EM_S[INDEX2(3,0,8)]+=tmp40 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp46 + tmp47 + tmp48 + tmp49;
-                                EM_S[INDEX2(3,1,8)]+=-B_1_1*w44 + B_1_3*w39 + B_1_4*w31 - B_1_6*w45 + tmp20 + tmp21 + tmp22 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp33 + tmp39;
-                                EM_S[INDEX2(3,2,8)]+=B_0_2*w47 + B_0_3*w38 + B_0_4*w30 + B_0_5*w46 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp56 + tmp57;
-                                EM_S[INDEX2(3,3,8)]+=B_0_2*w38 + B_0_3*w47 + B_0_4*w46 + B_0_5*w30 + B_1_1*w39 - B_1_3*w44 - B_1_4*w45 + B_1_6*w31 - B_2_0*w32 - B_2_3*w40 - B_2_4*w41 - B_2_7*w43 + tmp132 + tmp133 + tmp134 + tmp135 + tmp136 + tmp137;
-                                EM_S[INDEX2(3,4,8)]+=tmp60 + tmp61 + tmp80 + tmp81 + tmp94 + tmp95;
-                                EM_S[INDEX2(3,5,8)]+=tmp186 + tmp187 + tmp218 + tmp219 + tmp220 + tmp221 + tmp254 + tmp255 + tmp256 + tmp257;
-                                EM_S[INDEX2(3,6,8)]+=tmp104 + tmp107 + tmp109 + tmp110 + tmp111 + tmp113 + tmp160 + tmp161 + tmp162 + tmp163;
-                                EM_S[INDEX2(3,7,8)]+=-B_2_0*w41 - B_2_3*w43 - B_2_4*w32 - B_2_7*w40 + tmp0 + tmp1 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9 + tmp92 + tmp93;
                                 EM_S[INDEX2(4,0,8)]+=B_2_0*w40 + B_2_3*w32 + B_2_4*w43 + B_2_7*w41 + tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp2 + tmp3;
-                                EM_S[INDEX2(4,1,8)]+=tmp190 + tmp191 + tmp192 + tmp193 + tmp194 + tmp195 + tmp196 + tmp197 + tmp198 + tmp199;
-                                EM_S[INDEX2(4,2,8)]+=tmp229 + tmp230 + tmp232 + tmp234 + tmp235 + tmp236 + tmp238 + tmp239 + tmp240 + tmp241;
-                                EM_S[INDEX2(4,3,8)]+=tmp258 + tmp259 + tmp62 + tmp63 + tmp64 + tmp65;
-                                EM_S[INDEX2(4,4,8)]+=-B_0_2*w30 - B_0_3*w46 - B_0_4*w47 - B_0_5*w38 - B_1_1*w31 + B_1_3*w45 + B_1_4*w44 - B_1_6*w39 + B_2_0*w43 + B_2_3*w41 + B_2_4*w40 + B_2_7*w32 + tmp150 + tmp151 + tmp152 + tmp153 + tmp154 + tmp155;
-                                EM_S[INDEX2(4,5,8)]+=-B_0_2*w46 - B_0_3*w30 - B_0_4*w38 - B_0_5*w47 + tmp222 + tmp223 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp58 + tmp59;
-                                EM_S[INDEX2(4,6,8)]+=B_1_1*w45 - B_1_3*w31 - B_1_4*w39 + B_1_6*w44 + tmp23 + tmp29 + tmp30 + tmp31 + tmp32 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38;
-                                EM_S[INDEX2(4,7,8)]+=tmp10 + tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp16 + tmp17 + tmp18 + tmp19;
                                 EM_S[INDEX2(5,0,8)]+=tmp191 + tmp192 + tmp193 + tmp194 + tmp198 + tmp199 + tmp214 + tmp215 + tmp216 + tmp217;
-                                EM_S[INDEX2(5,1,8)]+=B_2_1*w40 + B_2_2*w32 + B_2_5*w43 + B_2_6*w41 + tmp82 + tmp83 + tmp84 + tmp85 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
-                                EM_S[INDEX2(5,2,8)]+=tmp258 + tmp259 + tmp62 + tmp65 + tmp80 + tmp81;
-                                EM_S[INDEX2(5,3,8)]+=tmp180 + tmp181 + tmp182 + tmp183 + tmp184 + tmp185 + tmp186 + tmp187 + tmp188 + tmp189;
-                                EM_S[INDEX2(5,4,8)]+=B_0_2*w30 + B_0_3*w46 + B_0_4*w47 + B_0_5*w38 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp56 + tmp57 + tmp58 + tmp59;
-                                EM_S[INDEX2(5,5,8)]+=B_0_2*w46 + B_0_3*w30 + B_0_4*w38 + B_0_5*w47 - B_1_0*w31 + B_1_2*w45 + B_1_5*w44 - B_1_7*w39 + B_2_1*w43 + B_2_2*w41 + B_2_5*w40 + B_2_6*w32 + tmp135 + tmp136 + tmp208 + tmp211 + tmp212 + tmp213;
-                                EM_S[INDEX2(5,6,8)]+=tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp19 + tmp66 + tmp67 + tmp68 + tmp69;
-                                EM_S[INDEX2(5,7,8)]+=B_1_0*w45 - B_1_2*w31 - B_1_5*w39 + B_1_7*w44 + tmp170 + tmp171 + tmp172 + tmp173 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178 + tmp179;
                                 EM_S[INDEX2(6,0,8)]+=tmp228 + tmp229 + tmp230 + tmp231 + tmp232 + tmp233 + tmp234 + tmp235 + tmp236 + tmp237;
-                                EM_S[INDEX2(6,1,8)]+=tmp258 + tmp259 + tmp63 + tmp64 + tmp94 + tmp95;
-                                EM_S[INDEX2(6,2,8)]+=B_2_1*w32 + B_2_2*w40 + B_2_5*w41 + B_2_6*w43 + tmp70 + tmp71 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79 + tmp84 + tmp85;
-                                EM_S[INDEX2(6,3,8)]+=tmp105 + tmp106 + tmp107 + tmp108 + tmp112 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159;
-                                EM_S[INDEX2(6,4,8)]+=B_1_1*w31 - B_1_3*w45 - B_1_4*w44 + B_1_6*w39 + tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38 + tmp39;
-                                EM_S[INDEX2(6,5,8)]+=tmp10 + tmp12 + tmp13 + tmp16 + tmp17 + tmp18 + tmp250 + tmp251 + tmp252 + tmp253;
-                                EM_S[INDEX2(6,6,8)]+=-B_0_0*w30 - B_0_1*w46 - B_0_6*w47 - B_0_7*w38 - B_1_1*w45 + B_1_3*w31 + B_1_4*w39 - B_1_6*w44 + B_2_1*w41 + B_2_2*w43 + B_2_5*w32 + B_2_6*w40 + tmp134 + tmp137 + tmp209 + tmp210 + tmp212 + tmp213;
-                                EM_S[INDEX2(6,7,8)]+=-B_0_0*w46 - B_0_1*w30 - B_0_6*w38 - B_0_7*w47 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp128 + tmp129 + tmp130 + tmp131;
                                 EM_S[INDEX2(7,0,8)]+=tmp258 + tmp259 + tmp80 + tmp81 + tmp94 + tmp95;
+                                EM_S[INDEX2(0,1,8)]+=-B_0_0*w38 - B_0_1*w47 - B_0_6*w46 - B_0_7*w30 + tmp128 + tmp129 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp247 + tmp248 + tmp249;
+                                EM_S[INDEX2(1,1,8)]+=B_0_0*w38 + B_0_1*w47 + B_0_6*w46 + B_0_7*w30 + B_1_1*w44 - B_1_3*w39 - B_1_4*w31 + B_1_6*w45 - B_2_1*w40 - B_2_2*w32 - B_2_5*w43 - B_2_6*w41 + tmp152 + tmp155 + tmp164 + tmp165 + tmp168 + tmp169;
+                                EM_S[INDEX2(2,1,8)]+=tmp100 + tmp101 + tmp102 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp49 + tmp96;
+                                EM_S[INDEX2(3,1,8)]+=-B_1_1*w44 + B_1_3*w39 + B_1_4*w31 - B_1_6*w45 + tmp20 + tmp21 + tmp22 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp33 + tmp39;
+                                EM_S[INDEX2(4,1,8)]+=tmp190 + tmp191 + tmp192 + tmp193 + tmp194 + tmp195 + tmp196 + tmp197 + tmp198 + tmp199;
+                                EM_S[INDEX2(5,1,8)]+=B_2_1*w40 + B_2_2*w32 + B_2_5*w43 + B_2_6*w41 + tmp82 + tmp83 + tmp84 + tmp85 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
+                                EM_S[INDEX2(6,1,8)]+=tmp258 + tmp259 + tmp63 + tmp64 + tmp94 + tmp95;
                                 EM_S[INDEX2(7,1,8)]+=tmp181 + tmp182 + tmp184 + tmp186 + tmp187 + tmp188 + tmp218 + tmp219 + tmp220 + tmp221;
+                                EM_S[INDEX2(0,2,8)]+=-B_1_0*w39 + B_1_2*w44 + B_1_5*w45 - B_1_7*w31 + tmp138 + tmp139 + tmp140 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp173 + tmp179;
+                                EM_S[INDEX2(1,2,8)]+=tmp103 + tmp40 + tmp42 + tmp43 + tmp46 + tmp47 + tmp48 + tmp97 + tmp98 + tmp99;
+                                EM_S[INDEX2(2,2,8)]+=-B_0_2*w47 - B_0_3*w38 - B_0_4*w30 - B_0_5*w46 + B_1_0*w39 - B_1_2*w44 - B_1_5*w45 + B_1_7*w31 - B_2_1*w32 - B_2_2*w40 - B_2_5*w41 - B_2_6*w43 + tmp153 + tmp154 + tmp164 + tmp165 + tmp166 + tmp167;
+                                EM_S[INDEX2(3,2,8)]+=B_0_2*w47 + B_0_3*w38 + B_0_4*w30 + B_0_5*w46 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp56 + tmp57;
+                                EM_S[INDEX2(4,2,8)]+=tmp229 + tmp230 + tmp232 + tmp234 + tmp235 + tmp236 + tmp238 + tmp239 + tmp240 + tmp241;
+                                EM_S[INDEX2(5,2,8)]+=tmp258 + tmp259 + tmp62 + tmp65 + tmp80 + tmp81;
+                                EM_S[INDEX2(6,2,8)]+=B_2_1*w32 + B_2_2*w40 + B_2_5*w41 + B_2_6*w43 + tmp70 + tmp71 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79 + tmp84 + tmp85;
                                 EM_S[INDEX2(7,2,8)]+=tmp104 + tmp105 + tmp106 + tmp107 + tmp108 + tmp109 + tmp110 + tmp111 + tmp112 + tmp113;
+                                EM_S[INDEX2(0,3,8)]+=tmp100 + tmp101 + tmp102 + tmp103 + tmp42 + tmp43 + tmp96 + tmp97 + tmp98 + tmp99;
+                                EM_S[INDEX2(1,3,8)]+=-B_1_1*w39 + B_1_3*w44 + B_1_4*w45 - B_1_6*w31 + tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp29;
+                                EM_S[INDEX2(2,3,8)]+=-B_0_2*w38 - B_0_3*w47 - B_0_4*w46 - B_0_5*w30 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp222 + tmp223;
+                                EM_S[INDEX2(3,3,8)]+=B_0_2*w38 + B_0_3*w47 + B_0_4*w46 + B_0_5*w30 + B_1_1*w39 - B_1_3*w44 - B_1_4*w45 + B_1_6*w31 - B_2_0*w32 - B_2_3*w40 - B_2_4*w41 - B_2_7*w43 + tmp132 + tmp133 + tmp134 + tmp135 + tmp136 + tmp137;
+                                EM_S[INDEX2(4,3,8)]+=tmp258 + tmp259 + tmp62 + tmp63 + tmp64 + tmp65;
+                                EM_S[INDEX2(5,3,8)]+=tmp180 + tmp181 + tmp182 + tmp183 + tmp184 + tmp185 + tmp186 + tmp187 + tmp188 + tmp189;
+                                EM_S[INDEX2(6,3,8)]+=tmp105 + tmp106 + tmp107 + tmp108 + tmp112 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159;
                                 EM_S[INDEX2(7,3,8)]+=B_2_0*w32 + B_2_3*w40 + B_2_4*w41 + B_2_7*w43 + tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9;
+                                EM_S[INDEX2(0,4,8)]+=-B_2_0*w43 - B_2_3*w41 - B_2_4*w40 - B_2_7*w32 + tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp92 + tmp93;
+                                EM_S[INDEX2(1,4,8)]+=tmp193 + tmp199 + tmp214 + tmp215 + tmp216 + tmp217 + tmp224 + tmp225 + tmp226 + tmp227;
+                                EM_S[INDEX2(2,4,8)]+=tmp228 + tmp231 + tmp233 + tmp234 + tmp235 + tmp237 + tmp260 + tmp261 + tmp262 + tmp263;
+                                EM_S[INDEX2(3,4,8)]+=tmp60 + tmp61 + tmp80 + tmp81 + tmp94 + tmp95;
+                                EM_S[INDEX2(4,4,8)]+=-B_0_2*w30 - B_0_3*w46 - B_0_4*w47 - B_0_5*w38 - B_1_1*w31 + B_1_3*w45 + B_1_4*w44 - B_1_6*w39 + B_2_0*w43 + B_2_3*w41 + B_2_4*w40 + B_2_7*w32 + tmp150 + tmp151 + tmp152 + tmp153 + tmp154 + tmp155;
+                                EM_S[INDEX2(5,4,8)]+=B_0_2*w30 + B_0_3*w46 + B_0_4*w47 + B_0_5*w38 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp56 + tmp57 + tmp58 + tmp59;
+                                EM_S[INDEX2(6,4,8)]+=B_1_1*w31 - B_1_3*w45 - B_1_4*w44 + B_1_6*w39 + tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38 + tmp39;
                                 EM_S[INDEX2(7,4,8)]+=tmp12 + tmp13 + tmp250 + tmp251 + tmp252 + tmp253 + tmp66 + tmp67 + tmp68 + tmp69;
+                                EM_S[INDEX2(0,5,8)]+=tmp190 + tmp193 + tmp195 + tmp196 + tmp197 + tmp199 + tmp224 + tmp225 + tmp226 + tmp227;
+                                EM_S[INDEX2(1,5,8)]+=-B_2_1*w43 - B_2_2*w41 - B_2_5*w40 - B_2_6*w32 + tmp72 + tmp73 + tmp82 + tmp83 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
+                                EM_S[INDEX2(2,5,8)]+=tmp60 + tmp61 + tmp63 + tmp64 + tmp94 + tmp95;
+                                EM_S[INDEX2(3,5,8)]+=tmp186 + tmp187 + tmp218 + tmp219 + tmp220 + tmp221 + tmp254 + tmp255 + tmp256 + tmp257;
+                                EM_S[INDEX2(4,5,8)]+=-B_0_2*w46 - B_0_3*w30 - B_0_4*w38 - B_0_5*w47 + tmp222 + tmp223 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp58 + tmp59;
+                                EM_S[INDEX2(5,5,8)]+=B_0_2*w46 + B_0_3*w30 + B_0_4*w38 + B_0_5*w47 - B_1_0*w31 + B_1_2*w45 + B_1_5*w44 - B_1_7*w39 + B_2_1*w43 + B_2_2*w41 + B_2_5*w40 + B_2_6*w32 + tmp135 + tmp136 + tmp208 + tmp211 + tmp212 + tmp213;
+                                EM_S[INDEX2(6,5,8)]+=tmp10 + tmp12 + tmp13 + tmp16 + tmp17 + tmp18 + tmp250 + tmp251 + tmp252 + tmp253;
                                 EM_S[INDEX2(7,5,8)]+=B_1_0*w31 - B_1_2*w45 - B_1_5*w44 + B_1_7*w39 + tmp141 + tmp147 + tmp170 + tmp171 + tmp172 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178;
+                                EM_S[INDEX2(0,6,8)]+=tmp234 + tmp235 + tmp238 + tmp239 + tmp240 + tmp241 + tmp260 + tmp261 + tmp262 + tmp263;
+                                EM_S[INDEX2(1,6,8)]+=tmp60 + tmp61 + tmp62 + tmp65 + tmp80 + tmp81;
+                                EM_S[INDEX2(2,6,8)]+=-B_2_1*w41 - B_2_2*w43 - B_2_5*w32 - B_2_6*w40 + tmp70 + tmp71 + tmp72 + tmp73 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79;
+                                EM_S[INDEX2(3,6,8)]+=tmp104 + tmp107 + tmp109 + tmp110 + tmp111 + tmp113 + tmp160 + tmp161 + tmp162 + tmp163;
+                                EM_S[INDEX2(4,6,8)]+=B_1_1*w45 - B_1_3*w31 - B_1_4*w39 + B_1_6*w44 + tmp23 + tmp29 + tmp30 + tmp31 + tmp32 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38;
+                                EM_S[INDEX2(5,6,8)]+=tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp19 + tmp66 + tmp67 + tmp68 + tmp69;
+                                EM_S[INDEX2(6,6,8)]+=-B_0_0*w30 - B_0_1*w46 - B_0_6*w47 - B_0_7*w38 - B_1_1*w45 + B_1_3*w31 + B_1_4*w39 - B_1_6*w44 + B_2_1*w41 + B_2_2*w43 + B_2_5*w32 + B_2_6*w40 + tmp134 + tmp137 + tmp209 + tmp210 + tmp212 + tmp213;
                                 EM_S[INDEX2(7,6,8)]+=B_0_0*w30 + B_0_1*w46 + B_0_6*w47 + B_0_7*w38 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp130 + tmp131 + tmp148 + tmp149;
+                                EM_S[INDEX2(0,7,8)]+=tmp60 + tmp61 + tmp62 + tmp63 + tmp64 + tmp65;
+                                EM_S[INDEX2(1,7,8)]+=tmp180 + tmp183 + tmp185 + tmp186 + tmp187 + tmp189 + tmp254 + tmp255 + tmp256 + tmp257;
+                                EM_S[INDEX2(2,7,8)]+=tmp107 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159 + tmp160 + tmp161 + tmp162 + tmp163;
+                                EM_S[INDEX2(3,7,8)]+=-B_2_0*w41 - B_2_3*w43 - B_2_4*w32 - B_2_7*w40 + tmp0 + tmp1 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9 + tmp92 + tmp93;
+                                EM_S[INDEX2(4,7,8)]+=tmp10 + tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp16 + tmp17 + tmp18 + tmp19;
+                                EM_S[INDEX2(5,7,8)]+=B_1_0*w45 - B_1_2*w31 - B_1_5*w39 + B_1_7*w44 + tmp170 + tmp171 + tmp172 + tmp173 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178 + tmp179;
+                                EM_S[INDEX2(6,7,8)]+=-B_0_0*w46 - B_0_1*w30 - B_0_6*w38 - B_0_7*w47 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp128 + tmp129 + tmp130 + tmp131;
                                 EM_S[INDEX2(7,7,8)]+=B_0_0*w46 + B_0_1*w30 + B_0_6*w38 + B_0_7*w47 - B_1_0*w45 + B_1_2*w31 + B_1_5*w39 - B_1_7*w44 + B_2_0*w41 + B_2_3*w43 + B_2_4*w32 + B_2_7*w40 + tmp150 + tmp151 + tmp166 + tmp167 + tmp168 + tmp169;
                             } else { // constant data
                                 const double wB0 = B_p[0]*w53;
                                 const double wB1 = B_p[1]*w51;
                                 const double wB2 = B_p[2]*w50;
                                 EM_S[INDEX2(0,0,8)]+= 4*wB0 + 4*wB1 - 4*wB2;
-                                EM_S[INDEX2(0,1,8)]+= 4*wB0 + 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(0,2,8)]+= 2*wB0 + 4*wB1 - 2*wB2;
-                                EM_S[INDEX2(0,3,8)]+= 2*wB0 + 2*wB1 - wB2;
-                                EM_S[INDEX2(0,4,8)]+= 2*wB0 + 2*wB1 - 4*wB2;
-                                EM_S[INDEX2(0,5,8)]+= 2*wB0 +   wB1 - 2*wB2;
-                                EM_S[INDEX2(0,6,8)]+=   wB0 + 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(0,7,8)]+=   wB0 +   wB1 - wB2;
                                 EM_S[INDEX2(1,0,8)]+=-4*wB0 + 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(1,1,8)]+=-4*wB0 + 4*wB1 - 4*wB2;
-                                EM_S[INDEX2(1,2,8)]+=-2*wB0 + 2*wB1 - wB2;
-                                EM_S[INDEX2(1,3,8)]+=-2*wB0 + 4*wB1 - 2*wB2;
-                                EM_S[INDEX2(1,4,8)]+=-2*wB0 +   wB1 - 2*wB2;
-                                EM_S[INDEX2(1,5,8)]+=-2*wB0 + 2*wB1 - 4*wB2;
-                                EM_S[INDEX2(1,6,8)]+=  -wB0 +   wB1 - wB2;
-                                EM_S[INDEX2(1,7,8)]+=  -wB0 + 2*wB1 - 2*wB2;
                                 EM_S[INDEX2(2,0,8)]+= 2*wB0 - 4*wB1 - 2*wB2;
-                                EM_S[INDEX2(2,1,8)]+= 2*wB0 - 2*wB1 - wB2;
-                                EM_S[INDEX2(2,2,8)]+= 4*wB0 - 4*wB1 - 4*wB2;
-                                EM_S[INDEX2(2,3,8)]+= 4*wB0 - 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(2,4,8)]+=   wB0 - 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(2,5,8)]+=   wB0 -   wB1 - wB2;
-                                EM_S[INDEX2(2,6,8)]+= 2*wB0 - 2*wB1 - 4*wB2;
-                                EM_S[INDEX2(2,7,8)]+= 2*wB0 -   wB1 - 2*wB2;
                                 EM_S[INDEX2(3,0,8)]+=-2*wB0 - 2*wB1 - wB2;
-                                EM_S[INDEX2(3,1,8)]+=-2*wB0 - 4*wB1 - 2*wB2;
-                                EM_S[INDEX2(3,2,8)]+=-4*wB0 - 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(3,3,8)]+=-4*wB0 - 4*wB1 - 4*wB2;
-                                EM_S[INDEX2(3,4,8)]+=  -wB0 -   wB1 - wB2;
-                                EM_S[INDEX2(3,5,8)]+=  -wB0 - 2*wB1 - 2*wB2;
-                                EM_S[INDEX2(3,6,8)]+=-2*wB0 -   wB1 - 2*wB2;
-                                EM_S[INDEX2(3,7,8)]+=-2*wB0 - 2*wB1 - 4*wB2;
                                 EM_S[INDEX2(4,0,8)]+= 2*wB0 + 2*wB1 + 4*wB2;
-                                EM_S[INDEX2(4,1,8)]+= 2*wB0 +   wB1 + 2*wB2;
-                                EM_S[INDEX2(4,2,8)]+=   wB0 + 2*wB1 + 2*wB2;
-                                EM_S[INDEX2(4,3,8)]+=   wB0 +   wB1 + wB2;
-                                EM_S[INDEX2(4,4,8)]+= 4*wB0 + 4*wB1 + 4*wB2;
-                                EM_S[INDEX2(4,5,8)]+= 4*wB0 + 2*wB1 + 2*wB2;
-                                EM_S[INDEX2(4,6,8)]+= 2*wB0 + 4*wB1 + 2*wB2;
-                                EM_S[INDEX2(4,7,8)]+= 2*wB0 + 2*wB1 + wB2;
                                 EM_S[INDEX2(5,0,8)]+=-2*wB0 +   wB1 + 2*wB2;
-                                EM_S[INDEX2(5,1,8)]+=-2*wB0 + 2*wB1 + 4*wB2;
-                                EM_S[INDEX2(5,2,8)]+=  -wB0 +   wB1 + wB2;
-                                EM_S[INDEX2(5,3,8)]+=  -wB0 + 2*wB1 + 2*wB2;
-                                EM_S[INDEX2(5,4,8)]+=-4*wB0 + 2*wB1 + 2*wB2;
-                                EM_S[INDEX2(5,5,8)]+=-4*wB0 + 4*wB1 + 4*wB2;
-                                EM_S[INDEX2(5,6,8)]+=-2*wB0 + 2*wB1 + wB2;
-                                EM_S[INDEX2(5,7,8)]+=-2*wB0 + 4*wB1 + 2*wB2;
                                 EM_S[INDEX2(6,0,8)]+=   wB0 - 2*wB1 + 2*wB2;
-                                EM_S[INDEX2(6,1,8)]+=   wB0 -   wB1 + wB2;
-                                EM_S[INDEX2(6,2,8)]+= 2*wB0 - 2*wB1 + 4*wB2;
-                                EM_S[INDEX2(6,3,8)]+= 2*wB0 -   wB1 + 2*wB2;
-                                EM_S[INDEX2(6,4,8)]+= 2*wB0 - 4*wB1 + 2*wB2;
-                                EM_S[INDEX2(6,5,8)]+= 2*wB0 - 2*wB1 + wB2;
-                                EM_S[INDEX2(6,6,8)]+= 4*wB0 - 4*wB1 + 4*wB2;
-                                EM_S[INDEX2(6,7,8)]+= 4*wB0 - 2*wB1 + 2*wB2;
                                 EM_S[INDEX2(7,0,8)]+=  -wB0 -   wB1 + wB2;
+                                EM_S[INDEX2(0,1,8)]+= 4*wB0 + 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(1,1,8)]+=-4*wB0 + 4*wB1 - 4*wB2;
+                                EM_S[INDEX2(2,1,8)]+= 2*wB0 - 2*wB1 - wB2;
+                                EM_S[INDEX2(3,1,8)]+=-2*wB0 - 4*wB1 - 2*wB2;
+                                EM_S[INDEX2(4,1,8)]+= 2*wB0 +   wB1 + 2*wB2;
+                                EM_S[INDEX2(5,1,8)]+=-2*wB0 + 2*wB1 + 4*wB2;
+                                EM_S[INDEX2(6,1,8)]+=   wB0 -   wB1 + wB2;
                                 EM_S[INDEX2(7,1,8)]+=  -wB0 - 2*wB1 + 2*wB2;
+                                EM_S[INDEX2(0,2,8)]+= 2*wB0 + 4*wB1 - 2*wB2;
+                                EM_S[INDEX2(1,2,8)]+=-2*wB0 + 2*wB1 - wB2;
+                                EM_S[INDEX2(2,2,8)]+= 4*wB0 - 4*wB1 - 4*wB2;
+                                EM_S[INDEX2(3,2,8)]+=-4*wB0 - 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(4,2,8)]+=   wB0 + 2*wB1 + 2*wB2;
+                                EM_S[INDEX2(5,2,8)]+=  -wB0 +   wB1 + wB2;
+                                EM_S[INDEX2(6,2,8)]+= 2*wB0 - 2*wB1 + 4*wB2;
                                 EM_S[INDEX2(7,2,8)]+=-2*wB0 -   wB1 + 2*wB2;
+                                EM_S[INDEX2(0,3,8)]+= 2*wB0 + 2*wB1 - wB2;
+                                EM_S[INDEX2(1,3,8)]+=-2*wB0 + 4*wB1 - 2*wB2;
+                                EM_S[INDEX2(2,3,8)]+= 4*wB0 - 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(3,3,8)]+=-4*wB0 - 4*wB1 - 4*wB2;
+                                EM_S[INDEX2(4,3,8)]+=   wB0 +   wB1 + wB2;
+                                EM_S[INDEX2(5,3,8)]+=  -wB0 + 2*wB1 + 2*wB2;
+                                EM_S[INDEX2(6,3,8)]+= 2*wB0 -   wB1 + 2*wB2;
                                 EM_S[INDEX2(7,3,8)]+=-2*wB0 - 2*wB1 + 4*wB2;
+                                EM_S[INDEX2(0,4,8)]+= 2*wB0 + 2*wB1 - 4*wB2;
+                                EM_S[INDEX2(1,4,8)]+=-2*wB0 +   wB1 - 2*wB2;
+                                EM_S[INDEX2(2,4,8)]+=   wB0 - 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(3,4,8)]+=  -wB0 -   wB1 - wB2;
+                                EM_S[INDEX2(4,4,8)]+= 4*wB0 + 4*wB1 + 4*wB2;
+                                EM_S[INDEX2(5,4,8)]+=-4*wB0 + 2*wB1 + 2*wB2;
+                                EM_S[INDEX2(6,4,8)]+= 2*wB0 - 4*wB1 + 2*wB2;
                                 EM_S[INDEX2(7,4,8)]+=-2*wB0 - 2*wB1 + wB2;
+                                EM_S[INDEX2(0,5,8)]+= 2*wB0 +   wB1 - 2*wB2;
+                                EM_S[INDEX2(1,5,8)]+=-2*wB0 + 2*wB1 - 4*wB2;
+                                EM_S[INDEX2(2,5,8)]+=   wB0 -   wB1 - wB2;
+                                EM_S[INDEX2(3,5,8)]+=  -wB0 - 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(4,5,8)]+= 4*wB0 + 2*wB1 + 2*wB2;
+                                EM_S[INDEX2(5,5,8)]+=-4*wB0 + 4*wB1 + 4*wB2;
+                                EM_S[INDEX2(6,5,8)]+= 2*wB0 - 2*wB1 + wB2;
                                 EM_S[INDEX2(7,5,8)]+=-2*wB0 - 4*wB1 + 2*wB2;
+                                EM_S[INDEX2(0,6,8)]+=   wB0 + 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(1,6,8)]+=  -wB0 +   wB1 - wB2;
+                                EM_S[INDEX2(2,6,8)]+= 2*wB0 - 2*wB1 - 4*wB2;
+                                EM_S[INDEX2(3,6,8)]+=-2*wB0 -   wB1 - 2*wB2;
+                                EM_S[INDEX2(4,6,8)]+= 2*wB0 + 4*wB1 + 2*wB2;
+                                EM_S[INDEX2(5,6,8)]+=-2*wB0 + 2*wB1 + wB2;
+                                EM_S[INDEX2(6,6,8)]+= 4*wB0 - 4*wB1 + 4*wB2;
                                 EM_S[INDEX2(7,6,8)]+=-4*wB0 - 2*wB1 + 2*wB2;
+                                EM_S[INDEX2(0,7,8)]+=   wB0 +   wB1 - wB2;
+                                EM_S[INDEX2(1,7,8)]+=  -wB0 + 2*wB1 - 2*wB2;
+                                EM_S[INDEX2(2,7,8)]+= 2*wB0 -   wB1 - 2*wB2;
+                                EM_S[INDEX2(3,7,8)]+=-2*wB0 - 2*wB1 - 4*wB2;
+                                EM_S[INDEX2(4,7,8)]+= 2*wB0 + 2*wB1 + wB2;
+                                EM_S[INDEX2(5,7,8)]+=-2*wB0 + 4*wB1 + 2*wB2;
+                                EM_S[INDEX2(6,7,8)]+= 4*wB0 - 2*wB1 + 2*wB2;
                                 EM_S[INDEX2(7,7,8)]+=-4*wB0 - 4*wB1 + 4*wB2;
                             }
                         }
@@ -1399,7 +1407,6 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                         // process C //
                         ///////////////
                         if (!C.isEmpty()) {
-                            add_EM_S=true;
                             const double* C_p=C.getSampleDataRO(e);
                             if (C.actsExpanded()) {
                                 const double C_0_0 = C_p[INDEX2(0,0,3)];
@@ -1691,136 +1698,136 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                                 const double tmp262 = w32*(C_2_5 + C_2_7);
                                 const double tmp263 = w43*(C_2_0 + C_2_2);
                                 EM_S[INDEX2(0,0,8)]+=-C_0_0*w47 - C_0_1*w38 - C_0_6*w30 - C_0_7*w46 + C_1_0*w44 - C_1_2*w39 - C_1_5*w31 + C_1_7*w45 - C_2_0*w40 - C_2_3*w32 - C_2_4*w43 - C_2_7*w41 + tmp132 + tmp133 + tmp208 + tmp209 + tmp210 + tmp211;
-                                EM_S[INDEX2(0,1,8)]+=C_0_0*w47 + C_0_1*w38 + C_0_6*w30 + C_0_7*w46 + tmp128 + tmp129 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp247 + tmp248 + tmp249;
-                                EM_S[INDEX2(0,2,8)]+=-C_1_0*w44 + C_1_2*w39 + C_1_5*w31 - C_1_7*w45 + tmp138 + tmp139 + tmp140 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp173 + tmp179;
-                                EM_S[INDEX2(0,3,8)]+=tmp100 + tmp101 + tmp102 + tmp103 + tmp42 + tmp43 + tmp96 + tmp97 + tmp98 + tmp99;
-                                EM_S[INDEX2(0,4,8)]+=C_2_0*w40 + C_2_3*w32 + C_2_4*w43 + C_2_7*w41 + tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp92 + tmp93;
-                                EM_S[INDEX2(0,5,8)]+=tmp190 + tmp193 + tmp195 + tmp196 + tmp197 + tmp199 + tmp224 + tmp225 + tmp226 + tmp227;
-                                EM_S[INDEX2(0,6,8)]+=tmp234 + tmp235 + tmp238 + tmp239 + tmp240 + tmp241 + tmp260 + tmp261 + tmp262 + tmp263;
-                                EM_S[INDEX2(0,7,8)]+=tmp60 + tmp61 + tmp62 + tmp63 + tmp64 + tmp65;
                                 EM_S[INDEX2(1,0,8)]+=-C_0_0*w38 - C_0_1*w47 - C_0_6*w46 - C_0_7*w30 + tmp148 + tmp149 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp247 + tmp248 + tmp249;
-                                EM_S[INDEX2(1,1,8)]+=C_0_0*w38 + C_0_1*w47 + C_0_6*w46 + C_0_7*w30 + C_1_1*w44 - C_1_3*w39 - C_1_4*w31 + C_1_6*w45 - C_2_1*w40 - C_2_2*w32 - C_2_5*w43 - C_2_6*w41 + tmp152 + tmp155 + tmp164 + tmp165 + tmp168 + tmp169;
-                                EM_S[INDEX2(1,2,8)]+=tmp103 + tmp40 + tmp42 + tmp43 + tmp46 + tmp47 + tmp48 + tmp97 + tmp98 + tmp99;
-                                EM_S[INDEX2(1,3,8)]+=-C_1_1*w44 + C_1_3*w39 + C_1_4*w31 - C_1_6*w45 + tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp29;
-                                EM_S[INDEX2(1,4,8)]+=tmp193 + tmp199 + tmp214 + tmp215 + tmp216 + tmp217 + tmp224 + tmp225 + tmp226 + tmp227;
-                                EM_S[INDEX2(1,5,8)]+=C_2_1*w40 + C_2_2*w32 + C_2_5*w43 + C_2_6*w41 + tmp72 + tmp73 + tmp82 + tmp83 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
-                                EM_S[INDEX2(1,6,8)]+=tmp60 + tmp61 + tmp62 + tmp65 + tmp80 + tmp81;
-                                EM_S[INDEX2(1,7,8)]+=tmp180 + tmp183 + tmp185 + tmp186 + tmp187 + tmp189 + tmp254 + tmp255 + tmp256 + tmp257;
                                 EM_S[INDEX2(2,0,8)]+=-C_1_0*w39 + C_1_2*w44 + C_1_5*w45 - C_1_7*w31 + tmp138 + tmp139 + tmp140 + tmp141 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp147;
-                                EM_S[INDEX2(2,1,8)]+=tmp100 + tmp101 + tmp102 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp49 + tmp96;
-                                EM_S[INDEX2(2,2,8)]+=-C_0_2*w47 - C_0_3*w38 - C_0_4*w30 - C_0_5*w46 + C_1_0*w39 - C_1_2*w44 - C_1_5*w45 + C_1_7*w31 - C_2_1*w32 - C_2_2*w40 - C_2_5*w41 - C_2_6*w43 + tmp153 + tmp154 + tmp164 + tmp165 + tmp166 + tmp167;
-                                EM_S[INDEX2(2,3,8)]+=C_0_2*w47 + C_0_3*w38 + C_0_4*w30 + C_0_5*w46 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp222 + tmp223;
-                                EM_S[INDEX2(2,4,8)]+=tmp228 + tmp231 + tmp233 + tmp234 + tmp235 + tmp237 + tmp260 + tmp261 + tmp262 + tmp263;
-                                EM_S[INDEX2(2,5,8)]+=tmp60 + tmp61 + tmp63 + tmp64 + tmp94 + tmp95;
-                                EM_S[INDEX2(2,6,8)]+=C_2_1*w32 + C_2_2*w40 + C_2_5*w41 + C_2_6*w43 + tmp70 + tmp71 + tmp72 + tmp73 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79;
-                                EM_S[INDEX2(2,7,8)]+=tmp107 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159 + tmp160 + tmp161 + tmp162 + tmp163;
                                 EM_S[INDEX2(3,0,8)]+=tmp40 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp46 + tmp47 + tmp48 + tmp49;
-                                EM_S[INDEX2(3,1,8)]+=-C_1_1*w39 + C_1_3*w44 + C_1_4*w45 - C_1_6*w31 + tmp20 + tmp21 + tmp22 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp33 + tmp39;
-                                EM_S[INDEX2(3,2,8)]+=-C_0_2*w38 - C_0_3*w47 - C_0_4*w46 - C_0_5*w30 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp56 + tmp57;
-                                EM_S[INDEX2(3,3,8)]+=C_0_2*w38 + C_0_3*w47 + C_0_4*w46 + C_0_5*w30 + C_1_1*w39 - C_1_3*w44 - C_1_4*w45 + C_1_6*w31 - C_2_0*w32 - C_2_3*w40 - C_2_4*w41 - C_2_7*w43 + tmp132 + tmp133 + tmp134 + tmp135 + tmp136 + tmp137;
-                                EM_S[INDEX2(3,4,8)]+=tmp60 + tmp61 + tmp80 + tmp81 + tmp94 + tmp95;
-                                EM_S[INDEX2(3,5,8)]+=tmp186 + tmp187 + tmp218 + tmp219 + tmp220 + tmp221 + tmp254 + tmp255 + tmp256 + tmp257;
-                                EM_S[INDEX2(3,6,8)]+=tmp104 + tmp107 + tmp109 + tmp110 + tmp111 + tmp113 + tmp160 + tmp161 + tmp162 + tmp163;
-                                EM_S[INDEX2(3,7,8)]+=C_2_0*w32 + C_2_3*w40 + C_2_4*w41 + C_2_7*w43 + tmp0 + tmp1 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9 + tmp92 + tmp93;
                                 EM_S[INDEX2(4,0,8)]+=-C_2_0*w43 - C_2_3*w41 - C_2_4*w40 - C_2_7*w32 + tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp2 + tmp3;
-                                EM_S[INDEX2(4,1,8)]+=tmp190 + tmp191 + tmp192 + tmp193 + tmp194 + tmp195 + tmp196 + tmp197 + tmp198 + tmp199;
-                                EM_S[INDEX2(4,2,8)]+=tmp229 + tmp230 + tmp232 + tmp234 + tmp235 + tmp236 + tmp238 + tmp239 + tmp240 + tmp241;
-                                EM_S[INDEX2(4,3,8)]+=tmp258 + tmp259 + tmp62 + tmp63 + tmp64 + tmp65;
-                                EM_S[INDEX2(4,4,8)]+=-C_0_2*w30 - C_0_3*w46 - C_0_4*w47 - C_0_5*w38 - C_1_1*w31 + C_1_3*w45 + C_1_4*w44 - C_1_6*w39 + C_2_0*w43 + C_2_3*w41 + C_2_4*w40 + C_2_7*w32 + tmp150 + tmp151 + tmp152 + tmp153 + tmp154 + tmp155;
-                                EM_S[INDEX2(4,5,8)]+=C_0_2*w30 + C_0_3*w46 + C_0_4*w47 + C_0_5*w38 + tmp222 + tmp223 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp58 + tmp59;
-                                EM_S[INDEX2(4,6,8)]+=C_1_1*w31 - C_1_3*w45 - C_1_4*w44 + C_1_6*w39 + tmp23 + tmp29 + tmp30 + tmp31 + tmp32 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38;
-                                EM_S[INDEX2(4,7,8)]+=tmp10 + tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp16 + tmp17 + tmp18 + tmp19;
                                 EM_S[INDEX2(5,0,8)]+=tmp191 + tmp192 + tmp193 + tmp194 + tmp198 + tmp199 + tmp214 + tmp215 + tmp216 + tmp217;
-                                EM_S[INDEX2(5,1,8)]+=-C_2_1*w43 - C_2_2*w41 - C_2_5*w40 - C_2_6*w32 + tmp82 + tmp83 + tmp84 + tmp85 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
-                                EM_S[INDEX2(5,2,8)]+=tmp258 + tmp259 + tmp62 + tmp65 + tmp80 + tmp81;
-                                EM_S[INDEX2(5,3,8)]+=tmp180 + tmp181 + tmp182 + tmp183 + tmp184 + tmp185 + tmp186 + tmp187 + tmp188 + tmp189;
-                                EM_S[INDEX2(5,4,8)]+=-C_0_2*w46 - C_0_3*w30 - C_0_4*w38 - C_0_5*w47 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp56 + tmp57 + tmp58 + tmp59;
-                                EM_S[INDEX2(5,5,8)]+=C_0_2*w46 + C_0_3*w30 + C_0_4*w38 + C_0_5*w47 - C_1_0*w31 + C_1_2*w45 + C_1_5*w44 - C_1_7*w39 + C_2_1*w43 + C_2_2*w41 + C_2_5*w40 + C_2_6*w32 + tmp135 + tmp136 + tmp208 + tmp211 + tmp212 + tmp213;
-                                EM_S[INDEX2(5,6,8)]+=tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp19 + tmp66 + tmp67 + tmp68 + tmp69;
-                                EM_S[INDEX2(5,7,8)]+=C_1_0*w31 - C_1_2*w45 - C_1_5*w44 + C_1_7*w39 + tmp170 + tmp171 + tmp172 + tmp173 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178 + tmp179;
                                 EM_S[INDEX2(6,0,8)]+=tmp228 + tmp229 + tmp230 + tmp231 + tmp232 + tmp233 + tmp234 + tmp235 + tmp236 + tmp237;
-                                EM_S[INDEX2(6,1,8)]+=tmp258 + tmp259 + tmp63 + tmp64 + tmp94 + tmp95;
-                                EM_S[INDEX2(6,2,8)]+=-C_2_1*w41 - C_2_2*w43 - C_2_5*w32 - C_2_6*w40 + tmp70 + tmp71 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79 + tmp84 + tmp85;
-                                EM_S[INDEX2(6,3,8)]+=tmp105 + tmp106 + tmp107 + tmp108 + tmp112 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159;
-                                EM_S[INDEX2(6,4,8)]+=C_1_1*w45 - C_1_3*w31 - C_1_4*w39 + C_1_6*w44 + tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38 + tmp39;
-                                EM_S[INDEX2(6,5,8)]+=tmp10 + tmp12 + tmp13 + tmp16 + tmp17 + tmp18 + tmp250 + tmp251 + tmp252 + tmp253;
-                                EM_S[INDEX2(6,6,8)]+=-C_0_0*w30 - C_0_1*w46 - C_0_6*w47 - C_0_7*w38 - C_1_1*w45 + C_1_3*w31 + C_1_4*w39 - C_1_6*w44 + C_2_1*w41 + C_2_2*w43 + C_2_5*w32 + C_2_6*w40 + tmp134 + tmp137 + tmp209 + tmp210 + tmp212 + tmp213;
-                                EM_S[INDEX2(6,7,8)]+=C_0_0*w30 + C_0_1*w46 + C_0_6*w47 + C_0_7*w38 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp128 + tmp129 + tmp130 + tmp131;
                                 EM_S[INDEX2(7,0,8)]+=tmp258 + tmp259 + tmp80 + tmp81 + tmp94 + tmp95;
+                                EM_S[INDEX2(0,1,8)]+=C_0_0*w47 + C_0_1*w38 + C_0_6*w30 + C_0_7*w46 + tmp128 + tmp129 + tmp242 + tmp243 + tmp244 + tmp245 + tmp246 + tmp247 + tmp248 + tmp249;
+                                EM_S[INDEX2(1,1,8)]+=C_0_0*w38 + C_0_1*w47 + C_0_6*w46 + C_0_7*w30 + C_1_1*w44 - C_1_3*w39 - C_1_4*w31 + C_1_6*w45 - C_2_1*w40 - C_2_2*w32 - C_2_5*w43 - C_2_6*w41 + tmp152 + tmp155 + tmp164 + tmp165 + tmp168 + tmp169;
+                                EM_S[INDEX2(2,1,8)]+=tmp100 + tmp101 + tmp102 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp49 + tmp96;
+                                EM_S[INDEX2(3,1,8)]+=-C_1_1*w39 + C_1_3*w44 + C_1_4*w45 - C_1_6*w31 + tmp20 + tmp21 + tmp22 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp33 + tmp39;
+                                EM_S[INDEX2(4,1,8)]+=tmp190 + tmp191 + tmp192 + tmp193 + tmp194 + tmp195 + tmp196 + tmp197 + tmp198 + tmp199;
+                                EM_S[INDEX2(5,1,8)]+=-C_2_1*w43 - C_2_2*w41 - C_2_5*w40 - C_2_6*w32 + tmp82 + tmp83 + tmp84 + tmp85 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
+                                EM_S[INDEX2(6,1,8)]+=tmp258 + tmp259 + tmp63 + tmp64 + tmp94 + tmp95;
                                 EM_S[INDEX2(7,1,8)]+=tmp181 + tmp182 + tmp184 + tmp186 + tmp187 + tmp188 + tmp218 + tmp219 + tmp220 + tmp221;
+                                EM_S[INDEX2(0,2,8)]+=-C_1_0*w44 + C_1_2*w39 + C_1_5*w31 - C_1_7*w45 + tmp138 + tmp139 + tmp140 + tmp142 + tmp143 + tmp144 + tmp145 + tmp146 + tmp173 + tmp179;
+                                EM_S[INDEX2(1,2,8)]+=tmp103 + tmp40 + tmp42 + tmp43 + tmp46 + tmp47 + tmp48 + tmp97 + tmp98 + tmp99;
+                                EM_S[INDEX2(2,2,8)]+=-C_0_2*w47 - C_0_3*w38 - C_0_4*w30 - C_0_5*w46 + C_1_0*w39 - C_1_2*w44 - C_1_5*w45 + C_1_7*w31 - C_2_1*w32 - C_2_2*w40 - C_2_5*w41 - C_2_6*w43 + tmp153 + tmp154 + tmp164 + tmp165 + tmp166 + tmp167;
+                                EM_S[INDEX2(3,2,8)]+=-C_0_2*w38 - C_0_3*w47 - C_0_4*w46 - C_0_5*w30 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp56 + tmp57;
+                                EM_S[INDEX2(4,2,8)]+=tmp229 + tmp230 + tmp232 + tmp234 + tmp235 + tmp236 + tmp238 + tmp239 + tmp240 + tmp241;
+                                EM_S[INDEX2(5,2,8)]+=tmp258 + tmp259 + tmp62 + tmp65 + tmp80 + tmp81;
+                                EM_S[INDEX2(6,2,8)]+=-C_2_1*w41 - C_2_2*w43 - C_2_5*w32 - C_2_6*w40 + tmp70 + tmp71 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79 + tmp84 + tmp85;
                                 EM_S[INDEX2(7,2,8)]+=tmp104 + tmp105 + tmp106 + tmp107 + tmp108 + tmp109 + tmp110 + tmp111 + tmp112 + tmp113;
+                                EM_S[INDEX2(0,3,8)]+=tmp100 + tmp101 + tmp102 + tmp103 + tmp42 + tmp43 + tmp96 + tmp97 + tmp98 + tmp99;
+                                EM_S[INDEX2(1,3,8)]+=-C_1_1*w44 + C_1_3*w39 + C_1_4*w31 - C_1_6*w45 + tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp27 + tmp28 + tmp29;
+                                EM_S[INDEX2(2,3,8)]+=C_0_2*w47 + C_0_3*w38 + C_0_4*w30 + C_0_5*w46 + tmp200 + tmp201 + tmp202 + tmp203 + tmp204 + tmp205 + tmp206 + tmp207 + tmp222 + tmp223;
+                                EM_S[INDEX2(3,3,8)]+=C_0_2*w38 + C_0_3*w47 + C_0_4*w46 + C_0_5*w30 + C_1_1*w39 - C_1_3*w44 - C_1_4*w45 + C_1_6*w31 - C_2_0*w32 - C_2_3*w40 - C_2_4*w41 - C_2_7*w43 + tmp132 + tmp133 + tmp134 + tmp135 + tmp136 + tmp137;
+                                EM_S[INDEX2(4,3,8)]+=tmp258 + tmp259 + tmp62 + tmp63 + tmp64 + tmp65;
+                                EM_S[INDEX2(5,3,8)]+=tmp180 + tmp181 + tmp182 + tmp183 + tmp184 + tmp185 + tmp186 + tmp187 + tmp188 + tmp189;
+                                EM_S[INDEX2(6,3,8)]+=tmp105 + tmp106 + tmp107 + tmp108 + tmp112 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159;
                                 EM_S[INDEX2(7,3,8)]+=-C_2_0*w41 - C_2_3*w43 - C_2_4*w32 - C_2_7*w40 + tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9;
+                                EM_S[INDEX2(0,4,8)]+=C_2_0*w40 + C_2_3*w32 + C_2_4*w43 + C_2_7*w41 + tmp114 + tmp115 + tmp116 + tmp117 + tmp118 + tmp119 + tmp120 + tmp121 + tmp92 + tmp93;
+                                EM_S[INDEX2(1,4,8)]+=tmp193 + tmp199 + tmp214 + tmp215 + tmp216 + tmp217 + tmp224 + tmp225 + tmp226 + tmp227;
+                                EM_S[INDEX2(2,4,8)]+=tmp228 + tmp231 + tmp233 + tmp234 + tmp235 + tmp237 + tmp260 + tmp261 + tmp262 + tmp263;
+                                EM_S[INDEX2(3,4,8)]+=tmp60 + tmp61 + tmp80 + tmp81 + tmp94 + tmp95;
+                                EM_S[INDEX2(4,4,8)]+=-C_0_2*w30 - C_0_3*w46 - C_0_4*w47 - C_0_5*w38 - C_1_1*w31 + C_1_3*w45 + C_1_4*w44 - C_1_6*w39 + C_2_0*w43 + C_2_3*w41 + C_2_4*w40 + C_2_7*w32 + tmp150 + tmp151 + tmp152 + tmp153 + tmp154 + tmp155;
+                                EM_S[INDEX2(5,4,8)]+=-C_0_2*w46 - C_0_3*w30 - C_0_4*w38 - C_0_5*w47 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp56 + tmp57 + tmp58 + tmp59;
+                                EM_S[INDEX2(6,4,8)]+=C_1_1*w45 - C_1_3*w31 - C_1_4*w39 + C_1_6*w44 + tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38 + tmp39;
                                 EM_S[INDEX2(7,4,8)]+=tmp12 + tmp13 + tmp250 + tmp251 + tmp252 + tmp253 + tmp66 + tmp67 + tmp68 + tmp69;
+                                EM_S[INDEX2(0,5,8)]+=tmp190 + tmp193 + tmp195 + tmp196 + tmp197 + tmp199 + tmp224 + tmp225 + tmp226 + tmp227;
+                                EM_S[INDEX2(1,5,8)]+=C_2_1*w40 + C_2_2*w32 + C_2_5*w43 + C_2_6*w41 + tmp72 + tmp73 + tmp82 + tmp83 + tmp86 + tmp87 + tmp88 + tmp89 + tmp90 + tmp91;
+                                EM_S[INDEX2(2,5,8)]+=tmp60 + tmp61 + tmp63 + tmp64 + tmp94 + tmp95;
+                                EM_S[INDEX2(3,5,8)]+=tmp186 + tmp187 + tmp218 + tmp219 + tmp220 + tmp221 + tmp254 + tmp255 + tmp256 + tmp257;
+                                EM_S[INDEX2(4,5,8)]+=C_0_2*w30 + C_0_3*w46 + C_0_4*w47 + C_0_5*w38 + tmp222 + tmp223 + tmp50 + tmp51 + tmp52 + tmp53 + tmp54 + tmp55 + tmp58 + tmp59;
+                                EM_S[INDEX2(5,5,8)]+=C_0_2*w46 + C_0_3*w30 + C_0_4*w38 + C_0_5*w47 - C_1_0*w31 + C_1_2*w45 + C_1_5*w44 - C_1_7*w39 + C_2_1*w43 + C_2_2*w41 + C_2_5*w40 + C_2_6*w32 + tmp135 + tmp136 + tmp208 + tmp211 + tmp212 + tmp213;
+                                EM_S[INDEX2(6,5,8)]+=tmp10 + tmp12 + tmp13 + tmp16 + tmp17 + tmp18 + tmp250 + tmp251 + tmp252 + tmp253;
                                 EM_S[INDEX2(7,5,8)]+=C_1_0*w45 - C_1_2*w31 - C_1_5*w39 + C_1_7*w44 + tmp141 + tmp147 + tmp170 + tmp171 + tmp172 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178;
+                                EM_S[INDEX2(0,6,8)]+=tmp234 + tmp235 + tmp238 + tmp239 + tmp240 + tmp241 + tmp260 + tmp261 + tmp262 + tmp263;
+                                EM_S[INDEX2(1,6,8)]+=tmp60 + tmp61 + tmp62 + tmp65 + tmp80 + tmp81;
+                                EM_S[INDEX2(2,6,8)]+=C_2_1*w32 + C_2_2*w40 + C_2_5*w41 + C_2_6*w43 + tmp70 + tmp71 + tmp72 + tmp73 + tmp74 + tmp75 + tmp76 + tmp77 + tmp78 + tmp79;
+                                EM_S[INDEX2(3,6,8)]+=tmp104 + tmp107 + tmp109 + tmp110 + tmp111 + tmp113 + tmp160 + tmp161 + tmp162 + tmp163;
+                                EM_S[INDEX2(4,6,8)]+=C_1_1*w31 - C_1_3*w45 - C_1_4*w44 + C_1_6*w39 + tmp23 + tmp29 + tmp30 + tmp31 + tmp32 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38;
+                                EM_S[INDEX2(5,6,8)]+=tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp19 + tmp66 + tmp67 + tmp68 + tmp69;
+                                EM_S[INDEX2(6,6,8)]+=-C_0_0*w30 - C_0_1*w46 - C_0_6*w47 - C_0_7*w38 - C_1_1*w45 + C_1_3*w31 + C_1_4*w39 - C_1_6*w44 + C_2_1*w41 + C_2_2*w43 + C_2_5*w32 + C_2_6*w40 + tmp134 + tmp137 + tmp209 + tmp210 + tmp212 + tmp213;
                                 EM_S[INDEX2(7,6,8)]+=-C_0_0*w46 - C_0_1*w30 - C_0_6*w38 - C_0_7*w47 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp130 + tmp131 + tmp148 + tmp149;
+                                EM_S[INDEX2(0,7,8)]+=tmp60 + tmp61 + tmp62 + tmp63 + tmp64 + tmp65;
+                                EM_S[INDEX2(1,7,8)]+=tmp180 + tmp183 + tmp185 + tmp186 + tmp187 + tmp189 + tmp254 + tmp255 + tmp256 + tmp257;
+                                EM_S[INDEX2(2,7,8)]+=tmp107 + tmp113 + tmp156 + tmp157 + tmp158 + tmp159 + tmp160 + tmp161 + tmp162 + tmp163;
+                                EM_S[INDEX2(3,7,8)]+=C_2_0*w32 + C_2_3*w40 + C_2_4*w41 + C_2_7*w43 + tmp0 + tmp1 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8 + tmp9 + tmp92 + tmp93;
+                                EM_S[INDEX2(4,7,8)]+=tmp10 + tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp16 + tmp17 + tmp18 + tmp19;
+                                EM_S[INDEX2(5,7,8)]+=C_1_0*w31 - C_1_2*w45 - C_1_5*w44 + C_1_7*w39 + tmp170 + tmp171 + tmp172 + tmp173 + tmp174 + tmp175 + tmp176 + tmp177 + tmp178 + tmp179;
+                                EM_S[INDEX2(6,7,8)]+=C_0_0*w30 + C_0_1*w46 + C_0_6*w47 + C_0_7*w38 + tmp122 + tmp123 + tmp124 + tmp125 + tmp126 + tmp127 + tmp128 + tmp129 + tmp130 + tmp131;
                                 EM_S[INDEX2(7,7,8)]+=C_0_0*w46 + C_0_1*w30 + C_0_6*w38 + C_0_7*w47 - C_1_0*w45 + C_1_2*w31 + C_1_5*w39 - C_1_7*w44 + C_2_0*w41 + C_2_3*w43 + C_2_4*w32 + C_2_7*w40 + tmp150 + tmp151 + tmp166 + tmp167 + tmp168 + tmp169;
                             } else { // constant data
                                 const double wC0 = C_p[0]*w53;
                                 const double wC1 = C_p[1]*w51;
                                 const double wC2 = C_p[2]*w50;
                                 EM_S[INDEX2(0,0,8)]+= 4*wC0 + 4*wC1 - 4*wC2;
-                                EM_S[INDEX2(0,1,8)]+=-4*wC0 + 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(0,2,8)]+= 2*wC0 - 4*wC1 - 2*wC2;
-                                EM_S[INDEX2(0,3,8)]+=-2*wC0 - 2*wC1 -   wC2;
-                                EM_S[INDEX2(0,4,8)]+= 2*wC0 + 2*wC1 + 4*wC2;
-                                EM_S[INDEX2(0,5,8)]+=-2*wC0 +   wC1 + 2*wC2;
-                                EM_S[INDEX2(0,6,8)]+=   wC0 - 2*wC1 + 2*wC2;
-                                EM_S[INDEX2(0,7,8)]+=  -wC0 -   wC1 +   wC2;
                                 EM_S[INDEX2(1,0,8)]+= 4*wC0 + 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(1,1,8)]+=-4*wC0 + 4*wC1 - 4*wC2;
-                                EM_S[INDEX2(1,2,8)]+= 2*wC0 - 2*wC1 -   wC2;
-                                EM_S[INDEX2(1,3,8)]+=-2*wC0 - 4*wC1 - 2*wC2;
-                                EM_S[INDEX2(1,4,8)]+= 2*wC0 +   wC1 + 2*wC2;
-                                EM_S[INDEX2(1,5,8)]+=-2*wC0 + 2*wC1 + 4*wC2;
-                                EM_S[INDEX2(1,6,8)]+=   wC0 -   wC1 +   wC2;
-                                EM_S[INDEX2(1,7,8)]+=  -wC0 - 2*wC1 + 2*wC2;
                                 EM_S[INDEX2(2,0,8)]+= 2*wC0 + 4*wC1 - 2*wC2;
-                                EM_S[INDEX2(2,1,8)]+=-2*wC0 + 2*wC1 -   wC2;
-                                EM_S[INDEX2(2,2,8)]+= 4*wC0 - 4*wC1 - 4*wC2;
-                                EM_S[INDEX2(2,3,8)]+=-4*wC0 - 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(2,4,8)]+=   wC0 + 2*wC1 + 2*wC2;
-                                EM_S[INDEX2(2,5,8)]+=  -wC0 +   wC1 +   wC2;
-                                EM_S[INDEX2(2,6,8)]+= 2*wC0 - 2*wC1 + 4*wC2;
-                                EM_S[INDEX2(2,7,8)]+=-2*wC0 -   wC1 + 2*wC2;
                                 EM_S[INDEX2(3,0,8)]+= 2*wC0 + 2*wC1 -   wC2;
-                                EM_S[INDEX2(3,1,8)]+=-2*wC0 + 4*wC1 - 2*wC2;
-                                EM_S[INDEX2(3,2,8)]+= 4*wC0 - 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(3,3,8)]+=-4*wC0 - 4*wC1 - 4*wC2;
-                                EM_S[INDEX2(3,4,8)]+=   wC0 +   wC1 +   wC2;
-                                EM_S[INDEX2(3,5,8)]+=  -wC0 + 2*wC1 + 2*wC2;
-                                EM_S[INDEX2(3,6,8)]+= 2*wC0 -   wC1 + 2*wC2;
-                                EM_S[INDEX2(3,7,8)]+=-2*wC0 - 2*wC1 + 4*wC2;
                                 EM_S[INDEX2(4,0,8)]+= 2*wC0 + 2*wC1 - 4*wC2;
-                                EM_S[INDEX2(4,1,8)]+=-2*wC0 +   wC1 - 2*wC2;
-                                EM_S[INDEX2(4,2,8)]+=   wC0 - 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(4,3,8)]+=  -wC0 -   wC1 -   wC2;
-                                EM_S[INDEX2(4,4,8)]+= 4*wC0 + 4*wC1 + 4*wC2;
-                                EM_S[INDEX2(4,5,8)]+=-4*wC0 + 2*wC1 + 2*wC2;
-                                EM_S[INDEX2(4,6,8)]+= 2*wC0 - 4*wC1 + 2*wC2;
-                                EM_S[INDEX2(4,7,8)]+=-2*wC0 - 2*wC1 +   wC2;
                                 EM_S[INDEX2(5,0,8)]+= 2*wC0 +   wC1 - 2*wC2;
-                                EM_S[INDEX2(5,1,8)]+=-2*wC0 + 2*wC1 - 4*wC2;
-                                EM_S[INDEX2(5,2,8)]+=   wC0 -   wC1 -   wC2;
-                                EM_S[INDEX2(5,3,8)]+=  -wC0 - 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(5,4,8)]+= 4*wC0 + 2*wC1 + 2*wC2;
-                                EM_S[INDEX2(5,5,8)]+=-4*wC0 + 4*wC1 + 4*wC2;
-                                EM_S[INDEX2(5,6,8)]+= 2*wC0 - 2*wC1 +   wC2;
-                                EM_S[INDEX2(5,7,8)]+=-2*wC0 - 4*wC1 + 2*wC2;
                                 EM_S[INDEX2(6,0,8)]+=   wC0 + 2*wC1 - 2*wC2;
-                                EM_S[INDEX2(6,1,8)]+=  -wC0 +   wC1 -   wC2;
-                                EM_S[INDEX2(6,2,8)]+= 2*wC0 - 2*wC1 - 4*wC2;
-                                EM_S[INDEX2(6,3,8)]+=-2*wC0 -   wC1 - 2*wC2;
-                                EM_S[INDEX2(6,4,8)]+= 2*wC0 + 4*wC1 + 2*wC2;
-                                EM_S[INDEX2(6,5,8)]+=-2*wC0 + 2*wC1 +   wC2;
-                                EM_S[INDEX2(6,6,8)]+= 4*wC0 - 4*wC1 + 4*wC2;
-                                EM_S[INDEX2(6,7,8)]+=-4*wC0 - 2*wC1 + 2*wC2;
                                 EM_S[INDEX2(7,0,8)]+=   wC0 +   wC1 -   wC2;
+                                EM_S[INDEX2(0,1,8)]+=-4*wC0 + 2*wC1 - 2*wC2;
+                                EM_S[INDEX2(1,1,8)]+=-4*wC0 + 4*wC1 - 4*wC2;
+                                EM_S[INDEX2(2,1,8)]+=-2*wC0 + 2*wC1 -   wC2;
+                                EM_S[INDEX2(3,1,8)]+=-2*wC0 + 4*wC1 - 2*wC2;
+                                EM_S[INDEX2(4,1,8)]+=-2*wC0 +   wC1 - 2*wC2;
+                                EM_S[INDEX2(5,1,8)]+=-2*wC0 + 2*wC1 - 4*wC2;
+                                EM_S[INDEX2(6,1,8)]+=  -wC0 +   wC1 -   wC2;
                                 EM_S[INDEX2(7,1,8)]+=  -wC0 + 2*wC1 - 2*wC2;
+                                EM_S[INDEX2(0,2,8)]+= 2*wC0 - 4*wC1 - 2*wC2;
+                                EM_S[INDEX2(1,2,8)]+= 2*wC0 - 2*wC1 -   wC2;
+                                EM_S[INDEX2(2,2,8)]+= 4*wC0 - 4*wC1 - 4*wC2;
+                                EM_S[INDEX2(3,2,8)]+= 4*wC0 - 2*wC1 - 2*wC2;
+                                EM_S[INDEX2(4,2,8)]+=   wC0 - 2*wC1 - 2*wC2;
+                                EM_S[INDEX2(5,2,8)]+=   wC0 -   wC1 -   wC2;
+                                EM_S[INDEX2(6,2,8)]+= 2*wC0 - 2*wC1 - 4*wC2;
                                 EM_S[INDEX2(7,2,8)]+= 2*wC0 -   wC1 - 2*wC2;
+                                EM_S[INDEX2(0,3,8)]+=-2*wC0 - 2*wC1 -   wC2;
+                                EM_S[INDEX2(1,3,8)]+=-2*wC0 - 4*wC1 - 2*wC2;
+                                EM_S[INDEX2(2,3,8)]+=-4*wC0 - 2*wC1 - 2*wC2;
+                                EM_S[INDEX2(3,3,8)]+=-4*wC0 - 4*wC1 - 4*wC2;
+                                EM_S[INDEX2(4,3,8)]+=  -wC0 -   wC1 -   wC2;
+                                EM_S[INDEX2(5,3,8)]+=  -wC0 - 2*wC1 - 2*wC2;
+                                EM_S[INDEX2(6,3,8)]+=-2*wC0 -   wC1 - 2*wC2;
                                 EM_S[INDEX2(7,3,8)]+=-2*wC0 - 2*wC1 - 4*wC2;
+                                EM_S[INDEX2(0,4,8)]+= 2*wC0 + 2*wC1 + 4*wC2;
+                                EM_S[INDEX2(1,4,8)]+= 2*wC0 +   wC1 + 2*wC2;
+                                EM_S[INDEX2(2,4,8)]+=   wC0 + 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(3,4,8)]+=   wC0 +   wC1 +   wC2;
+                                EM_S[INDEX2(4,4,8)]+= 4*wC0 + 4*wC1 + 4*wC2;
+                                EM_S[INDEX2(5,4,8)]+= 4*wC0 + 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(6,4,8)]+= 2*wC0 + 4*wC1 + 2*wC2;
                                 EM_S[INDEX2(7,4,8)]+= 2*wC0 + 2*wC1 +   wC2;
+                                EM_S[INDEX2(0,5,8)]+=-2*wC0 +   wC1 + 2*wC2;
+                                EM_S[INDEX2(1,5,8)]+=-2*wC0 + 2*wC1 + 4*wC2;
+                                EM_S[INDEX2(2,5,8)]+=  -wC0 +   wC1 +   wC2;
+                                EM_S[INDEX2(3,5,8)]+=  -wC0 + 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(4,5,8)]+=-4*wC0 + 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(5,5,8)]+=-4*wC0 + 4*wC1 + 4*wC2;
+                                EM_S[INDEX2(6,5,8)]+=-2*wC0 + 2*wC1 +   wC2;
                                 EM_S[INDEX2(7,5,8)]+=-2*wC0 + 4*wC1 + 2*wC2;
+                                EM_S[INDEX2(0,6,8)]+=   wC0 - 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(1,6,8)]+=   wC0 -   wC1 +   wC2;
+                                EM_S[INDEX2(2,6,8)]+= 2*wC0 - 2*wC1 + 4*wC2;
+                                EM_S[INDEX2(3,6,8)]+= 2*wC0 -   wC1 + 2*wC2;
+                                EM_S[INDEX2(4,6,8)]+= 2*wC0 - 4*wC1 + 2*wC2;
+                                EM_S[INDEX2(5,6,8)]+= 2*wC0 - 2*wC1 +   wC2;
+                                EM_S[INDEX2(6,6,8)]+= 4*wC0 - 4*wC1 + 4*wC2;
                                 EM_S[INDEX2(7,6,8)]+= 4*wC0 - 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(0,7,8)]+=  -wC0 -   wC1 +   wC2;
+                                EM_S[INDEX2(1,7,8)]+=  -wC0 - 2*wC1 + 2*wC2;
+                                EM_S[INDEX2(2,7,8)]+=-2*wC0 -   wC1 + 2*wC2;
+                                EM_S[INDEX2(3,7,8)]+=-2*wC0 - 2*wC1 + 4*wC2;
+                                EM_S[INDEX2(4,7,8)]+=-2*wC0 - 2*wC1 +   wC2;
+                                EM_S[INDEX2(5,7,8)]+=-2*wC0 - 4*wC1 + 2*wC2;
+                                EM_S[INDEX2(6,7,8)]+=-4*wC0 - 2*wC1 + 2*wC2;
                                 EM_S[INDEX2(7,7,8)]+=-4*wC0 - 4*wC1 + 4*wC2;
                             }
                         }
@@ -1828,7 +1835,6 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                         // process D //
                         ///////////////
                         if (!D.isEmpty()) {
-                            add_EM_S=true;
                             const double* D_p=D.getSampleDataRO(e);
                             if (D.actsExpanded()) {
                                 const double D_0 = D_p[0];
@@ -1899,134 +1905,134 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                                 const double tmp57 = w54*(D_6 + D_7);
                                 const double tmp58 = w56*(D_0 + D_1);
                                 EM_S[INDEX2(0,0,8)]+=D_0*w59 + D_7*w60 + tmp49 + tmp50;
-                                EM_S[INDEX2(0,1,8)]+=tmp26 + tmp57 + tmp58;
-                                EM_S[INDEX2(0,2,8)]+=tmp30 + tmp31 + tmp32;
-                                EM_S[INDEX2(0,3,8)]+=tmp10 + tmp11;
-                                EM_S[INDEX2(0,4,8)]+=tmp1 + tmp23 + tmp24;
-                                EM_S[INDEX2(0,5,8)]+=tmp43 + tmp44;
-                                EM_S[INDEX2(0,6,8)]+=tmp55 + tmp56;
-                                EM_S[INDEX2(0,7,8)]+=tmp15;
                                 EM_S[INDEX2(1,0,8)]+=tmp26 + tmp57 + tmp58;
-                                EM_S[INDEX2(1,1,8)]+=D_1*w59 + D_6*w60 + tmp45 + tmp46;
-                                EM_S[INDEX2(1,2,8)]+=tmp10 + tmp11;
-                                EM_S[INDEX2(1,3,8)]+=tmp5 + tmp6 + tmp7;
-                                EM_S[INDEX2(1,4,8)]+=tmp43 + tmp44;
-                                EM_S[INDEX2(1,5,8)]+=tmp17 + tmp19 + tmp20;
-                                EM_S[INDEX2(1,6,8)]+=tmp15;
-                                EM_S[INDEX2(1,7,8)]+=tmp41 + tmp42;
                                 EM_S[INDEX2(2,0,8)]+=tmp30 + tmp31 + tmp32;
-                                EM_S[INDEX2(2,1,8)]+=tmp10 + tmp11;
-                                EM_S[INDEX2(2,2,8)]+=D_2*w59 + D_5*w60 + tmp35 + tmp36;
-                                EM_S[INDEX2(2,3,8)]+=tmp13 + tmp47 + tmp48;
-                                EM_S[INDEX2(2,4,8)]+=tmp55 + tmp56;
-                                EM_S[INDEX2(2,5,8)]+=tmp15;
-                                EM_S[INDEX2(2,6,8)]+=tmp16 + tmp17 + tmp18;
-                                EM_S[INDEX2(2,7,8)]+=tmp21 + tmp22;
                                 EM_S[INDEX2(3,0,8)]+=tmp10 + tmp11;
-                                EM_S[INDEX2(3,1,8)]+=tmp5 + tmp6 + tmp7;
-                                EM_S[INDEX2(3,2,8)]+=tmp13 + tmp47 + tmp48;
-                                EM_S[INDEX2(3,3,8)]+=D_3*w59 + D_4*w60 + tmp28 + tmp29;
-                                EM_S[INDEX2(3,4,8)]+=tmp15;
-                                EM_S[INDEX2(3,5,8)]+=tmp41 + tmp42;
-                                EM_S[INDEX2(3,6,8)]+=tmp21 + tmp22;
-                                EM_S[INDEX2(3,7,8)]+=tmp0 + tmp1 + tmp2;
                                 EM_S[INDEX2(4,0,8)]+=tmp1 + tmp23 + tmp24;
-                                EM_S[INDEX2(4,1,8)]+=tmp43 + tmp44;
-                                EM_S[INDEX2(4,2,8)]+=tmp55 + tmp56;
-                                EM_S[INDEX2(4,3,8)]+=tmp15;
-                                EM_S[INDEX2(4,4,8)]+=D_3*w60 + D_4*w59 + tmp33 + tmp34;
-                                EM_S[INDEX2(4,5,8)]+=tmp12 + tmp13 + tmp14;
-                                EM_S[INDEX2(4,6,8)]+=tmp6 + tmp8 + tmp9;
-                                EM_S[INDEX2(4,7,8)]+=tmp3 + tmp4;
                                 EM_S[INDEX2(5,0,8)]+=tmp43 + tmp44;
-                                EM_S[INDEX2(5,1,8)]+=tmp17 + tmp19 + tmp20;
-                                EM_S[INDEX2(5,2,8)]+=tmp15;
-                                EM_S[INDEX2(5,3,8)]+=tmp41 + tmp42;
-                                EM_S[INDEX2(5,4,8)]+=tmp12 + tmp13 + tmp14;
-                                EM_S[INDEX2(5,5,8)]+=D_2*w60 + D_5*w59 + tmp53 + tmp54;
-                                EM_S[INDEX2(5,6,8)]+=tmp3 + tmp4;
-                                EM_S[INDEX2(5,7,8)]+=tmp31 + tmp39 + tmp40;
                                 EM_S[INDEX2(6,0,8)]+=tmp55 + tmp56;
-                                EM_S[INDEX2(6,1,8)]+=tmp15;
-                                EM_S[INDEX2(6,2,8)]+=tmp16 + tmp17 + tmp18;
-                                EM_S[INDEX2(6,3,8)]+=tmp21 + tmp22;
-                                EM_S[INDEX2(6,4,8)]+=tmp6 + tmp8 + tmp9;
-                                EM_S[INDEX2(6,5,8)]+=tmp3 + tmp4;
-                                EM_S[INDEX2(6,6,8)]+=D_1*w60 + D_6*w59 + tmp51 + tmp52;
-                                EM_S[INDEX2(6,7,8)]+=tmp25 + tmp26 + tmp27;
                                 EM_S[INDEX2(7,0,8)]+=tmp15;
+                                EM_S[INDEX2(0,1,8)]+=tmp26 + tmp57 + tmp58;
+                                EM_S[INDEX2(1,1,8)]+=D_1*w59 + D_6*w60 + tmp45 + tmp46;
+                                EM_S[INDEX2(2,1,8)]+=tmp10 + tmp11;
+                                EM_S[INDEX2(3,1,8)]+=tmp5 + tmp6 + tmp7;
+                                EM_S[INDEX2(4,1,8)]+=tmp43 + tmp44;
+                                EM_S[INDEX2(5,1,8)]+=tmp17 + tmp19 + tmp20;
+                                EM_S[INDEX2(6,1,8)]+=tmp15;
                                 EM_S[INDEX2(7,1,8)]+=tmp41 + tmp42;
+                                EM_S[INDEX2(0,2,8)]+=tmp30 + tmp31 + tmp32;
+                                EM_S[INDEX2(1,2,8)]+=tmp10 + tmp11;
+                                EM_S[INDEX2(2,2,8)]+=D_2*w59 + D_5*w60 + tmp35 + tmp36;
+                                EM_S[INDEX2(3,2,8)]+=tmp13 + tmp47 + tmp48;
+                                EM_S[INDEX2(4,2,8)]+=tmp55 + tmp56;
+                                EM_S[INDEX2(5,2,8)]+=tmp15;
+                                EM_S[INDEX2(6,2,8)]+=tmp16 + tmp17 + tmp18;
                                 EM_S[INDEX2(7,2,8)]+=tmp21 + tmp22;
+                                EM_S[INDEX2(0,3,8)]+=tmp10 + tmp11;
+                                EM_S[INDEX2(1,3,8)]+=tmp5 + tmp6 + tmp7;
+                                EM_S[INDEX2(2,3,8)]+=tmp13 + tmp47 + tmp48;
+                                EM_S[INDEX2(3,3,8)]+=D_3*w59 + D_4*w60 + tmp28 + tmp29;
+                                EM_S[INDEX2(4,3,8)]+=tmp15;
+                                EM_S[INDEX2(5,3,8)]+=tmp41 + tmp42;
+                                EM_S[INDEX2(6,3,8)]+=tmp21 + tmp22;
                                 EM_S[INDEX2(7,3,8)]+=tmp0 + tmp1 + tmp2;
+                                EM_S[INDEX2(0,4,8)]+=tmp1 + tmp23 + tmp24;
+                                EM_S[INDEX2(1,4,8)]+=tmp43 + tmp44;
+                                EM_S[INDEX2(2,4,8)]+=tmp55 + tmp56;
+                                EM_S[INDEX2(3,4,8)]+=tmp15;
+                                EM_S[INDEX2(4,4,8)]+=D_3*w60 + D_4*w59 + tmp33 + tmp34;
+                                EM_S[INDEX2(5,4,8)]+=tmp12 + tmp13 + tmp14;
+                                EM_S[INDEX2(6,4,8)]+=tmp6 + tmp8 + tmp9;
                                 EM_S[INDEX2(7,4,8)]+=tmp3 + tmp4;
+                                EM_S[INDEX2(0,5,8)]+=tmp43 + tmp44;
+                                EM_S[INDEX2(1,5,8)]+=tmp17 + tmp19 + tmp20;
+                                EM_S[INDEX2(2,5,8)]+=tmp15;
+                                EM_S[INDEX2(3,5,8)]+=tmp41 + tmp42;
+                                EM_S[INDEX2(4,5,8)]+=tmp12 + tmp13 + tmp14;
+                                EM_S[INDEX2(5,5,8)]+=D_2*w60 + D_5*w59 + tmp53 + tmp54;
+                                EM_S[INDEX2(6,5,8)]+=tmp3 + tmp4;
                                 EM_S[INDEX2(7,5,8)]+=tmp31 + tmp39 + tmp40;
+                                EM_S[INDEX2(0,6,8)]+=tmp55 + tmp56;
+                                EM_S[INDEX2(1,6,8)]+=tmp15;
+                                EM_S[INDEX2(2,6,8)]+=tmp16 + tmp17 + tmp18;
+                                EM_S[INDEX2(3,6,8)]+=tmp21 + tmp22;
+                                EM_S[INDEX2(4,6,8)]+=tmp6 + tmp8 + tmp9;
+                                EM_S[INDEX2(5,6,8)]+=tmp3 + tmp4;
+                                EM_S[INDEX2(6,6,8)]+=D_1*w60 + D_6*w59 + tmp51 + tmp52;
                                 EM_S[INDEX2(7,6,8)]+=tmp25 + tmp26 + tmp27;
+                                EM_S[INDEX2(0,7,8)]+=tmp15;
+                                EM_S[INDEX2(1,7,8)]+=tmp41 + tmp42;
+                                EM_S[INDEX2(2,7,8)]+=tmp21 + tmp22;
+                                EM_S[INDEX2(3,7,8)]+=tmp0 + tmp1 + tmp2;
+                                EM_S[INDEX2(4,7,8)]+=tmp3 + tmp4;
+                                EM_S[INDEX2(5,7,8)]+=tmp31 + tmp39 + tmp40;
+                                EM_S[INDEX2(6,7,8)]+=tmp25 + tmp26 + tmp27;
                                 EM_S[INDEX2(7,7,8)]+=D_0*w60 + D_7*w59 + tmp37 + tmp38;
                             } else { // constant data
                                 const double wD0 = 8*D_p[0]*w55;
                                 EM_S[INDEX2(0,0,8)]+=8*wD0;
-                                EM_S[INDEX2(0,1,8)]+=4*wD0;
-                                EM_S[INDEX2(0,2,8)]+=4*wD0;
-                                EM_S[INDEX2(0,3,8)]+=2*wD0;
-                                EM_S[INDEX2(0,4,8)]+=4*wD0;
-                                EM_S[INDEX2(0,5,8)]+=2*wD0;
-                                EM_S[INDEX2(0,6,8)]+=2*wD0;
-                                EM_S[INDEX2(0,7,8)]+=wD0;
                                 EM_S[INDEX2(1,0,8)]+=4*wD0;
-                                EM_S[INDEX2(1,1,8)]+=8*wD0;
-                                EM_S[INDEX2(1,2,8)]+=2*wD0;
-                                EM_S[INDEX2(1,3,8)]+=4*wD0;
-                                EM_S[INDEX2(1,4,8)]+=2*wD0;
-                                EM_S[INDEX2(1,5,8)]+=4*wD0;
-                                EM_S[INDEX2(1,6,8)]+=wD0;
-                                EM_S[INDEX2(1,7,8)]+=2*wD0;
                                 EM_S[INDEX2(2,0,8)]+=4*wD0;
-                                EM_S[INDEX2(2,1,8)]+=2*wD0;
-                                EM_S[INDEX2(2,2,8)]+=8*wD0;
-                                EM_S[INDEX2(2,3,8)]+=4*wD0;
-                                EM_S[INDEX2(2,4,8)]+=2*wD0;
-                                EM_S[INDEX2(2,5,8)]+=wD0;
-                                EM_S[INDEX2(2,6,8)]+=4*wD0;
-                                EM_S[INDEX2(2,7,8)]+=2*wD0;
                                 EM_S[INDEX2(3,0,8)]+=2*wD0;
-                                EM_S[INDEX2(3,1,8)]+=4*wD0;
-                                EM_S[INDEX2(3,2,8)]+=4*wD0;
-                                EM_S[INDEX2(3,3,8)]+=8*wD0;
-                                EM_S[INDEX2(3,4,8)]+=wD0;
-                                EM_S[INDEX2(3,5,8)]+=2*wD0;
-                                EM_S[INDEX2(3,6,8)]+=2*wD0;
-                                EM_S[INDEX2(3,7,8)]+=4*wD0;
                                 EM_S[INDEX2(4,0,8)]+=4*wD0;
-                                EM_S[INDEX2(4,1,8)]+=2*wD0;
-                                EM_S[INDEX2(4,2,8)]+=2*wD0;
-                                EM_S[INDEX2(4,3,8)]+=wD0;
-                                EM_S[INDEX2(4,4,8)]+=8*wD0;
-                                EM_S[INDEX2(4,5,8)]+=4*wD0;
-                                EM_S[INDEX2(4,6,8)]+=4*wD0;
-                                EM_S[INDEX2(4,7,8)]+=2*wD0;
                                 EM_S[INDEX2(5,0,8)]+=2*wD0;
-                                EM_S[INDEX2(5,1,8)]+=4*wD0;
-                                EM_S[INDEX2(5,2,8)]+=wD0;
-                                EM_S[INDEX2(5,3,8)]+=2*wD0;
-                                EM_S[INDEX2(5,4,8)]+=4*wD0;
-                                EM_S[INDEX2(5,5,8)]+=8*wD0;
-                                EM_S[INDEX2(5,6,8)]+=2*wD0;
-                                EM_S[INDEX2(5,7,8)]+=4*wD0;
                                 EM_S[INDEX2(6,0,8)]+=2*wD0;
-                                EM_S[INDEX2(6,1,8)]+=wD0;
-                                EM_S[INDEX2(6,2,8)]+=4*wD0;
-                                EM_S[INDEX2(6,3,8)]+=2*wD0;
-                                EM_S[INDEX2(6,4,8)]+=4*wD0;
-                                EM_S[INDEX2(6,5,8)]+=2*wD0;
-                                EM_S[INDEX2(6,6,8)]+=8*wD0;
-                                EM_S[INDEX2(6,7,8)]+=4*wD0;
                                 EM_S[INDEX2(7,0,8)]+=wD0;
+                                EM_S[INDEX2(0,1,8)]+=4*wD0;
+                                EM_S[INDEX2(1,1,8)]+=8*wD0;
+                                EM_S[INDEX2(2,1,8)]+=2*wD0;
+                                EM_S[INDEX2(3,1,8)]+=4*wD0;
+                                EM_S[INDEX2(4,1,8)]+=2*wD0;
+                                EM_S[INDEX2(5,1,8)]+=4*wD0;
+                                EM_S[INDEX2(6,1,8)]+=wD0;
                                 EM_S[INDEX2(7,1,8)]+=2*wD0;
+                                EM_S[INDEX2(0,2,8)]+=4*wD0;
+                                EM_S[INDEX2(1,2,8)]+=2*wD0;
+                                EM_S[INDEX2(2,2,8)]+=8*wD0;
+                                EM_S[INDEX2(3,2,8)]+=4*wD0;
+                                EM_S[INDEX2(4,2,8)]+=2*wD0;
+                                EM_S[INDEX2(5,2,8)]+=wD0;
+                                EM_S[INDEX2(6,2,8)]+=4*wD0;
                                 EM_S[INDEX2(7,2,8)]+=2*wD0;
+                                EM_S[INDEX2(0,3,8)]+=2*wD0;
+                                EM_S[INDEX2(1,3,8)]+=4*wD0;
+                                EM_S[INDEX2(2,3,8)]+=4*wD0;
+                                EM_S[INDEX2(3,3,8)]+=8*wD0;
+                                EM_S[INDEX2(4,3,8)]+=wD0;
+                                EM_S[INDEX2(5,3,8)]+=2*wD0;
+                                EM_S[INDEX2(6,3,8)]+=2*wD0;
                                 EM_S[INDEX2(7,3,8)]+=4*wD0;
+                                EM_S[INDEX2(0,4,8)]+=4*wD0;
+                                EM_S[INDEX2(1,4,8)]+=2*wD0;
+                                EM_S[INDEX2(2,4,8)]+=2*wD0;
+                                EM_S[INDEX2(3,4,8)]+=wD0;
+                                EM_S[INDEX2(4,4,8)]+=8*wD0;
+                                EM_S[INDEX2(5,4,8)]+=4*wD0;
+                                EM_S[INDEX2(6,4,8)]+=4*wD0;
                                 EM_S[INDEX2(7,4,8)]+=2*wD0;
+                                EM_S[INDEX2(0,5,8)]+=2*wD0;
+                                EM_S[INDEX2(1,5,8)]+=4*wD0;
+                                EM_S[INDEX2(2,5,8)]+=wD0;
+                                EM_S[INDEX2(3,5,8)]+=2*wD0;
+                                EM_S[INDEX2(4,5,8)]+=4*wD0;
+                                EM_S[INDEX2(5,5,8)]+=8*wD0;
+                                EM_S[INDEX2(6,5,8)]+=2*wD0;
                                 EM_S[INDEX2(7,5,8)]+=4*wD0;
+                                EM_S[INDEX2(0,6,8)]+=2*wD0;
+                                EM_S[INDEX2(1,6,8)]+=wD0;
+                                EM_S[INDEX2(2,6,8)]+=4*wD0;
+                                EM_S[INDEX2(3,6,8)]+=2*wD0;
+                                EM_S[INDEX2(4,6,8)]+=4*wD0;
+                                EM_S[INDEX2(5,6,8)]+=2*wD0;
+                                EM_S[INDEX2(6,6,8)]+=8*wD0;
                                 EM_S[INDEX2(7,6,8)]+=4*wD0;
+                                EM_S[INDEX2(0,7,8)]+=wD0;
+                                EM_S[INDEX2(1,7,8)]+=2*wD0;
+                                EM_S[INDEX2(2,7,8)]+=2*wD0;
+                                EM_S[INDEX2(3,7,8)]+=4*wD0;
+                                EM_S[INDEX2(4,7,8)]+=2*wD0;
+                                EM_S[INDEX2(5,7,8)]+=4*wD0;
+                                EM_S[INDEX2(6,7,8)]+=4*wD0;
                                 EM_S[INDEX2(7,7,8)]+=8*wD0;
                             }
                         }
@@ -2034,7 +2040,6 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                         // process X //
                         ///////////////
                         if (!X.isEmpty()) {
-                            add_EM_F=true;
                             const double* X_p=X.getSampleDataRO(e);
                             if (X.actsExpanded()) {
                                 const double X_0_0 = X_p[INDEX2(0,0,3)];
@@ -2147,7 +2152,6 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
                         // process Y //
                         ///////////////
                         if (!Y.isEmpty()) {
-                            add_EM_F=true;
                             const double* Y_p=Y.getSampleDataRO(e);
                             if (Y.actsExpanded()) {
                                 const double Y_0 = Y_p[0];
@@ -2196,8 +2200,8 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
                     } // end k0 loop
                 } // end k1 loop
             } // end k2 loop
@@ -2205,7 +2209,665 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
     } // end of parallel region
 }
 
-//protected
+/****************************************************************************/
+// PDE SINGLE BOUNDARY
+/****************************************************************************/
+
+void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
+                                Data& rhs, const Data& d, const Data& y) const
+{
+    const double SQRT3 = 1.73205080756887719318;
+    const double w12 = m_dx[0]*m_dx[1]/144;
+    const double w10 = w12*(-SQRT3 + 2);
+    const double w11 = w12*(SQRT3 + 2);
+    const double w13 = w12*(-4*SQRT3 + 7);
+    const double w14 = w12*(4*SQRT3 + 7);
+    const double w7 = m_dx[0]*m_dx[2]/144;
+    const double w5 = w7*(-SQRT3 + 2);
+    const double w6 = w7*(SQRT3 + 2);
+    const double w8 = w7*(-4*SQRT3 + 7);
+    const double w9 = w7*(4*SQRT3 + 7);
+    const double w2 = m_dx[1]*m_dx[2]/144;
+    const double w0 = w2*(-SQRT3 + 2);
+    const double w1 = w2*(SQRT3 + 2);
+    const double w3 = w2*(-4*SQRT3 + 7);
+    const double w4 = w2*(4*SQRT3 + 7);
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
+    const bool add_EM_S = !d.isEmpty();
+    const bool add_EM_F = !y.isEmpty();
+    rhs.requireWrite();
+
+#pragma omp parallel
+    {
+        vector<double> EM_S(8*8);
+        vector<double> EM_F(8);
+
+        if (domain->m_faceOffset[0] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[1] = 0;
+                EM_F[3] = 0;
+                EM_F[5] = 0;
+                EM_F[7] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
+                        const index_t e = INDEX2(k1,k2,NE1);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                const double d_0 = d_p[0];
+                                const double d_1 = d_p[1];
+                                const double d_2 = d_p[2];
+                                const double d_3 = d_p[3];
+                                const double tmp0 = w0*(d_0 + d_1);
+                                const double tmp1 = w1*(d_2 + d_3);
+                                const double tmp2 = w0*(d_0 + d_2);
+                                const double tmp3 = w1*(d_1 + d_3);
+                                const double tmp4 = w0*(d_1 + d_3);
+                                const double tmp5 = w1*(d_0 + d_2);
+                                const double tmp6 = w0*(d_2 + d_3);
+                                const double tmp7 = w1*(d_0 + d_1);
+                                const double tmp8 = w2*(d_0 + d_3);
+                                const double tmp9 = w2*(d_1 + d_2);
+                                const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
+                                EM_S[INDEX2(0,0,8)] = d_0*w4 + d_3*w3 + tmp9;
+                                EM_S[INDEX2(2,0,8)] = tmp6 + tmp7;
+                                EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(6,0,8)] = tmp10;
+                                EM_S[INDEX2(0,2,8)] = tmp6 + tmp7;
+                                EM_S[INDEX2(2,2,8)] = d_1*w4 + d_2*w3 + tmp8;
+                                EM_S[INDEX2(4,2,8)] = tmp10;
+                                EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(2,4,8)] = tmp10;
+                                EM_S[INDEX2(4,4,8)] = d_1*w3 + d_2*w4 + tmp8;
+                                EM_S[INDEX2(6,4,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(0,6,8)] = tmp10;
+                                EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(4,6,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(6,6,8)] = d_0*w3 + d_3*w4 + tmp9;
+                            } else { // constant data
+                                const double wd0 = 4*d_p[0]*w2;
+                                EM_S[INDEX2(0,0,8)] = 4*wd0;
+                                EM_S[INDEX2(2,0,8)] = 2*wd0;
+                                EM_S[INDEX2(4,0,8)] = 2*wd0;
+                                EM_S[INDEX2(6,0,8)] =   wd0;
+                                EM_S[INDEX2(0,2,8)] = 2*wd0;
+                                EM_S[INDEX2(2,2,8)] = 4*wd0;
+                                EM_S[INDEX2(4,2,8)] =   wd0;
+                                EM_S[INDEX2(6,2,8)] = 2*wd0;
+                                EM_S[INDEX2(0,4,8)] = 2*wd0;
+                                EM_S[INDEX2(2,4,8)] =   wd0;
+                                EM_S[INDEX2(4,4,8)] = 4*wd0;
+                                EM_S[INDEX2(6,4,8)] = 2*wd0;
+                                EM_S[INDEX2(0,6,8)] =   wd0;
+                                EM_S[INDEX2(2,6,8)] = 2*wd0;
+                                EM_S[INDEX2(4,6,8)] = 2*wd0;
+                                EM_S[INDEX2(6,6,8)] = 4*wd0;
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                const double y_0 = y_p[0];
+                                const double y_1 = y_p[1];
+                                const double y_2 = y_p[2];
+                                const double y_3 = y_p[3];
+                                const double tmp0 = 6*w2*(y_1 + y_2);
+                                const double tmp1 = 6*w2*(y_0 + y_3);
+                                EM_F[0] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                EM_F[2] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                EM_F[4] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                EM_F[6] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                            } else { // constant data
+                                EM_F[0] = 36*w2*y_p[0];
+                                EM_F[2] = 36*w2*y_p[0];
+                                EM_F[4] = 36*w2*y_p[0];
+                                EM_F[6] = 36*w2*y_p[0];
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k1 loop
+                } // k2 loop
+            } // colouring
+        } // face 0
+
+        if (domain->m_faceOffset[1] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[0] = 0;
+                EM_F[2] = 0;
+                EM_F[4] = 0;
+                EM_F[6] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                const double d_0 = d_p[0];
+                                const double d_1 = d_p[1];
+                                const double d_2 = d_p[2];
+                                const double d_3 = d_p[3];
+                                const double tmp0 = w0*(d_0 + d_2);
+                                const double tmp1 = w1*(d_1 + d_3);
+                                const double tmp2 = w0*(d_2 + d_3);
+                                const double tmp3 = w1*(d_0 + d_1);
+                                const double tmp4 = w0*(d_1 + d_3);
+                                const double tmp5 = w1*(d_0 + d_2);
+                                const double tmp6 = w2*(d_0 + d_3);
+                                const double tmp7 = w2*(d_1 + d_2);
+                                const double tmp8 = w0*(d_0 + d_1);
+                                const double tmp9 = w1*(d_2 + d_3);
+                                const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
+                                EM_S[INDEX2(1,1,8)] = d_0*w4 + d_3*w3 + tmp7;
+                                EM_S[INDEX2(3,1,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(5,1,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(7,1,8)] = tmp10;
+                                EM_S[INDEX2(1,3,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(3,3,8)] = d_1*w4 + d_2*w3 + tmp6;
+                                EM_S[INDEX2(5,3,8)] = tmp10;
+                                EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(1,5,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(3,5,8)] = tmp10;
+                                EM_S[INDEX2(5,5,8)] = d_1*w3 + d_2*w4 + tmp6;
+                                EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(1,7,8)] = tmp10;
+                                EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(7,7,8)] = d_0*w3 + d_3*w4 + tmp7;
+                            } else { // constant data
+                                const double wd0 = 4*d_p[0]*w2;
+                                EM_S[INDEX2(1,1,8)] = 4*wd0;
+                                EM_S[INDEX2(3,1,8)] = 2*wd0;
+                                EM_S[INDEX2(5,1,8)] = 2*wd0;
+                                EM_S[INDEX2(7,1,8)] =   wd0;
+                                EM_S[INDEX2(1,3,8)] = 2*wd0;
+                                EM_S[INDEX2(3,3,8)] = 4*wd0;
+                                EM_S[INDEX2(5,3,8)] =   wd0;
+                                EM_S[INDEX2(7,3,8)] = 2*wd0;
+                                EM_S[INDEX2(1,5,8)] = 2*wd0;
+                                EM_S[INDEX2(3,5,8)] =   wd0;
+                                EM_S[INDEX2(5,5,8)] = 4*wd0;
+                                EM_S[INDEX2(7,5,8)] = 2*wd0;
+                                EM_S[INDEX2(1,7,8)] =   wd0;
+                                EM_S[INDEX2(3,7,8)] = 2*wd0;
+                                EM_S[INDEX2(5,7,8)] = 2*wd0;
+                                EM_S[INDEX2(7,7,8)] = 4*wd0;
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                const double y_0 = y_p[0];
+                                const double y_1 = y_p[1];
+                                const double y_2 = y_p[2];
+                                const double y_3 = y_p[3];
+                                const double tmp0 = 6*w2*(y_1 + y_2);
+                                const double tmp1 = 6*w2*(y_0 + y_3);
+                                EM_F[1] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                EM_F[3] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                EM_F[5] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                EM_F[7] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                            } else { // constant data
+                                EM_F[1] = 36*w2*y_p[0];
+                                EM_F[3] = 36*w2*y_p[0];
+                                EM_F[5] = 36*w2*y_p[0];
+                                EM_F[7] = 36*w2*y_p[0];
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k1 loop
+                } // k2 loop
+            } // colouring
+        } // face 1
+
+        if (domain->m_faceOffset[2] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[2] = 0;
+                EM_F[3] = 0;
+                EM_F[6] = 0;
+                EM_F[7] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                const double d_0 = d_p[0];
+                                const double d_1 = d_p[1];
+                                const double d_2 = d_p[2];
+                                const double d_3 = d_p[3];
+                                const double tmp0 = w5*(d_0 + d_1);
+                                const double tmp1 = w6*(d_2 + d_3);
+                                const double tmp2 = w5*(d_0 + d_2);
+                                const double tmp3 = w6*(d_1 + d_3);
+                                const double tmp4 = w5*(d_1 + d_3);
+                                const double tmp5 = w6*(d_0 + d_2);
+                                const double tmp6 = w7*(d_0 + d_3);
+                                const double tmp7 = w7*(d_0 + d_1 + d_2 + d_3);
+                                const double tmp8 = w7*(d_1 + d_2);
+                                const double tmp9 = w5*(d_2 + d_3);
+                                const double tmp10 = w6*(d_0 + d_1);
+                                EM_S[INDEX2(0,0,8)] = d_0*w9 + d_3*w8 + tmp8;
+                                EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(5,0,8)] = tmp7;
+                                EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(1,1,8)] = d_1*w9 + d_2*w8 + tmp6;
+                                EM_S[INDEX2(4,1,8)] = tmp7;
+                                EM_S[INDEX2(5,1,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(1,4,8)] = tmp7;
+                                EM_S[INDEX2(4,4,8)] = d_1*w8 + d_2*w9 + tmp6;
+                                EM_S[INDEX2(5,4,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(0,5,8)] = tmp7;
+                                EM_S[INDEX2(1,5,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(4,5,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(5,5,8)] = d_0*w8 + d_3*w9 + tmp8;
+                            } else { // constant data
+                                const double wd0 = 4*d_p[0]*w7;
+                                EM_S[INDEX2(0,0,8)] = 4*wd0;
+                                EM_S[INDEX2(1,0,8)] = 2*wd0;
+                                EM_S[INDEX2(4,0,8)] = 2*wd0;
+                                EM_S[INDEX2(5,0,8)] =   wd0;
+                                EM_S[INDEX2(0,1,8)] = 2*wd0;
+                                EM_S[INDEX2(1,1,8)] = 4*wd0;
+                                EM_S[INDEX2(4,1,8)] =   wd0;
+                                EM_S[INDEX2(5,1,8)] = 2*wd0;
+                                EM_S[INDEX2(0,4,8)] = 2*wd0;
+                                EM_S[INDEX2(1,4,8)] =   wd0;
+                                EM_S[INDEX2(4,4,8)] = 4*wd0;
+                                EM_S[INDEX2(5,4,8)] = 2*wd0;
+                                EM_S[INDEX2(0,5,8)] =   wd0;
+                                EM_S[INDEX2(1,5,8)] = 2*wd0;
+                                EM_S[INDEX2(4,5,8)] = 2*wd0;
+                                EM_S[INDEX2(5,5,8)] = 4*wd0;
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                const double y_0 = y_p[0];
+                                const double y_1 = y_p[1];
+                                const double y_2 = y_p[2];
+                                const double y_3 = y_p[3];
+                                const double tmp0 = 6*w7*(y_1 + y_2);
+                                const double tmp1 = 6*w7*(y_0 + y_3);
+                                EM_F[0] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                EM_F[1] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                EM_F[4] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                EM_F[5] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                            } else { // constant data
+                                EM_F[0] = 36*w7*y_p[0];
+                                EM_F[1] = 36*w7*y_p[0];
+                                EM_F[4] = 36*w7*y_p[0];
+                                EM_F[5] = 36*w7*y_p[0];
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k2 loop
+            } // colouring
+        } // face 2
+
+        if (domain->m_faceOffset[3] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[0] = 0;
+                EM_F[1] = 0;
+                EM_F[4] = 0;
+                EM_F[5] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                const double d_0 = d_p[0];
+                                const double d_1 = d_p[1];
+                                const double d_2 = d_p[2];
+                                const double d_3 = d_p[3];
+                                const double tmp0 = w5*(d_0 + d_2);
+                                const double tmp1 = w6*(d_1 + d_3);
+                                const double tmp2 = w5*(d_1 + d_3);
+                                const double tmp3 = w6*(d_0 + d_2);
+                                const double tmp4 = w7*(d_0 + d_1 + d_2 + d_3);
+                                const double tmp5 = w5*(d_0 + d_1);
+                                const double tmp6 = w6*(d_2 + d_3);
+                                const double tmp7 = w7*(d_0 + d_3);
+                                const double tmp8 = w7*(d_1 + d_2);
+                                const double tmp9 = w5*(d_2 + d_3);
+                                const double tmp10 = w6*(d_0 + d_1);
+                                EM_S[INDEX2(2,2,8)] = d_0*w9 + d_3*w8 + tmp8;
+                                EM_S[INDEX2(3,2,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(7,2,8)] = tmp4;
+                                EM_S[INDEX2(2,3,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(3,3,8)] = d_1*w9 + d_2*w8 + tmp7;
+                                EM_S[INDEX2(6,3,8)] = tmp4;
+                                EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
+                                EM_S[INDEX2(3,6,8)] = tmp4;
+                                EM_S[INDEX2(6,6,8)] = d_1*w8 + d_2*w9 + tmp7;
+                                EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(2,7,8)] = tmp4;
+                                EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(7,7,8)] = d_0*w8 + d_3*w9 + tmp8;
+                            } else { // constant data
+                                const double wd0 = 4*d_p[0]*w7;
+                                EM_S[INDEX2(2,2,8)] = 4*wd0;
+                                EM_S[INDEX2(3,2,8)] = 2*wd0;
+                                EM_S[INDEX2(6,2,8)] = 2*wd0;
+                                EM_S[INDEX2(7,2,8)] =   wd0;
+                                EM_S[INDEX2(2,3,8)] = 2*wd0;
+                                EM_S[INDEX2(3,3,8)] = 4*wd0;
+                                EM_S[INDEX2(6,3,8)] =   wd0;
+                                EM_S[INDEX2(7,3,8)] = 2*wd0;
+                                EM_S[INDEX2(2,6,8)] = 2*wd0;
+                                EM_S[INDEX2(3,6,8)] =   wd0;
+                                EM_S[INDEX2(6,6,8)] = 4*wd0;
+                                EM_S[INDEX2(7,6,8)] = 2*wd0;
+                                EM_S[INDEX2(2,7,8)] =   wd0;
+                                EM_S[INDEX2(3,7,8)] = 2*wd0;
+                                EM_S[INDEX2(6,7,8)] = 2*wd0;
+                                EM_S[INDEX2(7,7,8)] = 4*wd0;
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                const double y_0 = y_p[0];
+                                const double y_1 = y_p[1];
+                                const double y_2 = y_p[2];
+                                const double y_3 = y_p[3];
+                                const double tmp0 = 6*w7*(y_1 + y_2);
+                                const double tmp1 = 6*w7*(y_0 + y_3);
+                                EM_F[2] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                EM_F[3] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                EM_F[6] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                EM_F[7] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                            } else { // constant data
+                                EM_F[2] = 36*w7*y_p[0];
+                                EM_F[3] = 36*w7*y_p[0];
+                                EM_F[6] = 36*w7*y_p[0];
+                                EM_F[7] = 36*w7*y_p[0];
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k2 loop
+            } // colouring
+        } // face 3
+
+        if (domain->m_faceOffset[4] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[4] = 0;
+                EM_F[5] = 0;
+                EM_F[6] = 0;
+                EM_F[7] = 0;
+            }
+
+            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                const double d_0 = d_p[0];
+                                const double d_1 = d_p[1];
+                                const double d_2 = d_p[2];
+                                const double d_3 = d_p[3];
+                                const double tmp0 = w10*(d_0 + d_2);
+                                const double tmp1 = w11*(d_1 + d_3);
+                                const double tmp2 = w12*(d_0 + d_1 + d_2 + d_3);
+                                const double tmp3 = w12*(d_1 + d_2);
+                                const double tmp4 = w10*(d_1 + d_3);
+                                const double tmp5 = w11*(d_0 + d_2);
+                                const double tmp6 = w12*(d_0 + d_3);
+                                const double tmp7 = w10*(d_0 + d_1);
+                                const double tmp8 = w11*(d_2 + d_3);
+                                const double tmp9 = w10*(d_2 + d_3);
+                                const double tmp10 = w11*(d_0 + d_1);
+                                EM_S[INDEX2(0,0,8)] = d_0*w14 + d_3*w13 + tmp3;
+                                EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(2,0,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(3,0,8)] = tmp2;
+                                EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
+                                EM_S[INDEX2(1,1,8)] = d_1*w14 + d_2*w13 + tmp6;
+                                EM_S[INDEX2(2,1,8)] = tmp2;
+                                EM_S[INDEX2(3,1,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(0,2,8)] = tmp4 + tmp5;
+                                EM_S[INDEX2(1,2,8)] = tmp2;
+                                EM_S[INDEX2(2,2,8)] = d_1*w13 + d_2*w14 + tmp6;
+                                EM_S[INDEX2(3,2,8)] = tmp7 + tmp8;
+                                EM_S[INDEX2(0,3,8)] = tmp2;
+                                EM_S[INDEX2(1,3,8)] = tmp0 + tmp1;
+                                EM_S[INDEX2(2,3,8)] = tmp7 + tmp8;
+                                EM_S[INDEX2(3,3,8)] = d_0*w13 + d_3*w14 + tmp3;
+                            } else { // constant data
+                                const double wd0 = 4*d_p[0]*w12;
+                                EM_S[INDEX2(0,0,8)] = 4*wd0;
+                                EM_S[INDEX2(1,0,8)] = 2*wd0;
+                                EM_S[INDEX2(2,0,8)] = 2*wd0;
+                                EM_S[INDEX2(3,0,8)] =   wd0;
+                                EM_S[INDEX2(0,1,8)] = 2*wd0;
+                                EM_S[INDEX2(1,1,8)] = 4*wd0;
+                                EM_S[INDEX2(2,1,8)] =   wd0;
+                                EM_S[INDEX2(3,1,8)] = 2*wd0;
+                                EM_S[INDEX2(0,2,8)] = 2*wd0;
+                                EM_S[INDEX2(1,2,8)] =   wd0;
+                                EM_S[INDEX2(2,2,8)] = 4*wd0;
+                                EM_S[INDEX2(3,2,8)] = 2*wd0;
+                                EM_S[INDEX2(0,3,8)] =   wd0;
+                                EM_S[INDEX2(1,3,8)] = 2*wd0;
+                                EM_S[INDEX2(2,3,8)] = 2*wd0;
+                                EM_S[INDEX2(3,3,8)] = 4*wd0;
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                const double y_0 = y_p[0];
+                                const double y_1 = y_p[1];
+                                const double y_2 = y_p[2];
+                                const double y_3 = y_p[3];
+                                const double tmp0 = 6*w12*(y_1 + y_2);
+                                const double tmp1 = 6*w12*(y_0 + y_3);
+                                EM_F[0] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                EM_F[1] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                EM_F[2] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                EM_F[3] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                            } else { // constant data
+                                EM_F[0] = 36*w12*y_p[0];
+                                EM_F[1] = 36*w12*y_p[0];
+                                EM_F[2] = 36*w12*y_p[0];
+                                EM_F[3] = 36*w12*y_p[0];
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*k1+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k1 loop
+            } // colouring
+        } // face 4
+
+        if (domain->m_faceOffset[5] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[0] = 0;
+                EM_F[1] = 0;
+                EM_F[2] = 0;
+                EM_F[3] = 0;
+            }
+
+            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                const double d_0 = d_p[0];
+                                const double d_1 = d_p[1];
+                                const double d_2 = d_p[2];
+                                const double d_3 = d_p[3];
+                                const double tmp0 = w12*(d_0 + d_1 + d_2 + d_3);
+                                const double tmp1 = w10*(d_1 + d_3);
+                                const double tmp2 = w11*(d_0 + d_2);
+                                const double tmp3 = w10*(d_2 + d_3);
+                                const double tmp4 = w11*(d_0 + d_1);
+                                const double tmp5 = w10*(d_0 + d_1);
+                                const double tmp6 = w11*(d_2 + d_3);
+                                const double tmp7 = w12*(d_1 + d_2);
+                                const double tmp8 = w10*(d_0 + d_2);
+                                const double tmp9 = w11*(d_1 + d_3);
+                                const double tmp10 = w12*(d_0 + d_3);
+                                EM_S[INDEX2(4,4,8)] = d_0*w14 + d_3*w13 + tmp7;
+                                EM_S[INDEX2(5,4,8)] = tmp3 + tmp4;
+                                EM_S[INDEX2(6,4,8)] = tmp1 + tmp2;
+                                EM_S[INDEX2(7,4,8)] = tmp0;
+                                EM_S[INDEX2(4,5,8)] = tmp3 + tmp4;
+                                EM_S[INDEX2(5,5,8)] = d_1*w14 + d_2*w13 + tmp10;
+                                EM_S[INDEX2(6,5,8)] = tmp0;
+                                EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(4,6,8)] = tmp1 + tmp2;
+                                EM_S[INDEX2(5,6,8)] = tmp0;
+                                EM_S[INDEX2(6,6,8)] = d_1*w13 + d_2*w14 + tmp10;
+                                EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(4,7,8)] = tmp0;
+                                EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
+                                EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
+                                EM_S[INDEX2(7,7,8)] = d_0*w13 + d_3*w14 + tmp7;
+                            } else { // constant data
+                                const double wd0 = 4*d_p[0]*w12;
+                                EM_S[INDEX2(4,4,8)] = 4*wd0;
+                                EM_S[INDEX2(5,4,8)] = 2*wd0;
+                                EM_S[INDEX2(6,4,8)] = 2*wd0;
+                                EM_S[INDEX2(7,4,8)] =   wd0;
+                                EM_S[INDEX2(4,5,8)] = 2*wd0;
+                                EM_S[INDEX2(5,5,8)] = 4*wd0;
+                                EM_S[INDEX2(6,5,8)] =   wd0;
+                                EM_S[INDEX2(7,5,8)] = 2*wd0;
+                                EM_S[INDEX2(4,6,8)] = 2*wd0;
+                                EM_S[INDEX2(5,6,8)] =   wd0;
+                                EM_S[INDEX2(6,6,8)] = 4*wd0;
+                                EM_S[INDEX2(7,6,8)] = 2*wd0;
+                                EM_S[INDEX2(4,7,8)] =   wd0;
+                                EM_S[INDEX2(5,7,8)] = 2*wd0;
+                                EM_S[INDEX2(6,7,8)] = 2*wd0;
+                                EM_S[INDEX2(7,7,8)] = 4*wd0;
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                const double y_0 = y_p[0];
+                                const double y_1 = y_p[1];
+                                const double y_2 = y_p[2];
+                                const double y_3 = y_p[3];
+                                const double tmp0 = 6*w12*(y_1 + y_2);
+                                const double tmp1 = 6*w12*(y_0 + y_3);
+                                EM_F[4] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                EM_F[5] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                EM_F[6] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                EM_F[7] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                            } else { // constant data
+                                EM_F[4] = 36*w12*y_p[0];
+                                EM_F[5] = 36*w12*y_p[0];
+                                EM_F[6] = 36*w12*y_p[0];
+                                EM_F[7] = 36*w12*y_p[0];
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k1 loop
+            } // colouring
+        } // face 5
+    } // end of parallel region
+}
+
+/****************************************************************************/
+// PDE SINGLE REDUCED
+/****************************************************************************/
+
 void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                                     Data& rhs, const Data& A, const Data& B,
                                     const Data& C, const Data& D,
@@ -2224,6 +2886,8 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
     const int NE0 = m_NE[0];
     const int NE1 = m_NE[1];
     const int NE2 = m_NE[2];
+    const bool add_EM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
+    const bool add_EM_F = (!X.isEmpty() || !Y.isEmpty());
     rhs.requireWrite();
 
 #pragma omp parallel
@@ -2236,16 +2900,16 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
                 for (index_t k1=0; k1<NE1; ++k1) {
                     for (index_t k0=0; k0<NE0; ++k0)  {
-                        bool add_EM_S=false;
-                        bool add_EM_F=false;
-                        fill(EM_S.begin(), EM_S.end(), 0);
-                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
+                        if (add_EM_S)
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                        if (add_EM_F)
+                            fill(EM_F.begin(), EM_F.end(), 0);
+
                         ///////////////
                         // process A //
                         ///////////////
                         if (!A.isEmpty()) {
-                            add_EM_S=true;
                             const double* A_p=A.getSampleDataRO(e);
                             const double Aw00 = A_p[INDEX2(0,0,3)]*w0;
                             const double Aw10 = A_p[INDEX2(1,0,3)]*w1;
@@ -2325,81 +2989,79 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                         // process B //
                         ///////////////
                         if (!B.isEmpty()) {
-                            add_EM_S=true;
                             const double* B_p=B.getSampleDataRO(e);
                             const double wB0 = B_p[0]*w12;
                             const double wB1 = B_p[1]*w13;
                             const double wB2 = B_p[2]*w14;
                             EM_S[INDEX2(0,0,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,1,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,2,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,3,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,4,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,5,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,6,8)]+=-wB0 - wB1 - wB2;
-                            EM_S[INDEX2(0,7,8)]+=-wB0 - wB1 - wB2;
                             EM_S[INDEX2(1,0,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,1,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,2,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,3,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,4,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,5,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,6,8)]+= wB0 - wB1 - wB2;
-                            EM_S[INDEX2(1,7,8)]+= wB0 - wB1 - wB2;
                             EM_S[INDEX2(2,0,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,1,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,2,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,3,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,4,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,5,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,6,8)]+=-wB0 + wB1 - wB2;
-                            EM_S[INDEX2(2,7,8)]+=-wB0 + wB1 - wB2;
                             EM_S[INDEX2(3,0,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,1,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,2,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,3,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,4,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,5,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,6,8)]+= wB0 + wB1 - wB2;
-                            EM_S[INDEX2(3,7,8)]+= wB0 + wB1 - wB2;
                             EM_S[INDEX2(4,0,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,1,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,2,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,3,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,4,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,5,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,6,8)]+=-wB0 - wB1 + wB2;
-                            EM_S[INDEX2(4,7,8)]+=-wB0 - wB1 + wB2;
                             EM_S[INDEX2(5,0,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,1,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,2,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,3,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,4,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,5,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,6,8)]+= wB0 - wB1 + wB2;
-                            EM_S[INDEX2(5,7,8)]+= wB0 - wB1 + wB2;
                             EM_S[INDEX2(6,0,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,1,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,2,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,3,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,4,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,5,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,6,8)]+=-wB0 + wB1 + wB2;
-                            EM_S[INDEX2(6,7,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,0,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,1,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,1,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,1,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,1,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,1,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,1,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,1,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,1,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,2,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,2,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,2,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,2,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,2,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,2,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,2,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,2,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,3,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,3,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,3,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,3,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,3,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,3,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,3,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,3,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,4,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,4,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,4,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,4,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,4,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,4,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,4,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,4,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,5,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,5,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,5,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,5,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,5,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,5,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,5,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,5,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,6,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,6,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,6,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,6,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,6,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,6,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,6,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,6,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(0,7,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,7,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,7,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,7,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,7,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,7,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,7,8)]+=-wB0 + wB1 + wB2;
                             EM_S[INDEX2(7,7,8)]+= wB0 + wB1 + wB2;
                         }
                         ///////////////
                         // process C //
                         ///////////////
                         if (!C.isEmpty()) {
-                            add_EM_S=true;
                             const double* C_p=C.getSampleDataRO(e);
                             const double wC0 = C_p[0]*w12;
                             const double wC1 = C_p[1]*w13;
@@ -2473,7 +3135,6 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                         // process D //
                         ///////////////
                         if (!D.isEmpty()) {
-                            add_EM_S=true;
                             const double* D_p=D.getSampleDataRO(e);
                             EM_S[INDEX2(0,0,8)]+=D_p[0]*w18;
                             EM_S[INDEX2(1,0,8)]+=D_p[0]*w18;
@@ -2544,7 +3205,6 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                         // process X //
                         ///////////////
                         if (!X.isEmpty()) {
-                            add_EM_F=true;
                             const double* X_p=X.getSampleDataRO(e);
                             const double wX0 = 8*X_p[0]*w12;
                             const double wX1 = 8*X_p[1]*w13;
@@ -2562,7 +3222,6 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                         // process Y //
                         ///////////////
                         if (!Y.isEmpty()) {
-                            add_EM_F=true;
                             const double* Y_p=Y.getSampleDataRO(e);
                             EM_F[0]+=8*Y_p[0]*w18;
                             EM_F[1]+=8*Y_p[0]*w18;
@@ -2576,8 +3235,8 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
                     } // end k0 loop
                 } // end k1 loop
             } // end k2 loop
@@ -2585,7 +3244,365 @@ void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
     } // end of parallel region
 }
 
-//protected
+/****************************************************************************/
+// PDE SINGLE REDUCED BOUNDARY
+/****************************************************************************/
+
+void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
+                                        AbstractSystemMatrix* mat, Data& rhs,
+                                        const Data& d, const Data& y) const
+{
+    const double w0 = m_dx[0]*m_dx[1]/16;
+    const double w1 = m_dx[0]*m_dx[2]/16;
+    const double w2 = m_dx[1]*m_dx[2]/16;
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
+    const bool add_EM_S = !d.isEmpty();
+    const bool add_EM_F = !y.isEmpty();
+    rhs.requireWrite();
+
+#pragma omp parallel
+    {
+        vector<double> EM_S(8*8);
+        vector<double> EM_F(8);
+
+        if (domain->m_faceOffset[0] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[1] = 0;
+                EM_F[3] = 0;
+                EM_F[5] = 0;
+                EM_F[7] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
+                        const index_t e = INDEX2(k1,k2,NE1);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            EM_S[INDEX2(0,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,0,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(0,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,2,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(0,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,4,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(0,6,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(2,6,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(4,6,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(6,6,8)] = d_p[0]*w2;
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            EM_F[0] = 4*w2*y_p[0];
+                            EM_F[2] = 4*w2*y_p[0];
+                            EM_F[4] = 4*w2*y_p[0];
+                            EM_F[6] = 4*w2*y_p[0];
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k1 loop
+                } // k2 loop
+            } // colouring
+        } // face 0
+
+        if (domain->m_faceOffset[1] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[0] = 0;
+                EM_F[2] = 0;
+                EM_F[4] = 0;
+                EM_F[6] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            EM_S[INDEX2(1,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,1,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(1,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,3,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(1,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,5,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(1,7,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(3,7,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(5,7,8)] = d_p[0]*w2;
+                            EM_S[INDEX2(7,7,8)] = d_p[0]*w2;
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            EM_F[1] = 4*w2*y_p[0];
+                            EM_F[3] = 4*w2*y_p[0];
+                            EM_F[5] = 4*w2*y_p[0];
+                            EM_F[7] = 4*w2*y_p[0];
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k1 loop
+                } // k2 loop
+            } // colouring
+        } // face 1
+
+        if (domain->m_faceOffset[2] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[2] = 0;
+                EM_F[3] = 0;
+                EM_F[6] = 0;
+                EM_F[7] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            EM_S[INDEX2(0,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,0,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(0,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,1,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(0,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,4,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(0,5,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(1,5,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(4,5,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(5,5,8)] = d_p[0]*w1;
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            EM_F[0] = 4*w1*y_p[0];
+                            EM_F[1] = 4*w1*y_p[0];
+                            EM_F[4] = 4*w1*y_p[0];
+                            EM_F[5] = 4*w1*y_p[0];
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k2 loop
+            } // colouring
+        } // face 2
+
+        if (domain->m_faceOffset[3] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[0] = 0;
+                EM_F[1] = 0;
+                EM_F[4] = 0;
+                EM_F[5] = 0;
+            }
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            EM_S[INDEX2(2,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,2,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(2,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,3,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(2,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,6,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(2,7,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(3,7,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(6,7,8)] = d_p[0]*w1;
+                            EM_S[INDEX2(7,7,8)] = d_p[0]*w1;
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            EM_F[2] = 4*w1*y_p[0];
+                            EM_F[3] = 4*w1*y_p[0];
+                            EM_F[6] = 4*w1*y_p[0];
+                            EM_F[7] = 4*w1*y_p[0];
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k2 loop
+            } // colouring
+        } // face 3
+
+        if (domain->m_faceOffset[4] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[4] = 0;
+                EM_F[5] = 0;
+                EM_F[6] = 0;
+                EM_F[7] = 0;
+            }
+
+            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            EM_S[INDEX2(0,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,0,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(0,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,1,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(0,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,2,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(0,3,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(1,3,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(2,3,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(3,3,8)] = d_p[0]*w0;
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            EM_F[0] = 4*w0*y_p[0];
+                            EM_F[1] = 4*w0*y_p[0];
+                            EM_F[2] = 4*w0*y_p[0];
+                            EM_F[3] = 4*w0*y_p[0];
+                        }
+                        const index_t firstNode=m_NN[0]*k1+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k1 loop
+            } // colouring
+        } // face 4
+
+        if (domain->m_faceOffset[5] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F) {
+                EM_F[0] = 0;
+                EM_F[1] = 0;
+                EM_F[2] = 0;
+                EM_F[3] = 0;
+            }
+
+            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            EM_S[INDEX2(4,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,4,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(4,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,5,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(4,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,6,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(4,7,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(5,7,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(6,7,8)] = d_p[0]*w0;
+                            EM_S[INDEX2(7,7,8)] = d_p[0]*w0;
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            EM_F[4] = 4*w0*y_p[0];
+                            EM_F[5] = 4*w0*y_p[0];
+                            EM_F[6] = 4*w0*y_p[0];
+                            EM_F[7] = 4*w0*y_p[0];
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                               add_EM_S, add_EM_F, firstNode);
+                    } // k0 loop
+                } // k1 loop
+            } // colouring
+        } // face 5
+    } // end of parallel region
+}
+
+/****************************************************************************/
+// PDE SYSTEM
+/****************************************************************************/
+
 void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                                            const Data& A, const Data& B,
                                            const Data& C, const Data& D,
@@ -2674,6 +3691,8 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
     const int NE0 = m_NE[0];
     const int NE1 = m_NE[1];
     const int NE2 = m_NE[2];
+    const bool add_EM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
+    const bool add_EM_F = (!X.isEmpty() || !Y.isEmpty());
     rhs.requireWrite();
 
 #pragma omp parallel
@@ -2686,16 +3705,16 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
                 for (index_t k1=0; k1<NE1; ++k1) {
                     for (index_t k0=0; k0<NE0; ++k0)  {
-                        bool add_EM_S=false;
-                        bool add_EM_F=false;
-                        fill(EM_S.begin(), EM_S.end(), 0);
-                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
+                        if (add_EM_S)
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                        if (add_EM_F)
+                            fill(EM_F.begin(), EM_F.end(), 0);
+
                         ///////////////
                         // process A //
                         ///////////////
                         if (!A.isEmpty()) {
-                            add_EM_S = true;
                             const double* A_p = A.getSampleDataRO(e);
                             if (A.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
@@ -3438,7 +4457,6 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                         // process B //
                         ///////////////
                         if (!B.isEmpty()) {
-                            add_EM_S=true;
                             const double* B_p=B.getSampleDataRO(e);
                             if (B.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
@@ -3875,7 +4893,6 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                         // process C //
                         ///////////////
                         if (!C.isEmpty()) {
-                            add_EM_S=true;
                             const double* C_p=C.getSampleDataRO(e);
                             if (C.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
@@ -4312,7 +5329,6 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                         // process D //
                         ///////////////
                         if (!D.isEmpty()) {
-                            add_EM_S=true;
                             const double* D_p=D.getSampleDataRO(e);
                             if (D.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
@@ -4526,7 +5542,6 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                         // process X //
                         ///////////////
                         if (!X.isEmpty()) {
-                            add_EM_F=true;
                             const double* X_p=X.getSampleDataRO(e);
                             if (X.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
@@ -4643,7 +5658,6 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
                         // process Y //
                         ///////////////
                         if (!Y.isEmpty()) {
-                            add_EM_F=true;
                             const double* Y_p=Y.getSampleDataRO(e);
                             if (Y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
@@ -4696,8 +5710,8 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // end k0 loop
                 } // end k1 loop
             } // end k2 loop
@@ -4705,7 +5719,720 @@ void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
     } // end of parallel region
 }
 
-//protected
+/****************************************************************************/
+// PDE SYSTEM BOUNDARY
+/****************************************************************************/
+
+void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
+                               Data& rhs, const Data& d, const Data& y) const
+{
+    dim_t numEq, numComp;
+    if (!mat)
+        numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
+    else {
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
+    }
+    const double SQRT3 = 1.73205080756887719318;
+    const double w12 = m_dx[0]*m_dx[1]/144;
+    const double w10 = w12*(-SQRT3 + 2);
+    const double w11 = w12*(SQRT3 + 2);
+    const double w13 = w12*(-4*SQRT3 + 7);
+    const double w14 = w12*(4*SQRT3 + 7);
+    const double w7 = m_dx[0]*m_dx[2]/144;
+    const double w5 = w7*(-SQRT3 + 2);
+    const double w6 = w7*(SQRT3 + 2);
+    const double w8 = w7*(-4*SQRT3 + 7);
+    const double w9 = w7*(4*SQRT3 + 7);
+    const double w2 = m_dx[1]*m_dx[2]/144;
+    const double w0 = w2*(-SQRT3 + 2);
+    const double w1 = w2*(SQRT3 + 2);
+    const double w3 = w2*(-4*SQRT3 + 7);
+    const double w4 = w2*(4*SQRT3 + 7);
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
+    const bool add_EM_S = !d.isEmpty();
+    const bool add_EM_F = !y.isEmpty();
+    rhs.requireWrite();
+
+#pragma omp parallel
+    {
+        vector<double> EM_S(8*8*numEq*numComp, 0);
+        vector<double> EM_F(8*numEq, 0);
+
+        if (domain->m_faceOffset[0] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
+                        const index_t e = INDEX2(k1,k2,NE1);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
+                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
+                                        const double tmp0 = w0*(d_0 + d_1);
+                                        const double tmp1 = w1*(d_2 + d_3);
+                                        const double tmp2 = w0*(d_0 + d_2);
+                                        const double tmp3 = w1*(d_1 + d_3);
+                                        const double tmp4 = w0*(d_1 + d_3);
+                                        const double tmp5 = w1*(d_0 + d_2);
+                                        const double tmp6 = w0*(d_2 + d_3);
+                                        const double tmp7 = w1*(d_0 + d_1);
+                                        const double tmp8 = w2*(d_0 + d_3);
+                                        const double tmp9 = w2*(d_1 + d_2);
+                                        const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
+                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)] = d_0*w4 + d_3*w3 + tmp9;
+                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)] = tmp6 + tmp7;
+                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,0,6,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)] = tmp6 + tmp7;
+                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)] = d_1*w4 + d_2*w3 + tmp8;
+                                        EM_S[INDEX4(k,m,2,4,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,4,2,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)] = d_1*w3 + d_2*w4 + tmp8;
+                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,6,0,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)] = d_0*w3 + d_3*w4 + tmp9;
+                                    }
+                                 }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w2;
+                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,0,6,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,2,4,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,4,2,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,0,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)] = 4*wd0;
+                                    }
+                                }
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
+                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
+                                    const double tmp0 = 6*w2*(y_1 + y_2);
+                                    const double tmp1 = 6*w2*(y_0 + y_3);
+                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                    EM_F[INDEX2(k,2,numEq)] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                    EM_F[INDEX2(k,4,numEq)] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                    EM_F[INDEX2(k,6,numEq)] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    EM_F[INDEX2(k,0,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,2,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,4,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,6,numEq)] = 36*w2*y_p[k];
+                                }
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
+                    } // k1 loop
+                } // k2 loop
+            } // colouring
+        } // face 0
+
+        if (domain->m_faceOffset[1] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
+                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
+                                        const double tmp0 = w0*(d_0 + d_2);
+                                        const double tmp1 = w1*(d_1 + d_3);
+                                        const double tmp2 = w0*(d_2 + d_3);
+                                        const double tmp3 = w1*(d_0 + d_1);
+                                        const double tmp4 = w0*(d_1 + d_3);
+                                        const double tmp5 = w1*(d_0 + d_2);
+                                        const double tmp6 = w2*(d_0 + d_3);
+                                        const double tmp7 = w2*(d_1 + d_2);
+                                        const double tmp8 = w0*(d_0 + d_1);
+                                        const double tmp9 = w1*(d_2 + d_3);
+                                        const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
+                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)] = d_0*w4 + d_3*w3 + tmp7;
+                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,1,7,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)] = d_1*w4 + d_2*w3 + tmp6;
+                                        EM_S[INDEX4(k,m,3,5,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,5,3,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)] = d_1*w3 + d_2*w4 + tmp6;
+                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)] = tmp8 + tmp9;
+                                        EM_S[INDEX4(k,m,7,1,numEq,numComp,8)] = tmp10;
+                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)] = tmp8 + tmp9;
+                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)] = d_0*w3 + d_3*w4 + tmp7;
+                                    }
+                                 }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w2;
+                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,1,7,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,3,5,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,3,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,1,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)] = 4*wd0;
+                                    }
+                                }
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
+                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
+                                    const double tmp0 = 6*w2*(y_1 + y_2);
+                                    const double tmp1 = 6*w2*(y_0 + y_3);
+                                    EM_F[INDEX2(k,1,numEq)] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
+                                    EM_F[INDEX2(k,3,numEq)] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
+                                    EM_F[INDEX2(k,5,numEq)] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
+                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
+                                }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    EM_F[INDEX2(k,1,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,3,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,5,numEq)] = 36*w2*y_p[k];
+                                    EM_F[INDEX2(k,7,numEq)] = 36*w2*y_p[k];
+                                }
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
+                    } // k1 loop
+                } // k2 loop
+            } // colouring
+        } // face 1
+
+        if (domain->m_faceOffset[2] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
+                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
+                                        const double tmp0 = w5*(d_0 + d_1);
+                                        const double tmp1 = w6*(d_2 + d_3);
+                                        const double tmp2 = w5*(d_0 + d_2);
+                                        const double tmp3 = w6*(d_1 + d_3);
+                                        const double tmp4 = w5*(d_1 + d_3);
+                                        const double tmp5 = w6*(d_0 + d_2);
+                                        const double tmp6 = w7*(d_0 + d_3);
+                                        const double tmp7 = w7*(d_0 + d_1 + d_2 + d_3);
+                                        const double tmp8 = w7*(d_1 + d_2);
+                                        const double tmp9 = w5*(d_2 + d_3);
+                                        const double tmp10 = w6*(d_0 + d_1);
+                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)] = d_0*w9 + d_3*w8 + tmp8;
+                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)] = tmp10 + tmp9;
+                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,0,5,numEq,numComp,8)] = tmp7;
+                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)] = tmp10 + tmp9;
+                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)] = d_1*w9 + d_2*w8 + tmp6;
+                                        EM_S[INDEX4(k,m,1,4,numEq,numComp,8)] = tmp7;
+                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,4,1,numEq,numComp,8)] = tmp7;
+                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)] = d_1*w8 + d_2*w9 + tmp6;
+                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,5,0,numEq,numComp,8)] = tmp7;
+                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)] = d_0*w8 + d_3*w9 + tmp8;
+                                    }
+                                 }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w7;
+                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,0,5,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,1,4,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,4,1,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,0,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)] = 4*wd0;
+                                    }
+                                }
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
+                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
+                                    const double tmp0 = 6*w7*(y_1 + y_2);
+                                    const double tmp1 = 6*w7*(y_0 + y_3);
+                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                    EM_F[INDEX2(k,1,numEq)] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                    EM_F[INDEX2(k,4,numEq)] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                    EM_F[INDEX2(k,5,numEq)] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    EM_F[INDEX2(k,0,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,1,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,4,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,5,numEq)] = 36*w7*y_p[k];
+                                }
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
+                    } // k0 loop
+                } // k2 loop
+            } // colouring
+        } // face 2
+
+        if (domain->m_faceOffset[3] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
+            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
+#pragma omp for
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
+                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
+                                        const double tmp0 = w5*(d_0 + d_2);
+                                        const double tmp1 = w6*(d_1 + d_3);
+                                        const double tmp2 = w5*(d_1 + d_3);
+                                        const double tmp3 = w6*(d_0 + d_2);
+                                        const double tmp4 = w7*(d_0 + d_1 + d_2 + d_3);
+                                        const double tmp5 = w5*(d_0 + d_1);
+                                        const double tmp6 = w6*(d_2 + d_3);
+                                        const double tmp7 = w7*(d_0 + d_3);
+                                        const double tmp8 = w7*(d_1 + d_2);
+                                        const double tmp9 = w5*(d_2 + d_3);
+                                        const double tmp10 = w6*(d_0 + d_1);
+                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)] = d_0*w9 + d_3*w8 + tmp8;
+                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)] = tmp10 + tmp9;
+                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,2,7,numEq,numComp,8)] = tmp4;
+                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)] = tmp10 + tmp9;
+                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)] = d_1*w9 + d_2*w8 + tmp7;
+                                        EM_S[INDEX4(k,m,3,6,numEq,numComp,8)] = tmp4;
+                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)] = tmp2 + tmp3;
+                                        EM_S[INDEX4(k,m,6,3,numEq,numComp,8)] = tmp4;
+                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)] = d_1*w8 + d_2*w9 + tmp7;
+                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)] = tmp5 + tmp6;
+                                        EM_S[INDEX4(k,m,7,2,numEq,numComp,8)] = tmp4;
+                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)] = tmp5 + tmp6;
+                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)] = d_0*w8 + d_3*w9 + tmp8;
+                                    }
+                                 }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w7;
+                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,2,7,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,3,6,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,3,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,2,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)] = 4*wd0;
+                                    }
+                                }
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
+                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
+                                    const double tmp0 = 6*w7*(y_1 + y_2);
+                                    const double tmp1 = 6*w7*(y_0 + y_3);
+                                    EM_F[INDEX2(k,2,numEq)] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
+                                    EM_F[INDEX2(k,3,numEq)] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
+                                    EM_F[INDEX2(k,6,numEq)] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
+                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
+                                }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    EM_F[INDEX2(k,2,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,3,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,6,numEq)] = 36*w7*y_p[k];
+                                    EM_F[INDEX2(k,7,numEq)] = 36*w7*y_p[k];
+                                }
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
+                    } // k0 loop
+                } // k2 loop
+            } // colouring
+        } // face 3
+
+        if (domain->m_faceOffset[4] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
+            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
+                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
+                                        const double tmp0 = w10*(d_0 + d_2);
+                                        const double tmp1 = w11*(d_1 + d_3);
+                                        const double tmp2 = w12*(d_0 + d_1 + d_2 + d_3);
+                                        const double tmp3 = w12*(d_1 + d_2);
+                                        const double tmp4 = w10*(d_1 + d_3);
+                                        const double tmp5 = w11*(d_0 + d_2);
+                                        const double tmp6 = w12*(d_0 + d_3);
+                                        const double tmp7 = w10*(d_0 + d_1);
+                                        const double tmp8 = w11*(d_2 + d_3);
+                                        const double tmp9 = w10*(d_2 + d_3);
+                                        const double tmp10 = w11*(d_0 + d_1);
+                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)] = d_0*w14 + d_3*w13 + tmp3;
+                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)] = tmp10 + tmp9;
+                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,0,3,numEq,numComp,8)] = tmp2;
+                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)] = tmp10 + tmp9;
+                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)] = d_1*w14 + d_2*w13 + tmp6;
+                                        EM_S[INDEX4(k,m,1,2,numEq,numComp,8)] = tmp2;
+                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)] = tmp4 + tmp5;
+                                        EM_S[INDEX4(k,m,2,1,numEq,numComp,8)] = tmp2;
+                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)] = d_1*w13 + d_2*w14 + tmp6;
+                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)] = tmp7 + tmp8;
+                                        EM_S[INDEX4(k,m,3,0,numEq,numComp,8)] = tmp2;
+                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)] = tmp0 + tmp1;
+                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)] = tmp7 + tmp8;
+                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)] = d_0*w13 + d_3*w14 + tmp3;
+                                    }
+                                 }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w12;
+                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,0,3,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,1,2,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,2,1,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,3,0,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)] = 4*wd0;
+                                    }
+                                }
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
+                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
+                                    const double tmp0 = 6*w12*(y_1 + y_2);
+                                    const double tmp1 = 6*w12*(y_0 + y_3);
+                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                    EM_F[INDEX2(k,1,numEq)] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                    EM_F[INDEX2(k,2,numEq)] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                    EM_F[INDEX2(k,3,numEq)] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    EM_F[INDEX2(k,0,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,1,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,2,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,3,numEq)] = 36*w12*y_p[k];
+                                }
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*k1+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
+                    } // k0 loop
+                } // k1 loop
+            } // colouring
+        } // face 4
+
+        if (domain->m_faceOffset[5] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
+            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
+                        ///////////////
+                        // process d //
+                        ///////////////
+                        if (add_EM_S) {
+                            const double* d_p=d.getSampleDataRO(e);
+                            if (d.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
+                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
+                                        const double tmp0 = w12*(d_0 + d_1 + d_2 + d_3);
+                                        const double tmp1 = w10*(d_1 + d_3);
+                                        const double tmp2 = w11*(d_0 + d_2);
+                                        const double tmp3 = w10*(d_2 + d_3);
+                                        const double tmp4 = w11*(d_0 + d_1);
+                                        const double tmp5 = w10*(d_0 + d_1);
+                                        const double tmp6 = w11*(d_2 + d_3);
+                                        const double tmp7 = w12*(d_1 + d_2);
+                                        const double tmp8 = w10*(d_0 + d_2);
+                                        const double tmp9 = w11*(d_1 + d_3);
+                                        const double tmp10 = w12*(d_0 + d_3);
+                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)] = d_0*w14 + d_3*w13 + tmp7;
+                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)] = tmp3 + tmp4;
+                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)] = tmp1 + tmp2;
+                                        EM_S[INDEX4(k,m,7,4,numEq,numComp,8)] = tmp0;
+                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)] = tmp3 + tmp4;
+                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)] = d_1*w14 + d_2*w13 + tmp10;
+                                        EM_S[INDEX4(k,m,6,5,numEq,numComp,8)] = tmp0;
+                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)] = tmp8 + tmp9;
+                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)] = tmp1 + tmp2;
+                                        EM_S[INDEX4(k,m,5,6,numEq,numComp,8)] = tmp0;
+                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)] = d_1*w13 + d_2*w14 + tmp10;
+                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)] = tmp5 + tmp6;
+                                        EM_S[INDEX4(k,m,4,7,numEq,numComp,8)] = tmp0;
+                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)] = tmp8 + tmp9;
+                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)] = tmp5 + tmp6;
+                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)] = d_0*w13 + d_3*w14 + tmp7;
+                                    }
+                                 }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    for (index_t m=0; m<numComp; m++) {
+                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w12;
+                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,4,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,6,5,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,5,6,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)] = 4*wd0;
+                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,4,7,numEq,numComp,8)] =   wd0;
+                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)] = 2*wd0;
+                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)] = 4*wd0;
+                                    }
+                                }
+                            }
+                        }
+                        ///////////////
+                        // process y //
+                        ///////////////
+                        if (add_EM_F) {
+                            const double* y_p=y.getSampleDataRO(e);
+                            if (y.actsExpanded()) {
+                                for (index_t k=0; k<numEq; k++) {
+                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
+                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
+                                    const double tmp0 = 6*w12*(y_1 + y_2);
+                                    const double tmp1 = 6*w12*(y_0 + y_3);
+                                    EM_F[INDEX2(k,4,numEq)] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
+                                    EM_F[INDEX2(k,5,numEq)] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
+                                    EM_F[INDEX2(k,6,numEq)] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
+                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
+                                }
+                            } else { // constant data
+                                for (index_t k=0; k<numEq; k++) {
+                                    EM_F[INDEX2(k,4,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,5,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,6,numEq)] = 36*w12*y_p[k];
+                                    EM_F[INDEX2(k,7,numEq)] = 36*w12*y_p[k];
+                                }
+                            }
+                        }
+                        const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
+                    } // k0 loop
+                } // k1 loop
+            } // colouring
+        } // face 5
+    } // end of parallel region
+}
+
+/****************************************************************************/
+// PDE SYSTEM REDUCED
+/****************************************************************************/
+
 void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                                      Data& rhs, const Data& A, const Data& B,
                                      const Data& C, const Data& D,
@@ -4732,6 +6459,8 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
     const int NE0 = m_NE[0];
     const int NE1 = m_NE[1];
     const int NE2 = m_NE[2];
+    const bool add_EM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
+    const bool add_EM_F = (!X.isEmpty() || !Y.isEmpty());
     rhs.requireWrite();
 
 #pragma omp parallel
@@ -4744,16 +6473,16 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
             for (index_t k2=k2_0; k2<NE2; k2+=2) {
                 for (index_t k1=0; k1<NE1; ++k1) {
                     for (index_t k0=0; k0<NE0; ++k0)  {
-                        bool add_EM_S=false;
-                        bool add_EM_F=false;
-                        fill(EM_S.begin(), EM_S.end(), 0);
-                        fill(EM_F.begin(), EM_F.end(), 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
+                        if (add_EM_S)
+                            fill(EM_S.begin(), EM_S.end(), 0);
+                        if (add_EM_F)
+                            fill(EM_F.begin(), EM_F.end(), 0);
+
                         ///////////////
                         // process A //
                         ///////////////
                         if (!A.isEmpty()) {
-                            add_EM_S=true;
                             const double* A_p=A.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -4837,7 +6566,6 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                         // process B //
                         ///////////////
                         if (!B.isEmpty()) {
-                            add_EM_S=true;
                             const double* B_p=B.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -4915,7 +6643,6 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                         // process C //
                         ///////////////
                         if (!C.isEmpty()) {
-                            add_EM_S=true;
                             const double* C_p=C.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -4993,7 +6720,6 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                         // process D //
                         ///////////////
                         if (!D.isEmpty()) {
-                            add_EM_S=true;
                             const double* D_p=D.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -5069,7 +6795,6 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                         // process X //
                         ///////////////
                         if (!X.isEmpty()) {
-                            add_EM_F=true;
                             const double* X_p=X.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 const double wX0 = 8*X_p[INDEX2(k, 0, numEq)]*w5;
@@ -5089,7 +6814,6 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                         // process Y //
                         ///////////////
                         if (!Y.isEmpty()) {
-                            add_EM_F=true;
                             const double* Y_p=Y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)]+=8*Y_p[k]*w9;
@@ -5105,8 +6829,8 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // end k0 loop
                 } // end k1 loop
             } // end k2 loop
@@ -5114,1716 +6838,10 @@ void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
     } // end of parallel region
 }
 
-//protected
-void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
-                                Data& rhs, const Data& d, const Data& y) const
-{
-    const double SQRT3 = 1.73205080756887719318;
-    const double w12 = m_dx[0]*m_dx[1]/144;
-    const double w10 = w12*(-SQRT3 + 2);
-    const double w11 = w12*(SQRT3 + 2);
-    const double w13 = w12*(-4*SQRT3 + 7);
-    const double w14 = w12*(4*SQRT3 + 7);
-    const double w7 = m_dx[0]*m_dx[2]/144;
-    const double w5 = w7*(-SQRT3 + 2);
-    const double w6 = w7*(SQRT3 + 2);
-    const double w8 = w7*(-4*SQRT3 + 7);
-    const double w9 = w7*(4*SQRT3 + 7);
-    const double w2 = m_dx[1]*m_dx[2]/144;
-    const double w0 = w2*(-SQRT3 + 2);
-    const double w1 = w2*(SQRT3 + 2);
-    const double w3 = w2*(-4*SQRT3 + 7);
-    const double w4 = w2*(4*SQRT3 + 7);
-    const bool add_EM_S=!d.isEmpty();
-    const bool add_EM_F=!y.isEmpty();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
-    rhs.requireWrite();
+/****************************************************************************/
+// PDE SYSTEM REDUCED BOUNDARY
+/****************************************************************************/
 
-#pragma omp parallel
-    {
-        vector<double> EM_S(8*8);
-        vector<double> EM_F(8);
-        if (domain->m_faceOffset[0] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k1=0; k1<NE1; ++k1) {
-                        const index_t e = INDEX2(k1,k2,NE1);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                const double d_0 = d_p[0];
-                                const double d_1 = d_p[1];
-                                const double d_2 = d_p[2];
-                                const double d_3 = d_p[3];
-                                const double tmp0 = w0*(d_0 + d_1);
-                                const double tmp1 = w1*(d_2 + d_3);
-                                const double tmp2 = w0*(d_0 + d_2);
-                                const double tmp3 = w1*(d_1 + d_3);
-                                const double tmp4 = w0*(d_1 + d_3);
-                                const double tmp5 = w1*(d_0 + d_2);
-                                const double tmp6 = w0*(d_2 + d_3);
-                                const double tmp7 = w1*(d_0 + d_1);
-                                const double tmp8 = w2*(d_0 + d_3);
-                                const double tmp9 = w2*(d_1 + d_2);
-                                const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-                                EM_S[INDEX2(0,0,8)] = d_0*w4 + d_3*w3 + tmp9;
-                                EM_S[INDEX2(2,0,8)] = tmp6 + tmp7;
-                                EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(6,0,8)] = tmp10;
-                                EM_S[INDEX2(0,2,8)] = tmp6 + tmp7;
-                                EM_S[INDEX2(2,2,8)] = d_1*w4 + d_2*w3 + tmp8;
-                                EM_S[INDEX2(4,2,8)] = tmp10;
-                                EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(2,4,8)] = tmp10;
-                                EM_S[INDEX2(4,4,8)] = d_1*w3 + d_2*w4 + tmp8;
-                                EM_S[INDEX2(6,4,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(0,6,8)] = tmp10;
-                                EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(4,6,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(6,6,8)] = d_0*w3 + d_3*w4 + tmp9;
-                            } else { // constant data
-                                const double wd0 = 4*d_p[0]*w2;
-                                EM_S[INDEX2(0,0,8)] = 4*wd0;
-                                EM_S[INDEX2(2,0,8)] = 2*wd0;
-                                EM_S[INDEX2(4,0,8)] = 2*wd0;
-                                EM_S[INDEX2(6,0,8)] =   wd0;
-                                EM_S[INDEX2(0,2,8)] = 2*wd0;
-                                EM_S[INDEX2(2,2,8)] = 4*wd0;
-                                EM_S[INDEX2(4,2,8)] =   wd0;
-                                EM_S[INDEX2(6,2,8)] = 2*wd0;
-                                EM_S[INDEX2(0,4,8)] = 2*wd0;
-                                EM_S[INDEX2(2,4,8)] =   wd0;
-                                EM_S[INDEX2(4,4,8)] = 4*wd0;
-                                EM_S[INDEX2(6,4,8)] = 2*wd0;
-                                EM_S[INDEX2(0,6,8)] =   wd0;
-                                EM_S[INDEX2(2,6,8)] = 2*wd0;
-                                EM_S[INDEX2(4,6,8)] = 2*wd0;
-                                EM_S[INDEX2(6,6,8)] = 4*wd0;
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                const double y_0 = y_p[0];
-                                const double y_1 = y_p[1];
-                                const double y_2 = y_p[2];
-                                const double y_3 = y_p[3];
-                                const double tmp0 = 6*w2*(y_1 + y_2);
-                                const double tmp1 = 6*w2*(y_0 + y_3);
-                                EM_F[0] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                EM_F[1] = 0;
-                                EM_F[2] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                EM_F[3] = 0;
-                                EM_F[4] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                EM_F[5] = 0;
-                                EM_F[6] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
-                                EM_F[7] = 0;
-                            } else { // constant data
-                                EM_F[0] = 36*w2*y_p[0];
-                                EM_F[1] = 0;
-                                EM_F[2] = 36*w2*y_p[0];
-                                EM_F[3] = 0;
-                                EM_F[4] = 36*w2*y_p[0];
-                                EM_F[5] = 0;
-                                EM_F[6] = 36*w2*y_p[0];
-                                EM_F[7] = 0;
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k1 loop
-                } // k2 loop
-            } // colouring
-        } // face 0
-
-        if (domain->m_faceOffset[1] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k1=0; k1<NE1; ++k1) {
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                const double d_0 = d_p[0];
-                                const double d_1 = d_p[1];
-                                const double d_2 = d_p[2];
-                                const double d_3 = d_p[3];
-                                const double tmp0 = w0*(d_0 + d_2);
-                                const double tmp1 = w1*(d_1 + d_3);
-                                const double tmp2 = w0*(d_2 + d_3);
-                                const double tmp3 = w1*(d_0 + d_1);
-                                const double tmp4 = w0*(d_1 + d_3);
-                                const double tmp5 = w1*(d_0 + d_2);
-                                const double tmp6 = w2*(d_0 + d_3);
-                                const double tmp7 = w2*(d_1 + d_2);
-                                const double tmp8 = w0*(d_0 + d_1);
-                                const double tmp9 = w1*(d_2 + d_3);
-                                const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-                                EM_S[INDEX2(1,1,8)] = d_0*w4 + d_3*w3 + tmp7;
-                                EM_S[INDEX2(3,1,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(5,1,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(7,1,8)] = tmp10;
-                                EM_S[INDEX2(1,3,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(3,3,8)] = d_1*w4 + d_2*w3 + tmp6;
-                                EM_S[INDEX2(5,3,8)] = tmp10;
-                                EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(1,5,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(3,5,8)] = tmp10;
-                                EM_S[INDEX2(5,5,8)] = d_1*w3 + d_2*w4 + tmp6;
-                                EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
-                                EM_S[INDEX2(1,7,8)] = tmp10;
-                                EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
-                                EM_S[INDEX2(7,7,8)] = d_0*w3 + d_3*w4 + tmp7;
-                            } else { // constant data
-                                const double wd0 = 4*d_p[0]*w2;
-                                EM_S[INDEX2(1,1,8)] = 4*wd0;
-                                EM_S[INDEX2(3,1,8)] = 2*wd0;
-                                EM_S[INDEX2(5,1,8)] = 2*wd0;
-                                EM_S[INDEX2(7,1,8)] =   wd0;
-                                EM_S[INDEX2(1,3,8)] = 2*wd0;
-                                EM_S[INDEX2(3,3,8)] = 4*wd0;
-                                EM_S[INDEX2(5,3,8)] =   wd0;
-                                EM_S[INDEX2(7,3,8)] = 2*wd0;
-                                EM_S[INDEX2(1,5,8)] = 2*wd0;
-                                EM_S[INDEX2(3,5,8)] =   wd0;
-                                EM_S[INDEX2(5,5,8)] = 4*wd0;
-                                EM_S[INDEX2(7,5,8)] = 2*wd0;
-                                EM_S[INDEX2(1,7,8)] =   wd0;
-                                EM_S[INDEX2(3,7,8)] = 2*wd0;
-                                EM_S[INDEX2(5,7,8)] = 2*wd0;
-                                EM_S[INDEX2(7,7,8)] = 4*wd0;
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                const double y_0 = y_p[0];
-                                const double y_1 = y_p[1];
-                                const double y_2 = y_p[2];
-                                const double y_3 = y_p[3];
-                                const double tmp0 = 6*w2*(y_1 + y_2);
-                                const double tmp1 = 6*w2*(y_0 + y_3);
-                                EM_F[0] = 0;
-                                EM_F[1] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                EM_F[2] = 0;
-                                EM_F[3] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                EM_F[4] = 0;
-                                EM_F[5] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                EM_F[6] = 0;
-                                EM_F[7] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
-                            } else { // constant data
-                                EM_F[0] = 0;
-                                EM_F[1] = 36*w2*y_p[0];
-                                EM_F[2] = 0;
-                                EM_F[3] = 36*w2*y_p[0];
-                                EM_F[4] = 0;
-                                EM_F[5] = 36*w2*y_p[0];
-                                EM_F[6] = 0;
-                                EM_F[7] = 36*w2*y_p[0];
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k1 loop
-                } // k2 loop
-            } // colouring
-        } // face 1
-
-        if (domain->m_faceOffset[2] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                const double d_0 = d_p[0];
-                                const double d_1 = d_p[1];
-                                const double d_2 = d_p[2];
-                                const double d_3 = d_p[3];
-                                const double tmp0 = w5*(d_0 + d_1);
-                                const double tmp1 = w6*(d_2 + d_3);
-                                const double tmp2 = w5*(d_0 + d_2);
-                                const double tmp3 = w6*(d_1 + d_3);
-                                const double tmp4 = w5*(d_1 + d_3);
-                                const double tmp5 = w6*(d_0 + d_2);
-                                const double tmp6 = w7*(d_0 + d_3);
-                                const double tmp7 = w7*(d_0 + d_1 + d_2 + d_3);
-                                const double tmp8 = w7*(d_1 + d_2);
-                                const double tmp9 = w5*(d_2 + d_3);
-                                const double tmp10 = w6*(d_0 + d_1);
-                                EM_S[INDEX2(0,0,8)] = d_0*w9 + d_3*w8 + tmp8;
-                                EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
-                                EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(5,0,8)] = tmp7;
-                                EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
-                                EM_S[INDEX2(1,1,8)] = d_1*w9 + d_2*w8 + tmp6;
-                                EM_S[INDEX2(4,1,8)] = tmp7;
-                                EM_S[INDEX2(5,1,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(1,4,8)] = tmp7;
-                                EM_S[INDEX2(4,4,8)] = d_1*w8 + d_2*w9 + tmp6;
-                                EM_S[INDEX2(5,4,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(0,5,8)] = tmp7;
-                                EM_S[INDEX2(1,5,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(4,5,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(5,5,8)] = d_0*w8 + d_3*w9 + tmp8;
-                            } else { // constant data
-                                const double wd0 = 4*d_p[0]*w7;
-                                EM_S[INDEX2(0,0,8)] = 4*wd0;
-                                EM_S[INDEX2(1,0,8)] = 2*wd0;
-                                EM_S[INDEX2(4,0,8)] = 2*wd0;
-                                EM_S[INDEX2(5,0,8)] =   wd0;
-                                EM_S[INDEX2(0,1,8)] = 2*wd0;
-                                EM_S[INDEX2(1,1,8)] = 4*wd0;
-                                EM_S[INDEX2(4,1,8)] =   wd0;
-                                EM_S[INDEX2(5,1,8)] = 2*wd0;
-                                EM_S[INDEX2(0,4,8)] = 2*wd0;
-                                EM_S[INDEX2(1,4,8)] =   wd0;
-                                EM_S[INDEX2(4,4,8)] = 4*wd0;
-                                EM_S[INDEX2(5,4,8)] = 2*wd0;
-                                EM_S[INDEX2(0,5,8)] =   wd0;
-                                EM_S[INDEX2(1,5,8)] = 2*wd0;
-                                EM_S[INDEX2(4,5,8)] = 2*wd0;
-                                EM_S[INDEX2(5,5,8)] = 4*wd0;
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                const double y_0 = y_p[0];
-                                const double y_1 = y_p[1];
-                                const double y_2 = y_p[2];
-                                const double y_3 = y_p[3];
-                                const double tmp0 = 6*w7*(y_1 + y_2);
-                                const double tmp1 = 6*w7*(y_0 + y_3);
-                                EM_F[0] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                EM_F[1] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                EM_F[2] = 0;
-                                EM_F[3] = 0;
-                                EM_F[4] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                EM_F[5] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
-                                EM_F[6] = 0;
-                                EM_F[7] = 0;
-                            } else { // constant data
-                                EM_F[0] = 36*w7*y_p[0];
-                                EM_F[1] = 36*w7*y_p[0];
-                                EM_F[2] = 0;
-                                EM_F[3] = 0;
-                                EM_F[4] = 36*w7*y_p[0];
-                                EM_F[5] = 36*w7*y_p[0];
-                                EM_F[6] = 0;
-                                EM_F[7] = 0;
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k2 loop
-            } // colouring
-        } // face 2
-
-        if (domain->m_faceOffset[3] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                const double d_0 = d_p[0];
-                                const double d_1 = d_p[1];
-                                const double d_2 = d_p[2];
-                                const double d_3 = d_p[3];
-                                const double tmp0 = w5*(d_0 + d_2);
-                                const double tmp1 = w6*(d_1 + d_3);
-                                const double tmp2 = w5*(d_1 + d_3);
-                                const double tmp3 = w6*(d_0 + d_2);
-                                const double tmp4 = w7*(d_0 + d_1 + d_2 + d_3);
-                                const double tmp5 = w5*(d_0 + d_1);
-                                const double tmp6 = w6*(d_2 + d_3);
-                                const double tmp7 = w7*(d_0 + d_3);
-                                const double tmp8 = w7*(d_1 + d_2);
-                                const double tmp9 = w5*(d_2 + d_3);
-                                const double tmp10 = w6*(d_0 + d_1);
-                                EM_S[INDEX2(2,2,8)] = d_0*w9 + d_3*w8 + tmp8;
-                                EM_S[INDEX2(3,2,8)] = tmp10 + tmp9;
-                                EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(7,2,8)] = tmp4;
-                                EM_S[INDEX2(2,3,8)] = tmp10 + tmp9;
-                                EM_S[INDEX2(3,3,8)] = d_1*w9 + d_2*w8 + tmp7;
-                                EM_S[INDEX2(6,3,8)] = tmp4;
-                                EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
-                                EM_S[INDEX2(3,6,8)] = tmp4;
-                                EM_S[INDEX2(6,6,8)] = d_1*w8 + d_2*w9 + tmp7;
-                                EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
-                                EM_S[INDEX2(2,7,8)] = tmp4;
-                                EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
-                                EM_S[INDEX2(7,7,8)] = d_0*w8 + d_3*w9 + tmp8;
-                            } else { // constant data
-                                const double wd0 = 4*d_p[0]*w7;
-                                EM_S[INDEX2(2,2,8)] = 4*wd0;
-                                EM_S[INDEX2(3,2,8)] = 2*wd0;
-                                EM_S[INDEX2(6,2,8)] = 2*wd0;
-                                EM_S[INDEX2(7,2,8)] =   wd0;
-                                EM_S[INDEX2(2,3,8)] = 2*wd0;
-                                EM_S[INDEX2(3,3,8)] = 4*wd0;
-                                EM_S[INDEX2(6,3,8)] =   wd0;
-                                EM_S[INDEX2(7,3,8)] = 2*wd0;
-                                EM_S[INDEX2(2,6,8)] = 2*wd0;
-                                EM_S[INDEX2(3,6,8)] =   wd0;
-                                EM_S[INDEX2(6,6,8)] = 4*wd0;
-                                EM_S[INDEX2(7,6,8)] = 2*wd0;
-                                EM_S[INDEX2(2,7,8)] =   wd0;
-                                EM_S[INDEX2(3,7,8)] = 2*wd0;
-                                EM_S[INDEX2(6,7,8)] = 2*wd0;
-                                EM_S[INDEX2(7,7,8)] = 4*wd0;
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                const double y_0 = y_p[0];
-                                const double y_1 = y_p[1];
-                                const double y_2 = y_p[2];
-                                const double y_3 = y_p[3];
-                                const double tmp0 = 6*w7*(y_1 + y_2);
-                                const double tmp1 = 6*w7*(y_0 + y_3);
-                                EM_F[0] = 0;
-                                EM_F[1] = 0;
-                                EM_F[2] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                EM_F[3] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                EM_F[4] = 0;
-                                EM_F[5] = 0;
-                                EM_F[6] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                EM_F[7] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
-                            } else { // constant data
-                                EM_F[0] = 0;
-                                EM_F[1] = 0;
-                                EM_F[2] = 36*w7*y_p[0];
-                                EM_F[3] = 36*w7*y_p[0];
-                                EM_F[4] = 0;
-                                EM_F[5] = 0;
-                                EM_F[6] = 36*w7*y_p[0];
-                                EM_F[7] = 36*w7*y_p[0];
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k2 loop
-            } // colouring
-        } // face 3
-
-        if (domain->m_faceOffset[4] > -1) {
-            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for
-                for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                const double d_0 = d_p[0];
-                                const double d_1 = d_p[1];
-                                const double d_2 = d_p[2];
-                                const double d_3 = d_p[3];
-                                const double tmp0 = w10*(d_0 + d_2);
-                                const double tmp1 = w11*(d_1 + d_3);
-                                const double tmp2 = w12*(d_0 + d_1 + d_2 + d_3);
-                                const double tmp3 = w12*(d_1 + d_2);
-                                const double tmp4 = w10*(d_1 + d_3);
-                                const double tmp5 = w11*(d_0 + d_2);
-                                const double tmp6 = w12*(d_0 + d_3);
-                                const double tmp7 = w10*(d_0 + d_1);
-                                const double tmp8 = w11*(d_2 + d_3);
-                                const double tmp9 = w10*(d_2 + d_3);
-                                const double tmp10 = w11*(d_0 + d_1);
-                                EM_S[INDEX2(0,0,8)] = d_0*w14 + d_3*w13 + tmp3;
-                                EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
-                                EM_S[INDEX2(2,0,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(3,0,8)] = tmp2;
-                                EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
-                                EM_S[INDEX2(1,1,8)] = d_1*w14 + d_2*w13 + tmp6;
-                                EM_S[INDEX2(2,1,8)] = tmp2;
-                                EM_S[INDEX2(3,1,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(0,2,8)] = tmp4 + tmp5;
-                                EM_S[INDEX2(1,2,8)] = tmp2;
-                                EM_S[INDEX2(2,2,8)] = d_1*w13 + d_2*w14 + tmp6;
-                                EM_S[INDEX2(3,2,8)] = tmp7 + tmp8;
-                                EM_S[INDEX2(0,3,8)] = tmp2;
-                                EM_S[INDEX2(1,3,8)] = tmp0 + tmp1;
-                                EM_S[INDEX2(2,3,8)] = tmp7 + tmp8;
-                                EM_S[INDEX2(3,3,8)] = d_0*w13 + d_3*w14 + tmp3;
-                            } else { // constant data
-                                const double wd0 = 4*d_p[0]*w12;
-                                EM_S[INDEX2(0,0,8)] = 4*wd0;
-                                EM_S[INDEX2(1,0,8)] = 2*wd0;
-                                EM_S[INDEX2(2,0,8)] = 2*wd0;
-                                EM_S[INDEX2(3,0,8)] =   wd0;
-                                EM_S[INDEX2(0,1,8)] = 2*wd0;
-                                EM_S[INDEX2(1,1,8)] = 4*wd0;
-                                EM_S[INDEX2(2,1,8)] =   wd0;
-                                EM_S[INDEX2(3,1,8)] = 2*wd0;
-                                EM_S[INDEX2(0,2,8)] = 2*wd0;
-                                EM_S[INDEX2(1,2,8)] =   wd0;
-                                EM_S[INDEX2(2,2,8)] = 4*wd0;
-                                EM_S[INDEX2(3,2,8)] = 2*wd0;
-                                EM_S[INDEX2(0,3,8)] =   wd0;
-                                EM_S[INDEX2(1,3,8)] = 2*wd0;
-                                EM_S[INDEX2(2,3,8)] = 2*wd0;
-                                EM_S[INDEX2(3,3,8)] = 4*wd0;
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                const double y_0 = y_p[0];
-                                const double y_1 = y_p[1];
-                                const double y_2 = y_p[2];
-                                const double y_3 = y_p[3];
-                                const double tmp0 = 6*w12*(y_1 + y_2);
-                                const double tmp1 = 6*w12*(y_0 + y_3);
-                                EM_F[0] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                EM_F[1] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                EM_F[2] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                EM_F[3] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
-                                EM_F[4] = 0;
-                                EM_F[5] = 0;
-                                EM_F[6] = 0;
-                                EM_F[7] = 0;
-                            } else { // constant data
-                                EM_F[0] = 36*w12*y_p[0];
-                                EM_F[1] = 36*w12*y_p[0];
-                                EM_F[2] = 36*w12*y_p[0];
-                                EM_F[3] = 36*w12*y_p[0];
-                                EM_F[4] = 0;
-                                EM_F[5] = 0;
-                                EM_F[6] = 0;
-                                EM_F[7] = 0;
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k1 loop
-            } // colouring
-        } // face 4
-
-        if (domain->m_faceOffset[5] > -1) {
-            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for
-                for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                const double d_0 = d_p[0];
-                                const double d_1 = d_p[1];
-                                const double d_2 = d_p[2];
-                                const double d_3 = d_p[3];
-                                const double tmp0 = w12*(d_0 + d_1 + d_2 + d_3);
-                                const double tmp1 = w10*(d_1 + d_3);
-                                const double tmp2 = w11*(d_0 + d_2);
-                                const double tmp3 = w10*(d_2 + d_3);
-                                const double tmp4 = w11*(d_0 + d_1);
-                                const double tmp5 = w10*(d_0 + d_1);
-                                const double tmp6 = w11*(d_2 + d_3);
-                                const double tmp7 = w12*(d_1 + d_2);
-                                const double tmp8 = w10*(d_0 + d_2);
-                                const double tmp9 = w11*(d_1 + d_3);
-                                const double tmp10 = w12*(d_0 + d_3);
-                                EM_S[INDEX2(4,4,8)] = d_0*w14 + d_3*w13 + tmp7;
-                                EM_S[INDEX2(5,4,8)] = tmp3 + tmp4;
-                                EM_S[INDEX2(6,4,8)] = tmp1 + tmp2;
-                                EM_S[INDEX2(7,4,8)] = tmp0;
-                                EM_S[INDEX2(4,5,8)] = tmp3 + tmp4;
-                                EM_S[INDEX2(5,5,8)] = d_1*w14 + d_2*w13 + tmp10;
-                                EM_S[INDEX2(6,5,8)] = tmp0;
-                                EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
-                                EM_S[INDEX2(4,6,8)] = tmp1 + tmp2;
-                                EM_S[INDEX2(5,6,8)] = tmp0;
-                                EM_S[INDEX2(6,6,8)] = d_1*w13 + d_2*w14 + tmp10;
-                                EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
-                                EM_S[INDEX2(4,7,8)] = tmp0;
-                                EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
-                                EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
-                                EM_S[INDEX2(7,7,8)] = d_0*w13 + d_3*w14 + tmp7;
-                            } else { // constant data
-                                const double wd0 = 4*d_p[0]*w12;
-                                EM_S[INDEX2(4,4,8)] = 4*wd0;
-                                EM_S[INDEX2(5,4,8)] = 2*wd0;
-                                EM_S[INDEX2(6,4,8)] = 2*wd0;
-                                EM_S[INDEX2(7,4,8)] =   wd0;
-                                EM_S[INDEX2(4,5,8)] = 2*wd0;
-                                EM_S[INDEX2(5,5,8)] = 4*wd0;
-                                EM_S[INDEX2(6,5,8)] =   wd0;
-                                EM_S[INDEX2(7,5,8)] = 2*wd0;
-                                EM_S[INDEX2(4,6,8)] = 2*wd0;
-                                EM_S[INDEX2(5,6,8)] =   wd0;
-                                EM_S[INDEX2(6,6,8)] = 4*wd0;
-                                EM_S[INDEX2(7,6,8)] = 2*wd0;
-                                EM_S[INDEX2(4,7,8)] =   wd0;
-                                EM_S[INDEX2(5,7,8)] = 2*wd0;
-                                EM_S[INDEX2(6,7,8)] = 2*wd0;
-                                EM_S[INDEX2(7,7,8)] = 4*wd0;
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                const double y_0 = y_p[0];
-                                const double y_1 = y_p[1];
-                                const double y_2 = y_p[2];
-                                const double y_3 = y_p[3];
-                                const double tmp0 = 6*w12*(y_1 + y_2);
-                                const double tmp1 = 6*w12*(y_0 + y_3);
-                                EM_F[0] = 0;
-                                EM_F[1] = 0;
-                                EM_F[2] = 0;
-                                EM_F[3] = 0;
-                                EM_F[4] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                EM_F[5] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                EM_F[6] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                EM_F[7] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
-                            } else { // constant data
-                                EM_F[0] = 0;
-                                EM_F[1] = 0;
-                                EM_F[2] = 0;
-                                EM_F[3] = 0;
-                                EM_F[4] = 36*w12*y_p[0];
-                                EM_F[5] = 36*w12*y_p[0];
-                                EM_F[6] = 36*w12*y_p[0];
-                                EM_F[7] = 36*w12*y_p[0];
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k1 loop
-            } // colouring
-        } // face 5
-    } // end of parallel region
-}
-
-//protected
-void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
-                                        AbstractSystemMatrix* mat, Data& rhs,
-                                        const Data& d, const Data& y) const
-{
-    const double w0 = m_dx[0]*m_dx[1]/16;
-    const double w1 = m_dx[0]*m_dx[2]/16;
-    const double w2 = m_dx[1]*m_dx[2]/16;
-    const bool add_EM_S=!d.isEmpty();
-    const bool add_EM_F=!y.isEmpty();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
-    rhs.requireWrite();
-
-#pragma omp parallel
-    {
-        vector<double> EM_S(8*8);
-        vector<double> EM_F(8);
-        if (domain->m_faceOffset[0] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k1=0; k1<NE1; ++k1) {
-                        const index_t e = INDEX2(k1,k2,NE1);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            EM_S[INDEX2(0,0,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(2,0,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(4,0,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(6,0,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(0,2,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(2,2,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(4,2,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(6,2,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(0,4,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(2,4,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(4,4,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(6,4,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(0,6,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(2,6,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(4,6,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(6,6,8)] = d_p[0]*w2;
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0] = 4*w2*y_p[0];
-                            EM_F[1] = 0;
-                            EM_F[2] = 4*w2*y_p[0];
-                            EM_F[3] = 0;
-                            EM_F[4] = 4*w2*y_p[0];
-                            EM_F[5] = 0;
-                            EM_F[6] = 4*w2*y_p[0];
-                            EM_F[7] = 0;
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k1 loop
-                } // k2 loop
-            } // colouring
-        } // face 0
-
-        if (domain->m_faceOffset[1] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k1=0; k1<NE1; ++k1) {
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            EM_S[INDEX2(1,1,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(3,1,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(5,1,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(7,1,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(1,3,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(3,3,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(5,3,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(7,3,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(1,5,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(3,5,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(5,5,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(7,5,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(1,7,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(3,7,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(5,7,8)] = d_p[0]*w2;
-                            EM_S[INDEX2(7,7,8)] = d_p[0]*w2;
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0] = 0;
-                            EM_F[1] = 4*w2*y_p[0];
-                            EM_F[2] = 0;
-                            EM_F[3] = 4*w2*y_p[0];
-                            EM_F[4] = 0;
-                            EM_F[5] = 4*w2*y_p[0];
-                            EM_F[6] = 0;
-                            EM_F[7] = 4*w2*y_p[0];
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k1 loop
-                } // k2 loop
-            } // colouring
-        } // face 1
-
-        if (domain->m_faceOffset[2] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            EM_S[INDEX2(0,0,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(1,0,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(4,0,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(5,0,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(0,1,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(1,1,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(4,1,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(5,1,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(0,4,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(1,4,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(4,4,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(5,4,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(0,5,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(1,5,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(4,5,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(5,5,8)] = d_p[0]*w1;
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0] = 4*w1*y_p[0];
-                            EM_F[1] = 4*w1*y_p[0];
-                            EM_F[2] = 0;
-                            EM_F[3] = 0;
-                            EM_F[4] = 4*w1*y_p[0];
-                            EM_F[5] = 4*w1*y_p[0];
-                            EM_F[6] = 0;
-                            EM_F[7] = 0;
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k2 loop
-            } // colouring
-        } // face 2
-
-        if (domain->m_faceOffset[3] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            EM_S[INDEX2(2,2,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(3,2,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(6,2,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(7,2,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(2,3,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(3,3,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(6,3,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(7,3,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(2,6,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(3,6,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(6,6,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(7,6,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(2,7,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(3,7,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(6,7,8)] = d_p[0]*w1;
-                            EM_S[INDEX2(7,7,8)] = d_p[0]*w1;
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0] = 0;
-                            EM_F[1] = 0;
-                            EM_F[2] = 4*w1*y_p[0];
-                            EM_F[3] = 4*w1*y_p[0];
-                            EM_F[4] = 0;
-                            EM_F[5] = 0;
-                            EM_F[6] = 4*w1*y_p[0];
-                            EM_F[7] = 4*w1*y_p[0];
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k2 loop
-            } // colouring
-        } // face 3
-
-        if (domain->m_faceOffset[4] > -1) {
-            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for
-                for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            EM_S[INDEX2(0,0,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(1,0,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(2,0,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(3,0,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(0,1,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(1,1,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(2,1,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(3,1,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(0,2,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(1,2,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(2,2,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(3,2,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(0,3,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(1,3,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(2,3,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(3,3,8)] = d_p[0]*w0;
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0] = 4*w0*y_p[0];
-                            EM_F[1] = 4*w0*y_p[0];
-                            EM_F[2] = 4*w0*y_p[0];
-                            EM_F[3] = 4*w0*y_p[0];
-                            EM_F[4] = 0;
-                            EM_F[5] = 0;
-                            EM_F[6] = 0;
-                            EM_F[7] = 0;
-                        }
-                        const index_t firstNode=m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k1 loop
-            } // colouring
-        } // face 4
-
-        if (domain->m_faceOffset[5] > -1) {
-            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for
-                for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            EM_S[INDEX2(4,4,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(5,4,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(6,4,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(7,4,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(4,5,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(5,5,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(6,5,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(7,5,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(4,6,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(5,6,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(6,6,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(7,6,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(4,7,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(5,7,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(6,7,8)] = d_p[0]*w0;
-                            EM_S[INDEX2(7,7,8)] = d_p[0]*w0;
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            EM_F[0] = 0;
-                            EM_F[1] = 0;
-                            EM_F[2] = 0;
-                            EM_F[3] = 0;
-                            EM_F[4] = 4*w0*y_p[0];
-                            EM_F[5] = 4*w0*y_p[0];
-                            EM_F[6] = 4*w0*y_p[0];
-                            EM_F[7] = 4*w0*y_p[0];
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode);
-                    } // k0 loop
-                } // k1 loop
-            } // colouring
-        } // face 5
-    } // end of parallel region
-}
-
-//protected
-void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
-                               Data& rhs, const Data& d, const Data& y) const
-{
-    dim_t numEq, numComp;
-    if (!mat)
-        numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
-    else {
-        numEq=mat->getRowBlockSize();
-        numComp=mat->getColumnBlockSize();
-    }
-    const double SQRT3 = 1.73205080756887719318;
-    const double w12 = m_dx[0]*m_dx[1]/144;
-    const double w10 = w12*(-SQRT3 + 2);
-    const double w11 = w12*(SQRT3 + 2);
-    const double w13 = w12*(-4*SQRT3 + 7);
-    const double w14 = w12*(4*SQRT3 + 7);
-    const double w7 = m_dx[0]*m_dx[2]/144;
-    const double w5 = w7*(-SQRT3 + 2);
-    const double w6 = w7*(SQRT3 + 2);
-    const double w8 = w7*(-4*SQRT3 + 7);
-    const double w9 = w7*(4*SQRT3 + 7);
-    const double w2 = m_dx[1]*m_dx[2]/144;
-    const double w0 = w2*(-SQRT3 + 2);
-    const double w1 = w2*(SQRT3 + 2);
-    const double w3 = w2*(-4*SQRT3 + 7);
-    const double w4 = w2*(4*SQRT3 + 7);
-    const bool add_EM_S=!d.isEmpty();
-    const bool add_EM_F=!y.isEmpty();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
-    rhs.requireWrite();
-
-#pragma omp parallel
-    {
-        vector<double> EM_S(8*8*numEq*numComp, 0);
-        vector<double> EM_F(8*numEq, 0);
-
-        if (domain->m_faceOffset[0] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k1=0; k1<NE1; ++k1) {
-                        const index_t e = INDEX2(k1,k2,NE1);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
-                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
-                                        const double tmp0 = w0*(d_0 + d_1);
-                                        const double tmp1 = w1*(d_2 + d_3);
-                                        const double tmp2 = w0*(d_0 + d_2);
-                                        const double tmp3 = w1*(d_1 + d_3);
-                                        const double tmp4 = w0*(d_1 + d_3);
-                                        const double tmp5 = w1*(d_0 + d_2);
-                                        const double tmp6 = w0*(d_2 + d_3);
-                                        const double tmp7 = w1*(d_0 + d_1);
-                                        const double tmp8 = w2*(d_0 + d_3);
-                                        const double tmp9 = w2*(d_1 + d_2);
-                                        const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=d_0*w4 + d_3*w3 + tmp9;
-                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp6 + tmp7;
-                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp6 + tmp7;
-                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=d_1*w4 + d_2*w3 + tmp8;
-                                        EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=d_1*w3 + d_2*w4 + tmp8;
-                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=d_0*w3 + d_3*w4 + tmp9;
-                                    }
-                                 }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w2;
-                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=4*wd0;
-                                    }
-                                }
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
-                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
-                                    const double tmp0 = 6*w2*(y_1 + y_2);
-                                    const double tmp1 = 6*w2*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                    EM_F[INDEX2(k,1,numEq)] = 0;
-                                    EM_F[INDEX2(k,2,numEq)] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                    EM_F[INDEX2(k,3,numEq)] = 0;
-                                    EM_F[INDEX2(k,4,numEq)] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                    EM_F[INDEX2(k,5,numEq)] = 0;
-                                    EM_F[INDEX2(k,6,numEq)] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
-                                    EM_F[INDEX2(k,7,numEq)] = 0;
-                                }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,1,numEq)] = 0;
-                                    EM_F[INDEX2(k,2,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,3,numEq)] = 0;
-                                    EM_F[INDEX2(k,4,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,5,numEq)] = 0;
-                                    EM_F[INDEX2(k,6,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,7,numEq)] = 0;
-                                }
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
-                    } // k1 loop
-                } // k2 loop
-            } // colouring
-        } // face 0
-
-        if (domain->m_faceOffset[1] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k1=0; k1<NE1; ++k1) {
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
-                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
-                                        const double tmp0 = w0*(d_0 + d_2);
-                                        const double tmp1 = w1*(d_1 + d_3);
-                                        const double tmp2 = w0*(d_2 + d_3);
-                                        const double tmp3 = w1*(d_0 + d_1);
-                                        const double tmp4 = w0*(d_1 + d_3);
-                                        const double tmp5 = w1*(d_0 + d_2);
-                                        const double tmp6 = w2*(d_0 + d_3);
-                                        const double tmp7 = w2*(d_1 + d_2);
-                                        const double tmp8 = w0*(d_0 + d_1);
-                                        const double tmp9 = w1*(d_2 + d_3);
-                                        const double tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=d_0*w4 + d_3*w3 + tmp7;
-                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=d_1*w4 + d_2*w3 + tmp6;
-                                        EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=d_1*w3 + d_2*w4 + tmp6;
-                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp8 + tmp9;
-                                        EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+=tmp10;
-                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp8 + tmp9;
-                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=d_0*w3 + d_3*w4 + tmp7;
-                                    }
-                                 }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w2;
-                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=4*wd0;
-                                    }
-                                }
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
-                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
-                                    const double tmp0 = 6*w2*(y_1 + y_2);
-                                    const double tmp1 = 6*w2*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)] = 0;
-                                    EM_F[INDEX2(k,1,numEq)] = tmp0 + 6*w0*y_3 + 6*w1*y_0;
-                                    EM_F[INDEX2(k,2,numEq)] = 0;
-                                    EM_F[INDEX2(k,3,numEq)] = tmp1 + 6*w0*y_2 + 6*w1*y_1;
-                                    EM_F[INDEX2(k,4,numEq)] = 0;
-                                    EM_F[INDEX2(k,5,numEq)] = tmp1 + 6*w0*y_1 + 6*w1*y_2;
-                                    EM_F[INDEX2(k,6,numEq)] = 0;
-                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w0*y_0 + 6*w1*y_3;
-                                }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)] = 0;
-                                    EM_F[INDEX2(k,1,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,2,numEq)] = 0;
-                                    EM_F[INDEX2(k,3,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,4,numEq)] = 0;
-                                    EM_F[INDEX2(k,5,numEq)] = 36*w2*y_p[k];
-                                    EM_F[INDEX2(k,6,numEq)] = 0;
-                                    EM_F[INDEX2(k,7,numEq)] = 36*w2*y_p[k];
-                                }
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
-                    } // k1 loop
-                } // k2 loop
-            } // colouring
-        } // face 1
-
-        if (domain->m_faceOffset[2] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
-                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
-                                        const double tmp0 = w5*(d_0 + d_1);
-                                        const double tmp1 = w6*(d_2 + d_3);
-                                        const double tmp2 = w5*(d_0 + d_2);
-                                        const double tmp3 = w6*(d_1 + d_3);
-                                        const double tmp4 = w5*(d_1 + d_3);
-                                        const double tmp5 = w6*(d_0 + d_2);
-                                        const double tmp6 = w7*(d_0 + d_3);
-                                        const double tmp7 = w7*(d_0 + d_1 + d_2 + d_3);
-                                        const double tmp8 = w7*(d_1 + d_2);
-                                        const double tmp9 = w5*(d_2 + d_3);
-                                        const double tmp10 = w6*(d_0 + d_1);
-                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=d_0*w9 + d_3*w8 + tmp8;
-                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp10 + tmp9;
-                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+=tmp7;
-                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp10 + tmp9;
-                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=d_1*w9 + d_2*w8 + tmp6;
-                                        EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=tmp7;
-                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+=tmp7;
-                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=d_1*w8 + d_2*w9 + tmp6;
-                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=tmp7;
-                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=d_0*w8 + d_3*w9 + tmp8;
-                                    }
-                                 }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w7;
-                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=4*wd0;
-                                    }
-                                }
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
-                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
-                                    const double tmp0 = 6*w7*(y_1 + y_2);
-                                    const double tmp1 = 6*w7*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                    EM_F[INDEX2(k,1,numEq)] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                    EM_F[INDEX2(k,2,numEq)] = 0;
-                                    EM_F[INDEX2(k,3,numEq)] = 0;
-                                    EM_F[INDEX2(k,4,numEq)] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                    EM_F[INDEX2(k,5,numEq)] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
-                                    EM_F[INDEX2(k,6,numEq)] = 0;
-                                    EM_F[INDEX2(k,7,numEq)] = 0;
-                                }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,1,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,2,numEq)] = 0;
-                                    EM_F[INDEX2(k,3,numEq)] = 0;
-                                    EM_F[INDEX2(k,4,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,5,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,6,numEq)] = 0;
-                                    EM_F[INDEX2(k,7,numEq)] = 0;
-                                }
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
-                    } // k0 loop
-                } // k2 loop
-            } // colouring
-        } // face 2
-
-        if (domain->m_faceOffset[3] > -1) {
-            for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for
-                for (index_t k2=k2_0; k2<NE2; k2+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
-                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
-                                        const double tmp0 = w5*(d_0 + d_2);
-                                        const double tmp1 = w6*(d_1 + d_3);
-                                        const double tmp2 = w5*(d_1 + d_3);
-                                        const double tmp3 = w6*(d_0 + d_2);
-                                        const double tmp4 = w7*(d_0 + d_1 + d_2 + d_3);
-                                        const double tmp5 = w5*(d_0 + d_1);
-                                        const double tmp6 = w6*(d_2 + d_3);
-                                        const double tmp7 = w7*(d_0 + d_3);
-                                        const double tmp8 = w7*(d_1 + d_2);
-                                        const double tmp9 = w5*(d_2 + d_3);
-                                        const double tmp10 = w6*(d_0 + d_1);
-                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=d_0*w9 + d_3*w8 + tmp8;
-                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp10 + tmp9;
-                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+=tmp4;
-                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp10 + tmp9;
-                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=d_1*w9 + d_2*w8 + tmp7;
-                                        EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=tmp4;
-                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp2 + tmp3;
-                                        EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+=tmp4;
-                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=d_1*w8 + d_2*w9 + tmp7;
-                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp5 + tmp6;
-                                        EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=tmp4;
-                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp5 + tmp6;
-                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=d_0*w8 + d_3*w9 + tmp8;
-                                    }
-                                 }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w7;
-                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=4*wd0;
-                                    }
-                                }
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
-                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
-                                    const double tmp0 = 6*w7*(y_1 + y_2);
-                                    const double tmp1 = 6*w7*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)] = 0;
-                                    EM_F[INDEX2(k,1,numEq)] = 0;
-                                    EM_F[INDEX2(k,2,numEq)] = tmp0 + 6*w5*y_3 + 6*w6*y_0;
-                                    EM_F[INDEX2(k,3,numEq)] = tmp1 + 6*w5*y_2 + 6*w6*y_1;
-                                    EM_F[INDEX2(k,4,numEq)] = 0;
-                                    EM_F[INDEX2(k,5,numEq)] = 0;
-                                    EM_F[INDEX2(k,6,numEq)] = tmp1 + 6*w5*y_1 + 6*w6*y_2;
-                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w5*y_0 + 6*w6*y_3;
-                                }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)] = 0;
-                                    EM_F[INDEX2(k,1,numEq)] = 0;
-                                    EM_F[INDEX2(k,2,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,3,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,4,numEq)] = 0;
-                                    EM_F[INDEX2(k,5,numEq)] = 0;
-                                    EM_F[INDEX2(k,6,numEq)] = 36*w7*y_p[k];
-                                    EM_F[INDEX2(k,7,numEq)] = 36*w7*y_p[k];
-                                }
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
-                    } // k0 loop
-                } // k2 loop
-            } // colouring
-        } // face 3
-
-        if (domain->m_faceOffset[4] > -1) {
-            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for
-                for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
-                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
-                                        const double tmp0 = w10*(d_0 + d_2);
-                                        const double tmp1 = w11*(d_1 + d_3);
-                                        const double tmp2 = w12*(d_0 + d_1 + d_2 + d_3);
-                                        const double tmp3 = w12*(d_1 + d_2);
-                                        const double tmp4 = w10*(d_1 + d_3);
-                                        const double tmp5 = w11*(d_0 + d_2);
-                                        const double tmp6 = w12*(d_0 + d_3);
-                                        const double tmp7 = w10*(d_0 + d_1);
-                                        const double tmp8 = w11*(d_2 + d_3);
-                                        const double tmp9 = w10*(d_2 + d_3);
-                                        const double tmp10 = w11*(d_0 + d_1);
-                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=d_0*w14 + d_3*w13 + tmp3;
-                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp10 + tmp9;
-                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+=tmp2;
-                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp10 + tmp9;
-                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=d_1*w14 + d_2*w13 + tmp6;
-                                        EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=tmp2;
-                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp4 + tmp5;
-                                        EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+=tmp2;
-                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=d_1*w13 + d_2*w14 + tmp6;
-                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp7 + tmp8;
-                                        EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=tmp2;
-                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp0 + tmp1;
-                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp7 + tmp8;
-                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=d_0*w13 + d_3*w14 + tmp3;
-                                    }
-                                 }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w12;
-                                        EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=4*wd0;
-                                    }
-                                }
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
-                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
-                                    const double tmp0 = 6*w12*(y_1 + y_2);
-                                    const double tmp1 = 6*w12*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                    EM_F[INDEX2(k,1,numEq)] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                    EM_F[INDEX2(k,2,numEq)] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                    EM_F[INDEX2(k,3,numEq)] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
-                                    EM_F[INDEX2(k,4,numEq)] = 0;
-                                    EM_F[INDEX2(k,5,numEq)] = 0;
-                                    EM_F[INDEX2(k,6,numEq)] = 0;
-                                    EM_F[INDEX2(k,7,numEq)] = 0;
-                                }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,1,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,2,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,3,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,4,numEq)] = 0;
-                                    EM_F[INDEX2(k,5,numEq)] = 0;
-                                    EM_F[INDEX2(k,6,numEq)] = 0;
-                                    EM_F[INDEX2(k,7,numEq)] = 0;
-                                }
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
-                    } // k0 loop
-                } // k1 loop
-            } // colouring
-        } // face 4
-
-        if (domain->m_faceOffset[5] > -1) {
-            for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for
-                for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                    for (index_t k0=0; k0<NE0; ++k0) {
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
-                        ///////////////
-                        // process d //
-                        ///////////////
-                        if (add_EM_S) {
-                            const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
-                            if (d.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                        const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                        const double d_2 = d_p[INDEX3(k,m,2,numEq,numComp)];
-                                        const double d_3 = d_p[INDEX3(k,m,3,numEq,numComp)];
-                                        const double tmp0 = w12*(d_0 + d_1 + d_2 + d_3);
-                                        const double tmp1 = w10*(d_1 + d_3);
-                                        const double tmp2 = w11*(d_0 + d_2);
-                                        const double tmp3 = w10*(d_2 + d_3);
-                                        const double tmp4 = w11*(d_0 + d_1);
-                                        const double tmp5 = w10*(d_0 + d_1);
-                                        const double tmp6 = w11*(d_2 + d_3);
-                                        const double tmp7 = w12*(d_1 + d_2);
-                                        const double tmp8 = w10*(d_0 + d_2);
-                                        const double tmp9 = w11*(d_1 + d_3);
-                                        const double tmp10 = w12*(d_0 + d_3);
-                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=d_0*w14 + d_3*w13 + tmp7;
-                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp3 + tmp4;
-                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp1 + tmp2;
-                                        EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+=tmp0;
-                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp3 + tmp4;
-                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=d_1*w14 + d_2*w13 + tmp10;
-                                        EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=tmp0;
-                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp8 + tmp9;
-                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp1 + tmp2;
-                                        EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+=tmp0;
-                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=d_1*w13 + d_2*w14 + tmp10;
-                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp5 + tmp6;
-                                        EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=tmp0;
-                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp8 + tmp9;
-                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp5 + tmp6;
-                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=d_0*w13 + d_3*w14 + tmp7;
-                                    }
-                                 }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    for (index_t m=0; m<numComp; m++) {
-                                        const double wd0 = 4*d_p[INDEX2(k, m, numEq)]*w12;
-                                        EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=4*wd0;
-                                        EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=  wd0;
-                                        EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=2*wd0;
-                                        EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=4*wd0;
-                                    }
-                                }
-                            }
-                        }
-                        ///////////////
-                        // process y //
-                        ///////////////
-                        if (add_EM_F) {
-                            const double* y_p=y.getSampleDataRO(e);
-                            if (y.actsExpanded()) {
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                    const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                    const double y_2 = y_p[INDEX2(k, 2, numEq)];
-                                    const double y_3 = y_p[INDEX2(k, 3, numEq)];
-                                    const double tmp0 = 6*w12*(y_1 + y_2);
-                                    const double tmp1 = 6*w12*(y_0 + y_3);
-                                    EM_F[INDEX2(k,0,numEq)] = 0;
-                                    EM_F[INDEX2(k,1,numEq)] = 0;
-                                    EM_F[INDEX2(k,2,numEq)] = 0;
-                                    EM_F[INDEX2(k,3,numEq)] = 0;
-                                    EM_F[INDEX2(k,4,numEq)] = tmp0 + 6*w10*y_3 + 6*w11*y_0;
-                                    EM_F[INDEX2(k,5,numEq)] = tmp1 + 6*w10*y_2 + 6*w11*y_1;
-                                    EM_F[INDEX2(k,6,numEq)] = tmp1 + 6*w10*y_1 + 6*w11*y_2;
-                                    EM_F[INDEX2(k,7,numEq)] = tmp0 + 6*w10*y_0 + 6*w11*y_3;
-                                }
-                            } else { // constant data
-                                for (index_t k=0; k<numEq; k++) {
-                                    EM_F[INDEX2(k,0,numEq)] = 0;
-                                    EM_F[INDEX2(k,1,numEq)] = 0;
-                                    EM_F[INDEX2(k,2,numEq)] = 0;
-                                    EM_F[INDEX2(k,3,numEq)] = 0;
-                                    EM_F[INDEX2(k,4,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,5,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,6,numEq)] = 36*w12*y_p[k];
-                                    EM_F[INDEX2(k,7,numEq)] = 36*w12*y_p[k];
-                                }
-                            }
-                        }
-                        const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
-                    } // k0 loop
-                } // k1 loop
-            } // colouring
-        } // face 5
-    } // end of parallel region
-}
-
-//protected
 void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                                         AbstractSystemMatrix* mat, Data& rhs,
                                         const Data& d, const Data& y) const
@@ -6838,11 +6856,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
     const double w0 = m_dx[0]*m_dx[1]/16.;
     const double w1 = m_dx[0]*m_dx[2]/16.;
     const double w2 = m_dx[1]*m_dx[2]/16.;
-    const bool add_EM_S=!d.isEmpty();
-    const bool add_EM_F=!y.isEmpty();
     const int NE0 = m_NE[0];
     const int NE1 = m_NE[1];
     const int NE2 = m_NE[2];
+    const bool add_EM_S = !d.isEmpty();
+    const bool add_EM_F = !y.isEmpty();
     rhs.requireWrite();
 
 #pragma omp parallel
@@ -6851,6 +6869,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
         vector<double> EM_F(8*numEq, 0);
 
         if (domain->m_faceOffset[0] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -6861,7 +6884,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w2;
@@ -6891,24 +6913,25 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,1,numEq)] = 0;
                                 EM_F[INDEX2(k,2,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)] = 0;
                                 EM_F[INDEX2(k,4,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,5,numEq)] = 0;
                                 EM_F[INDEX2(k,6,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,7,numEq)] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // k1 loop
                 } // k2 loop
             } // colouring
         } // face 0
 
         if (domain->m_faceOffset[1] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -6919,7 +6942,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w2;
@@ -6948,25 +6970,26 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)] = 0;
                                 EM_F[INDEX2(k,1,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,2,numEq)] = 0;
                                 EM_F[INDEX2(k,3,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,4,numEq)] = 0;
                                 EM_F[INDEX2(k,5,numEq)] = 4*w2*y_p[k];
-                                EM_F[INDEX2(k,6,numEq)] = 0;
                                 EM_F[INDEX2(k,7,numEq)] = 4*w2*y_p[k];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // k1 loop
                 } // k2 loop
             } // colouring
         } // face 1
 
         if (domain->m_faceOffset[2] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -6977,7 +7000,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
@@ -7008,23 +7030,24 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)] = 4*w1*y_p[k];
                                 EM_F[INDEX2(k,1,numEq)] = 4*w1*y_p[k];
-                                EM_F[INDEX2(k,2,numEq)] = 0;
-                                EM_F[INDEX2(k,3,numEq)] = 0;
                                 EM_F[INDEX2(k,4,numEq)] = 4*w1*y_p[k];
                                 EM_F[INDEX2(k,5,numEq)] = 4*w1*y_p[k];
-                                EM_F[INDEX2(k,6,numEq)] = 0;
-                                EM_F[INDEX2(k,7,numEq)] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // k0 loop
                 } // k2 loop
             } // colouring
         } // face 2
 
         if (domain->m_faceOffset[3] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
@@ -7035,7 +7058,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
@@ -7064,25 +7086,26 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)] = 0;
-                                EM_F[INDEX2(k,1,numEq)] = 0;
                                 EM_F[INDEX2(k,2,numEq)] = 4*w1*y_p[k];
                                 EM_F[INDEX2(k,3,numEq)] = 4*w1*y_p[k];
-                                EM_F[INDEX2(k,4,numEq)] = 0;
-                                EM_F[INDEX2(k,5,numEq)] = 0;
                                 EM_F[INDEX2(k,6,numEq)] = 4*w1*y_p[k];
                                 EM_F[INDEX2(k,7,numEq)] = 4*w1*y_p[k];
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // k0 loop
                 } // k2 loop
             } // colouring
         } // face 3
 
         if (domain->m_faceOffset[4] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
@@ -7093,7 +7116,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
@@ -7126,21 +7148,22 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                                 EM_F[INDEX2(k,1,numEq)] = 4*w0*y_p[k];
                                 EM_F[INDEX2(k,2,numEq)] = 4*w0*y_p[k];
                                 EM_F[INDEX2(k,3,numEq)] = 4*w0*y_p[k];
-                                EM_F[INDEX2(k,4,numEq)] = 0;
-                                EM_F[INDEX2(k,5,numEq)] = 0;
-                                EM_F[INDEX2(k,6,numEq)] = 0;
-                                EM_F[INDEX2(k,7,numEq)] = 0;
                             }
                         }
                         const index_t firstNode=m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // k0 loop
                 } // k1 loop
             } // colouring
         } // face 4
 
         if (domain->m_faceOffset[5] > -1) {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), 0);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), 0);
+
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
@@ -7151,7 +7174,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         ///////////////
                         if (add_EM_S) {
                             const double* d_p=d.getSampleDataRO(e);
-                            fill(EM_S.begin(), EM_S.end(), 0);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
@@ -7180,10 +7202,6 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                         if (add_EM_F) {
                             const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)] = 0;
-                                EM_F[INDEX2(k,1,numEq)] = 0;
-                                EM_F[INDEX2(k,2,numEq)] = 0;
-                                EM_F[INDEX2(k,3,numEq)] = 0;
                                 EM_F[INDEX2(k,4,numEq)] = 4*w0*y_p[k];
                                 EM_F[INDEX2(k,5,numEq)] = 4*w0*y_p[k];
                                 EM_F[INDEX2(k,6,numEq)] = 4*w0*y_p[k];
@@ -7191,8 +7209,8 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                             }
                         }
                         const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // k0 loop
                 } // k1 loop
             } // colouring
