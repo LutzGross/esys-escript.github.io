@@ -56,6 +56,6 @@ if env['usempi']:
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("ESCRIPT_TEST_DATA_ROOT","$BATCH_ROOT/escriptcore/test/python"),('ESCRIPT_WORKDIR','$BUILD_DIR/escriptcore/test/python')),"$BATCH_ROOT/escriptcore/test/python","$BATCH_ROOT/escriptcore/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("ESCRIPT_TEST_DATA_ROOT","$BATCH_ROOT/escriptcore/test/python"),('ESCRIPT_WORKDIR','$BUILD_DIR/escriptcore/test/python')),"$BATCH_ROOT/escriptcore/test/python","$BUILD_DIR/escriptcore/test/python",testruns)
 TestGroups.append(tgroup)
 
