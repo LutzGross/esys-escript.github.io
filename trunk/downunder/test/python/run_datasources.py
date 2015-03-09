@@ -127,7 +127,7 @@ class TestNumpyData(unittest.TestCase):
 
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
-        nz=len(out)/nx
+        nz=len(out)//nx
         g_out=out[:,0].reshape(nz,nx)
         s_out=out[:,1].reshape(nz,nx)
         self.assertAlmostEqual(np.abs(
@@ -176,7 +176,7 @@ class TestNumpyData(unittest.TestCase):
 
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
-        nz=len(out)/(nx*ny)
+        nz=len(out)//(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
         self.assertAlmostEqual(np.abs(
@@ -242,7 +242,7 @@ class TestErMapperData(unittest.TestCase):
 
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
-        nz=len(out)/(nx*ny)
+        nz=len(out)//(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
         self.assertAlmostEqual(np.abs(
@@ -303,7 +303,7 @@ class TestNetCdfData(unittest.TestCase):
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
 
-        nz=len(out)/(nx*ny)
+        nz=len(out)//(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
 
@@ -359,7 +359,7 @@ class TestNetCdfData(unittest.TestCase):
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         
         # recompute nz since ripley might have adjusted number of elements
-        nz=len(out)/(nx*ny)
+        nz=len(out)//(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
 
