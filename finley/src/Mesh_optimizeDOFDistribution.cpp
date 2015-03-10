@@ -127,7 +127,10 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
         int numflag = 0;
         int ncon = 1;
         int edgecut;
-        int options[2] = { 3, 15 };
+        // options[0]=1 -> non-default values, evaluate rest of options
+        // options[1]=15 -> DBG_TIME | DBG_INFO | DBG_PROGRESS | DBG_REFINEINFO
+        // options[2] -> random seed
+        int options[3] = { 1, 15, 0 };
         std::vector<real_t> tpwgts(ncon*mpiSize, 1.f/mpiSize);
         std::vector<real_t> ubvec(ncon, 1.05f);
         ParMETIS_V3_PartGeomKway(&distribution[0], pattern->ptr, pattern->index,
