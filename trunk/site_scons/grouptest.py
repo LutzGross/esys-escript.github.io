@@ -117,4 +117,6 @@ BATCH_ROOT=`pwd`\n""".format(prefix)
             res+="fi\n"
         res=res+"\n"
         return res
-        
+    
+    def makeFooter(self):
+        return "find $BUILD_DIR -name '*.failed' | xargs cat; find $BUILD_DIR -name '*.failed' | xargs diff -q - /dev/null 2>/dev/null"
