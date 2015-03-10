@@ -1,43 +1,84 @@
 from __future__ import print_function
 import sys
 
+fail_format = """======================================================================
+FAIL: {0} {1}
+----------------------------------------------------------------------
+{2}
+----------------------------------------------------------------------
+"""
+
 def rearrange(string):
     parts = string.split()
     parts = [parts[1][1:-1], parts[0]]
     return ".".join(parts)
 
-def run_tests(modules):
+def rearrange_to_default(string):
+    parts = string.split()
+    print(parts)
+    return ".".join(parts)
+
+def run_tests(modules, exit_on_failure=False):
     skiplist = []
+    faillist = []
     for module in modules:
         if module[-3:] == ".py":
             module = module[:-3]
-        m = __import__(module)
-        res = m.run_tests(module)
-        if not res.wasSuccessful():
-            sys.exit(1)
-        skiplist.extend(["%s : %s"%(rearrange(str(i[0])),i[1]) for i in res.skipped])
-    return skiplist
+        try:
+            m = __import__(module)
+        except ImportError:
+            raise RuntimeError(module)
+        res = m.run_tests(module, exit_on_failure=exit_on_failure)
+        skiplist.extend(["%s : %s\n"%(rearrange(str(i[0])),i[1]) for i in res.skipped])
+        faillist.extend([fail_format.format(str(i[0]).split()[0],str(i[0]).split()[1], i[1]) for i in res.failures])
+    return skiplist, faillist
 
 if __name__ == "__main__":
     modules = sys.argv[1:]
     if len(modules) == 0:
         print("%s missing argument, provide module to run tests on"%sys.argv[0])
         sys.exit(1)
-    outputfile = None
-    appendfile = None
-    for n, m in enumerate(modules):
-        if m.startswith("-outputfile="):
+    skipfile = None
+    skipappendfile = None
+    failfile = None
+    failappendfile = None
+    exit = False
+    n = 0
+    while n < len(modules):
+        m = modules[n]
+        if m.startswith("-skipfile="):
             modules.pop(n)
-            outputfile = m.split("=")[1]
-            break
-        if m.startswith("-appendfile="):
+            skipfile = m.split("=")[1]
+            continue
+        if m.startswith("-skipappendfile="):
             modules.pop(n)
-            appendfile = m.split("=")[1]
-            break
-    skipped = run_tests(modules)
-    if outputfile:
-        open(outputfile, "w").writelines("\n".join(skipped))
-    elif appendfile:
-        open(appendfile, "a").writelines("\n".join(skipped))
+            skipappendfile = m.split("=")[1]
+            continue
+        if m.startswith("-failfile="):
+            modules.pop(n)
+            failfile = m.split("=")[1]
+            continue
+        if m.startswith("-failappendfile="):
+            modules.pop(n)
+            failappendfile = m.split("=")[1]
+            continue
+        if m == "-exit":
+            modules.pop(n)
+            exit = True
+            continue
+        n += 1
+
+    skipped, failed = run_tests(modules, exit_on_failure=exit)
+    if skipfile:
+        open(skipfile, "w").writelines("".join(skipped))
+    elif skipappendfile:
+        open(skipappendfile, "a").writelines("".join(skipped))
     else:
-        print("\n".join(skipped))
+        print("".join(skipped))
+
+    if failfile:
+        open(failfile, "w").writelines("".join(failed))
+    elif failappendfile:
+        open(failappendfile, "a").writelines("".join(failed))
+    else:
+        print("".join(failed))

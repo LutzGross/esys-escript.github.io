@@ -101,13 +101,17 @@ BATCH_ROOT=`pwd`\n""".format(prefix)
             res=res+tt+"export PYTHONPATH=$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
         for t in self.test_list:
             res=res+tt+"echo Starting "+t+"\ndate\n"
-            outputfile = ""
+            skipoutputfile = ""
+            failoutputfile = ""
             cmd = self.exec_cmd
+            exit_on_failure = " || failed %s"%t
             if "examples" not in build_dir and "PYTHONRUNNER" in self.exec_cmd \
                     and "/tools/" not in build_dir:
-                outputfile = " -outputfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
+                skipoutputfile = " -skipfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
+                failoutputfile = " -failfile={0}/{1}".format(build_dir, t.replace(".py", ".failed"))
                 cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
-            res += "{0}{1}{2}{3} || failed {2}\n".format(tt, cmd, t, outputfile)
+                exit_on_failure = ""
+            res += "".join([tt, cmd, t, failoutputfile, skipoutputfile, exit_on_failure, "\n"])
             res += tt+"echo Completed "+t+"\n"
         if self.single_processor_only:
             res+="fi\n"
