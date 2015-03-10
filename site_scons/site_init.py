@@ -120,6 +120,7 @@ def generateTestScripts(env, TestGroups):
         utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], False))
         for tests in TestGroups:
             utest.write(tests.makeString())
+        utest.write(tests.makeFooter())
         utest.close()
         env.Execute(Chmod('utest.sh', 0o755))
         print("Generated utest.sh.")
