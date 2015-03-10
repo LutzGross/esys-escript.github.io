@@ -157,15 +157,16 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
                 int numflag = 0;    /* pattern->ptr is C style: starting from 0 instead of 1 */
                 int ncon = 1;
                 int edgecut;
-                int options[2];
+                int options[3];
                 real_t *tpwgts = new real_t[ncon * mpiSize];
                 real_t *ubvec = new real_t[ncon];
                 for (i = 0; i < ncon * mpiSize; i++)
                     tpwgts[i] = 1.0 / (real_t)mpiSize;
                 for (i = 0; i < ncon; i++)
                     ubvec[i] = 1.05;
-                options[0] = 3;
+                options[0] = 1;
                 options[1] = 15;
+                options[2] = 0;
                 ParMETIS_V3_PartGeomKway(distribution, pattern->ptr,
                         pattern->index, NULL, NULL, &wgtflag, &numflag, &dim,
                         xyz, &ncon, &mpiSize, tpwgts, ubvec, options, &edgecut,
