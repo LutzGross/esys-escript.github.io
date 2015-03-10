@@ -19,6 +19,7 @@ from esys.escript import *
 from esys.escriptcore.testing import *
 import esys.escriptcore.utestselect as unittest
 import numpy as np
+import collections
 
 try:
     TEST_DATA_ROOT=os.environ['DOWNUNDER_TEST_DATA_ROOT']
@@ -70,12 +71,12 @@ class TestDCResistivityForward(unittest.TestCase):
             lc=30.0
             bufferThickness=3000
             extents=[1000,2000,2000]
-            electrodeDict={}
+            electrodeDict=collections.OrderedDict()
             lcDiv=10
-            electrodeDict["e1"]=[-0.4*extents[0], 0, 0,lc/lcDiv]
-            electrodeDict["e2"]=[-0.2*extents[0], 0, 0,lc/lcDiv]
-            electrodeDict["e3"]=[0.2*extents[0], 0, 0,lc/lcDiv]
             electrodeDict["e4"]=[0.4*extents[0], 0, 0,lc/lcDiv]
+            electrodeDict["e1"]=[-0.4*extents[0], 0, 0,lc/lcDiv]
+            electrodeDict["e3"]=[0.2*extents[0], 0, 0,lc/lcDiv]
+            electrodeDict["e2"]=[-0.2*extents[0], 0, 0,lc/lcDiv]
             runName=os.path.join(WORKDIR, "dcResPolePole%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
