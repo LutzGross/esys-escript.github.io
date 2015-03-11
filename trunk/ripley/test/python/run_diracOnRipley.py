@@ -40,8 +40,8 @@ class Test_RipleyDiracPoints(unittest.TestCase):
     # constants
     numRanks = getMPISizeWorld()
     rank = getMPIRankWorld()
-    shortEdge = 5
-    longEdge = 3*numRanks-1
+    shortEdge = 3
+    longEdge = 5*numRanks-1
     empty = "(data contains no samples)\n"
 
     def getRectRefs(self, xLong):
@@ -54,8 +54,8 @@ class Test_RipleyDiracPoints(unittest.TestCase):
         if xLong:
             for rankx in range(self.numRanks):
                 for y in range(Ey):
-                    for x in range(3):
-                        result[y][x+3*rankx] = ref
+                    for x in range(5):
+                        result[y][x+5*rankx] = ref
                         ref += 1
         else:
             for y in range(Ey):
@@ -81,43 +81,46 @@ class Test_RipleyDiracPoints(unittest.TestCase):
         return results
 
     def generateRects(self, a, b):
-        rectX = Rectangle(self.longEdge, self.shortEdge, l0=self.longEdge,
-                l1=self.shortEdge, d0=self.numRanks, diracPoints=[(a,b)], diracTags=["test"])
-        rectY = Rectangle(self.shortEdge, self.longEdge, l0=self.shortEdge,
-                l1=self.longEdge, d1=self.numRanks, diracPoints=[(b,a)], diracTags=["test"])
-        return [rectX, rectY]
+        diracLoc = [a,b]
+        edges = [self.longEdge, self.shortEdge]
+        rects = []
+        for i in range(2):
+            rects.append(Rectangle(n0=edges[0], n1=edges[1],
+                      l0=edges[0], l1=edges[1],
+                      d0=self.numRanks, diracPoints=[tuple(diracLoc)],
+                      diracTags=["test"]))
+            diracLoc = diracLoc[::-1]
+            edges = edges[::-1]
+        return rects
 
     def generateBricks(self, a, b, c):
-        brickX = Brick(self.longEdge, 5, 5, 
-                l0=self.longEdge, l1=5, l2=5,
+        diracLoc = [a,b,c]
+        bricks = []
+        edges = [self.longEdge, self.shortEdge, self.shortEdge]
+        for i in range(3):
+            bricks.append(Brick(n0=edges[0], n1=edges[1], n2=edges[2],
+                l0=edges[0], l1=edges[1], l2=edges[2],
                 d0=self.numRanks,
-                diracPoints=[(a,b,c)], diracTags=["test"])
-        brickY = Brick(5, self.longEdge, 5, 
-                l0=5, l1=self.longEdge, l2=self.shortEdge,
-                d1=self.numRanks,
-                diracPoints=[(c,a,b)], diracTags=["test"])
-        brickZ = Brick(5, 5, self.longEdge,
-                l0=5, l1=5, l2=self.longEdge, 
-                d2=self.numRanks,
-                diracPoints=[(b,c,a)], diracTags=["test"])
-        dims = [ [self.longEdge, 5, 5], [5, self.longEdge, 5], 
-                      [5, 5, self.longEdge]]
-        return [brickX, brickY, brickZ], dims
+                diracPoints=[tuple(diracLoc)], diracTags=["test"]))
+            diracLoc = diracLoc[2:] + diracLoc[:2]
+            edges = edges[2:] + edges[:2]
+        tmp = [self.shortEdge]*3
+        dims = [tmp[:], tmp[:], tmp[:]]
+        for i in range(3):
+            dims[i][i] = self.longEdge
+        return bricks, dims
+
 
     def owns(self, refs, y, x, xLong):
-        if xLong and self.rank*3 - 1 <= x <= self.rank*3 + 3:
-            return True
-        elif not xLong and self.rank*3 - 1 <= y <= self.rank*3 + 3:
-            return True
-        return False
+        target = x
+        if not xLong:
+            target = y
+        return self.rank*5 - 1 <= target <= (self.rank + 1)*5
 
     def rectMessage(self, loc, xLong):
-        if xLong:
-            if not (0 <= loc[0] <= self.longEdge and 0 <= loc[1] <= self.shortEdge):
-                return self.empty
-        else:
-            if not (0 <= loc[1] <= self.longEdge and 0 <= loc[0] <= self.shortEdge):
-                return self.empty
+        dim = 0 if xLong else 1
+        if not (0 <= loc[dim] <= self.longEdge and 0 <= loc[1-dim] <= self.shortEdge):
+            return self.empty
         x = int(round(loc[0] - 0.01))
         y = int(round(loc[1] - 0.01))
         refs = self.getRectRefs(xLong)
@@ -131,7 +134,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
             if not 0 <= loc[n] <= dims[n]:
                 return self.empty
         loc = [int(round(i - 1e-8)) for i in loc]
-        if self.rank*3 - 1 <= loc[splitAxis] <= self.rank*3 + 3:
+        if self.rank*5 - 1 <= loc[splitAxis] <= (self.rank + 1)*5:
             x, y, z = loc
             return "( id: 0, ref: {0}, pnt: 0) (0) {1}\n( id: 0, ref: {0}, pnt: 0) (1) {2}\n( id: 0, ref: {0}, pnt: 0) (2) {3}".format(refs[x][y][z], x, y, z)
         return self.empty
@@ -144,7 +147,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
 
     def test_Creation(self):
         r = self.numRanks
-        el = self.numRanks*3-1
+        el = self.longEdge
 
         #test bad types
         with self.assertRaises(TypeError):
@@ -182,7 +185,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
 
     def test_BrickInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
-            a = a//2.
+            a = a//2
             c = 2.5
             for b in range(self.shortEdge):
                 doms, dims = self.generateBricks(a,b,c)
@@ -198,13 +201,13 @@ class Test_RipleyDiracPoints(unittest.TestCase):
                     self.assertEqual(got, expected, 
                             "{0} not mapped correctly on rank {1} for d{2} splits".format(tuple(points), self.rank, n) + \
                             "\nexpected === \n{0}\ngot === \n{1}".format(expected,got)+ \
-                            "\nlongedge=%d, shortedge=%d\n"%(self.longEdge, self.shortEdge))
+                            "\nlongedge(dim%d)=%d, shortedge=%d\n"%(n, self.longEdge, self.shortEdge))
                     #remaining ranks must also exit, otherwise we'll lock up
                     self.assertEqual(global_result, 0, "One or more ranks failed")
 
     def test_RectangleInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
-            a = a//2.
+            a = a//2
             for b in range(self.shortEdge):
                 rectX, rectY = self.generateRects(a,b)
                 i = interpolate(rectX.getX(), DiracDeltaFunctions(rectX))
@@ -215,7 +218,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
                 self.assertEqual(got, expected,
                         "({0},{1}) not mapped correctly on rank {2} for d0 splits".format(a,b, self.rank) + \
                         "\nexpected === \n{0}\ngot === \n{1}".format(expected, got)+\
-                        "\nlongedge=%d, shortedge=%d\n"%(self.longEdge, self.shortEdge))
+                        "\nlongedge(x)={0}, shortedge={1}\n".format(self.longEdge, self.shortEdge))
                 #remaining ranks must also exit, otherwise we'll lock up
                 self.assertEqual(global_result, 0, "One or more ranks failed")
                 i = interpolate(rectY.getX(), DiracDeltaFunctions(rectY))
@@ -225,7 +228,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
                 self.assertEqual(got, expected, 
                         "({0},{1}) not mapped correctly on rank {2} for d1 splits".format(b,a, self.rank) + \
                         "\nexpected === \n{0}\ngot === \n{1}".format(expected, got)+\
-                        "\nlongedge={0}, shortedge={1}\n".format(self.longEdge, self.shortEdge))
+                        "\nlongedge(y)={0}, shortedge={1}\n".format(self.longEdge, self.shortEdge))
                 #remaining ranks must also exit, otherwise we'll lock up
                 self.assertEqual(global_result, 0, "One or more ranks failed")
 
