@@ -16,7 +16,7 @@
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
-
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
@@ -45,8 +45,12 @@
 #include <iomanip>
 #include <limits>
 
-using namespace std;
 using esysUtils::FileWriter;
+using boost::math::isnan;
+using std::max;
+using std::min;
+using std::vector;
+using std::string;
 
 namespace speckley {
 
@@ -210,7 +214,7 @@ Brick::~Brick()
 #endif
 }
 
-string Brick::getDescription() const
+std::string Brick::getDescription() const
 {
     return "speckley::Brick";
 }
@@ -229,7 +233,7 @@ bool Brick::operator==(const AbstractDomain& other) const
     return false;
 }
 
-void Brick::readNcGrid(escript::Data& out, string filename, string varname,
+void Brick::readNcGrid(escript::Data& out, std::string filename, std::string varname,
             const ReaderParameters& params) const
 {
 #ifdef USE_NETCDF
@@ -376,7 +380,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 }
 
 #ifdef USE_BOOSTIO
-void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
+void Brick::readBinaryGridFromZipped(escript::Data& out, std::string filename,
                            const ReaderParameters& params) const
 {
     // the mapping is not universally correct but should work on our
@@ -397,7 +401,7 @@ void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
 }
 #endif
 
-void Brick::readBinaryGrid(escript::Data& out, string filename,
+void Brick::readBinaryGrid(escript::Data& out, std::string filename,
                            const ReaderParameters& params) const
 {
     // the mapping is not universally correct but should work on our
@@ -418,7 +422,7 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
 }
 
 template<typename ValueType>
-void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
+void Brick::readBinaryGridImpl(escript::Data& out, const std::string& filename,
                                const ReaderParameters& params) const
 {
     // check destination function space
@@ -449,11 +453,11 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
         throw SpeckleyException("readBinaryGrid(): reversing only supported in Z-direction currently");
 
     // check file existence and size
-    ifstream f(filename.c_str(), ifstream::binary);
+    std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
         throw SpeckleyException("readBinaryGrid(): cannot open file");
     }
-    f.seekg(0, ios::end);
+    f.seekg(0, std::ios::end);
     const int numComp = out.getDataPointSize();
     const dim_t filesize = f.tellg();
     const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
@@ -792,7 +796,7 @@ void Brick::interpolateFromCorners(escript::Data &out) const
     }
 }
 
-void Brick::writeBinaryGrid(const escript::Data& in, string filename,
+void Brick::writeBinaryGrid(const escript::Data& in, std::string filename,
                             int byteOrder, int dataType) const
 {
     // the mapping is not universally correct but should work on our
@@ -852,7 +856,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         for (index_t y=0; y<myN1; y++) {
             const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
                                 +(m_offset[2]+z)*totalN0*totalN1)*sizeof(ValueType);
-            ostringstream oss;
+            std::ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {
                 const double* sample = in.getSampleDataRO(
