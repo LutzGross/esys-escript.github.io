@@ -177,8 +177,8 @@ class Test_randomOnRipley(unittest.TestCase):
         fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize)+1)),10*(int(sqrt(mpiSize)+1))))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1))
+        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
+        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
         RandomData((2,3),fs)
 
     def test_FillBrick(self):
@@ -186,8 +186,8 @@ class Test_randomOnRipley(unittest.TestCase):
         fs=ContinuousFunction(Brick(10*mpiSize,10*mpiSize, 10*mpiSize))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",20,0.1))
+        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
+        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",20,0.1)) #radius too large
         RandomData((2,3),fs)
 
 

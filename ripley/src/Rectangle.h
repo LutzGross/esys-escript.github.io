@@ -233,7 +233,6 @@ protected:
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
 
-private:
     void populateSampleIds();
     void populateDofMap();
     std::vector<IndexVector> getConnections() const;

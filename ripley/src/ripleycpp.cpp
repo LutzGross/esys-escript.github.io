@@ -19,7 +19,9 @@
 
 #include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
+#include <ripley/MultiBrick.h>
 #include <ripley/Rectangle.h>
+#include <ripley/MultiRectangle.h>
 #include <esysUtils/esysExceptionTranslator.h>
 
 #include <boost/python.hpp> 
@@ -229,8 +231,176 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                                             points, tags, tagstonames, world));
 }
 
-//const int _q[]={0x61686969,0x746c4144,0x79616e43};
-const int _q[]={0x62207363, 0x6574735F, 0x2020214e};
+escript::Domain_ptr _multibrick(double _n0, double _n1, double _n2, const object& l0,
+                 const object& l1, const object& l2, int d0, int d1, int d2,
+                 const object& objpoints, const object& objtags, escript::SubWorld_ptr world,
+                 unsigned int multiplier)
+{
+    dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1), n2=static_cast<dim_t>(_n2);
+    double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
+    if (extract<tuple>(l0).check()) {
+        tuple x=extract<tuple>(l0);
+        if (len(x)==2) {
+            x0=extract<double>(x[0]);
+            x1=extract<double>(x[1]);
+        } else
+            throw RipleyException("Argument l0 must be a float or 2-tuple");
+    } else if (extract<double>(l0).check()) {
+        x1=extract<double>(l0);
+    } else
+        throw RipleyException("Argument l0 must be a float or 2-tuple");
+
+    if (extract<tuple>(l1).check()) {
+        tuple y=extract<tuple>(l1);
+        if (len(y)==2) {
+            y0=extract<double>(y[0]);
+            y1=extract<double>(y[1]);
+        } else
+            throw RipleyException("Argument l1 must be a float or 2-tuple");
+    } else if (extract<double>(l1).check()) {
+        y1=extract<double>(l1);
+    } else
+        throw RipleyException("Argument l1 must be a float or 2-tuple");
+
+    if (extract<tuple>(l2).check()) {
+        tuple z=extract<tuple>(l2);
+        if (len(z)==2) {
+            z0=extract<double>(z[0]);
+            z1=extract<double>(z[1]);
+        } else
+            throw RipleyException("Argument l2 must be a float or 2-tuple");
+    } else if (extract<double>(l2).check()) {
+        z1=extract<double>(l2);
+    } else
+        throw RipleyException("Argument l2 must be a float or 2-tuple");
+    boost::python::list pypoints=extract<boost::python::list>(objpoints);
+    boost::python::list pytags=extract<boost::python::list>(objtags);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    std::vector<double> points;
+    std::vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        tuple temp = extract<tuple>(pypoints[i]);
+        int l=extract<int>(temp.attr("__len__")());
+        if (l != 3)
+            throw RipleyException("Number of coordinates for each dirac point must match dimensions.");
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    std::map<std::string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<std::string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            std::string s=ex_str();
+            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw RipleyException("Error - Unable to extract tag value.");
+        }
+    }
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
+    return escript::Domain_ptr(new MultiBrick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
+                                            points, tags, tagstonames, world,
+                                            multiplier));
+}
+
+escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
+                               const object& l1, int d0, int d1, 
+                               const object& objpoints, const object& objtags,
+                               escript::SubWorld_ptr world,
+                               unsigned int multiplier)
+{
+    dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
+    double x0=0., x1=1., y0=0., y1=1.;
+    if (extract<tuple>(l0).check()) {
+        tuple x=extract<tuple>(l0);
+        if (len(x)==2) {
+            x0=extract<double>(x[0]);
+            x1=extract<double>(x[1]);
+        } else
+            throw RipleyException("Argument l0 must be a float or 2-tuple");
+    } else if (extract<double>(l0).check()) {
+        x1=extract<double>(l0);
+    } else
+        throw RipleyException("Argument l0 must be a float or 2-tuple");
+
+    if (extract<tuple>(l1).check()) {
+        tuple y=extract<tuple>(l1);
+        if (len(y)==2) {
+            y0=extract<double>(y[0]);
+            y1=extract<double>(y[1]);
+        } else
+            throw RipleyException("Argument l1 must be a float or 2-tuple");
+    } else if (extract<double>(l1).check()) {
+        y1=extract<double>(l1);
+    } else
+        throw RipleyException("Argument l1 must be a float or 2-tuple");
+    boost::python::list pypoints=extract<boost::python::list>(objpoints);
+    boost::python::list pytags=extract<boost::python::list>(objtags);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    std::vector<double> points;
+    std::vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        tuple temp = extract<tuple>(pypoints[i]);
+        int l=extract<int>(temp.attr("__len__")());
+        if (l != 2)
+            throw RipleyException("Number of coordinates for each dirac point must match dimensions.");
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    std::map<std::string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<std::string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i] >= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            std::string s=ex_str();
+            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw RipleyException("Error - Unable to extract tag value.");
+        }
+    }
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
+    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+                                 points, tags, tagstonames, world, multiplier));
+}
+
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1, 
                                const object& objpoints, const object& objtags,
@@ -309,7 +479,6 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                              points, tags, tagstonames, world));
 }
-std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
 } // end of namespace ripley
 
@@ -353,7 +522,30 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
-    def("_theculprit_", ripley::_who);
+
+    def("MultiRectangle", ripley::_multirectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr(), arg("multiplier")=1),
+"Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
+":param n0: number of elements in direction 0\n:type n0: ``int``\n"
+":param n1: number of elements in direction 1\n:type n1: ``int``\n"
+":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
+
+    def("MultiBrick", ripley::_multibrick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
+        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr(), arg("multiplier")=1),
+"Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
+":param n0: number of elements in direction 0\n:type n0: ``int``\n"
+":param n1: number of elements in direction 1\n:type n1: ``int``\n"
+":param n2: number of elements in direction 2\n:type n2: ``int``\n"
+":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
+":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+":param d2: number of subdivisions in direction 2\n:type d2: ``int``"
+":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
 
     def("readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,
@@ -473,6 +665,8 @@ args("solver", "preconditioner", "package", "symmetry"),
      * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
+    class_<ripley::MultiRectangle, bases<ripley::RipleyDomain> >("RipleyMultiRectangle", "", no_init);
+    class_<ripley::MultiBrick, bases<ripley::RipleyDomain> >("RipleyMultiBrick", "", no_init);
     class_<ripley::AbstractAssembler, ripley::Assembler_ptr, boost::noncopyable >
         ("AbstractAssembler", "", no_init);
 }

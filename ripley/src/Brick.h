@@ -225,7 +225,6 @@ protected:
     virtual dim_t getDofOfNode(dim_t node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 
-private:
     void populateSampleIds();
     void populateDofMap();
     std::vector<IndexVector> getConnections() const;
