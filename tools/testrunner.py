@@ -24,10 +24,7 @@ def run_tests(modules, exit_on_failure=False):
     for module in modules:
         if module[-3:] == ".py":
             module = module[:-3]
-        try:
-            m = __import__(module)
-        except ImportError:
-            raise RuntimeError(module)
+        m = __import__(module)
         res = m.run_tests(module, exit_on_failure=exit_on_failure)
         skiplist.extend(["%s : %s\n"%(rearrange(str(i[0])),i[1]) for i in res.skipped])
         faillist.extend([fail_format.format(str(i[0]).split()[0],str(i[0]).split()[1], i[1]) for i in res.failures])
