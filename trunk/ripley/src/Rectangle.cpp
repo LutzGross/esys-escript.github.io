@@ -791,7 +791,7 @@ void Rectangle::dump(const string& fileName) const
         vector<char*> names;
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
             std::stringstream path;
-            path << "/block" << std::setw(4) << setfill('0') << right << i << "/mesh";
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -803,7 +803,7 @@ void Rectangle::dump(const string& fileName) const
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
             std::stringstream path;
-            path << "/block" << std::setw(4) << setfill('0') << right << i << "/nodeId";
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -814,7 +814,7 @@ void Rectangle::dump(const string& fileName) const
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
             std::stringstream path;
-            path << "/block" << std::setw(4) << setfill('0') << right << i << "/elementId";
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }

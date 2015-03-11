@@ -472,7 +472,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     if (f.fail()) {
         throw RipleyException("readBinaryGrid(): cannot open file");
     }
-    f.seekg(0, ios::end);
+    f.seekg(0, std::ios::end);
     const int numComp = out.getDataPointSize();
     const dim_t filesize = f.tellg();
     const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
@@ -627,7 +627,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     if (f.fail()) {
         throw RipleyException("readBinaryGridFromZipped(): cannot open file");
     }
-    f.seekg(0, ios::end);
+    f.seekg(0, std::ios::end);
     const int numComp = out.getDataPointSize();
     dim_t filesize = f.tellg();
     f.seekg(0, ios::beg);
@@ -921,8 +921,8 @@ void Brick::dump(const string& fileName) const
         vector<string> tempstrings;
         vector<char*> names;
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            stringstream path;
-            path << "/block" << std::setw(4) << setfill('0') << right << i << "/mesh";
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -933,8 +933,8 @@ void Brick::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            stringstream path;
-            path << "/block" << std::setw(4) << setfill('0') << right << i << "/nodeId";
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -944,8 +944,8 @@ void Brick::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            stringstream path;
-            path << "/block" << std::setw(4) << setfill('0') << right << i << "/elementId";
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -988,7 +988,7 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
             break;
     }
 
-    stringstream msg;
+    std::stringstream msg;
     msg << "borrowSampleReferenceIDs: invalid function space type "<<fsType;
     throw RipleyException(msg.str());
 }
@@ -1041,7 +1041,7 @@ bool Brick::ownSample(int fsType, index_t id) const
             break;
     }
 
-    stringstream msg;
+    std::stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
@@ -1218,7 +1218,7 @@ void Brick::setToNormal(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        stringstream msg;
+        std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -1315,7 +1315,7 @@ void Brick::setToSize(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        stringstream msg;
+        std::stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -1328,7 +1328,7 @@ void Brick::Print_Mesh_Info(const bool full) const
     if (full) {
         std::cout << "     Id  Coordinates" << std::endl;
         std::cout.precision(15);
-        std::cout.setf(ios::scientific, ios::floatfield);
+        std::cout.setf(ios::scientific, std::ios::floatfield);
         for (index_t i=0; i < getNumNodes(); i++) {
             std::cout << "  " << std::setw(5) << m_nodeId[i]
                 << "  " << getLocalCoordinate(i%m_NN[0], 0)

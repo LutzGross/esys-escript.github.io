@@ -26,6 +26,7 @@
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <boost/scoped_array.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -47,9 +48,17 @@
 
 
 namespace bp = boost::python;
-using namespace std;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
+
+using boost::math::isnan;
+using std::vector;
+using std::string;
+using std::min;
+using std::max;
+using std::copy;
+using std::ios;
+using std::fill;
 
 namespace ripley {
 
@@ -643,7 +652,7 @@ const dim_t* MultiBrick::borrowSampleReferenceIDs(int fsType) const
             break;
     }
 
-    stringstream msg;
+    std::stringstream msg;
     msg << "borrowSampleReferenceIDs: invalid function space type "<<fsType;
     throw RipleyException(msg.str());
 }
@@ -696,7 +705,7 @@ bool MultiBrick::ownSample(int fsType, index_t id) const
             break;
     }
 
-    stringstream msg;
+    std::stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
@@ -873,7 +882,7 @@ void MultiBrick::setToNormal(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        stringstream msg;
+        std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -970,7 +979,7 @@ void MultiBrick::setToSize(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        stringstream msg;
+        std::stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -981,14 +990,14 @@ void MultiBrick::Print_Mesh_Info(const bool full) const
 {
     RipleyDomain::Print_Mesh_Info(full);
     if (full) {
-        cout << "     Id  Coordinates" << endl;
-        cout.precision(15);
-        cout.setf(ios::scientific, ios::floatfield);
+        std::cout << "     Id  Coordinates" << std::endl;
+        std::cout.precision(15);
+        std::cout.setf(ios::scientific, std::ios::floatfield);
         for (index_t i=0; i < getNumNodes(); i++) {
-            cout << "  " << setw(5) << m_nodeId[i]
+            std::cout << "  " << std::setw(5) << m_nodeId[i]
                 << "  " << getLocalCoordinate(i%m_NN[0], 0)
                 << "  " << getLocalCoordinate(i%(m_NN[0]*m_NN[1])/m_NN[0], 1)
-                << "  " << getLocalCoordinate(i/(m_NN[0]*m_NN[1]), 2) << endl;
+                << "  " << getLocalCoordinate(i/(m_NN[0]*m_NN[1]), 2) << std::endl;
         }
     }
 }
@@ -1042,7 +1051,7 @@ void MultiBrick::populateSampleIds()
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const length_error& le) {
+    } catch (const std::length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
 
@@ -1467,22 +1476,22 @@ void MultiBrick::populateDofMap()
 
     // useful debug output
     /*
-    cout << "--- rcv_shcomp ---" << endl;
-    cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
+    std::cout << "--- rcv_shcomp ---" << std::endl;
+    std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
     for (size_t i=0; i<neighbour.size(); i++) {
-        cout << "neighbor[" << i << "]=" << neighbour[i]
-            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << endl;
+        std::cout << "neighbor[" << i << "]=" << neighbour[i]
+            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
     }
     for (size_t i=0; i<recvShared.size(); i++) {
-        cout << "shared[" << i << "]=" << recvShared[i] << endl;
+        std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
     }
-    cout << "--- snd_shcomp ---" << endl;
+    std::cout << "--- snd_shcomp ---" << std::endl;
     for (size_t i=0; i<sendShared.size(); i++) {
-        cout << "shared[" << i << "]=" << sendShared[i] << endl;
+        std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
     }
-    cout << "--- dofMap ---" << endl;
+    std::cout << "--- dofMap ---" << std::endl;
     for (size_t i=0; i<m_dofMap.size(); i++) {
-        cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << endl;
+        std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
     }
     */
 }

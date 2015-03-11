@@ -26,6 +26,7 @@
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <boost/scoped_array.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -48,9 +49,17 @@
 #include <algorithm>
 
 namespace bp = boost::python;
-using namespace std;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
+
+using boost::math::isnan;
+using std::vector;
+using std::string;
+using std::min;
+using std::max;
+using std::copy;
+using std::ios;
+using std::fill;
 
 namespace ripley {
 
@@ -508,7 +517,7 @@ const dim_t* MultiRectangle::borrowSampleReferenceIDs(int fsType) const
             break;
     }
 
-    stringstream msg;
+    std::stringstream msg;
     msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
@@ -556,7 +565,7 @@ bool MultiRectangle::ownSample(int fsType, index_t id) const
             break;
     }
 
-    stringstream msg;
+    std::stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
@@ -659,7 +668,7 @@ void MultiRectangle::setToNormal(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        stringstream msg;
+        std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -721,7 +730,7 @@ void MultiRectangle::setToSize(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        stringstream msg;
+        std::stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -750,7 +759,7 @@ void MultiRectangle::populateSampleIds()
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const length_error& le) {
+    } catch (const std::length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
 
