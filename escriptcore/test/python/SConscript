@@ -52,7 +52,7 @@ env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
 program = local_env.RunPyUnitTest(alltestruns)
 Depends(program, [py_wrapper_lib, 'install_escript_py', 'build_py_tests'])
 if env['usempi']:
-    Requires(program, '#lib/pythonMPI')
+    Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # add a group of tests
 from grouptest import *
