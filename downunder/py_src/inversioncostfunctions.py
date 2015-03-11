@@ -201,7 +201,12 @@ class InversionCostFunction(MeteredCostFunction):
         self.numMappings=numMappings
         self.numModels=numModels
 
-        self.__num_tradeoff_factors = self.regularization.getNumTradeOffFactors() + self.numModels
+	  # Need to make sure this is updated later
+        if regularization is not None:
+	  self.__num_tradeoff_factors = self.regularization.getNumTradeOffFactors() + self.numModels
+        else:
+	  self.__num_tradeoff_factors=None
+	  
         self.setTradeOffFactorsModels()
 
     def getDomain(self):
@@ -210,6 +215,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         :rtype: `Domain`
         """
+        raise RuntimeError("External access to regularization not permitted in split world mode.")
         self.regularization.getDomain()
 
     def getNumTradeOffFactors(self):
@@ -238,6 +244,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         :rtype: `Regularization`
         """
+        raise RuntimeError("External access to regularization not permitted in split world mode.")
         return self.regularization
 
     def setTradeOffFactorsModels(self, mu=None):
@@ -283,6 +290,7 @@ class InversionCostFunction(MeteredCostFunction):
         :param mu: trade-off factors for the level-set variation part
         :param mu_c: trade-off factors for the cross gradient variation part
         """
+        raise RuntimeError("External access to regularization not permitted in split world mode.")
         self.regularization.setTradeOffFactorsForVariation(mu)
         self.regularization.setTradeOffFactorsForCrossGradient(mu_c)
 
