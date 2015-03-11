@@ -609,14 +609,14 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
             throw SpeckleyException("readBinaryGridFromZipped(): all multipliers must be positive");
 
     // check file existence and size
-    ifstream f(filename.c_str(), ifstream::binary);
+    std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
         throw SpeckleyException("readBinaryGridFromZipped(): cannot open file");
     }
-    f.seekg(0, ios::end);
+    f.seekg(0, std::ios::end);
     const int numComp = out.getDataPointSize();
     dim_t filesize = f.tellg();
-    f.seekg(0, ios::beg);
+    f.seekg(0, std::ios::beg);
     std::vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
@@ -988,8 +988,8 @@ void Brick::dump(const string& fileName) const
         vector<string> tempstrings;
         vector<char*> names;
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            stringstream path;
-            path << "/block" << setw(4) << setfill('0') << right << i << "/mesh";
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -1000,8 +1000,8 @@ void Brick::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            stringstream path;
-            path << "/block" << setw(4) << setfill('0') << right << i << "/nodeId";
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -1011,8 +1011,8 @@ void Brick::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            stringstream path;
-            path << "/block" << setw(4) << setfill('0') << right << i << "/elementId";
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
