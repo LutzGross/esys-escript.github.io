@@ -17,6 +17,7 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
+#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
 
 #include <ripley/Brick.h>
 #include <ripley/DefaultAssembler3D.h>
@@ -45,9 +46,16 @@
 #include <limits>
 
 namespace bp = boost::python;
-using namespace std;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
+using boost::math::isnan;
+using std::vector;
+using std::string;
+using std::min;
+using std::max;
+using std::ios;
+using std::stringstream;
+using std::fill;
 
 namespace ripley {
 
@@ -72,7 +80,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     RipleyDomain(3, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
-            * static_cast<long>(n2 + 1) > numeric_limits<dim_t>::max())
+            * static_cast<long>(n2 + 1) > std::numeric_limits<dim_t>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
 
@@ -125,8 +133,8 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
         throw RipleyException("Invalid number of spatial subdivisions");
     }
     if (warn) {
-        cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
-            << d1 << ", d2=" << d2 << "). This may not be optimal!" << endl;
+        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+            << d1 << ", d2=" << d2 << "). This may not be optimal!" << std::endl;
     }
 
     double l0 = x1-x0;
@@ -139,20 +147,20 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     if ((n0+1)%d0 > 0) {
         n0=(dim_t)round((float)(n0+1)/d0+0.5)*d0-1;
         l0=m_dx[0]*n0;
-        cout << "Warning: Adjusted number of elements and length. N0="
-            << n0 << ", l0=" << l0 << endl;
+        std::cout << "Warning: Adjusted number of elements and length. N0="
+            << n0 << ", l0=" << l0 << std::endl;
     }
     if ((n1+1)%d1 > 0) {
         n1=(dim_t)round((float)(n1+1)/d1+0.5)*d1-1;
         l1=m_dx[1]*n1;
-        cout << "Warning: Adjusted number of elements and length. N1="
-            << n1 << ", l1=" << l1 << endl;
+        std::cout << "Warning: Adjusted number of elements and length. N1="
+            << n1 << ", l1=" << l1 << std::endl;
     }
     if ((n2+1)%d2 > 0) {
         n2=(dim_t)round((float)(n2+1)/d2+0.5)*d2-1;
         l2=m_dx[2]*n2;
-        cout << "Warning: Adjusted number of elements and length. N2="
-            << n2 << ", l2=" << l2 << endl;
+        std::cout << "Warning: Adjusted number of elements and length. N2="
+            << n2 << ", l2=" << l2 << std::endl;
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2) || (d2 > 1 && (n2+1)/d2<2))
@@ -460,7 +468,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
         throw RipleyException("readBinaryGrid(): reversing only supported in Z-direction currently");
 
     // check file existence and size
-    ifstream f(filename.c_str(), ifstream::binary);
+    std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
         throw RipleyException("readBinaryGrid(): cannot open file");
     }
@@ -615,7 +623,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
             throw RipleyException("readBinaryGridFromZipped(): all multipliers must be positive");
 
     // check file existence and size
-    ifstream f(filename.c_str(), ifstream::binary);
+    std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
         throw RipleyException("readBinaryGridFromZipped(): cannot open file");
     }
@@ -781,7 +789,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         for (index_t y=0; y<myN1; y++) {
             const dim_t fileofs = (offset0+(offset1+y)*totalN0
                                 +(offset2+z)*totalN0*totalN1)*sizeof(ValueType);
-            ostringstream oss;
+            std::ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {
                 const double* sample = in.getSampleDataRO(z*myN0*myN1+y*myN0+x);
@@ -914,7 +922,7 @@ void Brick::dump(const string& fileName) const
         vector<char*> names;
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
             stringstream path;
-            path << "/block" << setw(4) << setfill('0') << right << i << "/mesh";
+            path << "/block" << std::setw(4) << setfill('0') << right << i << "/mesh";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -926,7 +934,7 @@ void Brick::dump(const string& fileName) const
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
             stringstream path;
-            path << "/block" << setw(4) << setfill('0') << right << i << "/nodeId";
+            path << "/block" << std::setw(4) << setfill('0') << right << i << "/nodeId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -937,7 +945,7 @@ void Brick::dump(const string& fileName) const
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
             stringstream path;
-            path << "/block" << setw(4) << setfill('0') << right << i << "/elementId";
+            path << "/block" << std::setw(4) << setfill('0') << right << i << "/elementId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -1318,14 +1326,14 @@ void Brick::Print_Mesh_Info(const bool full) const
 {
     RipleyDomain::Print_Mesh_Info(full);
     if (full) {
-        cout << "     Id  Coordinates" << endl;
-        cout.precision(15);
-        cout.setf(ios::scientific, ios::floatfield);
+        std::cout << "     Id  Coordinates" << std::endl;
+        std::cout.precision(15);
+        std::cout.setf(ios::scientific, ios::floatfield);
         for (index_t i=0; i < getNumNodes(); i++) {
-            cout << "  " << setw(5) << m_nodeId[i]
+            std::cout << "  " << std::setw(5) << m_nodeId[i]
                 << "  " << getLocalCoordinate(i%m_NN[0], 0)
                 << "  " << getLocalCoordinate(i%(m_NN[0]*m_NN[1])/m_NN[0], 1)
-                << "  " << getLocalCoordinate(i/(m_NN[0]*m_NN[1]), 2) << endl;
+                << "  " << getLocalCoordinate(i/(m_NN[0]*m_NN[1]), 2) << std::endl;
         }
     }
 }
@@ -2129,7 +2137,7 @@ void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
             for (index_t k=0; k<nDOF0; k++) {
                 const index_t n=k+left+(j+bottom)*m_NN[0]+(i+front)*m_NN[0]*m_NN[1];
                 const double* src=in.getSampleDataRO(n);
-                copy(src, src+numComp, out.getSampleDataRW(k+j*nDOF0+i*nDOF0*nDOF1));
+                std::copy(src, src+numComp, out.getSampleDataRW(k+j*nDOF0+i*nDOF0*nDOF1));
             }
         }
     }
@@ -2154,7 +2162,7 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
         const double* src=(m_dofMap[i]<numDOF ?
                 in.getSampleDataRO(m_dofMap[i])
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
-        copy(src, src+numComp, out.getSampleDataRW(i));
+        std::copy(src, src+numComp, out.getSampleDataRW(i));
     }
 }
 
@@ -2318,43 +2326,43 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
 
     // useful debug output
     /*
-    cout << "--- colIndices ---" << endl;
+    std::cout << "--- colIndices ---" << std::endl;
     for (size_t i=0; i<colIndices.size(); i++) {
-        cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << endl;
+        std::cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << std::endl;
     }
-    cout << "--- rowIndices ---" << endl;
+    std::cout << "--- rowIndices ---" << std::endl;
     for (size_t i=0; i<rowIndices.size(); i++) {
-        cout << "rowIndices[" << i << "].size()=" << rowIndices[i].size() << endl;
+        std::cout << "rowIndices[" << i << "].size()=" << rowIndices[i].size() << std::endl;
     }
     */
     /*
-    cout << "--- main_pattern ---" << endl;
-    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
+    std::cout << "--- main_pattern ---" << std::endl;
+    std::cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << std::endl;
     for (size_t i=0; i<mainPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
+        std::cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << std::endl;
     }
     for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
+        std::cout << "index[" << i << "]=" << mainPattern->index[i] << std::endl;
     }
     */
     /*
-    cout << "--- colCouple_pattern ---" << endl;
-    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
+    std::cout << "--- colCouple_pattern ---" << std::endl;
+    std::cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << std::endl;
     for (size_t i=0; i<colPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
+        std::cout << "ptr[" << i << "]=" << colPattern->ptr[i] << std::endl;
     }
     for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
+        std::cout << "index[" << i << "]=" << colPattern->index[i] << std::endl;
     }
     */
     /*
-    cout << "--- rowCouple_pattern ---" << endl;
-    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
+    std::cout << "--- rowCouple_pattern ---" << std::endl;
+    std::cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << std::endl;
     for (size_t i=0; i<rowPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
+        std::cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << std::endl;
     }
     for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
+        std::cout << "index[" << i << "]=" << rowPattern->index[i] << std::endl;
     }
     */
 
@@ -2384,7 +2392,7 @@ void Brick::populateSampleIds()
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const length_error& le) {
+    } catch (const std::length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
 
@@ -2809,22 +2817,22 @@ void Brick::populateDofMap()
 
     // useful debug output
     /*
-    cout << "--- rcv_shcomp ---" << endl;
-    cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
+    std::cout << "--- rcv_shcomp ---" << std::endl;
+    std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
     for (size_t i=0; i<neighbour.size(); i++) {
-        cout << "neighbor[" << i << "]=" << neighbour[i]
-            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << endl;
+        std::cout << "neighbor[" << i << "]=" << neighbour[i]
+            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
     }
     for (size_t i=0; i<recvShared.size(); i++) {
-        cout << "shared[" << i << "]=" << recvShared[i] << endl;
+        std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
     }
-    cout << "--- snd_shcomp ---" << endl;
+    std::cout << "--- snd_shcomp ---" << std::endl;
     for (size_t i=0; i<sendShared.size(); i++) {
-        cout << "shared[" << i << "]=" << sendShared[i] << endl;
+        std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
     }
-    cout << "--- dofMap ---" << endl;
+    std::cout << "--- dofMap ---" << std::endl;
     for (size_t i=0; i<m_dofMap.size(); i++) {
-        cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << endl;
+        std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
     }
     */
 }
@@ -3353,7 +3361,7 @@ escript::Data Brick::randomFillWorker(
     basex=X*m_gNE[0]/m_NX[0];
     basey=Y*m_gNE[1]/m_NX[1];
     basez=Z*m_gNE[2]/m_NX[2];
-cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
+std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << std::endl;
 #endif
     esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
 */

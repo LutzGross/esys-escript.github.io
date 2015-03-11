@@ -17,7 +17,7 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <algorithm>
 #include <limits>
 
@@ -48,7 +48,8 @@
 #include <iomanip>
 
 using esysUtils::FileWriter;
-using namespace std;	// to allow isnan to work
+using boost::math::isnan;
+
 namespace speckley {
 
 Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double x1,
