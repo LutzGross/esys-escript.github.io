@@ -35,6 +35,8 @@ sources = """
     domainhelpers.cpp
     LameAssembler2D.cpp
     LameAssembler3D.cpp
+    MultiBrick.cpp
+    MultiRectangle.cpp
     Rectangle.cpp
     RipleyDomain.cpp
     RipleyException.cpp
@@ -51,6 +53,8 @@ headers = """
     domainhelpers.h
     LameAssembler2D.h
     LameAssembler3D.h
+    MultiBrick.h
+    MultiRectangle.h
     Rectangle.h
     Ripley.h
     RipleyDomain.h

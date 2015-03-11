@@ -74,7 +74,7 @@ program = local_env.RunPyUnitTest(alltestruns)
 Depends(program, py_wrapper_lib)
 Depends(program, 'build_py_tests')
 if env['usempi']:
-    Requires(program, '#lib/pythonMPI')
+    Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # Add a group of tests
 from grouptest import *

@@ -81,7 +81,7 @@ program = local_env.RunPyUnitTest(alltestruns)
 Depends(program, [py_wrapper_lib, 'install_finley_py'])
 Depends(program, 'build_py_tests')
 if env['usempi']:
-    Requires(program, '#lib/pythonMPI')
+    Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # add a group of tests
 from grouptest import *
