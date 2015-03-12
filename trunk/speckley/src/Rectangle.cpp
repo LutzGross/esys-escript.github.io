@@ -17,7 +17,7 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <algorithm>
 #include <limits>
 
@@ -47,8 +47,8 @@
 
 #include <iomanip>
 
+namespace bm=boost::math;
 using esysUtils::FileWriter;
-using boost::math::isnan;
 
 namespace speckley {
 
@@ -304,7 +304,7 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
             const dim_t baseIndex = first0+x*params.multiplier[0]
                                   +(first1+y*params.multiplier[1])*myN0;
             const dim_t srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
-            if (!isnan(values[srcIndex])) {
+            if (!bm::isnan(values[srcIndex])) {
                 for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                     for (index_t m0=0; m0<params.multiplier[0]; m0++) {
                         const dim_t dataIndex = baseIndex+m0+m1*myN0;
@@ -472,7 +472,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filena
                                 byte_swap32(cval);
                             }
                         }
-                        if (!isnan(val)) {
+                        if (!bm::isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -586,7 +586,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const std::string& 
                                 byte_swap32(cval);
                             }
                         }
-                        if (!isnan(val)) {
+                        if (!bm::isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }

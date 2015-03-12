@@ -46,9 +46,9 @@
 #include <limits>
 
 namespace bp = boost::python;
+namespace bm = boost::math;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
-using boost::math::isnan;
 using std::vector;
 using std::string;
 using std::min;
@@ -369,7 +369,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
                 const dim_t srcIndex=(z0+z_mult*z)*num1*num0
                                   +(y0+y_mult*y)*num0
                                   +(x0+x_mult*x);
-                if (!isnan(values[srcIndex])) {
+                if (!bm::isnan(values[srcIndex])) {
                     for (index_t m2=0; m2<params.multiplier[2]; m2++) {
                         for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                             for (index_t m0=0; m0<params.multiplier[0]; m0++) {
@@ -574,7 +574,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
                                         byte_swap32(cval);
                                     }
                                 }
-                                if (!isnan(val)) {
+                                if (!bm::isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(val);
                                     }
@@ -694,7 +694,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                     // this will alter val!!
                                     byte_swap32(cval);
                                 }
-                                if (!isnan(val)) {
+                                if (!bm::isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(val);
                                     }
