@@ -204,6 +204,13 @@ public:
     */
     const double *getElementLength() const { return m_dx; }
 
+    /**
+       \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const;
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
