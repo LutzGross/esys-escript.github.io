@@ -52,13 +52,14 @@ def Brick(**kwargs):
 @unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_DiracPointsOnMultiResolutionDomains(Test_RipleyDiracPoints):
 
-    # constants
-    numRanks = getMPISizeWorld()
-    rank = getMPIRankWorld()
-    shortEdge = 3
-    longFactor = 5
-    longEdge = longFactor*numRanks-1
-    empty = "(data contains no samples)\n"
+    def setup(self):
+        # constants
+        self.numRanks = getMPISizeWorld()
+        self.rank = getMPIRankWorld()
+        self.shortEdge = 3
+        self.longFactor = 5
+        self.longEdge = self.longFactor*self.numRanks-1
+        self.empty = "(data contains no samples)\n"
 
     def getRectRefs(self, xLong):
         Ex = self.longEdge+1
