@@ -46,9 +46,9 @@
 #include <limits>
 
 namespace bp = boost::python;
+namespace bm = boost::math;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
-using boost::math::isnan;
 using std::vector;
 using std::string;
 using std::min;
@@ -315,7 +315,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
             const dim_t baseIndex = first0+x*params.multiplier[0]
                                   +(first1+y*params.multiplier[1])*myN0;
             const dim_t srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
-            if (!isnan(values[srcIndex])) {
+            if (!bm::isnan(values[srcIndex])) {
                 for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                     for (index_t m0=0; m0<params.multiplier[0]; m0++) {
                         const dim_t dataIndex = baseIndex+m0+m1*myN0;
@@ -485,7 +485,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                                 byte_swap32(cval);
                             }
                         }
-                        if (!isnan(val)) {
+                        if (!bm::isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -578,7 +578,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
                             // this will alter val!!
                             byte_swap32(cval);
                         }
-                        if (!isnan(val)) {
+                        if (!bm::isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
