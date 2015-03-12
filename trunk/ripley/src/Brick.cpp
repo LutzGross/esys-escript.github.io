@@ -15,9 +15,11 @@
 *****************************************************************************/
 
 #define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <esysUtils/first.h>
+#include <esysUtils/esysFileWriter.h>
+#include <esysUtils/EsysRandom.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
+#include <paso/SystemMatrix.h>
 
 #include <ripley/Brick.h>
 #include <ripley/DefaultAssembler3D.h>
@@ -25,11 +27,6 @@
 #include <ripley/WaveAssembler3D.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
-#include <esysUtils/esysFileWriter.h>
-#include <esysUtils/EsysRandom.h>
-#include <paso/SystemMatrix.h>
-
-#include <boost/scoped_array.hpp>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -41,6 +38,9 @@
 #include <pmpio.h>
 #endif
 #endif
+
+#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
+#include <boost/scoped_array.hpp>
 
 #include <iomanip>
 #include <limits>
@@ -54,7 +54,6 @@ using std::string;
 using std::min;
 using std::max;
 using std::ios;
-using std::stringstream;
 using std::fill;
 
 namespace ripley {
@@ -1044,6 +1043,116 @@ bool Brick::ownSample(int fsType, index_t id) const
     std::stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
+}
+
+RankVector Brick::getOwnerVector(int fsType) const
+{
+    RankVector owner;
+    const Esys_MPI_rank rank = m_mpiInfo->rank;
+
+    if (fsType == Elements || fsType == ReducedElements) {
+        owner.assign(getNumElements(), rank);
+        // shared plane in Y-Z
+        if (m_faceCount[0]==0) {
+            for (dim_t k2=0; k2<m_NE[2]; k2++) {
+                for (dim_t k1=0; k1<m_NE[1]; k1++) {
+                    const dim_t e=k2*m_NE[0]*m_NE[1]+k1*m_NE[0];
+                    owner[e] = rank-1;
+                }
+            }
+        }
+        // shared plane in X-Z
+        if (m_faceCount[2]==0) {
+            for (dim_t k2=0; k2<m_NE[2]; k2++) {
+                for (dim_t k0=0; k0<m_NE[0]; k0++) {
+                    const dim_t e=k2*m_NE[0]*m_NE[1]+k0;
+                    owner[e] = rank-m_NX[0];
+                }
+            }
+        }
+        // shared plane in X-Y
+        if (m_faceCount[4]==0) {
+            for (dim_t k1=0; k1<m_NE[1]; k1++) {
+                for (dim_t k0=0; k0<m_NE[0]; k0++) {
+                    const dim_t e=k1*m_NE[0]+k0;
+                    owner[e] = rank-m_NX[0]*m_NX[1];
+                }
+            }
+        }
+
+    } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
+        owner.assign(getNumFaceElements(), rank);
+        index_t offset=0;
+        if (m_faceCount[0] > 0) {
+            if (m_faceCount[2]==0) {
+                for (dim_t k2=0; k2<m_NE[2]; k2++)
+                    owner[k2*m_NE[1]] = rank-m_NX[0];
+            }
+            if (m_faceCount[4]==0) {
+                for (dim_t k1=0; k1<m_NE[1]; k1++)
+                    owner[k1] = rank-m_NX[0]*m_NX[1];
+            }
+            offset += m_faceCount[0];
+        }
+        if (m_faceCount[1] > 0) {
+            if (m_faceCount[2]==0) {
+                for (dim_t k2=0; k2<m_NE[2]; k2++)
+                    owner[offset+k2*m_NE[1]] = rank-m_NX[0];
+            }
+            if (m_faceCount[4]==0) {
+                for (dim_t k1=0; k1<m_NE[1]; k1++)
+                    owner[offset+k1] = rank-m_NX[0]*m_NX[1];
+            }
+            offset += m_faceCount[1];
+        }
+        if (m_faceCount[2] > 0) {
+            if (m_faceCount[0]==0) {
+                for (dim_t k2=0; k2<m_NE[2]; k2++)
+                    owner[offset+k2*m_NE[0]] = rank-1;
+            }
+            if (m_faceCount[4]==0) {
+                for (dim_t k0=0; k0<m_NE[0]; k0++)
+                    owner[offset+k0] = rank-m_NX[0]*m_NX[1];
+            }
+            offset += m_faceCount[2];
+        }
+        if (m_faceCount[3] > 0) {
+            if (m_faceCount[0]==0) {
+                for (dim_t k2=0; k2<m_NE[2]; k2++)
+                    owner[offset+k2*m_NE[0]] = rank-1;
+            }
+            if (m_faceCount[4]==0) {
+                for (dim_t k0=0; k0<m_NE[0]; k0++)
+                    owner[offset+k0] = rank-m_NX[0]*m_NX[1];
+            }
+            offset += m_faceCount[3];
+        }
+        if (m_faceCount[4] > 0) {
+            if (m_faceCount[0]==0) {
+                for (dim_t k1=0; k1<m_NE[1]; k1++)
+                    owner[offset+k1*m_NE[0]] = rank-1;
+            }
+            if (m_faceCount[2]==0) {
+                for (dim_t k0=0; k0<m_NE[0]; k0++)
+                    owner[offset+k0] = rank-m_NX[0];
+            }
+            offset += m_faceCount[4];
+        }
+        if (m_faceCount[5] > 0) {
+            if (m_faceCount[0]==0) {
+                for (dim_t k1=0; k1<m_NE[1]; k1++)
+                    owner[offset+k1*m_NE[0]] = rank-1;
+            }
+            if (m_faceCount[2]==0) {
+                for (dim_t k0=0; k0<m_NE[0]; k0++)
+                    owner[offset+k0] = rank-m_NX[0];
+            }
+        }
+    } else {
+        throw RipleyException("getOwnerVector: only valid for element types");
+    }
+
+    return owner;
 }
 
 void Brick::setToNormal(escript::Data& out) const

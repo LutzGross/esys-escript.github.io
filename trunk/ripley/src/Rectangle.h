@@ -112,7 +112,7 @@ public:
        \brief
        returns true if this rank owns the sample id.
     */
-    virtual bool ownSample(int fs_code, index_t id) const;
+    virtual bool ownSample(int fsType, index_t id) const;
 
     /**
        \brief
@@ -187,14 +187,15 @@ public:
 
     /**
      * \brief 
-       Returns a Data object filled with random data passed through filter.
+       returns a Data object filled with random data passed through filter.
     */ 
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;
+                                 const escript::FunctionSpace& what, long seed,
+                                 const boost::python::tuple& filter) const;
     
     /**
        \brief
-       Creates and returns an assembler of the requested type.
+       creates and returns an assembler of the requested type.
     */
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const;
@@ -210,6 +211,13 @@ public:
        returns the lengths of an element
     */
     const double *getElementLength() const { return m_dx; }
+
+    /**
+       \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const;
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -326,8 +334,6 @@ inline dim_t Rectangle::getNumDataPointsGlobal() const
 inline double Rectangle::getLocalCoordinate(index_t index, int dim) const
 {
     EsysAssert((dim>=0 && dim<2), "'dim' out of bounds");
-    if (index < 0 || index >= m_NN[dim])
-fprintf(stderr, "about to break with index: %d and dim %d\n", index, dim);
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
 }

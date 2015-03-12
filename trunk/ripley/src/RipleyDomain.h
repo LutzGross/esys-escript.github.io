@@ -700,6 +700,13 @@ public:
 
     /**
        \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const = 0;
+
+    /**
+       \brief
        returns true if this domain can handle the specified tuple of filter
        options.
     */
