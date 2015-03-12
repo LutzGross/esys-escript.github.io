@@ -26,7 +26,6 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm', 'MT2DModelTEMode','DcRes', 'IsostaticPressure', 'Subsidence']
 
-
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
 from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary, Solution, length, exp
@@ -54,14 +53,14 @@ class ForwardModel(object):
     def getArguments(self, x):
         return ()
 
+    def getCoordinateTransformation(self):
+        return None
+
     def getDefect(self, x, *args):
         raise NotImplementedError
 
     def getGradient(self, x, *args):
         raise NotImplementedError
-
-    def getCoordinateTransformation(self):
-        return None
 
 
 class ForwardModelWithPotential(ForwardModel):
@@ -69,7 +68,7 @@ class ForwardModelWithPotential(ForwardModel):
     Base class for a forward model using a potential such as magnetic or
     gravity. It defines a cost function:
 
-        defect = 1/2 sum_s integrate( ( weight_i[s] * ( r_i - data_i[s] ) ) ** 2 )
+        defect = 1/2 sum_s integrate( ( weight_i[s] * ( r_i - data_i[s] ) )**2 )
 
     where s runs over the survey, weight_i are weighting factors, data_i are
     the data, and r_i are the results produced by the forward model.
@@ -90,15 +89,15 @@ class ForwardModelWithPotential(ForwardModel):
         :type data: ``Vector`` or list of ``Vector``
         :param coordinates: defines coordinate system to be used
         :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
-        :param tol: tolerance of underlying PDE
-        :type tol: positive ``float``
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
                                      in addition to the top.
         :type fixPotentialAtBottom: ``bool``
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
         """
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
-        self.__trafo=makeTranformation(domain, coordinates)
+        self.__trafo = makeTranformation(domain, coordinates)
 
         try:
             n=len(w)
@@ -195,7 +194,7 @@ class ForwardModelWithPotential(ForwardModel):
         A=0.
         for s in range(len(self.__weight)):
             A += integrate( inner(self.__weight[s], self.__data[s]-result)**2 )
-        return  A/2
+        return A/2
 
     def getDefectGradient(self, result):
         Y=0.
@@ -216,13 +215,12 @@ class ForwardModelWithPotential(ForwardModel):
         return self.__data[index], self.__weight[index]
 
 
-
 class GravityModel(ForwardModelWithPotential):
     """
     Forward Model for gravity inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, w, g,  gravity_constant=U.Gravitational_Constant,
+    def __init__(self, domain, w, g, gravity_constant=U.Gravitational_Constant,
                   coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
@@ -238,12 +236,12 @@ class GravityModel(ForwardModelWithPotential):
         :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
-                                     in addition to the top.
+        :param fixPotentialAtBottom: if true potential is fixed to zero at the
+                                     base of the domain in addition to the top
         :type fixPotentialAtBottom: ``bool``
 
-
-        :note: It is advisable to call rescaleWeights() to rescale weights before start inversion.
+        :note: It is advisable to call rescaleWeights() to rescale weights
+               before starting the inversion.
         """
         super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
@@ -295,8 +293,7 @@ class GravityModel(ForwardModelWithPotential):
         :return: gravity potential
         :rtype: ``Scalar``
         """
-        pde=self.getPDE()
-
+        pde = self.getPDE()
         pde.resetRightHandSideCoefficients()
         pde.setValue(Y=-self.__G*rho)
         phi=pde.getSolution()
@@ -337,17 +334,13 @@ class GravityModel(ForwardModelWithPotential):
 
 class IsostaticPressure(object):
     """
-    class to calculate isostatic pressure field correction due to gravity forces 
+    class to calculate isostatic pressure field correction due to gravity forces
     """
-    def __init__(self, domain, p0=0.,
-                        level0=0, 
-                        gravity0=-9.81 * U.m*U.sec**(-3),
-                        background_density= 2670* U.kg*U.m**(-3),
-                        gravity_constant=U.Gravitational_Constant, 
-                        coordinates=None, 
-                        tol=1e-8):
+    def __init__(self, domain, p0=0., level0=0, gravity0=-9.81*U.m*U.sec**(-3),
+                 background_density=2670* U.kg*U.m**(-3),
+                 gravity_constant=U.Gravitational_Constant,
+                 coordinates=None, tol=1e-8):
         """
-        
         :param domain: domain of the model
         :type domain: `Domain`
         :param p0: pressure at level0
@@ -361,12 +354,11 @@ class IsostaticPressure(object):
         :param level0: pressure for z>=`level0` is set to zero.
         :type level0: ``float``
         :param gravity0: vertical background gravity at `level0`
-        :type gravity0: ``float``        
+        :type gravity0: ``float``
         """
         DIM=domain.getDim()
         self.__domain = domain
         self.__trafo=makeTranformation(domain, coordinates)
-        
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
@@ -381,38 +373,38 @@ class IsostaticPressure(object):
         z = Function(domain).getX()[DIM-1]
         self.__g_b= 4*PI*gravity_constant/self.__trafo.getScalingFactors()[DIM-1]*background_density*(level0-z) + gravity0
         self.__rho_b=background_density
-        
+
     def getPressure(self, g = None, rho=None):
         """
-        return the pressure for gravity force anomaly `g` and 
-        density anomaly `density`
-        
+        return the pressure for gravity force anomaly `g` and
+        density anomaly `rho`
+
         :param g: gravity anomaly data
-        :type g: ``Vector`` 
+        :type g: ``Vector``
         :param rho: gravity anomaly data
-        :type rho: ``Scalar`` 
+        :type rho: ``Scalar``
         :return: pressure distribution
         :rtype: ``Scalar`
         """
         if not g: g=Vector(0., Function(self.__domain))
         if not rho: rho=Scalar(0., Function(self.__domain))
-        
-        g2=(rho * self.__g_b)*[0,0,1] + self.__rho_b*g + rho*g 
+
+        g2=(rho * self.__g_b)*[0,0,1] + self.__rho_b*g + rho*g
         # Tests need to be updated before the following is uncommented:
-        #g2=((rho+self.__rho_b) * self.__g_b)*[0,0,1] + self.__rho_b*g + rho*g 
+        #g2=((rho+self.__rho_b) * self.__g_b)*[0,0,1] + self.__rho_b*g + rho*g
         d=self.__trafo.getScalingFactors()
         V= self.__trafo.getVolumeFactor()
         self.__pde.setValue(X = -g2*d*V)
         #self.__pde.setValue(X = g2*d*V)
         return self.__pde.getSolution()
 
-    
 class MagneticModel(ForwardModelWithPotential):
     """
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, w, B, background_magnetic_flux_density, coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
+    def __init__(self, domain, w, B, background_magnetic_flux_density,
+                 coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (w, B).
@@ -435,20 +427,22 @@ class MagneticModel(ForwardModelWithPotential):
         :type fixPotentialAtBottom: ``bool``
         """
         super(MagneticModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
-        background_magnetic_flux_density =interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
+        background_magnetic_flux_density=interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
         if not self.getCoordinateTransformation().isCartesian():
-            #self.__F = self.getCoordinateTransformation().getVolumeFactor()
-            self.__B_r=background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
-            self.__B_b=background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
+            s = self.getCoordinateTransformation().getScalingFactors()
+            v = self.getCoordinateTransformation().getVolumeFactor()
+            self.__B_r = background_magnetic_flux_density * s * v
+            self.__B_b = background_magnetic_flux_density / s
 
-            A=self.getPDE().createCoefficient("A")
-            fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
-            for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+            A = self.getPDE().createCoefficient("A")
+            fw = s**2 * v
+            for i in range(self.getDomain().getDim()):
+                A[i,i]=fw[i]
             self.getPDE().setValue(A=A)
         else: # cartesian
             self.getPDE().setValue(A=kronecker(self.getDomain()))
-            self.__B_r=background_magnetic_flux_density
-            self.__B_b=background_magnetic_flux_density
+            self.__B_r = background_magnetic_flux_density
+            self.__B_b = background_magnetic_flux_density
 
     def rescaleWeights(self, scale=1., k_scale=1.):
         """
@@ -486,7 +480,6 @@ class MagneticModel(ForwardModelWithPotential):
         :rtype: ``Scalar``
         """
         pde=self.getPDE()
-
         pde.resetRightHandSideCoefficients()
         pde.setValue(X = k* self.__B_r)
         phi=pde.getSolution()
@@ -531,7 +524,8 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion with self-demagnetization as
     described in the inversion cookbook.
     """
-    def __init__(self, domain, w, B, background_magnetic_flux_density, coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
+    def __init__(self, domain, w, B, background_magnetic_flux_density,
+                 coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (w, B).
@@ -557,21 +551,23 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         #=========================================================
         background_magnetic_flux_density = interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
         if not self.getCoordinateTransformation().isCartesian():
-            #self.__F = self.getCoordinateTransformation().getVolumeFactor()
-            self.__B_r=background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
-            self.__B_b=background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
+            s = self.getCoordinateTransformation().getScalingFactors()
+            v = self.getCoordinateTransformation().getVolumeFactor()
+            self.__B_r = background_magnetic_flux_density * s * v
+            self.__B_b = background_magnetic_flux_density / s
 
-            self.__fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+            self.__fw = s**2 * v
         else: # cartesian
-            self.__fw=1
-            self.__B_r=background_magnetic_flux_density
-            self.__B_b=background_magnetic_flux_density
+            self.__fw = 1
+            self.__B_r = background_magnetic_flux_density
+            self.__B_b = background_magnetic_flux_density
 
         # keep track of k used to build PDE:
-        self.__last_k=None
+        self.__last_k = None
         # this is just the initial set_up
         A=self.getPDE().createCoefficient("A")
-        for i in range(self.getDomain().getDim()): A[i,i]=1.
+        for i in range(self.getDomain().getDim()):
+            A[i,i]=1.
         self.getPDE().setValue(A=A)
 
     def rescaleWeights(self, scale=1., k_scale=1.):
@@ -609,9 +605,12 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         if self.__last_k is not k:
            A=pde.getCoefficient('A')
            if self.getCoordinateTransformation().isCartesian():
-               for i in range(self.getDomain().getDim()): A[i,i]=(1+k)
+               for i in range(self.getDomain().getDim()):
+                   A[i,i] = 1+k
            else:
-               for i in range(self.getDomain().getDim()): A[i,i]=(1+k)*self.__fw[i]
+               for i in range(self.getDomain().getDim()):
+                   A[i,i] = (1+k)*self.__fw[i]
+
            self.__last_k = k
            pde.setValue(A=A)
 
@@ -627,7 +626,7 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         self.__updateA(k)
         pde=self.getPDE()
         pde.resetRightHandSideCoefficients()
-        pde.setValue(X = k* self.__B_r)
+        pde.setValue(X = k*self.__B_r)
         phi=pde.getSolution()
         return phi
 
@@ -688,7 +687,8 @@ class AcousticWaveForm(ForwardModel):
     It is assumed that the exact scale of source F is unknown and the scaling
     factor a of F is calculated by minimizing the defect.
     """
-    def __init__(self, domain, omega, w, data, F, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True, scaleF=True):
+    def __init__(self, domain, omega, w, data, F, coordinates=None,
+                 fixAtBottom=False, tol=1e-8, saveMemory=True, scaleF=True):
         """
         initializes a new forward model with acoustic wave form inversion.
 
@@ -717,45 +717,46 @@ class AcousticWaveForm(ForwardModel):
         :type fixAtBottom: ``bool``
         """
         super(AcousticWaveForm, self).__init__()
-        self.__domain = domain
-        self.__omega=omega
-        self.scaleF=scaleF
-        self.__trafo=makeTranformation(domain, coordinates)
+        self.__trafo = makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not isinstance(data, Data):
-                raise ValueError("data must be an escript.Data object.")
+            raise ValueError("data must be an escript.Data object.")
         if not data.getFunctionSpace() == FunctionOnBoundary(domain):
-                raise ValueError("data must be defined on boundary")
+            raise ValueError("data must be defined on boundary")
         if not data.getShape() == (2,):
-                raise ValueError("data must have shape 2 (real and imaginary part).")
+            raise ValueError("data must have shape (2,) (real and imaginary part).")
         if w is None:
             w = 1.
         if not isinstance(w, Data):
-            w=Data(w, FunctionOnBoundary(domain))
+            w = Data(w, FunctionOnBoundary(domain))
         else:
             if not w.getFunctionSpace() == FunctionOnBoundary(domain):
                 raise ValueError("Weights must be defined on boundary.")
             if not w.getShape() == ():
                 raise ValueError("Weights must be scalar.")
+
+        self.__domain = domain
+        self.__omega = omega
         self.__weight = w
         self.__data = data
+        self.scaleF = scaleF
         if scaleF:
             A = integrate(self.__weight*length(self.__data)**2)
-            if A>0:
+            if A > 0:
                 self.__data*=1./sqrt(A)
 
         self.__BX = boundingBox(domain)
-        self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
-
-        self.__F=Data()
-        self.__f=Data()
-        self.__f_dirac=Data()
+        self.edge_lengths = np.asarray(boundingBoxEdgeLengths(domain))
 
         if not isinstance(F, Data):
             F=interpolate(F,  DiracDeltaFunctions(domain))
         if not F.getShape() == (2,):
             raise ValueError("Source must have shape (2,) (real and imaginary part).")
+
+        self.__F=Data()
+        self.__f=Data()
+        self.__f_dirac=Data()
 
         if F.getFunctionSpace() == DiracDeltaFunctions(domain):
             self.__f_dirac=F
@@ -790,9 +791,9 @@ class AcousticWaveForm(ForwardModel):
         """
         raise Warning("rescaleWeights is not tested yet.")
         if not scale > 0:
-             raise ValueError("Value for scale must be positive.")
+            raise ValueError("Value for scale must be positive.")
         if not sigma_scale*omega**2*d > 0:
-             raise ValueError("Rescaling of weights failed due to zero denominator.")
+            raise ValueError("Rescaling of weights failed due to zero denominator.")
         # copy back original weights before rescaling
         #self.__weight=[1.*ow for ow in self.__origweight]
         L2=1/length(1/self.edge_length)**2
@@ -800,7 +801,8 @@ class AcousticWaveForm(ForwardModel):
         A=integrate(self.__weight*(sigma_scale*omega**2*d+1)/(sigma_scale*omega**2*d) )
         if A > 0:
             self.__weight*=1./A
-            if self.scaleF: self.__data*=sqrt(A)
+            if self.scaleF:
+                self.__data*=sqrt(A)
         else:
             raise ValueError("Rescaling of weights failed.")
 
@@ -828,6 +830,8 @@ class AcousticWaveForm(ForwardModel):
         """
         from esys.escript import getEscriptParamInt
         if self.__pde is None:
+            if getEscriptParamInt("PASO_DIRECT")==0:
+                raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
             pde=LinearPDE(self.__domain, numEquations=2)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
@@ -839,8 +843,6 @@ class AcousticWaveForm(ForwardModel):
                 z = self.__domain.getX()[DIM-1]
                 pde.setValue(q=whereZero(z-self.__BX[DIM-1][0])*[1,1])
 
-            if getEscriptParamInt("PASO_DIRECT")==0:
-                raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
             pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
@@ -856,9 +858,9 @@ class AcousticWaveForm(ForwardModel):
         :type u: ``Data`` of shape (2,)
         :rtype: `complex`
         """
-        uTu=integrate(self.__weight * length(u)**2)
-        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
-        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
+        uTu = integrate(self.__weight * length(u)**2)
+        uTar = integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai = integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
         if uTu > 0:
             return complex(uTar/uTu, uTai/uTu)
         else:
@@ -934,7 +936,7 @@ class AcousticWaveForm(ForwardModel):
             Z[1]+= (-uTar/uTu) * self.__data[1]+   uTai/uTu  * self.__data[0]
 
         else:
-            Z= u - self.__data
+            Z = u - self.__data
         if Z.getFunctionSpace() == DiracDeltaFunctions(self.getDomain()):
             pde.setValue(y_dirac=self.__weight * Z)
         else:
@@ -950,62 +952,63 @@ class AcousticWaveForm(ForwardModel):
 
 class DcRes(ForwardModel):
     """
-    Forward Model for dc resistivity, with a given source pair.
+    Forward Model for DC resistivity, with a given source pair.
     The cost function is defined as:
 
         * defect = 1/2 (sum_s sum_pq w_pqs * ((phi_sp-phi_sq)-v_pqs)**2 *
 
-    where p and q indate the 
-
     """
-    def __init__(self, domain, locator, delphiIn, sampleTags, phiPrimary, sigmaPrimary, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
-        
+    def __init__(self, domain, locator, delphiIn, sampleTags, phiPrimary,
+                 sigmaPrimary, w=1., coordinates=None, tol=1e-8,
+                 saveMemory=True, b=None):
         """
-        setup new ForwardModel
+        setup new forward model
         :param domain: the domain of the model
         :type: escript domain
         :param locator: contains locator to the measurement pairs
         :type: `list` of ``Locator``
-        :param: delphiIn: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only. 
+        :param: delphiIn: this is v_pq, the potential difference for the
+                          current source and a set of measurement pairs.
+                          A list of measured potential differences is expected.
+                          Note this should be the secondary potential only.
         :type delphiIn: tuple
-        :param sampleTags:  tags of measurement points from which potential differences will be calculated.
+        :param sampleTags: tags of measurement points from which potential
+                           differences will be calculated.
         :type sampleTags: list of tuples
         :param phiPrimary: primary potential.
         :type phiPrimary: `Scalar`
         """
         super(DcRes, self).__init__()
 
-        self.__domain=domain
-        self.__tol = tol
-        self.__locator=locator
-        self.__trafo=makeTranformation(domain, coordinates) 
-        self.delphiIn=delphiIn
-        self.__sampleTags = sampleTags
-        self.__sigmaPrimary = sigmaPrimary
-
         if not isinstance(sampleTags, list):
-            raise ValueError("sampleTags must be a list.")    
+            raise ValueError("sampleTags must be a list.")
         if not len(sampleTags) == len(delphiIn):
-            raise ValueError("sampleTags and delphiIn must have the same length.")  
+            raise ValueError("sampleTags and delphiIn must have the same length.")
         if not len(sampleTags)>0:
-            raise ValueError("sampleTags list is empty.")    
+            raise ValueError("sampleTags list is empty.")
         if not isinstance(sampleTags[0], tuple) and not isinstance(sampleTags[0], list):
-            raise ValueError("sampleTags must be a list of tuples or a list of lists.")    
+            raise ValueError("sampleTags must be a list of tuples or a list of lists.")
 
         if isinstance(w, float) or isinstance(w, int):
-               w =[ float(w) for z in delphiIn]
-               self.__w=w
+            w = [float(w) for z in delphiIn]
+            self.__w = w
         if not len(w) == len(delphiIn):
-               raise ValueError("Number of confidence factors and number of potential input values don't match.")
+            raise ValueError("Number of confidence factors and number of potential input values don't match.")
 
-        self.__phiPrimary=phiPrimary
+        self.__trafo = makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not isinstance(locator, Locator):
-            raise ValueError("locator must be an escript locator object")    
-        
-        
-        self.__pde=None        
+            raise ValueError("locator must be an escript locator object")
+
+        self.__domain = domain
+        self.__tol = tol
+        self.__locator = locator
+        self.delphiIn = delphiIn
+        self.__sampleTags = sampleTags
+        self.__sigmaPrimary = sigmaPrimary
+        self.__phiPrimary = phiPrimary
+        self.__pde = None
         if not saveMemory:
             self.__pde=self.setUpPDE()
 
@@ -1030,7 +1033,7 @@ class DcRes(ForwardModel):
         returns the primary potential
         :rtype: `Data`
         """
-        return self.__phiPrimary 
+        return self.__phiPrimary
 
     def setUpPDE(self):
         """
@@ -1046,16 +1049,16 @@ class DcRes(ForwardModel):
             for i in xrange(DIM-1):
                 xi=x[i]
                 q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-            
+
             pde=LinearPDE(dom, numEquations=1)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOn()
             A=pde.createCoefficient('A')
             X=pde.createCoefficient('X')
-            pde.setValue(A=A,X=X,q=q)
+            pde.setValue(A=A, X=X, q=q)
 
             # else:
-                # pde=LinearPDE(self.__domain, numEquations=1)   
+                # pde=LinearPDE(self.__domain, numEquations=1)
                 # A=pde.createCoefficient('A')
                 # z = dom.getX()[DIM-1]
                 # q=whereZero(z-inf(z))
@@ -1076,27 +1079,14 @@ class DcRes(ForwardModel):
         :return: phi
         :rtype: ``Data`` of shape (1,)
         """
-        # print "sigmaPrimary",self.__sigmaPrimary
-        # print "sigma=",sigma
-        dom=self.__domain
-        pde=self.setUpPDE()
-        X=(self.__sigmaPrimary - sigma) * grad(self.__phiPrimary)
-        # print ("+++++++++++++++++++")
-        # print ("sigma=",sigma)
-        # print ("A=",sigma * kronecker(dom))
-        # print ("X=",X)
-        # print ("+++++++++++++++++++")
-        pde.setValue(A=sigma * kronecker(dom),X=X)
-        phi=pde.getSolution()        
-        # print "got U Sol"
-        #u.expand()
-        # print "u=",u,"grad(u)=",grad(u)
-        loc=self.__locator
-        loc_phi=loc.getValue(phi)
-        # print "read %s at %s"%(str(val),str(loc.getX()))
+        pde = self.setUpPDE()
+        X = (self.__sigmaPrimary - sigma) * grad(self.__phiPrimary)
+        pde.setValue(A=sigma * kronecker(self.__domain), X=X)
+        phi = pde.getSolution()
+        loc = self.__locator
+        loc_phi = loc.getValue(phi)
         return phi, loc_phi
 
-   
     def getDefect(self, sigma, phi, loc_phi):
         """
         Returns the defect value.
@@ -1105,20 +1095,17 @@ class DcRes(ForwardModel):
         :type sigma: ``Data`` of shape (1,)
         :param phi: potential field
         :type phi: ``Data`` of shape (1,)
-        
         :rtype: ``float``
         """
-        # print ("getting Defect")
-        # print "sigma=",sigma
-        # print "placeholder=",placeholder
         val=loc_phi
         if not isinstance(val,list):
             tmp=val
             val=[tmp]
         # print "val=",val
         length=len(val)
-        # print self.__sampleTags[0] 
-        if((self.__sampleTags[0][1]!="-" and (length%2) != 0) or (self.__sampleTags[0][1]!="-" and length/2 != len(self.delphiIn))):
+        # print self.__sampleTags[0]
+        if ((self.__sampleTags[0][1]!="-" and (length%2) != 0) or \
+                (self.__sampleTags[0][1]!="-" and length/2 != len(self.delphiIn))):
             raise ValueError("length of locator is wrong")
 
         delphi_calc=[]
@@ -1131,13 +1118,10 @@ class DcRes(ForwardModel):
         A=0
         if (self.__sampleTags[0][1]!="-"):
             for i in range(length//2):
-                A+=(self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)        
-                # print "delphi_calc[i]=",delphi_calc[i],"self.delphiIn[i]",self.delphiIn[i] 
+                A += (self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)
         else:
             for i in range(length):
-                A+=(self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)        
-                # A+=(self.__w[i]*(self.delphiIn[i]-delphi_calc[i])**2)        
-                # print "delphi_calc[i]=",delphi_calc[i],"self.delphiIn[i]",self.delphiIn[i] 
+                A+=(self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)
         return  A/2
 
     def getGradient(self, sigma, phi, loc_phi):
@@ -1149,8 +1133,6 @@ class DcRes(ForwardModel):
         :param phi: potential field
         :type phi: ``Data`` of shape (1,)
         """
-        # print ("getting gradient")
-        # print "sigma=",sigma
         val=loc_phi
         if not isinstance(val,list):
             tmp=val
@@ -1158,17 +1140,12 @@ class DcRes(ForwardModel):
         sampleTags=self.__sampleTags
 
         jointSamples={}
-        # print(sampleTags)
         for i in range(0,2*len(sampleTags),2): #2*len because sample tags is a list of tuples
             half = i//2
-            # print(i)
             if sampleTags[half][1]!="-":
                 tmp=(val[i+1]-val[i]-self.delphiIn[half])*self.__w[i]
             else:
                 tmp=(val[i]-self.delphiIn[i//2]) *self.__w[i]
-                # tmp=self.delphiIn[i/2]-val[i]
-            # print ("in gradient","i=", i,"val[i]=",-val[i],"self.delphiIn[i/2]=",self.delphiIn[i/2])
-            # print ("tmp=",tmp)
             sample = sampleTags[half]
             if sample[1]!="-":
                 if sample[0] in jointSamples.keys():
@@ -1185,7 +1162,6 @@ class DcRes(ForwardModel):
                 else:
                     jointSamples[sampleTags[half][0]]=[(sample[1],tmp)]
 
-#        print ("jointSamples=",jointSamples)
         pde =self.setUpPDE()
         dom=self.__domain
         # conPrimary=self.__sigmaPrimary
@@ -1196,7 +1172,6 @@ class DcRes(ForwardModel):
             total=0
             for j in jointSamples[i]:
                 total+=j[1]
-#            print("setting y_dirac ", i, " to ", total)
             y_dirac.setTaggedValue(i,total)
 
         pde.setValue(A=sigma*kronecker(dom), y_dirac=y_dirac)
@@ -1235,11 +1210,6 @@ class MT2DModelTEMode(ForwardModel):
         """
         initializes a new forward model.
 
-        :param data: real and imaginary part of data
-        :type data: ``Data`` of shape (2,)
-        :param F: real and imaginary part of source given at Dirac points, on surface or at volume.
-        :type F: ``Data`` of shape (2,)
-
         :param domain: domain of the model
         :type domain: `Domain`
         :param omega: frequency
@@ -1269,60 +1239,64 @@ class MT2DModelTEMode(ForwardModel):
         :type saveMemory: ``bool``
         """
         super(MT2DModelTEMode, self).__init__()
-        self.__domain = domain
-        DIM=domain.getDim()
         self.__trafo=makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian coordinates are not supported yet.")
-        self.__omega=omega
-        self.__mu=mu
 
         #====================================
         if not len(x) == len(Z_XY):
             raise ValueError("Number of data points and number of impedance values don't match.")
-        self.__x=x
-        f=-1./(complex(0,1)*omega*mu)
+
+        self.__domain = domain
+        self.__omega = omega
+        self.__mu = mu
+        self.__x = x
+
+        f = -1./(complex(0,1)*omega*mu)
         self.__scaledZxy=[ z*f for z in Z_XY ]
+
         #====================================
-        if isinstance(eta, float) or isinstance(eta, int) :
-            self.__eta =[ float(eta) for z in Z_XY]
+        if isinstance(eta, float) or isinstance(eta, int):
+            self.__eta = [float(eta) for z in Z_XY]
         else:
-            self.__eta =eta
+            self.__eta = eta
         if not len(self.__eta) == len(Z_XY):
-                raise ValueError("Number of confidence radii and number of impedance values don't match.")
+            raise ValueError("Number of confidence radii and number of impedance values don't match.")
+
         #====================================
         if isinstance(w0, float) or isinstance(w0, int):
-               w0 =[ float(w0) for z in Z_XY]
+            w0 =[float(w0) for z in Z_XY]
         if not len(w0) == len(Z_XY):
-                raise ValueError("Number of confidence factors and number of impedance values don't match.")
+            raise ValueError("Number of confidence factors and number of impedance values don't match.")
 
-        self.__wx0=[0.] * len(Z_XY)
+        self.__wx0 = [0.] * len(Z_XY)
         x=Function(domain).getX()
         totalS=0
-        s = 0
-        while s < len(self.__scaledZxy):
+        for s in range(len(self.__scaledZxy)):
             totalS+=w0[s]
             f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
             if f < 2*PI*self.__eta[s]**2 * 0.1 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
-            self.__wx0[s]=w0[s]/f
-            s += 1
-        if not totalS >0 : 
-             raise ValueError("Scaling of weight factors failed as sum is zero.")
-            
+            self.__wx0[s] = w0[s]/f
+
+        if not totalS > 0:
+            raise ValueError("Scaling of weight factors failed as sum is zero.")
+
         self.__wx0=[ w/totalS for w in self.__wx0 ]
+
         #====================================
         if isinstance(E_x0, float) or isinstance(E_x0, int) :
-            self.__E_x0 =Data((E_x0,0), Solution(domain))
+            self.__E_x0 = Data((E_x0,0), Solution(domain))
         elif isinstance(E_x0, tuple):
-            self.__E_x0 =Data((E_x0[0],E_x0[1]), Solution(domain))
+            self.__E_x0 = Data((E_x0[0],E_x0[1]), Solution(domain))
         elif isinstance(E_x0, complex):
-            self.__E_x0 =Data((E_x0.real,E_x0.imag), Solution(domain))
+            self.__E_x0 = Data((E_x0.real,E_x0.imag), Solution(domain))
         else:
             if not E_x0.getShape() == (2,):
                 raise ValueError("Expected shape of E_x0 is (2,)")
-            self.__E_x0= E_x0
-        #=======================
+            self.__E_x0 = E_x0
+
+        #====================================
         self.__tol=tol
         self.__fixAtBottom=fixAtBottom
         self.__directSolver=directSolver
@@ -1391,7 +1365,7 @@ class MT2DModelTEMode(ForwardModel):
         D[0,1]= - f
         D[1,0]=   f
         pde.setValue(D=D, r=self.__E_x0)
-        u=pde.getSolution()        
+        u=pde.getSolution()
         return u, grad(u)[:,1]
 
     def getWeightingFactor(self, x, wx0, x0, eta):
@@ -1420,13 +1394,14 @@ class MT2DModelTEMode(ForwardModel):
         u01=dE_xdz[0]
         u11=dE_xdz[1]
 
-        # this cane be done faster!
+        # this can be done faster!
         s = 0
-        while s < len(self.__scaledZxy):
+        for s in range(len(self.__scaledZxy)):
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            A+=integrate( ws * ( (u0-u01*self.__scaledZxy[s].real+u11*self.__scaledZxy[s].imag)**2 + (u1-u01*self.__scaledZxy[s].imag-u11*self.__scaledZxy[s].real)**2 ) )
-            s += 1
-        return  A/2
+            ds = ws * ( (u0-u01*self.__scaledZxy[s].real+u11*self.__scaledZxy[s].imag)**2 + (u1-u01*self.__scaledZxy[s].imag-u11*self.__scaledZxy[s].real)**2 )
+            A+=integrate( ds )
+
+        return A/2
 
     def getGradient(self, sigma, E_x, dE_xdz):
         """
@@ -1466,11 +1441,11 @@ class MT2DModelTEMode(ForwardModel):
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
         return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
-        
+
 class Subsidence(ForwardModel):
     """
-    Forward Model for subsidence inversion minimizing integrate( (inner(w,u)-d)**2) 
-    where u is the surface displacement due to a pressure change P 
+    Forward Model for subsidence inversion minimizing integrate( (inner(w,u)-d)**2)
+    where u is the surface displacement due to a pressure change P
     """
     def __init__(self, domain, w, d, lam, mu, coordinates=None, tol=1e-8):
         """
@@ -1478,9 +1453,9 @@ class Subsidence(ForwardModel):
 
         :param domain: domain of the model
         :type domain: `Domain`
-        :param w: data weighting factors and direction 
+        :param w: data weighting factors and direction
         :type w: ``Vector`` with ``FunctionOnBoundary``
-        :param d: displacement measured at surface 
+        :param d: displacement measured at surface
         :type d: ``Scalar`` with ``FunctionOnBoundary``
         :param lam: 1st Lame coefficient
         :type lam: ``Scalar`` with ``Function``
@@ -1493,8 +1468,7 @@ class Subsidence(ForwardModel):
         """
         super(Subsidence, self).__init__()
         DIM=domain.getDim()
-        
-        
+
         self.__pde=LinearPDESystem(domain)
         self.__pde.setSymmetryOn()
         self.__pde.getSolverOptions().setTolerance(tol)
@@ -1559,7 +1533,6 @@ class Subsidence(ForwardModel):
         :type P: ``Scalar``
         :param u: corresponding displacement
         :type u: ``Vector``
-        
         :rtype: ``Scalar``
         """
         d=inner(u,self.__w)-self.__d
@@ -1567,5 +1540,4 @@ class Subsidence(ForwardModel):
         ustar=self.__pde.getSolution()
 
         return div(ustar)
-            
 
