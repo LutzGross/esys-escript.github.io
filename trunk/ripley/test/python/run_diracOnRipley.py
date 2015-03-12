@@ -37,12 +37,7 @@ except KeyError:
 
 class Test_RipleyDiracPoints(unittest.TestCase):
 
-    # constants
-    numRanks = getMPISizeWorld()
-    rank = getMPIRankWorld()
-    shortEdge = 5
-    longEdge = 3*numRanks-1
-    empty = "(data contains no samples)\n"
+
 
     def getRectRefs(self, xLong):
         Ex = self.longEdge+1
@@ -137,7 +132,13 @@ class Test_RipleyDiracPoints(unittest.TestCase):
         return self.empty
 
     def setUp(self):
-        pass
+        # constants
+        self.numRanks = getMPISizeWorld()
+        self.rank = getMPIRankWorld()
+        self.shortEdge = 5
+        self.longFactor = 3
+        self.longEdge = self.longFactor*self.numRanks-1
+        self.empty = "(data contains no samples)\n"
 
     def tearDown(self):
         pass
