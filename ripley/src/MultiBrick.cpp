@@ -51,7 +51,6 @@ namespace bp = boost::python;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
 
-using boost::math::isnan;
 using std::vector;
 using std::string;
 using std::min;
