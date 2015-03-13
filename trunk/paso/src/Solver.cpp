@@ -24,11 +24,15 @@
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /****************************************************************************/
+#include <boost/math/special_functions/fpclassify.hpp>  // for isnan
+
 #include <iostream>
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "Solver.h"
 #include "esysUtils/blocktimer.h"
+
+namespace bm=boost::math;
 
 namespace paso {
 
@@ -127,7 +131,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
 #endif
         norm2_of_b=sqrt(norm2_of_b);
         /* if norm2_of_b==0 we are ready: x=0 */
-        if (IS_NAN(norm2_of_b) || IS_NAN(norm_max_of_b)) {
+        if (bm::isnan(norm2_of_b) || bm::isnan(norm_max_of_b)) {
             Esys_setError(VALUE_ERROR, "Solver: Matrix or right hand side contains undefined values.");
         } else if (norm2_of_b <= 0.) {
 #pragma omp parallel for private(i) schedule(static)
