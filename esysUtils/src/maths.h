@@ -20,18 +20,8 @@
 
 /************************************************************************************/
 
-/*    Pull in a maths library and define ISNAN      */
+/*    Pull in a maths library */
 #include <cmath>
-
-#ifdef isnan
-  #define IS_NAN(__VAL__) (isnan(__VAL__))
-#elif defined _isnan
-  #define IS_NAN(__VAL__) (_isnan(__VAL__))
-#else
-  // This is not guaranteed to work if the optimiser thinks it can optimise this check away
-  #define IS_NAN(__VAL__) (!((__VAL__)==(__VAL__)))
-#endif
-
 
 #define EPSILON DBL_EPSILON
 #define LARGE_POSITIVE_FLOAT DBL_MAX
