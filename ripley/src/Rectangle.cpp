@@ -1366,8 +1366,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
                                   const escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
-    const index_t left = (m_offset[0]==0 ? 0 : 1);
-    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
+    const index_t left = getFirstInDim(0);
+    const index_t bottom = getFirstInDim(1);
     const int fs=arg.getFunctionSpace().getTypeCode();
     if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
@@ -1529,7 +1529,7 @@ IndexVector Rectangle::getDiagonalIndices(bool upperOnly) const
         ret.resize(5);
     else
         ret.resize(9);
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF0 = getNumDOFInAxis(0);
     size_t idx = 0;
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
@@ -1548,10 +1548,10 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
 
-    const index_t left = (m_offset[0]==0 ? 0 : 1);
-    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const index_t left = getFirstInDim(0);
+    const index_t bottom = getFirstInDim(1);
+    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t nDOF1 = getNumDOFInAxis(1);
 #pragma omp parallel for
     for (index_t i=0; i<nDOF1; i++) {
         for (index_t j=0; j<nDOF0; j++) {
@@ -1687,10 +1687,10 @@ void Rectangle::populateSampleIds()
     const dim_t NFE = getNumFaceElements();
     m_faceId.resize(NFE);
 
-    const index_t left = (m_offset[0]==0 ? 0 : 1);
-    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const index_t left = getFirstInDim(0);
+    const index_t bottom = getFirstInDim(1);
+    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t nDOF1 = getNumDOFInAxis(1);
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
 
@@ -1803,8 +1803,8 @@ vector<IndexVector> Rectangle::getConnections() const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices
     // of DOFs connected to i (up to 9 in 2D)
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t nDOF1 = getNumDOFInAxis(1);
     const dim_t M = nDOF0*nDOF1;
     vector<IndexVector> indices(M);
 
@@ -1828,10 +1828,10 @@ vector<IndexVector> Rectangle::getConnections() const
 //private
 void Rectangle::populateDofMap()
 {
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-    const index_t left = (m_offset[0]==0 ? 0 : 1);
-    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
+    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t nDOF1 = getNumDOFInAxis(1);
+    const index_t left = getFirstInDim(0);
+    const index_t bottom = getFirstInDim(1);
 
     // populate node->DOF mapping with own degrees of freedom.
     // The rest is assigned in the loop further down

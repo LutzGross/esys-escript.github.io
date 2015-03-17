@@ -59,7 +59,6 @@ def Brick(**kwargs):
     return m.getLevel(1)
 
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
@@ -74,7 +73,7 @@ class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmhol
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_LinearPDEOnRipleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
@@ -92,7 +91,6 @@ class Test_LinearPDEOnRipleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmho
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_PoissonOnRipley(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8

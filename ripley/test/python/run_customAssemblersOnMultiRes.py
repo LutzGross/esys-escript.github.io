@@ -41,7 +41,6 @@ def Brick(**kwargs):
     m = MultiResolutionDomain(3, **kwargs)
     return m.getLevel(1)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_RipleyCustomAssemblers2D(RipleyCustomAssemblerTestBase):
     def setUp(self):
         self.domain = Rectangle(n0=20, n1=20)
@@ -49,7 +48,7 @@ class Test_RipleyCustomAssemblers2D(RipleyCustomAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_RipleyCustomAssemblers3D(RipleyCustomAssemblerTestBase):
     def setUp(self):
         self.domain = Brick(n0=10, n1=10, n2=10)

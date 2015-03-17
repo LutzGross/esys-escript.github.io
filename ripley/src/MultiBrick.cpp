@@ -1495,6 +1495,13 @@ void MultiBrick::populateDofMap()
     */
 }
 
+RankVector MultiBrick::getOwnerVector(int fsType) const
+{
+    if (m_subdivisions != 1)
+        throw RipleyException("Multiresolution domains only support ownership for the coarsest level");
+    return Brick::getOwnerVector(fsType);
+}
+
 dim_t MultiBrick::findNode(const double *coords) const
 {
     const dim_t NOT_MINE = -1;

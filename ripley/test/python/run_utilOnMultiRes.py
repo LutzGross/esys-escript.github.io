@@ -67,7 +67,6 @@ def Brick(**kwargs):
     m = MultiResolutionDomain(3, **kwargs)
     return m.getLevel(1)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_UtilOnRipley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
@@ -81,7 +80,6 @@ class Test_UtilOnRipley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
         del self.functionspace
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_Util_SpatialFunctionsOnRipley2D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
@@ -90,7 +88,7 @@ class Test_Util_SpatialFunctionsOnRipley2D(Test_Util_SpatialFunctions_noGradOnBo
         del self.order
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_Util_SpatialFunctionsOnRipley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1

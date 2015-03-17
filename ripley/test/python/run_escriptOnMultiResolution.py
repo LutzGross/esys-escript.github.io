@@ -65,7 +65,6 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_SharedOnMultiRipley(Test_SharedOnRipley):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
@@ -75,7 +74,6 @@ class Test_SharedOnMultiRipley(Test_SharedOnRipley):
         del self.domain
         del self.tol
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_DomainOnMultiRipley(Test_DomainOnRipley):
     def setUp(self):
         self.boundary_tag_list = [1, 2, 10, 20]
@@ -86,7 +84,6 @@ class Test_DomainOnMultiRipley(Test_DomainOnRipley):
         del self.domain
         del self.boundary_tag_list
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_DataOpsOnMultiRipley(Test_DataOpsOnRipley):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
@@ -120,7 +117,6 @@ class Test_TableInterpolationOnMultiRipley(Test_TableInterpolationOnRipley):
         del self.domain
         del self.functionspaces
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_CSVOnMultiRipley(Test_CSVOnRipley):
     def setUp(self):
         self.workdir=RIPLEY_WORKDIR
@@ -147,7 +143,7 @@ class Test_CSVOnMultiRipley(Test_CSVOnRipley):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+
 class Test_randomOnMultiRipley(unittest.TestCase):
     def test_FillRectangle(self):
         fs=ContinuousFunction(Rectangle(n0=5*(int(sqrt(mpiSize)+1)),n1=5*(int(sqrt(mpiSize)+1))))
@@ -157,6 +153,7 @@ class Test_randomOnMultiRipley(unittest.TestCase):
         self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
         RandomData((2,3),fs)
 
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_FillBrick(self):
         # If we are going to do really big tests of this, the size of this brick will need to be reduced
         fs=ContinuousFunction(Brick(n0=5*mpiSize, n1=5*mpiSize, n2=5*mpiSize))
@@ -166,25 +163,24 @@ class Test_randomOnMultiRipley(unittest.TestCase):
         self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
         RandomData((2,3),fs)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_multiResolution(unittest.TestCase):
     def test_MultiRectangle_constructors(self):
         with self.assertRaises(OverflowError): #negative is bad
-            MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=-1)
+            MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=-1)
         with self.assertRaises(RuntimeError): #zero is bad
-            MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=0)
+            MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=0)
         with self.assertRaises(TypeError): #non-int is bad
-            MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=.5)
+            MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=.5)
         with self.assertRaises(RuntimeError): #non-power of two is bad
-            MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=3)
+            MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=3)
         with self.assertRaises(Exception): #dimensions required
             MultiRectangle(n1=5, d1=mpiSize, multiplier=3)
-        MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=1)
-        MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=2)
-        MultiRectangle(n0=2*mpiSize-1, n1=5, d1=mpiSize, multiplier=8)
+        MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=1)
+        MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=2)
+        MultiRectangle(n0=2*mpiSize-1, n1=5, d0=mpiSize, multiplier=8)
 
     def test_RectangleInterpolation_NodesToNodesAndElements_CoarseToFine(self):
-        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize, d1=mpiSize, l0=2)
+        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize-1, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
         X = [i.getX() for i in domains]
 
@@ -200,7 +196,7 @@ class Test_multiResolution(unittest.TestCase):
                             'ContinuousFunction', source_level, name, target_level, val))
 
     def test_RectangleInterpolation_NodesToElements_FineToCoarse(self):
-        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize, d1=mpiSize, l0=2)
+        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize-1, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
         X = [i.getX() for i in domains]
 
@@ -214,7 +210,7 @@ class Test_multiResolution(unittest.TestCase):
                             'ContinuousFunction', source_level, name, target_level, val))
 
     def test_RectangleInterpolation_ReducedToElements_CoarseToFine(self):
-        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize, d1=mpiSize, l0=2)
+        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize-1, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
         X = [interpolate(i.getX(), ReducedFunction(i)) for i in domains]
 
@@ -223,28 +219,30 @@ class Test_multiResolution(unittest.TestCase):
                 for target_level in range(source_level + 1, len(domains)):
                     to = targetFS(domains[target_level])
                     desired = interpolate(X[source_level], Function(domains[source_level]))
-                    val = Lsup(interpolate(X[source_level], to) \
-                            - interpolate(desired, to))
+                    val = Lsup(interpolate(X[source_level], to) - desired)
                     self.assertLess(val, 1e-12,
                             "Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
                             'ReducedFunction', source_level, name, target_level, val))        
 
     def test_RectangleInterpolation_ElementsToElements_CoarseToFine(self):
-        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize, d1=mpiSize, l0=2)
+        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize-1, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
         X = [interpolate(i.getX(), Function(i)) for i in domains]
 
         for targetFS, name in [(Function, 'Function')]:
             for source_level in range(len(domains)):
                 for target_level in range(source_level + 1, len(domains)):
-                    val = Lsup(interpolate(X[target_level], targetFS(domains[source_level])) \
-                            - interpolate(X[source_level], targetFS(domains[target_level])))
+                    val = Lsup(interpolate(X[source_level], targetFS(domains[target_level])) \
+                            - interpolate(X[target_level], targetFS(domains[target_level])))
+                    if val > 1e-12:
+                        print("Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
+                            'Function', source_level, name, target_level, val))
                     self.assertLess(val, 1e-12,
                             "Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
                             'Function', source_level, name, target_level, val))
 
     def test_RectangleInterpolation_ElementsToElements_FineToCoarse(self):
-        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize, d1=mpiSize, l0=2)
+        mrd = MultiResolutionDomain(2, n0=2, n1=2*mpiSize-1, d1=mpiSize, l0=2)
         d0 = mrd.getLevel(0)
         d1 = mrd.getLevel(1)
         d2 = mrd.getLevel(2)
@@ -278,7 +276,7 @@ class Test_multiResolution(unittest.TestCase):
 
 
 
-
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_MultiBrick_constructors(self):
         with self.assertRaises(OverflowError): #negative is bad
             MultiBrick(n0=2*mpiSize-1, n1=5, n2=3, d1=mpiSize, multiplier=-1)
@@ -294,6 +292,7 @@ class Test_multiResolution(unittest.TestCase):
         MultiBrick(n0=2*mpiSize-1, n1=5, n2=3, d1=mpiSize, multiplier=2)
         MultiBrick(n0=2*mpiSize-1, n1=5, n2=3, d1=mpiSize, multiplier=8)
 
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_BrickInterpolation_NodesToNodesAndElements_CoarseToFine(self):
         mrd = MultiResolutionDomain(3, n0=2, n1=2*mpiSize, n2=3, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
@@ -309,7 +308,7 @@ class Test_multiResolution(unittest.TestCase):
                     self.assertLess(val, 1e-12,
                             "Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
                             'ContinuousFunction', source_level, name, target_level, val))
-
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_BrickInterpolation_NodesToElements_FineToCoarse(self):
         mrd = MultiResolutionDomain(3, n0=2, n1=2*mpiSize, n2=3, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
@@ -323,7 +322,7 @@ class Test_multiResolution(unittest.TestCase):
                     self.assertLess(val, 1e-12,
                             "Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
                             'ContinuousFunction', source_level, name, target_level, val))
-
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_BrickInterpolation_ReducedToElements_CoarseToFine(self):
         mrd = MultiResolutionDomain(3, n0=2, n1=2*mpiSize, n2=3, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
@@ -340,6 +339,7 @@ class Test_multiResolution(unittest.TestCase):
                             "Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
                             'ReducedFunction', source_level, name, target_level, val))        
 
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_BrickInterpolation_ElementsToElements_CoarseToFine(self):
         mrd = MultiResolutionDomain(3, n0=2, n1=2*mpiSize, n2=2, d1=mpiSize, l0=2)
         domains = [mrd.getLevel(i) for i in range(3)]
@@ -348,12 +348,13 @@ class Test_multiResolution(unittest.TestCase):
         for targetFS, name in [(Function, 'Function')]:
             for source_level in range(len(domains)):
                 for target_level in range(source_level + 1, len(domains)):
-                    val = Lsup(interpolate(X[target_level], targetFS(domains[source_level])) \
+                    val = Lsup(interpolate(X[target_level], targetFS(domains[target_level])) \
                             - interpolate(X[source_level], targetFS(domains[target_level])))
                     self.assertLess(val, 1e-12,
                             "Interpolation failure from %s level %d to %s level %d: %g !< 1e-12"%(\
                             'Function', source_level, name, target_level, val))
 
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
     def test_BrickInterpolation_ElementsToElements_FineToCoarse(self):
         mrd = MultiResolutionDomain(3, n0=2, n1=2*mpiSize, n2=3, d1=mpiSize, l0=2)
         d0 = mrd.getLevel(0)

@@ -168,6 +168,13 @@ public:
     */
     virtual const int* getNumSubdivisionsPerDim() const { return m_NX; }
 
+    /**
+       \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const;
+
 protected:
     virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     virtual void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const MultiBrick& other) const;

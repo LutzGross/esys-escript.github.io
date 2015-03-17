@@ -224,6 +224,9 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
+    virtual dim_t getNumDOFInAxis(unsigned axis) const;
+    virtual index_t getFirstInDim(unsigned axis) const;
+
     virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out,
@@ -241,10 +244,10 @@ protected:
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
 
-    void populateSampleIds();
-    void populateDofMap();
-    std::vector<IndexVector> getConnections() const;
-    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+    virtual void populateSampleIds();
+    virtual void populateDofMap();
+    virtual std::vector<IndexVector> getConnections() const;
+    virtual void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
 
@@ -260,7 +263,7 @@ protected:
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
 
-    dim_t findNode(const double *coords) const;
+    virtual dim_t findNode(const double *coords) const;
 
     
     escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape,
@@ -353,6 +356,13 @@ inline dim_t Rectangle::getNumDOF() const
 }
 
 //protected
+inline dim_t Rectangle::getNumDOFInAxis(unsigned axis) const
+{
+    EsysAssert((axis < m_numDim), "Invalid axis");
+    return (m_gNE[axis]+1)/m_NX[axis];
+}
+
+//protected
 inline dim_t Rectangle::getNumNodes() const
 {
     return m_NN[0]*m_NN[1];
@@ -370,6 +380,11 @@ inline dim_t Rectangle::getNumFaceElements() const
     return m_faceCount[0] + m_faceCount[1] + m_faceCount[2] + m_faceCount[3];
 }
 
+//protected
+inline index_t Rectangle::getFirstInDim(unsigned axis) const
+{
+    return m_offset[axis] == 0 ? 0 : 1;
+}
 
 } // end of namespace ripley
 
