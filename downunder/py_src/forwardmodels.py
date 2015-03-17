@@ -1393,13 +1393,16 @@ class MT2DModelTEMode(ForwardModel):
         u1=E_x[1]
         u01=dE_xdz[0]
         u11=dE_xdz[1]
+        scale = 2./( u01**2 + u11**2 )
 
         # this can be done faster!
-        s = 0
         for s in range(len(self.__scaledZxy)):
+            Zr, Zi = self.__scaledZxy[s].real, self.__scaledZxy[s].imag
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            ds = ws * ( (u0-u01*self.__scaledZxy[s].real+u11*self.__scaledZxy[s].imag)**2 + (u1-u01*self.__scaledZxy[s].imag-u11*self.__scaledZxy[s].real)**2 )
-            A+=integrate( ds )
+            A += integrate(ws * scale * (Zi**2*(u01**2+u11**2) \
+                    + 2*Zi*(u0*u11-u01*u1) + Zr**2*(u01**2+u11**2)
+                    - 2*Zr*(u0*u01+u11*u1) + u0**2 + u1**2))
+            #A+=integrate( ws * ( (u0-u01*Zr+u11*Zi)**2 + (u1-u01*Zi-u11*Zr)**2 ) )
 
         return A/2
 
@@ -1417,10 +1420,13 @@ class MT2DModelTEMode(ForwardModel):
         x=Function(self.getDomain()).getX()
         pde=self.setUpPDE()
 
-        u0=E_x[0]
-        u1=E_x[1]
-        u01=dE_xdz[0]
-        u11=dE_xdz[1]
+        u0 = E_x[0]
+        u1 = E_x[1]
+        u01 = dE_xdz[0]
+        u11 = dE_xdz[1]
+
+        scale = 1./( u01**2 + u11**2 )
+        scale2 = scale**2
 
         D=pde.getCoefficient('D')
         Y=pde.getCoefficient('Y')
@@ -1430,17 +1436,19 @@ class MT2DModelTEMode(ForwardModel):
         D[0,1]=  f
         D[1,0]= -f
 
-        s = 0
-        while s < len(self.__scaledZxy):
+        for s in range(len(self.__scaledZxy)):
+            Zr, Zi = self.__scaledZxy[s].real, self.__scaledZxy[s].imag
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            Y[0]+=ws * (u0 - u01* self.__scaledZxy[s].real + u11* self.__scaledZxy[s].imag)
-            Y[1]+=ws * (u1 - u01* self.__scaledZxy[s].imag - u11* self.__scaledZxy[s].real)
-            X[0,1]+=ws * (u01* abs(self.__scaledZxy[s])**2 - u0* self.__scaledZxy[s].real - u1* self.__scaledZxy[s].imag )
-            X[1,1]+=ws * (u11* abs(self.__scaledZxy[s])**2 + u0* self.__scaledZxy[s].imag - u1* self.__scaledZxy[s].real )
-            s += 1
+            Y[0] += ws * scale * (u0 - u01*Zr + u11*Zi)
+            Y[1] += ws * scale * (u1 - u01*Zi - u11*Zr)
+            X[0,1] += ws * scale2 * (2*u01*u11*(Zr*u1-Zi*u0) \
+                    + (Zr*u0+Zi*u1)*(u01**2-u11**2) - u01*(u0**2 + u1**2))
+            X[1,1] += ws * scale2 * (2*u01*u11*(Zi*u1+Zr*u0) \
+                    + (Zi*u0-Zr*u1)*(u01**2-u11**2) - u11*(u0**2 + u1**2))
+
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
-        return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
+        return self.__omega * self.__mu * (Zstar[0]*u0-Zstar[1]*u1)
 
 class Subsidence(ForwardModel):
     """
