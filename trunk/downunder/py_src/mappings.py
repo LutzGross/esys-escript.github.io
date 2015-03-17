@@ -25,7 +25,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping',\
-           'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping']
+           'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping',\
+           'MTMapping']
 
 from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp, whereZero
 import esys.escript.unitsSI as U
