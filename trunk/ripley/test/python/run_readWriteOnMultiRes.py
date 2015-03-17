@@ -139,7 +139,7 @@ class Test_writeBinaryGridRipley_BIG_INT32(WriteBinaryGridTestBase):
         self.datatype = DATATYPE_INT32
         self.dtype = ">i4"
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains don't support multiprocess yet")
+
 class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
     """
     The reader tests work in several stages:
@@ -242,6 +242,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                 self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains don't support multiprocess yet")
     def test_readGrid3D(self):
         if self.multiplier[0] == 1:
             self.NE = [self.NX*mpiSize-1, self.NX*self.multiplier[1], self.NZ*self.multiplier[2]]

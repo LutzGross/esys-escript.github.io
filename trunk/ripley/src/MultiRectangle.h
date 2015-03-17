@@ -161,6 +161,13 @@ public:
        returns the number of spatial subdivisions in each dimension
     */
     virtual const int* getNumSubdivisionsPerDim() const { return m_NX; }
+    
+    /**
+       \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const;
 
 protected:
     virtual void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
@@ -171,18 +178,46 @@ protected:
 
     virtual void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
     virtual void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
+paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                                                    bool reducedRowOrder,
+                                                    bool reducedColOrder) const;
+    virtual index_t getFirstInDim(unsigned axis) const;
+    virtual void populateSampleIds();
+    virtual dim_t getNumDOFInAxis(unsigned axis) const;
+    virtual dim_t getNumDOF() const;
+    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
+    virtual void populateDofMap();
 
-    void populateSampleIds();
-    void populateDofMap();
-    std::vector<IndexVector> getConnections() const;
+    virtual dim_t findNode(const double *coords) const;
 
-    dim_t findNode(const double *coords) const;
-
+private:
+    mutable std::vector<IndexVector> m_colIndices;
+    mutable std::vector<IndexVector> m_rowIndices;
     unsigned int m_subdivisions;
 };
 
+//protected
+inline dim_t MultiRectangle::getNumDOF() const
+{
+    return getNumDOFInAxis(0)*getNumDOFInAxis(1);
+}
 
+//protected
+inline dim_t MultiRectangle::getNumDOFInAxis(unsigned axis) const
+{
+    EsysAssert((axis < m_numDim), "Invalid axis");
+    dim_t res = m_ownNE[axis] + 1;
+    if (m_offset[axis] + m_NE[axis] < m_gNE[axis]) {
+        res--;
+    }
+    return res;
+}
 
+//protected
+index_t MultiRectangle::getFirstInDim(unsigned axis) const
+{
+    return m_offset[axis] == 0 ? 0 : m_subdivisions;
+}
 
 } // end of namespace ripley
 

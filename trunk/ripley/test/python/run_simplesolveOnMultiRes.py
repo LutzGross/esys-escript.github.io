@@ -65,7 +65,6 @@ def Brick(**kwargs):
     m = MultiResolutionDomain(3, **kwargs)
     return m.getLevel(1)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_SimpleSolveRipley2D_Single_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         # Tell about how many MPI CPUs and OpenMP threads
@@ -97,7 +96,6 @@ class Test_SimpleSolveRipley2D_Single_Paso_BICGSTAB_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_SimpleSolveRipley2D_Single_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -128,7 +126,6 @@ class Test_SimpleSolveRipley2D_Single_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_SimpleSolveRipley2D_System_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -170,7 +167,7 @@ class Test_SimpleSolveRipley2D_System_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveRipley3D_Single_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -199,7 +196,7 @@ class Test_SimpleSolveRipley3D_Single_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveRipley3D_System_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -249,7 +246,6 @@ class Test_SimpleSolveRipley3D_System_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_SimpleSolveRipley2D_Single_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -281,7 +277,6 @@ class Test_SimpleSolveRipley2D_Single_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
 class Test_SimpleSolveRipley2D_System_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -323,7 +318,7 @@ class Test_SimpleSolveRipley2D_System_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveRipley3D_Single_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -352,7 +347,7 @@ class Test_SimpleSolveRipley3D_Single_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveRipley3D_System_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
