@@ -1239,59 +1239,56 @@ class MT2DModelTEMode(ForwardModel):
         :type saveMemory: ``bool``
         """
         super(MT2DModelTEMode, self).__init__()
-        self.__trafo=makeTranformation(domain, coordinates)
+        self.__trafo = makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian coordinates are not supported yet.")
 
-        #====================================
-        if not len(x) == len(Z_XY):
+        if len(x) != len(Z_XY):
             raise ValueError("Number of data points and number of impedance values don't match.")
 
-        self.__domain = domain
-        self.__omega = omega
-        self.__mu = mu
-        self.__x = x
-        DIM=self.__domain.getDim()
-
-        f = -1./(complex(0,1)*omega*mu)
-        self.__scaledZxy=[ z*f for z in Z_XY ]
-
-        #====================================
         if eta is None:
-             eta=sup(self.__domain.getSize())*0.45
+            eta = sup(domain.getSize())*0.45
 
         if isinstance(eta, float) or isinstance(eta, int):
-            self.__eta = [float(eta) for z in Z_XY]
-        else:
-            self.__eta = eta
-        if not len(self.__eta) == len(Z_XY):
+            eta = [float(eta)]*len(Z_XY)
+        elif not len(eta) == len(Z_XY):
             raise ValueError("Number of confidence radii and number of impedance values don't match.")
 
-        #====================================
         if isinstance(w0, float) or isinstance(w0, int):
-            w0 =[float(w0) for z in Z_XY]
-        if not len(w0) == len(Z_XY):
+            w0 =[float(w0)]*len(Z_XY)
+        elif not len(w0) == len(Z_XY):
             raise ValueError("Number of confidence factors and number of impedance values don't match.")
 
-        self.__wx0 = [0.] * len(Z_XY)
-        x=Function(domain).getX()
+        self.__domain = domain
+        self._omega_mu = omega * mu
+
+        wx0 = [0.] * len(Z_XY)
+        xx=Function(domain).getX()
+        f = -1./(complex(0,1)*self._omega_mu)
+        scaledZxy = [ z*f for z in Z_XY ]
+
         totalS=0
-        # Z And w should be in one data object!
-        for s in range(len(self.__scaledZxy)):
-            f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
-            if f < self.__eta[s]**2 * 0.01 :
+        self._scaledZ = Vector([0.,0.], Function(domain))
+        self._weight = Scalar(0., Function(domain))
+
+        for s in range(len(scaledZxy)):
+            ws = self.getWeightingFactor(xx, 1., x[s], eta[s])
+            f = integrate(ws)
+            if f < eta[s]**2 * 0.01 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
-            self.__wx0[s] = w0[s]/f
-            totalS+=self.__wx0[s] 
+            wx0[s] = w0[s]/f
+            totalS += wx0[s]
+            self._scaledZ[0] += ws*scaledZxy[s].real
+            self._scaledZ[1] += ws*scaledZxy[s].imag
+            self._weight += ws*wx0[s]
 
         if not totalS > 0:
             raise ValueError("Scaling of weight factors failed as sum is zero.")
 
-        ###self.__wx0=[ w/totalS for w in self.__wx0 ]
-
-        z = self.__domain.getX()[DIM-1]
-        self.__ztop=sup(z)
-        self.__zbottom=inf(z)
+        DIM = domain.getDim()
+        z = domain.getX()[DIM-1]
+        self.__ztop = sup(z)
+        self.__zbottom = inf(z)
         #====================================
         if fixAtTop:
             if isinstance(Ex_top, float) or isinstance(Ex_top, int) :
@@ -1308,13 +1305,13 @@ class MT2DModelTEMode(ForwardModel):
         else:
             self.__Ex_0 = [0.,0.]
         #====================================
-        self.__tol=tol
-        self.__fixAtTop=fixAtTop
-        self.__directSolver=directSolver
-        self.__saveMemory=saveMemory
-        self.__pde=None
+        self.__tol = tol
+        self.__fixAtTop = fixAtTop
+        self.__directSolver = directSolver
+        self.__saveMemory = saveMemory
+        self.__pde = None
         if not saveMemory:
-            self.__pde=self.setUpPDE()
+            self.__pde = self.setUpPDE()
 
     def getDomain(self):
         """
@@ -1341,7 +1338,7 @@ class MT2DModelTEMode(ForwardModel):
         if self.__pde is None:
             DIM=self.__domain.getDim()
             pde=LinearPDE(self.__domain, numEquations=2)
-            if(self.__directSolver == True):
+            if self.__directSolver == True:
                 pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
@@ -1352,7 +1349,7 @@ class MT2DModelTEMode(ForwardModel):
             A[1,:,1,:]=kronecker(DIM)
             pde.setValue(A=A, D=D, X=X, Y=Y, y=y)
             z = self.__domain.getX()[DIM-1]
-            q=whereZero(z-self.__zbottom)
+            q = whereZero(z-self.__zbottom)
             if self.__fixAtTop:
                 q+=whereZero(z-self.__ztop)
             pde.setValue(q=q*[1,1])
@@ -1372,16 +1369,15 @@ class MT2DModelTEMode(ForwardModel):
         :return: Ex_, Ex_,z
         :rtype: ``Data`` of shape (2,)
         """
-        DIM=self.__domain.getDim()
-        pde=self.setUpPDE()
-        D=pde.getCoefficient('D')
-        f=(self.__omega * self.__mu) * sigma
-        D[0,1]= -f
-        D[1,0]=  f
-        Z=FunctionOnBoundary(self.__domain).getX()[DIM-1]
+        DIM = self.__domain.getDim()
+        pde = self.setUpPDE()
+        D = pde.getCoefficient('D')
+        f = self._omega_mu * sigma
+        D[0,1] = -f
+        D[1,0] =  f
+        Z = FunctionOnBoundary(self.__domain).getX()[DIM-1]
         pde.setValue(D=D, y=whereZero(Z-self.__ztop)*[1.,0.], r=self.__Ex_0)
-        u=pde.getSolution()
-        if self.__saveMemory: self.__pde=None
+        u = pde.getSolution()
         return u, grad(u)[:,1]
 
     def getWeightingFactor(self, x, wx0, x0, eta):
@@ -1389,7 +1385,6 @@ class MT2DModelTEMode(ForwardModel):
         returns the weighting factor
         """
         return wx0 * whereNegative(length(x-x0)-eta)
-        #return wx0 * exp(length(x-x0)**2*(-0.5/eta**2))
 
     def getDefect(self, sigma, Ex, dExdz):
         """
@@ -1410,17 +1405,12 @@ class MT2DModelTEMode(ForwardModel):
         u1=Ex[1]
         u01=dExdz[0]
         u11=dExdz[1]
-        #scale = 2./( u01**2 + u11**2 )
-        scale = 1./( u01**2 + u11**2 )
+        scale = self._weight / ( u01**2 + u11**2 )
 
-        # this can be done faster!
-        A=0
-        for s in range(len(self.__scaledZxy)):
-            Zr, Zi = self.__scaledZxy[s].real, self.__scaledZxy[s].imag
-            ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            A += integrate(ws * scale * (Zi**2*(u01**2+u11**2) \
-                    + 2*Zi*(u0*u11-u01*u1) + Zr**2*(u01**2+u11**2)
-                    - 2*Zr*(u0*u01+u11*u1) + u0**2 + u1**2))
+        Z = self._scaledZ
+        A = integrate(scale * ((Z[0]**2+Z[1]**2)*(u01**2+u11**2) \
+                + 2*Z[1]*(u0*u11-u01*u1)
+                - 2*Z[0]*(u0*u01+u11*u1) + u0**2 + u1**2))
 
         return A/2
 
@@ -1444,9 +1434,6 @@ class MT2DModelTEMode(ForwardModel):
         u01 = dExdz[0]
         u11 = dExdz[1]
 
-        scale = 1./( u01**2 + u11**2 )
-        scale2 = scale**2
-
         D=pde.getCoefficient('D')
         Y=pde.getCoefficient('Y')
         if Y.isEmpty():
@@ -1455,30 +1442,28 @@ class MT2DModelTEMode(ForwardModel):
         if X.isEmpty():
             X=pde.createCoefficient('X')
 
-        f=(self.__omega * self.__mu) * sigma
-        D[0,1]=  f
-        D[1,0]= -f
+        f = self._omega_mu * sigma
+        D[0,1] =  f
+        D[1,0] = -f
 
-        for s in range(len(self.__scaledZxy)):
-            Zr, Zi = self.__scaledZxy[s].real, self.__scaledZxy[s].imag
-            ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            Y[0] += ws * scale * (u0 - u01*Zr + u11*Zi)
-            Y[1] += ws * scale * (u1 - u01*Zi - u11*Zr)
-            X[0,1] += ws * scale2 * (2*u01*u11*(Zr*u1-Zi*u0) \
-                    + (Zr*u0+Zi*u1)*(u01**2-u11**2) - u01*(u0**2 + u1**2))
-            X[1,1] += ws * scale2 * (2*u01*u11*(Zi*u1+Zr*u0) \
-                    + (Zi*u0-Zr*u1)*(u01**2-u11**2) - u11*(u0**2 + u1**2))
+        Z = self._scaledZ
+        scale = 1./( u01**2 + u11**2 )
+        scale2 = scale**2
+        scale *= self._weight
+        scale2 *= self._weight
 
+        Y[0] = scale * (u0 - u01*Z[0] + u11*Z[1])
+        Y[1] = scale * (u1 - u01*Z[1] - u11*Z[0])
+        X[0,1] = scale2 * (2*u01*u11*(Z[0]*u1-Z[1]*u0) \
+                + (Z[0]*u0+Z[1]*u1)*(u01**2-u11**2)
+                - u01*(u0**2 + u1**2))
+        X[1,1] = scale2 * (2*u01*u11*(Z[1]*u1+Z[0]*u0) \
+                + (Z[1]*u0-Z[0]*u1)*(u01**2-u11**2)
+                - u11*(u0**2 + u1**2))
 
-#Y[0]=( w*(Zi*u11 - Zr*u01 + u0) )*id
-#Y[1]=( w*(-Zi*u01 - Zr*u11 + u1) )*id
-#X[0,1]=( w*(-2*Zi*u0*u01*u11 + Zi*u01**2*u1 - Zi*u1*u11**2 + Zr*u0*u01**2 - Zr*u0*u11**2 + 2*Zr*u01*u1*u11 - u0**2*u01 - u01*u1**2) )*id2
-#X[1,1]=( w*(Zi*u0*u01**2 - Zi*u0*u11**2 + 2*Zi*u01*u1*u11 + 2*Zr*u0*u01*u11 - Zr*u01**2*u1 + Zr*u1*u11**2 - u0**2*u11 - u1**2*u11) )*id2
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
-        if self.__saveMemory: self.__pde=None
-        #return (-self.__omega * self.__mu) * (Zstar[0]*u0-Zstar[1]*u1)
-        return (-self.__omega * self.__mu)* (Zstar[1]*u0-Zstar[0]*u1)
+        return -self._omega_mu * (Zstar[1]*u0-Zstar[0]*u1)
 
 class Subsidence(ForwardModel):
     """
