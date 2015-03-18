@@ -1410,7 +1410,8 @@ class MT2DModelTEMode(ForwardModel):
         u1=Ex[1]
         u01=dExdz[0]
         u11=dExdz[1]
-        scale = 2./( u01**2 + u11**2 )
+        #scale = 2./( u01**2 + u11**2 )
+        scale = 1./( u01**2 + u11**2 )
 
         # this can be done faster!
         A=0
@@ -1455,10 +1456,8 @@ class MT2DModelTEMode(ForwardModel):
             X=pde.createCoefficient('X')
 
         f=(self.__omega * self.__mu) * sigma
-        #D[0,1]=  f
-        #D[1,0]= -f
-        D[0,1]= -f
-        D[1,0]= f
+        D[0,1]=  f
+        D[1,0]= -f
 
         for s in range(len(self.__scaledZxy)):
             Zr, Zi = self.__scaledZxy[s].real, self.__scaledZxy[s].imag
@@ -1470,10 +1469,16 @@ class MT2DModelTEMode(ForwardModel):
             X[1,1] += ws * scale2 * (2*u01*u11*(Zi*u1+Zr*u0) \
                     + (Zi*u0-Zr*u1)*(u01**2-u11**2) - u11*(u0**2 + u1**2))
 
+
+#Y[0]=( w*(Zi*u11 - Zr*u01 + u0) )*id
+#Y[1]=( w*(-Zi*u01 - Zr*u11 + u1) )*id
+#X[0,1]=( w*(-2*Zi*u0*u01*u11 + Zi*u01**2*u1 - Zi*u1*u11**2 + Zr*u0*u01**2 - Zr*u0*u11**2 + 2*Zr*u01*u1*u11 - u0**2*u01 - u01*u1**2) )*id2
+#X[1,1]=( w*(Zi*u0*u01**2 - Zi*u0*u11**2 + 2*Zi*u01*u1*u11 + 2*Zr*u0*u01*u11 - Zr*u01**2*u1 + Zr*u1*u11**2 - u0**2*u11 - u1**2*u11) )*id2
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
         if self.__saveMemory: self.__pde=None
-        return (-self.__omega * self.__mu) * (Zstar[0]*u0-Zstar[1]*u1)
+        #return (-self.__omega * self.__mu) * (Zstar[0]*u0-Zstar[1]*u1)
+        return (-self.__omega * self.__mu)* (Zstar[1]*u0-Zstar[0]*u1)
 
 class Subsidence(ForwardModel):
     """
