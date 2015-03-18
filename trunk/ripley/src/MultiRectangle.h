@@ -111,57 +111,10 @@ public:
 
     /**
        \brief
-       returns the array of reference numbers for a function space type
-       \param fsType The function space type
-    */
-    const dim_t* borrowSampleReferenceIDs(int fsType) const;
-
-    /**
-       \brief
-       returns true if this rank owns the sample id.
-    */
-    virtual bool ownSample(int fs_code, index_t id) const;
-
-    /**
-       \brief
-       copies the surface normals at data points into out. The actual function
-       space to be considered is defined by out. out has to be defined on this
-       domain.
-    */
-    virtual void setToNormal(escript::Data& out) const;
-
-    /**
-       \brief
-       copies the size of samples into out. The actual function space to be
-       considered is defined by out. out has to be defined on this domain.
-    */
-    virtual void setToSize(escript::Data& out) const;
-
-    /**
-       \brief
        returns the number of times each root element has been subdivided
     */
     virtual unsigned int getNumSubdivisionsPerElement() const { return m_subdivisions; }
 
-    /**
-       \brief
-       returns the number of face elements in the order
-       (left,right,bottom,top) on current MPI rank
-    */
-    virtual const dim_t* getNumFacesPerBoundary() const { return m_faceCount; }
-
-    /**
-       \brief
-       returns the node distribution vector
-    */
-    virtual IndexVector getNodeDistribution() const { return m_nodeDistribution; }
-
-    /**
-       \brief
-       returns the number of spatial subdivisions in each dimension
-    */
-    virtual const int* getNumSubdivisionsPerDim() const { return m_NX; }
-    
     /**
        \brief
        returns a vector of rank numbers where vec[i]=n means that rank n
@@ -178,14 +131,13 @@ protected:
 
     virtual void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
     virtual void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
-paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const;
     virtual index_t getFirstInDim(unsigned axis) const;
     virtual void populateSampleIds();
     virtual dim_t getNumDOFInAxis(unsigned axis) const;
     virtual dim_t getNumDOF() const;
-    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void populateDofMap();
 
     virtual dim_t findNode(const double *coords) const;
