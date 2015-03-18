@@ -28,7 +28,7 @@ __all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticMo
 
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary, Solution, length, exp
+from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary, Solution, length, exp, ReducedFunction
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
 from esys.escript.util import *
@@ -1205,7 +1205,7 @@ class MT2DModelTEMode(ForwardModel):
     where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
     conditions are assumed elsewhere.
     """
-    def __init__(self, domain, omega, x, Z_XY, eta, w0=1., mu=4*PI*1e-7, Ex_top=1,
+    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7, Ex_top=1,
         coordinates=None, fixAtTop=False, tol=1e-8, saveMemory=False, directSolver=True):
         """
         initializes a new forward model.
@@ -1257,6 +1257,9 @@ class MT2DModelTEMode(ForwardModel):
         self.__scaledZxy=[ z*f for z in Z_XY ]
 
         #====================================
+        if eta is None:
+             eta=sup(self.__domain.getSize())*0.45
+
         if isinstance(eta, float) or isinstance(eta, int):
             self.__eta = [float(eta) for z in Z_XY]
         else:
@@ -1273,9 +1276,10 @@ class MT2DModelTEMode(ForwardModel):
         self.__wx0 = [0.] * len(Z_XY)
         x=Function(domain).getX()
         totalS=0
+        # Z And w should be in one data object!
         for s in range(len(self.__scaledZxy)):
-            f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s])*abs(self.__scaledZxy[s])**2)
-            if f < 2*PI*self.__eta[s]**2 * 0.1 :
+            f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
+            if f < self.__eta[s]**2 * 0.01 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
             self.__wx0[s] = w0[s]/f
             totalS+=self.__wx0[s] 
@@ -1384,14 +1388,15 @@ class MT2DModelTEMode(ForwardModel):
         """
         returns the weighting factor
         """
-        return wx0 * exp(length(x-x0)**2*(-0.5/eta**2))
+        return wx0 * whereNegative(length(x-x0)-eta)
+        #return wx0 * exp(length(x-x0)**2*(-0.5/eta**2))
 
-    def getDefect(self, sigma, Ex_, dExdz):
+    def getDefect(self, sigma, Ex, dExdz):
         """
         Returns the defect value.
 
-        :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
+        :param sigma: a suggestion for conductivity
+        :type sigma: ``Data`` of shape ()
         :param Ex_: electric field
         :type Ex_: ``Data`` of shape (2,)
         :param dExdz: vertical derivative of electric field
@@ -1399,15 +1404,16 @@ class MT2DModelTEMode(ForwardModel):
 
         :rtype: ``float``
         """
-        x=Function(self.getDomain()).getX()
-        A=0
-        u0=Ex_[0]
-        u1=Ex_[1]
+        x=dExdz.getFunctionSpace().getX()
+        Ex=interpolate(Ex, x.getFunctionSpace())
+        u0=Ex[0]
+        u1=Ex[1]
         u01=dExdz[0]
         u11=dExdz[1]
         scale = 2./( u01**2 + u11**2 )
 
         # this can be done faster!
+        A=0
         for s in range(len(self.__scaledZxy)):
             Zr, Zi = self.__scaledZxy[s].real, self.__scaledZxy[s].imag
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
@@ -1421,16 +1427,17 @@ class MT2DModelTEMode(ForwardModel):
         """
         Returns the gradient of the defect with respect to density.
 
-        :param sigma: a suggestion for cinductivity
+        :param sigma: a suggestion for conductivity
         :type sigma: ``Data`` of shape ()
         :param Ex: electric field
         :type Ex: ``Data`` of shape (2,)
         :param dExdz: vertical derivative of electric field
         :type dExdz: ``Data`` of shape (2,)
         """
-        x=Function(self.getDomain()).getX()
         pde=self.setUpPDE()
 
+        x=dExdz.getFunctionSpace().getX()
+        Ex=interpolate(Ex, x.getFunctionSpace())
         u0 = Ex[0]
         u1 = Ex[1]
         u01 = dExdz[0]
