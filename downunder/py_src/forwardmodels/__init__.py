@@ -14,22 +14,21 @@
 #
 ##############################################################################
 
-Import('*')
-local_env = env.Clone()
+"""Collection of forward models that define the inversion problem"""
 
-# get the source file names
-sources = Glob('*.py')
-fmsources = Glob('forwardmodels/*.py')
+__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+http://www.uq.edu.au
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="https://launchpad.net/escript-finley"
 
-# compile
-pyc = local_env.PyCompile(sources)
-fmpyc = local_env.PyCompile(fmsources)
-
-# install
-py_inst = local_env.Install(local_env['pyinstall']+'/downunder', pyc)
-fmpy_inst = local_env.Install(local_env['pyinstall']+'/downunder/forwardmodels', fmpyc)
-env.Alias('install_downunder_py', [py_inst, fmpy_inst])
-
-# configure unit tests
-local_env.SConscript(dirs = ['#/downunder/test/python'], variant_dir='$BUILD_DIR/$PLATFORM/downunder/test/python', duplicate=0)
+from .base import *
+from .acoustic import *
+from .dcresistivity import *
+from .gravity import *
+from .magnetic import *
+from .magnetotelluric2d import *
+from .pressure import *
+from .subsidence import *
 
