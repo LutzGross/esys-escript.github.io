@@ -216,27 +216,22 @@ scons -j1 py_tests options_file=scons/templates/opensuse13.1_options.py
 These instructions were prepared using centos release $7.0$.
 The core of escript works, however some functionality is not availible because the default packages for some dependencies in Centos are too old.
 
-\noindent Install packages from the main distribution:
-\begin{shellCode}
-yum install python-devel numpy scipy scons boost-devel
-yum install python-matplotlib gcc gcc-c++
-yum install boost-python 
-\end{shellCode}
-
-The above packages will allow you to use most features except saving and loading files in \texttt{netCDF} 
-format and the \downunder inversion library.
-If you wish to use those features, you will need to install some additional packages.
-NetCDF needs to be installed when you compile if you wish to use it.
-\begin{optionalstep}
 \noindent Add the \texttt{EPEL} repository.
 \begin{shellCode}
 yum install epel-release.noarch
 \end{shellCode}
 
+\noindent Install packages:
 \begin{shellCode}
 yum install netcdf-devel netcdf_cxx_devel gdal-python
+yum install python-devel numpy scipy scons boost-devel
+yum install python-matplotlib gcc gcc-c++
+yum install boost-python 
 \end{shellCode}
-\end{optionalstep}
+
+The above packages will allow you to use most features except 
+the \downunder inversion library.
+If you wish to use those it, you will need to install some additional packages.
 
 \noindent For some coordinate transformations, \downunder can also make use of the python interface to a tool called \texttt{proj}.
 There does not seem to be an obvious centos repository for this though.
