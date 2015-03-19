@@ -1262,7 +1262,6 @@ class MT2DModelTEMode(ForwardModel):
         self.__domain = domain
         self._omega_mu = omega * mu
 
-        wx0 = [0.] * len(Z_XY)
         xx=Function(domain).getX()
         f = -1./(complex(0,1)*self._omega_mu)
         scaledZxy = [ z*f for z in Z_XY ]
@@ -1272,15 +1271,15 @@ class MT2DModelTEMode(ForwardModel):
         self._weight = Scalar(0., Function(domain))
 
         for s in range(len(scaledZxy)):
-            ws = self.getWeightingFactor(xx, 1., x[s], eta[s])
-            f = integrate(ws)
+            chi = self.getWeightingFactor(xx, 1., x[s], eta[s])
+            f = integrate(chi)
             if f < eta[s]**2 * 0.01 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
-            wx0[s] = w0[s]/f
-            totalS += wx0[s]
-            self._scaledZ[0] += ws*scaledZxy[s].real
-            self._scaledZ[1] += ws*scaledZxy[s].imag
-            self._weight += ws*wx0[s]
+            w02 = w0[s]/f
+            totalS += w02
+            self._scaledZ[0] += chi*scaledZxy[s].real
+            self._scaledZ[1] += chi*scaledZxy[s].imag
+            self._weight += chi*w02
 
         if not totalS > 0:
             raise ValueError("Scaling of weight factors failed as sum is zero.")
@@ -1463,7 +1462,8 @@ class MT2DModelTEMode(ForwardModel):
 
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
-        return -self._omega_mu * (Zstar[1]*u0-Zstar[0]*u1)
+        if self.__saveMemory: self.__pde=None
+        return (-self._omega_mu)* (Zstar[1]*u0-Zstar[0]*u1)
 
 class Subsidence(ForwardModel):
     """
