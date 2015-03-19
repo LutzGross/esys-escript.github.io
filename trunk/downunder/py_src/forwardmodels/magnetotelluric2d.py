@@ -24,7 +24,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['MT2DModelTEMode']
+__all__ = ['MT2DModelTEMode', 'MT2DModelTMMode']
 
 from .base import ForwardModel
 from esys.downunder.coordinates import makeTranformation
@@ -34,33 +34,14 @@ from esys.escript.util import *
 from math import pi as PI
 
 
-class MT2DModelTEMode(ForwardModel):
+class MT2DBase(ForwardModel):
     """
-    Forward Model for two dimensional MT model in the TE mode for a given
-    frequency omega.
-    It defines a cost function:
-
-      *  defect = 1/2 integrate( sum_s w^s * ( E_x/Hy - Z_XY^s ) ) ** 2  *
-
-    where E_x is the horizontal electric field perpendicular to the YZ-domain,
-    horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
-    i and permeability mu. The weighting factor w^s is set to
-
-        * w^s(X) = w_0^s/(2pi*eta**2) * exp(-length(X-X^s)**2/(2*eta**2))  *
-
-    where X^s is the location of impedance measurement Z_XY^s, w_0 is the level
-    of confidence (eg. 1/measurement error) and eta is level of spatial
-    confidence.
-
-    E_x is given as solution of the PDE
-
-        * -E_{x,ii} - i omega * mu * sigma * E_x = 0
-
-    where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
-    conditions are assumed elsewhere.
+    Base class for 2D MT forward models. See `MT2DModelTEMode` and
+    `MT2DModelTMMode` for actual implementations.
     """
-    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7, Ex_top=1,
-        coordinates=None, fixAtTop=False, tol=1e-8, saveMemory=False, directSolver=True):
+    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
+                 Ex_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
+                 saveMemory=False, directSolver=True):
         """
         initializes a new forward model.
 
@@ -92,7 +73,7 @@ class MT2DModelTEMode(ForwardModel):
                            reallocated.
         :type saveMemory: ``bool``
         """
-        super(MT2DModelTEMode, self).__init__()
+        super(MT2DBase, self).__init__()
         self.__trafo = makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian coordinates are not supported yet.")
@@ -161,7 +142,7 @@ class MT2DModelTEMode(ForwardModel):
         self.__tol = tol
         self.__fixAtTop = fixAtTop
         self.__directSolver = directSolver
-        self.__saveMemory = saveMemory
+        self._saveMemory = saveMemory
         self.__pde = None
         if not saveMemory:
             self.__pde = self.setUpPDE()
@@ -241,6 +222,55 @@ class MT2DModelTEMode(ForwardModel):
 
     def getDefect(self, sigma, Ex, dExdz):
         """
+        Returns the defect value. Needs to be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def getGradient(self, sigma, Ex, dExdz):
+        """
+        Returns the gradient. Needs to be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+
+class MT2DModelTEMode(MT2DBase):
+    """
+    Forward Model for two dimensional MT model in the TE mode for a given
+    frequency omega.
+    It defines a cost function:
+
+      *  defect = 1/2 integrate( sum_s w^s * ( E_x/Hy - Z_XY^s ) ) ** 2  *
+
+    where E_x is the horizontal electric field perpendicular to the YZ-domain,
+    horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
+    i and permeability mu. The weighting factor w^s is set to
+
+        * w^s(X) = w_0^s/(2pi*eta**2) * exp(-length(X-X^s)**2/(2*eta**2))  *
+
+    where X^s is the location of impedance measurement Z_XY^s, w_0 is the level
+    of confidence (eg. 1/measurement error) and eta is level of spatial
+    confidence.
+
+    E_x is given as solution of the PDE
+
+        * -E_{x,ii} - i omega * mu * sigma * E_x = 0
+
+    where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
+    conditions are assumed elsewhere.
+    """
+    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
+                 Ex_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
+                 saveMemory=False, directSolver=True):
+        """
+        initializes a new forward model. See base class for a description of
+        the arguments.
+        """
+        super(MT2DModelTEMode, self).__init__(domain, omega, x, Z_XY, eta, w0,
+                    mu, Ex_top, coordinates, fixAtTop, tol,
+                    saveMemory, directSolver)
+
+    def getDefect(self, sigma, Ex, dExdz):
+        """
         Returns the defect value.
 
         :param sigma: a suggestion for conductivity
@@ -261,9 +291,10 @@ class MT2DModelTEMode(ForwardModel):
         scale = self._weight / ( u01**2 + u11**2 )
 
         Z = self._scaledZ
-        A = integrate(scale * ((Z[0]**2+Z[1]**2)*(u01**2+u11**2) \
-                + 2*Z[1]*(u0*u11-u01*u1)
-                - 2*Z[0]*(u0*u01+u11*u1) + u0**2 + u1**2))
+        A = integrate(scale * ( (Z[0]**2+Z[1]**2)*(u01**2+u11**2)
+                              + 2*Z[1]*(u0*u11-u01*u1)
+                              - 2*Z[0]*(u0*u01+u11*u1)
+                              + u0**2 + u1**2 ))
 
         return A/2
 
@@ -316,6 +347,130 @@ class MT2DModelTEMode(ForwardModel):
 
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
-        if self.__saveMemory: self.__pde=None
         return (-self._omega_mu)* (Zstar[1]*u0-Zstar[0]*u1)
+
+
+class MT2DModelTMMode(MT2DBase):
+    """
+    Forward Model for two-dimensional MT model in the TM mode for a given
+    frequency omega.
+    It defines a cost function:
+
+      *  defect = 1/2 integrate( sum_s w^s * ( E_x/Hy - Z_XY^s ) ) ** 2  *
+
+    where E_x is the horizontal electric field perpendicular to the YZ-domain,
+    horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
+    i and permeability mu. The weighting factor w^s is set to
+
+        * w^s(X) = w_0^s/(2pi*eta**2) * exp(-length(X-X^s)**2/(2*eta**2))  *
+
+    where X^s is the location of impedance measurement Z_XY^s, w_0 is the level
+    of confidence (eg. 1/measurement error) and eta is level of spatial
+    confidence.
+
+    E_x is given as solution of the PDE
+
+        * -E_{x,ii} - i omega * mu * sigma * E_x = 0
+
+    where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
+    conditions are assumed elsewhere.
+    """
+    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
+                 Ex_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
+                 saveMemory=False, directSolver=True):
+        """
+        initializes a new forward model. See base class for a description of
+        the arguments.
+        """
+        super(MT2DModelTMMode, self).__init__(domain, omega, x, Z_XY, eta, w0,
+                    mu, Ex_top, coordinates, fixAtTop, tol,
+                    saveMemory, directSolver)
+
+    def getDefect(self, sigma, Ex, dExdz):
+        """
+        Returns the defect value.
+
+        :param sigma: a suggestion for conductivity
+        :type sigma: ``Data`` of shape ()
+        :param Ex_: electric field
+        :type Ex_: ``Data`` of shape (2,)
+        :param dExdz: vertical derivative of electric field
+        :type dExdz: ``Data`` of shape (2,)
+
+        :rtype: ``float``
+        """
+        x = dExdz.getFunctionSpace().getX()
+        Ex = interpolate(Ex, x.getFunctionSpace())
+        u0 = Ex[0]
+        u1 = Ex[1]
+        u01 = dExdz[0]
+        u11 = dExdz[1]
+        rho = 1./sigma
+        scale = self._weight / ( u0**2 + u1**2 )
+
+        Z = self._scaledZ
+        A = integrate(scale * ( (Z[0]**2+Z[1]**2)*(u0**2 + u1**2)
+                                - 2*rho*Z[0]*(u0*u01 + u1*u11)
+                                + 2*rho*Z[1]*(u1*u01 - u0*u11)
+                                + rho**2*(u01**2 + u11**2) ))
+
+        return A/2
+
+    def getGradient(self, sigma, Ex, dExdz):
+        """
+        Returns the gradient of the defect with respect to density.
+
+        :param sigma: a suggestion for conductivity
+        :type sigma: ``Data`` of shape ()
+        :param Ex: electric field
+        :type Ex: ``Data`` of shape (2,)
+        :param dExdz: vertical derivative of electric field
+        :type dExdz: ``Data`` of shape (2,)
+        """
+        pde=self.setUpPDE()
+
+        x=dExdz.getFunctionSpace().getX()
+        Ex=interpolate(Ex, x.getFunctionSpace())
+        u0 = Ex[0]
+        u1 = Ex[1]
+        u01 = dExdz[0]
+        u11 = dExdz[1]
+
+        D=pde.getCoefficient('D')
+        Y=pde.getCoefficient('Y')
+        if Y.isEmpty():
+            Y=pde.createCoefficient('Y')
+        X=pde.getCoefficient('X')
+        if X.isEmpty():
+            X=pde.createCoefficient('X')
+
+        #f = self._omega_mu * sigma
+        #D[0,1] =  f
+        #D[1,0] = -f
+
+        rho = 1./sigma
+        Z = self._scaledZ
+        scale = 1./( u0**2 + u1**2 )
+        scale2 = scale**2
+        scale *= self._weight
+        scale2 *= self._weight
+
+        gscale = u01**2 + u11**2
+
+        Y[0] = scale2 * ( (Z[0]*u01+Z[1]*u11)*(u0**2-u1**2)
+                      + 2*u0*u1*(Z[0]*u11-Z[1]*u01)
+                      - rho*u0*gscale )
+        Y[1] = scale2 * ( (Z[0]*u11-Z[1]*u01)*(u1**2-u0**2)
+                      + 2*u0*u1*(Z[0]*u01+Z[1]*u11)
+                      - rho*u1*gscale )
+        X[0,1] = scale * (Z[1]*u1 - Z[0]*u0 + rho*u01)
+        X[1,1] = scale * (-Z[1]*u0 - Z[0]*u1 + rho*u11)
+
+        pde.setValue(D=D, X=X, Y=Y)
+        g=grad(pde.getSolution())
+        Hstarr_z = g[0,1]
+        Hstari_z = g[1,1]
+        return -scale*( u0*(Z[0]*u01 + Z[1]*u11)
+                      + u1*(Z[0]*u11 - Z[1]*u01)
+                      - rho*gscale ) -Hstarr_z*u01 - Hstari_z*u11
 
