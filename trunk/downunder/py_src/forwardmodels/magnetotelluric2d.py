@@ -121,27 +121,27 @@ class MT2DBase(ForwardModel):
 
         DIM = domain.getDim()
         z = domain.getX()[DIM-1]
-        self.__ztop = sup(z)
-        self.__zbottom = inf(z)
+        self._ztop = sup(z)
+        self._zbottom = inf(z)
         #====================================
         if fixAtTop:
             if isinstance(Ex_top, float) or isinstance(Ex_top, int) :
-                self.__Ex_0 = Data((Ex_top,0), Solution(domain))
+                self._Ex_0 = Data((Ex_top,0), Solution(domain))
             elif isinstance(Ex_top, tuple):
-                self.__Ex_0 = Data((Ex_top[0],Ex_top[1]), Solution(domain))
+                self._Ex_0 = Data((Ex_top[0],Ex_top[1]), Solution(domain))
             elif isinstance(Ex_top, complex):
-                self.__Ex_0 = Data((Ex_top.real,Ex_top.imag), Solution(domain))
+                self._Ex_0 = Data((Ex_top.real,Ex_top.imag), Solution(domain))
             else:
                 if not Ex_top.getShape() == (2,):
                     raise ValueError("Expected shape of Ex_0 is (2,)")
-                self.__Ex_0 = Ex_top
-            self.__Ex_0 = self.__Ex_0 * whereZero(z-self.__ztop)
+                self._Ex_0 = Ex_top
+            self._Ex_0 = self._Ex_0 * whereZero(z-self._ztop)
         else:
-            self.__Ex_0 = [0.,0.]
+            self._Ex_0 = [0.,0.]
         #====================================
         self.__tol = tol
-        self.__fixAtTop = fixAtTop
-        self.__directSolver = directSolver
+        self._fixAtTop = fixAtTop
+        self._directSolver = directSolver
         self._saveMemory = saveMemory
         self.__pde = None
         if not saveMemory:
@@ -172,7 +172,7 @@ class MT2DBase(ForwardModel):
         if self.__pde is None:
             DIM=self.__domain.getDim()
             pde=LinearPDE(self.__domain, numEquations=2)
-            if self.__directSolver == True:
+            if self._directSolver == True:
                 pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
@@ -183,9 +183,9 @@ class MT2DBase(ForwardModel):
             A[1,:,1,:]=kronecker(DIM)
             pde.setValue(A=A, D=D, X=X, Y=Y, y=y)
             z = self.__domain.getX()[DIM-1]
-            q = whereZero(z-self.__zbottom)
-            if self.__fixAtTop:
-                q+=whereZero(z-self.__ztop)
+            q = whereZero(z-self._zbottom)
+            if self._fixAtTop:
+                q+=whereZero(z-self._ztop)
             pde.setValue(q=q*[1,1])
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
@@ -194,39 +194,32 @@ class MT2DBase(ForwardModel):
             pde.resetRightHandSideCoefficients()
         return pde
 
-    def getArguments(self, sigma):
-        """
-        Returns precomputed values shared by `getDefect()` and `getGradient()`.
-
-        :param sigma: conductivity
-        :type sigma: ``Data`` of shape (2,)
-        :return: Ex_, Ex_,z
-        :rtype: ``Data`` of shape (2,)
-        """
-        DIM = self.__domain.getDim()
-        pde = self.setUpPDE()
-        D = pde.getCoefficient('D')
-        f = self._omega_mu * sigma
-        D[0,1] = -f
-        D[1,0] =  f
-        Z = FunctionOnBoundary(self.__domain).getX()[DIM-1]
-        pde.setValue(D=D, y=whereZero(Z-self.__ztop)*[1.,0.], r=self.__Ex_0)
-        u = pde.getSolution()
-        return u, grad(u)[:,1]
-
     def getWeightingFactor(self, x, wx0, x0, eta):
         """
         returns the weighting factor
         """
-        return wx0 * whereNegative(length(x-x0)-eta)
+        try:
+            origin, spacing, NE = x.getDomain().getGridParameters()
+            cell = [int((x0[i]-origin[i])/spacing[i]) for i in range(2)]
+            midpoint = [origin[i]+cell[i]*spacing[i]+spacing[i]/2. for i in range(2)]
+            return wx0 * whereNegative(length(x-midpoint)-eta)
+        except:
+            return wx0 * whereNegative(length(x-x0)-eta)
 
-    def getDefect(self, sigma, Ex, dExdz):
+    def getArguments(self, x):
+        """
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
+        Needs to be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def getDefect(self, x, Ex, dExdz):
         """
         Returns the defect value. Needs to be implemented in subclasses.
         """
         raise NotImplementedError
 
-    def getGradient(self, sigma, Ex, dExdz):
+    def getGradient(self, x, Ex, dExdz):
         """
         Returns the gradient. Needs to be implemented in subclasses.
         """
@@ -255,7 +248,7 @@ class MT2DModelTEMode(MT2DBase):
 
         * -E_{x,ii} - i omega * mu * sigma * E_x = 0
 
-    where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
+    where E_x is set to Ex_top on the top of the domain. Homogeneous Neuman
     conditions are assumed elsewhere.
     """
     def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
@@ -269,14 +262,34 @@ class MT2DModelTEMode(MT2DBase):
                     mu, Ex_top, coordinates, fixAtTop, tol,
                     saveMemory, directSolver)
 
+    def getArguments(self, sigma):
+        """
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
+
+        :param sigma: conductivity
+        :type sigma: ``Data`` of shape (2,)
+        :return: Ex_, Ex_,z
+        :rtype: ``Data`` of shape (2,)
+        """
+        DIM = self.getDomain().getDim()
+        pde = self.setUpPDE()
+        D = pde.getCoefficient('D')
+        f = self._omega_mu * sigma
+        D[0,1] = -f
+        D[1,0] =  f
+        Z = FunctionOnBoundary(self.getDomain()).getX()[DIM-1]
+        pde.setValue(D=D, y=whereZero(Z-self._ztop)*[1.,0.], r=self._Ex_0)
+        u = pde.getSolution()
+        return u, grad(u)[:,1]
+
     def getDefect(self, sigma, Ex, dExdz):
         """
         Returns the defect value.
 
         :param sigma: a suggestion for conductivity
         :type sigma: ``Data`` of shape ()
-        :param Ex_: electric field
-        :type Ex_: ``Data`` of shape (2,)
+        :param Ex: electric field
+        :type Ex: ``Data`` of shape (2,)
         :param dExdz: vertical derivative of electric field
         :type dExdz: ``Data`` of shape (2,)
 
@@ -356,9 +369,9 @@ class MT2DModelTMMode(MT2DBase):
     frequency omega.
     It defines a cost function:
 
-      *  defect = 1/2 integrate( sum_s w^s * ( E_x/Hy - Z_XY^s ) ) ** 2  *
+      *  defect = 1/2 integrate( sum_s w^s * ( rho*H_x/Hy - Z_XY^s ) ) ** 2  *
 
-    where E_x is the horizontal electric field perpendicular to the YZ-domain,
+    where H_x is the horizontal magnetic field perpendicular to the YZ-domain,
     horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
     i and permeability mu. The weighting factor w^s is set to
 
@@ -368,44 +381,63 @@ class MT2DModelTMMode(MT2DBase):
     of confidence (eg. 1/measurement error) and eta is level of spatial
     confidence.
 
-    E_x is given as solution of the PDE
+    H_x is given as solution of the PDE
 
-        * -E_{x,ii} - i omega * mu * sigma * E_x = 0
+        * -(rho*H_{x,i})_{,i} + i omega * mu * H_x = 0
 
-    where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
+    where H_x is set to Hx_top on the top of the domain. Homogeneous Neuman
     conditions are assumed elsewhere.
     """
     def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
-                 Ex_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
+                 Hx_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
                  saveMemory=False, directSolver=True):
         """
         initializes a new forward model. See base class for a description of
         the arguments.
         """
         super(MT2DModelTMMode, self).__init__(domain, omega, x, Z_XY, eta, w0,
-                    mu, Ex_top, coordinates, fixAtTop, tol,
+                    mu, Hx_top, coordinates, fixAtTop, tol,
                     saveMemory, directSolver)
 
-    def getDefect(self, sigma, Ex, dExdz):
+    def getArguments(self, rho):
+        """
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
+
+        :param rho: resistivity
+        :type rho: ``Data`` of shape (2,)
+        :return: Hx, Hx,z
+        :rtype: ``Data`` of shape (2,)
+        """
+        DIM = self.getDomain().getDim()
+        pde = self.setUpPDE()
+        D = pde.getCoefficient('D')
+        f = self._omega_mu
+        D[0,1] = -f
+        D[1,0] =  f
+        Z = FunctionOnBoundary(self.getDomain()).getX()[DIM-1]
+        pde.setValue(D=D, y=whereZero(Z-self._ztop)*[1.,0.], r=self._Ex_0)
+        u = pde.getSolution()
+        return u, grad(u)[:,1]
+
+    def getDefect(self, rho, Hx, dHxdz):
         """
         Returns the defect value.
 
-        :param sigma: a suggestion for conductivity
-        :type sigma: ``Data`` of shape ()
-        :param Ex_: electric field
-        :type Ex_: ``Data`` of shape (2,)
-        :param dExdz: vertical derivative of electric field
-        :type dExdz: ``Data`` of shape (2,)
+        :param rho: a suggestion for resistivity
+        :type rho: ``Data`` of shape ()
+        :param Hx: magnetic field
+        :type Hx: ``Data`` of shape (2,)
+        :param dHxdz: vertical derivative of magnetic field
+        :type dHxdz: ``Data`` of shape (2,)
 
         :rtype: ``float``
         """
-        x = dExdz.getFunctionSpace().getX()
-        Ex = interpolate(Ex, x.getFunctionSpace())
-        u0 = Ex[0]
-        u1 = Ex[1]
-        u01 = dExdz[0]
-        u11 = dExdz[1]
-        rho = 1./sigma
+        x = dHxdz.getFunctionSpace().getX()
+        Hx = interpolate(Ex, x.getFunctionSpace())
+        u0 = Hx[0]
+        u1 = Hx[1]
+        u01 = dHxdz[0]
+        u11 = dHxdz[1]
         scale = self._weight / ( u0**2 + u1**2 )
 
         Z = self._scaledZ
@@ -416,25 +448,25 @@ class MT2DModelTMMode(MT2DBase):
 
         return A/2
 
-    def getGradient(self, sigma, Ex, dExdz):
+    def getGradient(self, rho, Hx, dHxdz):
         """
-        Returns the gradient of the defect with respect to density.
+        Returns the gradient of the defect with respect to resistivity.
 
-        :param sigma: a suggestion for conductivity
-        :type sigma: ``Data`` of shape ()
-        :param Ex: electric field
-        :type Ex: ``Data`` of shape (2,)
-        :param dExdz: vertical derivative of electric field
-        :type dExdz: ``Data`` of shape (2,)
+        :param rho: a suggestion for resistivity
+        :type rho: ``Data`` of shape ()
+        :param Hx: magnetic field
+        :type Hx: ``Data`` of shape (2,)
+        :param dHxdz: vertical derivative of magnetic field
+        :type dHxdz: ``Data`` of shape (2,)
         """
         pde=self.setUpPDE()
 
-        x=dExdz.getFunctionSpace().getX()
-        Ex=interpolate(Ex, x.getFunctionSpace())
-        u0 = Ex[0]
-        u1 = Ex[1]
-        u01 = dExdz[0]
-        u11 = dExdz[1]
+        x=dHxdz.getFunctionSpace().getX()
+        Hx=interpolate(Hx, x.getFunctionSpace())
+        u0 = Hx[0]
+        u1 = Hx[1]
+        u01 = dHxdz[0]
+        u11 = dHxdz[1]
 
         D=pde.getCoefficient('D')
         Y=pde.getCoefficient('Y')
@@ -444,11 +476,10 @@ class MT2DModelTMMode(MT2DBase):
         if X.isEmpty():
             X=pde.createCoefficient('X')
 
-        #f = self._omega_mu * sigma
-        #D[0,1] =  f
-        #D[1,0] = -f
+        f = self._omega_mu * sigma
+        D[0,1] =  f
+        D[1,0] = -f
 
-        rho = 1./sigma
         Z = self._scaledZ
         scale = 1./( u0**2 + u1**2 )
         scale2 = scale**2
