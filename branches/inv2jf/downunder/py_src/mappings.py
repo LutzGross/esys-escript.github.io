@@ -225,6 +225,7 @@ class DcResMapping(Mapping):
         self.a=a
         self.minVal=minVal
     def getValue(self, m):
+        print(m)
         print ("in get value inf(m)=",inf(m)," sup(m)=", sup(m))
         # s=self.__sigma0 + (self.__sigma0 * self.__k*m)
         # s=self.__sigma0*exp(self.__k*m)

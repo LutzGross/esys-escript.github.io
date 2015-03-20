@@ -398,9 +398,14 @@ class Regularization(CostFunction):
             else:
                 raise ValueError("Unexpected shape %s for mu."%(mu_c.shape,))
 
+    def setPoint(self, m):
+        self.__pre_input=m
+        self.__pre_args=grad(m)
+        
     def getArguments(self, m):
         """
         """
+        raise RuntimeError("Call to getArguments")
         return grad(m),
 
     def getValue(self, m, grad_m):
@@ -410,6 +415,23 @@ class Regularization(CostFunction):
 
         :rtype: ``float``
         """
+        if Lsup(m-self.__pre_input)>0.0001 or Lsup(grad_m-self.__pre_args)>0.00001:
+	  if Lsup(m-self.__pre_input)>0.0001:
+	    print "Problem with m"
+	  if   Lsup(grad_m-self.__pre_args)>0.00001:
+	    print "Problem with grad"
+	  print("-- m=")
+	  print(m)
+	  print(self.__pre_input)
+	  print("--args=")
+	  print(grad_m)
+	  print(self.__pre_args)
+	  raise ValueError("synch error JF")
+        m=self.__pre_input
+        grad_m = self.__pre_args
+        m=self.__pre_input
+        grad_m=self.__pre_args
+
         mu=self.__mu
         mu_c=self.__mu_c
         DIM=self.getDomain().getDim()
@@ -450,6 +472,8 @@ class Regularization(CostFunction):
         :note: This implementation returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj
         """
 
+        m=self.__pre_input
+	grad_m=self.__pre_args
         mu=self.__mu
         mu_c=self.__mu_c
         DIM=self.getDomain().getDim()
