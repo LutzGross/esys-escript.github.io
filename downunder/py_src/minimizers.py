@@ -60,7 +60,7 @@ class MinimizerIterationIncurableBreakDown(MinimizerException):
     pass
 
 
-def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
+def _zoom(phi, gradphi, setphipoint, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
           phi0, gphi0, IMAX=25):
     """
     Helper function for `line_search` below which tries to tighten the range
@@ -70,13 +70,13 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     i=0
     while True:
         alpha=alpha_lo+.5*(alpha_hi-alpha_lo) # should use interpolation...
-        args_a=phiargs(alpha)
-        phi_a=phi(alpha, *args_a)
+        setphipoint(alpha)
+        phi_a=phi()
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
             alpha_hi=alpha
         else:
-            gphi_a=gradphi(alpha, *args_a)
+            gphi_a=gradphi()
             zoomlogger.debug("\tgrad(phi(alpha))=%e"%(gphi_a))
             if np.abs(gphi_a) <= -c2*gphi0:
                 break
@@ -110,22 +110,18 @@ def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
     """
     # this stores the latest gradf(x+a*p) which is returned
     g_Jx_new=[g_Jx]
-    def phi(a, *args):
+    def phi():
         """ phi(a):=f(x+a*p) """
-        return f(x+a*p, *args)
-    def gradphi(a, *args):
-        g_Jx_new[0]=f.getGradient(x+a*p, *args)
+        return f.getValue()
+    def gradphi():
+        g_Jx_new[0]=f.getGradient()
         return f.getDualProduct(p, g_Jx_new[0])
-    def phiargs(a):
-        try:
-            args=f.getArguments(x+a*p)
-        except:
-            args=()
-        return args
+    def setPhiPoint(a):
+        f.setPoint(x+a*p)
     old_alpha=0.
     if Jx is None:
-        args0=phiargs(0.)
-        phi0=phi(0., *args0)
+        setPhiPoint(0.)
+        phi0=phi()
     else:
         phi0=Jx
     lslogger.debug("phi(0)=%e"%(phi0))
@@ -136,18 +132,19 @@ def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
     i=1
 
     while i<IMAX and alpha>0. and alpha<alpha_truncationax:
+        setPhiPoint(alpha)
         args_a=phiargs(alpha)
-        phi_a=phi(alpha, *args_a)
+        phi_a=phi()
         lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
-            alpha, phi_a, gphi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0)
+            alpha, phi_a, gphi_a = _zoom(phi, gradphi, setPhiPoint, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0)
             break
 
         gphi_a=gradphi(alpha, *args_a)
         if np.abs(gphi_a) <= -c2*gphi0:
             break
         if gphi_a >= 0:
-            alpha, phi_a, gphi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0)
+            alpha, phi_a, gphi_a = _zoom(phi, gradphi, setPhiPoint, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0)
             break
 
         old_alpha=alpha
@@ -314,9 +311,10 @@ class MinimizerLBFGS(AbstractMinimizer):
         n_last_break_down=-1
         non_curable_break_down = False
         converged = False
-        args=self.getCostFunction().getArguments(x)
-        g_Jx=self.getCostFunction().getGradient(x, *args)
-        Jx=self.getCostFunction()(x, *args) # equivalent to getValue() for Downunder CostFunctions
+        self.getCostFunction().setPoint(x)
+        #args=self.getCostFunction().getArguments(x)
+        g_Jx=self.getCostFunction().getGradient()
+        Jx=self.getCostFunction().getValue() 
         Jx_0=Jx
 
         while not converged and not non_curable_break_down and n_iter < self._imax:
@@ -336,7 +334,7 @@ class MinimizerLBFGS(AbstractMinimizer):
                     self.logger.debug("\tH = %s"%invH_scale)
 
                 # determine search direction
-                p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
+                p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x)
 
                 # determine new step length using the last one as initial value
                 # however, avoid using too small steps for too long.

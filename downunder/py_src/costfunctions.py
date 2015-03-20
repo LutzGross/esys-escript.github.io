@@ -56,13 +56,27 @@ class CostFunction(object):
         Constructor. Initializes logger.
         """
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
+	self.__pre_args=None	# used in inversion to avoid repeating common calculations
+	self.__pre_input=None     # The object the pre_args were calculated for
 
-    def __call__(self, x, *args):
-        """
-        short for `getValue(x, *args)`.
-        """
-        return self.getValue(x, *args)
+#    def __call__(self, x, *args):
+#        """
+#        short for `getValue(x, *args)`.
+#        """
+#        return self.getValue(x, *args)
 
+    def clearPreCalc(self):
+        self.__pre_args=None	
+        self.__pre_input=None
+    
+    def setPoint(self, x):
+        """
+        Registers the point at which the function is to be evaluated at. 
+        That is, where getValue and getGradient will be evaluated.
+        It will also compute and store any common sub-expressions used by those functions.
+        """
+        raise ValueError("setPoint stub not implemented in class "+self.__class__.__name__)
+    
     def getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of
@@ -91,7 +105,7 @@ class CostFunction(object):
         """
         raise NotImplementedError
 
-    def getGradient(self, x, *args):
+    def getGradient(self):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
@@ -125,7 +139,7 @@ class CostFunction(object):
         """
         raise NotImplementedError
 
-    def getValue(self, x, *args):
+    def getValue(self):
         """
         returns the value *f(x)* using the precalculated values for *x*.
 
@@ -179,6 +193,7 @@ class MeteredCostFunction(CostFunction):
         self.Arguments_calls=0
         self.InverseHessianApproximation_calls=0
         self.Norm_calls=0
+        self.Set_calls=0
 
     def getDualProduct(self, x, r):
         """
@@ -222,7 +237,7 @@ class MeteredCostFunction(CostFunction):
         """
         raise NotImplementedError
 
-    def getValue(self, x, *args):
+    def getValue(self):
         """
         returns the value *f(x)* using the precalculated values for *x*.
 
@@ -233,7 +248,7 @@ class MeteredCostFunction(CostFunction):
         self.Value_calls+=1
         return self._getValue(x, *args)
 
-    def _getValue(self, x, *args):
+    def _getValue(self):
         """
         returns the value *f(x)* using the precalculated values for *x*.
 
@@ -244,7 +259,7 @@ class MeteredCostFunction(CostFunction):
         """
         raise NotImplementedError
 
-    def getGradient(self, x, *args):
+    def getGradient(self):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
@@ -255,9 +270,9 @@ class MeteredCostFunction(CostFunction):
         :rtype: r-type
         """
         self.Gradient_calls+=1
-        return self._getGradient(x, *args)
+        return self._getGradient()
 
-    def _getGradient(self, x, *args):
+    def _getGradient(self):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
@@ -271,6 +286,13 @@ class MeteredCostFunction(CostFunction):
         raise NotImplementedError
 
 
+    def setPoint(self, x):
+        """
+        
+        """
+        self.Set_calls+=1
+        self._setPoint(x)
+        
     def getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of

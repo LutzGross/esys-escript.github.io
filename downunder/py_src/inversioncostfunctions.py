@@ -342,6 +342,22 @@ class InversionCostFunction(MeteredCostFunction):
         """
         return self.regularization.getDualProduct(x, r)
 
+    def clearPreCalcs(self):
+        self.regularization.clearPreCalc()
+
+    def _setPoint(self, m):
+        self.clearPreCalc()
+        self.regularization.setPoint(m)
+        props=self.getProperties(m, return_list=True)
+        args_f=[]
+        for i in range(self.numModels):
+            f, idx=self.forward_models[i]
+            pp=tuple( [ props[k] for k in idx] )
+            aa=f.getArguments(*pp)
+            args_f.append(aa)
+        self.__pre_args=(props, args_f, "args_reg")	
+        self.__pre_input=m
+
     def _getArguments(self, m):
         """
         returns pre-computed values that are shared in the calculation of
@@ -356,6 +372,8 @@ class InversionCostFunction(MeteredCostFunction):
                  regularization
         :rtype: ``tuple``
         """
+        raise RuntimeError("Call to getArguments")
+        self.clearPreCalc()
         args_reg=self.regularization.getArguments(m)
         # cache for physical parameters:
         props=self.getProperties(m, return_list=True)
@@ -381,7 +399,8 @@ class InversionCostFunction(MeteredCostFunction):
         :rtype: ``float``
         """
         if len(args)==0:
-            args=self.getArguments(m)
+	    raise ValueError("Called getValue without args")
+            #args=self.getArguments(m)
 
         props=args[0]
         args_f=args[1]
@@ -431,7 +450,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         return result
 
-    def _getGradient(self, m, *args):
+    def _getGradient(self):
         """
         returns the gradient of the cost function at *m*.
         If the pre-computed values are not supplied `getArguments()` is called.
@@ -448,9 +467,8 @@ class InversionCostFunction(MeteredCostFunction):
                gradients of fwd models. X is the gradient of the regularization
                w.r.t. gradient of m.
         """
-        if len(args)==0:
-            args = self.getArguments(m)
-
+        m=self.__pre_input
+        args=self.__pre_args
         props=args[0]
         args_f=args[1]
         args_reg=args[2]
