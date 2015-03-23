@@ -57,17 +57,23 @@ class MT2DBase(ForwardModel):
         :param eta: spatial confidence radius
         :type eta:  positive ``float`` or ``list`` of  positive ``float``
         :param w0: confidence factors for meassurements. If not set one is assumed.
-        :type w0: ``None`` or a list of positive ``float``
-        :param Ex_top: value of Ex_ at top the domain and if `fixAtTop` is set at the bottom of the domain.
-        :type Ex_top: ``float``, ``complex`` or ``Data`` of shape (2,)
+        :tye w0: ``None`` or a list of positive ``float``
+        :param Ftop: value of field at top the domain and if `fixAtTop` is set at the bottom of the domain.
+        :type Ftop: ``float``, ``complex`` or ``Data`` of shape (2,)
+        :param fixAtTop: if true F is set Ftop at the top of the domain
+        :type fixAtTop: ``bool``
+        :param Fbottom: value of field at top the domain and if `fixAtbottom` is set at the bottom of the domain.
+        :type Fbottom: ``float``, ``complex`` or ``Data`` of shape (2,)
+        :param fixAtBottom: if true F is set Fbottom at the bottom of the domain
+        :type fixAtBottom: ``bool``
+        :param fixAboveLevel: level above which F is set to Ftop (typically that is the level of the airlayer)
+        :type fixAboveLevel : ``float`` or ``None``
         :param mu: permeability
         :type mu: ``float``
         :param coordinates: defines coordinate system to be used (not supported yet)
         :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param fixAtTop: if true Ex is set Ex_top at the top of the domain
-        :type fixAtTop: ``bool``
         :param saveMemory: if true stiffness matrix is deleted after solution
                            of the PDE to minimize memory requests. This will
                            require more compute time as the matrix needs to be
@@ -469,7 +475,7 @@ class MT2DModelTMMode(MT2DBase):
         :rtype: ``float``
         """
         x = dHxdz.getFunctionSpace().getX()
-        Hx = interpolate(Ex, x.getFunctionSpace())
+        Hx = interpolate(Hx, x.getFunctionSpace())
         u0 = Hx[0]
         u1 = Hx[1]
         u01 = dHxdz[0]
