@@ -39,9 +39,10 @@ class MT2DBase(ForwardModel):
     Base class for 2D MT forward models. See `MT2DModelTEMode` and
     `MT2DModelTMMode` for actual implementations.
     """
-    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
-                 Ex_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
-                 saveMemory=False, directSolver=True):
+    def __init__(self, domain, omega, x, Z, 
+                 eta=None, w0=1., mu=4*PI*1e-7, 
+                 Ftop=1, fixAtTop=False, fixAboveLevel=None, Fbottom=0., fixAtBottom=False, 
+                 coordinates=None, tol=1e-8, saveMemory=False, directSolver=True):
         """
         initializes a new forward model.
 
@@ -51,8 +52,8 @@ class MT2DBase(ForwardModel):
         :type omega: positive ``float``
         :param x: coordinates of measurements
         :type x: ``list`` of ``tuple`` with ``float``
-        :param Z_XY: measured impedance
-        :type Z_XY: ``list`` of ``complex``
+        :param Z: measured impedance (possibly scaled)
+        :type Z: ``list`` of ``complex``
         :param eta: spatial confidence radius
         :type eta:  positive ``float`` or ``list`` of  positive ``float``
         :param w0: confidence factors for meassurements. If not set one is assumed.
@@ -77,43 +78,39 @@ class MT2DBase(ForwardModel):
         self.__trafo = makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian coordinates are not supported yet.")
-
-        if len(x) != len(Z_XY):
+        if len(x) != len(Z):
             raise ValueError("Number of data points and number of impedance values don't match.")
 
         if eta is None:
             eta = sup(domain.getSize())*0.45
 
         if isinstance(eta, float) or isinstance(eta, int):
-            eta = [float(eta)]*len(Z_XY)
-        elif not len(eta) == len(Z_XY):
+            eta = [float(eta)]*len(Z)
+        elif not len(eta) == len(Z):
             raise ValueError("Number of confidence radii and number of impedance values don't match.")
 
         if isinstance(w0, float) or isinstance(w0, int):
-            w0 =[float(w0)]*len(Z_XY)
-        elif not len(w0) == len(Z_XY):
+            w0 =[float(w0)]*len(Z)
+        elif not len(w0) == len(Z):
             raise ValueError("Number of confidence factors and number of impedance values don't match.")
 
         self.__domain = domain
         self._omega_mu = omega * mu
 
         xx=Function(domain).getX()
-        f = -1./(complex(0,1)*self._omega_mu)
-        scaledZxy = [ z*f for z in Z_XY ]
-
         totalS=0
-        self._scaledZ = Vector([0.,0.], Function(domain))
+        self._Z = [ Scalar(0., Function(domain)),  Scalar(0., Function(domain)) ]
         self._weight = Scalar(0., Function(domain))
 
-        for s in range(len(scaledZxy)):
+        for s in range(len(Z)):
             chi = self.getWeightingFactor(xx, 1., x[s], eta[s])
             f = integrate(chi)
             if f < eta[s]**2 * 0.01 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
             w02 = w0[s]/f
             totalS += w02
-            self._scaledZ[0] += chi*scaledZxy[s].real
-            self._scaledZ[1] += chi*scaledZxy[s].imag
+            self._Z[0] += chi*Z[s].real
+            self._Z[1] += chi*Z[s].imag
             self._weight += chi*w02
 
         if not totalS > 0:
@@ -123,24 +120,42 @@ class MT2DBase(ForwardModel):
         z = domain.getX()[DIM-1]
         self._ztop = sup(z)
         self._zbottom = inf(z)
+        self._q=Vector(0.,Solution(domain))
+        self._r=Vector(0.,Solution(domain))
         #====================================
-        if fixAtTop:
-            if isinstance(Ex_top, float) or isinstance(Ex_top, int) :
-                self._Ex_0 = Data((Ex_top,0), Solution(domain))
-            elif isinstance(Ex_top, tuple):
-                self._Ex_0 = Data((Ex_top[0],Ex_top[1]), Solution(domain))
-            elif isinstance(Ex_top, complex):
-                self._Ex_0 = Data((Ex_top.real,Ex_top.imag), Solution(domain))
+        if fixAtTop or fixAboveLevel is not None:
+            if fixAtTop:
+                m=whereZero(z-self._ztop)
             else:
-                if not Ex_top.getShape() == (2,):
-                    raise ValueError("Expected shape of Ex_0 is (2,)")
-                self._Ex_0 = Ex_top
-            self._Ex_0 = self._Ex_0 * whereZero(z-self._ztop)
-        else:
-            self._Ex_0 = [0.,0.]
+                m=whereNonNegative(z-fixAboveLevel)
+            if isinstance(Ftop, float) or isinstance(Ftop, int) :
+                d = Data((Ftop,0), Solution(domain))
+            elif isinstance(Ftop, tuple):
+                d = Data((Ftop[0],Ftop[1]), Solution(domain))
+            elif isinstance(Ftop, complex):
+                d = Data((Ftop.real,Ftop.imag), Solution(domain))
+            else:
+                if not Ftop.getShape() == (2,):
+                    raise ValueError("Expected shape of top value is (2,)")
+                d = Ftop
+            self._r+=m*d
+            self._q+=m*[1.,1.]
+        if fixAtBottom:
+            m=whereZero(z-self._zbottom)
+            if isinstance(Fbottom, float) or isinstance(Fbottom, int) :
+                d = Data((Fbottom,0), Solution(domain))
+            elif isinstance(Fbottom, tuple):
+                d = Data((Fbottom[0],Fbottom[1]), Solution(domain))
+            elif isinstance(Fbottom, complex):
+                d = Data((Fbottom.real,Fbottom.imag), Solution(domain))
+            else:
+                if not Fbottom.getShape() == (2,):
+                    raise ValueError("Expected shape of top value is (2,)")
+                d = Fbottom
+            self._r+=m*d
+            self._q+=m*[1.,1.]
         #====================================
         self.__tol = tol
-        self._fixAtTop = fixAtTop
         self._directSolver = directSolver
         self._saveMemory = saveMemory
         self.__pde = None
@@ -176,24 +191,21 @@ class MT2DBase(ForwardModel):
                 pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
-            Y=pde.createCoefficient('Y')
-            X=pde.createCoefficient('X')
-            y=pde.createCoefficient('y')
-            A[0,:,0,:]=kronecker(DIM)
-            A[1,:,1,:]=kronecker(DIM)
-            pde.setValue(A=A, D=D, X=X, Y=Y, y=y)
-            z = self.__domain.getX()[DIM-1]
-            q = whereZero(z-self._zbottom)
-            if self._fixAtTop:
-                q+=whereZero(z-self._ztop)
-            pde.setValue(q=q*[1,1])
+            pde.setValue(A=A, D=D, q=self._q)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
         else:
             pde=self.__pde
             pde.resetRightHandSideCoefficients()
+        pde.setValue(X=pde.createCoefficient('X'), Y=pde.createCoefficient('Y'))
         return pde
-
+    def releasePDE(self):
+        """
+        Delete PDE when memory is saved.
+        """
+        if self._saveMemory:
+            self.__pde=None
+            
     def getWeightingFactor(self, x, wx0, x0, eta):
         """
         returns the weighting factor
@@ -232,15 +244,14 @@ class MT2DModelTEMode(MT2DBase):
     frequency omega.
     It defines a cost function:
 
-      *  defect = 1/2 integrate( sum_s w^s * ( E_x/Hy - Z_XY^s ) ) ** 2  *
+      *  defect = 1/2 integrate( sum_s w^s * ( E_x/H_y - Z_XY^s ) ) ** 2  *
 
     where E_x is the horizontal electric field perpendicular to the YZ-domain,
     horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
-    i and permeability mu. The weighting factor w^s is set to
-
-        * w^s(X) = w_0^s/(2pi*eta**2) * exp(-length(X-X^s)**2/(2*eta**2))  *
-
-    where X^s is the location of impedance measurement Z_XY^s, w_0 is the level
+    i and permeability mu. The weighting factor w^s is set to 
+        *  w^s(X) = w_0^s  *
+    if length(X-X^s) <= eta and zero otherwise. X^s is the location of 
+    impedance measurement Z_XY^s, w_0^s is the level
     of confidence (eg. 1/measurement error) and eta is level of spatial
     confidence.
 
@@ -248,20 +259,27 @@ class MT2DModelTEMode(MT2DBase):
 
         * -E_{x,ii} - i omega * mu * sigma * E_x = 0
 
-    where E_x is set to Ex_top on the top of the domain. Homogeneous Neuman
-    conditions are assumed elsewhere.
+    where by default the normal derivative of E_x at the top of the domain 
+    is set to Ex_n=1 and E_x is set to zero at the bottom. Homogeneous Neuman
+    conditions are assumed elsewhere. If fixAtTop is set E_x is set to Ex_top. 
     """
     def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
-                 Ex_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
+                 Ex_n=1, coordinates=None, Ex_top=1, fixAtTop=False, tol=1e-8,
                  saveMemory=False, directSolver=True):
         """
         initializes a new forward model. See base class for a description of
         the arguments.
         """
-        super(MT2DModelTEMode, self).__init__(domain, omega, x, Z_XY, eta, w0,
-                    mu, Ex_top, coordinates, fixAtTop, tol,
-                    saveMemory, directSolver)
+        
+        f = -1./(complex(0,1)*omega*mu)
+        scaledZXY = [ z*f for z in Z_XY ]
+        self.__Ex_n=complex(Ex_n)
+        super(MT2DModelTEMode, self).__init__(domain=domain, omega=omega, x=x, 
+                                              Z=scaledZXY, eta=eta, w0=w0, mu=mu, 
+                                              Ftop=Ex_top, fixAtTop=fixAtTop, fixAboveLevel= None, Fbottom=0., fixAtBottom=True, 
+                                              coordinates=coordinates, tol=tol, saveMemory=saveMemory, directSolver=directSolver)
 
+        
     def getArguments(self, sigma):
         """
         Returns precomputed values shared by `getDefect()` and `getGradient()`.
@@ -277,9 +295,14 @@ class MT2DModelTEMode(MT2DBase):
         f = self._omega_mu * sigma
         D[0,1] = -f
         D[1,0] =  f
+        A= pde.getCoefficient('A')
+        A[0,:,0,:]=kronecker(DIM)
+        A[1,:,1,:]=kronecker(DIM)
+        
         Z = FunctionOnBoundary(self.getDomain()).getX()[DIM-1]
-        pde.setValue(D=D, y=whereZero(Z-self._ztop)*[1.,0.], r=self._Ex_0)
+        pde.setValue(A=A, D=D, y=whereZero(Z-self._ztop)*[self.__Ex_n.real,self.__Ex_n.imag],  r=self._r)
         u = pde.getSolution()
+        self.releasePDE()
         return u, grad(u)[:,1]
 
     def getDefect(self, sigma, Ex, dExdz):
@@ -303,7 +326,7 @@ class MT2DModelTEMode(MT2DBase):
         u11=dExdz[1]
         scale = self._weight / ( u01**2 + u11**2 )
 
-        Z = self._scaledZ
+        Z = self._Z
         A = integrate(scale * ( (Z[0]**2+Z[1]**2)*(u01**2+u11**2)
                               + 2*Z[1]*(u0*u11-u01*u1)
                               - 2*Z[0]*(u0*u01+u11*u1)
@@ -323,6 +346,7 @@ class MT2DModelTEMode(MT2DBase):
         :type dExdz: ``Data`` of shape (2,)
         """
         pde=self.setUpPDE()
+        DIM = self.getDomain().getDim()
 
         x=dExdz.getFunctionSpace().getX()
         Ex=interpolate(Ex, x.getFunctionSpace())
@@ -333,17 +357,17 @@ class MT2DModelTEMode(MT2DBase):
 
         D=pde.getCoefficient('D')
         Y=pde.getCoefficient('Y')
-        if Y.isEmpty():
-            Y=pde.createCoefficient('Y')
         X=pde.getCoefficient('X')
-        if X.isEmpty():
-            X=pde.createCoefficient('X')
+        A= pde.getCoefficient('A')
 
+        A[0,:,0,:]=kronecker(DIM)
+        A[1,:,1,:]=kronecker(DIM)
+        
         f = self._omega_mu * sigma
         D[0,1] =  f
         D[1,0] = -f
 
-        Z = self._scaledZ
+        Z = self._Z
         scale = 1./( u01**2 + u11**2 )
         scale2 = scale**2
         scale *= self._weight
@@ -358,8 +382,9 @@ class MT2DModelTEMode(MT2DBase):
                 + (Z[1]*u0-Z[0]*u1)*(u01**2-u11**2)
                 - u11*(u0**2 + u1**2))
 
-        pde.setValue(D=D, X=X, Y=Y)
+        pde.setValue(A=A, D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
+        self.releasePDE()
         return (-self._omega_mu)* (Zstar[1]*u0-Zstar[0]*u1)
 
 
@@ -369,15 +394,14 @@ class MT2DModelTMMode(MT2DBase):
     frequency omega.
     It defines a cost function:
 
-      *  defect = 1/2 integrate( sum_s w^s * ( rho*H_x/Hy - Z_XY^s ) ) ** 2  *
+      *  defect = 1/2 integrate( sum_s w^s * ( rho*H_x/Hy - Z_YX^s ) ) ** 2  *
 
     where H_x is the horizontal magnetic field perpendicular to the YZ-domain,
     horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
-    i and permeability mu. The weighting factor w^s is set to
-
-        * w^s(X) = w_0^s/(2pi*eta**2) * exp(-length(X-X^s)**2/(2*eta**2))  *
-
-    where X^s is the location of impedance measurement Z_XY^s, w_0 is the level
+    i and permeability mu. The weighting factor w^s is set to 
+        *  w^s(X) = w_0^s  *
+    if length(X-X^s) <= eta and zero otherwise. X^s is the location of 
+    impedance measurement Z_XY^s, w_0^s is the level
     of confidence (eg. 1/measurement error) and eta is level of spatial
     confidence.
 
@@ -386,18 +410,23 @@ class MT2DModelTMMode(MT2DBase):
         * -(rho*H_{x,i})_{,i} + i omega * mu * H_x = 0
 
     where H_x is set to Hx_top on the top of the domain. Homogeneous Neuman
-    conditions are assumed elsewhere.
+    conditions are assumed elsewhere. If fixAtBottom is set H_x is set to Hx_bottom
+    at the bottom of the domain overwrtining the Neuman condition. 
+    If fixAboveLevel is set then H_x is set to Hx_top for any location above and including fixAboveLevel
+    typically including teh top boundary. 
     """
-    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
-                 Hx_top=1, coordinates=None, fixAtTop=False, tol=1e-8,
+    def __init__(self, domain, omega, x, Z_YX, eta=None, w0=1., mu=4*PI*1e-7,
+                 fixAboveLevel=None, Hx_top=1, coordinates=None, Hx_bottom=1., fixAtBottom=False, tol=1e-8,
                  saveMemory=False, directSolver=True):
         """
         initializes a new forward model. See base class for a description of
         the arguments.
         """
-        super(MT2DModelTMMode, self).__init__(domain, omega, x, Z_XY, eta, w0,
-                    mu, Hx_top, coordinates, fixAtTop, tol,
-                    saveMemory, directSolver)
+        super(MT2DModelTMMode, self).__init__(domain=domain, omega=omega, x=x, 
+                                              Z=Z_YX, eta=eta, w0=w0,
+                                              mu=mu, 
+                                              Ftop=Hx_top, fixAtTop=True, fixAboveLevel=fixAboveLevel, Fbottom=Hx_bottom, fixAtBottom=fixAtBottom, 
+                                              coordinates=coordinates, tol=tol, saveMemory=saveMemory, directSolver=directSolver)
 
     def getArguments(self, rho):
         """
@@ -410,13 +439,20 @@ class MT2DModelTMMode(MT2DBase):
         """
         DIM = self.getDomain().getDim()
         pde = self.setUpPDE()
+        
         D = pde.getCoefficient('D')
         f = self._omega_mu
         D[0,1] = -f
         D[1,0] =  f
-        Z = FunctionOnBoundary(self.getDomain()).getX()[DIM-1]
-        pde.setValue(D=D, y=whereZero(Z-self._ztop)*[1.,0.], r=self._Ex_0)
+        
+        A= pde.getCoefficient('A')
+        for i in xrange(DIM):
+            A[0,i,0,i]=rho
+            A[1,i,1,i]=rho
+        
+        pde.setValue(A=A, D=D, r=self._r)
         u = pde.getSolution()
+        self.releasePDE()
         return u, grad(u)[:,1]
 
     def getDefect(self, rho, Hx, dHxdz):
@@ -440,7 +476,7 @@ class MT2DModelTMMode(MT2DBase):
         u11 = dHxdz[1]
         scale = self._weight / ( u0**2 + u1**2 )
 
-        Z = self._scaledZ
+        Z = self._Z
         A = integrate(scale * ( (Z[0]**2+Z[1]**2)*(u0**2 + u1**2)
                                 - 2*rho*Z[0]*(u0*u01 + u1*u11)
                                 + 2*rho*Z[1]*(u1*u01 - u0*u11)
@@ -460,6 +496,7 @@ class MT2DModelTMMode(MT2DBase):
         :type dHxdz: ``Data`` of shape (2,)
         """
         pde=self.setUpPDE()
+        DIM = self.getDomain().getDim()
 
         x=dHxdz.getFunctionSpace().getX()
         Hx=interpolate(Hx, x.getFunctionSpace())
@@ -470,17 +507,24 @@ class MT2DModelTMMode(MT2DBase):
 
         D=pde.getCoefficient('D')
         Y=pde.getCoefficient('Y')
-        if Y.isEmpty():
-            Y=pde.createCoefficient('Y')
         X=pde.getCoefficient('X')
-        if X.isEmpty():
-            X=pde.createCoefficient('X')
+        A= pde.getCoefficient('A')
+        
+        for i in xrange(DIM):
+            A[0,i,0,i]=rho
+            A[1,i,1,i]=rho
+            
+#        if Y.isEmpty():
+#            Y=pde.createCoefficient('Y')
+#        
+#        if X.isEmpty():
+#            X=pde.createCoefficient('X')
 
-        f = self._omega_mu * sigma
+        f = self._omega_mu
         D[0,1] =  f
         D[1,0] = -f
 
-        Z = self._scaledZ
+        Z = self._Z
         scale = 1./( u0**2 + u1**2 )
         scale2 = scale**2
         scale *= self._weight
@@ -497,8 +541,10 @@ class MT2DModelTMMode(MT2DBase):
         X[0,1] = scale * (Z[1]*u1 - Z[0]*u0 + rho*u01)
         X[1,1] = scale * (-Z[1]*u0 - Z[0]*u1 + rho*u11)
 
-        pde.setValue(D=D, X=X, Y=Y)
+        pde.setValue(A=A, D=D, X=X, Y=Y)
         g=grad(pde.getSolution())
+        self.releasePDE()
+        
         Hstarr_z = g[0,1]
         Hstari_z = g[1,1]
         return -scale*( u0*(Z[0]*u01 + Z[1]*u11)
