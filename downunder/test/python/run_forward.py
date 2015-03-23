@@ -570,10 +570,147 @@ class TestMT2DModelTEMode(unittest.TestCase):
         d1=acw.getDefect(SIGMA1, *args1)
         self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
 
-if __name__ == '__main__':
-    #suite = unittest.TestSuite()
-    #suite.addTest(TestMT2DModelTEMode)
-    unittest.main()
+
+@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
+class TestMT2DModelTMMode(unittest.TestCase):
+    def test_API(self):
+        domain=ripRectangle(25, 25, d1=mpisize)
+        omega=2.
+        x=[ [0.2,0.5], [0.3,0.5] ]
+        Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
+        eta=1.
+        w0=1.
+        Hx0=1.
+        # now we do a real one
+        acw=MT2DModelTMMode(domain, omega, x, Z_XY, eta, w0=w0, Hx_bottom=Hx0)
+        self.assertEqual(acw.getDomain(),  domain)
+        pde=acw.setUpPDE()
+        self.assertIsInstance(pde, LinearPDE)
+        self.assertEqual(pde.getNumEquations(), 2)
+        self.assertEqual(pde.getNumSolutions(), 2)
+        self.assertEqual(pde.getDomain(),  domain)
+
+        # other things that should work
+        acw=MT2DModelTMMode(domain, omega, x, Z_XY, eta=None, w0=[2.,3.], Hx_bottom=complex(4.5,6) )
+
+        # these shouldn't work
+        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, x, [3.], eta=[1.,1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
+        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, x, Z_XY, eta=[1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
+        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
+
+    def test_PDE(self):
+        omega=1.
+        mu0=0.123
+        RHO=0.15
+        k=cmath.sqrt(1j*omega*mu0/RHO)  # Hx=exp(k*z)
+        NE=101
+        L=1
+        domain=ripRectangle(NE,NE, d1=mpisize)
+
+        Z0=0.5
+        H=1./NE
+        X1=(int(0.3/H)+0.5)*H
+        X2=(int(0.6/H)+0.5)*H
+
+        IMP=RHO*k*(cmath.exp(k*(Z0-L))-cmath.exp(-k*(Z0-L)))/(cmath.exp(k*(Z0-L))+cmath.exp(-k*(Z0-L)))
+        Z_XY=[ IMP, IMP ]
+
+        x=[ [X1,Z0], [X2,Z0] ]
+        eta=None
+
+        z=domain.getX()[1]
+        Hx0_ex=cos(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))/2
+        Hx0_ex_z=(-sin(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))+exp(-k.real*(z-L)))+cos(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))*k.real)/2
+        Hx1_ex=sin(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))/2
+        Hx1_ex_z=(cos(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))-exp(-k.real*(z-L)))+sin(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))*k.real)/2
+
+        acw=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, Hx_bottom=Hx0_ex*[1.,0]+ Hx1_ex*[0,1.], tol=1e-9,  directSolver=True)
+
+        args=acw.getArguments(RHO)
+        Hx=args[0]
+        Hxz=args[1]
+        self.assertTrue(Lsup(Hx[0]-Hx0_ex) <= 1e-4 * Lsup(Hx0_ex))
+        self.assertTrue(Lsup(Hx[1]-Hx1_ex) <= 1e-4 * Lsup(Hx1_ex))
+        self.assertTrue(Lsup(Hxz[0]-Hx0_ex_z) <= 1e-2 * Lsup(Hx0_ex_z))
+        self.assertTrue(Lsup(Hxz[1]-Hx1_ex_z) <= 1e-2 * Lsup(Hx1_ex_z))
+
+        argsr=acw.getArguments(1.)
+        ref=acw.getDefect(1., *argsr)
+
+        # this should be almost zero:
+        args=acw.getArguments(RHO)
+        d=acw.getDefect(RHO, *args)
+        self.assertTrue( d > 0.)
+        self.assertTrue( ref > 0.)
+        self.assertTrue( d <= 3e-3 * ref ) # d should be zero (some sort of)
+
+        z=ReducedFunction(domain).getX()[1]
+        Hx0_ex=cos(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))/2
+        Hx0_ex_z=(-sin(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))+exp(-k.real*(z-L)))+cos(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))*k.real)/2
+        Hx1_ex=sin(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))/2
+        Hx1_ex_z=(cos(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))-exp(-k.real*(z-L)))+sin(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))*k.real)/2
+        # and this should be zero
+        d0=acw.getDefect(RHO, Hx0_ex*[1.,0]+ Hx1_ex*[0,1.], Hx0_ex_z*[1.,0]+ Hx1_ex_z*[0,1.])
+        self.assertTrue( d0 <= 1e-8 * ref ) # d should be zero (some sort of)
+
+        # and this too
+        dg=acw.getGradient(RHO, Hx0_ex*[1.,0]+ Hx1_ex*[0,1.], Hx0_ex_z*[1.,0]+ Hx1_ex_z*[0,1.])
+        self.assertTrue(isinstance(dg, Data))
+        self.assertTrue(dg.getShape()==())
+        self.assertTrue(Lsup(dg) < 1e-10)
+
+    def test_Differential(self):
+        INC=0.001
+        omega=5.
+        mu0=0.123
+        RHO=0.15
+        k=cmath.sqrt(1j*omega*mu0*1/RHO)  # Hx=exp(k*z)
+
+        L=1
+        NE=101
+        domain=ripRectangle(NE,NE, d1=mpisize)
+
+        Z0=0.5
+        IMP=RHO*k*(cmath.exp(k*(Z0-L))-cmath.exp(-k*(Z0-L)))/(cmath.exp(k*(Z0-L))+cmath.exp(-k*(Z0-L)))
+        Z_XY=[ IMP, IMP ]
+        H=1./NE
+        X1=(int(0.3/H)+0.5)*H
+        X2=(int(0.6/H)+0.5)*H
+        x=[ [X1,Z0], [X2,Z0] ]
+        eta=None
+
+        acw=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, tol=1e-9,  directSolver=True)
+
+        # this is the base line:
+        RHO0=1. # was 100.15
+        args0=acw.getArguments(RHO0)
+        d0=acw.getDefect(RHO0, *args0)
+        dg0=acw.getGradient(RHO0, *args0)
+        self.assertTrue(isinstance(dg0, Data))
+        self.assertTrue(dg0.getShape()==())
+
+        X=Function(domain).getX()
+
+        # test 1
+        p=INC
+        RHO1=RHO0+p
+        args1=acw.getArguments(RHO1)
+        d1=acw.getDefect(RHO1, *args1)
+        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
+
+        # test 2
+        p=exp(-length(X-(0.2,0.2))**2/10)*INC
+        RHO1=RHO0+p
+        args1=acw.getArguments(RHO1)
+        d1=acw.getDefect(RHO1, *args1)
+        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
+
+        # test 3
+        p=sin(length(X)*3*3.14)*INC
+        RHO1=RHO0+p
+        args1=acw.getArguments(RHO1)
+        d1=acw.getDefect(RHO1, *args1)
+        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
