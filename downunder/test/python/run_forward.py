@@ -599,7 +599,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
         self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
 
     def test_PDE(self):
-        omega=1.
+        omega=10.
         mu0=0.123
         RHO=0.15
         k=cmath.sqrt(1j*omega*mu0/RHO)  # Hx=exp(k*z)
@@ -682,7 +682,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
         acw=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, tol=1e-9,  directSolver=True)
 
         # this is the base line:
-        RHO0=1. # was 100.15
+        RHO0=2. # was 100.15
         args0=acw.getArguments(RHO0)
         d0=acw.getDefect(RHO0, *args0)
         dg0=acw.getGradient(RHO0, *args0)
@@ -696,7 +696,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
         RHO1=RHO0+p
         args1=acw.getArguments(RHO1)
         d1=acw.getDefect(RHO1, *args1)
-        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
+        self.assertLess( abs( d1-d0-integrate(dg0*p) ), 1e-2  * abs(d1-d0) )
 
         # test 2
         p=exp(-length(X-(0.2,0.2))**2/10)*INC

@@ -117,7 +117,7 @@ class MT2DBase(ForwardModel):
             totalS += w02
             self._Z[0] += chi*Z[s].real
             self._Z[1] += chi*Z[s].imag
-            self._weight += chi*w02
+            self._weight += chi*w02/abs(Z[s])
 
         if not totalS > 0:
             raise ValueError("Scaling of weight factors failed as sum is zero.")
@@ -480,14 +480,13 @@ class MT2DModelTMMode(MT2DBase):
         u1 = Hx[1]
         u01 = dHxdz[0]
         u11 = dHxdz[1]
-        scale = self._weight / ( u0**2 + u1**2 )
+        scale = rho / ( u0**2 + u1**2 )
 
         Z = self._Z
-        A = integrate(scale * ( (Z[0]**2+Z[1]**2)*(u0**2 + u1**2)
-                                - 2*rho*Z[0]*(u0*u01 + u1*u11)
-                                + 2*rho*Z[1]*(u1*u01 - u0*u11)
-                                + rho**2*(u01**2 + u11**2) ))
-
+        A = integrate(self._weight * ( Z[0]**2 + Z[1]**2
+                                    + scale*(-2*Z[0]*(u0*u01 + u1*u11)
+                                             +2*Z[1]*(u1*u01 - u0*u11)
+                                             +rho*(u01**2 + u11**2)) ))
         return A/2
 
     def getGradient(self, rho, Hx, dHxdz):
@@ -534,7 +533,8 @@ class MT2DModelTMMode(MT2DBase):
         scale = 1./( u0**2 + u1**2 )
         scale2 = scale**2
         scale *= self._weight
-        scale2 *= self._weight
+        scale2 *= rho*self._weight
+        rho_scale = rho*scale
 
         gscale = u01**2 + u11**2
 
@@ -544,8 +544,8 @@ class MT2DModelTMMode(MT2DBase):
         Y[1] = scale2 * ( (Z[0]*u11-Z[1]*u01)*(u1**2-u0**2)
                       + 2*u0*u1*(Z[0]*u01+Z[1]*u11)
                       - rho*u1*gscale )
-        X[0,1] = scale * (Z[1]*u1 - Z[0]*u0 + rho*u01)
-        X[1,1] = scale * (-Z[1]*u0 - Z[0]*u1 + rho*u11)
+        X[0,1] = rho_scale * (-Z[0]*u0 + Z[1]*u1 + rho*u01)
+        X[1,1] = rho_scale * (-Z[0]*u1 - Z[1]*u0 + rho*u11)
 
         pde.setValue(A=A, D=D, X=X, Y=Y)
         g=grad(pde.getSolution())
