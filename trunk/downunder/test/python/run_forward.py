@@ -573,7 +573,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class TestMT2DModelTMMode(unittest.TestCase):
     def test_API(self):
-        domain=ripRectangle(25, 25, d1=mpisize)
+        domain=ripRectangle(25, 25, d0=mpisize)
         omega=2.
         x=[ [0.2,0.5], [0.3,0.5] ]
         Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
@@ -604,7 +604,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
         k=cmath.sqrt(1j*omega*mu0/RHO)  # Hx=exp(k*z)
         NE=101
         L=1
-        domain=ripRectangle(NE,NE, d1=mpisize)
+        domain=ripRectangle(NE,NE, d0=mpisize)
 
         Z0=0.5
         H=1./NE
@@ -671,7 +671,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
 
         L=1
         NE=101
-        domain=ripRectangle(NE,NE, d1=mpisize)
+        domain=ripRectangle(NE,NE, d0=mpisize)
 
         Z0=0.5
         IMP=RHO*k*(cmath.exp(k*(Z0-L))-cmath.exp(-k*(Z0-L)))/(cmath.exp(k*(Z0-L))+cmath.exp(-k*(Z0-L)))
