@@ -39,10 +39,10 @@ class MT2DBase(ForwardModel):
     Base class for 2D MT forward models. See `MT2DModelTEMode` and
     `MT2DModelTMMode` for actual implementations.
     """
-    def __init__(self, domain, omega, x, Z, 
-                 eta=None, w0=1., mu=4*PI*1e-7, 
-                 Ftop=1, fixAtTop=False, fixAboveLevel=None, Fbottom=0., fixAtBottom=False, 
-                 coordinates=None, tol=1e-8, saveMemory=False, directSolver=True):
+    def __init__(self, domain, omega, x, Z, eta=None, w0=1., mu=4*PI*1e-7,
+                 Ftop=1., fixAtTop=False, fixAboveLevel=None, Fbottom=0.,
+                 fixAtBottom=False, coordinates=None, tol=1e-8,
+                 saveMemory=False, directSolver=True):
         """
         initializes a new forward model.
 
@@ -56,29 +56,36 @@ class MT2DBase(ForwardModel):
         :type Z: ``list`` of ``complex``
         :param eta: spatial confidence radius
         :type eta:  positive ``float`` or ``list`` of  positive ``float``
-        :param w0: confidence factors for meassurements. If not set one is assumed.
-        :tye w0: ``None`` or a list of positive ``float``
-        :param Ftop: value of field at top the domain and if `fixAtTop` is set at the bottom of the domain.
-        :type Ftop: ``float``, ``complex`` or ``Data`` of shape (2,)
-        :param fixAtTop: if true F is set Ftop at the top of the domain
-        :type fixAtTop: ``bool``
-        :param Fbottom: value of field at top the domain and if `fixAtbottom` is set at the bottom of the domain.
-        :type Fbottom: ``float``, ``complex`` or ``Data`` of shape (2,)
-        :param fixAtBottom: if true F is set Fbottom at the bottom of the domain
-        :type fixAtBottom: ``bool``
-        :param fixAboveLevel: level above which F is set to Ftop (typically that is the level of the airlayer)
-        :type fixAboveLevel : ``float`` or ``None``
+        :param w0: confidence factors for meassurements.
+        :type w0: ``None`` or a list of positive ``float``
         :param mu: permeability
         :type mu: ``float``
+        :param Ftop: value of field at top of the domain, see `fixAtTop` and
+                     `fixAboveLevel`
+        :type Ftop: ``float``, ``complex`` or ``Data`` of shape (2,)
+        :param fixAtTop: if true F is set to Ftop at the top of the domain.
+                         Use fixAtTop *or* fixAboveLevel, not both.
+        :type fixAtTop: ``bool``
+        :param fixAboveLevel: level above which F is set to Ftop (typically
+                              the level of the air layer).
+                              Use fixAtTop *or* fixAboveLevel, not both.
+        :type fixAboveLevel : ``float`` or ``None``
+        :param Fbottom: value of field at base of the domain
+        :type Fbottom: ``float``, ``complex`` or ``Data`` of shape (2,)
+        :param fixAtBottom: if true F is set to Fbottom at the bottom of the domain
+        :type fixAtBottom: ``bool``
         :param coordinates: defines coordinate system to be used (not supported yet)
         :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         :param saveMemory: if true stiffness matrix is deleted after solution
-                           of the PDE to minimize memory requests. This will
+                           of the PDE to minimize memory use. This will
                            require more compute time as the matrix needs to be
-                           reallocated.
+                           reallocated at each iteration.
         :type saveMemory: ``bool``
+        :param directSolver: if true a direct solver (rather than an iterative
+                             solver) will be used to solve the PDE
+        :type directSolver: ``bool``
         """
         super(MT2DBase, self).__init__()
         self.__trafo = makeTranformation(domain, coordinates)
@@ -205,13 +212,7 @@ class MT2DBase(ForwardModel):
             pde.resetRightHandSideCoefficients()
         pde.setValue(X=pde.createCoefficient('X'), Y=pde.createCoefficient('Y'))
         return pde
-    def releasePDE(self):
-        """
-        Delete PDE when memory is saved.
-        """
-        if self._saveMemory:
-            self.__pde=None
-            
+
     def getWeightingFactor(self, x, wx0, x0, eta):
         """
         returns the weighting factor
@@ -308,7 +309,6 @@ class MT2DModelTEMode(MT2DBase):
         Z = FunctionOnBoundary(self.getDomain()).getX()[DIM-1]
         pde.setValue(A=A, D=D, y=whereZero(Z-self._ztop)*[self.__Ex_n.real,self.__Ex_n.imag],  r=self._r)
         u = pde.getSolution()
-        self.releasePDE()
         return u, grad(u)[:,1]
 
     def getDefect(self, sigma, Ex, dExdz):
@@ -390,7 +390,6 @@ class MT2DModelTEMode(MT2DBase):
 
         pde.setValue(A=A, D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
-        self.releasePDE()
         return (-self._omega_mu)* (Zstar[1]*u0-Zstar[0]*u1)
 
 
@@ -422,17 +421,18 @@ class MT2DModelTMMode(MT2DBase):
     typically including teh top boundary. 
     """
     def __init__(self, domain, omega, x, Z_YX, eta=None, w0=1., mu=4*PI*1e-7,
-                 fixAboveLevel=None, Hx_top=1, coordinates=None, Hx_bottom=1., fixAtBottom=False, tol=1e-8,
-                 saveMemory=False, directSolver=True):
+                 fixAboveLevel=None, Hx_top=1, coordinates=None, Hx_bottom=1.,
+                 fixAtBottom=False, tol=1e-8, saveMemory=False,
+                 directSolver=True):
         """
         initializes a new forward model. See base class for a description of
         the arguments.
         """
-        super(MT2DModelTMMode, self).__init__(domain=domain, omega=omega, x=x, 
-                                              Z=Z_YX, eta=eta, w0=w0,
-                                              mu=mu, 
-                                              Ftop=Hx_top, fixAtTop=True, fixAboveLevel=fixAboveLevel, Fbottom=Hx_bottom, fixAtBottom=fixAtBottom, 
-                                              coordinates=coordinates, tol=tol, saveMemory=saveMemory, directSolver=directSolver)
+        super(MT2DModelTMMode, self).__init__(domain=domain, omega=omega, x=x,
+                Z=Z_YX, eta=eta, w0=w0, mu=mu, Ftop=Hx_top, fixAtTop=True,
+                fixAboveLevel=fixAboveLevel, Fbottom=Hx_bottom,
+                fixAtBottom=fixAtBottom, coordinates=coordinates, tol=tol,
+                saveMemory=saveMemory, directSolver=directSolver)
 
     def getArguments(self, rho):
         """
@@ -440,8 +440,8 @@ class MT2DModelTMMode(MT2DBase):
 
         :param rho: resistivity
         :type rho: ``Data`` of shape (2,)
-        :return: Hx, Hx,z
-        :rtype: ``Data`` of shape (2,)
+        :return: Hx, grad(Hx)
+        :rtype: ``tuple`` of ``Data``
         """
         DIM = self.getDomain().getDim()
         pde = self.setUpPDE()
@@ -458,10 +458,9 @@ class MT2DModelTMMode(MT2DBase):
         
         pde.setValue(A=A, D=D, r=self._r)
         u = pde.getSolution()
-        self.releasePDE()
-        return u, grad(u)[:,1]
+        return u, grad(u)
 
-    def getDefect(self, rho, Hx, dHxdz):
+    def getDefect(self, rho, Hx, g_Hx):
         """
         Returns the defect value.
 
@@ -469,17 +468,17 @@ class MT2DModelTMMode(MT2DBase):
         :type rho: ``Data`` of shape ()
         :param Hx: magnetic field
         :type Hx: ``Data`` of shape (2,)
-        :param dHxdz: vertical derivative of magnetic field
-        :type dHxdz: ``Data`` of shape (2,)
+        :param g_Hx: gradient of magnetic field
+        :type g_Hx: ``Data`` of shape (2,2)
 
         :rtype: ``float``
         """
-        x = dHxdz.getFunctionSpace().getX()
+        x = g_Hx.getFunctionSpace().getX()
         Hx = interpolate(Hx, x.getFunctionSpace())
         u0 = Hx[0]
         u1 = Hx[1]
-        u01 = dHxdz[0]
-        u11 = dHxdz[1]
+        u01 = g_Hx[0,1]
+        u11 = g_Hx[1,1]
         scale = rho / ( u0**2 + u1**2 )
 
         Z = self._Z
@@ -489,7 +488,7 @@ class MT2DModelTMMode(MT2DBase):
                                              +rho*(u01**2 + u11**2)) ))
         return A/2
 
-    def getGradient(self, rho, Hx, dHxdz):
+    def getGradient(self, rho, Hx, g_Hx):
         """
         Returns the gradient of the defect with respect to resistivity.
 
@@ -497,33 +496,29 @@ class MT2DModelTMMode(MT2DBase):
         :type rho: ``Data`` of shape ()
         :param Hx: magnetic field
         :type Hx: ``Data`` of shape (2,)
-        :param dHxdz: vertical derivative of magnetic field
-        :type dHxdz: ``Data`` of shape (2,)
+        :param g_Hx: gradient of magnetic field
+        :type g_Hx: ``Data`` of shape (2,2)
         """
         pde=self.setUpPDE()
         DIM = self.getDomain().getDim()
 
-        x=dHxdz.getFunctionSpace().getX()
+        x=g_Hx.getFunctionSpace().getX()
         Hx=interpolate(Hx, x.getFunctionSpace())
         u0 = Hx[0]
         u1 = Hx[1]
-        u01 = dHxdz[0]
-        u11 = dHxdz[1]
+        u00 = g_Hx[0,0]
+        u10 = g_Hx[1,0]
+        u01 = g_Hx[0,1]
+        u11 = g_Hx[1,1]
 
+        A=pde.getCoefficient('A')
         D=pde.getCoefficient('D')
         Y=pde.getCoefficient('Y')
         X=pde.getCoefficient('X')
-        A= pde.getCoefficient('A')
-        
+
         for i in xrange(DIM):
             A[0,i,0,i]=rho
             A[1,i,1,i]=rho
-            
-#        if Y.isEmpty():
-#            Y=pde.createCoefficient('Y')
-#        
-#        if X.isEmpty():
-#            X=pde.createCoefficient('X')
 
         f = self._omega_mu
         D[0,1] =  f
@@ -549,11 +544,11 @@ class MT2DModelTMMode(MT2DBase):
 
         pde.setValue(A=A, D=D, X=X, Y=Y)
         g=grad(pde.getSolution())
-        self.releasePDE()
-        
+
+        Hstarr_x = g[0,0]
+        Hstari_x = g[1,0]
         Hstarr_z = g[0,1]
         Hstari_z = g[1,1]
-        return -scale*( u0*(Z[0]*u01 + Z[1]*u11)
-                      + u1*(Z[0]*u11 - Z[1]*u01)
-                      - rho*gscale ) -Hstarr_z*u01 - Hstari_z*u11
+        return -scale*(u0*(Z[0]*u01+Z[1]*u11)+u1*(Z[0]*u11-Z[1]*u01)-rho*gscale)\
+               - Hstarr_x*u00 - Hstarr_z*u01 - Hstari_x*u10 - Hstari_z*u11
 
