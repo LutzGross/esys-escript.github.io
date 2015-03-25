@@ -540,7 +540,8 @@ class TestMT2DModelTEMode(unittest.TestCase):
         acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtTop=True, Ex_top=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], tol=1e-9,  directSolver=True)
 
         # this is the base line:
-        SIGMA0=1. 
+        xx=domain.getX()[0]
+        SIGMA0=3.*(xx+0.3)
         args0=acw.getArguments(SIGMA0)
         d0=acw.getDefect(SIGMA0, *args0)
         dg0=acw.getGradient(SIGMA0, *args0)
@@ -682,7 +683,8 @@ class TestMT2DModelTMMode(unittest.TestCase):
         acw=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, tol=1e-9,  directSolver=True)
 
         # this is the base line:
-        RHO0=2. # was 100.15
+        xx=domain.getX()[0]
+        RHO0=3.*(xx+0.3)
         args0=acw.getArguments(RHO0)
         d0=acw.getDefect(RHO0, *args0)
         dg0=acw.getGradient(RHO0, *args0)
