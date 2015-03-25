@@ -22,6 +22,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 __author__="Cihan Altinay"
 
+__all__ = ['Evaluator']
+
 import distutils.version as duv
 
 """
