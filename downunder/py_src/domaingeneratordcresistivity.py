@@ -33,13 +33,12 @@ class DCResDomGenerator(object):
     This class is used to generate an escript domain which is suitable for
     solving dc resistivity problems
     """
-    def __init__(self, extents, electrodeDict, lc=0.1, tmpDir=None, prism=None, bufferThickness=None):
+    def __init__(self, extents, electrodeLst, lc=0.1, tmpDir=None, prism=None, bufferThickness=None):
         """
         :param extents: x,y,z extents of the domain
         :type extents: list or tuple, len should=3
-        :param electrodeDict: dictionary to hold coords and characteristic length of
-        points to be used as electrodes.
-        :type electrodeDict: dictionary
+        :param electrodeLst: A list of tuples of the form (tag,coords) for each electrode
+        :type electrodeLst: list of tuples
         :param lc:
         :type float
         :param prism: provide start point,extents and a extrude depth for a cubic prism
@@ -52,11 +51,13 @@ class DCResDomGenerator(object):
             self.__extents=extents
         else:
             raise ValueError("extents should be of length 3 or 4")
-        for i in electrodeDict:
-            if len(electrodeDict[i]) != 4:
-                raise ValueError("currently only 3d domains are supported electrodeDict elements must be of length 4)")
+        for i in electrodeLst:
+            if len(electrodeLst[i]) != 4:
+                raise ValueError("currently only 3d domains are supported electrodeLst elements must be of length 4)")
+        if not isinstance(electrodeLst,list):
+            raise TypeError("electrodeLst must be a list of tuples of the form (tag,coords) for each electrode")
         self.__extentLen = len(self.__extents)
-        self.__electrodeDict=electrodeDict
+        self.__electrodeLst=electrodeLst
         self.__lc=lc
         self.__scriptString=""
         self.__pntList=""
@@ -66,11 +67,11 @@ class DCResDomGenerator(object):
         self.__tmpDir=tmpDir
         self.__bufferThickness=bufferThickness
         self.filename=""
-        # logger.debug(electrodeDict)
+        # logger.debug(electrodeLst)
 
-        for i in electrodeDict:
+        for i in electrodeLst:
             self.__tags.append(i)
-            self.__points.append(electrodeDict[i][:-1])
+            self.__points.append(electrodeLst[i][:-1])
 
     def generateScriptFile(self, fieldSize, interfaces=None):
         fd, filename = tempfile.mkstemp(suffix=".geo", dir=self.__tmpDir)
@@ -118,8 +119,8 @@ class DCResDomGenerator(object):
                 out.append("Line Loop(6) = {8,5,-6,7} ;\n")
                 out.append("Plane Surface(7) = {6} ; \n")
 
-            for i in self.__electrodeDict:
-                pntInfo=self.__electrodeDict[i]
+            for i in self.__electrodeLst:
+                pntInfo=i[1]
                 out.append("Point(%d)={%f,%f,%f,%f};\n"%(pntCount,pntInfo[0],pntInfo[1],pntInfo[2],pntInfo[3]))
                 pntCount+=1
             out.append("out0[]=Extrude {0, 0, -%f} { Surface {6};};\n"%(self.__extents[2]+self.__bufferThickness))
@@ -162,8 +163,8 @@ class DCResDomGenerator(object):
                 out.append("Line Loop(6) = {8,5,-6,7} ;\n")
                 out.append("Plane Surface(7) = {6} ; \n")
 
-            for i in self.__electrodeDict:
-                pntInfo=self.__electrodeDict[i]
+            for i in self.__electrodeLst:
+                pntInfo=i[1]
                 out.append("Point(%d)={%f,%f,%f,%f};\n"%(pntCount,pntInfo[0],pntInfo[1],pntInfo[2],pntInfo[3]))
                 pntCount+=1
 
@@ -233,8 +234,8 @@ class DCResDomGenerator(object):
             out.append("Line(4) = {4,1} ;\n")
             out.append("Line Loop(5) = {4,1,-2,3} ; \n")
             out.append("Plane Surface(6) = {5} ; \n")
-            for i in self.__electrodeDict:
-                pntInfo=self.__electrodeDict[i]
+            for i in self.__electrodeLst:
+                pntInfo=i[1]
                 out.append("Point(%d)={%f,%f,%f,%f};\n"%(pntCount,pntInfo[0],pntInfo[1],pntInfo[2],pntInfo[3]))
                 pntCount+=1
             #out.append("out[]=Extrude {0, 0, -%f} { Surface {6};};\n"%self.__bufferThickness)
@@ -275,8 +276,8 @@ class DCResDomGenerator(object):
             out.append("Line(4) = {4,1} ;\n")
             out.append("Line Loop(5) = {4,1,-2,3} ; \n")
             out.append("Plane Surface(6) = {5} ; \n")
-            for i in self.__electrodeDict:
-                pntInfo=self.__electrodeDict[i]
+            for i in self.__electrodeLst:
+                pntInfo=i[1]
                 out.append("Point(%d)={%f,%f,%f,%f};\n"%(pntCount,pntInfo[0],pntInfo[1],pntInfo[2],pntInfo[3]))
                 pntCount+=1
             self.__pntList=str([i for i in range(5,pntCount)])[1:-1]
