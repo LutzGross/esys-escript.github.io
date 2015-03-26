@@ -28,10 +28,12 @@ from .datasources import *
 from .domainbuilder import *
 from .forwardmodels import *
 from .inversioncostfunctions import *
+from .splitinversioncostfunctions import *
 from .inversions import *
 from .mappings import *
 from .minimizers import *
 from .regularizations import *
+from .splitregularizations import *
 from .coordinates import *
 from .seismic import *
 from .domaingeneratordcresistivity import *

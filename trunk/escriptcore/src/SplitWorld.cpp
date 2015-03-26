@@ -221,6 +221,60 @@ void SplitWorld::addJob(boost::python::object creator, boost::python::tuple tup,
     kwargs.push_back(kw);  
 }
 
+/**
+  creates exactly one instance of the job on each world.
+  This bypasses the normal job allocation method (since that does not guarantee one job per world)
+*/
+void SplitWorld::addJobPerWorld(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw)
+{
+    std::string errmsg;
+    int errstat=0;
+    try
+    {
+	// we need to add some things to the kw map
+	kw["domain"]=localworld->getDomain();
+	kw["jobid"]=object(jobcounter+localid);
+	kw["swcount"]=object(swcount);
+	kw["swid"]=object(localid);
+	object job=creator(*tup, **kw);
+	localworld->addJob(job);
+    }
+    catch (boost::python::error_already_set e)
+    {
+	errstat=1;
+	getStringFromPyException(e, errmsg);
+    }
+    jobcounter+=swcount;
+    clearPendingJobs();
+    
+    // MPI check to ensure that it worked for everybody
+    int mstat=0;
+    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    {
+	throw SplitWorldException("MPI appears to have failed.");
+    }
+    
+      // Now we need to find out if anyone else had an error      
+    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    {
+	throw SplitWorldException("MPI appears to have failed.");
+    }
+    errstat=mstat;  
+      
+    if (errstat==1)
+    {
+	char* resultstr=0;
+	// now we ship around the error message - This should be safe since
+	// eveyone must have finished their Jobs to get here
+	if (!esysUtils::shipString(errmsg.c_str(), &resultstr, globalcom->comm))
+	{
+	    throw SplitWorldException("MPI appears to have failed.");
+	}      
+	throw SplitWorldException(std::string("(During Job creation/distribution) ")+resultstr);
+    }  
+}
+
+
 // At some point, we may need there to be more isolation here
 // and trap any python exceptions etc, but for now I'll just call the constructor
 void SplitWorld::addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs)
@@ -247,7 +301,25 @@ void SplitWorld::clearVariable(std::string name)
     localworld->clearVariable(name);
 }
 
+std::list<std::pair<std::string, bool> > SplitWorld::getVarList()
+{
+    return localworld->getVarList();
+}
 
+
+boost::python::object SplitWorld::getVarPyList()
+{
+    std::list<std::pair<std::string, bool> > r=localworld->getVarList();
+    boost::python::list l;
+    for (std::list<std::pair<std::string, bool> >::iterator it=r.begin();it!=r.end();++it)
+    {
+        boost::python::list t;
+	t.append(it->first);
+	t.append(it->second);
+        l.append(t);
+    }
+    return l;
+}
 
 void SplitWorld::clearAllJobs()
 {
@@ -263,6 +335,7 @@ void SplitWorld::clearPendingJobs()
 }
 
 // All the job params are known on all the ranks.
+// note that perWorld jobs will already be loaded directly to the worlds
 void SplitWorld::distributeJobs()
 {
     std::string errmsg;
@@ -287,6 +360,8 @@ void SplitWorld::distributeJobs()
 	    // we need to add some things to the kw map
 	    kwargs[i]["domain"]=localworld->getDomain();
 	    kwargs[i]["jobid"]=object(jobcounter+i);
+	    kwargs[i]["swcount"]=object(swcount);
+	    kwargs[i]["swid"]=object(localid);    
 	    object job=create[i](*(tupargs[i]), **(kwargs[i]));
 	    localworld->addJob(job);
 	}
@@ -365,6 +440,26 @@ boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwa
     ws.addJob(creator, ntup, kwargs);
     return object();
 }
+
+boost::python::object raw_addJobPerWorld(boost::python::tuple t, boost::python::dict kwargs)
+{
+    int l=len(t);
+    if (l<2)
+    {
+	throw SplitWorldException("Insufficient parameters to addJobPerWorld.");
+    }
+    extract<SplitWorld&> exw(t[0]);
+    if (!exw.check())
+    {
+	throw SplitWorldException("First parameter to addJobPerWorld must be a SplitWorld.");
+    }
+    SplitWorld& ws=exw();
+    object creator=t[1]; 
+    tuple ntup=tuple(t.slice(2,l));	// strip off the object param
+    ws.addJobPerWorld(creator, ntup, kwargs);
+    return object();
+}
+
 
 // expects, splitworld, name of var, constructor function for the reducer, any constructor params
 boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dict kwargs)

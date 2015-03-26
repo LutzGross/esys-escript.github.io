@@ -51,6 +51,7 @@ sources = """
     FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
+    NonReducedVariable.cpp
     NullDomain.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
@@ -98,6 +99,7 @@ headers = """
     FunctionSpaceFactory.h
     LapackInverseHelper.h
     LocalOps.h
+    NonReducedVariable.h
     NullDomain.h
     MPIDataReducer.h
     MPIScalarReducer.h

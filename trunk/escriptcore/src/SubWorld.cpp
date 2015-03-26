@@ -848,3 +848,12 @@ void SubWorld::resetInterest()
     }
 }
 
+std::list<std::pair<std::string, bool> > SubWorld::getVarList()
+{
+    std::list<std::pair<std::string,bool> > res;
+    for (std::map<std::string, Reducer_ptr>::iterator it=reducemap.begin();it!=reducemap.end();++it)
+    {
+        res.push_back(std::pair<std::string, bool>(it->first, it->second->hasValue()));
+    }
+    return res;
+}

@@ -15,6 +15,9 @@
 
 
 #include "NonReducedVariable.h"
+#include "SplitWorldException.h"
+
+using namespace escript;
 
 NonReducedVariable::NonReducedVariable()
 {
@@ -23,7 +26,7 @@ NonReducedVariable::NonReducedVariable()
 
 NonReducedVariable::~NonReducedVariable()
 {
-};
+}
 
 void NonReducedVariable::setDomain(escript::Domain_ptr d)
 {
@@ -78,7 +81,7 @@ bool NonReducedVariable::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, e
     return true;
 }
 
-bool NonReducedVariable::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+bool NonReducedVariable::sendTo(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
 {
     return true;
 }
@@ -105,7 +108,7 @@ bool NonReducedVariable::groupReduce(MPI_Comm& com, char mystate)
 
 namespace escript
 {
-Reducer_ptr makeNonReducedVariable(std::string type)
+Reducer_ptr makeNonReducedVariable()
 {
     NonReducedVariable* m=new NonReducedVariable();
     return Reducer_ptr(m);

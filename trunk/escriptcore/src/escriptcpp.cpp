@@ -140,17 +140,19 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // These functions take a SplitWorld instance as their first parameter
   def("buildDomains", raw_function(escript::raw_buildDomains,2));
   def("addJob", raw_function(escript::raw_addJob,2));
+  def("addJobPerWorld", raw_function(escript::raw_addJobPerWorld,2));
   def("addVariable", raw_function(escript::raw_addVariable,3));
   
   
   def("makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
   def("makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
-//  def("makeLocalOnly", escript::makeNonReducedVariable, arg("dummy"), "Create a variable which is not connected to copies in other worlds.");
+  def("makeLocalOnly", escript::makeNonReducedVariable, "Create a variable which is not connected to copies in other worlds.");
       
   class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
     .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
     .def("clearVariable", &escript::SplitWorld::clearVariable, arg("name"), "Remove the value from the named variable")
+    .def("getVarList", &escript::SplitWorld::getVarPyList, "Lists variables known to the system")
     .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable);
     
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  

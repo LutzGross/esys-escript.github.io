@@ -60,6 +60,7 @@ public:
     void addVariable(std::string&, Reducer_ptr& red);
     void removeVariable(std::string& name);  
     void clearVariable(std::string& name);
+    std::list<std::pair<std::string, bool> > getVarList();
     size_t getNumVars();
     
     bool localTransport(std::string& errmsg);	// gather exported values from jobs
