@@ -70,14 +70,14 @@ class TestDCResistivityForward(unittest.TestCase):
             lc=30.0
             bufferThickness=3000
             extents=[1000,2000,2000]
-            electrodeDict={}
+            electrodeLst=[]
             lcDiv=10
-            electrodeDict["e1"]=[-0.4*extents[0], 0, 0,lc/lcDiv]
-            electrodeDict["e2"]=[-0.2*extents[0], 0, 0,lc/lcDiv]
-            electrodeDict["e3"]=[0.2*extents[0], 0, 0,lc/lcDiv]
-            electrodeDict["e4"]=[0.4*extents[0], 0, 0,lc/lcDiv]
+            electrodeLst.append(("e1",[-0.4*extents[0], 0, 0,lc/lcDiv]))
+            electrodeLst.append(("e2",[-0.2*extents[0], 0, 0,lc/lcDiv]))
+            electrodeLst.append(("e3",[0.2*extents[0], 0, 0,lc/lcDiv]))
+            electrodeLst.append(("e4",[0.4*extents[0], 0, 0,lc/lcDiv]))
             runName=os.path.join(WORKDIR, "dcResPolePole%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
+            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
             if mpirank==0: 
                 os.unlink(runName+".msh")
@@ -127,13 +127,13 @@ class TestDCResistivityForward(unittest.TestCase):
             start.append(midPoint[0] - (((numElectrodes-1)*interval_a)/2. * directionVector[0]))
             start.append(midPoint[1] - (((numElectrodes-1)*interval_a)/2. * directionVector[1]))
             electrodeTags=[]
-            electrodeDict={}
+            electrodeLst=[]
             for i in range(numElectrodes):
                 electrodes.append([start[0]+(directionVector[0]*i*interval_a), start[1]+(directionVector[1]*i*interval_a),0])
                 electrodeTags.append("e%d"%i)
-                electrodeDict[electrodeTags[i]]=[electrodes[i][0], electrodes[i][1], electrodes[i][2], lc/lcDiv]
+                electrodeLst.append([electrodeTags[i]],[electrodes[i][0], electrodes[i][1], electrodes[i][2], lc/lcDiv])
             runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
+            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh",fieldSize=[70,100])
             fn = domGen.getFileName()
             if mpirank==0: 
@@ -164,22 +164,22 @@ class TestDCResistivityForward(unittest.TestCase):
             lc=10.0
             bufferThickness=300
             extents=[100,100,100]
-            electrodeDict={}
+            electrodeLst=[]
             lcDiv=10
-            electrodeDict["e0" ] = [-22.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [-18.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [-14.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [-10.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [-6.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [-2.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [ 2.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [ 6.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [ 10.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [ 14.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [ 18.0, 0.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [ 22.0, 0.0, 0, lc/lcDiv]
+            electrodeLst.append(("e0" , [-22.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e1" , [-18.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e2" , [-14.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e3" , [-10.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e4" , [-6.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e5" , [-2.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e6" , [ 2.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e7" , [ 6.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e8" , [ 10.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e9" , [ 14.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e10", [ 18.0, 0.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e11", [ 22.0, 0.0, 0, lc/lcDiv]))
             runName=os.path.join(WORKDIR, "dcResdipdip%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
+            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh",reUse=False)
             if mpirank==0: 
                 os.unlink(runName+".msh")
@@ -216,23 +216,23 @@ class TestDCResistivityForward(unittest.TestCase):
             lc=50.0
             bufferThickness=3000
             extents=[1000,2000,2000]
-            electrodeDict={}
+            electrodeLst=[]
             lcDiv=10
 
-            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
+            electrodeLst.append(("e0"  , [28.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e1"  , [32.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e2"  , [36.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e3"  , [40.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e4"  , [44.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e5"  , [48.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e6"  , [52.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e7"  , [56.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e8"  , [60.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e9"  , [64.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e10" , [68.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e11" , [72.0, 48.0, 0, lc/lcDiv]))
 
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
+            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             runName=os.path.join(WORKDIR, "wenner%d-%d"%(lc,lc/lcDiv))
             dom = domGen.getDom(mshName=runName+".msh")
             if mpirank==0: 
@@ -269,22 +269,22 @@ class TestDCResistivityForward(unittest.TestCase):
             lc=10.0
             bufferThickness=300
             extents=[100,100,100]
-            electrodeDict={}
+            electrodeLst=[]
             lcDiv=10
-            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
+            electrodeLst.append(("e0"  , [28.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e1"  , [32.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e2"  , [36.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e3"  , [40.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e4"  , [44.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e5"  , [48.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e6"  , [52.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e7"  , [56.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e8"  , [60.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e9"  , [64.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e10" , [68.0, 48.0, 0, lc/lcDiv]))
+            electrodeLst.append(("e11" , [72.0, 48.0, 0, lc/lcDiv]))
             runName=os.path.join(WORKDIR, "dcRespoldip%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
+            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh")
             if mpirank==0: 
                 os.unlink(runName+".msh")
