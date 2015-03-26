@@ -89,7 +89,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         """
         super(SplitInversionCostFunction, self).__init__()
         if numModels<1 or numModels<1 or numMappings<1:
-	  raise ValueError("The inversion function requires at least one LevelSet, Mapping and Models.")
+          raise ValueError("The inversion function requires at least one LevelSet, Mapping and Models.")
         self.numModels=numModels
         self.numMappings=numMappings
         self.numLevelSets=numLevelSets
@@ -98,10 +98,10 @@ class SplitInversionCostFunction(MeteredCostFunction):
         sw.runJobs()
         reqd=["models", "regularization", "mu_model","mappings"]
         knownvars=sw.getVarList()
-        print knownvars
+        print(knownvars)
         for n in reqd:
-	  if [n,True] not in knownvars:
-	    raise RuntimeError("Required variable "+n+" was not created by the world init function")
+          if [n,True] not in knownvars:
+            raise RuntimeError("Required variable "+n+" was not created by the world init function")
         self.configured=False
 
     # Function to put the (possible list of) forward model(s) into the form expected by the rest of the system
@@ -111,7 +111,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
             forward_models = [ forward_models ]
         result=[]
         for i in range(len(forward_models)):
-            print "Doing iteration "+str(i)
+            print("Doing iteration "+str(i))
             f=forward_models[i]
             if isinstance(f, ForwardModel):
                 idx=[0]
@@ -131,10 +131,6 @@ class SplitInversionCostFunction(MeteredCostFunction):
             result.append((fm,idx))
         return result      
       
-      
-      
-      
-      
     def getDomain(self):
         """
         returns the domain of the cost function
@@ -153,7 +149,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         if self.configured:
            return self.__num_tradeoff_factors
         else:
-	  raise RuntimeError("This inversion function has not been configured yet")
+          raise RuntimeError("This inversion function has not been configured yet")
 
     def getForwardModel(self, idx=None):
         """
@@ -174,7 +170,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         if self.configured:
            return self.regularization
         else:
-	  raise RuntimeError("This inversion function has not been configured yet")
+          raise RuntimeError("This inversion function has not been configured yet")
 
     def setTradeOffFactorsModels(self, mu=None):
         """
@@ -203,11 +199,11 @@ class SplitInversionCostFunction(MeteredCostFunction):
         #Getting the mu value in via a closure is safe because it WILL NOT CONTAIN COMPLEX OBJECTS
         extmu=self.mu_model
         def setMu(self, **args):
-	  chunksize=max(self.worldsize()//len(extmu),1)		#In case we have more worlds than models
-	  minindex=self.subworldid()*chunksize
-	  maxindex=(self.subworldid()+1)*chunksize		# yes this could go off the end but I will slice
-	  mymu=extmu[minindex:maxindex]
-	  self.exportValue("mu_model", mymu)
+          chunksize=max(self.worldsize()//len(extmu),1)         #In case we have more worlds than models
+          minindex=self.subworldid()*chunksize
+          maxindex=(self.subworldid()+1)*chunksize              # yes this could go off the end but I will slice
+          mymu=extmu[minindex:maxindex]
+          self.exportValue("mu_model", mymu)
         addJobPerWorld(sw, setMu)
         sw.runJobs()
         
@@ -218,7 +214,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``float`` or ``list`` of ``float``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")
+          raise ValueError("This inversion function has not been configured yet")
         if self.numModels>1:
             return self.mu_model
         else:
@@ -255,7 +251,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``list`` of ``float``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")        
+          raise ValueError("This inversion function has not been configured yet")        
         mu1=self.getTradeOffFactorsModels(mu[:self.numModels])
         mu2=self.regularization.getTradeOffFactors()
         return [ m for m in mu1] + [ m for m in mu2]
@@ -269,7 +265,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         for which no value is given.
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")        
+          raise ValueError("This inversion function has not been configured yet")        
         #Since this involves solving a PDE (and therefore a domain, it must be kept local
         #to each subworld
         raise RuntimeError("This needs to run inside the subworld --- create a function for it")
@@ -300,7 +296,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``list`` of `Data`
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")        
+          raise ValueError("This inversion function has not been configured yet")        
         #Since this involves solving a PDE (and therefore a domain, it must be kept local
         #to each subworld
         raise RuntimeError("This needs to run inside the subworld --- create a function for it")        
@@ -331,7 +327,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``float``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")        
+          raise ValueError("This inversion function has not been configured yet")        
         #This involves an 'x' which is a Data object.
         #Does this only need to run on one subworld?
         #Then shipped around using getDoubleValues?
@@ -347,19 +343,19 @@ class SplitInversionCostFunction(MeteredCostFunction):
       This should take in a value to set the point to, but that can wait
       """
       if not self.configured:
-	raise ValueError("This inversion function has not been configured yet")
+        raise ValueError("This inversion function has not been configured yet")
 
       def load_initial_guess(self, **args):
-	  initguess=0
-	  mods=self.importValue("models")
-	  reg=self.importValue("regularization")
-	  reg.setPoint(initguess)
-	  for m,idx in mods:
-	    pp=tuple( [props[k] for k in idx] )	# build up collection of properties used by this model
-	    m.setPoint(*pp)
-	  # We still need to deal with the props feild and where to get it from
-	  self.exportValue("props", props)
-	    
+          initguess=0
+          mods=self.importValue("models")
+          reg=self.importValue("regularization")
+          reg.setPoint(initguess)
+          for m,idx in mods:
+            pp=tuple( [props[k] for k in idx] ) # build up collection of properties used by this model
+            m.setPoint(*pp)
+          # We still need to deal with the props feild and where to get it from
+          self.exportValue("props", props)
+            
       for i in range(0, self.sw.swcount):      
           self.sw.addJob(FunctionJob, load_initial_guess, imports=["models", "regularization"])
       self.sw.runJobs()
@@ -379,7 +375,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``tuple``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")         
+          raise ValueError("This inversion function has not been configured yet")         
         raise RuntimeError("Call to getArguments -- temporary block to see where this is used")
         args_reg=self.regularization.getArguments(m)
         # cache for physical parameters:
@@ -399,38 +395,38 @@ class SplitInversionCostFunction(MeteredCostFunction):
     def _calculateValue(self, vnames):
         
        if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")
+          raise ValueError("This inversion function has not been configured yet")
        #The props is already in each world as a variable
        #Each model already has its point set
        #regularization already has its point set
         
        def calculateValueWorker(self, vnames, **args):
-	  props=self.importValue("props")
-	  mods=self.importValue("models")
-	  reg=self.importValue("regularization")
-	  mu_model=self.importValue("mu_model")
-	  
-	  J=None
-	  for i in range(len(mods)):	# note: iterating over local models not ones on other worlds
-	    m,idx=mods[i]
-	    z=m.getDefectAtPoint()
-	    z*=self.mu_model[i];   
-	    if J is None:          
-	      J=z
-	    else:
-	      J+=z
-	    
-	  if self.worldid==0:    # we only want to add the regularization term once
-	    J+=reg.getValueAtPoint()	# We actually want to get a value here but
-					# I want to distiguish it from the other getValue call
-	  if isinstance(vnames, str):
-	    self.exportValue(J, vnames)
-	  else:
-	    for n in vnames:
-	      self.exportValue(J, n)
+          props=self.importValue("props")
+          mods=self.importValue("models")
+          reg=self.importValue("regularization")
+          mu_model=self.importValue("mu_model")
+          
+          J=None
+          for i in range(len(mods)):    # note: iterating over local models not ones on other worlds
+            m,idx=mods[i]
+            z=m.getDefectAtPoint()
+            z*=self.mu_model[i];   
+            if J is None:          
+              J=z
+            else:
+              J+=z
+            
+          if self.worldid==0:    # we only want to add the regularization term once
+            J+=reg.getValueAtPoint()    # We actually want to get a value here but
+                                        # I want to distiguish it from the other getValue call
+          if isinstance(vnames, str):
+            self.exportValue(J, vnames)
+          else:
+            for n in vnames:
+              self.exportValue(J, n)
        for i in range(0, self.sw.swcount):      
           self.sw.addJob(FunctionJob, calculateValueWorker, imports=["models", "regularization", "props"])
-       self.sw.runJobs()	      
+       self.sw.runJobs()              
 
     def _getValue(self, m, *args):
         """
@@ -445,7 +441,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``float``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")         
+          raise ValueError("This inversion function has not been configured yet")         
         raise RuntimeError("Call to getArguments -- temporary block to see where this is used")        
         if len(args)==0:
             args=self.getArguments(m)
@@ -468,7 +464,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
     def getComponentValues(self, m, *args):
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")       
+          raise ValueError("This inversion function has not been configured yet")       
         raise RuntimeError("Call to getComponentValues -- temporary block to see where this is used")      
         return self._getComponentValues(m, *args)
 
@@ -482,7 +478,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``list<<float>>``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")         
+          raise ValueError("This inversion function has not been configured yet")         
         raise RuntimeError("Call to getArguments -- temporary block to see where this is used")        
         if len(args)==0:
             args=self.getArguments(m)
@@ -506,114 +502,114 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
     def _calculateGradient(self):
        if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")
+          raise ValueError("This inversion function has not been configured yet")
 
-       numLevelSets=self.numLevelSets	# pass in via closure
+       numLevelSets=self.numLevelSets   # pass in via closure
        def calculateGradientWorker(self, vnames1, vnames2, **args):
-	  """
-	  vnames1 gives the names to store the first component of the gradient in
-	  vnames2 gives the names to store the second component of the gradient in
-	  """
-	  props=self.importValue("props")
-	  mods=self.importValue("models")
-	  reg=self.importValue("regularization")
-	  mu_model=self.importValue("mu_model")
-	  mappings=self.importValue("mappings")
-	  
-	  g_J = reg.getGradientAtPoint()
-	  p_diffs=[]
-	  # Find the derivative for each mapping
-	  # If a mapping has a list of components (idx), then make a new Data object with only those
-	  # components, pass it to the mapping and get the derivative.
-	  for i in range(len(numMappings)):
-	      mm, idx=mappings[i]
-	      if idx and numLevelSets > 1:
-		  if len(idx)>1:
-		      m2=Data(0,(len(idx),),m.getFunctionSpace())
-		      for k in range(len(idx)): m2[k]=m[idx[k]]
-		      dpdm = mm.getDerivative(m2)
-		  else:
-		      dpdm = mm.getDerivative(m[idx[0]])
-	      else:
-		  dpdm = mm.getDerivative(m)
-	      p_diffs.append(dpdm)
-	  #Since we are going to be merging Y with other worlds, we need to make sure the the regularization
-	  #component is only added once.  However most of the ops below are in terms of += so we need to
-	  #create a zero object to use as a starting point
-	  if self.subworldid==0:
-	     Y=g_J[0]    # Because g_J==(Y,X)  Y_k=dKer/dm_k
-	  else:
-	     Y=Data(0, g_J[0].getShape(), g_J[0].getForwardModel())
-	  for i in range(self.numModels):
-	      mu=self.mu_model[i]
-	      f, idx_f=mods[i]
-	      args=tuple( [ props[k] for k in idx_f]  + list( args_f[i] ) )
-	      Ys = f.getGradientAtPoint() # this d Jf/d props
-	      # in this case f depends on one parameter props only but this can
-	      # still depend on several level set components
-	      if Ys.getRank() == 0:
-		  # run through all level sets k prop j is depending on:
-		  idx_m=self.mappings[idx_f[0]][1]
-		  # tmp[k] = dJ_f/d_prop * d prop/d m[idx_m[k]]
-		  tmp=Ys * p_diffs[idx_f[0]] * mu
-		  if idx_m:
-		      if tmp.getRank()== 0:
-			  for k in range(len(idx_m)):
-			      Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp
-		      else:
-			  for k in range(len(idx_m)):
-			      Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
-		  else:
-		      Y+=tmp # dJ_f /d m[idx_m[k]] = tmp
-	      else:
-		  s=0
-		  # run through all props j forward model f is depending on:
-		  for j in range(len(idx_f)):
-		      # run through all level sets k prop j is depending on:
-		      idx_m=self.mappings[j][1]
-		      if p_diffs[idx_f[j]].getRank() == 0 :
-			  if idx_m: # this case is not needed (really?)
-			      raise RuntimeError("something wrong A")
-			      # tmp[k] = dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
-			      tmp=Ys[s]*p_diffs[idx_f[j]] * mu
-			      for k in range(len(idx_m)):
-				  Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
-			  else:
-			      Y+=Ys[s]*p_diffs[idx_f[j]] * mu
-			  s+=1
-		      elif p_diffs[idx_f[j]].getRank() == 1 :
-			  l=p_diffs[idx_f[j]].getShape()[0]
-			  # tmp[k]=sum_j dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
-			  tmp=inner(Ys[s:s+l], p_diffs[idx_f[j]]) * mu
-			  if idx_m:
-			      for k in range(len(idx_m)):
-				  Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
-			  else:
-			      Y+=tmp
-			  s+=l
-		      else: # rank 2 case
-			  l=p_diffs[idx_f[j]].getShape()[0]
-			  Yss=Ys[s:s+l]
-			  if idx_m:
-			      for k in range(len(idx_m)):
-				  # dJ_f /d m[idx_m[k]] = tmp[k]
-				  Y[idx_m[k]]+=inner(Yss, p_diffs[idx_f[j]][:,k])
-			  else:
-			      Y+=inner(Yss, p_diffs[idx_f[j]]) * mu
-			  s+=l	  
-	  if isinstance(vnames1, str):
-	    self.exportValue(Y, vnames1)
-	  else:
-	    for n in vnames1:
-	      self.exportValue(Y, n)
-	  if isinstance(vnames2, str):		#The second component should be strictly local 
-	    self.exportValue(g_J[1], vnames2)
-	  else:
-	    for n in vnames2:
-	      self.exportValue(g_J[1], n)
-	      
+          """
+          vnames1 gives the names to store the first component of the gradient in
+          vnames2 gives the names to store the second component of the gradient in
+          """
+          props=self.importValue("props")
+          mods=self.importValue("models")
+          reg=self.importValue("regularization")
+          mu_model=self.importValue("mu_model")
+          mappings=self.importValue("mappings")
+          
+          g_J = reg.getGradientAtPoint()
+          p_diffs=[]
+          # Find the derivative for each mapping
+          # If a mapping has a list of components (idx), then make a new Data object with only those
+          # components, pass it to the mapping and get the derivative.
+          for i in range(len(numMappings)):
+              mm, idx=mappings[i]
+              if idx and numLevelSets > 1:
+                  if len(idx)>1:
+                      m2=Data(0,(len(idx),),m.getFunctionSpace())
+                      for k in range(len(idx)): m2[k]=m[idx[k]]
+                      dpdm = mm.getDerivative(m2)
+                  else:
+                      dpdm = mm.getDerivative(m[idx[0]])
+              else:
+                  dpdm = mm.getDerivative(m)
+              p_diffs.append(dpdm)
+          #Since we are going to be merging Y with other worlds, we need to make sure the the regularization
+          #component is only added once.  However most of the ops below are in terms of += so we need to
+          #create a zero object to use as a starting point
+          if self.subworldid==0:
+             Y=g_J[0]    # Because g_J==(Y,X)  Y_k=dKer/dm_k
+          else:
+             Y=Data(0, g_J[0].getShape(), g_J[0].getForwardModel())
+          for i in range(self.numModels):
+              mu=self.mu_model[i]
+              f, idx_f=mods[i]
+              args=tuple( [ props[k] for k in idx_f]  + list( args_f[i] ) )
+              Ys = f.getGradientAtPoint() # this d Jf/d props
+              # in this case f depends on one parameter props only but this can
+              # still depend on several level set components
+              if Ys.getRank() == 0:
+                  # run through all level sets k prop j is depending on:
+                  idx_m=self.mappings[idx_f[0]][1]
+                  # tmp[k] = dJ_f/d_prop * d prop/d m[idx_m[k]]
+                  tmp=Ys * p_diffs[idx_f[0]] * mu
+                  if idx_m:
+                      if tmp.getRank()== 0:
+                          for k in range(len(idx_m)):
+                              Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp
+                      else:
+                          for k in range(len(idx_m)):
+                              Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
+                  else:
+                      Y+=tmp # dJ_f /d m[idx_m[k]] = tmp
+              else:
+                  s=0
+                  # run through all props j forward model f is depending on:
+                  for j in range(len(idx_f)):
+                      # run through all level sets k prop j is depending on:
+                      idx_m=self.mappings[j][1]
+                      if p_diffs[idx_f[j]].getRank() == 0 :
+                          if idx_m: # this case is not needed (really?)
+                              raise RuntimeError("something wrong A")
+                              # tmp[k] = dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                              tmp=Ys[s]*p_diffs[idx_f[j]] * mu
+                              for k in range(len(idx_m)):
+                                  Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
+                          else:
+                              Y+=Ys[s]*p_diffs[idx_f[j]] * mu
+                          s+=1
+                      elif p_diffs[idx_f[j]].getRank() == 1 :
+                          l=p_diffs[idx_f[j]].getShape()[0]
+                          # tmp[k]=sum_j dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                          tmp=inner(Ys[s:s+l], p_diffs[idx_f[j]]) * mu
+                          if idx_m:
+                              for k in range(len(idx_m)):
+                                  Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
+                          else:
+                              Y+=tmp
+                          s+=l
+                      else: # rank 2 case
+                          l=p_diffs[idx_f[j]].getShape()[0]
+                          Yss=Ys[s:s+l]
+                          if idx_m:
+                              for k in range(len(idx_m)):
+                                  # dJ_f /d m[idx_m[k]] = tmp[k]
+                                  Y[idx_m[k]]+=inner(Yss, p_diffs[idx_f[j]][:,k])
+                          else:
+                              Y+=inner(Yss, p_diffs[idx_f[j]]) * mu
+                          s+=l    
+          if isinstance(vnames1, str):
+            self.exportValue(Y, vnames1)
+          else:
+            for n in vnames1:
+              self.exportValue(Y, n)
+          if isinstance(vnames2, str):          #The second component should be strictly local 
+            self.exportValue(g_J[1], vnames2)
+          else:
+            for n in vnames2:
+              self.exportValue(g_J[1], n)
+              
        addJobPerWorld(sw, FunctionJob, calculateGradientWorker, vnames, imports=["models", "regularization", "props", "mu_models"])
-       self.sw.runJobs()	  	 
+       self.sw.runJobs()                 
         
     def _getGradient(self, m, *args):
         """
@@ -633,7 +629,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
                w.r.t. gradient of m.
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")         
+          raise ValueError("This inversion function has not been configured yet")         
         raise RuntimeError("Call to getGradient -- temporary block to see where this is used")        
         if len(args)==0:
             args = self.getArguments(m)
@@ -738,7 +734,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
                considered in the inverse Hessian approximation.
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")         
+          raise ValueError("This inversion function has not been configured yet")         
         raise RuntimeError("Call to getInverseHessianApproximation -- temporary block to see where this is used")
         
         m=self.regularization.getInverseHessianApproximation(m, r, *args[2])
@@ -749,7 +745,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         notifies the class that the Hessian operator needs to be updated.
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet")         
+          raise ValueError("This inversion function has not been configured yet")         
         self.regularization.updateHessian()
 
     def _getNorm(self, m):
@@ -761,7 +757,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :rtype: ``float``
         """
         if not self.configured:
-	  raise ValueError("This inversion function has not been configured yet") 
-	raise RuntimeError("Need to have this in a subworld --- one or all?")
+          raise ValueError("This inversion function has not been configured yet") 
+        raise RuntimeError("Need to have this in a subworld --- one or all?")
         return self.regularization.getNorm(m)
 

@@ -243,8 +243,8 @@ class PDECoef(object):
                 try:
                   newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
                 except RuntimeError as er:
-		 msg="Attempting to interpolate coefficient to function space %s encountered the followin error: %s"%(self.getFunctionSpace(domain),er.message)
-		 raise IllegalCoefficientFunctionSpace(msg)
+                 msg="Attempting to interpolate coefficient to function space %s encountered the followin error: %s"%(self.getFunctionSpace(domain),str(er))
+                 raise IllegalCoefficientFunctionSpace(msg)
                 except:
                   raise IllegalCoefficientFunctionSpace("Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain))
        else:

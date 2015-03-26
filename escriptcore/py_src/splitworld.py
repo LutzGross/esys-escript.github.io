@@ -65,8 +65,8 @@ class Job(object):
     self.wantedvalues=[]                # names of shared values this job wishes to import    
     self.importedvalues={}      # name:values of which this jobs wants to use
     self.exportedvalues={}      # name:values exported by this job
-    self.swcount=kwargs["swcount"]	# How many subworlds are there?
-    self.swid=kwargs["swid"]	# which subworld are we running in?
+    self.swcount=kwargs["swcount"]      # How many subworlds are there?
+    self.swid=kwargs["swid"]    # which subworld are we running in?
     
     
   def wantValue(self, name):
@@ -156,10 +156,10 @@ class FunctionJob(Job):
     self.__calldict__ = kwargs
     if "imports" in kwargs:
       if isinstance(kwargs["imports"], str):
-	self.requestImport(kwargs["imports"])
+        self.requestImport(kwargs["imports"])
       else:
-	for n in kwargs["imports"]:
-	  self.requestImport(n)
+        for n in kwargs["imports"]:
+          self.requestImport(n)
 
   def work(self):
     self.__fn__(self, **self.__calldict__)
