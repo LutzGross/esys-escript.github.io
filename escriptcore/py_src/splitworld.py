@@ -65,6 +65,8 @@ class Job(object):
     self.wantedvalues=[]                # names of shared values this job wishes to import    
     self.importedvalues={}      # name:values of which this jobs wants to use
     self.exportedvalues={}      # name:values exported by this job
+    self.swcount=kwargs["swcount"]	# How many subworlds are there?
+    self.swid=kwargs["swid"]	# which subworld are we running in?
     
     
   def wantValue(self, name):
@@ -143,3 +145,24 @@ class Job(object):
     A return value of False indicates work still to be done
     """
     return True
+
+class FunctionJob(Job):
+  """
+  Takes a python function (with only keyword params) to be called as the work method
+  """
+  def __init__(self, fn, *args, **kwargs):
+    super(FunctionJob, self).__init__(*args, **kwargs)
+    self.__fn__ = fn
+    self.__calldict__ = kwargs
+    if "imports" in kwargs:
+      if isinstance(kwargs["imports"], str):
+	self.requestImport(kwargs["imports"])
+      else:
+	for n in kwargs["imports"]:
+	  self.requestImport(n)
+
+  def work(self):
+    self.__fn__(self, **self.__calldict__)
+    return True
+
+    

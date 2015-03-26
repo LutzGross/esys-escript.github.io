@@ -43,10 +43,13 @@ public:
     void runJobs();
     
     void addJob(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
+    void addJobPerWorld(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
     
     void addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs);
     void removeVariable(std::string name); 
     void clearVariable(std::string name); 
+    std::list<std::pair<std::string, bool> > getVarList();
+    boost::python::object getVarPyList();
 
     void clearAllJobs();
 
@@ -83,6 +86,11 @@ boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::di
  used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
 */
 boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwargs);
+
+/**
+ used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
+*/
+boost::python::object raw_addJobPerWorld(boost::python::tuple t, boost::python::dict kwargs);
 
 /**
  used to add a reducer for shared values.

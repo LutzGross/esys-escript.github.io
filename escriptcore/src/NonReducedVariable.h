@@ -29,7 +29,7 @@ class NonReducedVariable : public AbstractReducer
 {
 public:
     NonReducedVariable();
-    ~NonReducedVariable(){};
+    ~NonReducedVariable();
     
         // This is not a constructor parameter because 
         // if these are created outside the subworld, they won't have
@@ -66,12 +66,12 @@ public:
     bool groupReduce(MPI_Comm& com, char mystate);
     
 private:    
-    double value;
-    double identity;
+    boost::python::object value;
+    boost::python::object identity;
 };
 
 
-Reducer_ptr makeNonReducedVariable(std::string type);
+Reducer_ptr makeNonReducedVariable();
 
 
 }

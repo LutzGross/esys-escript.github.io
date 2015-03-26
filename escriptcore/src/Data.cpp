@@ -2697,7 +2697,8 @@ Data::setTaggedValueByName(std::string name,
     }
     else
     {
-        throw DataException("Error - unknown tag in setTaggedValueByName.");
+        std::string msg="Error - unknown tag ("+name+") in setTaggedValueByName.";
+        throw DataException(msg);
     }
 }
 
