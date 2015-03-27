@@ -36,31 +36,31 @@ public:
 
     void assemblePDESingle(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDESingle() not supported by this assembler");
     }
     void assemblePDEBoundarySingle(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDEBoundarySingle() not supported by this assembler");
     }
     void assemblePDESingleReduced(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDESingleReduced() not supported by this assembler");
     }
     void assemblePDEBoundarySingleReduced(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDEBoundarySingleReduced() not supported by this assembler");
     }
     void assemblePDEBoundarySystem(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDEBoundarySystem() not supported by this assembler");
     }
     void assemblePDESystemReduced(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDESystemReduced() not supported by this assembler");
     }
     void assemblePDEBoundarySystemReduced(escript::AbstractSystemMatrix* mat,
                            escript::Data& rhs, const DataMap& coefs) const {
-        throw RipleyException("This assembly not supported by this assembler");
+        throw RipleyException("assemblePDEBoundarySystemReduced() not supported by this assembler");
     }
 
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
