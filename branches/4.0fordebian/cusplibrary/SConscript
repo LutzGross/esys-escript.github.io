@@ -1,0 +1,60 @@
+
+##############################################################################
+#
+# Copyright (c) 2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+import os
+Import('*')
+local_env = env.Clone()
+
+directories = """
+cusp
+cusp/precond
+cusp/precond/aggregation
+cusp/precond/aggregation/detail
+cusp/precond/detail
+cusp/krylov
+cusp/krylov/detail
+cusp/io
+cusp/io/detail
+cusp/gallery
+cusp/relaxation
+cusp/relaxation/detail
+cusp/graph
+cusp/graph/detail
+cusp/graph/detail/dispatch
+cusp/graph/detail/device
+cusp/graph/detail/host
+cusp/opengl
+cusp/opengl/spy
+cusp/opengl/spy/detail
+cusp/detail
+cusp/detail/dispatch
+cusp/detail/device
+cusp/detail/device/generalized_spmv
+cusp/detail/device/transposed_spmv
+cusp/detail/device/spmm
+cusp/detail/device/spmv
+cusp/detail/device/detail
+cusp/detail/host
+cusp/detail/host/reference
+cusp/detail/host/detail
+""".split()
+
+for dir in directories:
+    headers = Glob(os.path.join(dir,"*.*"))
+    include_path = Dir(dir, local_env['incinstall'])
+    hdr_inst = local_env.Install(include_path, headers)
+    env.Alias('install_cusp_headers', hdr_inst)
+

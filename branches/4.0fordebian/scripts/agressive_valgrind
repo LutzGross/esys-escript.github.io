@@ -1,0 +1,388 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python7objects8functionD1Ev
+   obj:/usr/lib/libboost_python-*
+   ...
+   fun:_PyImport_Fini
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/lib/libpython*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/lib/libpython*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/lib/libpython*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/libpython*
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/lib/libpython*
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/libpython*
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/libpython*
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python7objects8functionD1Ev
+   obj:/usr/lib/libboost_python-*
+   ...
+   fun:_PyImport_Fini
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:PMPI_Init_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:mca_pml_base_open
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:orte_ess_base_app_setup
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PMPI_Finalize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:_PyDict_NewPresized
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:_PyObject_GC_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyDict_Merge
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   fun:PyString_*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.2.5
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   fun:_ZN12_GLOBAL__N_18seedGensEl._omp_fn.1
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:_ZN5boost6python3apipLIPKcEERNS1_6objectES6_RKT_
+   fun:_ZN5boost6python7objects8function16add_to_namespaceERKNS0_3api6objectEPKcS6_S8_
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   fun:_ZN5boost6python7objects11py_functionC1INS0_6detail6callerIPFP7_objectNS0_14back_referenceIRN7escript4DataEEERKNS0_3api6objectEENS0_21default_call_policiesENS_3mpl7vector3IS7_SC_SG_EEEEEERKT_
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_Z22init_module_escriptcppv
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_ZN5boost6python6class_IN7escript13FunctionSpaceENS0_6detail13not_specifiedES5_S5_E10initializeINS0_9init_baseINS0_4initIN4mpl_5void_ESB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_EEEEEEvRKT_
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_ZN5boost6python6class_IN7escript4DataENS0_6detail13not_specifiedES5_S5_E10initializeINS0_9init_baseINS0_4initIN4mpl_5void_ESB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_SB_EEEEEEvRKT_
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_ZN5boost6python6class_IN7escript4DataENS0_6detail13not_specifiedES5_S5_E3defINS0_4initIRKNS0_3api6objectENS0_8optionalIRKNS2_13FunctionSpaceEbN4mpl_5void_ESI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_EESI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_EEEERS6_RKNS0_11def_visitorIT_EE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_ZNK5boost6python11def_visitor*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_ZN5boost6python6class_IN7escript4DataENS0_6detail13not_specifiedES5_S5_E3defINS0_4initIKdRKNS0_5tupleENS0_8optionalIRKNS2_13FunctionSpaceEbN4mpl_5void_ESI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_EESI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_SI_EEEERS6_RKNS0_11def_visitorIT_EE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyMarshal_ReadLastObjectFromFile
+}
+
+
