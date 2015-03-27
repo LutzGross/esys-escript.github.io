@@ -4,6 +4,9 @@ Section: science
 Priority: extra
 X-Python-Version: >=2.7
 X-Python3-Version: >=3.2
+Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+DM-Upload-Allowed: yes
+Homepage: https://launchpad.net/escript-finley
 Build-Depends: python-all-dev (>= 2.6.6-3~), python-all-dev, python-numpy, python3-numpy, libboost-python-dev, libboost-random-dev, libnetcdf-dev, scons, zip, python-sphinx, doxygen, python-docutils, texlive, ghostscript, texlive-latex-extra, latex-xcolor, lsb-release
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/escript-finley
