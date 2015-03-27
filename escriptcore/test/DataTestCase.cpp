@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,13 +14,15 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 
 #include "DataTestCase.h"
 
+#include <iostream>
+#if defined (_WIN32) && defined (__INTEL_COMPILER)
+#include <mathimf.h>
+#else
 #include <cmath>
+#endif
 
 #include "esysUtils/EsysException.h"
 #include "escript/Data.h"

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,10 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
@@ -45,12 +41,8 @@
 #include <iomanip>
 #include <limits>
 
-namespace bm=boost::math;
+using namespace std;
 using esysUtils::FileWriter;
-using std::max;
-using std::min;
-using std::vector;
-using std::string;
 
 namespace speckley {
 
@@ -214,7 +206,7 @@ Brick::~Brick()
 #endif
 }
 
-std::string Brick::getDescription() const
+string Brick::getDescription() const
 {
     return "speckley::Brick";
 }
@@ -233,7 +225,7 @@ bool Brick::operator==(const AbstractDomain& other) const
     return false;
 }
 
-void Brick::readNcGrid(escript::Data& out, std::string filename, std::string varname,
+void Brick::readNcGrid(escript::Data& out, string filename, string varname,
             const ReaderParameters& params) const
 {
 #ifdef USE_NETCDF
@@ -356,7 +348,7 @@ void Brick::readNcGrid(escript::Data& out, std::string filename, std::string var
                 const dim_t srcIndex=(z0+z_mult*z)*num1*num0
                                   +(y0+y_mult*y)*num0
                                   +(x0+x_mult*x);
-                if (!bm::isnan(values[srcIndex])) {
+                if (!isnan(values[srcIndex])) {
                     for (index_t m2=0; m2<params.multiplier[2]; m2++) {
                         for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                             for (index_t m0=0; m0<params.multiplier[0]; m0++) {
@@ -380,7 +372,7 @@ void Brick::readNcGrid(escript::Data& out, std::string filename, std::string var
 }
 
 #ifdef USE_BOOSTIO
-void Brick::readBinaryGridFromZipped(escript::Data& out, std::string filename,
+void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
                            const ReaderParameters& params) const
 {
     // the mapping is not universally correct but should work on our
@@ -401,7 +393,7 @@ void Brick::readBinaryGridFromZipped(escript::Data& out, std::string filename,
 }
 #endif
 
-void Brick::readBinaryGrid(escript::Data& out, std::string filename,
+void Brick::readBinaryGrid(escript::Data& out, string filename,
                            const ReaderParameters& params) const
 {
     // the mapping is not universally correct but should work on our
@@ -422,7 +414,7 @@ void Brick::readBinaryGrid(escript::Data& out, std::string filename,
 }
 
 template<typename ValueType>
-void Brick::readBinaryGridImpl(escript::Data& out, const std::string& filename,
+void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
                                const ReaderParameters& params) const
 {
     // check destination function space
@@ -453,11 +445,11 @@ void Brick::readBinaryGridImpl(escript::Data& out, const std::string& filename,
         throw SpeckleyException("readBinaryGrid(): reversing only supported in Z-direction currently");
 
     // check file existence and size
-    std::ifstream f(filename.c_str(), std::ifstream::binary);
+    ifstream f(filename.c_str(), ifstream::binary);
     if (f.fail()) {
         throw SpeckleyException("readBinaryGrid(): cannot open file");
     }
-    f.seekg(0, std::ios::end);
+    f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
     const dim_t filesize = f.tellg();
     const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
@@ -560,7 +552,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const std::string& filename,
                                         byte_swap32(cval);
                                     }
                                 }
-                                if (!bm::isnan(val)) {
+                                if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(val);
                                     }
@@ -609,14 +601,14 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
             throw SpeckleyException("readBinaryGridFromZipped(): all multipliers must be positive");
 
     // check file existence and size
-    std::ifstream f(filename.c_str(), std::ifstream::binary);
+    ifstream f(filename.c_str(), ifstream::binary);
     if (f.fail()) {
         throw SpeckleyException("readBinaryGridFromZipped(): cannot open file");
     }
-    f.seekg(0, std::ios::end);
+    f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
     dim_t filesize = f.tellg();
-    f.seekg(0, std::ios::beg);
+    f.seekg(0, ios::beg);
     std::vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
@@ -719,7 +711,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                         byte_swap32(cval);
                                     }
                                 }
-                                if (!bm::isnan(val)) {
+                                if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(val);
                                     }
@@ -796,7 +788,7 @@ void Brick::interpolateFromCorners(escript::Data &out) const
     }
 }
 
-void Brick::writeBinaryGrid(const escript::Data& in, std::string filename,
+void Brick::writeBinaryGrid(const escript::Data& in, string filename,
                             int byteOrder, int dataType) const
 {
     // the mapping is not universally correct but should work on our
@@ -856,7 +848,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         for (index_t y=0; y<myN1; y++) {
             const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
                                 +(m_offset[2]+z)*totalN0*totalN1)*sizeof(ValueType);
-            std::ostringstream oss;
+            ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {
                 const double* sample = in.getSampleDataRO(
@@ -988,8 +980,8 @@ void Brick::dump(const string& fileName) const
         vector<string> tempstrings;
         vector<char*> names;
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            std::stringstream path;
-            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
+            stringstream path;
+            path << "/block" << setw(4) << setfill('0') << right << i << "/mesh";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -1000,8 +992,8 @@ void Brick::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            std::stringstream path;
-            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
+            stringstream path;
+            path << "/block" << setw(4) << setfill('0') << right << i << "/nodeId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -1011,8 +1003,8 @@ void Brick::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            std::stringstream path;
-            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
+            stringstream path;
+            path << "/block" << setw(4) << setfill('0') << right << i << "/elementId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -1041,7 +1033,6 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
         case Nodes:
             return &m_nodeId[0];
         case Elements:
-        case ReducedElements:
             return &m_elementId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
@@ -1104,10 +1095,11 @@ void Brick::Print_Mesh_Info(const bool full) const
 //protected
 void Brick::assembleCoordinates(escript::Data& arg) const
 {
+    escriptDataC dc = arg.getDataC();
     int numDim = m_numDim;
-    if (&arg!=0 && !arg.isDataPointShapeEqual(1, &numDim))
+    if (!isDataPointShapeEqual(&dc, 1, &numDim))
         throw SpeckleyException("setToX: Invalid Data object shape");
-    if (&arg!=0 && !arg.numSamplesEqual(1, getNumNodes()))
+    if (!numSamplesEqual(&dc, 1, getNumNodes()))
         throw SpeckleyException("setToX: Illegal number of samples in Data object");
 
     const dim_t NN0 = m_NN[0];
@@ -1373,48 +1365,23 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     const dim_t max_x = m_NN[0];
     const dim_t max_y = m_NN[1];
     const dim_t max_z = m_NN[2];
-    const int inFS = in.getFunctionSpace().getTypeCode();
     out.requireWrite();
     //init to zero so we can do some sums without undefined, may not be required
     memset(out.getSampleDataRW(0), 0, sizeof(double)*quads*quads*numComp);
     // the summation portion
-    if (inFS == ReducedElements) {
-        for (dim_t colouring = 0; colouring < 2; colouring++) {
-    #pragma omp parallel for
-            for (dim_t ez = colouring; ez < NE2; ez += 2) {
-                for (dim_t ey = 0; ey < NE1; ey++) {
-                    for (dim_t ex = 0; ex < NE0; ex++) {
-                        dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
-                        const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
-                        for (int qz = 0; qz < quads; qz++) {
-                            for (int qy = 0; qy < quads; qy++) {
-                                for (int qx = 0; qx < quads; qx++) {
-                                    double *n_out = out.getSampleDataRW(start + INDEX3(qx, qy, qz, max_x, max_y));
-                                    for (dim_t comp = 0; comp < numComp; comp++) {
-                                        n_out[comp] += e_in[comp];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }        
-    } else {
-        for (dim_t colouring = 0; colouring < 2; colouring++) {
-    #pragma omp parallel for
-            for (dim_t ez = colouring; ez < NE2; ez += 2) {
-                for (dim_t ey = 0; ey < NE1; ey++) {
-                    for (dim_t ex = 0; ex < NE0; ex++) {
-                        dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
-                        const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
-                        for (int qz = 0; qz < quads; qz++) {
-                            for (int qy = 0; qy < quads; qy++) {
-                                for (int qx = 0; qx < quads; qx++) {
-                                    double *n_out = out.getSampleDataRW(start + INDEX3(qx, qy, qz, max_x, max_y));
-                                    for (dim_t comp = 0; comp < numComp; comp++) {
-                                        n_out[comp] += e_in[INDEX4(comp, qx, qy, qz, numComp, quads, quads)];
-                                    }
+    for (dim_t colouring = 0; colouring < 2; colouring++) {
+#pragma omp parallel for
+        for (dim_t ez = colouring; ez < NE2; ez += 2) {
+            for (dim_t ey = 0; ey < NE1; ey++) {
+                for (dim_t ex = 0; ex < NE0; ex++) {
+                    dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
+                    const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
+                    for (int qz = 0; qz < quads; qz++) {
+                        for (int qy = 0; qy < quads; qy++) {
+                            for (int qx = 0; qx < quads; qx++) {
+                                double *n_out = out.getSampleDataRW(start + INDEX3(qx, qy, qz, max_x, max_y));
+                                for (dim_t comp = 0; comp < numComp; comp++) {
+                                    n_out[comp] += e_in[INDEX4(comp, qx, qy, qz, numComp, quads, quads)];
                                 }
                             }
                         }
@@ -1475,39 +1442,10 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     }
 }
 
-void Brick::reduceElements(escript::Data& out, const escript::Data& in) const
-{
-    if (m_order == 2) {
-        reduction_order2(in, out);
-    } else if (m_order == 3) {
-        reduction_order3(in, out);
-    } else if (m_order == 4) {
-        reduction_order4(in, out);
-    } else if (m_order == 5) {
-        reduction_order5(in, out);
-    } else if (m_order == 6) {
-        reduction_order6(in, out);
-    } else if (m_order == 7) {
-        reduction_order7(in, out);
-    } else if (m_order == 8) {
-        reduction_order8(in, out);
-    } else if (m_order == 9) {
-        reduction_order9(in, out);
-    } else if (m_order == 10) {
-        reduction_order10(in, out);
-    }
-}
-
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,
-                                       const escript::Data& in,
-                                       bool reduced) const
+                                       const escript::Data& in) const
 {
-    if (reduced) { //going to ReducedElements
-        escript::Data funcIn(in, escript::function(*this));
-        reduceElements(out, funcIn);
-        return;
-    }
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];

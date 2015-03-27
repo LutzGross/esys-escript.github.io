@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -22,16 +22,13 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "ElementFile.h"
 #include "Util.h"
 #include "Assemble.h"
 
 /************************************************************************************/
 
-void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, const escript::Data* mask)
+void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, escriptDataC * mask)
 {
     register dim_t n, q;
     dim_t numElements, numQuad;

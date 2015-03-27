@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -112,7 +112,7 @@ public:
        \brief
        returns true if this rank owns the sample id.
     */
-    virtual bool ownSample(int fsType, index_t id) const;
+    virtual bool ownSample(int fs_code, index_t id) const;
 
     /**
        \brief
@@ -187,15 +187,14 @@ public:
 
     /**
      * \brief 
-       returns a Data object filled with random data passed through filter.
+       Returns a Data object filled with random data passed through filter.
     */ 
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-                                 const escript::FunctionSpace& what, long seed,
-                                 const boost::python::tuple& filter) const;
+       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;
     
     /**
        \brief
-       creates and returns an assembler of the requested type.
+       Creates and returns an assembler of the requested type.
     */
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const;
@@ -212,21 +211,11 @@ public:
     */
     const double *getElementLength() const { return m_dx; }
 
-    /**
-       \brief
-       returns a vector of rank numbers where vec[i]=n means that rank n
-       'owns' element/face element i.
-    */
-    virtual RankVector getOwnerVector(int fsType) const;
-
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    virtual dim_t getNumDOFInAxis(unsigned axis) const;
-    virtual index_t getFirstInDim(unsigned axis) const;
-
     virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out,
@@ -244,10 +233,11 @@ protected:
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
 
-    virtual void populateSampleIds();
-    virtual void populateDofMap();
-    virtual std::vector<IndexVector> getConnections() const;
-    virtual void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+private:
+    void populateSampleIds();
+    void populateDofMap();
+    std::vector<IndexVector> getConnections() const;
+    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
 
@@ -263,7 +253,7 @@ protected:
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
 
-    virtual dim_t findNode(const double *coords) const;
+    dim_t findNode(const double *coords) const;
 
     
     escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape,
@@ -337,6 +327,8 @@ inline dim_t Rectangle::getNumDataPointsGlobal() const
 inline double Rectangle::getLocalCoordinate(index_t index, int dim) const
 {
     EsysAssert((dim>=0 && dim<2), "'dim' out of bounds");
+    if (index < 0 || index >= m_NN[dim])
+fprintf(stderr, "about to break with index: %d and dim %d\n", index, dim);
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
 }
@@ -353,13 +345,6 @@ inline boost::python::tuple Rectangle::getGridParameters() const
 inline dim_t Rectangle::getNumDOF() const
 {
     return (m_gNE[0]+1)/m_NX[0]*(m_gNE[1]+1)/m_NX[1];
-}
-
-//protected
-inline dim_t Rectangle::getNumDOFInAxis(unsigned axis) const
-{
-    EsysAssert((axis < m_numDim), "Invalid axis");
-    return (m_gNE[axis]+1)/m_NX[axis];
 }
 
 //protected
@@ -380,11 +365,6 @@ inline dim_t Rectangle::getNumFaceElements() const
     return m_faceCount[0] + m_faceCount[1] + m_faceCount[2] + m_faceCount[3];
 }
 
-//protected
-inline index_t Rectangle::getFirstInDim(unsigned axis) const
-{
-    return m_offset[axis] == 0 ? 0 : 1;
-}
 
 } // end of namespace ripley
 

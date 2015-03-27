@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -87,7 +87,7 @@ vars.AddVariables(
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
-  ('cuda_prefix', 'Prefix/Paths to NVidia CUDA installation', default_prefix),
+  ('thrust_prefix', 'Prefix/Paths to NVidia thrust installation', default_prefix),
   BoolVariable('netcdf', 'Enable netCDF file support', False),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', ['netcdf_c++', 'netcdf']),
@@ -137,6 +137,7 @@ vars.AddVariables(
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
   BoolVariable('longindices', 'use long indices (for very large matrices)', False),
+  BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
   ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
   BoolVariable('papi', 'Enable PAPI', False),
@@ -293,6 +294,9 @@ if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']
     env['SHNVCCFLAGS'] = env['nvccflags'] + ' -shared'
 
+if env['BADPYTHONMACROS']:
+    env.Append(CPPDEFINES = ['BADPYTHONMACROS'])
+
 if env['longindices']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
 
@@ -431,10 +435,6 @@ for key in set(env_export):
     except KeyError:
         pass
 
-for key in os.environ.keys():
-    if key.startswith("SLURM_"):
-        env['ENV'][key] = os.environ[key]
-
 try:
     env.PrependENVPath(LD_LIBRARY_PATH_KEY, os.environ[LD_LIBRARY_PATH_KEY])
 except KeyError:
@@ -493,7 +493,6 @@ env=checkBoost(env)
 ######## NVCC version (optional)
 if env['cuda']:
     env=checkCudaVersion(env)
-    env=checkCUDA(env)
 
 ######## numpy (required) and numpy headers (optional)
 env=checkNumpy(env)
@@ -538,7 +537,6 @@ if not env['verbose']:
 # remove obsolete files
 if not env['usempi']:
     Execute(Delete(os.path.join(env['libinstall'], 'pythonMPI')))
-    Execute(Delete(os.path.join(env['bininstall'], 'escript-overlord')))
     Execute(Delete(os.path.join(env['libinstall'], 'pythonMPIredirect')))
 
 from grouptest import *
@@ -562,7 +560,6 @@ Export(
 
 #do not auto build
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
-env.SConscript(dirs = ['tools/overlord'], variant_dir='$BUILD_DIR/$PLATFORM/tools/overlord', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
 env.SConscript(dirs = ['escript/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
@@ -651,8 +648,7 @@ if 'speckley' in env['domains']: build_all_list += ['build_speckley']
 build_all_list += ['build_weipa']
 if not IS_WINDOWS and 'finley' in env['domains']:
     build_all_list += ['build_escriptreader']
-if env['usempi']:
-    build_all_list += ['build_pythonMPI', 'build_overlord']
+if env['usempi']:   build_all_list += ['build_pythonMPI']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -671,8 +667,7 @@ if not IS_WINDOWS and 'finley' in env['domains']:
 install_all_list += ['install_downunder_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
-if env['usempi']:
-    install_all_list += ['install_pythonMPI', 'install_overlord']
+if env['usempi']:   install_all_list += ['install_pythonMPI']
 env.Alias('install_all', install_all_list)
 
 # Default target is install
@@ -688,7 +683,6 @@ env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
-Requires('py_tests', 'install_all')
 
 ##################### Targets to build the documentation #####################
 

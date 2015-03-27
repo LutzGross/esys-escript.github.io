@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -42,9 +42,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 #include "esysUtils/blocktimer.h"
@@ -55,9 +52,9 @@
 /************************************************************************************/
 
 void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
-                         paso::SystemMatrix_ptr S, escript::Data* F,
-                         const escript::Data* A, const escript::Data* B, const escript::Data* C,
-                         const escript::Data* D, const escript::Data* X, const escript::Data* Y)
+                         paso::SystemMatrix_ptr S, escriptDataC* F,
+                         escriptDataC* A, escriptDataC* B, escriptDataC* C,
+                         escriptDataC* D, escriptDataC* X, escriptDataC* Y)
 {
     bool reducedIntegrationOrder = false;
     char error_msg[LenErrorMsg_MAX];

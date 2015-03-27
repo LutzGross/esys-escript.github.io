@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -240,7 +240,7 @@ class Regularization(CostFunction):
             self.__useDiagonalHessianApproximation=True
         self._update_Hessian=True
 
-        self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)//2
+        self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)/2
         self.setTradeOffFactors()
         self.__vol_d=vol(self.__domain)
 

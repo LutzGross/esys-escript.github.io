@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,8 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "Data.h"
 
@@ -504,6 +502,23 @@ Data::initialise(const double value,
         DataAbstract_ptr p(temp);
         set_m_data(p);
     }
+}
+
+
+escriptDataC
+Data::getDataC()
+{
+    escriptDataC temp;
+    temp.m_dataPtr=(void*)this;
+    return temp;
+}
+
+escriptDataC
+Data::getDataC() const
+{
+    escriptDataC temp;
+    temp.m_dataPtr=(void*)this;
+    return temp;
 }
 
 const bp::tuple
@@ -2697,8 +2712,7 @@ Data::setTaggedValueByName(std::string name,
     }
     else
     {
-        std::string msg="Error - unknown tag ("+name+") in setTaggedValueByName.";
-        throw DataException(msg);
+        throw DataException("Error - unknown tag in setTaggedValueByName.");
     }
 }
 

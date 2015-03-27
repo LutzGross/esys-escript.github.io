@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2011-2015 by University of Queensland
+# Copyright (c) 2011-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2011-2015 by University of Queensland
+__copyright__="""Copyright (c) 2011-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -39,7 +39,7 @@ def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize
       args+=[None]
     return __ReadMesh_driver(args)
   
-ReadMesh.__doc__=__ReadMesh_driver.__doc__  
+  
   
 def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,  
       useMacroElements=False, **kwargs):
@@ -56,8 +56,6 @@ def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, 
     else:
       args+=[None]
     return __ReadGmsh_driver(args)      
-
-ReadGmsh.__doc__=__ReadGmsh_driver.__doc__
 
 
 def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=False, integrationOrder=-1, 
@@ -82,8 +80,6 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
       args+=[None]
     return __Rectangle_driver(args)
 
-Rectangle.__doc__=__Rectangle_driver.__doc__
-
 def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, periodic1=0, periodic2=0,
     integrationOrder=-1, reducedIntegrationOrder=-1, useElementsOnFace=1, useFullElementOrder=0,
     optimize=0, **kwargs):
@@ -107,5 +103,3 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, period
     else:
       args+=[None]
     return __Brick_driver(args)
-
-Brick.__doc__=__Brick_driver.__doc__

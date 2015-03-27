@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2014-2015 by University of Queensland
+# Copyright (c) 2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2014-2015 by University of Queensland
+__copyright__="""Copyright (c) 2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -65,15 +65,6 @@ class Job(object):
     self.wantedvalues=[]                # names of shared values this job wishes to import    
     self.importedvalues={}      # name:values of which this jobs wants to use
     self.exportedvalues={}      # name:values exported by this job
-    self.swcount=kwargs["swcount"]      # How many subworlds are there?
-    self.swid=kwargs["swid"]    # which subworld are we running in?
-    
-    
-  def wantValue(self, name):
-    """
-    Register your interest in importing a variable with the given name
-    """
-    self.wantedvalues.append(name)
     
   def setImportValue(self, name, v):
     """
@@ -83,7 +74,7 @@ class Job(object):
     :var v: value to be imported
     :type v: ?
     """
-    self.importedvalues[name]=v
+    pass
   
   
   def getExportValue(self, name):
@@ -108,13 +99,12 @@ class Job(object):
   def importValue(self, name):
     """
     For use inside the work() method.
-    :var name: label for imported value.
+    :var name: label for imported value. Returns None if import not present.
     :type name: ``str``
     """
     if name in self.importedvalues:
         return self.importedvalues[name]
     else:
-        raise KeyError("Attempt to import variable \'"+name+"\' which is not available to this job.")
         return None
 
   def clearExports(self):
@@ -145,24 +135,3 @@ class Job(object):
     A return value of False indicates work still to be done
     """
     return True
-
-class FunctionJob(Job):
-  """
-  Takes a python function (with only keyword params) to be called as the work method
-  """
-  def __init__(self, fn, *args, **kwargs):
-    super(FunctionJob, self).__init__(*args, **kwargs)
-    self.__fn__ = fn
-    self.__calldict__ = kwargs
-    if "imports" in kwargs:
-      if isinstance(kwargs["imports"], str):
-        self.requestImport(kwargs["imports"])
-      else:
-        for n in kwargs["imports"]:
-          self.requestImport(n)
-
-  def work(self):
-    self.__fn__(self, **self.__calldict__)
-    return True
-
-    

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -31,9 +31,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 
@@ -53,7 +50,6 @@ void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
 
 #pragma omp parallel
     {
-        std::vector<int> row_index(p.row_numShapesTotal);
         std::vector<double> EM_S(p.row_numShapesTotal*p.col_numShapesTotal);
         std::vector<double> EM_F(p.row_numShapesTotal);
 
@@ -127,6 +123,7 @@ void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
                         }
                         // add the element matrices onto the matrix and
                         // right hand side
+                        std::vector<int> row_index(p.row_numShapesTotal);
                         for (int q=0; q<p.row_numShapesTotal; q++)
                             row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
 

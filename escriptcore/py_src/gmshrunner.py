@@ -2,7 +2,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -15,7 +15,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -49,7 +49,7 @@ def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
         incomplete=False
         model.setOrderN(order, linear, incomplete)
         model.mesh(numDim)
-        ret = model.writeMSH(mshFile)==0 # 0 indicates error for gmshpy
+        ret = model.writeMSH(mshFile)==1
         gmshpy.GmshClearProject()
     else:
         ret = 0
@@ -59,15 +59,14 @@ def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
 def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
     if getMPIRankWorld() == 0:
         import shlex, subprocess
-        cmdline = "gmsh -format msh -%s -order %s -o '%s' '%s'"%(numDim, order, mshFile, geoFile)
+        cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
         args = shlex.split(cmdline)
         try:
             ret = subprocess.call(args)
-        except Exception as e:
+        except:
             ret = 1
     else:
         ret = 0
-   
     ret=getMPIWorldMax(ret)
     return ret
 
@@ -79,11 +78,10 @@ def _runGmshMPI(geoFile, mshFile, numDim, order, verbosity):
     cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
     args = shlex.split(cmdline)
     ret = runMPIProgram(args)
-    # on Windows runMPIProgram returns immediately so wait 'a bit' to let gmsh finish
-    import os
-    if os.name == "nt":
-        sleep(10)
-    return ret #already MPI distributed
+    # runMPIProgram returns immediately so wait 'a bit' to let gmsh finish
+    # (which is still not guaranteed, see bug #33)
+    sleep(10)
+    return ret
 
 def gmshGeo2Msh(geoFile, mshFile, numDim, order=1, verbosity=0):
     """

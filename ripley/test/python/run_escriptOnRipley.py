@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -132,7 +132,6 @@ class Test_TableInterpolationOnRipley(Test_TableInterpolation):
 
 class Test_CSVOnRipley(Test_saveCSV):
     def setUp(self):
-        self.workdir=RIPLEY_WORKDIR
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspaces=[ContinuousFunction, Function, ReducedFunction,
                              FunctionOnBoundary, ReducedFunctionOnBoundary]
@@ -177,8 +176,8 @@ class Test_randomOnRipley(unittest.TestCase):
         fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize)+1)),10*(int(sqrt(mpiSize)+1))))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
-        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
+        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
+        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1))
         RandomData((2,3),fs)
 
     def test_FillBrick(self):
@@ -186,8 +185,8 @@ class Test_randomOnRipley(unittest.TestCase):
         fs=ContinuousFunction(Brick(10*mpiSize,10*mpiSize, 10*mpiSize))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
-        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",20,0.1)) #radius too large
+        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
+        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",20,0.1))
         RandomData((2,3),fs)
 
 

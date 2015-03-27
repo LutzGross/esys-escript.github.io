@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -38,9 +38,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 
@@ -69,10 +66,6 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
 
 #pragma omp parallel
     {
-        std::vector<int> row_index(p.row_numShapesTotal);
-        std::vector<double> EM_S(len_EM_S);
-        std::vector<double> EM_F(len_EM_F);
-
         for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
             // loop over all elements:
 #pragma omp for
@@ -81,8 +74,8 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
                         const double *DSDX=&(p.row_jac->DSDX[INDEX5(0,0,0,isub,e,p.row_numShapesTotal,DIM,p.numQuadSub,p.numSub)]);
-                        std::fill(EM_S.begin(), EM_S.end(), 0);
-                        std::fill(EM_F.begin(), EM_F.end(), 0);
+                        std::vector<double> EM_S(len_EM_S);
+                        std::vector<double> EM_F(len_EM_F);
                         bool add_EM_F=false;
                         bool add_EM_S=false;
                         ///////////////
@@ -360,6 +353,7 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
                         }
                         // add the element matrices onto the matrix and
                         // right hand side
+                        std::vector<int> row_index(p.row_numShapesTotal);
                         for (int q=0; q<p.row_numShapesTotal; q++)
                             row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
 

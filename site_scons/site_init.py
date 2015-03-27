@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -120,7 +120,6 @@ def generateTestScripts(env, TestGroups):
         utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], False))
         for tests in TestGroups:
             utest.write(tests.makeString())
-        utest.write(tests.makeFooter())
         utest.close()
         env.Execute(Chmod('utest.sh', 0o755))
         print("Generated utest.sh.")
@@ -191,13 +190,12 @@ def runPyUnitTest(target, source, env):
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
      skipfile = os.path.join(env['BUILD_DIR'], sn[:-3]) + ".skipped"
-     failfile = os.path.join(env['BUILD_DIR'], sn[:-3]) + ".failed"
      try:
          os.unlink(skipfile)
      except Exception as e:
         pass
      app = "cd "+pn+"; "+binpath(env, "run-escript")+" -ov "+binpath(env,
-            "../tools/testrunner.py")+" -skipfile="+skipfile+" "+"-failfile="+failfile+" "+"-exit "+sn
+            "../tools/testrunner.py")+" -outputfile="+skipfile+" "+sn
    print "Executing test: ",app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -32,10 +32,6 @@
     double* dTdX[DIM*numTest*NUMSIDES*numQuad*numElements]
     double* volume[numQuad*numElements]
 */
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 
 #include "Assemble.h"
 #include "Util.h"

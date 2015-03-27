@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -19,10 +19,6 @@
 /*   Dudley: ElementFile: this will redistribute the Elements including overlap by */
 
 /************************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "ElementFile.h"
 #ifdef _OPENMP
 #include <omp.h>

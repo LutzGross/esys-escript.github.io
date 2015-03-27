@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,10 +14,6 @@
 *****************************************************************************/
 
 // The purpose of these tests is to check for unwanted sharing of between Data objects
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 
 #include "SharedDataTestCase.h"
 #include "escript/Data.h"

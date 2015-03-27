@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,9 +20,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 #ifdef _OPENMP
@@ -31,7 +28,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, const escript::Data* data, double *out)
+void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * data, double *out)
 {
 /*    type_t data_type=getFunctionSpaceType(data);*/
     dim_t numQuadTotal;

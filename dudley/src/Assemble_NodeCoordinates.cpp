@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,9 +20,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Util.h"
 #include "Assemble.h"
 #ifdef _OPENMP
@@ -31,7 +28,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile * nodes, escript::Data * x)
+void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile * nodes, escriptDataC * x)
 {
     char error_msg[LenErrorMsg_MAX];
     dim_t n;

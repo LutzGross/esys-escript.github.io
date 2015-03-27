@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,9 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 
 #ifdef ESYS_MPI
@@ -45,6 +42,23 @@
 #include <boost/version.hpp>
 
 using namespace boost::python;
+
+//
+// The BOOST_PYTHON_FUNCTION_OVERLOADS macro generates function overloads for optional
+// arguments to the respective finley functions.
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+// NOTE: If the number of arguments to the finley functions change
+// the magic numbers in the BOOST_PYTHON_FUNCTION_OVERLOADS call 
+// must change.
+//
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// BOOST_PYTHON_FUNCTION_OVERLOADS(readMesh_overloads,finley::readMesh,1,2)
+// BOOST_PYTHON_FUNCTION_OVERLOADS(brick_overloads,finley::brick,0,12)
+// BOOST_PYTHON_FUNCTION_OVERLOADS(rectangle_overloads,finley::rectangle,0,9)
+// BOOST_PYTHON_FUNCTION_OVERLOADS(interval_overloads,finley::interval,0,6)
+// BOOST_PYTHON_FUNCTION_OVERLOADS(glueFaces_overloads,finley::glueFaces,1,3)
+// BOOST_PYTHON_FUNCTION_OVERLOADS(joinFaces_overloads,finley::joinFaces,1,3)
 
 BOOST_PYTHON_MODULE(finleycpp)
 {
@@ -116,6 +130,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 
   def ("__Rectangle_driver",finley::rectangle_driver,
       (arg("args")) 
+//       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 elements over the brick [0,l0] x [0,l1]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
@@ -131,6 +146,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 );
 
   def("Merge",finley::meshMerge,args("meshList")
+//       ,return_value_policy<manage_new_object>());
 ,"Merges a list of meshes into one mesh.\n\n:rtype: `Domain`"
   );
 
@@ -138,6 +154,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       (arg("meshList"),arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
       arg("optimize")=true)
+//       ,return_value_policy<manage_new_object>());
 ,"Detects matching faces in the mesh, removes them from the mesh and joins the elements touched by the face elements."
 	);
 
@@ -145,6 +162,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       (arg("meshList"), arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
       arg("optimize")=true)
+//       ,return_value_policy<manage_new_object>());
 ,"Detects matching faces in the mesh and replaces them by joint elements."
 	);
 

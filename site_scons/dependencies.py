@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -222,17 +222,6 @@ def checkNumpy(env):
             conf.env['numpy_h']=False
 
     return conf.Finish()
-
-def checkCUDA(env):
-    try:
-        cuda_inc_path,cuda_lib_path=findLibWithHeader(env, 'cudart', 'thrust/version.h', env['cuda_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [cuda_inc_path])
-        env.AppendUnique(LIBPATH = [cuda_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], cuda_lib_path)
-        env['cuda']=True
-    except:
-        env['cuda']=False
-    return env
 
 def checkCppUnit(env):
     try:

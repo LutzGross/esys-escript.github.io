@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,11 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <ripley/WaveAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
@@ -127,29 +122,24 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
     const double w4 = w6*(-SQRT3 + 2);
     const int NE0 = m_NE[0];
     const int NE1 = m_NE[1];
-    const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
-    const bool addEM_F = (!du.isEmpty() || !Y.isEmpty());
-    rhs.requireWrite();
 
+    rhs.requireWrite();
 #pragma omp parallel
     {
-        std::vector<double> EM_S(4*4*numEq*numComp, 0);
-        std::vector<double> EM_F(4*numEq, 0);
-
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
             for (index_t k1=k1_0; k1 < NE1; k1+=2) {
                 for (index_t k0=0; k0 < NE0; ++k0)  {
+                    bool addEM_S=false;
+                    bool addEM_F=false;
+                    std::vector<double> EM_S(4*4*numEq*numComp, 0);
+                    std::vector<double> EM_F(4*numEq, 0);
                     const index_t e = k0 + NE0*k1;
-                    if (addEM_S)
-                        fill(EM_S.begin(), EM_S.end(), 0);
-                    if (addEM_F)
-                        fill(EM_F.begin(), EM_F.end(), 0);
-
                     ///////////////
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
+                        addEM_S = true;
                         const double* A_p = A.getSampleDataRO(e);
                         if (A.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -279,6 +269,7 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
+                        addEM_S=true;
                         const double* B_p=B.getSampleDataRO(e);
                         if (B.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -354,6 +345,7 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
+                        addEM_S=true;
                         const double* C_p=C.getSampleDataRO(e);
                         if (C.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -429,6 +421,7 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
+                        addEM_S=true;
                         const double* D_p=D.getSampleDataRO(e);
                         if (D.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -490,10 +483,11 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                             }
                         }
                     }
-                    ////////////////
-                    // process du //
-                    ////////////////
+                    ///////////////
+                    // process X //
+                    ///////////////
                     if (!du.isEmpty()) {
+                        addEM_F=true;
                         const double *du_p = du.getSampleDataRO(e);
                         const double *c11_p = c11.getSampleDataRO(e);
                         const double *c13_p = c13.getSampleDataRO(e);
@@ -572,6 +566,10 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                             const double Atmp13 = w28*(X_01_0 + X_01_2);
                             const double Atmp14 = w25*(X_00_2 + X_00_3);
                             const double Atmp15 = w26*(X_00_0 + X_00_1);
+                            EM_F[INDEX2(0,0,numEq)]+=Atmp0 + Atmp1 + Atmp2 + Atmp3;
+                            EM_F[INDEX2(0,1,numEq)]+=Atmp4 + Atmp5 + Atmp6 + Atmp7;
+                            EM_F[INDEX2(0,2,numEq)]+=Atmp10 + Atmp11 + Atmp8 + Atmp9;
+                            EM_F[INDEX2(0,3,numEq)]+=Atmp12 + Atmp13 + Atmp14 + Atmp15;
                             const double Btmp0 = 6*w15*(X_10_2 + X_10_3);
                             const double Btmp1 = 6*w10*(X_10_0 + X_10_1);
                             const double Btmp2 = 6*w11*(X_11_0 + X_11_2);
@@ -588,13 +586,9 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                             const double Btmp13 = w28*(X_11_0 + X_11_2);
                             const double Btmp14 = w25*(X_10_2 + X_10_3);
                             const double Btmp15 = w26*(X_10_0 + X_10_1);
-                            EM_F[INDEX2(0,0,numEq)]+=Atmp0 + Atmp1 + Atmp2 + Atmp3;
                             EM_F[INDEX2(1,0,numEq)]+=Btmp0 + Btmp1 + Btmp2 + Btmp3;
-                            EM_F[INDEX2(0,1,numEq)]+=Atmp4 + Atmp5 + Atmp6 + Atmp7;
                             EM_F[INDEX2(1,1,numEq)]+=Btmp4 + Btmp5 + Btmp6 + Btmp7;
-                            EM_F[INDEX2(0,2,numEq)]+=Atmp10 + Atmp11 + Atmp8 + Atmp9;
                             EM_F[INDEX2(1,2,numEq)]+=Btmp10 + Btmp11 + Btmp8 + Btmp9;
-                            EM_F[INDEX2(0,3,numEq)]+=Atmp12 + Atmp13 + Atmp14 + Atmp15;
                             EM_F[INDEX2(1,3,numEq)]+=Btmp12 + Btmp13 + Btmp14 + Btmp15;
 
                         } else { // constant data
@@ -621,12 +615,12 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                                         + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
                             }
                             EM_F[INDEX2(0,0,numEq)]+= wX_00 + wX_01;
-                            EM_F[INDEX2(1,0,numEq)]+= wX_10 + wX_11;
                             EM_F[INDEX2(0,1,numEq)]+=-wX_00 + wX_01;
-                            EM_F[INDEX2(1,1,numEq)]+=-wX_10 + wX_11;
                             EM_F[INDEX2(0,2,numEq)]+= wX_00 - wX_01;
-                            EM_F[INDEX2(1,2,numEq)]+= wX_10 - wX_11;
                             EM_F[INDEX2(0,3,numEq)]+=-wX_00 - wX_01;
+                            EM_F[INDEX2(1,0,numEq)]+= wX_10 + wX_11;
+                            EM_F[INDEX2(1,1,numEq)]+=-wX_10 + wX_11;
+                            EM_F[INDEX2(1,2,numEq)]+= wX_10 - wX_11;
                             EM_F[INDEX2(1,3,numEq)]+=-wX_10 - wX_11;
                         }
                     }
@@ -634,6 +628,7 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
+                        addEM_F=true;
                         const double* Y_p=Y.getSampleDataRO(e);
                         if (Y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {

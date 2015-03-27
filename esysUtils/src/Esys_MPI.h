@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -47,8 +47,6 @@
 // MPI_Op replacements for non-MPI - these values are arbitrary
 
    #define MPI_SUM 100
-   #define MPI_MIN 101
-   #define MPI_MAX 102
 
 // end MPI_op
 
@@ -72,7 +70,7 @@ namespace esysUtils {
 ESYSUTILS_DLL_API
 inline int getSubWorldTag()	
 {
-    return (('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W')%1010201;
+    return ('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W';  
 }
   
 class JMPI_;
@@ -136,13 +134,9 @@ inline std::string appendRankToFileName(const std::string &fileName,
 // ensure that the any ranks with an empty src argument end up with the string from
 // one of the other ranks
 // with no-mpi, it makes dest point at a copy of src
-ESYSUTILS_DLL_API
 bool shipString(const char* src, char** dest, MPI_Comm& comm);
 
-
-// Everyone puts in their error code and everyone gets the largest one
-ESYSUTILS_DLL_API
-bool checkResult(int input, int& output, const JMPI& comm);
+bool checkResult(int& input, int& output, MPI_Comm& comm);
 
 
 // Do not cope with nested calls

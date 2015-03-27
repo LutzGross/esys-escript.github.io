@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -410,7 +410,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain
      interpolates data given on source onto target where source and target have to be given on the same domain.
   */
   DUDLEY_DLL_API
-  virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
+  virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
 
 
   DUDLEY_DLL_API
@@ -656,8 +656,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain
 
  private:
   void extractArgsFromDict(const boost::python::dict& arg, int& numData,
-                             char**& names, escript::Data*& data,
-                             escript::Data**& dataPtr) const;
+                             char**& names, escriptDataC*& data,
+                             escriptDataC**& dataPtr) const;
 
   //
   // pointer to the externally created dudley mesh

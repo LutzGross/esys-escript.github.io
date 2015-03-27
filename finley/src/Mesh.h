@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -131,12 +131,6 @@ private:
     void optimizeElementOrdering();
     void setOrders();
     void updateTagList();
-    static Mesh* readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                          int reducedOrder, bool optimize,
-                          bool useMacroElements);
-    static Mesh* readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                          int reducedOrder, bool optimize,
-                          bool useMacroElements);
 
 public:
     // the name of the mesh

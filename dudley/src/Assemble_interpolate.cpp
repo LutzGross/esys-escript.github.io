@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,9 +20,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 #ifdef _OPENMP
@@ -33,8 +30,8 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, const escript::Data* data,
-				 escript::Data* interpolated_data)
+void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * data,
+				 escriptDataC * interpolated_data)
 {
     __const double *data_array;
     double *local_data = NULL;

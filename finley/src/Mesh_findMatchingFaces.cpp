@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -22,9 +22,6 @@
   searches for faces in the mesh which are matching.
 
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "Util.h"
 #include "Mesh.h"

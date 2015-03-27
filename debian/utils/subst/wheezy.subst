@@ -2,7 +2,3 @@ es:python=python2.7, libpython2.7
 es:boostpy=libboost-python1.49.0
 es:boostrandom=libboost-random1.49.0
 es:netcdf=libnetcdfc7, libnetcdfc++4
-es:python3=python3.2, libpython3.2
-es:boostpy3=libboost-python1.55.0
-es:boostrandom3=libboost-random1.55.0
-

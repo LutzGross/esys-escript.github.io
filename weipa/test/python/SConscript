@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -46,8 +46,6 @@ env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
 # run all tests
 program = local_env.RunPyUnitTest(alltestruns)
 Depends(program, 'build_py_tests')
-if env['usempi']:
-    Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # add a group of tests
 from grouptest import *

@@ -1,8 +1,3 @@
-python-escript (4.1~1) wheezy; urgency=low
-  * Release 4.1~1
-  * Not a real release
- -- Joel Fenwick <joelfenwick@uq.edu.au>  Tues, 23 Dec 2014 17:19:00 +1000
-
 python-escript (4.0) wheezy; urgency=low
   * Release 4.0
   * User guide has summary of changes

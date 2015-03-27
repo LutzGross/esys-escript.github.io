@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,9 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include <weipa/SpeckleyDomain.h>
 #include <weipa/SpeckleyNodes.h>
@@ -111,6 +108,11 @@ ElementData_ptr SpeckleyDomain::getElementsForFunctionSpace(int fsCode) const
 //        case speckley::Elements:
             result = cells;
             break;
+
+//        case speckley::ReducedFaceElements:
+//        case speckley::FaceElements:
+//            result = faces;
+//            break;
 
         default: {
             cerr << "Unsupported function space type " << fsCode

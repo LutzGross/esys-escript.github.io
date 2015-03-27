@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -22,15 +22,12 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "NodeFile.h"
 #include "Util.h"
 
 /************************************************************************************/
 
-void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, const escript::Data* newX)
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, escriptDataC * newX)
 {
     char error_msg[LenErrorMsg_MAX];
     size_t numDim_size;

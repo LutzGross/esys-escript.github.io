@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,15 +20,15 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Mesh.h"
 
 /************************************************************************************/
 
-void Dudley_Mesh_setCoordinates(Dudley_Mesh * self, const escript::Data* newX)
+void Dudley_Mesh_setCoordinates(Dudley_Mesh * self, escriptDataC * newX)
 {
     Dudley_NodeFile_setCoordinates(self->Nodes, newX);
 }
 
+/*
+* $Log$
+*/

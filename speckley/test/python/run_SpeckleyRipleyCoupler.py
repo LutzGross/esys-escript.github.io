@@ -3,7 +3,7 @@ from __future__ import division
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -16,7 +16,7 @@ from __future__ import division
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -54,34 +54,6 @@ class Test_ripleyCoupler(unittest.TestCase):
         sinput = s.getX()
         sX = interpolate(sinput, Function(s))
         return actual - interpolate(sX, Function(r)) #actual - interpo...
-
-    def badInterpolations(self, speckley, ripley):
-        FS = Function(speckley)
-        FR = Function(ripley)
-        #bad speck -> good rip
-        with self.assertRaises(RuntimeError):
-            interpolate(speckley.getX(), FR)
-        with self.assertRaises(RuntimeError):
-            interpolate(Data(5, ReducedFunction(speckley)), FR)
-        #good speck -> bad rip
-        with self.assertRaises(RuntimeError):
-            interpolate(Data(5, FS), ReducedFunction(ripley))
-        with self.assertRaises(RuntimeError):
-            interpolate(Data(5, FS), ContinuousFunction(ripley))
-
-    def test_Rectangle_non_Function(self):
-        for order in range(2, 11):
-            coupler = SpeckleyToRipley(2, (2*getMPISizeWorld()*order,order),
-                    order=order, lengths=[3.*getMPISizeWorld(),2.])
-            self.badInterpolations(coupler.getSpeckley(), coupler.getRipley())
-
-    def test_Brick_non_Function(self):
-        for order in range(2, 11):
-            #values here are arbitrary, just has to be Bricks
-            coupler = SpeckleyToRipley(3, (2*getMPISizeWorld()*order,order,order),
-                    order=order, lengths=[3.*getMPISizeWorld(),2.,2.])
-            self.badInterpolations(coupler.getSpeckley(), coupler.getRipley())
-
 
     def test_Rectangle(self):
         for order in range(2,11):

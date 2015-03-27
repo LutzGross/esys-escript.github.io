@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -204,13 +204,6 @@ public:
     */
     const double *getElementLength() const { return m_dx; }
 
-    /**
-       \brief
-       returns a vector of rank numbers where vec[i]=n means that rank n
-       'owns' element/face element i.
-    */
-    virtual RankVector getOwnerVector(int fsType) const;
-
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
@@ -232,6 +225,7 @@ protected:
     virtual dim_t getDofOfNode(dim_t node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 
+private:
     void populateSampleIds();
     void populateDofMap();
     std::vector<IndexVector> getConnections() const;

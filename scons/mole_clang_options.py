@@ -63,7 +63,7 @@ tools_names=['clang']
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-#cxx_extra = ''
+cxx_extra = '-DBADPYTHONMACROS'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -17,6 +17,17 @@
 
 #if !defined escript_DataFactory_20040721_H
 #define escript_DataFactory_20040721_H
+
+#ifdef BADPYTHONMACROS
+// This hack is required for BSD/OSX builds with python 2.7
+// (and possibly others).  It must be the first include.
+// From bug reports online it seems that python redefines
+// some c macros that are functions in c++.
+// c++ doesn't like that!
+#include <Python.h>
+#undef BADPYTHONMACROS
+#endif
+
 
 #include "system_dep.h"
 

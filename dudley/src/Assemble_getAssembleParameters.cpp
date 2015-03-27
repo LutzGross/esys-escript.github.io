@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,16 +20,13 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 
 /************************************************************************************/
 
 void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, paso::SystemMatrix_ptr S,
-				    const escript::Data* F, bool reducedIntegrationOrder, Dudley_Assemble_Parameters * parm)
+				    escriptDataC * F, bool reducedIntegrationOrder, Dudley_Assemble_Parameters * parm)
 {
     Dudley_resetError();
     parm->shapeFns = NULL;

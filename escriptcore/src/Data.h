@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -28,6 +28,10 @@
 #include "BinaryOp.h"
 #include "UnaryOp.h"
 #include "DataException.h"
+
+
+
+#include "DataC.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -323,6 +327,24 @@ class Data {
   ESCRIPT_DLL_API
   int
   getTagNumber(int dpno);
+
+  /**
+     \brief
+     Return the C wrapper for the Data object.
+  */
+  ESCRIPT_DLL_API
+  escriptDataC
+  getDataC();
+
+
+
+  /**
+     \brief
+     Return the C wrapper for the Data object - const version.
+  */
+  ESCRIPT_DLL_API
+  escriptDataC
+  getDataC() const;
 
 
   /**

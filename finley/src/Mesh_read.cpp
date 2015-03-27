@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,9 +20,6 @@
   Finley: read mesh from file
 
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include <ctype.h>
 #include "Mesh.h"

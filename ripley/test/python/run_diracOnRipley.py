@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -16,7 +16,7 @@
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -37,7 +37,12 @@ except KeyError:
 
 class Test_RipleyDiracPoints(unittest.TestCase):
 
-
+    # constants
+    numRanks = getMPISizeWorld()
+    rank = getMPIRankWorld()
+    shortEdge = 5
+    longEdge = 3*numRanks-1
+    empty = "(data contains no samples)\n"
 
     def getRectRefs(self, xLong):
         Ex = self.longEdge+1
@@ -132,13 +137,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
         return self.empty
 
     def setUp(self):
-        # constants
-        self.numRanks = getMPISizeWorld()
-        self.rank = getMPIRankWorld()
-        self.shortEdge = 5
-        self.longFactor = 3
-        self.longEdge = self.longFactor*self.numRanks-1
-        self.empty = "(data contains no samples)\n"
+        pass
 
     def tearDown(self):
         pass

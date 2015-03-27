@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -22,8 +22,6 @@
 /* the elements offset to in->numElements+offset-1 in out will be overwritten */
 
 /************************************************************************************/
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "ElementFile.h"
 

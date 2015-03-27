@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* Copyright (c) 2014-2015 by University of Queensland
+* Copyright (c) 2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -26,14 +26,10 @@ namespace escript
   
 namespace reducerstatus
 {
-  
-// Because these may be used in loops, the values must form a contiguous block (except ERROR)  
-const unsigned char NONE=0;  	// I have no value for this var and no interest in it
-const unsigned char INTERESTED=1;	// I am interested in this variable but I have no value for it
-const unsigned char OLD=2;	// I have a copy from elsewhere but no new values to contribute
-const unsigned char OLDINTERESTED=3;	// interested but only have a cached copy (no new values)
-const unsigned char NEW=4;	// I have a new value for this variable
-const unsigned char ERROR='!';	// Something bad happened  
+const char NONE=0;  	// I have not value for this var and no interest in it
+const char INTERESTED=1;	// I am interested in this variable but I have no value for it
+const char HAVE=2;	// I have a new value for this variable
+const char ERROR='!';	// Something bad happened  
 }
   
 // There is currently no way to get a completely generic result out of this
@@ -50,8 +46,6 @@ public:
 	// clear previous result ready for a new set of reductions
     virtual void reset()=0;
     
-    virtual std::string description()=0;
-    
 	// converse with other subworlds to ensure subtype information matches
 	// The main problem case here would be Data on different function spaces
 	// same communicator requirements for reduceRemoteValues
@@ -59,14 +53,6 @@ public:
 	// Must only be called on 
     virtual bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)=0; 
     
-
-#ifdef ESYS_MPI  
-	// send from proc 0 in the communicator to all others
-    virtual bool groupSend(MPI_Comm& com)=0;
-    
-	// reduction with some procs submitting identity values
-    virtual bool groupReduce(MPI_Comm& com, char mystate)=0;  
-#endif  
     
 	// call to merge with values on other subworlds
 	// It does not take a value argument because local values should have 
@@ -74,7 +60,7 @@ public:
 	// Must only be called on participating SubWorlds
 	// the mpi_info holds a communicator linking corresponding processes
 	// in every participating subworld
-    virtual bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)=0;
+    virtual bool reduceRemoteValues(esysUtils::JMPI& mpi_info)=0;
     
 	// true if at least one localValue has been added
 	// used to check if this subworld should participate in remote merges
@@ -88,19 +74,58 @@ public:
 	// This is not a reduction and will replace any existing value    
     virtual bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)=0;
     
-    virtual double getDouble();
-   
-    virtual boost::python::object getPyObj()=0; 
-    
-    virtual void clear();
 protected:
-
     bool valueadded;
-    static const int PARAMTAG;    
+    
 };
 
 
 typedef boost::shared_ptr<AbstractReducer> Reducer_ptr;
+
+
+
+
+// Reduces using pointwise MPI operations
+class MPIDataReducer : public AbstractReducer
+{
+public:
+    MPIDataReducer(MPI_Op op);
+    ~MPIDataReducer(){};
+    
+        // This is not a constructor parameter because 
+        // if these are created outside the subworld, they won't have
+        // access to a domain yet.
+        // I also want SplitWorld to be able to set this
+    void setDomain(escript::Domain_ptr d);
+    bool valueCompatible(boost::python::object v);
+    bool reduceLocalValue(boost::python::object v, std::string& errstring);
+    void reset();
+    bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring);
+    
+    void getCompatibilityInfo(std::vector<unsigned>& params);
+    
+      // talk to corresponding processes in other subworlds
+    bool reduceRemoteValues(esysUtils::JMPI& mpi_info);
+    
+    
+    
+	// Get a value for this variable from another process
+	// This is not a reduction and will replace any existing value
+    bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo);
+
+	// Send a value to this variable to another process
+	// This is not a reduction and will replace any existing value    
+    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
+    
+    
+    
+private:    
+    escript::Data value;
+    escript::const_Domain_ptr dom;
+    MPI_Op reduceop;
+};
+
+Reducer_ptr makeDataReducer(std::string type);
 
 }
 

@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -134,7 +134,6 @@ class Test_TableInterpolationOnDudley(Test_TableInterpolation):
 
 class Test_CSVOnDudley(Test_saveCSV):
     def setUp(self):
-        self.workdir=DUDLEY_WORKDIR
         NE0=NE
         NE1=NE+1
         self.domain=Rectangle(NE0,NE1)

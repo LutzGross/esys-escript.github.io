@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -56,16 +56,13 @@ class Test_util_base(unittest.TestCase):
 #=========================================================
 #  File writer
 #=========================================================
-   def setup(self):
-        self.workdir=ESCRIPT_WORKDIR
-
    def __checkContent(self,fn,ref_cont):
         cont=open(fn,'r').readlines()
         self.assertTrue(len(cont)==len(ref_cont),"wrong number of records")
         for i in range(len(cont)):
            self.assertTrue(cont[i].strip()==ref_cont[i],"wrong records %s"%i)
    def test_FileWriter_W(self):
-        fn=os.path.join(self.workdir, "filewriter_w.txt")
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_w.txt")
         self.assertRaises(IOError,FileWriter,fn="",append=False)
         f=FileWriter(fn,append=False)
         self.assertTrue(f.name==fn, "wrong file name.")
@@ -83,7 +80,7 @@ class Test_util_base(unittest.TestCase):
         if getMPIRankWorld()==0: os.unlink(fn)
 
    def test_FileWriter_A(self):
-        fn=os.path.join(self.workdir, "filewriter_a.txt")
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_a.txt")
         if getMPIRankWorld()==0: open(fn,'w').write("line1"+os.linesep)
         self.assertRaises(IOError,FileWriter,fn="",append=True)
         f=FileWriter(fn,append=True)
@@ -102,7 +99,7 @@ class Test_util_base(unittest.TestCase):
         if getMPIRankWorld()==0: os.unlink(fn)
 
    def test_FileWriter_A_loc(self):
-        fn=os.path.join(self.workdir, "filewriter_a_loc.txt")
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_a_loc.txt")
         if getMPIRankWorld()>0:
             fn2=fn+".%s"%getMPIRankWorld()
         else:
@@ -124,7 +121,7 @@ class Test_util_base(unittest.TestCase):
         os.unlink(fn2)
 
    def test_FileWriter_W_loc(self):
-        fn=os.path.join(self.workdir, "filewriter_w_loc.txt")
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_w_loc.txt")
         if getMPIRankWorld()>0:
             fn2=fn+".%s"%getMPIRankWorld()
         else:

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -16,6 +16,16 @@
 
 #ifndef __RIPLEY_DOMAIN_H__
 #define __RIPLEY_DOMAIN_H__
+
+#ifdef BADPYTHONMACROS
+// This hack is required for BSD/OSX builds with python 2.7
+// (and possibly others).  It must be the first include.
+// From bug reports online it seems that python redefines
+// some c macros that are functions in c++.
+// c++ doesn't like that!
+#include <Python.h>
+#undef BADPYTHONMACROS
+#endif
 
 #include <boost/python/tuple.hpp>
 #include <boost/python/list.hpp>
@@ -446,8 +456,10 @@ public:
        returns the identifier of the matrix type to be used for the global
        stiffness matrix when a particular solver, package, preconditioner,
        and symmetric matrix is used
-       \param options a python object containing the solver, package,
-                preconditioner and symmetry
+       \param solver
+       \param preconditioner
+       \param package
+       \param symmetry
     */
     virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
@@ -697,13 +709,6 @@ public:
        returns the lengths of an element
     */
     virtual const double *getElementLength() const = 0;
-
-    /**
-       \brief
-       returns a vector of rank numbers where vec[i]=n means that rank n
-       'owns' element/face element i.
-    */
-    virtual RankVector getOwnerVector(int fsType) const = 0;
 
     /**
        \brief

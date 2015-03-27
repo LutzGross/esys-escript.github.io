@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -194,10 +194,6 @@ class Test_OtherInterpolationOnFinley(unittest.TestCase):
         
 class Test_CSVOnFinley(Test_saveCSV):
     def setUp(self):
-        try:
-           self.workdir=os.environ['FINLEY_WORKDIR']
-        except KeyError:
-           self.workdir='.'
         NE0=NE
         NE1=NE+1
         self.domain = Rectangle(NE0, NE1, order=2)
@@ -228,7 +224,7 @@ class Test_CSVOnFinley(Test_saveCSV):
 
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_csv_multiFS(self):
-        fname=os.path.join(self.workdir, "test_multifs.csv")
+        fname=os.path.join(FINLEY_WORKDIR, "test_multifs.csv")
         sol=Data(8,Solution(self.domain))
         ctsfn=Data(9,ContinuousFunction(self.domain))
         #test line 0

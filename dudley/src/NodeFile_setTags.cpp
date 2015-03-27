@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -22,15 +22,12 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "NodeFile.h"
 #include "Util.h"
 
 /************************************************************************************/
 
-void Dudley_NodeFile_setTags(Dudley_NodeFile * self, const int newTag, const escript::Data* mask)
+void Dudley_NodeFile_setTags(Dudley_NodeFile * self, const int newTag, escriptDataC * mask)
 {
     register dim_t n;
     dim_t numNodes;

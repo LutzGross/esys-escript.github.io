@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -16,6 +16,16 @@
 
 #ifndef __Speckley_DOMAIN_H__
 #define __Speckley_DOMAIN_H__
+
+#ifdef BADPYTHONMACROS
+// This hack is required for BSD/OSX builds with python 2.7
+// (and possibly others).  It must be the first include.
+// From bug reports online it seems that python redefines
+// some c macros that are functions in c++.
+// c++ doesn't like that!
+#include <Python.h>
+#undef BADPYTHONMACROS
+#endif
 
 #include <boost/python/tuple.hpp>
 #include <boost/python/list.hpp>
@@ -274,7 +284,7 @@ public:
 
     /**
        \brief
-       returns locations in the SEM nodes
+       returns locations in the FEM nodes
     */
     virtual escript::Data getX() const;
 
@@ -382,7 +392,7 @@ public:
        returns a function with reduced integration order FunctionSpace code
     */
     virtual int getReducedFunctionCode() const {
-        return ReducedElements;
+        throw SpeckleyException("Speckley does not support reduced functionspaces");
     }
 
     /**
@@ -399,7 +409,7 @@ public:
        FunctionSpace code
     */
     virtual int getReducedFunctionOnBoundaryCode() const {
-        throw SpeckleyException("Speckley does not support face elements");
+        throw SpeckleyException("Speckley does not support reduced function spaces");
     }
 
     /**
@@ -461,8 +471,10 @@ public:
        returns the identifier of the matrix type to be used for the global
        stiffness matrix when a particular solver, package, preconditioner,
        and symmetric matrix is used
-       \param options a python object containing the solver, package,
-                preconditioner and symmetry
+       \param solver
+       \param preconditioner
+       \param package
+       \param symmetry
     */
     virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
@@ -746,9 +758,6 @@ protected:
     void addPoints(const std::vector<double>& coords,
                    const std::vector<int>& tags);
 
-    /// expands ReducedFunction (in) to Function (out)
-    void multiplyData(escript::Data& out, const escript::Data& in) const;
-
     /***********************************************************************/
 
     /// returns the number of nodes per MPI rank
@@ -773,17 +782,13 @@ protected:
 
     /// interpolates data on nodes in 'in' onto elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                            const escript::Data& in,
-                                            bool reduced) const = 0;
+                                            const escript::Data& in) const = 0;
 
     /// interpolates data on elements in 'in' onto nodes in 'out'
     virtual void interpolateElementsOnNodes(escript::Data& out,
                         const escript::Data& in) const = 0;
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
-
-    /// interpolates from Element -> ReducedElement
-    virtual void reduceElements(escript::Data& out, const escript::Data& in) const = 0;
 
 #ifdef ESYS_MPI
     /// sum up overlapping edges of MPI ranks and average if average is true

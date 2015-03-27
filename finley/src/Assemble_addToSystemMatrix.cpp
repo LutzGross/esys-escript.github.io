@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -29,10 +29,6 @@
   WARNING: MATRIX_FORMAT_CSC is not supported under MPI!
 
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 
 #include "Assemble.h"
 

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -23,9 +23,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 #ifdef _OPENMP
@@ -33,7 +30,7 @@
 #endif
 
 /************************************************************************************/
-void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data* element_size)
+void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * element_size)
 {
 
     double *local_X = NULL, *element_size_array;

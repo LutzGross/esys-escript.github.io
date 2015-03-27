@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -34,8 +34,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "Assemble.h"
 #include "Util.h"
@@ -48,8 +46,8 @@
 
 void  Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters p,
                                  Dudley_ElementFile* elements,
-                                 paso::SystemMatrix_ptr Mat, escript::Data* F,
-                                 const escript::Data* d_dirac, const escript::Data* y_dirac) {
+                                 paso::SystemMatrix_ptr Mat, escriptDataC* F,
+                                 escriptDataC* d_dirac, escriptDataC* y_dirac) {
 
     index_t color, e, row_index;
     __const double  *d_dirac_p, *y_dirac_p;

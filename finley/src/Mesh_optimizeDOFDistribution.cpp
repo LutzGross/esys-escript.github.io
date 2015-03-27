@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -23,17 +23,10 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "Mesh.h"
 #include "IndexList.h"
 #ifdef USE_PARMETIS
 #include <parmetis.h>
-#ifndef REALTYPEWIDTH
-typedef float real_t;
-#endif
 #endif
 #include <boost/scoped_array.hpp>
 
@@ -113,13 +106,13 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
         paso::Pattern_ptr pattern(paso::Pattern::fromIndexListArray(0,
                 myNumVertices, index_list.get(), 0, globalNumVertices, 0));
         // set the coordinates
-        std::vector<real_t> xyz(myNumVertices*dim);
+        std::vector<float> xyz(myNumVertices*dim);
 #pragma omp parallel for
         for (int i=0; i<Nodes->numNodes; ++i) {
             const int k=Nodes->globalDegreesOfFreedom[i]-myFirstVertex;
             if (k>=0 && k<myNumVertices) {
                 for (int j=0; j<dim; ++j)
-                    xyz[k*dim+j]=static_cast<real_t>(Nodes->Coordinates[INDEX2(j,i,dim)]); 
+                    xyz[k*dim+j]=static_cast<float>(Nodes->Coordinates[INDEX2(j,i,dim)]); 
             }
         }
 
@@ -127,12 +120,9 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
         int numflag = 0;
         int ncon = 1;
         int edgecut;
-        // options[0]=1 -> non-default values, evaluate rest of options
-        // options[1]=15 -> DBG_TIME | DBG_INFO | DBG_PROGRESS | DBG_REFINEINFO
-        // options[2] -> random seed
-        int options[3] = { 1, 15, 0 };
-        std::vector<real_t> tpwgts(ncon*mpiSize, 1.f/mpiSize);
-        std::vector<real_t> ubvec(ncon, 1.05f);
+        int options[2] = { 3, 15 };
+        std::vector<float> tpwgts(ncon*mpiSize, 1.f/mpiSize);
+        std::vector<float> ubvec(ncon, 1.05f);
         ParMETIS_V3_PartGeomKway(&distribution[0], pattern->ptr, pattern->index,
                               NULL, NULL, &wgtflag, &numflag, &dim, &xyz[0],
                               &ncon, &mpiSize, &tpwgts[0], &ubvec[0], options,

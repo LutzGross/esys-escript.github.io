@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -443,8 +443,10 @@ public:
      \brief
      return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner,
      and symmetric matrix is used.
-     \param options a python object containing the solver, package,
-            preconditioner and symmetry
+     \param solver 
+     \param preconditioner
+     \param package
+     \param symmetry 
   */
   virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 

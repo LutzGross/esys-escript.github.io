@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,14 +13,11 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <ripley/LameAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
 using namespace std;
+
 using escript::AbstractSystemMatrix;
 using escript::Data;
 
@@ -106,24 +103,17 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
     const double w1 = w2*(-SQRT3 + 2);
     const double w3 = w2*(SQRT3 + 3);
     const double w4 = w2*(-SQRT3 + 3);
-    const bool addEM_S = !d.isEmpty();
-    const bool addEM_F = !y.isEmpty();
+    const bool addEM_S=!d.isEmpty();
+    const bool addEM_F=!y.isEmpty();
     rhs.requireWrite();
-
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4*numEq*numComp, 0);
-        vector<double> EM_F(4*numEq, 0);
-
         if (domain->m_faceOffset[0] > -1) {
-            if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
-            if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
-
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
                 for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
                     ///////////////
                     // process d //
@@ -136,20 +126,20 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
                                     const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
                                     const double tmp0 = w2*(d_0 + d_1);
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = d_0*w0 + d_1*w1;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = d_0*w1 + d_1*w0;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=d_0*w0 + d_1*w1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=d_0*w1 + d_1*w0;
                                 }
                              }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = 4*d_0*w2;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = 4*d_0*w2;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=4*d_0*w2;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=2*d_0*w2;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=2*d_0*w2;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=4*d_0*w2;
                                 }
                             }
                         }
@@ -163,32 +153,29 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                             for (index_t k=0; k<numEq; k++) {
                                 const double y_0 = y_p[INDEX2(k, 0, numEq)];
                                 const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                EM_F[INDEX2(k,0,numEq)] = w3*y_0 + w4*y_1;
-                                EM_F[INDEX2(k,2,numEq)] = w3*y_1 + w4*y_0;
+                                EM_F[INDEX2(k,0,numEq)]+=w3*y_0 + w4*y_1;
+                                EM_F[INDEX2(k,2,numEq)]+=w3*y_1 + w4*y_0;
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)] = 6*w2*y_p[k];
-                                EM_F[INDEX2(k,2,numEq)] = 6*w2*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)]+=6*w2*y_p[k];
+                                EM_F[INDEX2(k,2,numEq)]+=6*w2*y_p[k];
                             }
                         }
                     }
                     const index_t firstNode=m_NN[0]*k1;
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
-                                          addEM_F, firstNode, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                            firstNode, numEq, numComp);
                 }
             } // end colouring
         }
 
         if (domain->m_faceOffset[1] > -1) {
-            if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
-            if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
-
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
                 for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[1]+k1;
                     ///////////////
                     // process d //
@@ -201,20 +188,20 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
                                     const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
                                     const double tmp0 = w2*(d_0 + d_1);
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = d_0*w0 + d_1*w1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = d_0*w1 + d_1*w0;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=d_0*w0 + d_1*w1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=d_0*w1 + d_1*w0;
                                 }
                              }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = 4*d_0*w2;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = 4*d_0*w2;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=4*d_0*w2;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=2*d_0*w2;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=2*d_0*w2;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=4*d_0*w2;
                                 }
                             }
                         }
@@ -228,32 +215,29 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                             for (index_t k=0; k<numEq; k++) {
                                 const double y_0 = y_p[INDEX2(k, 0, numEq)];
                                 const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                EM_F[INDEX2(k,1,numEq)] = w3*y_0 + w4*y_1;
-                                EM_F[INDEX2(k,3,numEq)] = w3*y_1 + w4*y_0;
+                                EM_F[INDEX2(k,1,numEq)]+=w3*y_0 + w4*y_1;
+                                EM_F[INDEX2(k,3,numEq)]+=w3*y_1 + w4*y_0;
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,1,numEq)] = 6*w2*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)] = 6*w2*y_p[k];
+                                EM_F[INDEX2(k,1,numEq)]+=6*w2*y_p[k];
+                                EM_F[INDEX2(k,3,numEq)]+=6*w2*y_p[k];
                             }
                         }
                     }
                     const index_t firstNode=m_NN[0]*(k1+1)-2;
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
-                                          addEM_F, firstNode, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                            firstNode, numEq, numComp);
                 }
             } // end colouring
         }
 
         if (domain->m_faceOffset[2] > -1) {
-            if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
-            if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
-
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[2]+k0;
                     ///////////////
                     // process d //
@@ -266,20 +250,20 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
                                     const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
                                     const double tmp0 = w5*(d_0 + d_1);
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = d_0*w6 + d_1*w7;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = d_0*w7 + d_1*w6;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=d_0*w6 + d_1*w7;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=d_0*w7 + d_1*w6;
                                 }
                              }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = 4*d_0*w5;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = 4*d_0*w5;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=4*d_0*w5;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=2*d_0*w5;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=2*d_0*w5;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=4*d_0*w5;
                                 }
                             }
                         }
@@ -293,32 +277,29 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                             for (index_t k=0; k<numEq; k++) {
                                 const double y_0 = y_p[INDEX2(k, 0, numEq)];
                                 const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                EM_F[INDEX2(k,0,numEq)] = w8*y_0 + w9*y_1;
-                                EM_F[INDEX2(k,1,numEq)] = w8*y_1 + w9*y_0;
+                                EM_F[INDEX2(k,0,numEq)]+=w8*y_0 + w9*y_1;
+                                EM_F[INDEX2(k,1,numEq)]+=w8*y_1 + w9*y_0;
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)] = 6*w5*y_p[k];
-                                EM_F[INDEX2(k,1,numEq)] = 6*w5*y_p[k];
+                                EM_F[INDEX2(k,0,numEq)]+=6*w5*y_p[k];
+                                EM_F[INDEX2(k,1,numEq)]+=6*w5*y_p[k];
                             }
                         }
                     }
                     const index_t firstNode=k0;
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
-                                          addEM_F, firstNode, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                            firstNode, numEq, numComp);
                 }
             } // end colouring
         }
 
         if (domain->m_faceOffset[3] > -1) {
-            if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
-            if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
-
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[3]+k0;
                     ///////////////
                     // process d //
@@ -331,20 +312,20 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                     const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
                                     const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
                                     const double tmp0 = w5*(d_0 + d_1);
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = d_0*w6 + d_1*w7;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)] = tmp0;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = d_0*w7 + d_1*w6;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=d_0*w6 + d_1*w7;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=d_0*w7 + d_1*w6;
                                 }
                              }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = 4*d_0*w5;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = 4*d_0*w5;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=4*d_0*w5;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=2*d_0*w5;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=2*d_0*w5;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=4*d_0*w5;
                                 }
                             }
                         }
@@ -358,19 +339,19 @@ void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                             for (index_t k=0; k<numEq; k++) {
                                 const double y_0 = y_p[INDEX2(k, 0, numEq)];
                                 const double y_1 = y_p[INDEX2(k, 1, numEq)];
-                                EM_F[INDEX2(k,2,numEq)] = w8*y_0 + w9*y_1;
-                                EM_F[INDEX2(k,3,numEq)] = w8*y_1 + w9*y_0;
+                                EM_F[INDEX2(k,2,numEq)]+=w8*y_0 + w9*y_1;
+                                EM_F[INDEX2(k,3,numEq)]+=w8*y_1 + w9*y_0;
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,2,numEq)] = 6*w5*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)] = 6*w5*y_p[k];
+                                EM_F[INDEX2(k,2,numEq)]+=6*w5*y_p[k];
+                                EM_F[INDEX2(k,3,numEq)]+=6*w5*y_p[k];
                             }
                         }
                     }
                     const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
-                                          addEM_F, firstNode, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                            firstNode, numEq, numComp);
                 }
             } // end colouring
         }
@@ -427,30 +408,24 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     const double w6 = -m_dx[1]/(24*m_dx[0]);
     const double w0 = w6*(SQRT3 + 2);
     const double w4 = w6*(-SQRT3 + 2);
-    const bool addEM_S = (!mu.isEmpty() || !lambda.isEmpty() || !B.isEmpty()
-                                        || !C.isEmpty() || !D.isEmpty());
-    const bool addEM_F = (!X.isEmpty() || !Y.isEmpty());
-    rhs.requireWrite();
 
+    rhs.requireWrite();
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4*numEq*numComp, 0);
-        vector<double> EM_F(4*numEq, 0);
-
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
             for (index_t k1=k1_0; k1 < m_NE[1]; k1+=2) {
                 for (index_t k0=0; k0 < m_NE[0]; ++k0)  {
+                    bool addEM_S=false;
+                    bool addEM_F=false;
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = k0 + m_NE[0]*k1;
-                    if (addEM_S)
-                        fill(EM_S.begin(), EM_S.end(), 0);
-                    if (addEM_F)
-                        fill(EM_F.begin(), EM_F.end(), 0);
-
                     ///////////////
                     // process A //
                     ///////////////
                     if (!mu.isEmpty() || !lambda.isEmpty()) {
+                        addEM_S = true;
                         if (mu.actsExpanded() || lambda.actsExpanded()) {
                             double A_0000[4] = {0};
                             double A_0011[4] = {0};
@@ -730,6 +705,7 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
+                        addEM_S=true;
                         const double* B_p=B.getSampleDataRO(e);
                         if (B.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -805,6 +781,7 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
+                        addEM_S=true;
                         const double* C_p=C.getSampleDataRO(e);
                         if (C.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -880,6 +857,7 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
+                        addEM_S=true;
                         const double* D_p=D.getSampleDataRO(e);
                         if (D.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -945,6 +923,7 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
+                        addEM_F=true;
                         const double* X_p=X.getSampleDataRO(e);
                         if (X.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -992,6 +971,7 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
+                        addEM_F=true;
                         const double* Y_p=Y.getSampleDataRO(e);
                         if (Y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
@@ -1019,7 +999,7 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // add to matrix (if addEM_S) and RHS (if addEM_F)
                     const index_t firstNode=m_NN[0]*k1+k0;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
-                                          addEM_F, firstNode, numEq, numComp);
+                            addEM_F, firstNode, numEq, numComp);
                 } // end k0 loop
             } // end k1 loop
         } // end of colouring

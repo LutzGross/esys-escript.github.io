@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -27,7 +27,6 @@ del py_wrapper_local_env['SHLIBPREFIX']
 sources = """
     AbstractContinuousDomain.cpp
     AbstractDomain.cpp
-    AbstractReducer.cpp
     AbstractSystemMatrix.cpp
     AbstractTransportProblem.cpp
     Data.cpp
@@ -51,10 +50,8 @@ sources = """
     FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
-    NonReducedVariable.cpp
     NullDomain.cpp
-    MPIDataReducer.cpp
-    MPIScalarReducer.cpp
+    Reducer.cpp
     SplitWorld.cpp
     SplitWorldException.cpp
     SubWorld.cpp
@@ -71,7 +68,6 @@ sources = """
 headers = """
     AbstractContinuousDomain.h
     AbstractDomain.h
-    AbstractReducer.h
     AbstractSystemMatrix.h
     AbstractTransportProblem.h
     BinaryOp.h
@@ -99,11 +95,9 @@ headers = """
     FunctionSpaceFactory.h
     LapackInverseHelper.h
     LocalOps.h
-    NonReducedVariable.h
     NullDomain.h
-    MPIDataReducer.h
-    MPIScalarReducer.h
     Pointers.h
+    Reducer.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h

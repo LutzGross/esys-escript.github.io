@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 ##############################################################################
 #
-# Copyright (c) 2009-2015 by University of Queensland
+# Copyright (c) 2009-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@ from __future__ import division, print_function
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2009-2015 by University of Queensland
+__copyright__="""Copyright (c) 2009-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -55,13 +55,7 @@ if getMPISizeWorld() > 1:
 	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
-try:
-    from mpl_toolkits.natgrid import _natgrid
-    HAVE_NATGRID=True
-except ImportError:
-    HAVE_NATGRID=False
-
-if HAVE_FINLEY and HAVE_NATGRID:
+if HAVE_FINLEY:
     # make sure path exists
     save_path= os.path.join("data","example04")
     mkDir(save_path)

@@ -1,7 +1,7 @@
 from __future__ import division
 ##############################################################################
 #
-# Copyright (c) 2009-2015 by University of Queensland
+# Copyright (c) 2009-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,7 @@ from __future__ import division
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2009-2015 by University of Queensland
+__copyright__="""Copyright (c) 2009-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -51,7 +51,7 @@ def toRegGrid(u, nx=50, ny=50):
    yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
 
    # interpolate u to grid
-   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi, interp='linear')
+   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi)
    return xi, yi, zi
 
 def subsample(u, nx=50, ny=50):

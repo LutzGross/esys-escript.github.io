@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,9 +20,6 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 #ifdef _OPENMP
@@ -33,7 +30,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data* normal)
+void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * normal)
 {
     double *local_X = NULL, *dVdv = NULL, *normal_array;
     index_t sign;

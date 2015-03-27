@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2013-2015 by University of Queensland
+# Copyright (c) 2013-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2013-2015 by University of Queensland
+__copyright__="""Copyright (c) 2013-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -25,4 +25,3 @@ from esys.escriptcore.util import *
 from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
 from esys.escriptcore.symbolic import *
-from esys.escriptcore.splitworld import *

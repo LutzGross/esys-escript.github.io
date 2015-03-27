@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,16 +20,13 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Util.h"
 #include "Assemble.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out, const escript::Data * in)
+void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, escriptDataC * in)
 {
     dim_t n, k, l, mpiSize;
     dim_t numComps = getDataPointSize(out);
@@ -253,9 +250,10 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out,
 		coupler.reset(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
 		if (Esys_noError())
 		{
-		    /* safe provided coupler->copyAll is called before the pointer in "in" is invalidated */
-		    const_cast<escript::Data*>(in)->resolve();
-		    coupler->startCollect(in->getDataRO());  
+		    /* It is not immediately clear whether coupler can be trusted with constant data so I'll assume RW */
+		    /* Also, it holds pointers so it might not be safe to use on lazy data anyway? */
+		    requireWrite(in);
+            coupler->startCollect(getDataRW(in));
 		    recv_buffer = coupler->finishCollect();
 		    upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel private(n,k)
@@ -282,9 +280,8 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out,
 		coupler.reset(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
 		if (Esys_noError())
 		{
-		    /* safe provided coupler->copyAll is called before the pointer in "in" is invalidated */
-		    const_cast<escript::Data*>(in)->resolve();
-		    coupler->startCollect(in->getDataRO());  
+		    requireWrite(in);	/* See comment above about coupler and const */
+            coupler->startCollect(getDataRW(in));
 		    recv_buffer = coupler->finishCollect();
 		    upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 		    requireWrite(out);
@@ -354,9 +351,8 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out,
 		if (Esys_noError())
 		{
 		    upperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
-		    /* safe provided coupler->copyAll is called before the pointer in "in" is invalidated */
-		    const_cast<escript::Data*>(in)->resolve();
-		    coupler->startCollect(in->getDataRO());  
+		    requireWrite(in);	/* See comment about coupler and const */
+            coupler->startCollect(getDataRW(in));
 		    recv_buffer = coupler->finishCollect();
 		    requireWrite(out);
 #pragma omp parallel private(n,k,l)

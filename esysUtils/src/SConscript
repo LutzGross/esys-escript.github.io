@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -25,7 +25,6 @@ sources = """
     error.cpp
     esysExceptionTranslator.cpp
     blocktimer.cpp
-    pyerr.cpp
 """.split()
 
 headers = """
@@ -42,9 +41,7 @@ headers = """
     mem.h
     index.h
     maths.h
-    pyerr.h
     system_dep.h
-    first.h
     types.h
 """.split()
 

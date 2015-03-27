@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,10 +20,6 @@
 
 /************************************************************************************/
 
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "Util.h"
 #ifdef _OPENMP
@@ -34,7 +30,7 @@
 /* Unless the loops in here get complicated again this file should be compiled for loop unrolling */
 
 void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
-			      escript::Data* grad_data, const escript::Data* data)
+			      escriptDataC * grad_data, escriptDataC * data)
 {
     size_t localGradSize = 0;
     register dim_t e, q, l, s, n;

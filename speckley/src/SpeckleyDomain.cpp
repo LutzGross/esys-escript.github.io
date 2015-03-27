@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,10 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 
 #include <speckley/SpeckleyDomain.h>
 #include <escript/DataFactory.h>
@@ -80,7 +76,6 @@ bool SpeckleyDomain::isValidFunctionSpaceType(int fsType) const
         case DegreesOfFreedom:
         case Nodes:
         case Elements:
-        case ReducedElements:
         case Points:
             return true;
         default:
@@ -119,8 +114,6 @@ pair<int,dim_t> SpeckleyDomain::getDataShape(int fsType) const
             return pair<int,dim_t>(1, getNumDOF());
         case Elements:
             return pair<int,dim_t>(ptsPerSample, getNumElements());
-        case ReducedElements:
-            return pair<int,dim_t>(1, getNumElements());
         case Points:
             return pair<int,dim_t>(1, m_diracPoints.size());
         default:
@@ -150,16 +143,14 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
     The idea is to use equivalence classes (i.e. types which can be
     interpolated back and forth):
     class 0: DOF <-> Nodes
-    class 1: ReducedDOF <-> ReducedNodes
     class 2: Points
     class 3: Elements
-    class 4: ReducedElements
 
     There is also a set of lines. Interpolation is possible down a line but not
     between lines.
     class 0 and 1 belong to all lines so aren't considered.
     line 0: class 2
-    line 1: class 3,4
+    line 1: class 3
 
     For classes with multiple members (eg class 1) we have vars to record if
     there is at least one instance. e.g. hasnodes is true if we have at least
@@ -170,16 +161,11 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
     vector<bool> hasclass(7, false);
     vector<int> hasline(3, 0);
     bool hasnodes=false;
-    bool hasrednodes=false;
     for (size_t i=0; i<fs.size(); ++i) {
         switch (fs[i]) {
             case Nodes: hasnodes=true; // fall through
             case DegreesOfFreedom:
                 hasclass[0]=true;
-                break;
-            case ReducedNodes: hasrednodes=true; // fall through
-            case ReducedDegreesOfFreedom:
-                hasclass[1]=true;
                 break;
             case Points:
                 hasline[0]=1;
@@ -187,10 +173,6 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
                 break;
             case Elements:
                 hasclass[3]=true;
-                hasline[1]=1;
-                break;
-            case ReducedElements:
-                hasclass[4]=true;
                 hasline[1]=1;
                 break;
             default:
@@ -208,16 +190,9 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
         if (hasline[0]==1)
             resultcode=Points;
         else if (hasline[1]==1) {
-            if (hasclass[4])
-                resultcode=ReducedElements;
-            else
             resultcode=Elements;
         }
     } else { // numLines==0
-        if (hasclass[1])
-            // something from class 1
-            resultcode=(hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
-        else // something from class 0
         resultcode=(hasnodes ? Nodes : DegreesOfFreedom);
     }
     return true;
@@ -237,16 +212,10 @@ bool SpeckleyDomain::probeInterpolationOnDomain(int fsType_source,
         case Nodes:
         case DegreesOfFreedom:
             return true;
-        case ReducedNodes:
-        case ReducedDegreesOfFreedom:
-            return (fsType_target != Nodes &&
-                    fsType_target != DegreesOfFreedom);
         case Elements:
-            return (fsType_target==Elements || fsType_target==ReducedElements || fsType_target==Nodes);
+            return (fsType_target==Elements || fsType_target==Nodes);
         case Points:
             return (fsType_target==fsType_source);
-        case ReducedElements:
-            return (fsType_target==Elements || fsType_target==Nodes);
 
         default: {
             stringstream msg;
@@ -282,14 +251,8 @@ signed char SpeckleyDomain::preferredInterpolationOnDomain(int fsType_source,
         case Nodes:
         case DegreesOfFreedom:
             return 1;
-        case ReducedNodes:
-        case ReducedDegreesOfFreedom:
-            return (fsType_target != Nodes &&
-                    fsType_target != DegreesOfFreedom) ? -1 : 0;
         case Elements:
-            return (fsType_target==ReducedElements) ? -1 : 0;
-        case ReducedElements:
-            return (fsType_target==Elements) ? 1 : 0;
+            return 0;
         case Points:
             return 0;  // other case caught by the if above
         default: {
@@ -323,12 +286,8 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
     // simplest case: 1:1 copy
     if (inFS==outFS) {
         copyData(target, in);
-    } else if ((inFS==Elements || inFS==ReducedElements) && outFS==Nodes) {
-        interpolateElementsOnNodes(target, in);
-    } else if (inFS==ReducedElements && outFS==Elements) {
-        multiplyData(target, in);
-    } else if (inFS==Elements && outFS==ReducedElements) {
-        reduceElements(target, in);
+    } else if (inFS==Elements && outFS==Nodes) {
+            interpolateElementsOnNodes(target, in);
     } else {
         switch (inFS) {
             case Nodes:
@@ -338,11 +297,9 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                         copyData(target, in);
                         break;
                     case Elements:
-                        interpolateNodesOnElements(target, in, false);
+                        interpolateNodesOnElements(target, in);
                         break;
-                    case ReducedElements:
-                        interpolateNodesOnElements(target, in, true);
-                        break;
+
                     case Points:
                         {
                             const dim_t numComp = in.getDataPointSize();
@@ -368,12 +325,11 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                         break;
 
                     case Elements:
-                    case ReducedElements:
                         if (getMPISize()==1) {
-                            interpolateNodesOnElements(target, in, outFS==ReducedElements);
+                            interpolateNodesOnElements(target, in);
                         } else {
                             escript::Data contIn(in, escript::continuousFunction(*this));
-                            interpolateNodesOnElements(target, contIn, outFS==ReducedElements);
+                            interpolateNodesOnElements(target, contIn);
                         }
                         break;
 
@@ -451,7 +407,6 @@ void SpeckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg
     switch (grad.getFunctionSpace().getTypeCode()) {
         case Nodes:
         case Elements:
-        case ReducedElements:
             break;
         default: {
             stringstream msg;
@@ -499,7 +454,6 @@ void SpeckleyDomain::setToIntegrals(vector<double>& integrals, const escript::Da
             }
             break;
         case Elements:
-        case ReducedElements:
             assembleIntegrate(integrals, arg);
             break;
         default: {
@@ -519,7 +473,6 @@ bool SpeckleyDomain::isCellOriented(int fsType) const
         case DegreesOfFreedom:
             return false;
         case Elements:
-        case ReducedElements:
         case Points:
             return true;
         default:
@@ -536,7 +489,6 @@ bool SpeckleyDomain::canTag(int fsType) const
     switch(fsType) {
         case Nodes:
         case Elements:
-        case ReducedElements:
         case Points:
             return true;
         case DegreesOfFreedom:
@@ -591,7 +543,6 @@ int SpeckleyDomain::getTagFromSampleNo(int fsType, index_t sampleNo) const
                 return m_nodeTags[sampleNo];
             break;
         case Elements:
-        case ReducedElements:
             if (m_elementTags.size() > sampleNo)
                 return m_elementTags[sampleNo];
             break;
@@ -614,7 +565,6 @@ int SpeckleyDomain::getNumberOfTagsInUse(int fsType) const
         case Nodes:
             return m_nodeTagsInUse.size();
         case Elements:
-        case ReducedElements:
             return m_elementTagsInUse.size();
         default: {
             stringstream msg;
@@ -631,7 +581,6 @@ const int* SpeckleyDomain::borrowListOfTagsInUse(int fsType) const
         case Nodes:
             return &m_nodeTagsInUse[0];
         case Elements:
-        case ReducedElements:
             return &m_elementTagsInUse[0];
         default: {
             stringstream msg;
@@ -771,24 +720,6 @@ void SpeckleyDomain::copyData(escript::Data& out, const escript::Data& in) const
 }
 
 //protected
-void SpeckleyDomain::multiplyData(escript::Data& out, const escript::Data& in) const
-{
-    const dim_t numComp = in.getDataPointSize();
-    const dim_t dpp = out.getNumDataPointsPerSample();
-    const dim_t numSamples = in.getNumSamples();
-    out.requireWrite();
-#pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        double* dest = out.getSampleDataRW(i);
-        for (index_t c=0; c<numComp; c++) {
-            for (index_t q=0; q<dpp; q++)
-                dest[c+q*numComp] = src[c];
-        }
-    }
-}
-
-//protected
 void SpeckleyDomain::updateTagsInUse(int fsType) const
 {
     std::vector<int>* tagsInUse=NULL;
@@ -813,7 +744,7 @@ void SpeckleyDomain::updateTagsInUse(int fsType) const
     tagsInUse->clear();
     int lastFoundValue = numeric_limits<int>::min();
     int minFoundValue, local_minFoundValue;
-    const int numTags = tags->size();
+    const long numTags = tags->size();
 
     while (true) {
         // find smallest value bigger than lastFoundValue
@@ -821,8 +752,9 @@ void SpeckleyDomain::updateTagsInUse(int fsType) const
 #pragma omp parallel private(local_minFoundValue)
         {
             local_minFoundValue = minFoundValue;
-#pragma omp for schedule(static) nowait
-            for (int i = 0; i < numTags; i++) {
+            long i;     // should be size_t but omp mutter mutter
+#pragma omp for schedule(static) private(i) nowait
+            for (i = 0; i < numTags; i++) {
                 const int v = (*tags)[i];
                 if ((v > lastFoundValue) && (v < local_minFoundValue))
                     local_minFoundValue = v;

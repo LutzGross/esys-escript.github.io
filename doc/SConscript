@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -39,10 +39,9 @@ else:
     p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import matplotlib;print(matplotlib.__version__);from matplotlib.mlab import griddata;print("1")'], stdout=PIPE)
     try:
         mplversion=p.stdout.readline().strip()
-        if mplversion!='':
-           haveMPL=True
-           hgd=p.stdout.readline().strip()
-           haveGD=True
+        haveMPL=True
+        hgd=p.stdout.readline().strip()
+        haveGD=True
     except IOError:
         pass
     p.wait()

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -70,11 +70,7 @@ class GroupTest(object):
         if stdloc:
             res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=\"run-escript -b $2\"\nPYTHONRUNNER=\"run-escript $2\"\nBATCH_ROOT=`pwd`\n"
         else:
-            res=res+"""\nexport OLD_PYTHON={0}:$PYTHONPATH
-BINRUNNER=\"{0}/bin/run-escript -b $2\"
-PYTHONRUNNER=\"{0}/bin/run-escript $2\"
-PYTHONTESTRUNNER=\"{0}/bin/run-escript $2 {0}/tools/testrunner.py\"
-BATCH_ROOT=`pwd`\n""".format(prefix)
+            res=res+"\nexport OLD_PYTHON=%s:$PYTHONPATH\nBINRUNNER=\"%s/bin/run-escript -b $2\"\nPYTHONRUNNER=\"%s/bin/run-escript $2\"\nBATCH_ROOT=`pwd`\n"%(prefix,prefix,prefix)
         res=res+"BUILD_DIR=$1"+"/"+build_platform
         res=res+"\nif [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
         #res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
@@ -83,7 +79,6 @@ BATCH_ROOT=`pwd`\n""".format(prefix)
 
     def makeString(self):
         res=""
-        build_dir = self.working_dir.replace("$BATCH_ROOT", "$BUILD_DIR")
         if self.single_processor_only:
             res+="#if [ $MPIPROD -le 1 ]; then\n"
             res+='if [ "$MPITYPE" == "mpi=none" ]; then\n'
@@ -91,32 +86,19 @@ BATCH_ROOT=`pwd`\n""".format(prefix)
         else:
             tt=""
         for d in self.mkdirs:
-            res=res+tt+"if [ ! -d "+str(d)+" ]\n"+tt+"then\n"+tt+"\tmkdir -p "+str(d)+"\n"+tt+"fi\n"
+            res=res+tt+"if [ ! -d "+str(d)+" ]\n"+tt+"then\n"+tt+"\tmkdir "+d+"\n"+tt+"fi\n"
         for v in self.evars:
             res=res+tt+"export "+str(v[0])+"="+str(v[1])+"\n"
-        res=res+tt+"if [ ! -d "+str(self.working_dir)+" ]\n"+tt+"then\n"+tt+"\tmkdir -p "+str(self.working_dir)+"\n"+tt+"fi\n"
         if len(self.python_dir)>0:
             res=res+tt+"export PYTHONPATH="+self.python_dir+":$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
         else:
             res=res+tt+"export PYTHONPATH=$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
         for t in self.test_list:
             res=res+tt+"echo Starting "+t+"\ndate\n"
-            skipoutputfile = ""
-            failoutputfile = ""
-            cmd = self.exec_cmd
-            exit_on_failure = " || failed %s"%t
-            if "examples" not in build_dir and "PYTHONRUNNER" in self.exec_cmd \
-                    and "/tools/" not in build_dir:
-                skipoutputfile = " -skipfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
-                failoutputfile = " -failfile={0}/{1}".format(build_dir, t.replace(".py", ".failed"))
-                cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
-                exit_on_failure = ""
-            res += "".join([tt, cmd, t, failoutputfile, skipoutputfile, exit_on_failure, "\n"])
-            res += tt+"echo Completed "+t+"\n"
+            res=res+tt+self.exec_cmd+' '+t+' || failed '+t+'\n'
+            res=res+tt+"echo Completed "+t+"\n"
         if self.single_processor_only:
             res+="fi\n"
         res=res+"\n"
         return res
-    
-    def makeFooter(self):
-        return "find $BUILD_DIR -name '*.failed' | xargs cat; find $BUILD_DIR -name '*.failed' | xargs cat | diff -q - /dev/null >/dev/null"
+        

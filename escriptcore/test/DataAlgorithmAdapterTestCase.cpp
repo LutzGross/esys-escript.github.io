@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,14 +14,16 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
-
+#if (defined _WIN32) && (defined __INTEL_COMPILER)
+#include <mathimf.h>
+#else
 #include <cmath>
+#endif
 
 #include "DataAlgorithmAdapterTestCase.h"
 #include "escript/DataExpanded.h"
+// #include "escript/DataArrayView.h"
 #include "escript/DataAlgorithm.h"
 #include "escript/DataTypes.h"
 

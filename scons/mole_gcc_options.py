@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2010 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,6 +14,21 @@
 #
 ##############################################################################
 
+# This is a template configuration file for escript/finley on Linux.
+# Copy this file to <hostname>_options.py, where <hostname> is your machine's
+# short hostname, then customize to your needs.
+
+# PREFIXES:
+# There are two ways to specify where to find dependent headers and libraries
+# (via the <dependency>_prefix):
+# 1) If your installation follows the general scheme where headers are located
+#    in <prefix>/include[32,64], and libraries in <prefix>/lib[32,64] then
+#    it is sufficient to specify this prefix, e.g. boost_prefix='/usr'
+# 2) Otherwise provide a list with two elements, where the first one is the
+#    include path, and the second the library path, e.g.
+#    boost_prefix=['/usr/include/boost1_44', '/usr/lib']
+# All <dependency>_prefix settings default to '/usr'
+
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
@@ -22,7 +37,6 @@ escript_opts_version = 202
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
 #prefix = '/usr/local'
-#prefix = '/group/geosciences953/escript_directory/escript'
 
 # Top-level directory for intermediate build and test files.
 # DEFAULT: 'build'
@@ -30,10 +44,10 @@ escript_opts_version = 202
 
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
-cxx = 'CC'
+#cxx = 'g++'
 
 # Flags to use with the C++ compiler. Do not set unless you know
-# what you are doing - use cc_extra to specify additional flags!
+# what you are doing - use cxx_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 #cc_flags = ''
 
@@ -45,39 +59,25 @@ cxx = 'CC'
 # DEFAULT: compiler-dependent
 #cc_debug = '-g'
 
-# Additional flags to add to the C++ compiler
+# Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-#cxx_extra = '-shared -fPIC -h gnu -h nomessage=47:1199:1794:1836:11709'
-cxx_extra = '-fPIC -I/group/geosciences953/escript_directory/escript/lib64/python2.6/site-packages/numpy/core/include'
+#cxx_extra = '-DBADPYTHONMACROS'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = '-shared-intel -L/opt/cray/hdf5/1.8.11/cray/81/lib -ipo-jobs4'
-#ld_extra = '-dynamic -L/ivec/cle50/devel/PrgEnv-gnu/5.0.41/hdf5/1.8.12/lib'
-ld_extra = '-dynamic'
-
-# launcher, prelaunch, postlaunch: for MPI builds/batch system runs
-# the following substitutions are applied to all three:
-# %b = executable, %n = number of nodes, %p = number of processes,
-# %N = total number of processes, # %t = number of threads,
-# %f = name of hostfile, %h = comma-separated list of hosts,
-# %e = comma-separated list of environment variables to export
-#prelaunch = "EE=$(echo -x %e|sed -e 's/,/ -x /g')"
-prelaunch = ""
-launcher = "aprun -B %b"
-postlaunch = ""
+#ld_extra = ''
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
-werror = False
+#werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
-# debug = True
+#debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
-verbose = True
+#verbose = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
@@ -85,49 +85,41 @@ openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
-#omp_flags = '-homp'
-omp_flags = '-fopenmp'
+#omp_flags = '-fopenmp'
 
 # Additional linker flags for OpenMP builds
 # DEFAULT: compiler-dependent
-omp_ldflags = '-fopenmp'
+#omp_ldflags = '-fopenmp'
 
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'MPICH2'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/opt/cray/mpt/7.0.0/gni/mpich2-cray/83'
+#mpi_prefix = '/usr/lib/openmpi'
 
-# MPI libraries to link against. Compiler wrapper takes care of this
-#mpi_libs = ['mpich', 'mpichcxx']
-mpi_libs = []
-
+# MPI libraries to link against
+#mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-#boost_prefix = '/ivec/cle50/devel/PrgEnv-intel/boost/1.55.0'
-#boost_prefix = '/ivec/cle50/devel/PrgEnv-gnu/5.0.41/boost/1.49.0'
-#boost_prefix = ['/home/caltinay/boost_1_55_0','/home/caltinay/boost_1_55_0/stage/lib']
-boost_prefix = '/group/geosciences953/escript_directory/escript'
+boost_prefix = '/usr/local/boost/1.55.0'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
-#cppunit_prefix = ''
+cppunit_prefix = '/usr/local/cppunit/1.12.1'
 
 # CppUnit library/libraries to link against
-#cppunit_libs = ['cppunit']
+cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-#netcdf_prefix = '/opt/cray/netcdf-hdf5parallel/4.3.0/CRAY/81'
-#netcdf_prefix = '/ivec/cle50/devel/PrgEnv-gnu/5.0.41/netcdf/4.1.3'
-netcdf_prefix = '/group/geosciences953/escript_directory/escript'
+netcdf_prefix = '/opt/local'
 
 # netCDF library/libraries to link against
 netcdf_libs = ['netcdf_c++', 'netcdf']
@@ -137,7 +129,7 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 #parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
-#parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
+#parmetis_prefix = '/usr/local'
 
 # parMETIS library/libraries to link against
 #parmetis_libs = ['parmetis', 'metis']
@@ -161,59 +153,58 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 #mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-#mkl_prefix = ['/opt/intel/composer_xe_2013.5.192/mkl/include', '/opt/intel/composer_xe_2013.5.192/mkl/lib/intel64']
+#mkl_prefix = '/usr'
 
 # MKL library/libraries to link against
-#mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
+#mkl_libs = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 
 # Whether to use UMFPACK (requires AMD and BLAS)
 # DEFAULT: False
 #umfpack = True
 
 # Prefix or paths to UMFPACK headers and libraries. See note above.
-#umfpack_prefix = '/sw/libs/umfpack/x86_64/icc-13/umfpack-5.6.1'
+#umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 # UMFPACK library/libraries to link against
-#umfpack_libs = ['umfpack', 'amd', 'suitesparseconfig']
+#umfpack_libs = ['umfpack']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
 #boomeramg = True
 
 # Prefix or paths to BoomerAMG headers and libraries. See note above.
-#boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
+#boomeramg_prefix = '/usr/local'
 
 # BoomerAMG library/libraries to link against
 #boomeramg_libs = ['HYPRE']
-#boomeramg_libs = ['HYPRE_IJ_mv', 'HYPRE_krylov', 'HYPRE_parcsr_ls']
 
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-#lapack = 'mkl'
+#lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-#lapack_prefix = mkl_prefix
+#lapack_prefix = '/usr/local'
 
 # LAPACK library/libraries to link against
-#lapack_libs = ['mkl_core']
+#lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+#silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/group/geosciences953/escript_directory/escript'
+#silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
-silo_libs = ['silo']
+#silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
 #visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-#visit_prefix = ''
+#visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
@@ -222,6 +213,9 @@ silo_libs = ['silo']
 #DEFAULT: False
 #build_shared = True
 
+# work around for Python2.7 on OSX/BSD
+#DEFAULT: True
+#BADPYTHONMACROS = False
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
@@ -234,12 +228,9 @@ silo_libs = ['silo']
 #sys_libs = []
 
 # Additional environmental variables to export to the tools
-# On Cray the compiler wrapper depends on a lot of environment vars
-# so we simply export everything
-import os
-env_export = os.environ.keys()
+#env_export = []
 
-#tools_names = [('intelc',{'topdir':'/opt/intel/composer_xe_2013.5.192'})]
+#tools_names = ['default']
 
 #iknowwhatimdoing = False
 

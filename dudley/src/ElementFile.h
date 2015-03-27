@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -107,7 +107,7 @@ void Dudley_ElementFile_markDOFsConnectedToRange(index_t * mask, index_t offset,
 						 index_t lastDOF, index_t * dofIndex, Dudley_ElementFile * in,
 						 bool useLinear);
 
-void Dudley_ElementFile_setTags(Dudley_ElementFile *, const int, const escript::Data *);
+void Dudley_ElementFile_setTags(Dudley_ElementFile *, const int, escriptDataC *);
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_Jacobeans_alloc(void);
 void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans *);
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile *, Dudley_NodeFile *, bool);

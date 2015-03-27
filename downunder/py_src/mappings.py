@@ -1,7 +1,7 @@
-from __future__ import print_function
+
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -17,7 +17,7 @@ from __future__ import print_function
 """Collection of parametrizations that map physical values to model parameters
    and back"""
 
-__copyright__="""Copyright (c) 2003-2015 by University of Queensland
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -25,8 +25,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping',\
-           'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping',\
-           'MTMapping']
+           'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping']
 
 from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp, whereZero
 import esys.escript.unitsSI as U
@@ -216,42 +215,30 @@ class AcousticVelocityMapping(Mapping):
 
 class DcResMapping(Mapping):
     """DcResMapping
-        sigmoid mapping
-        s=a/(1+e^(-k*m))    
+
+       sigma=sigma_reg * e^(k*m)     
     """
-    def __init__(self, sigma_prior, k=1., a=0.01, minVal=1/1000.):
+    def __init__(self, sigma_prior, k=1.):
         self.__sigma0=sigma_prior
         self.__k=k
-        self.a=a
-        self.minVal=minVal
+
     def getValue(self, m):
         print ("in get value inf(m)=",inf(m)," sup(m)=", sup(m))
-        # s=self.__sigma0 + (self.__sigma0 * self.__k*m)
-        # s=self.__sigma0*exp(self.__k*m)
-        #### use sigmoid mapping
-        s=(self.__sigma0*self.a / (1+exp(-self.__k * m))) + self.minVal
-        print ("in get value inf(s)=",inf(s)," sup(s)=", sup(s))
-        if sup(s)!=0 and inf(s)!=0:
-            print ("in get value 1/inf(s)=",1./inf(s)," 1/sup(s)=", 1./sup(s))
-        return s
+        return self.__sigma0 * (self.__k*m)
        
     def getDerivative(self, m):
         """
         returns the derivative of the mapping for m
         """
-        # return self.__sigma0 * self.__k
-        # return self.__sigma0*self.__k*exp(self.__k*m)
-        return (self.__sigma0*self.__k*self.a*exp(-self.__k*m))/ (1+exp(-self.__k * m))**2
+        return self.__sigma0*self.__k*exp(self.__k*m)
 
     def getInverse(self, s):
         """
         returns the value of the inverse of the mapping for s
         """
-        # return (s-self.__sigma0) / (self.__sigma0 * self.__k)
-        if inf(((self.__sigma0*self.a)/s)) <= 1.:
-            raise ValueError("sigma 0*a/s < 1 this is not valid as log cannot be 0 or negative")
-        m= - 1./self.__k * log(((self.__sigma0*self.a)/(s-self.minVal))-1)
-        print ("inv(s)=",m)
+        ms=whereZero(s)
+        ms0=whereZero(self.__sigma0)
+        m=1/self.__k* log(((1-ms)*s+ms*1)/((1-ms0)*self.__sigma0+ms0*1)) * (1-ms)*(1-ms0) 
         return m 
         
 

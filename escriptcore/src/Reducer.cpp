@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* Copyright (c) 2014-2015 by University of Queensland
+* Copyright (c) 2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,16 +13,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <sstream>
-#include <limits>
 #include <boost/python/extract.hpp>
 #include <boost/scoped_array.hpp>
 
-#include "MPIDataReducer.h"
+#include "Reducer.h"
 #include "SplitWorldException.h"
 
 using namespace boost::python;
@@ -59,7 +54,17 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     }
 }
 
+#ifdef ESYS_MPI
+const int PARAMTAG=120567;	// arbitrary value
+#endif
 }
+
+bool AbstractReducer::hasValue()
+{
+    return valueadded;
+}
+
+
 
 MPIDataReducer::MPIDataReducer(MPI_Op op)
   : reduceop(op)
@@ -68,7 +73,6 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     if (op==MPI_SUM)
     {
 	// deliberately left blank
-	throw SplitWorldException("Unsupported MPI_Op");
     }
     else
     {
@@ -76,17 +80,11 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     }
 }
 
-
 void MPIDataReducer::setDomain(escript::Domain_ptr d)
 {
     dom=d;
 }
 
-std::string MPIDataReducer::description()
-{
-    std::string op="SUM";
-    return "Reducer("+op+") for Data objects"; 
-}
 
 bool MPIDataReducer::valueCompatible(boost::python::object v)
 {
@@ -188,12 +186,8 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 
 // By the time this function is called, we know that all the values 
 // are compatible
-bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
+bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
 {
-    if (!active)
-    {
-	return false;	// shutting down this option until I implement it
-    }
 #ifdef ESYS_MPI
     DataTypes::ValueType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
@@ -335,21 +329,3 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
 #endif      
       return true;
 }
-
-boost::python::object MPIDataReducer::getPyObj()
-{
-    throw SplitWorldException("getPyObj Not implemented yet.");
-}
-
-
-	// send from proc 0 in the communicator to all others
-bool MPIDataReducer::groupSend(MPI_Comm& com)
-{
-    throw SplitWorldException("groupSend Not implemented yet.");
-}
-
-bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
-{
-    throw SplitWorldException("groupReduce Not implemented yet.");
-}
-

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,14 +20,11 @@
 
 /************************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "ElementFile.h"
 
 /************************************************************************************/
 
-void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escript::Data* newX)
+void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escriptDataC * newX)
 {
     /* self->volume_is_valid=FALSE;   
        self->DSDV_is_valid=FALSE;    
@@ -35,3 +32,6 @@ void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escript::Data*
        self->X_is_valid=FALSE;          */
 }
 
+/*
+* $Log$
+*/

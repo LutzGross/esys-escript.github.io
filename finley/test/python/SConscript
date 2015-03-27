@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2014 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -46,7 +46,6 @@ testruns += ['run_utilOnFinley.py']
 testruns += ['run_amg.py'] 
 testruns += ['run_nlpde2dOnFinley.py']
 testruns += ['run_nlpde3dOnFinley.py']
-testruns += ['run_splitworldOnFinley.py']
 
 #  files defining a few tests for a quick test
 scalable_tests = []
@@ -80,8 +79,6 @@ env.Alias('scalable_tests', [splitext(x)[0]+'.passed' for x in scalable_tests])
 program = local_env.RunPyUnitTest(alltestruns)
 Depends(program, [py_wrapper_lib, 'install_finley_py'])
 Depends(program, 'build_py_tests')
-if env['usempi']:
-    Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # add a group of tests
 from grouptest import *

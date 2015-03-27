@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,19 +14,15 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-#include <esysUtils/esysFileWriter.h>
-#include <esysUtils/EsysRandom.h>
-
-#include <paso/SystemMatrix.h>
-
 #include <ripley/Rectangle.h>
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/LameAssembler2D.h>
 #include <ripley/WaveAssembler2D.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
+#include <paso/SystemMatrix.h>
+#include <esysUtils/esysFileWriter.h>
+#include <esysUtils/EsysRandom.h>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -39,23 +35,16 @@
 #endif
 #endif
 
-#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
 #include <boost/scoped_array.hpp>
 
+#include <algorithm>
 #include <iomanip>
 #include <limits>
 
 namespace bp = boost::python;
-namespace bm = boost::math;
+using namespace std;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
-using std::vector;
-using std::string;
-using std::min;
-using std::max;
-using std::copy;
-using std::ios;
-using std::fill;
 
 namespace ripley {
 
@@ -68,7 +57,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
     RipleyDomain(2, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
-            > std::numeric_limits<dim_t>::max())
+            > numeric_limits<dim_t>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
 
@@ -121,8 +110,8 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
         throw RipleyException("Invalid number of spatial subdivisions");
 
     if (warn) {
-        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
-            << d1 << "). This may not be optimal!" << std::endl;
+        cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+            << d1 << "). This may not be optimal!" << endl;
     }
 
     double l0 = x1-x0;
@@ -133,14 +122,14 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
     if ((n0+1)%d0 > 0) {
         n0=(dim_t)round((float)(n0+1)/d0+0.5)*d0-1;
         l0=m_dx[0]*n0;
-        std::cout << "Warning: Adjusted number of elements and length. N0="
-            << n0 << ", l0=" << l0 << std::endl;
+        cout << "Warning: Adjusted number of elements and length. N0="
+            << n0 << ", l0=" << l0 << endl;
     }
     if ((n1+1)%d1 > 0) {
         n1=(dim_t)round((float)(n1+1)/d1+0.5)*d1-1;
         l1=m_dx[1]*n1;
-        std::cout << "Warning: Adjusted number of elements and length. N1="
-            << n1 << ", l1=" << l1 << std::endl;
+        cout << "Warning: Adjusted number of elements and length. N1="
+            << n1 << ", l1=" << l1 << endl;
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2))
@@ -315,7 +304,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
             const dim_t baseIndex = first0+x*params.multiplier[0]
                                   +(first1+y*params.multiplier[1])*myN0;
             const dim_t srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
-            if (!bm::isnan(values[srcIndex])) {
+            if (!isnan(values[srcIndex])) {
                 for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                     for (index_t m0=0; m0<params.multiplier[0]; m0++) {
                         const dim_t dataIndex = baseIndex+m0+m1*myN0;
@@ -406,7 +395,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
         throw RipleyException("readBinaryGrid(): reversing not supported yet");
 
     // check file existence and size
-    std::ifstream f(filename.c_str(), std::ifstream::binary);
+    ifstream f(filename.c_str(), ifstream::binary);
     if (f.fail()) {
         throw RipleyException("readBinaryGrid(): cannot open file");
     }
@@ -485,7 +474,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                                 byte_swap32(cval);
                             }
                         }
-                        if (!bm::isnan(val)) {
+                        if (!isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -517,7 +506,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
         throw RipleyException("readBinaryGrid(): invalid function space for output data object");
 
     // check file existence and size
-    std::ifstream f(filename.c_str(), std::ifstream::binary);
+    ifstream f(filename.c_str(), ifstream::binary);
     if (f.fail()) {
         throw RipleyException("readBinaryGridFromZipped(): cannot open file");
     }
@@ -578,7 +567,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
                             // this will alter val!!
                             byte_swap32(cval);
                         }
-                        if (!bm::isnan(val)) {
+                        if (!isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -662,7 +651,7 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
 
     for (index_t y=0; y<myN1; y++) {
         const dim_t fileofs = (offset0+(offset1+y)*totalN0)*sizeof(ValueType);
-        std::ostringstream oss;
+        ostringstream oss;
 
         for (index_t x=0; x<myN0; x++) {
             const double* sample = in.getSampleDataRO(y*myN0+x);
@@ -789,8 +778,8 @@ void Rectangle::dump(const string& fileName) const
         vector<string> tempstrings;
         vector<char*> names;
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            std::stringstream path;
-            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
+            stringstream path;
+            path << "/block" << setw(4) << setfill('0') << right << i << "/mesh";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -801,8 +790,8 @@ void Rectangle::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            std::stringstream path;
-            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
+            stringstream path;
+            path << "/block" << setw(4) << setfill('0') << right << i << "/nodeId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -812,8 +801,8 @@ void Rectangle::dump(const string& fileName) const
         tempstrings.clear();
         names.clear();
         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-            std::stringstream path;
-            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
+            stringstream path;
+            path << "/block" << setw(4) << setfill('0') << right << i << "/elementId";
             tempstrings.push_back(path.str());
             names.push_back((char*)tempstrings.back().c_str());
         }
@@ -856,7 +845,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
             break;
     }
 
-    std::stringstream msg;
+    stringstream msg;
     msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
@@ -904,49 +893,9 @@ bool Rectangle::ownSample(int fsType, index_t id) const
             break;
     }
 
-    std::stringstream msg;
+    stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
-}
-
-RankVector Rectangle::getOwnerVector(int fsType) const
-{
-    RankVector owner;
-    const Esys_MPI_rank rank = m_mpiInfo->rank;
-
-    if (fsType == Elements || fsType == ReducedElements) {
-        owner.assign(getNumElements(), rank);
-        if (m_faceCount[0] == 0) {
-            owner[0]=(m_faceCount[2]==0 ? rank-m_NX[0]-1 : rank-1);
-            for (dim_t i=1; i<m_NE[1]; i++)
-                owner[i*m_NE[0]] = rank-1;
-        }
-        if (m_faceCount[2]==0) {
-            const int first=(m_faceCount[0]==0 ? 1 : 0);
-            for (dim_t i=first; i<m_NE[0]; i++)
-                owner[i] = rank-m_NX[0];
-        }
-
-    } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
-        owner.assign(getNumFaceElements(), rank);
-        if (m_faceCount[0] == 0) {
-            if (m_faceCount[2] > 0)
-                owner[m_faceCount[1]] = rank-1;
-            if (m_faceCount[3] > 0)
-                owner[m_faceCount[1]+m_faceCount[2]] = rank-1;
-        }
-        if (m_faceCount[2] == 0) {
-            if (m_faceCount[0] > 0)
-                owner[0] = rank-m_NX[0];
-            if (m_faceCount[1] > 0)
-                owner[m_faceCount[0]] = rank-m_NX[0];
-        }
-
-    } else {
-        throw RipleyException("getOwnerVector: only valid for element types");
-    }
-
-    return owner;
 }
 
 void Rectangle::setToNormal(escript::Data& out) const
@@ -1047,7 +996,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        std::stringstream msg;
+        stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -1109,7 +1058,7 @@ void Rectangle::setToSize(escript::Data& out) const
         } // end of parallel section
 
     } else {
-        std::stringstream msg;
+        stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
@@ -1120,13 +1069,13 @@ void Rectangle::Print_Mesh_Info(const bool full) const
 {
     RipleyDomain::Print_Mesh_Info(full);
     if (full) {
-        std::cout << "     Id  Coordinates" << std::endl;
-        std::cout.precision(15);
-        std::cout.setf(ios::scientific, ios::floatfield);
+        cout << "     Id  Coordinates" << endl;
+        cout.precision(15);
+        cout.setf(ios::scientific, ios::floatfield);
         for (index_t i=0; i < getNumNodes(); i++) {
-            std::cout << "  " << std::setw(5) << m_nodeId[i]
+            cout << "  " << setw(5) << m_nodeId[i]
                 << "  " << getLocalCoordinate(i%m_NN[0], 0)
-                << "  " << getLocalCoordinate(i/m_NN[0], 1) << std::endl;
+                << "  " << getLocalCoordinate(i/m_NN[0], 1) << endl;
         }
     }
 }
@@ -1135,10 +1084,11 @@ void Rectangle::Print_Mesh_Info(const bool full) const
 //protected
 void Rectangle::assembleCoordinates(escript::Data& arg) const
 {
+    escriptDataC x = arg.getDataC();
     int numDim = m_numDim;
-    if (&arg!=0 && !arg.isDataPointShapeEqual(1, &numDim))
+    if (!isDataPointShapeEqual(&x, 1, &numDim))
         throw RipleyException("setToX: Invalid Data object shape");
-    if (&arg!=0 && !arg.numSamplesEqual(1, getNumNodes()))
+    if (!numSamplesEqual(&x, 1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
     const dim_t NN0 = m_NN[0];
@@ -1366,8 +1316,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
                                   const escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
     const int fs=arg.getFunctionSpace().getTypeCode();
     if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
@@ -1529,7 +1479,7 @@ IndexVector Rectangle::getDiagonalIndices(bool upperOnly) const
         ret.resize(5);
     else
         ret.resize(9);
-    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     size_t idx = 0;
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
@@ -1548,10 +1498,10 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
 
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
-    const dim_t nDOF0 = getNumDOFInAxis(0);
-    const dim_t nDOF1 = getNumDOFInAxis(1);
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
 #pragma omp parallel for
     for (index_t i=0; i<nDOF1; i++) {
         for (index_t j=0; j<nDOF0; j++) {
@@ -1658,7 +1608,7 @@ void Rectangle::populateSampleIds()
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const std::length_error& le) {
+    } catch (const length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
 
@@ -1687,10 +1637,10 @@ void Rectangle::populateSampleIds()
     const dim_t NFE = getNumFaceElements();
     m_faceId.resize(NFE);
 
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
-    const dim_t nDOF0 = getNumDOFInAxis(0);
-    const dim_t nDOF1 = getNumDOFInAxis(1);
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
 
@@ -1803,8 +1753,8 @@ vector<IndexVector> Rectangle::getConnections() const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices
     // of DOFs connected to i (up to 9 in 2D)
-    const dim_t nDOF0 = getNumDOFInAxis(0);
-    const dim_t nDOF1 = getNumDOFInAxis(1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const dim_t M = nDOF0*nDOF1;
     vector<IndexVector> indices(M);
 
@@ -1828,10 +1778,10 @@ vector<IndexVector> Rectangle::getConnections() const
 //private
 void Rectangle::populateDofMap()
 {
-    const dim_t nDOF0 = getNumDOFInAxis(0);
-    const dim_t nDOF1 = getNumDOFInAxis(1);
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
 
     // populate node->DOF mapping with own degrees of freedom.
     // The rest is assigned in the loop further down
@@ -1958,22 +1908,22 @@ void Rectangle::populateDofMap()
 
     // useful debug output
     /*
-    std::cout << "--- rcv_shcomp ---" << std::endl;
-    std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
+    cout << "--- rcv_shcomp ---" << endl;
+    cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
     for (size_t i=0; i<neighbour.size(); i++) {
-        std::cout << "neighbor[" << i << "]=" << neighbour[i]
-            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
+        cout << "neighbor[" << i << "]=" << neighbour[i]
+            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << endl;
     }
     for (size_t i=0; i<recvShared.size(); i++) {
-        std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
+        cout << "shared[" << i << "]=" << recvShared[i] << endl;
     }
-    std::cout << "--- snd_shcomp ---" << std::endl;
+    cout << "--- snd_shcomp ---" << endl;
     for (size_t i=0; i<sendShared.size(); i++) {
-        std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
+        cout << "shared[" << i << "]=" << sendShared[i] << endl;
     }
-    std::cout << "--- dofMap ---" << std::endl;
+    cout << "--- dofMap ---" << endl;
     for (size_t i=0; i<m_dofMap.size(); i++) {
-        std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
+        cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << endl;
     }
     */
 }

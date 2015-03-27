@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2014-2015 by University of Queensland
+* Copyright (c) 2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -20,18 +20,11 @@
 #include <boost/smart_ptr.hpp>
 #include "esysUtils/Esys_MPI.h"
 #include "SubWorld.h"
-#include "AbstractReducer.h"
+#include "Reducer.h"
 namespace escript
 {
 
-/** 
- * Provides an interface to a collection of subworlds.
- * Variables are declared and jobs are submitted using this interface.
- * Internally, the work is done by a local subworld instance (and associated communicators which 
- * this process belongs to). The local subworld will communicate with subworlds 
- * in other processes as needed.
- * The main reason for this class, is to insulate users from the MPI type thinking needed for
- * subworlds and instead provide an interface which allows them to think about subworlds as a group.
+/** class to hold a collection of MPI processes and a communicator linking them
 */
 class SplitWorld
 {
@@ -43,17 +36,12 @@ public:
     void runJobs();
     
     void addJob(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
-    void addJobPerWorld(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
     
     void addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs);
-    void removeVariable(std::string name); 
-    void clearVariable(std::string name); 
-    std::list<std::pair<std::string, bool> > getVarList();
-    boost::python::object getVarPyList();
-
+    void removeVariable(std::string name);    
+    void clearActiveJobs();
     void clearAllJobs();
 
-    double getScalarVariable(const std::string& name);
     
     
     
@@ -73,7 +61,7 @@ private:
     bool manualimport;		// if false, all reduced vars will be shipped to all subworlds    
     void clearPendingJobs();
     void distributeJobs();
-
+    bool getVariableInterest(std::vector<char>& vb);    
 };
 
 
@@ -86,11 +74,6 @@ boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::di
  used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
 */
 boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwargs);
-
-/**
- used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
-*/
-boost::python::object raw_addJobPerWorld(boost::python::tuple t, boost::python::dict kwargs);
 
 /**
  used to add a reducer for shared values.

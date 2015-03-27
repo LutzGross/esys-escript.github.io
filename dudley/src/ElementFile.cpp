@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -22,9 +22,6 @@
 /*   use Dudley_Mesh_allocElementTable to allocate the element table (Id,Nodes,Tag,Owner). */
 
 /************************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "ElementFile.h"
 #include "ShapeTable.h"

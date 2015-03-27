@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2015 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,9 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include <pasowrap/PasoException.h>
 #include <pasowrap/TransportProblemAdapter.h>
@@ -2197,14 +2194,12 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
     Mesh* mesh=m_finleyMesh.get();
 
     if ( points.size() % dim != 0 ) {
-        char err[200];
-        sprintf(err,"Error - number of coords in diractags is %ld this should be a multiple of the specified dimension:%d.",points.size(),dim);
-        throw FinleyAdapterException(err);
+        throw FinleyAdapterException("Error - number of coords does not appear to be a multiple of dimension.");
     }
 
     if (numPoints != numTags)
     {
-	   throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
+	throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
     }
 
     if (numPoints > 0) {
