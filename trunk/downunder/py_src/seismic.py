@@ -398,8 +398,8 @@ class VTIWave(WaveBase):
     """
     def __init__(self, domain, v_p, v_s, wavelet, source_tag,
             source_vector = [0.,0.,1.], eps=0., gamma=0., delta=0., rho=1.,
-            dt=None, u0=None, v0=None, absorption_zone=300*U.m,
-            absorption_cut=1e-2, lumping=True):
+            dt=None, u0=None, v0=None, absorption_zone=None,
+            absorption_cut=1e-2, lumping=True, disable_fast_assemblers=False):
         """
         initialize the VTI wave solver
 
@@ -424,6 +424,8 @@ class VTIWave(WaveBase):
         :param absorption_zone: thickness of absorption zone
         :param absorption_cut: boundary value of absorption decay factor
         :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
+        :param disable_fast_assemblers: if True, forces use of slower and more general PDE assemblers
+        :type disable_fast_assemblers: `boolean`
         """
         DIM=domain.getDim()
         f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
@@ -450,7 +452,7 @@ class VTIWave(WaveBase):
 
         self.__wavelet=wavelet
 
-        self.fastAssembler = hasattr(domain, "setAssembler")
+        self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
         self.c33=v_p**2 * rho
         self.c44=v_s**2 * rho
         self.c11=(1+2*eps) * self.c33
@@ -477,6 +479,15 @@ class VTIWave(WaveBase):
 
         self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
         self.__r.setTaggedValue(self.__source_tag, source_vector)
+
+
+    def setQ(self,q):
+        """
+        sets the PDE q value
+
+        :param q: the value to set
+        """
+        self.__mypde.setValue(q=q)
 
     def _getAcceleration(self, t, u):
         """
@@ -531,8 +542,8 @@ class HTIWave(WaveBase):
         
         def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
                 source_vector = [1.,0.,0.], eps=0., gamma=0., delta=0., rho=1.,
-                dt=None, u0=None, v0=None, absorption_zone=300*U.m,
-                absorption_cut=1e-2, lumping=True):
+                dt=None, u0=None, v0=None, absorption_zone=None,
+                absorption_cut=1e-2, lumping=True, disable_fast_assemblers=False):
            """
            initialize the VTI wave solver
 
@@ -557,6 +568,7 @@ class HTIWave(WaveBase):
            :param absorption_zone: thickness of absorption zone
            :param absorption_cut: boundary value of absorption decay factor
            :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
+           :param disable_fast_assemblers: if True, forces use of slower and more general PDE assemblers
            """
            DIM=domain.getDim()
            f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
@@ -575,20 +587,20 @@ class HTIWave(WaveBase):
               v0=interpolate(v0, Solution(domain ))
 
            if dt == None:
-                  dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+                dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
 
            super(HTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
 
            self.__wavelet=wavelet
            
-           self.fastAssembler = hasattr(domain, "setAssembler")
-           self.c33=v_p**2 * rho
-           self.c44=v_s**2 * rho
-           self.c11=(1+2*eps) * self.c33
-           self.c66=(1+2*gamma) * self.c44
-           self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
-           self.c23=self.c33-2*self.c66
-           
+           self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
+           self.c33 = v_p**2 * rho
+           self.c44 = v_s**2 * rho
+           self.c11 = (1+2*eps) * self.c33
+           self.c66 = (1+2*gamma) * self.c44
+           self.c13 = sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+           self.c23 = self.c33-2*self.c66
+
            if self.fastAssembler:
                 self.__mypde=WavePDE(domain, [("c11", self.c11),
                     ("c23", self.c23), ("c13", self.c13), ("c33", self.c33),
@@ -603,13 +615,20 @@ class HTIWave(WaveBase):
            self.__mypde.setValue(D=rho*kronecker(DIM))
            self.__source_tag=source_tag
 
-           if DIM ==2 :
+           if DIM == 2:
               source_vector= [source_vector[0],source_vector[2]]
 
            self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
 
 
+        def setQ(self,q):
+            """
+            sets the PDE q value
+
+            :param q: the value to set
+            """
+            self.__mypde.setValue(q=q)
 
         def  _getAcceleration(self, t, u):
              """
