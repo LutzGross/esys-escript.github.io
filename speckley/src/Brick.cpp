@@ -20,6 +20,7 @@
 
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
+#include <speckley/WaveAssembler3D.h>
 #include <esysUtils/esysFileWriter.h>
 #include <esysUtils/EsysRandom.h>
 #include <esysUtils/index.h>
@@ -1068,13 +1069,39 @@ void Brick::setToSize(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
-        const dim_t numQuad = out.getNumDataPointsPerSample();
-        const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]+m_dx[2]*m_dx[2]);
+        const dim_t numQuad = m_order + 1;
         const dim_t numElements = getNumElements();
+        const double *quad_locs = point_locations[m_order-2];
+        //since elements are uniform, calc the first and copy to others
+        double* first_element = out.getSampleDataRW(0);
+#pragma omp parallel for
+        for (short qz = 0; qz < m_order; qz++) {
+            const double z = quad_locs[qz+1] - quad_locs[qz];
+            for (short qy = 0; qy < m_order; qy++) {
+                const double y = quad_locs[qy+1] - quad_locs[qy];
+                for (short qx = 0; qx < m_order; qx++) {
+                    const double x = quad_locs[qx+1] - quad_locs[qx];
+                    first_element[INDEX3(qx,qy,qz,numQuad,numQuad)]= sqrt(x*x + y*y + z*z);
+                }
+                first_element[INDEX3(m_order,qy,qz,numQuad,numQuad)] 
+                        = first_element[INDEX3(0,qy,qz,numQuad,numQuad)];
+            }
+            for (short qx = 0; qx < numQuad; qx++) {
+                first_element[INDEX3(qx,m_order,qz,numQuad,numQuad)] 
+                        = first_element[INDEX3(qx,0,qz,numQuad,numQuad)];
+            }
+        }
+        for (short qy = 0; qy < numQuad; qy++) {
+            for (short qx = 0; qx < numQuad; qx++) {
+                first_element[INDEX3(qx,qy,m_order,numQuad,numQuad)] 
+                        = first_element[INDEX3(qx,qy,0,numQuad,numQuad)];
+            }
+        }
+        const size_t size = numQuad*numQuad*numQuad*sizeof(double);
 #pragma omp parallel for
         for (index_t k = 0; k < numElements; ++k) {
             double* o = out.getSampleDataRW(k);
-            std::fill(o, o+numQuad, size);
+            memcpy(o, first_element, size);
         }
     } else {
         std::stringstream msg;
@@ -2407,6 +2434,8 @@ Assembler_ptr Brick::createAssembler(std::string type,
     if (type.compare("DefaultAssembler") == 0) {
         return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx,
                 m_NE, m_NN));
+    } else if (type.compare("WaveAssembler") == 0) {
+        return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NE, m_NN, options));
     } else { //else ifs would go before this for other types
         throw SpeckleyException("Speckley::Brick does not support the"
                                 " requested assembler");

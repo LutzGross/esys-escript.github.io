@@ -32,6 +32,7 @@ class RipleyCoupler; //forward declaration of coupler to avoid circles
 class Speckley_DLL_API Brick: public SpeckleyDomain
 {
     friend class DefaultAssembler3D;
+    friend class WaveAssembler3D;
 public:
 
     /**

@@ -41,6 +41,8 @@ sources = """
     RectangleReductions.cpp
     SpeckleyDomain.cpp
     SpeckleyException.cpp
+    WaveAssembler2D.cpp
+    WaveAssembler3D.cpp
 """.split()
 
 headers = """
@@ -55,6 +57,8 @@ headers = """
     SpeckleyDomain.h
     SpeckleyException.h
     system_dep.h
+    WaveAssembler2D.h
+    WaveAssembler3D.h
 """.split()
 
 local_env.Prepend(LIBS = ['escript', 'esysUtils'])

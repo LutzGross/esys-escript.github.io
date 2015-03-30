@@ -26,6 +26,7 @@
 #include <esysUtils/index.h>
 #include <esysUtils/Esys_MPI.h>
 #include <speckley/DefaultAssembler2D.h>
+#include <speckley/WaveAssembler2D.h>
 #include <boost/scoped_array.hpp>
 #include <escript/FunctionSpaceFactory.h>
 #include "esysUtils/EsysRandom.h"
@@ -901,13 +902,33 @@ void Rectangle::setToSize(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
-        const dim_t numQuad = out.getNumDataPointsPerSample();
+        const dim_t numQuad = m_order + 1;
         const dim_t numElements = getNumElements();
-        const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]);
+        const double *quad_locs = point_locations[m_order-2];
+        //since elements are uniform, calc the first and copy to others
+        double* first_element = out.getSampleDataRW(0);
+#pragma omp parallel for
+        for (short qy = 0; qy < m_order; qy++) {
+            const double y = quad_locs[qy+1] - quad_locs[qy];
+            for (short qx = 0; qx < m_order; qx++) {
+                const double x = quad_locs[qx+1] - quad_locs[qx];
+                first_element[qx + qy*numQuad] = sqrt(x*x + y*y);
+            }
+        }
+        const short top_start = (numQuad - 1)*numQuad;
+        for (short edge = 0; edge < m_order; edge++) {
+            //right edge = left edge
+            first_element[(edge+1)*numQuad - 1] = first_element[edge*numQuad];
+            //top edge = bottom edge
+            first_element[top_start + edge] = first_element[edge];
+        }
+        //top-right corner
+        first_element[numQuad*numQuad - 1] = first_element[0];
+        const size_t size = numQuad*numQuad*sizeof(double);
 #pragma omp parallel for
         for (index_t k = 0; k < numElements; ++k) {
             double* o = out.getSampleDataRW(k);
-            std::fill(o, o+numQuad, size);
+            memcpy(o, first_element, size);
         }
     } else {
         std::stringstream msg;
@@ -1620,9 +1641,12 @@ dim_t Rectangle::findNode(const double *coords) const
 }
 
 Assembler_ptr Rectangle::createAssembler(std::string type,
-        const DataMap& options) const {
+        const DataMap& options) const
+{
     if (type.compare("DefaultAssembler") == 0) {
         return Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NE, m_NN));
+    } else if (type.compare("WaveAssembler") == 0) {
+        return Assembler_ptr(new WaveAssembler2D(shared_from_this(), m_dx, m_NE, m_NN, options));
     }
     throw SpeckleyException("Speckley::Rectangle does not support the"
             " requested assembler");
