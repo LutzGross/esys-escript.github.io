@@ -351,6 +351,7 @@ private:
 #endif
 
     friend class DefaultAssembler2D;
+    friend class WaveAssembler2D;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////

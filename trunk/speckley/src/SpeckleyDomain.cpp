@@ -718,7 +718,8 @@ void SpeckleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
                     "addPDEToRHS: Speckley does not support contact elements");
 
     if (rhs.isEmpty()) {
-        if (isNotEmpty("X", coefs) || isNotEmpty("Y", coefs))
+        if (isNotEmpty("X", coefs) || isNotEmpty("du", coefs)
+                    || isNotEmpty("Y", coefs))
             throw SpeckleyException(
                     "addPDEToRHS: right hand side coefficients are provided "
                     "but no right hand side vector given");
@@ -860,7 +861,8 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
                                escript::Data& rhs, const DataMap& coefs,
                                Assembler_ptr assembler) const
 {
-    if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
+    if (rhs.isEmpty() && (isNotEmpty("X", coefs) || isNotEmpty("du", coefs)) 
+            && isNotEmpty("Y", coefs))
         throw SpeckleyException("assemblePDE: right hand side coefficients are "
                     "provided but no right hand side vector given");
 
