@@ -29,7 +29,7 @@ from esys.escript import *
 from esys.ripley import MultiResolutionDomain
 from esys.escript.linearPDEs import LameEquation
 
-from run_customAssemblersOnRipley import RipleyCustomAssemblerTestBase
+from run_customAssemblersOnRipley import RipleyLameAssemblerTestBase, RipleyWaveAssemblerTestBase, Ricker
 
 mpiSize = getMPISizeWorld()
 
@@ -41,17 +41,38 @@ def Brick(**kwargs):
     m = MultiResolutionDomain(3, **kwargs)
     return m.getLevel(1)
 
-class Test_RipleyCustomAssemblers2D(RipleyCustomAssemblerTestBase):
+class Test_RipleyWaveAssembler2D(RipleyWaveAssemblerTestBase):
     def setUp(self):
-        self.domain = Rectangle(n0=20, n1=20)
+        self.domain = Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"],
+                diracPoints=[(0,0)])
+        self.wavelet = Ricker(100.)
+
+        
+    def tearDown(self):
+        del self.domain
+
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+class Test_RipleyWaveAssembler3D(RipleyWaveAssemblerTestBase):
+    def setUp(self):
+        self.domain = Brick(n0=10,n1=10,n2=10,l0=100.,l1=100., l2=100.,
+                diracTags=["source"], diracPoints=[(0,0,0)])
+        self.wavelet = Ricker(100.)
+
+    def tearDown(self):
+        del self.domain
+
+
+class Test_RipleyLameAssemblers2D(RipleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = Rectangle(n0=20,n1=20)
 
     def tearDown(self):
         del self.domain
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-class Test_RipleyCustomAssemblers3D(RipleyCustomAssemblerTestBase):
+class Test_RipleyLameAssemblers3D(RipleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = Brick(n0=10, n1=10, n2=10)
+        self.domain = Brick(n0=10,n1=10,n2=10)
 
     def tearDown(self):
         del self.domain

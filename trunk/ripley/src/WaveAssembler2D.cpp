@@ -57,6 +57,15 @@ WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom,
     c33 = c.find("c33")->second;
     c44 = c.find("c44")->second;
     c66 = c.find("c66")->second;
+
+    int fs = c11.getFunctionSpace().getTypeCode();
+
+    if (fs != c13.getFunctionSpace().getTypeCode()
+            || fs != c33.getFunctionSpace().getTypeCode()
+            || fs != c44.getFunctionSpace().getTypeCode()
+            || fs != c66.getFunctionSpace().getTypeCode()) {
+        throw RipleyException("C tensor elements are in mismatching function spaces");
+    }
 }
 
 void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
@@ -89,6 +98,11 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
     const Data& D = unpackData("D", coefs);
     const Data& Y = unpackData("Y", coefs);
     const Data& du = unpackData("du", coefs);
+
+    if ((!du.isEmpty()) && du.getFunctionSpace().getTypeCode() != c11.getFunctionSpace().getTypeCode()) {
+        throw RipleyException("WaveAssembler3D: du and C tensor in mismatching function spaces");
+    }
+
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -508,21 +522,21 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
 
                             if (isVTI) {
                                 const double *c44_p = c44.getSampleDataRO(e);
-                                X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
+                                X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0]
                                         + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
-                                X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1] 
+                                X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1]
                                         + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[1]);
-                                X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2] 
+                                X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2]
                                         + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[2]);
-                                X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3] 
+                                X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3]
                                         + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[3]);
-                                X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0] 
+                                X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0]
                                         + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[0]);
-                                X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1] 
+                                X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1]
                                         + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[1]);
-                                X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2] 
+                                X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2]
                                         + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[2]);
-                                X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3] 
+                                X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3]
                                         + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[3]);
                                 X_01_0 *= c44_p[0];
                                 X_01_1 *= c44_p[1];
@@ -530,21 +544,21 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                                 X_01_3 *= c44_p[3];
                             } else { // isHTI
                                 const double *c66_p = c66.getSampleDataRO(e);
-                                X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
+                                X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0]
                                         + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
-                                X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1] 
+                                X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1]
                                         + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[1]);
-                                X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2] 
+                                X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2]
                                         + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[2]);
-                                X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3] 
+                                X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3]
                                         + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[3]);
-                                X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0] 
+                                X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0]
                                         + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[0]);
-                                X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1] 
+                                X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1]
                                         + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[1]);
-                                X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2] 
+                                X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2]
                                         + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[2]);
-                                X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3] 
+                                X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3]
                                         + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[3]);
                                 X_01_0 *= c66_p[0];
                                 X_01_1 *= c66_p[1];
@@ -601,23 +615,23 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                             double wX_00, wX_01, wX_10, wX_11;
                             if (isVTI) {
                                 const double *c44_p = c44.getSampleDataRO(e);
-                                wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
+                                wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0]
                                                     + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
                                 wX_01 = -(c44_p[0] *
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
                                 wX_10 = -(c44_p[0] *
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
-                                wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
+                                wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0]
                                                     + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
-                            } else { // isHTI 
+                            } else { // isHTI
                                 const double *c66_p = c66.getSampleDataRO(e);
-                                wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
+                                wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0]
                                         + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
                                 wX_01 = -(c66_p[0] *
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
                                 wX_10 = -(c66_p[0] *
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
-                                wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
+                                wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0]
                                         + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
                             }
                             EM_F[INDEX2(0,0,numEq)]+= wX_00 + wX_01;
