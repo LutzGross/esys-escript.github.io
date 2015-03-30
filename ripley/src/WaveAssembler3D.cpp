@@ -41,7 +41,7 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
                 || c.find("c44") == c.end() || c.find("c66") == c.end()
                 || (a == c.end() && b == c.end()))
         throw RipleyException("required constants missing for WaveAssembler");
-        
+
     if (a != c.end() && b != c.end()) {
         throw RipleyException("WaveAssembler3D() doesn't support general "
                               "form waves (yet)");
@@ -57,9 +57,18 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
     c33 = c.find("c33")->second,
     c44 = c.find("c44")->second;
     c66 = c.find("c66")->second;
+
+    int fs = c11.getFunctionSpace().getTypeCode();
+
+    if (fs != c13.getFunctionSpace().getTypeCode()
+            || fs != c33.getFunctionSpace().getTypeCode()
+            || fs != c44.getFunctionSpace().getTypeCode()
+            || fs != c66.getFunctionSpace().getTypeCode()) {
+        throw RipleyException("C tensor elements are in mismatching function spaces");
+    }
 }
 
-void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                                 const DataMap& coefs) const
 {
     if (isNotEmpty("A", coefs))
@@ -90,6 +99,11 @@ void WaveAssembler3D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
     const Data& D = unpackData("D", coefs);
     const Data& Y = unpackData("Y", coefs);
     const Data& du = unpackData("du", coefs);
+
+    if ((!du.isEmpty()) && du.getFunctionSpace().getTypeCode() != c11.getFunctionSpace().getTypeCode()) {
+        throw RipleyException("WaveAssembler3D: du and C tensor in mismatching function spaces");
+    }
+
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -2047,7 +2061,7 @@ void WaveAssembler3D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                                 const double X_12_5 = -(c44_p[5]*(du_p[INDEX3(2,1,5,numEq,3)]+du_p[INDEX3(1,2,5,numEq,3)]));
                                 const double X_12_6 = -(c44_p[6]*(du_p[INDEX3(2,1,6,numEq,3)]+du_p[INDEX3(1,2,6,numEq,3)]));
                                 const double X_12_7 = -(c44_p[7]*(du_p[INDEX3(2,1,7,numEq,3)]+du_p[INDEX3(1,2,7,numEq,3)]));
-                                double X_00_0, X_00_1, X_00_2, X_00_3, 
+                                double X_00_0, X_00_1, X_00_2, X_00_3,
                                        X_00_4, X_00_5, X_00_6, X_00_7,
                                        X_02_0, X_02_1, X_02_2, X_02_3,
                                        X_02_4, X_02_5, X_02_6, X_02_7,
@@ -2347,7 +2361,7 @@ void WaveAssembler3D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                                     wX11 = 18*w56*-(c12_p[0]* du_p[INDEX2(0,0,numEq)] + c11_p[0] * du_p[INDEX2(1,1,numEq)] + c13_p[0]*du_p[INDEX2(2,2,numEq)]);
                                     wX22 = 18*w54*-(c13_p[0]*(du_p[INDEX2(0,0,numEq)] + du_p[INDEX2(1,1,numEq)]) + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
                                     wX02 = 18*w54*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
-                                    wX20 = 18*w55*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));                                
+                                    wX20 = 18*w55*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));                    
                                 } else { // isHTI
                                     const double *c23_p = c23.getSampleDataRO(e);
                                     wX00 = 18*w55*-(c11_p[0]* du_p[INDEX2(0,0,numEq)] + c13_p[0] * (du_p[INDEX2(1,1,numEq)] + du_p[INDEX2(2,2,numEq)]));
@@ -2365,7 +2379,7 @@ void WaveAssembler3D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                                 EM_F[INDEX2(0,5,numEq)]+=-wX00 + wX01 - wX02;
                                 EM_F[INDEX2(0,6,numEq)]+= wX00 - wX01 - wX02;
                                 EM_F[INDEX2(0,7,numEq)]+=-wX00 - wX01 - wX02;
-                                
+                    
                                 EM_F[INDEX2(1,0,numEq)]+= wX10 + wX11 + wX12;
                                 EM_F[INDEX2(1,1,numEq)]+=-wX10 + wX11 + wX12;
                                 EM_F[INDEX2(1,2,numEq)]+= wX10 - wX11 + wX12;
@@ -2374,7 +2388,7 @@ void WaveAssembler3D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
                                 EM_F[INDEX2(1,5,numEq)]+=-wX10 + wX11 - wX12;
                                 EM_F[INDEX2(1,6,numEq)]+= wX10 - wX11 - wX12;
                                 EM_F[INDEX2(1,7,numEq)]+=-wX10 - wX11 - wX12;
-                                
+                    
                                 EM_F[INDEX2(2,0,numEq)]+= wX20 + wX21 + wX22;
                                 EM_F[INDEX2(2,1,numEq)]+=-wX20 + wX21 + wX22;
                                 EM_F[INDEX2(2,2,numEq)]+= wX20 - wX21 + wX22;
