@@ -29,8 +29,8 @@ int defaultList[2]={0,1}; // an array to return in borrowListOfTagsInUse();
 }
 
 // Null domains only support 1 functionspace type.
-// The choice of =1 as the value is arbitrary
-int NullDomain::NullDomainFS = 1;
+// The choice of -7 as the value is to prevent collision with other domain enums
+int NullDomain::NullDomainFS = -7;
 dim_t NullDomain::referenceID = dim_t(10); // arbitrary
 
 std::string NullDomain::getDescription() const 
