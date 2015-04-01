@@ -157,7 +157,7 @@ class SpeckleyToRipley(object):
         """
         Returns the shape of the domains
 
-       :return: A ``tuple`` of the two shape ``tuple``s in the form
+       :return: A ``tuple`` of the two shape ``tuples`` in the form
                 (speckley, ripley)
        :rtype: ``tuple`` of ``tuple`` of ``int``
         """

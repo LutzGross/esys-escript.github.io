@@ -27,31 +27,26 @@ allowing access to list all skipped tests and other data kept by the
 
 Examples:
 
-  Running all test classes
-    ```
+Running all test classes::
+
     import your_test_module_or_file as tests
     tests.run_tests("your_test_module_or_file")
-    ```
 
-  Running specific test classes
-    ```
+Running specific test classes::
+
     import your_test_module_or_file as tests
-    tests.run_tests("your_test_module_or_file", [tests.Test_classA,
-            tests.Test_classB])
-    ```
-    
-  Running a specific test within a class
-    ```
+    tests.run_tests("your_test_module_or_file", [tests.Test_classA, tests.Test_classB])
+
+Running a specific test within a class::
+
     import your_test_module_or_file as tests
     tests.run_single_test(tests.Test_classname("test_functionname"))
-    ```
 
-  Printing the list of skipped tests
-    ```
+Printing the list of skipped tests::
+
     results = tests.run_tests("name")
     for skipped_test in results.skipped:
         print(skipped_test)
-    ```
 
 """
 

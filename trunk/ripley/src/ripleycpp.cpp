@@ -501,68 +501,79 @@ BOOST_PYTHON_MODULE(ripleycpp)
     scope().attr("DATATYPE_FLOAT32") = (int)ripley::DATATYPE_FLOAT32;
     scope().attr("DATATYPE_FLOAT64") = (int)ripley::DATATYPE_FLOAT64;
 
-    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
-        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
-"Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
-":param n0: number of elements in direction 0\n:type n0: ``int``\n"
-":param n1: number of elements in direction 1\n:type n1: ``int``\n"
-":param n2: number of elements in direction 2\n:type n2: ``int``\n"
-":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
-":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
-":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
-":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
+    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,
+        arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,
+        arg("diracPoints")=list(),arg("diracTags")=list(),
+        arg("escriptworld")=escript::SubWorld_ptr()),
+        "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
+        ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
+        ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
+        ":param n2: number of elements in direction 2\n:type n2: ``int``\n"
+        ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+        ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+        ":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
+        ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+        ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
-    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
-"Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
-":param n0: number of elements in direction 0\n:type n0: ``int``\n"
-":param n1: number of elements in direction 1\n:type n1: ``int``\n"
-":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
-":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
-":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,
+        arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),
+        arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
+        "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
+        ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
+        ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
+        ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+        ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+        ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
 
-    def("MultiRectangle", ripley::_multirectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr(), arg("multiplier")=1),
-"Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
-":param n0: number of elements in direction 0\n:type n0: ``int``\n"
-":param n1: number of elements in direction 1\n:type n1: ``int``\n"
-":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
-":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
-":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
+    def("MultiRectangle", ripley::_multirectangle, (arg("n0"),arg("n1"),
+        arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,
+        arg("diracPoints")=list(),arg("diracTags")=list(),
+        arg("escriptworld")=escript::SubWorld_ptr(), arg("multiplier")=1),
+        "Creates a rectangular mesh with n0 x n1 parent elements over the "
+        "rectangle [0,l0] x [0,l1], each parent element is divided ``multiplier`` times.\n\n"
+        ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
+        ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
+        ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+        ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+        ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
 
-    def("MultiBrick", ripley::_multibrick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
-        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr(), arg("multiplier")=1),
-"Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
-":param n0: number of elements in direction 0\n:type n0: ``int``\n"
-":param n1: number of elements in direction 1\n:type n1: ``int``\n"
-":param n2: number of elements in direction 2\n:type n2: ``int``\n"
-":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
-":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
-":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
-":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-":param d2: number of subdivisions in direction 2\n:type d2: ``int``"
-":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
+    def("MultiBrick", ripley::_multibrick, (arg("n0"),arg("n1"),arg("n2"),
+        arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,
+        arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(),
+        arg("escriptworld")=escript::SubWorld_ptr(), arg("multiplier")=1),
+        "Creates a hexagonal mesh with n0 x n1 x n2 parent elements over the "
+        "brick [0,l0] x [0,l1] x [0,l2], each parent element is divided ``multiplier`` times.\n\n"
+        ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
+        ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
+        ":param n2: number of elements in direction 2\n:type n2: ``int``\n"
+        ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+        ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+        ":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
+        ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+        ":param d2: number of subdivisions in direction 2\n:type d2: ``int``"
+        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
 
     def("readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
-"Reads a binary Grid");
+            "Reads a binary Grid");
 #ifdef USE_BOOSTIO
     def("_readBinaryGridFromZipped", &ripley::readBinaryGridFromZipped, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
-"Reads a binary Grid");
+            "Reads a binary Grid");
 #endif
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"),
                 arg("functionspace"), arg("shape"), arg("fill"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
-"Reads a grid from a netCDF file");
+            "Reads a grid from a netCDF file");
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
@@ -574,31 +585,32 @@ BOOST_PYTHON_MODULE(ripleycpp)
         .def("dump", &ripley::RipleyDomain::dump, args("filename"),
                 "Dumps the mesh to a file with the given name.")
         .def("getGridParameters", &ripley::RipleyDomain::getGridParameters,
-"Returns the tuple (origin, spacing, elements) where the entries are tuples:\n"
-"``origin``=the coordinates of the domain's global origin,\n"
-"``spacing``=the element size (=node spacing) of the domain,\n"
-"``elements``=the global number of elements in all dimensions\n\n"
-":rtype: ``tuple``")
+            "Returns the tuple (origin, spacing, elements) where the entries are tuples containing\n"
+            "    ``origin``  the coordinates of the domain's global origin,\n"
+            "    ``spacing``  the element size (node spacing) of the domain,\n"
+            "    ``elements``  the global number of elements in all dimensions\n\n"
+            ":rtype: ``tuple``")
         .def("getDescription", &ripley::RipleyDomain::getDescription,
-":return: a description for this domain\n:rtype: ``string``")
+            ":return: a description for this domain\n:rtype: ``string``")
         .def("getDim", &ripley::RipleyDomain::getDim, ":rtype: ``int``")
         .def("getDataShape", &ripley::RipleyDomain::getDataShape, args("functionSpaceCode"),
-":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
+            ":return: a pair (dps, ns) where dps is the number of data points per sample, and ns is the number of samples\n"
+            ":rtype: ``tuple``")
         .def("getNumDataPointsGlobal", &ripley::RipleyDomain::getNumDataPointsGlobal,
-":return: the number of data points summed across all MPI processes\n"
-":rtype: ``int``")
+            ":return: the number of data points summed across all MPI processes\n"
+            ":rtype: ``int``")
         .def("addToSystem",&ripley::RipleyDomain::addToSystemFromPython,
             args("mat", "rhs", "data"),
             "adds a PDE to the system, results depend on domain\n\n"
             ":param mat:\n:type mat: `OperatorAdapter`\n"
             ":param rhs:\n:type rhs: `Data`\n"
-            ":param data:\ntype data: `list`")
+            ":param data:\n:type data: `list`\n")
         .def("addToRHS",&ripley::RipleyDomain::addToRHSFromPython,
             args("rhs", "data"),
             "adds a PDE onto the stiffness matrix mat and a rhs, "
             "results depends on domain\n\n"
             ":param rhs:\n:type rhs: `Data`\n"
-            ":param data:\ntype data: `list`")
+            ":param data:\n:type data: `list`\n")
         .def("createAssembler", &ripley::RipleyDomain::createAssemblerFromPython,
             args("typename", "options"),
             "request from the domain an assembler of the specified type, if "
@@ -609,53 +621,53 @@ BOOST_PYTHON_MODULE(ripleycpp)
             args("tp", "source", "data"),
             ":param tp:\n:type tp: `TransportProblemAdapter`\n"
             ":param source:\n:type source: `Data`\n"
-            ":param data:\ntype data: `list`")
+            ":param data:\n:type data: `list`\n")
         .def("newOperator",&ripley::RipleyDomain::newSystemMatrix,
-args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
-"creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
-":param row_blocksize:\n:type row_blocksize: ``int``\n"
-":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
-":param column_blocksize:\n:type column_blocksize: ``int``\n"
-":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
-":param type:\n:type type: ``int``"
-)
+            args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
+            "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
+            ":param row_blocksize:\n:type row_blocksize: ``int``\n"
+            ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
+            ":param column_blocksize:\n:type column_blocksize: ``int``\n"
+            ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
+            ":param type:\n:type type: ``int``"
+            )
         .def("newTransportProblem",&ripley::RipleyDomain::newTransportProblem,
-args("theta", "blocksize", "functionspace", "type"),
-"creates a TransportProblemAdapter\n\n"
-":param theta:\n:type theta: ``float``\n"
-":param blocksize:\n:type blocksize: ``int``\n"
-":param functionspace:\n:type functionspace: `FunctionSpace`\n"
-":param type:\n:type type: ``int``"
-)
+            args("theta", "blocksize", "functionspace", "type"),
+            "creates a TransportProblemAdapter\n\n"
+            ":param theta:\n:type theta: ``float``\n"
+            ":param blocksize:\n:type blocksize: ``int``\n"
+            ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
+            ":param type:\n:type type: ``int``"
+            )
         .def("getSystemMatrixTypeId",&ripley::RipleyDomain::getSystemMatrixTypeId,
-args("options"),
-":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
-":rtype: ``int``\n"
-":param options:\n:type options: `SolverBuddy`\n"
-)
+            args("options"),
+            ":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
+            ":rtype: ``int``\n"
+            ":param options:\n:type options: `SolverBuddy`\n"
+            )
         .def("getTransportTypeId",&ripley::RipleyDomain::getTransportTypeId,
-args("solver", "preconditioner", "package", "symmetry"),
-":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
-":rtype: ``int``\n"
-":param solver:\n:type solver: ``int``\n"
-":param preconditioner:\n:type preconditioner: ``int``\n"
-":param package:\n:type package: ``int``\n"
-":param symmetry:\n:type symmetry: ``int``"
-)
+            args("solver", "preconditioner", "package", "symmetry"),
+            ":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
+            ":rtype: ``int``\n"
+            ":param solver:\n:type solver: ``int``\n"
+            ":param preconditioner:\n:type preconditioner: ``int``\n"
+            ":param package:\n:type package: ``int``\n"
+            ":param symmetry:\n:type symmetry: ``int``"
+            )
         .def("getX",&ripley::RipleyDomain::getX, ":return: locations in the FEM nodes\n\n"
-":rtype: `Data`")
+            ":rtype: `Data`")
         .def("getNormal",&ripley::RipleyDomain::getNormal,
-":return: boundary normals at the quadrature point on the face elements\n"
-":rtype: `Data`")
+            ":return: boundary normals at the quadrature point on the face elements\n"
+            ":rtype: `Data`")
         .def("getSize",&ripley::RipleyDomain::getSize,":return: the element size\n"
-":rtype: `Data`")
+            ":rtype: `Data`")
         .def("setTagMap",&ripley::RipleyDomain::setTagMap,args("name","tag"),
-"Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
-":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
+            "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
+            ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
         .def("getTag",&ripley::RipleyDomain::getTag,args("name"),":return: tag id for "
-"``name``\n:rtype: ``string``")
+            "``name``\n:rtype: ``string``")
         .def("isValidTagName",&ripley::RipleyDomain::isValidTagName,args("name"),
-":return: True if ``name`` corresponds to a tag, otherwise False\n:rtype: ``bool``")
+            ":return: True if ``name`` corresponds to a tag, otherwise False\n:rtype: ``bool``")
         .def("showTagNames",&ripley::RipleyDomain::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
         .def("getMPISize",&ripley::RipleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
         .def("getMPIRank",&ripley::RipleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")

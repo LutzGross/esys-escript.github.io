@@ -385,16 +385,18 @@ BOOST_PYTHON_MODULE(speckleycpp)
         .def("dump", &speckley::SpeckleyDomain::dump, args("filename"),
                 "Dumps the mesh to a file with the given name.")
         .def("getGridParameters", &speckley::SpeckleyDomain::getGridParameters,
-"Returns the tuple (origin, spacing, elements) where the entries are tuples:\n"
-"``origin``=the coordinates of the domain's global origin,\n"
-"``spacing``=the element size (=node spacing) of the domain,\n"
-"``elements``=the global number of elements in all dimensions\n\n"
-":rtype: ``tuple``")
+            "Returns the tuple (origin, spacing, elements) where the entries are tuples:\n"
+            "``origin`` the coordinates of the domain's global origin,\n"
+            "``spacing`` the element size (=node spacing) of the domain,\n"
+            "``elements`` the global number of elements in all dimensions\n\n"
+            ":rtype: ``tuple``")
         .def("getDescription", &speckley::SpeckleyDomain::getDescription,
-":return: a description for this domain\n:rtype: ``string``")
+            ":return: a description for this domain\n:rtype: ``string``")
         .def("getDim", &speckley::SpeckleyDomain::getDim, ":rtype: ``int``")
         .def("getDataShape", &speckley::SpeckleyDomain::getDataShape, args("functionSpaceCode"),
-":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
+            ":return: a pair (dps, ns) where dps is the number of data points"
+            " per sample, and ns isthe number of samples\n"
+            ":rtype: ``tuple``")
         .def("getNumDataPointsGlobal", &speckley::SpeckleyDomain::getNumDataPointsGlobal,
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
@@ -403,13 +405,13 @@ BOOST_PYTHON_MODULE(speckleycpp)
             "adds a PDE to the system, results depend on domain\n\n"
             ":param mat:\n:type mat: `OperatorAdapter`\n"
             ":param rhs:\n:type rhs: `Data`\n"
-            ":param data:\ntype data: `list`")
+            ":param data:\n:type data: `list`")
         .def("addToRHS",&speckley::SpeckleyDomain::addToRHSFromPython,
             args("rhs", "data"),
             "adds a PDE onto the stiffness matrix mat and a rhs, "
             "results depends on domain\n\n"
             ":param rhs:\n:type rhs: `Data`\n"
-            ":param data:\ntype data: `list`")
+            ":param data:\n:type data: `list`")
         .def("getOrder",&speckley::SpeckleyDomain::getOrder,
             ":return: the order of the domain\n"
             ":rtype: ``int``")
