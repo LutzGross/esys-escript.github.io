@@ -82,7 +82,8 @@ class Subsidence(ForwardModel):
 
     def rescaleWeights(self, scale=1., P_scale=1.):
         """
-        rescales the weights such that
+        rescales the weights
+        
         :param scale: scale of data weighting factors
         :type scale: positive ``float``
         :param P_scale: scale of pressure increment

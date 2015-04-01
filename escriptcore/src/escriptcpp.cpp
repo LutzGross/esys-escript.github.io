@@ -1039,8 +1039,8 @@ args("source", "q", "r","factor"),
         ":return: requested value. 0 is returned if the value is yet to be defined.\n"
         ":note: If the solver has thrown an exception diagnostic values have an undefined status.")
     .def("hasConverged", &escript::SolverBuddy::hasConverged,"Returns ``True`` if the last solver call has been finalized successfully.\n\n"
-        ":note: if an exception has been thrown by the solver the status of this\n"
-        "flag is undefined.")
+        ":note: if an exception has been thrown by the solver the status of this"
+        "flag is undefined.\n")
     .def("setCoarsening", &escript::SolverBuddy::setCoarsening, args("coarsening"),"Sets the key of the coarsening method to be applied in AMG or AMLI or BoomerAMG\n\n"
         ":param method: selects the coarsening method .\n"
         ":type method: in `DEFAULT`, `YAIR_SHAPIRA_COARSENING`, `RUGE_STUEBEN_COARSENING`, `AGGREGATION_COARSENING`, `CIJP_FIXED_RANDOM_COARSENING`, `CIJP_COARSENING`, `FALGOUT_COARSENING`, `PMIS_COARSENING`, `HMIS_COARSENING`")
@@ -1053,8 +1053,8 @@ args("source", "q", "r","factor"),
     .def("setPreconditioner", &escript::SolverBuddy::setPreconditioner, args("preconditioner"),"Sets the preconditioner to be used.\n\n"
         ":param preconditioner: key of the preconditioner to be used.\n"
         ":type preconditioner: in `ILU0`, `ILUT`, `JACOBI`, `AMG`, `AMLI`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `BOOMERAMG`, `NO_PRECONDITIONER`\n"
-        ":note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown\n"
-        "preconditioner.")
+        ":note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown"
+        "preconditioner.\n")
     .def("getPreconditioner", &escript::SolverBuddy::getPreconditioner,"Returns the key of the preconditioner to be used.\n\n"
         ":rtype: in the list `ILU0`, `ILUT`, `JACOBI`, `AMLI`, `AMG`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `BOOMERAMG`, `NO_PRECONDITIONER`")
     .def("setSmoother", &escript::SolverBuddy::setSmoother, args("smoother"),"Sets the smoother to be used.\n\n"

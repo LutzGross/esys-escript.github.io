@@ -39,7 +39,7 @@ class AcousticWaveForm(ForwardModel):
     Forward Model for acoustic waveform inversion in the frequency domain.
     It defines a cost function:
 
-        defect = 1/2 integrate( ( w * ( a * u - data ) ) ** 2 )
+    :math: `defect = 1/2 integrate( ( w * ( a * u - data ) ) ** 2 )`
 
     where w are weighting factors, data are the measured data (as a 2-comp
     vector of real and imaginary part) for real frequency omega, and u is
@@ -48,7 +48,7 @@ class AcousticWaveForm(ForwardModel):
     for frequency omega, source F and complex, inverse, squared p-velocity
     sigma:
 
-        * -u_{ii} - omega**2 * sigma * u = F
+    :math: `-u_{ii} - omega**2 * sigma * u = F`
 
     It is assumed that the exact scale of source F is unknown and the scaling
     factor a of F is calculated by minimizing the defect.
@@ -148,7 +148,7 @@ class AcousticWaveForm(ForwardModel):
         """
         rescales the weights such that
 
-        *integrate( ( w omega**2 * sigma_scale * data * ((1/L_j)**2)**-1) +1 )/(data*omega**2 * ((1/L_j)**2)**-1) * sigma_scale )=scale*
+        :math: integrate( ( w omega**2 * sigma_scale * data * ((1/L_j)**2)**-1) +1 )/(data*omega**2 * ((1/L_j)**2)**-1) * sigma_scale )=scale
 
         :param scale: scale of data weighting factors
         :type scale: positive ``float``
@@ -219,7 +219,8 @@ class AcousticWaveForm(ForwardModel):
 
     def getSourceScaling(self, u):
         """
-        returns the scaling factor s required to rescale source F to minimize defect |s * u- data|^2
+        returns the scaling factor s required to rescale source F to minimize defect ``|s * u- data|^2``
+
         :param u: value of pressure solution (real and imaginary part)
         :type u: ``Data`` of shape (2,)
         :rtype: `complex`

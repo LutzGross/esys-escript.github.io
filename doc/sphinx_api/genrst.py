@@ -28,10 +28,10 @@ def dumpPackage(mname, ignorelist, modset, banset):
   pack=open(os.path.join(outdir,mname+'.rst'),'w')
   pack.write(mname+' Package\n')
   pack.write('='*len(mname)+'========\n\n')
-  pack.write('.. py:module:: '+mname+'\n\n')
+#  pack.write('.. py:module:: '+mname+'\n\n')
   moddoc = inspect.getdoc(PP)
   if moddoc:
-    pack.write("   "+moddoc.replace("\n\n", "\n").replace("\n", "\n   ") + "\n")
+    pack.write(".. automodule:: %s\n   :synopsis: %s\n"%(mname, "".join(moddoc.replace("\n\n", "\n").replace("\n", " "))))
   #Automodule does not seem to do what we want so we need to drill down
   clist=[]
   flist=[]
@@ -74,14 +74,14 @@ def dumpPackage(mname, ignorelist, modset, banset):
           flist+=[(name, mem)]
         else:
           vlist+=[(name, mem)]
-  pack.write('Classes\n')
+  pack.write('\nClasses\n')
   pack.write('-------\n')
   for (name, mem) in clist:
       pack.write('* `'+name+'`\n')
   pack.write('\n')
   for (name, mem) in clist:
     pack.write('.. autoclass:: '+name+'\n')
-    pack.write('   :members:\n   :undoc-members:\n\n')
+    pack.write('   :members:\n   :undoc-members:\n\n   .. automethod:: __init__\n\n')
   pack.write('\n')
     
   pack.write('Functions\n')

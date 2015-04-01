@@ -19,7 +19,22 @@ from __future__ import division, print_function
 from esys.ripley import MultiRectangle, MultiBrick
 
 class MultiResolutionDomain(object):
+    """ Constructs domains of varying resolutions that are guaranteed to be
+    compatible for cross-domain interpolation. The parameters supplied will be
+    used to construct the coarsest resolution. No coarser domain can be
+    constructed.
+    
+    Each domain of finer resolution will have the number of elements in every
+    axis of the coarsest domain multiplied by ``2**n``, where ``n`` is the level of
+    subdivision.
+    """
     def __init__(self, dim, **kwargs):
+        """
+        :param dim: the spatial dimension of the domain to create
+        :type dim: `int`
+        :param kwargs: the arguments normally passed to a constructor of
+                Rectangle or Brick, including as the number of elements ``n0=...``, ``n1=...``, etc.
+        """
         self.__kwargs = kwargs
         self.__levels = {}
         self.__dim = dim
@@ -64,9 +79,15 @@ class MultiResolutionDomain(object):
                 escriptworld, subdivisions)
 
     def getMaxDepth(self):
-        return len(self.__levels)
+        """ Returns the level of the finest domain created so far """
+        return len(self.__levels) - 1
     
     def getLevel(self, level):
+        """ Returns a domain with each element subdivided ``level`` times 
+        
+        :param level: the number of times to subdivide each element
+        :type level: `int`
+        """
         if int(level) != level or level < 0:
             raise ValueError("level must be a non-negative integer")
         dom = self.__levels.get(level)

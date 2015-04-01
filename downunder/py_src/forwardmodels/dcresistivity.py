@@ -39,7 +39,7 @@ class DcRes(ForwardModel):
     Forward Model for DC resistivity, with a given source pair.
     The cost function is defined as:
 
-        * defect = 1/2 (sum_s sum_pq w_pqs * ((phi_sp-phi_sq)-v_pqs)**2 *
+    :math: defect = 1/2 (sum_s sum_pq w_pqs * ((phi_sp-phi_sq)-v_pqs)**2
 
     """
     def __init__(self, domain, locator, delphiIn, sampleTags, phiPrimary,
@@ -47,6 +47,7 @@ class DcRes(ForwardModel):
                  saveMemory=True, b=None):
         """
         setup new forward model
+        
         :param domain: the domain of the model
         :type: escript domain
         :param locator: contains locator to the measurement pairs
