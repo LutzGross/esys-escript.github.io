@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2014 by University of Queensland
+# Copyright (c) 2003-2015 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -106,7 +106,7 @@ openmp = True
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-mt-py27']
+boost_libs = ['boost_python-py27']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 # Only required for C++ unit tests.
@@ -306,15 +306,16 @@ build_shared = True
 # DEFAULT: False
 #papi_instrument_solver = True
 
-
 from site_init import getdebbuildflags
 # Now we add the debian build flags
 debstuff=getdebbuildflags()
 if (len(debstuff)>0):
   print("Building with the following additional flags from debian: "+str(debstuff))
+
 for i in debstuff:
   k=i[0]
   v=i[1]
+  print("Processing: "+k+" || "+v)
   try:
     exec(k+"+=' "+v+"'")
   except NameError:   
