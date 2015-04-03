@@ -24,6 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 import sys, os, time, py_compile, re, subprocess
 from SCons.Defaults import Chmod, Copy
 from grouptest import *
+from extractdebbuild import *
 
 def findLibWithHeader(env, libs, header, paths, lang='c++'):
     from SCons.Script.SConscript import Configure
