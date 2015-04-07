@@ -77,6 +77,8 @@ class DcRes(ForwardModel):
         if isinstance(w, float) or isinstance(w, int):
             w = [float(w) for z in delphiIn]
             self.__w = w
+        else:
+            self.__w = w
         if not len(w) == len(delphiIn):
             raise ValueError("Number of confidence factors and number of potential input values don't match.")
 
@@ -142,14 +144,6 @@ class DcRes(ForwardModel):
             X=pde.createCoefficient('X')
             pde.setValue(A=A, X=X, q=q)
 
-            # else:
-                # pde=LinearPDE(self.__domain, numEquations=1)
-                # A=pde.createCoefficient('A')
-                # z = dom.getX()[DIM-1]
-                # q=whereZero(z-inf(z))
-                # r=0
-                # pde.setValue(A=APrimary,y_dirac=y_dirac,d=alpha)
-
         else:
             pde=self.__pde
             pde.resetRightHandSideCoefficients()
@@ -194,19 +188,19 @@ class DcRes(ForwardModel):
             raise ValueError("length of locator is wrong")
 
         delphi_calc=[]
-        if self.__sampleTags[0][1]!="-":
+        if self.__sampleTags[0][1] != "-":
             for i in range(0,length,2):
                 delphi_calc.append(val[i+1]-val[i])
         else:
             for i in range(length):
                 delphi_calc.append(val[i])
         A=0
-        if (self.__sampleTags[0][1]!="-"):
+        if (self.__sampleTags[0][1] != "-"):
             for i in range(length//2):
                 A += (self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)
         else:
             for i in range(length):
-                A+=(self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)
+                A += (self.__w[i]*(delphi_calc[i]-self.delphiIn[i])**2)
         return  A/2
 
     def getGradient(self, sigma, phi, loc_phi):
