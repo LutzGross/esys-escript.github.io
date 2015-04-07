@@ -424,6 +424,7 @@ class TestIsostaticPressure(unittest.TestCase):
         self.assertLess(Lsup(p0-p_ref), 1e-6 * Lsup(p_ref))
 
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
+@unittest.skipIf(mpisize>1 or have_direct!=1, "more than 1 MPI rank or missing direct solver")
 class TestMT2DModelTEMode(unittest.TestCase):
     def test_API(self):
         domain=ripRectangle(25, 25, d1=mpisize)
@@ -571,6 +572,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
 
 
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
+@unittest.skipIf(mpisize>1 or have_direct!=1, "more than 1 MPI rank or missing direct solver")
 class TestMT2DModelTMMode(unittest.TestCase):
     def test_API(self):
         domain=ripRectangle(25, 25, d0=mpisize)
