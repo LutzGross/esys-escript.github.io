@@ -1474,6 +1474,7 @@ void RipleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
         nComp = mat->getColumnBlockSize();
     }
 
+    rhs.requireWrite();
     for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
         const index_t dof = getDofOfNode(m_diracPoints[i].node);
         if (yNotEmpty) {
