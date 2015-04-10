@@ -2154,7 +2154,6 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 
 void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
                     const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
-    const int tag = 0;
     MPI_Status status;
     const int front_neighbour = rank - NX[0];
     const int back_neighbour = rank + NX[0];
@@ -2173,10 +2172,21 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
             std::copy(backData, backData + numComp, &back[index]);
         }
     }
+
+    MPI_Request request[2];
+    if (ry) {
+        MPI_Isend(&front[0], count, MPI_DOUBLE, front_neighbour, rank,
+            comm, request);
+    }
+    
+    if (ry < NX[1] - 1) {
+        MPI_Isend(&back[0], count, MPI_DOUBLE, back_neighbour, rank,
+            comm, request+1);
+    }
+    
     //front
     if (ry) {
-        MPI_Sendrecv(&front[0], count, MPI_DOUBLE, front_neighbour, tag,
-                    &recv[0], count, MPI_DOUBLE, front_neighbour, tag,
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, front_neighbour, front_neighbour,
                     comm, &status);
         //unpack front
 #pragma omp parallel for
@@ -2193,8 +2203,7 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
 
     //back
     if (ry < NX[1] - 1) {
-        MPI_Sendrecv(&back[0], count, MPI_DOUBLE, back_neighbour, tag,
-                &recv[0], count, MPI_DOUBLE, back_neighbour, tag,
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, back_neighbour, back_neighbour,
                 comm, &status);
         //unpack back
 #pragma omp parallel for
@@ -2208,11 +2217,17 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
             }
         }
     }
+    
+    if (ry) {
+        MPI_Wait(request, &status);
+    }
+    if (ry < NX[1] - 1) {
+        MPI_Wait(request+1, &status);
+    }
 }
 
 void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
                     const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
-    const int tag = 0;
     MPI_Status status;
     const int top_neighbour = rank + NX[0]*NX[1];
     const int bottom_neighbour = rank - NX[0]*NX[1];
@@ -2232,11 +2247,21 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
         }
     }
 
+    MPI_Request request[2];
+    if (rz) {
+        MPI_Isend(&bottom[0], count, MPI_DOUBLE, bottom_neighbour, rank,
+            comm, request);
+    }
+   
+    if (rz < NX[2] - 1) {
+        MPI_Isend(&top[0], count, MPI_DOUBLE, top_neighbour, rank,
+            comm, request + 1);
+    }
+
     //bottom
     if (rz) {
-        MPI_Sendrecv(&bottom[0], count, MPI_DOUBLE, bottom_neighbour, tag,
-                    &recv[0], count, MPI_DOUBLE, bottom_neighbour, tag,
-                    comm, &status);
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, bottom_neighbour,
+                bottom_neighbour, comm, &status);
         //unpack to bottom
 #pragma omp parallel for
         for (dim_t y = 0; y < NN[1]; y++) {
@@ -2252,8 +2277,7 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
 
     //top
     if (rz < NX[2] - 1) {
-        MPI_Sendrecv(&top[0], count, MPI_DOUBLE, top_neighbour, tag,
-                    &recv[0], count, MPI_DOUBLE, top_neighbour, tag,
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, top_neighbour, top_neighbour,
                     comm, &status);
         //unpack to top
 #pragma omp parallel for
@@ -2267,12 +2291,17 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
             }
         }
     }
+    if (rz) {
+        MPI_Wait(request, &status);
+    }
+    if (rz < NX[2] - 1) {
+        MPI_Wait(request+1, &status);
+    }
 }
 
 
 void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
                     const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
-    const int tag = 0;
     MPI_Status status;
     const int left_neighbour = rank - 1;
     const int right_neighbour = rank + 1;
@@ -2293,10 +2322,22 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
 
     }
 
-    //right
+    MPI_Request request[2];
+
+    //right send
     if (rx < NX[0] - 1) {
-        MPI_Sendrecv(&right[0], count, MPI_DOUBLE, right_neighbour, tag,
-                &recv[0], count, MPI_DOUBLE, right_neighbour, tag,
+        MPI_Isend(&right[0], count, MPI_DOUBLE, right_neighbour,
+                rank, comm, request);
+    }
+    //left send
+    if (rx) {
+        MPI_Isend(&left[0], count, MPI_DOUBLE, left_neighbour,
+                rank, comm, request+1);
+    }
+    
+    //right recv
+    if (rx < NX[0] - 1) {    
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, right_neighbour,
                 comm, &status);
         //unpack to right
 #pragma omp parallel for
@@ -2312,9 +2353,8 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
     }
     //left
     if (rx) {
-        MPI_Sendrecv(&left[0], count, MPI_DOUBLE, left_neighbour, tag,
-                    &recv[0], count, MPI_DOUBLE, left_neighbour, tag,
-                    comm, &status);
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, left_neighbour, left_neighbour,
+                comm, &status);
         //unpack to left
 #pragma omp parallel for
         for (dim_t z = 0; z < NN[2]; z++) {
@@ -2326,6 +2366,12 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
                 }
             }
         }
+    }
+    if (rx) {
+        MPI_Wait(request+1, &status);
+    }
+    if (rx < NX[0] - 1) {
+        MPI_Wait(request, &status);
     }
 }
 
