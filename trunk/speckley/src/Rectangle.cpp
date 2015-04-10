@@ -1402,16 +1402,21 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
     //setup
     const int tag = 0;
     MPI_Status status;
+    MPI_Request request[4];
     const int numComp = out.getDataPointSize();
     const int count = 4 * numComp;
     std::vector<double> outbuf(count, 0);
     std::vector<double> inbuf(count, 0);
     const int rank = m_mpiInfo->rank;
     //precalc bounds so we can loop nicely, can probably be cleaned up
-    const bool conds[4] = {rx && ry, rx < (m_NX[0] - 1) && ry,
-            rx && ry < (m_NX[1] - 1),rx < (m_NX[0] - 1) && ry < (m_NX[1] - 1)};
-    const int ranks[4] = {rank-m_NX[0]-1,rank-m_NX[0]+1,
-                        rank+m_NX[0]-1,rank+m_NX[0]+1};
+    const bool conds[4] = {rx && ry,
+                           rx < (m_NX[0] - 1) && ry,
+                           rx && ry < (m_NX[1] - 1),
+                           rx < (m_NX[0] - 1) && ry < (m_NX[1] - 1)};
+    const int ranks[4] = {rank-m_NX[0]-1,
+                          rank-m_NX[0]+1,
+                          rank+m_NX[0]-1,
+                          rank+m_NX[0]+1};
     //fill everything, regardless of whether we're sharing that corner or not
     for (int y = 0; y < 2; y++) {
         for (int x = 0; x < 2; x++) {
@@ -1423,19 +1428,28 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
     //share
     for (int i = 0; i < 4; i++) {
         if (conds[i]) {
-            MPI_Sendrecv(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
-                    &inbuf[i], count, MPI_DOUBLE, ranks[i], tag,
-                    m_mpiInfo->comm, &status);
+            MPI_Isend(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
+                    m_mpiInfo->comm, &request[i]);
         }
     }
 
     //unpack
     for (int y = 0; y < 2; y++) {
         for (int x = 0; x < 2; x++) {
-            double *data = out.getSampleDataRW(x*(m_NN[0]-1) + y*(m_NN[1]-1)*m_NN[0]);
-            for (int comp = 0; comp < numComp; comp++) {
-                data[comp] += inbuf[(x + 2*y)*numComp + comp];
+            int i = 2*y+x;
+            if (conds[i]) {
+                MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
+                        m_mpiInfo->comm, &status);
+                double *data = out.getSampleDataRW(x*(m_NN[0]-1) + y*(m_NN[1]-1)*m_NN[0]);
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += inbuf[i*numComp + comp];
+                }
             }
+        }
+    }
+    for (int i = 0; i < 4; i++) {
+        if (conds[i]) {
+            MPI_Wait(request + i, &status);
         }
     }
 }
@@ -1455,51 +1469,45 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
     double *top = out.getSampleDataRW((m_NN[1]-1) * m_NN[0]);
     double *bottom = out.getSampleDataRW(0);
 
-    if (ry % 2) {
-        //send to up, read from up
-        if (ry < m_NX[1] - 1) {
-            MPI_Send(&top[0], count, MPI_DOUBLE, up_neighbour, tag,
-                    m_mpiInfo->comm);
-            MPI_Recv(&recv[0], count, MPI_DOUBLE, up_neighbour, tag,
-                    m_mpiInfo->comm, &status);
-            //unpack up
-            for (dim_t i = 0; i < count; i++) {
-                top[i] += recv[i];
-            }
-        }
-        //send down, read down
-        MPI_Send(&bottom[0], count, MPI_DOUBLE, down_neighbour, tag,
-                    m_mpiInfo->comm);
+    MPI_Request request[2];
+    
+    if (ry) {
+        MPI_Isend(bottom, count, MPI_DOUBLE, down_neighbour, tag,
+                m_mpiInfo->comm, request);
+    }
+
+    if (ry < m_NX[1] - 1) {
+        MPI_Isend(top, count, MPI_DOUBLE, up_neighbour, tag,
+            m_mpiInfo->comm, request+1);
+    }
+    
+    //read down
+    if (ry) {
         MPI_Recv(&recv[0], count, MPI_DOUBLE, down_neighbour, tag,
-                    m_mpiInfo->comm, &status);
+                m_mpiInfo->comm, &status);
+
         //unpack bottom
         for (dim_t i = 0; i < count; i++) {
             bottom[i] += recv[i];
         }
-    } else {
-        //read down, send down
-        if (ry) {
-            MPI_Recv(&recv[0], count, MPI_DOUBLE, down_neighbour, tag,
-                    m_mpiInfo->comm, &status);
-            MPI_Send(&bottom[0], count, MPI_DOUBLE, down_neighbour, tag,
-                    m_mpiInfo->comm);
-            //unpack bottom
-            for (dim_t i = 0; i < count; i++) {
-                bottom[i] += recv[i];
-            }
-        }
+    }
 
-        //read up, send up
-        if (ry < m_NX[1] - 1) {
-            MPI_Recv(&recv[0], count, MPI_DOUBLE, up_neighbour, tag,
-                    m_mpiInfo->comm, &status);
-            MPI_Send(&top[0], count, MPI_DOUBLE, up_neighbour, tag,
-                    m_mpiInfo->comm);
-            //unpack up
-            for (dim_t i = 0; i < count; i++) {
-                top[i] += recv[i];
-            }
+    //read up, send up
+    if (ry < m_NX[1] - 1) {
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, up_neighbour, tag,
+                m_mpiInfo->comm, &status);
+
+        //unpack up
+        for (dim_t i = 0; i < count; i++) {
+            top[i] += recv[i];
         }
+    }
+    
+    if (ry) {
+        MPI_Wait(request, &status);
+    }
+    if (ry < m_NX[1] - 1) {
+        MPI_Wait(request+1, &status);
     }
 }
 
@@ -1516,35 +1524,33 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
     std::vector<double> left(count,170);
     std::vector<double> right(count,17000);
     std::vector<double> recv(count,1700);
-    //fill those values
-    for (dim_t n = 0; n < m_NN[1]; n++) {
-        index_t index = n*m_NN[0];
-        const double *leftData = out.getSampleDataRO(index);
-        std::copy(leftData, leftData + numComp, &left[n*numComp]);
-        const double *rightData = out.getSampleDataRO(index+m_NN[0]-1);
-        std::copy(rightData, rightData + numComp, &right[n*numComp]);
+
+    MPI_Request request[2];
+
+    if (rx) {
+        for (dim_t n = 0; n < m_NN[1]; n++) {
+            index_t index = n*m_NN[0];
+            const double *leftData = out.getSampleDataRO(index);
+            std::copy(leftData, leftData + numComp, &left[n*numComp]);
+        }
+        MPI_Isend(&left[0], count, MPI_DOUBLE, left_neighbour, tag,
+                m_mpiInfo->comm, request);
     }
 
-    if (rx % 2) {
-        //send to right, read from right
-        if (rx < m_NX[0] - 1) {
-            MPI_Send(&right[0], count, MPI_DOUBLE, right_neighbour, tag,
-                    m_mpiInfo->comm);
-            MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, tag,
-                    m_mpiInfo->comm, &status);
-            //unpack to right
-            for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW((i + 1) * m_NN[0] - 1);
-                for (int comp = 0; comp < numComp; comp++) {
-                    data[comp] += recv[i*numComp+comp];
-                }
-            }
+    if (rx < m_NX[0] - 1) {
+        for (dim_t n = 0; n < m_NN[1]; n++) {
+            index_t index = n*m_NN[0];
+            const double *rightData = out.getSampleDataRO(index+m_NN[0]-1);
+            std::copy(rightData, rightData + numComp, &right[n*numComp]);
         }
-        //send left, read left
-        MPI_Send(&left[0], count, MPI_DOUBLE, left_neighbour, tag,
-                    m_mpiInfo->comm);
+        MPI_Isend(&right[0], count, MPI_DOUBLE, right_neighbour, tag,
+                m_mpiInfo->comm, request+1);
+    }
+
+    //read left
+    if (rx) {
         MPI_Recv(&recv[0], count, MPI_DOUBLE, left_neighbour, tag,
-                    m_mpiInfo->comm, &status);
+                m_mpiInfo->comm, &status);
         //unpack to left
         for (dim_t i = 0; i < m_NN[1]; i++) {
             double *data = out.getSampleDataRW(i*m_NN[0]);
@@ -1552,36 +1558,25 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
                 data[comp] += recv[i*numComp+comp];
             }
         }
-    } else {
-        //read left, send left
-        if (rx) {
-            MPI_Recv(&recv[0], count, MPI_DOUBLE, left_neighbour, tag,
-                    m_mpiInfo->comm, &status);
-            MPI_Send(&left[0], count, MPI_DOUBLE, left_neighbour, tag,
-                    m_mpiInfo->comm);
-            //unpack to left
-            for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(i*m_NN[0]);
-                for (int comp = 0; comp < numComp; comp++) {
-                    data[comp] += recv[i*numComp+comp];
-                }
-            }
-        }
+    }
 
-        //read right, send right
-        if (rx < m_NX[0] - 1) {
-            MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, tag,
-                    m_mpiInfo->comm, &status);
-            MPI_Send(&right[0], count, MPI_DOUBLE, right_neighbour, tag,
-                    m_mpiInfo->comm);
-            //unpack to right
-            for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW((i + 1) * m_NN[0] - 1);
-                for (int comp = 0; comp < numComp; comp++) {
-                    data[comp] += recv[i*numComp+comp];
-                }
+    //read right
+    if (rx < m_NX[0] - 1) {
+        MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, tag,
+                m_mpiInfo->comm, &status);
+        //unpack to right
+        for (dim_t i = 0; i < m_NN[1]; i++) {
+            double *data = out.getSampleDataRW((i + 1) * m_NN[0] - 1);
+            for (int comp = 0; comp < numComp; comp++) {
+                data[comp] += recv[i*numComp+comp];
             }
         }
+    }
+    if (rx) {
+        MPI_Wait(request, &status);
+    }
+    if (rx < m_NX[0] - 1) {
+        MPI_Wait(request+1, &status);
     }
 }
 #endif //#ifdef ESYS_MPI
