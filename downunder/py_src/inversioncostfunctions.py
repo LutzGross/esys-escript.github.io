@@ -136,7 +136,7 @@ class InversionCostFunction(MeteredCostFunction):
 
                 else:
                     if idx[0] != 0:
-                        raise ValueError("Level set index %s is out of range."%(k,))
+                        raise ValueError("Level set index %s is out of range."%(idx[0],))
                     else:
                         idx=None
             self.mappings.append((m,idx))
