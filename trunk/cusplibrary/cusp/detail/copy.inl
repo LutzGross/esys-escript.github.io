@@ -14,6 +14,13 @@
  *  limitations under the License.
  */
 
+/*
+ * Modifications to this file:
+ * Copyright (c) 2014-2015, The University of Queensland
+ * Licensed under the Apache License, Version 2.0.
+ *
+ */
+
 #include <cusp/format.h>
 
 // TODO replace with detail/array2d_utils.h or something

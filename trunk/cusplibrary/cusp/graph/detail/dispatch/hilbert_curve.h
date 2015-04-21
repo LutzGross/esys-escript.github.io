@@ -13,7 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-    
+
+/*
+ * Modifications to this file:
+ * Copyright (c) 2014-2015, The University of Queensland
+ * Licensed under the Apache License, Version 2.0.
+ *
+ */
+
 #include <cusp/memory.h>
 #include <cusp/graph/detail/host/hilbert_curve.h>
 #include <cusp/graph/detail/device/hilbert_curve.h>

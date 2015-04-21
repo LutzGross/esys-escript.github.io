@@ -1,3 +1,10 @@
+/*
+ * Modifications to this file:
+ * Copyright (c) 2014-2015, The University of Queensland
+ * Licensed under the Apache License, Version 2.0.
+ *
+ */
+
 #pragma once
 
 #include <thrust/functional.h>
