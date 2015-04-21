@@ -14,6 +14,13 @@
  *  limitations under the License.
  */
 
+/*
+ * Modifications to this file:
+ * Copyright (c) 2014-2015, The University of Queensland
+ * Licensed under the Apache License, Version 2.0.
+ *
+ */
+
 
 #include <cusp/exception.h>
 #include <cusp/array1d.h>

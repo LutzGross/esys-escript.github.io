@@ -13,6 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
+/*
+ * Modifications to this file:
+ * Copyright (c) 2014-2015, The University of Queensland
+ * Licensed under the Apache License, Version 2.0.
+ *
+ */
+
 #include <cusp/array1d.h>
 #include <cusp/blas.h>
 #include <cusp/multiply.h>

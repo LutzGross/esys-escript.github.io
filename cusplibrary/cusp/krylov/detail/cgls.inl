@@ -1,18 +1,19 @@
-
-/*****************************************************************************
-*
-* Copyright (c) 2014-2015 by University of Queensland
-* http://www.uq.edu.au
-*
-* Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
-*
-* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
-* Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
-*****************************************************************************/
+/*
+ *  Copyright 2014-2015 The University of Queensland
+ *  http://www.uq.edu.au
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
 #include <cusp/array1d.h>
 #include <cusp/blas.h>
