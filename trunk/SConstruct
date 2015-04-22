@@ -56,6 +56,12 @@ default_prefix='/usr'
 mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 lapack_flavours=('none', 'clapack', 'mkl')
 
+#Note that scons construction vars the the following purposes:
+#  CPPFLAGS -> to the preprocessor
+#  CCFLAGS  -> flags for _both_ C and C++
+#  CXXFLAGS -> flags for c++ _only_
+#  CFLAGS   -> flags for c only
+
 vars = Variables(options_file, ARGUMENTS)
 vars.AddVariables(
   PathVariable('options_file', 'Path to options file', options_file, PathVariable.PathIsFile),
@@ -64,10 +70,11 @@ vars.AddVariables(
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
-  ('cc_flags', 'Base C++ compiler flags', 'default'),
-  ('cc_optim', 'Additional C++ flags for a non-debug build', 'default'),
-  ('cc_debug', 'Additional C++ flags for a debug build', 'default'),
+  ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
+  ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
+  ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
   ('cxx_extra', 'Extra C++ compiler flags', ''),
+  ('cpp_flags', 'C Pre-processor flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
   ('nvcc', 'Path to CUDA compiler', 'default'),
   ('nvccflags', 'Base CUDA compiler flags', 'default'),
@@ -288,6 +295,7 @@ if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
+if env['cpp_flags'] != '': env.Append(CPPFLAGS = env['cpp_flags'])
 
 if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']
