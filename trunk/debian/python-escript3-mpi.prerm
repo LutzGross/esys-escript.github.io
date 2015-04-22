@@ -3,7 +3,7 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-      update-alternatives --remove run-escript /usr/bin/run-escript2
+    update-alternatives --remove run-escript /usr/bin/run-escript3-mpi
     ;;
 
     failed-upgrade)

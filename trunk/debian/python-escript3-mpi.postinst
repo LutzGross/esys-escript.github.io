@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+      update-alternatives --install /usr/bin/run-escript run-escript /usr/bin/run-escript3-mpi 50
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+      update-alternatives --install /usr/bin/run-escript run-escript /usr/bin/run-escript3-mpi 50
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

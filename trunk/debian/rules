@@ -10,8 +10,8 @@ BUILD=$(CURDIR)/debian/tmp2
 BUILDM=$(CURDIR)/debian/tmp2M
 BUILD3=$(CURDIR)/debian/tmp3
 BUILD3M=$(CURDIR)/debian/tmp3M
-WORK=$(CURDIR)/debian/stage
-WORKM=$(CURDIR)/debian/stageM
+WORK=$(CURDIR)/debian/stage2
+WORKM=$(CURDIR)/debian/stage2M
 WORK3=$(CURDIR)/debian/stage3
 WORK3M=$(CURDIR)/debian/stage3M
 
@@ -24,7 +24,7 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
     parbuild=$(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
     sflags=-j$(parbuild)
 else
-    sflags=-j12
+    sflags=-j10
 endif
 
 
@@ -52,14 +52,21 @@ build: build-arch build-indep
 build-arch: build2 build2M build3 build3M
 
 # build2 will be the compiled version we extract doco from
-build-indep: build2	
+build-indep: build2
+	mkdir -p $(BUILD)
 	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`debian/utils/getsubst`_options.py docs
+	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
 
 build2:	
 	mkdir -p $(WORK)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
 	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`debian/utils/getsubst`_options.py
 	sed -i -e "s%STDLOCATION=0%STDLOCATION=1%" $(WORK)/bin/run-escript
+	# extract the relevant .py files
+	cd $(WORK); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
+	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK)/run-escript2.man
+	ln $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
+	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
 
 build2M:
 	mkdir -p $(WORKM)
@@ -67,7 +74,13 @@ build2M:
 	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILDM) verbose=on prefix=$(WORKM) options_file=`debian/utils/getsubst`_mpi_options.py
 	sed -i -e "s%ESCRIPT_ROOT=/usr/lib/python-escript%ESCRIPT_ROOT=/usr/lib/python-escript-mpi%" $(WORKM)/bin/run-escript
 	sed -i -e "s%STDLOCATION=0%STDLOCATION=1%" $(WORKM)/bin/run-escript
-
+	# extract the relevant .py files
+	cd $(WORKM); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
+	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORKM)/run-escript2-mpi.man
+	ln $(WORKM)/bin/run-escript $(WORKM)/bin/run-escript2-mpi
+	find $(WORKM) -name '*.pyc' -print0| xargs -0 rm -f
+	rm -rf $(BUILDM)
+	
 build3:	
 	mkdir -p $(WORK3)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
@@ -75,6 +88,12 @@ build3:
 	sed -i -e "s%STDLOCATION=0%STDLOCATION=1%" $(WORK3)/bin/run-escript
 	sed -i -e "s%ESCRIPT_ROOT=/usr/lib/python-escript%ESCRIPT_ROOT=/usr/lib/python3-escript%" $(WORK3)/bin/run-escript
 	sed -i -e "s%PYTHON_CMD=python%PYTHON_CMD=python3%" $(WORK3)/bin/run-escript
+	# extract the relevant .py files
+	cd $(WORK3); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
+	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3)/run-escript3.man
+	ln $(WORK3)/bin/run-escript $(WORK3)/bin/run-escript3
+	find $(WORK3) -name '*.pyc' -print0| xargs -0 rm -f
+	rm -rf $(BUILD3)
 
 build3M:
 	mkdir -p $(WORK3M)
@@ -83,6 +102,12 @@ build3M:
 	sed -i -e "s%ESCRIPT_ROOT=/usr/lib/python-escript%ESCRIPT_ROOT=/usr/lib/python3-escript-mpi%" $(WORK3M)/bin/run-escript
 	sed -i -e "s%STDLOCATION=0%STDLOCATION=1%" $(WORK3M)/bin/run-escript
 	sed -i -e "s%PYTHON_CMD=python%PYTHON_CMD=python3%" $(WORK3M)/bin/run-escript
+	# extract the relevant .py files
+	cd $(WORK3M); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
+	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3M)/run-escript3-mpi.man
+	ln $(WORK3M)/bin/run-escript $(WORK3M)/bin/run-escript3-mpi
+	find $(WORK3M) -name '*.pyc' -print0| xargs -0 rm -f	
+	rm -rf $(BUILD3M)
 
 
 binary: binary-arch binary-indep
@@ -90,138 +115,103 @@ binary: binary-arch binary-indep
 binary-arch: binary-arch2 binary-arch2M binary-arch3 binary-arch3M
 
 binary-arch2:
-	mkdir -p $(BDEST)/usr/share/doc/python-escript/
-	mkdir -p $(BDEST)/usr/share/man/man1
-	mkdir -p $(BDEST)/usr/lib/python-escript
-	mkdir -p $(BDEST)/usr/bin
-	cd $(WORK); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(WORK)/lib/* $(BDEST)/usr/lib/python-escript
-	cp -r $(WORK)/esys $(BDEST)/usr/lib/python-escript
-	cp $(WORK)/bin/run-escript $(BDEST)/usr/bin/run-escript2
-	cp doc/manpage/man1/run-escript.1 $(BDEST)/usr/share/man/man1/run-escript2.1
-	gzip -f9 $(BDEST)/usr/share/man/man1/run-escript2.1
-	install --mode=644 debian/changelog $(BDEST)/usr/share/doc/python-escript/changelog.Debian
-	gzip -f9 $(BDEST)/usr/share/doc/python-escript/changelog.Debian
-	install --mode=644 debian/copyright $(BDEST)/usr/share/doc/python-escript
-	mkdir -p debian/python-escript/DEBIAN
-	find debian/python-escript -name '*.pyc' | xargs rm -f
-	find $(BDEST) -name '*.so' | xargs strip
-	dh_makeshlibs -P$(BDEST) -ppython-escript
-	dh_shlibdeps -P$(BDEST) -ppython-escript
-	dpkg-gencontrol -P$(BDEST) -ppython-escript
-	install --mode=755 debian/python-escript.postinst $(BDEST)/DEBIAN/postinst
-	dh_python2 -p python-escript
-	install --mode=755 debian/python-escript.prerm $(BDEST)/DEBIAN/prerm
-	#Thanks to Krafft's book for this
-	cd debian/python-escript && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-deb --build debian/python-escript ..
-
-
+	dh_testroot   # Want to be able to build as me for now
+	dh_prep			-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_testdir
+	dh_installdirs		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_install		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_installchangelogs	-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_installman		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
+	dh_python2 -ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	$(BDEST)
+	dh_lintian		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_compress		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_fixperms		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_strip			-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_makeshlibs		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)
+	dh_shlibdeps		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	 -l$(BDEST)/usr/lib/python-escript	
+	dh_installdeb		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_gencontrol		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_md5sums		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_builddeb		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	
 binary-arch2M:
-	mkdir -p $(BMDEST)/usr/share/doc/python-escript-mpi/
-	mkdir -p $(BMDEST)/usr/share/man/man1
-	mkdir -p $(BMDEST)/usr/lib/python-escript-mpi
-	mkdir -p $(BMDEST)/usr/bin
-	cd $(WORKM); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	strip $(WORKM)/lib/pythonMPI $(WORKM)/lib/pythonMPIredirect
-	cp $(WORKM)/lib/pythonMPI $(WORKM)/lib/pythonMPI $(BMDEST)/usr/lib/python-escript-mpi
-	cp $(WORKM)/lib/* $(BMDEST)/usr/lib/python-escript-mpi
-	cp -r $(WORKM)/esys $(BMDEST)/usr/lib/python-escript-mpi
-	cp $(WORKM)/bin/run-escript $(BMDEST)/usr/bin/run-escript2-mpi
-	cp doc/manpage/man1/run-escript.1 $(BMDEST)/usr/share/man/man1/run-escript2-mpi.1
-	gzip -f9 $(BMDEST)/usr/share/man/man1/run-escript2-mpi.1
-	install --mode=644 debian/changelog $(BMDEST)/usr/share/doc/python-escript-mpi/changelog.Debian
-	gzip -f9 $(BMDEST)/usr/share/doc/python-escript-mpi/changelog.Debian
-	install --mode=644 debian/copyright $(BMDEST)/usr/share/doc/python-escript-mpi
-	mkdir -p debian/python-escript-mpi/DEBIAN
-	find debian/python-escript-mpi -name '*.pyc' | xargs rm -f
-	find $(BMDEST) -name '*.so' | xargs strip
-	dh_makeshlibs -P$(BMDEST) -ppython-escript-mpi
-	dh_shlibdeps -P$(BMDEST) -ppython-escript-mpi
-	dpkg-gencontrol -P$(BMDEST) -ppython-escript-mpi
-	install --mode=755 debian/python-escript-mpi.postinst $(BMDEST)/DEBIAN/postinst
-	dh_python2 -p python-escript-mpi
-	install --mode=755 debian/python-escript-mpi.prerm $(BMDEST)/DEBIAN/prerm
-	#Thanks to Krafft's book for this
-	cd debian/python-escript-mpi && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-deb --build debian/python-escript-mpi ..
+	dh_testroot   # Want to be able to build as me for now
+	dh_prep		-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_testdir
+	dh_installdirs -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_install -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_installchangelogs -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_installman -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
+	dh_python2 -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	$(BMDEST)
+	dh_lintian -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_compress -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_fixperms -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_strip		-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_makeshlibs	-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_shlibdeps	-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST) -l$(BMDEST)/usr/lib/python-escript-mpi
+	dh_installdeb -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_gencontrol -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_md5sums -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_builddeb -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 
 binary-arch3:
-	mkdir -p $(B3DEST)/usr/share/doc/python3-escript/
-	mkdir -p $(B3DEST)/usr/share/man/man1
-	mkdir -p $(B3DEST)/usr/lib/python3-escript
-	mkdir -p $(B3DEST)/usr/bin
-	cd $(WORK3); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(WORK3)/lib/* $(B3DEST)/usr/lib/python3-escript
-	cp -r $(WORK3)/esys $(B3DEST)/usr/lib/python3-escript
-	cp $(WORK3)/bin/run-escript $(B3DEST)/usr/bin/run-escript3
-	cp doc/manpage/man1/run-escript.1 $(B3DEST)/usr/share/man/man1/run-escript3.1
-	gzip -9 $(B3DEST)/usr/share/man/man1/run-escript3.1
-	install --mode=644 debian/changelog $(B3DEST)/usr/share/doc/python3-escript/changelog.Debian
-	gzip -f9 $(B3DEST)/usr/share/doc/python3-escript/changelog.Debian
-	install --mode=644 debian/copyright $(B3DEST)/usr/share/doc/python3-escript
-	mkdir -p debian/python3-escript/DEBIAN 
-	find debian/python3-escript -name '*.pyc' | xargs rm -f
-	find $(B3DEST) -name '*.so' | xargs strip
-	dh_makeshlibs -P$(B3DEST) -ppython3-escript
-	dh_shlibdeps -P$(B3DEST) -ppython3-escript
-	dpkg-gencontrol -P$(B3DEST) -ppython3-escript
-	install --mode=755 debian/python-escript3.postinst $(B3DEST)/DEBIAN/postinst
-	dh_python3 -p python3-escript
-	install --mode=755 debian/python-escript3.prerm $(B3DEST)/DEBIAN/prerm
-	#Thanks to Krafft's book for this
-	cd debian/python3-escript && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-deb --build debian/python3-escript ..
+	dh_testroot   # Want to be able to build as me for now
+	dh_prep			-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)	
+	dh_testdir
+	dh_installdirs 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_install 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_installchangelogs 	-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)	
+	dh_installman 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
+	dh_python3 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	$(B3DEST)
+	dh_lintian 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_compress 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_fixperms 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_strip			-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_makeshlibs		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_shlibdeps		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST) -l$(B3DEST)/usr/lib/python3-escript
+	dh_installdeb 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_gencontrol  		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
+	dh_md5sums 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST) 
+	dh_builddeb		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 
 binary-arch3M:
-	mkdir -p $(B3MDEST)/usr/share/doc/python3-escript-mpi/
-	mkdir -p $(B3MDEST)/usr/share/man/man1
-	mkdir -p $(B3MDEST)/usr/lib/python3-escript-mpi
-	mkdir -p $(B3MDEST)/usr/bin
-	cd $(WORK3M); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(WORK3M)/lib/* $(B3MDEST)/usr/lib/python3-escript-mpi
-	cp -r $(WORK3M)/esys $(B3MDEST)/usr/lib/python3-escript-mpi
-	cp $(WORK3M)/bin/run-escript $(B3MDEST)/usr/bin/run-escript3-mpi
-	strip $(WORK3M)/lib/pythonMPI $(WORK3M)/lib/pythonMPIredirect
-	cp $(WORK3M)/lib/pythonMPI $(WORK3M)/lib/pythonMPI $(B3MDEST)/usr/lib/python3-escript-mpi
-	cp doc/manpage/man1/run-escript.1 $(B3MDEST)/usr/share/man/man1/run-escript3-mpi.1
-	gzip -f9 $(B3MDEST)/usr/share/man/man1/run-escript3-mpi.1
-	install --mode=644 debian/changelog $(B3MDEST)/usr/share/doc/python3-escript-mpi/changelog.Debian
-	gzip -f9 $(B3MDEST)/usr/share/doc/python3-escript-mpi/changelog.Debian
-	install --mode=644 debian/copyright $(B3MDEST)/usr/share/doc/python3-escript-mpi
-	mkdir -p $(B3MDEST)/DEBIAN 
-	find $(B3MDEST) -name '*.pyc' | xargs rm -f
-	find $(B3MDEST) -name '*.so' | xargs strip
-	dpkg-gencontrol -P$(B3MDEST) -ppython3-escript-mpi
-	dh_makeshlibs -P$(B3MDEST) -ppython3-escript-mpi
-	dh_shlibdeps -P$(B3MDEST) -ppython3-escript-mpi
-	dh_strip -P$(B3MDEST) -ppython3-escript-mpi
-	#dpkg-gencontrol -P$(B3MDEST) -ppython3-escript-mpi
-	install --mode=755 debian/python-escript3-mpi.postinst $(B3MDEST)/DEBIAN/postinst
-	dh_python3 -p python3-escript-mpi
-	install --mode=755 debian/python-escript3-mpi.prerm $(B3MDEST)/DEBIAN/prerm
-	#Thanks to Krafft's book for this
-	cd debian/python3-escript-mpi && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-deb --build debian/python3-escript-mpi ..
-
+	dh_testroot   # Want to be able to build as me for now
+	dh_prep			-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_testdir
+	dh_installdirs		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_install		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_installchangelogs 	-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)	
+	dh_installman 		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
+	dh_python3		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc --no-ext-rename	$(B3MDEST)
+	dh_lintian 		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_compress		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_fixperms		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_strip			-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_makeshlibs		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_shlibdeps		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST) -l$(B3MDEST)/usr/lib/python3-escript-mpi
+	dh_installdeb		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_gencontrol		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
+	dh_md5sums		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST) 
+	dh_builddeb		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 
 binary-indep:
-	mkdir -p $(DDEST)
-	mkdir -p $(DDEST)/usr/share/doc/python-escript-doc/
-	mkdir -p debian/python-escript-doc/DEBIAN
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`debian/utils/getsubst`_options.py docs
-	install --mode=644 debian/copyright $(DDEST)/usr/share/doc/python-escript-doc
-	install --mode=644 debian/changelog $(DDEST)/usr/share/doc/python-escript-doc/changelog.Debian
-	gzip -f9 $(DDEST)/usr/share/doc/python-escript-doc/changelog.Debian
-	cp $(WORK)/release/doc/escript_examples.tar.gz $(DDEST)/usr/share/doc/python-escript-doc/
-	cp $(WORK)/release/doc/install/install.pdf $(DDEST)/usr/share/doc/python-escript-doc
-	cp $(WORK)/release/doc/user/user.pdf $(DDEST)/usr/share/doc/python-escript-doc
-	cp $(WORK)/release/doc/cookbook/cookbook.pdf $(DDEST)/usr/share/doc/python-escript-doc
-	cp $(WORK)/release/doc/inversion/inversion.pdf $(DDEST)/usr/share/doc/python-escript-doc/
-	cp -r $(WORK)/release/doc/sphinx_api $(DDEST)/usr/share/doc/python-escript-doc/python_html
-	cp -r $(WORK)/release/doc/doxygen $(DDEST)/usr/share/doc/python-escript-doc/doxygen	
-	cd $(DDEST) && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-gencontrol -P$(DDEST) -ppython-escript-doc
-	dh_fixperms -P$(DDEST) -ppython-escript-doc
-	dpkg-deb --build debian/python-escript-doc ..
-
+	dh_testroot
+	dh_prep			-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_testdir
+	dh_installdirs		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_install 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_installchangelogs	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_installexamples	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_link -ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_lintian 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_compress 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_fixperms 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_strip			-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_installdeb 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_gencontrol 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_md5sums		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_builddeb 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
