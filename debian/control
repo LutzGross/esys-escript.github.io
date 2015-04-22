@@ -4,6 +4,8 @@ Priority: extra
 X-Python-Version: >=2.7
 X-Python3-Version: >=3.2
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders:
+ Anton Gladky <gladk@debian.org>
 DM-Upload-Allowed: yes
 Homepage: https://launchpad.net/escript-finley
 Build-Depends: python-all-dev (>= 2.6.6-3~), python3-all-dev, python-numpy, python3-numpy,
@@ -27,7 +29,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
-Suggests: python-pyproj, python-gdal
+Suggests: python-pyproj, python-gdal, python-escript-doc
 Conflicts: escript-noalias, escript
 Replaces: escript-noalias, escript
 Homepage: https://launchpad.net/escript-finley
@@ -43,7 +45,7 @@ Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:boostrandom}, ${es:netc
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
-Suggests: python-pyproj, python-gdal
+Suggests: python-pyproj, python-gdal, python-escript-doc
 Conflicts: escript-noalias, escript
 Replaces: escript-noalias, escript
 Homepage: https://launchpad.net/escript-finley
@@ -59,7 +61,7 @@ Depends: ${es:python3}, python3-numpy, ${es:boostpy3}, ${es:boostrandom3}, ${es:
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python3-sympy, python3-matplotlib, python3-scipy
-Suggests: python3-pyproj, python3-gdal
+Suggests: python3-pyproj, python3-gdal, python-escript-doc
 Conflicts: escript-noalias, escript, python-escript(<=4.0)
 Replaces: escript-noalias, escript
 Homepage: https://launchpad.net/escript-finley
@@ -75,7 +77,7 @@ Depends: ${es:python3}, python3-numpy, ${es:boostpy3}, ${es:boostrandom3}, ${es:
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python3-sympy, python3-matplotlib, python3-scipy
-Suggests: python3-pyproj, python3-gdal
+Suggests: python3-pyproj, python3-gdal, python-escript-doc
 Conflicts: escript-noalias, escript, python-escript(<=4.0)
 Replaces: escript-noalias, escript
 Homepage: https://launchpad.net/escript-finley
@@ -88,7 +90,7 @@ Architecture: all
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: doc-base(>=0.8.4),
+Depends: doc-base(>=0.8.4), libjs-sphinxdoc,
  ${misc:Depends}
 Recommends: python-escript
 Conflicts: escript
