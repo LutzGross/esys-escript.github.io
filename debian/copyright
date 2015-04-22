@@ -1,16 +1,17 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Copyright (c) 2003-2015 by University of Queensland
-% Earth Systems Science Computational Center (ESSCC)
-% http://www.uq.edu.au
-%
-% Primary Business: Queensland, Australia
-% Licensed under the Open Software License version 3.0
-% http://www.opensource.org/licenses/osl-3.0.php
-%
-% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
-% Development 2012-2013 by School of Earth Sciences
-% Development from 2014 by Centre for Geoscience Computing (GeoComp)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0
+Upstream-Name: esys-escript
+Source: https://launchpad.net/escript-finley
 
+Files: debian/*
+Copyright: 2015 The University of Queensland
+License: ?????
+
+Files: cusplibrary/*
+Copyright: ????
+License: Apache-2.0
+  ??? Need to have text for apache?
+
+Files: *
+Copyright: 2003-2015 The University of Queensland
+License: Open Software License version 3.0
+  ??? Need to add the actual text of the license
