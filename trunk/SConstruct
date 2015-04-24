@@ -46,7 +46,7 @@ if not options_file:
 if not os.path.isfile(options_file):
     print("\nWARNING:\nOptions file %s" % options_file)
     print("not found! Default options will be used which is most likely suboptimal.")
-    print("We recommend that you copy the most relavent options file in the scons/templates/")
+    print("We recommend that you copy the most relevant options file in the scons/templates/")
     print("subdirectory and customize it to your needs.\n")
     options_file = None
 
