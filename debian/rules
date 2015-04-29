@@ -52,6 +52,7 @@ build: build-arch build-indep
 build-arch: build2 build2M build3 build3M
 
 # build2 will be the compiled version we extract doco from
+# be careful that the scons call in here does not overwrite changes made in build2:
 build-indep: build2
 	mkdir -p $(BUILD)
 	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`debian/utils/getsubst`_options.py docs
@@ -65,7 +66,7 @@ build2:
 	# extract the relevant .py files
 	cd $(WORK); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK)/run-escript2.man
-	ln $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
+	mv $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
 	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
 
 build2M:
@@ -120,7 +121,7 @@ binary-arch2:
 	dh_testdir
 	dh_installdirs		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
 	dh_install		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
-	dh_installchangelogs	-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_installchangelogs	-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST) debian/changelog.trivial	
 	dh_installman		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
 	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
 	dh_python2 -ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	$(BDEST)
@@ -141,7 +142,7 @@ binary-arch2M:
 	dh_testdir
 	dh_installdirs -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 	dh_install -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
-	dh_installchangelogs -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
+	dh_installchangelogs -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST) debian/changelog.trivial
 	dh_installman -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
 	dh_python2 -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	$(BMDEST)
@@ -162,7 +163,7 @@ binary-arch3:
 	dh_testdir
 	dh_installdirs 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 	dh_install 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
-	dh_installchangelogs 	-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)	
+	dh_installchangelogs 	-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)	 debian/changelog.trivial
 	dh_installman 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
 	dh_python3 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	$(B3DEST)
@@ -183,7 +184,7 @@ binary-arch3M:
 	dh_testdir
 	dh_installdirs		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 	dh_install		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
-	dh_installchangelogs 	-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)	
+	dh_installchangelogs 	-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)	 debian/changelog.trivial
 	dh_installman 		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 	# dh_python2 does not have a -P param. Need to do some experiments to ensure it is dealing with correct dir
 	dh_python3		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc --no-ext-rename	$(B3MDEST)
@@ -204,7 +205,7 @@ binary-indep:
 	dh_testdir
 	dh_installdirs		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_install 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
-	dh_installchangelogs	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_installchangelogs	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST) debian/changelog.trivial
 	dh_installexamples	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_link -ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_lintian 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)

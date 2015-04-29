@@ -24,8 +24,8 @@ Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
 Depends: 
  ${python:Depends}, 
- python-numpy, ${es:boostpy}, ${es:boostrandom},
- ${es:netcdf}, libgomp1,
+ python-numpy, 
+ libgomp1,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
@@ -41,7 +41,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:boostrandom}, ${es:netcdf}, libgomp1, libopenmpi,
+Depends: ${python:Depends}, libgomp1, libopenmpi,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
@@ -57,7 +57,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${es:python3}, python3-numpy, ${es:boostpy3}, ${es:boostrandom3}, ${es:netcdf}, libgomp1,
+Depends: ${python:Depends}, python3-numpy, libgomp1,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python3-sympy, python3-matplotlib, python3-scipy
@@ -73,7 +73,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${es:python3}, python3-numpy, ${es:boostpy3}, ${es:boostrandom3}, ${es:netcdf}, libgomp1, libopenmpi,
+Depends: ${python:Depends}, python3-numpy, libgomp1, libopenmpi,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python3-sympy, python3-matplotlib, python3-scipy
