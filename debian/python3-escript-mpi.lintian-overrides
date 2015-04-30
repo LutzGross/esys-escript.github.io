@@ -1,0 +1,5 @@
+
+# All libraries are build with the same flags, only some are reported
+# as being un-hardened.
+python3-escript-mpi: hardening-no-fortify-functions
+
