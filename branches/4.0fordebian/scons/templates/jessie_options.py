@@ -69,6 +69,8 @@ escript_opts_version = 202
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = '-Wextra -Wno-unused-parameter'
+cxx_extra = '--param=max-vartrack-size=90000000'
+
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
