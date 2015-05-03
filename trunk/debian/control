@@ -5,15 +5,14 @@ X-Python-Version: >=2.7
 X-Python3-Version: >=3.2
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
 Uploaders:
- Anton Gladky <gladk@debian.org>
-DM-Upload-Allowed: yes
+ Joel Fenwick<j.oelpublic@gmail.com>
 Homepage: https://launchpad.net/escript-finley
 Build-Depends: python-all-dev (>= 2.6.6-3~), python3-all-dev, python-numpy, python3-numpy,
  libboost-python-dev, libboost-random-dev, libnetcdf-dev, scons,
  zip, python-sphinx, doxygen, python-docutils, texlive, ghostscript, 
  texlive-latex-extra, latex-xcolor, lsb-release,
  libopenmpi-dev, debhelper (>=9), dh-python
-Standards-Version: 3.9.3
+Standards-Version: 3.9.6
 
 Package: python-escript
 Description: Escript/Finley finite elements python system.
@@ -41,7 +40,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, libgomp1, libopenmpi,
+Depends: ${python:Depends}, libgomp1,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
@@ -73,7 +72,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, python3-numpy, libgomp1, libopenmpi,
+Depends: ${python:Depends}, python3-numpy, libgomp1,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python3-sympy, python3-matplotlib, python3-scipy
