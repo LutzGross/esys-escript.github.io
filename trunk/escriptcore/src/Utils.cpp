@@ -17,7 +17,9 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
+#ifndef OVERLORDPATH
+  #define OVERLORDPATH ""
+#endif
 
 #include <fstream>
 #include <string.h>
@@ -332,7 +334,7 @@ ESCRIPT_DLL_API int runMPIProgram(boost::python::list args) {
 #else //#ifdef _WIN32
     char** c_args = new char*[2+nargs];
     std::vector<std::string> cpp_args(2+nargs);//allow for wrapper, port, and key
-    char c_cmd[] = "escript-overlord";
+    char c_cmd[] = OVERLORDPATH"escript-overlord";
     // skip command name in argument list
     for (int i=1; i<nargs; i++) {
 	    cpp_args[i+1]=boost::python::extract<std::string>(args[i]);
