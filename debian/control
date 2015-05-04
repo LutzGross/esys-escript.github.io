@@ -5,7 +5,7 @@ X-Python-Version: >=2.7
 X-Python3-Version: >=3.2
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
 Uploaders:
- Joel Fenwick<j.oelpublic@gmail.com>
+ Joel Fenwick <j.oelpublic@gmail.com>
 Homepage: https://launchpad.net/escript-finley
 Build-Depends: python-all-dev (>= 2.6.6-3~), python3-all-dev, python-numpy, python3-numpy,
  libboost-python-dev, libboost-random-dev, libnetcdf-dev, scons,

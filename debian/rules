@@ -45,6 +45,7 @@ clean:
 	rm -rf $(WORK3M)
 	rm -rf $(CURDIR)/debian/tmp/*
 	rm -f debian/files
+	rm -f debian/substvars
 	dh_clean
 
 build: build-arch build-indep
