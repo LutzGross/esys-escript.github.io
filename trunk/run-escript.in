@@ -22,13 +22,8 @@
 # Extra paths can be configured about a page further down
 # Search for EXTRA_PATH=""
 
-# set to 1 if this is a standalone build and ../../pkg contains the relevant
-# tools
-STANDALONE=0
-
 # set to 1 if this is part of a packaged build (.deb) and files will be
 # installed in standard locations rather than everything in a single directory
-# Do not use this together with STANDALONE
 STDLOCATION=0
 
 # Now we find the location of this script
@@ -96,17 +91,6 @@ then
 else
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 fi
-
-
-if [ $STANDALONE -eq 1 ]
-then
-    EXTRA_PATH=$ESCRIPT_PARENT/pkg/python/bin:$ESCRIPT_PARENT/pkg/scons/bin:$EXTRA_PATH
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/boost/lib:$ESCRIPT_PARENT/pkg/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/python/lib:$EXTRA_LD_LIBRARY_PATH
-    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/matplotlib/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
-fi
-
 
 BUILDINFO_FILE="$ESCRIPT_ROOT/lib/buildvars"
 if [ "$STDLOCATION" = "1" ]
