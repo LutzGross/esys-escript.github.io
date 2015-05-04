@@ -40,7 +40,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, libgomp1,
+Depends: ${python:Depends}, libgomp1, openmpi-bin,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
@@ -72,7 +72,7 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, python3-numpy, libgomp1,
+Depends: ${python:Depends}, python3-numpy, libgomp1, openmpi-bin,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python3-sympy, python3-matplotlib, python3-scipy

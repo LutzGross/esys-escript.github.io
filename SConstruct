@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by The University of Queensland
+# Copyright (c) 2003-2015 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -46,7 +46,7 @@ if not options_file:
 if not os.path.isfile(options_file):
     print("\nWARNING:\nOptions file %s" % options_file)
     print("not found! Default options will be used which is most likely suboptimal.")
-    print("We recommend that you copy the most relevant options file in the scons/templates/")
+    print("We recommend that you copy the most relavent options file in the scons/template/")
     print("subdirectory and customize it to your needs.\n")
     options_file = None
 
@@ -75,6 +75,7 @@ vars.AddVariables(
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
   ('cxx_extra', 'Extra C++ compiler flags', ''),
   ('cpp_flags', 'C Pre-processor flags', ''),
+  ('cpp_extra', 'Extra C Pre-processor flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
   ('nvcc', 'Path to CUDA compiler', 'default'),
   ('nvccflags', 'Base CUDA compiler flags', 'default'),
@@ -296,6 +297,7 @@ if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 if env['cpp_flags'] != '': env.Append(CPPFLAGS = env['cpp_flags'])
+if env['cpp_extra'] != '': env.Append(CPPFLAGS = " "+env['cpp_extra'])
 
 if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']

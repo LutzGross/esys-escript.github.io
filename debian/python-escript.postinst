@@ -3,11 +3,11 @@ set -e
 
 case "$1" in
     configure)
-      update-alternatives --install /usr/bin/run-escript run-escript /usr/bin/run-escript2 40
+      update-alternatives --install /usr/bin/run-escript run-escript /usr/bin/run-escript2 50
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
-      update-alternatives --install /usr/bin/run-escript run-escript /usr/bin/run-escript2 40
+      update-alternatives --install /usr/bin/run-escript run-escript /usr/bin/run-escript2 50
     ;;
 
     *)
