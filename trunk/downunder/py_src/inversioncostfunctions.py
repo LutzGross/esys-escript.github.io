@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data, inner
+from esys.escript import Data, inner, interpolate
 import numpy as np
 
 
@@ -299,7 +299,10 @@ class InversionCostFunction(MeteredCostFunction):
                         else:
                             for k in range(idx): m[idx[k]]=m2[k]
                     else:
-                        m=m2
+                        if isinstance(m2, Data):
+                           m=interpolate(m2, m.getFunctionSpace())
+                        else:
+                           m=Data(m2, m.getFunctionSpace())
         return m
 
     def getProperties(self, m, return_list=False):
