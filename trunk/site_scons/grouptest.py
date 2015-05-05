@@ -71,7 +71,7 @@ class GroupTest(object):
             res=res+"\nexport OLD_PYTHON=$PYTHONPATH\nBINRUNNER=\"run-escript -b $2\"\nPYTHONRUNNER=\"run-escript $2\"\nBATCH_ROOT=`pwd`\n"
             res=res+"PYTHONTESTRUNNER=\"run-escript $2 $BATCH_ROOT/tools/testrunner.py\"\n"
         else:
-            res=res+"""\nexport OLD_PYTHON={0}:$PYTHONPATH"
+            res=res+"""\nexport OLD_PYTHON={0}:$PYTHONPATH
 BINRUNNER=\"{0}/bin/run-escript -b $2\"
 PYTHONRUNNER=\"{0}/bin/run-escript $2\"
 PYTHONTESTRUNNER=\"{0}/bin/run-escript $2 {0}/tools/testrunner.py\"
