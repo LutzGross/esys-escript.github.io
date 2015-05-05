@@ -124,7 +124,7 @@ class MT2DBase(ForwardModel):
             totalS += w02
             self._Z[0] += chi*Z[s].real
             self._Z[1] += chi*Z[s].imag
-            self._weight += chi*w02/abs(Z[s])
+            self._weight += chi*w02/(abs(Z[s])**2)
 
         if not totalS > 0:
             raise ValueError("Scaling of weight factors failed as sum is zero.")
