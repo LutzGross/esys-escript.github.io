@@ -1,42 +1,50 @@
+#!/bin/bash
 
-DEST=../testfiles
-mkdir $DEST
-if [ $? != 0 ]
+
+# To be run from an esys13 root directory which has had a full build done in it.
+#This will make a directory of files which can be shipped elsewhere to test an install
+
+
+if [ $# -lt 1 ]
 then
- echo "$DEST directory exists. Exiting"
- exit 1
+   echo "Usage: $0 targetdirectory"
+   exit 1
 fi
 
-cp -r * $DEST
-cd $DEST
+if [ -f $1 ]
+then
+   echo "Target exists and is not a directory"
+   exit 2
+fi
 
-rm -rf bin
-rm -rf debian/
-rm -rf lib
-rm -rf packaging
-rm -f config.log CREDITS.txt log README_LICENSE SConstruct svn_version utest.sh
-find . -name '.s*' | xargs rm -rf
-find . -name 'src' | xargs rm -rf
-find . -name 'py_src' | xargs rm -rf
-find . -name 'SConscript' | xargs rm -rf
-find . -name '*.c' | xargs rm -rf
-find . -name '*.h' | xargs rm -rf
-find . -name '*.cpp' | xargs rm -rf
-rm -rf tools site_scons scons scripts
-rm -rf release
-find build -type f | xargs rm
+if [ ! -f itest.sh ]
+then
+   echo "itest.sh not found. Have you run a build?"
+   exit 3
+fi
+
+if [ ! -d $1 ]
+then
+   mkdir $1
+fi
+
+targetdir=$1
+
+cp -r * $targetdir
+cd $targetdir || exit 4
+
 rm -rf esys
-find . -name '__pycache__' | xargs rm -rf
-find . -name '*.tex' | xargs rm -rf
-cd doc
-rm -rf epydoc cookbook doxygen install inversion manpage user *.sh *.cls
-cd ..
-find . -name '*.pyc' | xargs rm -f
-
-cd ..
-tar -czf testfiles.tar.gz testfiles
-rm -rf testfiles
-
-
-
-
+rm -rf bin
+rm -rf lib
+rm -rf utest.sh
+rm -rf 
+find build -name '*.o' | xargs rm
+find build -name '*.os' | xargs rm
+find build -name '*.so' | xargs rm
+find build -name '*.a' | xargs rm
+find build -name '*.pyc' | xargs rm
+find . -name 'src' | xargs rm -r
+rm -r scons
+rm -r doc/user doc/cookbook 
+find doc -name '*.tex' | xargs rm
+rm -rf debian
