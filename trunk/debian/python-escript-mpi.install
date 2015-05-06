@@ -1,4 +1,4 @@
-debian/stage2M/lib/* usr/lib/python-escript-mpi
+debian/stage2M/lib/* usr/lib/python-escript-mpi/lib
 debian/stage2M/bin/escript-overlord usr/lib/python-escript-mpi
 debian/stage2M/esys  usr/lib/python-escript-mpi
 debian/stage2M/bin/run-escript2-mpi usr/bin

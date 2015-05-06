@@ -1,4 +1,4 @@
-debian/stage2/lib/* usr/lib/python-escript
+debian/stage2/lib/* usr/lib/python-escript/lib
 debian/stage2/esys  usr/lib/python-escript
 debian/stage2/bin/run-escript2 usr/bin
 debian/copyright	usr/share/doc/python-escript
