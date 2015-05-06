@@ -87,16 +87,12 @@ EXTRA_PYTHONPATH=$ESCRIPT_ROOT
 
 if [ $STDLOCATION -eq 1 ]
 then
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 else
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 fi
 
 BUILDINFO_FILE="$ESCRIPT_ROOT/lib/buildvars"
-if [ "$STDLOCATION" = "1" ]
-then
-    BUILDINFO_FILE=$ESCRIPT_ROOT/buildvars
-fi
 if [ ! -r "$BUILDINFO_FILE" ]; then
     if [ "$1" = "-e" ]; then
         echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"

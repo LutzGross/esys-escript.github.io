@@ -75,7 +75,7 @@ build2:
 build2M:
 	mkdir -p $(WORKM)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILDM)  cpp_extra='-DOVERLORDPATH=\"/usr/lib/python-escript-mpi/lib/\"' verbose=on prefix=$(WORKM) options_file=`debian/utils/getsubst`_mpi_options.py
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILDM)  cpp_extra='-DOVERLORDPATH=\"/usr/lib/python-escript-mpi/\"' verbose=on prefix=$(WORKM) options_file=`debian/utils/getsubst`_mpi_options.py
 	sed -i -e "s%ESCRIPT_ROOT=/usr/lib/python-escript%ESCRIPT_ROOT=/usr/lib/python-escript-mpi%" $(WORKM)/bin/run-escript
 	sed -i -e "s%STDLOCATION=0%STDLOCATION=1%" $(WORKM)/bin/run-escript
 	# extract the relevant .py files
@@ -102,7 +102,7 @@ build3:
 build3M:
 	mkdir -p $(WORK3M)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3M)  cpp_extra='-DOVERLORDPATH=\"/usr/lib/python-escript3-mpi/lib/\"' verbose=on prefix=$(WORK3M) options_file=`debian/utils/getsubst`_py3_mpi_options.py
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3M)  cpp_extra='-DOVERLORDPATH=\"/usr/lib/python-escript3-mpi/\"' verbose=on prefix=$(WORK3M) options_file=`debian/utils/getsubst`_py3_mpi_options.py
 	sed -i -e "s%ESCRIPT_ROOT=/usr/lib/python-escript%ESCRIPT_ROOT=/usr/lib/python3-escript-mpi%" $(WORK3M)/bin/run-escript
 	sed -i -e "s%STDLOCATION=0%STDLOCATION=1%" $(WORK3M)/bin/run-escript
 	sed -i -e "s%PYTHON_CMD=python%PYTHON_CMD=python3%" $(WORK3M)/bin/run-escript
