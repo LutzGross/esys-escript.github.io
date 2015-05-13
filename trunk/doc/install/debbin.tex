@@ -16,24 +16,40 @@
 
 \chapter{Debian/Ubuntu Binary Installation}\label{chap:bin}
 
-We provide \texttt{.deb} files for the following distributions:
+We provide \texttt{.deb} files for the following distributions\footnote{While we endevour to comply with current debian policy 
+for producing packages, we do not make any promises.}:
 
 Debian (i386 or amd64):
 \begin{itemize}
  \item $7$ --- \emph{Wheezy}
+ \item $8$ --- \emph{Jessie}
 \end{itemize}
 
 Ubuntu (i386 or amd64):
 \begin{itemize}
  \item $14.04$ --- \emph{Trusty} Tahr (LTS)
- \item $14.10$ --- \emph{Utopic} Unicorn 
+% \item $14.10$ --- \emph{Utopic} Unicorn 
+ \item $15.04$ --- \emph{Vivid} Vervet
 \end{itemize}
 
 Two packages make up the \escript system:
-The main package which contains all system itself and the (optional) documentation package.
+\begin{itemize}
+ \item Escript documentation (python-escript-doc). This is optional.
+ \item Escript programs and libraries. You only need one of these, choose the one\footnote{You can 
+ have a number of these packages installed at the same time. To choose which one is executed, 
+ use a different launcher script: run-escript2, run-escript2-mpi, run-escript3, run-escript3-mpi.} which matches your needs.
+ \begin{itemize}
+  \item python-escript --- Python2 with OpenMP threaded parallelism.
+  \item python-escript-mpi --- Python2 with MPI and OpenMP
+  \item python3-escript --- Python3 with OpenMP
+  \item python3-escript-mpi --- Python2 with MPI and OpenMP
+ \end{itemize}
+ Substitute your chosen package in the instructions below.
+\end{itemize}
+
 The main package will be named \file{python-escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} 
 is the distribution codename (eg ``\texttt{wheezy}'' or ``\texttt{trusty}'') and \texttt{A} is the architecture.
-For example, \file{python-escript-3.4-1-trusty_amd64.deb} would be the file for Ubuntu $14.04$ for 64bit processors.
+For example, \file{python-escript-4.1-1-trusty_amd64.deb} would be the Python2 file for Ubuntu $14.04$ for 64bit processors.
 There is a common documentation for all distributions called \file{python-escript-doc-X_all.deb}.
 To install \esfinley, download the appropriate \file{.deb} file(s) and execute the following 
 commands as root (you need to be in the directory containing the file):
