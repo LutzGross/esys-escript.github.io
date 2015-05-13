@@ -17,6 +17,14 @@ then
    exit 2
 fi
 
+if [ "$1" == ".." ]
+then
+   # coz if you call this from inside a directory called src, you
+   # wipe out your working copy
+   echo "Using .. as a target is a bad idea. Suggest ../tests"
+   exit 2
+fi
+
 if [ ! -f itest.sh ]
 then
    echo "itest.sh not found. Have you run a build?"
