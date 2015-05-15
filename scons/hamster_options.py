@@ -16,9 +16,11 @@
 
 from templates.wheezy_options import *
 cc_optim = '-O3 -march=native'
+#cc_debug = "-g3 -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -D_GLIBCXX_DEBUG -fno-omit-frame-pointer -fsanitize=address --param=max-vartrack-size=90000000"
 cxx_extra = '-Wextra -Wno-unused-parameter'
 verbose = False
 mpi = 'OPENMPI'
+#ld_extra = '-fsanitize=address'
 boost_libs = ['boost_python-py27']
 parmetis = True
 umfpack = True
