@@ -87,16 +87,23 @@ bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int
     const int order = dom->getOrder();
 
     numElements = shape.second*order*order;
+    int nodesPerOrigElement = order*order;
     if (numElements > 0) {
         nodesPerElement = 4;
         if (dom->getDim() == 3) {
             nodesPerElement = 8;
             numElements *= order;
+            nodesPerOrigElement *= order;
         }
         owner.assign(numElements, dom->getMPIRank());
 
         const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
-        ID.assign(iPtr, iPtr+shape.second);
+        ID.resize(numElements);
+        for (int i = 0; i < shape.second; i++) {
+            for (int n = 0; n < nodesPerOrigElement; n++) {
+                ID[i*n + n] = iPtr[i];
+            }
+        }
 
         const dim_t* NE = dom->getNumElementsPerDim();
         const dim_t* NN = dom->getNumNodesPerDim();
