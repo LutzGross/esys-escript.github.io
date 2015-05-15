@@ -93,6 +93,7 @@ void EscriptDatasetTestCase::testDudley()
 {
     esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(dudley::brick(info));
+    cout << "Running Dudley tests..." << endl;
     runDomainTests(dom);
 }
 #endif
@@ -102,6 +103,7 @@ void EscriptDatasetTestCase::testFinley()
 {
     esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(finley::brick(info));
+    cout << "Running Finley tests..." << endl;
     runDomainTests(dom);
 }
 #endif
@@ -110,6 +112,7 @@ void EscriptDatasetTestCase::testFinley()
 void EscriptDatasetTestCase::testRipley()
 {
     Domain_ptr dom(new ripley::Brick(5,4,3, 0,0,0, 1,1,1));
+    cout << "Running Ripley tests..." << endl;
     runDomainTests(dom);
 }
 #endif
@@ -119,6 +122,7 @@ void EscriptDatasetTestCase::testSpeckley()
 {
     for (int i = 2; i < 11; i++) {
         Domain_ptr dom(new speckley::Brick(i, 5,4,3, 0,0,0, 1,1,1));
+        cout << "Running Speckley order " << i << " tests..." << endl;
         runDomainTests(dom);
     }
 }
