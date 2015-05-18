@@ -2,6 +2,7 @@ debian/stage2/release/doc/install/install.pdf	usr/share/doc/python-escript-doc
 debian/stage2/release/doc/user/user.pdf		usr/share/doc/python-escript-doc
 debian/stage2/release/doc/cookbook/cookbook.pdf	usr/share/doc/python-escript-doc
 debian/stage2/release/doc/inversion/inversion.pdf	usr/share/doc/python-escript-doc/
-debian/stage2/release/doc/sphinx_api 		usr/share/doc/python-escript-doc/python_html
+debian/stage2/release/doc/sphinx_api/* 		usr/share/doc/python-escript-doc/python_html
+debian/stage2/release/doc/sphinx_api/_static/basic.css	usr/share/doc/python-escript-doc/python_html/_static
 debian/stage2/release/doc/doxygen 		usr/share/doc/python-escript-doc/doxygen
-debian/copyright	usr/share/doc/python-escript-doc
+debian/copyright				usr/share/doc/python-escript-doc

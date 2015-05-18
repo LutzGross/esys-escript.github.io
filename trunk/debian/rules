@@ -221,11 +221,11 @@ binary-indep:
 	dh_install 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_installchangelogs	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST) debian/changelog.trivial
 	dh_installexamples	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
-	dh_link -ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_link 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_lintian 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_compress 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_fixperms 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
-	dh_strip			-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
+	dh_strip		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_installdeb 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_gencontrol 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_md5sums		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
