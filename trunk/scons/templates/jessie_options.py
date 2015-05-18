@@ -306,3 +306,17 @@ build_shared = True
 # DEFAULT: False
 #papi_instrument_solver = True
 
+
+from site_init import getdebbuildflags
+# Now we add the debian build flags
+debstuff=getdebbuildflags()
+if (len(debstuff)>0):
+  print("Building with the following additional flags from debian: "+str(debstuff))
+for i in debstuff:
+  k=i[0]
+  v=i[1]
+  try:
+    exec(k+"+=' "+v+"'")
+  except NameError:   
+    exec(k+"='"+v+"'")
+
