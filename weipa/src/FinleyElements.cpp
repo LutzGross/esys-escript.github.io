@@ -484,7 +484,8 @@ void FinleyElements::reorderArray(IntVec& v, const IntVec& idx,
     } else {
         for (idxIt=idx.begin(); idxIt!=idx.end(); idxIt++) {
             int i = *idxIt;
-            copy(&v[i*elementsPerIndex], &v[(i+1)*elementsPerIndex], arrIt);
+	    int* start = &v[i*elementsPerIndex];
+	    copy(start, start+elementsPerIndex, arrIt);
             arrIt += elementsPerIndex;
         }
     }
