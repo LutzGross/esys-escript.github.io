@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-from templates.wheezy_options import *
+from templates.jessie_options import *
 
 debug = True
 
