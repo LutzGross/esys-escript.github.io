@@ -140,7 +140,7 @@ vars.AddVariables(
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
   ('pythoncmd', 'which python to compile with','python'),
-  ('usepython3', 'Is this a python3 build? (experimental)', False),
+  ('usepython3', 'Is this a python3 build?', False),
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
