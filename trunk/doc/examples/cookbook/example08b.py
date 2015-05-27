@@ -87,12 +87,6 @@ if HAVE_FINLEY:
     print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
     U0=0.1 # amplitude of point source
-    ls=500   # length of the source
-    source=np.zeros(ls,'float') # source array
-    decay1=np.zeros(ls,'float') # decay curve one
-    decay2=np.zeros(ls,'float') # decay curve two
-    time=np.zeros(ls,'float')   # time values
-    g=np.log(0.01)/ls
 
     dfeq=50 #Dominant Frequency
     a = 2.0 * (np.pi * dfeq)**2.0
@@ -100,7 +94,13 @@ if HAVE_FINLEY:
     srclength = 5. * t0
     ls = int(srclength/h)
     print('source length',ls)
+
     source=np.zeros(ls,'float') # source array
+    decay1=np.zeros(ls,'float') # decay curve one
+    decay2=np.zeros(ls,'float') # decay curve two
+    time=np.zeros(ls,'float')   # time values
+    g=np.log(0.01)/ls
+
     ampmax=0
     for it in range(0,ls):
         t = it*h
@@ -113,7 +113,7 @@ if HAVE_FINLEY:
         #source[t]=np.exp(g*t)*U0*np.sin(2.*np.pi*t/(0.75*ls))*(np.exp(-.1*g*t)-1)
         #decay1[t]=np.exp(g*t)
         #decay2[t]=(np.exp(-.1*g*t)-1)
-        time[t]=t*h
+        time[it]=t*h
     #tdecay=decay1*decay2*U0
     #decay1=decay1*U0; decay2=decay2*U0
     pl.clf(); 
