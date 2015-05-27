@@ -96,20 +96,20 @@ if HAVE_FINLEY:
 
     ####################################################CREATING THE SOURCE FUNCTION
     U0=0.1 # amplitude of point source
-    ls=500   # length of the source
+    dfeq=50 #Dominant Frequency
+    a = 2.0 * (np.pi * dfeq)**2.0
+    t0 = 5.0 / (2.0 * np.pi * dfeq)
+    srclength = 5. * t0
+
+    ls = int(srclength/h)
+    print('source length',ls)
+
     source=np.zeros(ls,'float') # source array
     decay1=np.zeros(ls,'float') # decay curve one
     decay2=np.zeros(ls,'float') # decay curve two
     time=np.zeros(ls,'float')   # time values
     g=np.log(0.01)/ls
 
-    dfeq=50 #Dominant Frequency
-    a = 2.0 * (np.pi * dfeq)**2.0
-    t0 = 5.0 / (2.0 * np.pi * dfeq)
-    srclength = 5. * t0
-    ls = int(srclength/h)
-    print('source length',ls)
-    source=np.zeros(ls,'float') # source array
     ampmax=0
     for it in range(0,ls):
         t = it*h
@@ -118,7 +118,7 @@ if HAVE_FINLEY:
         source[it] = -2. * a * tt * dum1
         if (abs(source[it]) > ampmax):
             ampmax = abs(source[it])
-        time[t]=t*h
+        time[it]=t*h
 
     # will introduce a spherical source at middle left of bottom face
     xc=[mx/2,my/2,0]
