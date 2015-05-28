@@ -1,4 +1,4 @@
-
+from __future__ import division, print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -83,21 +83,29 @@ class SplitInversionCostFunction(MeteredCostFunction):
     # num args, who many of each type
     # splitw is the splitworld jobs are running on
     # worldsinit_fn is run on each world at startup
-    def __init__(self, numLevelSets, numModels, numMappings, sw, worldsinit_fn):
+    def __init__(self, numLevelSets=None, numModels=None, numMappings=None, splitworld=None, worldsinit_fn=None):
         """
         fill this in.
         """
+        import math
+        if numLevelSets==None or numModels==None or numMappings==None or splitworld==None or worldsinit_fn==None:
+            raise ValueError("Please supply all required parameters")
         super(SplitInversionCostFunction, self).__init__()
         if numModels<1 or numModels<1 or numMappings<1:
           raise ValueError("The inversion function requires at least one LevelSet, Mapping and Models.")
         self.numModels=numModels
         self.numMappings=numMappings
         self.numLevelSets=numLevelSets
+        
+        howmany=splitworld.getSubWorldCount()
+        rlen=int(math.ceil(numModels/howmany))
+        rstart=rlen*splitworld.getSubWorldID()
+        extraparams={'rangelen':rlen, 'rangestart':rstart, 'numLevelSets':numLevelSets}        
         # sanity check
-        addJobPerWorld(sw, FunctionJob, worldsinit_fn)
-        sw.runJobs()
-        reqd=["models", "regularization", "mu_model","mappings"]
-        knownvars=sw.getVarList()
+        addJobPerWorld(splitworld, FunctionJob, worldsinit_fn, **extraparams)
+        splitworld.runJobs()
+        reqd=["fwdmodels", "regularization", "mappings","mu_model"]
+        knownvars=splitworld.getVarList()
         print(knownvars)
         for n in reqd:
           if [n,True] not in knownvars:

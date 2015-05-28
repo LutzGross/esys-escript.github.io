@@ -401,6 +401,16 @@ void SplitWorld::distributeJobs()
     }
 }
 
+int SplitWorld::getSubWorldCount()
+{
+    return swcount;
+}
+
+int SplitWorld::getSubWorldID()
+{
+    return localid;
+}
+
 
 namespace escript
 {

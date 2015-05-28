@@ -55,6 +55,9 @@ public:
 
     double getScalarVariable(const std::string& name);
     
+    int getSubWorldCount();
+    int getSubWorldID();
+    
     
     
 private:    
