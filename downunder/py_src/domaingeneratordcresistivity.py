@@ -51,8 +51,8 @@ class DCResDomGenerator(object):
             self.__extents=extents
         else:
             raise ValueError("extents should be of length 3 or 4")
-        for i in electrodeLst:
-            if len(electrodeLst[i]) != 4:
+        for electrode in electrodeLst:
+            if len(electrode[1]) != 4:
                 raise ValueError("currently only 3d domains are supported electrodeLst elements must be of length 4)")
         self.__extentLen = len(self.__extents)
         self.__electrodeLst=electrodeLst
@@ -68,8 +68,8 @@ class DCResDomGenerator(object):
         # logger.debug(electrodeLst)
 
         for i in electrodeLst:
-            self.__tags.append(i)
-            self.__points.append(electrodeLst[i][:-1])
+            self.__tags.append(i[0])
+            self.__points.append(i[1][:-1])
 
     def generateScriptFile(self, fieldSize, interfaces=None):
         fd, filename = tempfile.mkstemp(suffix=".geo", dir=self.__tmpDir)
