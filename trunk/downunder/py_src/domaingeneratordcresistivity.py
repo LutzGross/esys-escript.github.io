@@ -1,7 +1,7 @@
 from __future__ import print_function
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by University of Queensland
+# Copyright (c) 2003-2015 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -37,7 +37,7 @@ class DCResDomGenerator(object):
         """
         :param extents: x,y,z extents of the domain
         :type extents: list or tuple, len should=3
-        :param electrodeLst: A list of tuples of the form (tag,cords) for each electrode
+        :param electrodeLst: A list of tuples of the form (tag,coords) for each electrode
         :type electrodeLst: list of tuples
         :param lc:
         :type float
