@@ -479,6 +479,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
           for m,idx in mods:
             pp=tuple( [props[k] for k in idx] ) # build up collection of properties used by this model
             local_args.append(m.getArguments(*pp))
+	  self.exportValue("current_point", initguess)
 	  self.exportValue("model_args", local_args)
             
       addJobPerWorld(self.splitworld, FunctionJob, load_initial_guess, imports=["fwdmodels", "regularization", "mappings"])
@@ -514,26 +515,33 @@ class SplitInversionCostFunction(MeteredCostFunction):
         return props, args_f, args_reg
 
     def calculateValue(self, vnames):
-        self.calculate(vnames)
+        self._calculateValue(vnames)
         
     def _calculateValue(self, vnames):
         
        if not self.configured:
           raise ValueError("This inversion function has not been configured yet")
        #The props is already in each world as a variable
-       #Each model already has its point set
-       #regularization already has its point set
+       #Each world has the arguments for the point for all of its models
+       # as a variable.
+       #Regularization already has its point set
         
-       def calculateValueWorker(self, vnames, **args):
+       def calculateValueWorker(self, **args):
           props=self.importValue("props")
-          mods=self.importValue("models")
+          mods=self.importValue("fwdmodels")
           reg=self.importValue("regularization")
           mu_model=self.importValue("mu_model")
-          
+	  local_args=self.importValue("model_args")
+          current_point=self.importValue("current_point")
+          try:
+	     vnames=args['vnames']
+	  except KeyError as e:
+	     raise RuntimeError("Function requires vnames as kwarg")
           J=None
           for i in range(len(mods)):    # note: iterating over local models not ones on other worlds
             m,idx=mods[i]
-            z=m.getDefectAtPoint()
+	    args=local_args[i]
+            z=m.getDefect(current_point, *args)
             z*=self.mu_model[i];   
             if J is None:          
               J=z
@@ -548,8 +556,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
           else:
             for n in vnames:
               self.exportValue(J, n)
-       addJobPerWorld(self.sw.FunctionJob, calculateValueWorker, imports=["models", "regularization", "props"])
-       self.sw.runJobs()              
+       addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props"], vnames=vnames)
+       self.splitworld.runJobs()              
 
     def _getValue(self, m, *args):
         """
