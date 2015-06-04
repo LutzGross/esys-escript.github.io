@@ -32,6 +32,7 @@ from .splitinversioncostfunctions import *
 from .inversions import *
 from .mappings import *
 from .minimizers import *
+from .splitminimizers import *
 from .regularizations import *
 from .splitregularizations import *
 from .coordinates import *
