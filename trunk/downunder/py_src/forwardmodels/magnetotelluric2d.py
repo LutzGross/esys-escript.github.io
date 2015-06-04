@@ -64,11 +64,12 @@ class MT2DBase(ForwardModel):
                      `fixAboveLevel`
         :type Ftop: ``float``, ``complex`` or ``Data`` of shape (2,)
         :param fixAtTop: if true F is set to Ftop at the top of the domain.
-                         Use fixAtTop *or* fixAboveLevel, not both.
+                         If both `fixAtTop` and `fixAboveLevel` are set, then
+                         `fixAboveLevel` takes precedence.
         :type fixAtTop: ``bool``
         :param fixAboveLevel: level above which F is set to Ftop (typically
                               the level of the air layer).
-                              Use fixAtTop *or* fixAboveLevel, not both.
+                              Use `fixAtTop` *or* `fixAboveLevel`, not both.
         :type fixAboveLevel : ``float`` or ``None``
         :param Fbottom: value of field at base of the domain
         :type Fbottom: ``float``, ``complex`` or ``Data`` of shape (2,)
@@ -137,11 +138,11 @@ class MT2DBase(ForwardModel):
         self._r=Vector(0.,Solution(domain))
         #====================================
         if fixAtTop or fixAboveLevel is not None:
-            if fixAtTop:
-                m=whereZero(z-self._ztop)
-            else:
+            if fixAboveLevel is not None:
                 m=whereNonNegative(z-fixAboveLevel)
-            if isinstance(Ftop, float) or isinstance(Ftop, int) :
+            else:
+                m=whereZero(z-self._ztop)
+            if isinstance(Ftop, float) or isinstance(Ftop, int):
                 d = Data((Ftop,0), Solution(domain))
             elif isinstance(Ftop, tuple):
                 d = Data((Ftop[0],Ftop[1]), Solution(domain))
