@@ -95,7 +95,7 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentResList = pps.getApparentResistivityTotal()
         for i in totalApparentResList:
             res_a = abs(i-totalApparentRes)
-            res_b = 0.075 * totalApparentRes
+            res_b = 0.1 * totalApparentRes
             self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotential3dSchlumberger(self):
@@ -149,7 +149,7 @@ class TestDCResistivityForward(unittest.TestCase):
         for i in totalApparentRes:
             for j in i:
                 res_a = abs(j-totalApparentResVal)
-                res_b = 0.05 * totalApparentResVal
+                res_b = 0.1 * totalApparentResVal
                 self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotentialDipDip(self):
@@ -201,7 +201,7 @@ class TestDCResistivityForward(unittest.TestCase):
         for i in totalApparentRes:
             for j in i:
                 res_a = abs(j-totalApparentResVal)
-                res_b = 0.075 * totalApparentResVal
+                res_b = 0.1 * totalApparentResVal
                 self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotentialWenner(self):
@@ -254,7 +254,7 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentRes=wenSurv.getApparentResistivityTotal()
         for i in totalApparentRes:
             res_a = abs(i-totalApparentResVal)
-            res_b = 0.05 * totalApparentResVal
+            res_b = 0.1 * totalApparentResVal
             self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotentialPolDip(self):
@@ -308,7 +308,7 @@ class TestDCResistivityForward(unittest.TestCase):
         for i in totalApparentRes:
             for j in i:
                 res_a = abs(j-totalApparentResVal)
-                res_b = 0.075 * totalApparentResVal
+                res_b = 0.1 * totalApparentResVal
                 self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
 ################################
