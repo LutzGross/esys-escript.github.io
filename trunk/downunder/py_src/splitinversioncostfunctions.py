@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data, inner, addJobPerWorld, FunctionJob
+from esys.escript import Data, inner, addJobPerWorld, FunctionJob, Job
 import numpy as np
 
 
@@ -96,6 +96,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         self.numModels=numModels
         self.numMappings=numMappings
         self.numLevelSets=numLevelSets
+        self.splitworld=splitworld
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -104,13 +105,14 @@ class SplitInversionCostFunction(MeteredCostFunction):
         # sanity check
         addJobPerWorld(splitworld, FunctionJob, worldsinit_fn, **extraparams)
         splitworld.runJobs()
-        reqd=["fwdmodels", "regularization", "mappings","mu_model"]
+        #reqd=["fwdmodels", "regularization", "mappings","mu_model"]
+        reqd=["fwdmodels", "regularization", "mappings", "initial_guess"]     #For our script, mu_model appears not to be used
         knownvars=splitworld.getVarList()
         print(knownvars)
         for n in reqd:
           if [n,True] not in knownvars:
             raise RuntimeError("Required variable "+n+" was not created by the world init function")
-        self.configured=False
+        self.configured=True
 
     # Function to put the (possible list of) forward model(s) into the form expected by the rest of the system
     @staticmethod
@@ -138,6 +140,46 @@ class SplitInversionCostFunction(MeteredCostFunction):
                 fm=f[0]
             result.append((fm,idx))
         return result      
+
+    # Function to put the (possible list of) forward model(s) into a form expected by the rest of the system
+    @staticmethod
+    def formatMappings(mappings, numLevelSets):
+	if isinstance(mappings, Mapping):
+	    mappings = [ mappings ]
+        newmappings = []
+        for i in range(len(mappings)):
+            mm=mappings[i]
+            if isinstance(mm, Mapping):
+                m=mm
+                if numLevelSets>1:
+                    idx=[ p for p in range(numLevelSets)]
+                else:
+                    idx=None
+            elif len(mm) == 1:
+                m=mm[0]
+                if numLevelSets>1:
+                    idx=[ p for p in range(numLevelSets)]
+                else:
+                    idx=None
+            else:
+                m=mm[0]
+                if isinstance(mm[1], int):
+                    idx=[mm[1]]
+                else:
+                    idx=list(mm[1])
+                if numLevelSets>1:
+                    for k in idx:
+                        if  k < 0  or k > numLevelSets-1:
+                            raise ValueError("level set index %s is out of range."%(k,))
+
+                else:
+                    if idx[0] != 0:
+                        raise ValueError("Level set index %s is out of range."%(idx[0],))
+                    else:
+                        idx=None
+            newmappings.append((m,idx))
+        return newmappings
+    
       
     def getDomain(self):
         """
@@ -247,6 +289,9 @@ class SplitInversionCostFunction(MeteredCostFunction):
         :param mu: list of trade-off factors.
         :type mu: ``list`` of ``float``
         """
+        if not self.configured:
+          raise ValueError("This inversion function has not been configured yet")
+        raise ValueError("setTradeOffFactors not supported yet.")
         if mu is None:
             mu=np.ones((self.__num_tradeoff_factors,))
         self.setTradeOffFactorsModels(mu[:self.numModels])
@@ -264,6 +309,60 @@ class SplitInversionCostFunction(MeteredCostFunction):
         mu2=self.regularization.getTradeOffFactors()
         return [ m for m in mu1] + [ m for m in mu2]
 
+    @staticmethod  
+    def createLevelSetFunctionHelper(self, regularization, mappings, *props):
+        """
+        Returns an object (init-ed) with 0s.
+        Components can be overwritten by physical
+        properties `props`. If present entries must correspond to the
+        `mappings` arguments in the constructor. Use ``None`` for properties
+        for which no value is given.
+        """
+        if not isinstance(self, Job):
+            raise RuntimeError("This function is designed to be run inside a Job.")
+        m=regularization.getPDE().createSolution()
+        if len(props) > 0:
+            numMappings=len(mappings)
+            for i in range(numMappings):
+                if props[i]:
+                    mp, idx=self.mappings[i]
+                    m2=mp.getInverse(props[i])
+                    if idx:
+                        if len(idx) == 1:
+                            m[idx[0]]=m2
+                        else:
+                            for k in range(idx): m[idx[k]]=m2[k]
+                    else:
+                        m=m2
+        return m    
+
+    @staticmethod  
+    def calculatePropertiesHelper(self, m, mappings):
+        """
+        returns a list of the physical properties from a given level set
+        function *m* using the mappings of the cost function.
+
+        :param m: level set function
+        :type m: `Data`
+        :rtype: ``list`` of `Data`        
+        """
+        if not isinstance(self, Job):
+            raise RuntimeError("This function is designed to be run inside a Job.")
+        props=[]
+        for i in range(len(mappings)):
+            mp, idx=mappings[i]
+            if idx:
+                if len(idx)==1:
+                    p=mp.getValue(m[idx[0]])
+                else:
+                    m2=Data(0.,(len(idx),),m.getFunctionSpace())
+                    for k in range(len(idx)): m2[k]=m[idx[k]]
+                    p=mp.getValue(m2)
+            else:
+                p=mp.getValue(m)
+            props.append(p)            
+        return props  
+        
     def createLevelSetFunction(self, *props):
         """
         returns an instance of an object used to represent a level set function
@@ -344,29 +443,46 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
     
     def setPoint(self):
-      self.setPoint()
+      self._setPoint()
     
     def _setPoint(self):
       """
       This should take in a value to set the point to, but that can wait
+      
+      There is also the question of how this is expected to get its info.
+      Should it be passed in as a parameter or should it be read from
+      the environment?
+      We can expect the actuall initial guess to come from the world init
+      function, but what about later calls?  (or are we hoping they won't
+      actually happen that often and that relative changes will be done instead?)
+      
       """
       if not self.configured:
         raise ValueError("This inversion function has not been configured yet")
 
       def load_initial_guess(self, **args):
-          initguess=0
-          mods=self.importValue("models")
+          mods=self.importValue("fwdmodels")
           reg=self.importValue("regularization")
+          mappings=self.importValue("mappings")
+          try:
+              initguess=args["initialguess"]
+          except KeyError as e:
+              # we are not passing in property values here because we don't have any yet
+              initguess=SplitInversionCostFunction.createLevelSetFunctionHelper(self, reg, mappings)
+          props=[]
+          props=SplitInversionCostFunction.calculatePropertiesHelper(self, initguess, mappings)
+          self.exportValue("props", props)              
           reg.setPoint(initguess)
+	      #Going to try this - each world stores the args for its
+	      #models rather than going the setPoint route.
+          local_args=[]
           for m,idx in mods:
             pp=tuple( [props[k] for k in idx] ) # build up collection of properties used by this model
-            m.setPoint(*pp)
-          # We still need to deal with the props feild and where to get it from
-          self.exportValue("props", props)
+            local_args.append(m.getArguments(*pp))
+	  self.exportValue("model_args", local_args)
             
-      for i in range(0, self.sw.swcount):      
-          self.sw.addJob(FunctionJob, load_initial_guess, imports=["models", "regularization"])
-      self.sw.runJobs()
+      addJobPerWorld(self.splitworld, FunctionJob, load_initial_guess, imports=["fwdmodels", "regularization", "mappings"])
+      self.splitworld.runJobs()
       
     def _getArguments(self, m):
         """
@@ -432,8 +548,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
           else:
             for n in vnames:
               self.exportValue(J, n)
-       for i in range(0, self.sw.swcount):      
-          self.sw.addJob(FunctionJob, calculateValueWorker, imports=["models", "regularization", "props"])
+       addJobPerWorld(self.sw.FunctionJob, calculateValueWorker, imports=["models", "regularization", "props"])
        self.sw.runJobs()              
 
     def _getValue(self, m, *args):
@@ -753,8 +868,9 @@ class SplitInversionCostFunction(MeteredCostFunction):
         notifies the class that the Hessian operator needs to be updated.
         """
         if not self.configured:
-          raise ValueError("This inversion function has not been configured yet")         
-        self.regularization.updateHessian()
+          raise ValueError("This inversion function has not been configured yet")
+        addJobPerWorld(self.splitworld, FunctionJob, updateHessianWorker, imports=["regularization"]) 
+        self.splitworld.runJobs()
 
     def _getNorm(self, m):
         """
@@ -769,3 +885,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         raise RuntimeError("Need to have this in a subworld --- one or all?")
         return self.regularization.getNorm(m)
 
+def updateHessianWorker(self, **kwargs):
+    reg=self.importValue("regularization")
+    reg.updateHessian()
+    #self.exportValue(reg, "regularization")

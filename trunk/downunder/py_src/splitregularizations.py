@@ -403,6 +403,8 @@ class SplitRegularization(CostFunction):
     def getArguments(self, m):
         """
         """
+        if m!=self.__pre_input:
+            raise RuntimeError("Attempt to change point using getArguments")
         self.__pre_args = grad(m)
         self.__pre_input = m
         return grad(m),
@@ -414,7 +416,9 @@ class SplitRegularization(CostFunction):
 
         :rtype: ``float``
         """
-        
+
+        if m!=self.__pre_input:
+            raise RuntimeError("Attempt to change point using getValue")        
         # substituting cached values
         m=self.__pre_input
         grad_m=self.__pre_args
@@ -587,4 +591,13 @@ class SplitRegularization(CostFunction):
         :rtype: ``float``
         """
         return sqrt(integrate(length(m)**2)/self.__vol_d)
+    
+    def setPoint(self, m):
+        """
+        sets the point which this function will work with
+        
+        :param m: level set function
+        :type m: `Data`
+        """
+        self.__pre_input = m
 
