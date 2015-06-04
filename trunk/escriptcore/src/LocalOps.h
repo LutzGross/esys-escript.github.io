@@ -417,14 +417,14 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
         }
       } else {
          eigenvalues3(A00,A01,A02,A11,A12,A22,ev0,ev1,ev2);
-         const register double absev0=fabs(*ev0);
-         const register double absev1=fabs(*ev1);
-         const register double absev2=fabs(*ev2);
-         register double max_ev=absev0>absev1 ? absev0 : absev1;
+         const double absev0=fabs(*ev0);
+         const double absev1=fabs(*ev1);
+         const double absev2=fabs(*ev2);
+         double max_ev=absev0>absev1 ? absev0 : absev1;
          max_ev=max_ev>absev2 ? max_ev : absev2;
-         const register double d_01=fabs((*ev0)-(*ev1));
-         const register double d_12=fabs((*ev1)-(*ev2));
-         const register double max_d=d_01>d_12 ? d_01 : d_12;
+         const double d_01=fabs((*ev0)-(*ev1));
+         const double d_12=fabs((*ev1)-(*ev2));
+         const double max_d=d_01>d_12 ? d_01 : d_12;
          if (max_d<=tol*max_ev) {
              *V00=1.;
              *V10=0;
@@ -436,8 +436,8 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
              *V12=0;
              *V22=1.;
          } else {
-            const register double S00=A00-(*ev0);
-            const register double absS00=fabs(S00);
+            const double S00=A00-(*ev0);
+            const double absS00=fabs(S00);
             if (absS00>m) {
                 vectorInKernel3__nonZeroA00(S00,A01,A02,A01,A11-(*ev0),A12,A02,A12,A22-(*ev0),V00,V10,V20);
             } else if (absA02<m) {
@@ -446,8 +446,8 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
                 vectorInKernel3__nonZeroA00(A02,A12,A22-(*ev0),S00,A01,A02,A01,A11-(*ev0),A12,V00,V10,V20);
             }
             normalizeVector3(V00,V10,V20);;
-            const register double T00=A00-(*ev2);
-            const register double absT00=fabs(T00);
+            const double T00=A00-(*ev2);
+            const double absT00=fabs(T00);
             if (absT00>m) {
                  vectorInKernel3__nonZeroA00(T00,A01,A02,A01,A11-(*ev2),A12,A02,A12,A22-(*ev2),V02,V12,V22);
             } else if (absA02<m) {
@@ -455,7 +455,7 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
             } else {
                  vectorInKernel3__nonZeroA00(A02,A12,A22-(*ev2),T00,A01,A02,A01,A11-(*ev2),A12,V02,V12,V22);
             }
-            const register double dot=(*V02)*(*V00)+(*V12)*(*V10)+(*V22)*(*V20);
+            const double dot=(*V02)*(*V00)+(*V12)*(*V10)+(*V22)*(*V20);
             *V02-=dot*(*V00);
             *V12-=dot*(*V10);
             *V22-=dot*(*V20);
