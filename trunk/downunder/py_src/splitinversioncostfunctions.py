@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data, inner, addJobPerWorld, FunctionJob, Job
+from esys.escript import Data, inner, addJobPerWorld, addVariable, makeLocalOnly,FunctionJob, Job
 import numpy as np
 
 
@@ -98,6 +98,15 @@ class SplitInversionCostFunction(MeteredCostFunction):
         self.numLevelSets=numLevelSets
         self.splitworld=splitworld
         
+        addVariable(splitworld,"regularization", makeLocalOnly)
+        addVariable(splitworld,"mappings", makeLocalOnly)
+        addVariable(splitworld,"fwdmodels", makeLocalOnly)
+        addVariable(splitworld,"initial_guess", makeLocalOnly)  # Used to load the initial guess
+        addVariable(splitworld,"model_args", makeLocalOnly)     # arguments for models stored on that world
+        addVariable(splitworld,"props", makeLocalOnly)          # Properties for the current guess
+        addVariable(splitworld,"current_point", makeLocalOnly)  # Current approximate solution. Starts out as initial_guess 
+        addVariable(splitworld,"mu_model", makeLocalOnly)
+        
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
         rstart=rlen*splitworld.getSubWorldID()
@@ -112,6 +121,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
         for n in reqd:
           if [n,True] not in knownvars:
             raise RuntimeError("Required variable "+n+" was not created by the world init function")
+        if ['mu_model',True] not in knownvars:
+            self.setTradeOffFactorsModels()
         self.configured=True
 
     # Function to put the (possible list of) forward model(s) into the form expected by the rest of the system
@@ -222,6 +233,18 @@ class SplitInversionCostFunction(MeteredCostFunction):
         else:
           raise RuntimeError("This inversion function has not been configured yet")
 
+    #Written to be executed inside a FunctionJob
+    @staticmethod    
+    def subworld_setMu_model(self, **args):
+          if not isinstance(self, Job):
+             raise RuntimeError("This command should be run inside a Job")
+          extmu=args['mu']
+          chunksize=max(len(extmu)//self.swcount,1)         #In case we have more worlds than models
+          minindex=self.swid*chunksize
+          maxindex=(self.swid+1)*chunksize              # yes this could go off the end but I will slice
+          mymu=extmu[minindex:maxindex]
+          self.exportValue("mu_model", mymu)
+          
     def setTradeOffFactorsModels(self, mu=None):
         """
         sets the trade-off factors for the forward model components.
@@ -245,17 +268,10 @@ class SplitInversionCostFunction(MeteredCostFunction):
                     self.mu_model= [mu, ]
                 else:
                     raise ValueError("Trade-off factor must be positive.")
-        #Now we need to get these values into the subworlds
-        #Getting the mu value in via a closure is safe because it WILL NOT CONTAIN COMPLEX OBJECTS
-        extmu=self.mu_model
-        def setMu(self, **args):
-          chunksize=max(self.worldsize()//len(extmu),1)         #In case we have more worlds than models
-          minindex=self.subworldid()*chunksize
-          maxindex=(self.subworldid()+1)*chunksize              # yes this could go off the end but I will slice
-          mymu=extmu[minindex:maxindex]
-          self.exportValue("mu_model", mymu)
-        addJobPerWorld(sw, setMu)
-        sw.runJobs()
+        addJobPerWorld(self.splitworld, FunctionJob, self.subworld_setMu_model, mu=self.mu_model)
+        self.splitworld.runJobs()
+        
+
         
     def getTradeOffFactorsModels(self):
         """
@@ -542,13 +558,12 @@ class SplitInversionCostFunction(MeteredCostFunction):
             m,idx=mods[i]
 	    args=local_args[i]
             z=m.getDefect(current_point, *args)
-            z*=self.mu_model[i];   
+            z*=mu_model[i];   
             if J is None:          
               J=z
             else:
-              J+=z
-            
-          if self.worldid==0:    # we only want to add the regularization term once
+              J+=z            
+          if self.swid==0:    # we only want to add the regularization term once
             J+=reg.getValueAtPoint()    # We actually want to get a value here but
                                         # I want to distiguish it from the other getValue call
           if isinstance(vnames, str):
@@ -556,8 +571,12 @@ class SplitInversionCostFunction(MeteredCostFunction):
           else:
             for n in vnames:
               self.exportValue(J, n)
-       addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props"], vnames=vnames)
-       self.splitworld.runJobs()              
+       addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props", 
+            "model_args", "mu_model"], vnames=vnames)
+       self.splitworld.runJobs()   
+       # The result will now be stored in the named variables
+       # The caller will need to execute splitworld.getDoubleVariable to extract them
+       
 
     def _getValue(self, m, *args):
         """
