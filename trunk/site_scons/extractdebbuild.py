@@ -28,7 +28,6 @@ import subprocess
 import sys
 
 def getdebbuildflags():
-  print("Starting getflags")
   usedflags={'CFLAGS':None, 'CPPFLAGS':'cpp_flags', 'CXXFLAGS':'cxx_extra', 'LDFLAGS':'ld_extra'}
   ignoreflags=['FFLAGS','FCFLAGS', 'GCJFLAGS','OBJCFLAGS','OBJCXXFLAGS']
   mycflags=None
@@ -58,5 +57,4 @@ def getdebbuildflags():
     if usedflags[key] is None:
         continue
     res.append([usedflags[key],val])
-  print("Ending getflags")  
   return res    
