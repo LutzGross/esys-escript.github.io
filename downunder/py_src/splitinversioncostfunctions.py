@@ -155,8 +155,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
     # Function to put the (possible list of) forward model(s) into a form expected by the rest of the system
     @staticmethod
     def formatMappings(mappings, numLevelSets):
-	if isinstance(mappings, Mapping):
-	    mappings = [ mappings ]
+        if isinstance(mappings, Mapping):
+            mappings = [ mappings ]
         newmappings = []
         for i in range(len(mappings)):
             mm=mappings[i]
@@ -489,14 +489,14 @@ class SplitInversionCostFunction(MeteredCostFunction):
           props=SplitInversionCostFunction.calculatePropertiesHelper(self, initguess, mappings)
           self.exportValue("props", props)              
           reg.setPoint(initguess)
-	      #Going to try this - each world stores the args for its
-	      #models rather than going the setPoint route.
+              #Going to try this - each world stores the args for its
+              #models rather than going the setPoint route.
           local_args=[]
           for m,idx in mods:
             pp=tuple( [props[k] for k in idx] ) # build up collection of properties used by this model
             local_args.append(m.getArguments(*pp))
-	  self.exportValue("current_point", initguess)
-	  self.exportValue("model_args", local_args)
+          self.exportValue("current_point", initguess)
+          self.exportValue("model_args", local_args)
             
       addJobPerWorld(self.splitworld, FunctionJob, load_initial_guess, imports=["fwdmodels", "regularization", "mappings"])
       self.splitworld.runJobs()
@@ -547,16 +547,16 @@ class SplitInversionCostFunction(MeteredCostFunction):
           mods=self.importValue("fwdmodels")
           reg=self.importValue("regularization")
           mu_model=self.importValue("mu_model")
-	  local_args=self.importValue("model_args")
+          local_args=self.importValue("model_args")
           current_point=self.importValue("current_point")
           try:
-	     vnames=args['vnames']
-	  except KeyError as e:
-	     raise RuntimeError("Function requires vnames as kwarg")
+             vnames=args['vnames']
+          except KeyError as e:
+             raise RuntimeError("Function requires vnames as kwarg")
           J=None
           for i in range(len(mods)):    # note: iterating over local models not ones on other worlds
             m,idx=mods[i]
-	    args=local_args[i]
+            args=local_args[i]
             z=m.getDefect(current_point, *args)
             z*=mu_model[i];   
             if J is None:          
