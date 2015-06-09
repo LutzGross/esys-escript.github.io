@@ -403,12 +403,56 @@ class SplitRegularization(CostFunction):
     def getArguments(self, m):
         """
         """
-        if m!=self.__pre_input:
-            raise RuntimeError("Attempt to change point using getArguments")
+        raise RuntimeError("Please use the setPoint interface")
         self.__pre_args = grad(m)
         self.__pre_input = m
-        return grad(m),
+        return self.__pre_args,
 
+        
+    def getValueAtPoint(self):
+        """
+        returns the value of the cost function J with respect to m.
+        This equation is specified in the inversion cookbook.
+
+        :rtype: ``float``
+        """
+        m=self.__pre_input
+        grad_m=self.__pre_args
+        
+        mu=self.__mu
+        mu_c=self.__mu_c
+        DIM=self.getDomain().getDim()
+        numLS=self.getNumLevelSets()
+
+        A=0
+        if self.__w0 is not None:
+            r = inner(integrate(m**2 * self.__w0), mu)
+            self.logger.debug("J_R[m^2] = %e"%r)
+            A += r
+
+        if self.__w1 is not None:
+            if numLS == 1:
+                r = integrate(inner(grad_m**2, self.__w1))*mu
+                self.logger.debug("J_R[grad(m)] = %e"%r)
+                A += r
+            else:
+                for k in range(numLS):
+                    r = mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
+                    self.logger.debug("J_R[grad(m)][%d] = %e"%(k,r))
+                    A += r
+
+        if numLS > 1:
+            for k in range(numLS):
+                gk=grad_m[k,:]
+                len_gk=length(gk)
+                for l in range(k):
+                    gl=grad_m[l,:]
+                    r = mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
+                    self.logger.debug("J_R[cross][%d,%d] = %e"%(l,k,r))
+                    A += r
+        return A/2       
+    
+    
     def getValue(self, m, grad_m):
         """
         returns the value of the cost function J with respect to m.
@@ -600,4 +644,5 @@ class SplitRegularization(CostFunction):
         :type m: `Data`
         """
         self.__pre_input = m
+        self.__pre_args = grad(m)
 

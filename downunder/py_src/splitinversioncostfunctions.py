@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data, inner, addJobPerWorld, addVariable, makeLocalOnly,FunctionJob, Job
+from esys.escript import Data, inner, addJobPerWorld, addVariable, makeLocalOnly, makeScalarReducer, FunctionJob, Job
 import numpy as np
 
 
@@ -106,6 +106,10 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld,"props", makeLocalOnly)          # Properties for the current guess
         addVariable(splitworld,"current_point", makeLocalOnly)  # Current approximate solution. Starts out as initial_guess 
         addVariable(splitworld,"mu_model", makeLocalOnly)
+
+        addVariable(splitworld,"Jx_0", makeScalarReducer,"SUM")
+        addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
+        addVariable(splitworld, "g_Jx", makeScalarReducer, "SUM")
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -570,7 +574,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
             self.exportValue(J, vnames)
           else:
             for n in vnames:
-              self.exportValue(J, n)
+              self.exportValue(n,J)
        addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props", 
             "model_args", "mu_model"], vnames=vnames)
        self.splitworld.runJobs()   
@@ -650,16 +654,21 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
         return result
 
-    def _calculateGradient(self):
+    def calculateGradient(self, vnames):
+        return self._calculateGradient(vnames)
+        
+    def _calculateGradient(self, vnames):
        if not self.configured:
           raise ValueError("This inversion function has not been configured yet")
 
        numLevelSets=self.numLevelSets   # pass in via closure
-       def calculateGradientWorker(self, vnames1, vnames2, **args):
+       def calculateGradientWorker(self, **args):
           """
           vnames1 gives the names to store the first component of the gradient in
           vnames2 gives the names to store the second component of the gradient in
           """
+          vnames1=args['vnames1']
+          vnames2=args['vnames2']
           props=self.importValue("props")
           mods=self.importValue("models")
           reg=self.importValue("regularization")
@@ -758,8 +767,11 @@ class SplitInversionCostFunction(MeteredCostFunction):
             for n in vnames2:
               self.exportValue(g_J[1], n)
               
-       addJobPerWorld(sw, FunctionJob, calculateGradientWorker, vnames, imports=["models", "regularization", "props", "mu_models"])
-       self.sw.runJobs()                 
+              
+       #Need to work out what is happening with vnames
+       #does the caller need to to pass in two separate lists, or do we process that list in here?
+       addJobPerWorld(self.splitworld, FunctionJob, calculateGradientWorker, vnames1=vnames1, vnames2=vnames2, imports=["models", "regularization", "props", "mu_models"])
+       self.splitworld.runJobs()                 
         
     def _getGradient(self, m, *args):
         """
