@@ -74,27 +74,22 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
         #args=self.getCostFunction().getArguments(x)
         
         self.getCostFunction().calculateValue(["Jx","Jx_0"])	#evaluate the function and store the result in the named variables
-        self.getCostFunction().calculateGradient("g_Jx")        #compute the gradient and store the result
+		      # note that call sets Jx=Jx_0
+		      
+        self.getCostFunction().calculateGradient("g_Jx_0","g_Jx_1")        #compute the gradient and store the result
         
-        #g_Jx=self.getCostFunction().getGradient(x, *args)
-        #Jx=self.getCostFunction()(x, *args) # equivalent to getValue() for Downunder CostFunctions
-        
-        
-        
-        Jx_0=Jx
-
         while not converged and not non_curable_break_down and n_iter < self._imax:
           k=0
           break_down = False
           s_and_y=[]
           # initial step length for line search
           alpha=1.0
-          self._doCallback(n_iter, x, Jx, g_Jx)
+          #self._doCallback(n_iter, x, Jx, g_Jx)
 
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
                 #self.logger.info("\033[1;31miteration %d\033[1;30m"%n_iter)
                 self.logger.info("********** iteration %3d **********"%n_iter)
-                self.logger.info("\tJ(x) = %s"%Jx)
+                #self.logger.info("\tJ(x) = %s"%Jx)
                 #self.logger.debug("\tgrad f(x) = %s"%g_Jx)
                 if invH_scale:
                     self.logger.debug("\tH = %s"%invH_scale)
