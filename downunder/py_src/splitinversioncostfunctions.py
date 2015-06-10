@@ -110,7 +110,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld,"Jx_0", makeScalarReducer,"SUM")
         addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
         addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
-        addVariable(splitworld, "g_Jx_1", makeLocalOnly)	# This component is not merged with values from other worlds
+        addVariable(splitworld, "g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -661,28 +661,28 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
     @staticmethod
     def getModelArgs(self, fwdmodels):
-	"""
-	Attempts to import the arguments for forward models, if they are not available, 
-	Computes and exports them
-	"""
-	if not isinstance(self, Job):
-	    raise RuntimeError("This function should only be called inside a Job")
-	args=self.importValue("model_args")
-	p=self.importValue("current_point")
-	if args is not None:
-	  return args
-	args=[]
-	for mod in fwdmodels:
-	    args.append(mod.getArguments(p))
-	self.exportValue("model_arguments",args)
-	return args
-	
+        """
+        Attempts to import the arguments for forward models, if they are not available, 
+        Computes and exports them
+        """
+        if not isinstance(self, Job):
+            raise RuntimeError("This function should only be called inside a Job")
+        args=self.importValue("model_args")
+        p=self.importValue("current_point")
+        if args is not None:
+          return args
+        args=[]
+        for mod in fwdmodels:
+            args.append(mod.getArguments(p))
+        self.exportValue("model_arguments",args)
+        return args
+        
     def calculateGradient(self, vnames1, vnames2):
-	"""
-	The gradient operation produces two components (designated (Y^,X) in the non-split version).
-	vnames1 gives the variable name(s) where the first component should be stored.
-	vnames2 gives the variable name(s) where the second component should be stored.
-	"""
+        """
+        The gradient operation produces two components (designated (Y^,X) in the non-split version).
+        vnames1 gives the variable name(s) where the first component should be stored.
+        vnames2 gives the variable name(s) where the second component should be stored.
+        """
         return self._calculateGradient(vnames1, vnames2)
         
     def _calculateGradient(self, vnames1, vnames2):
