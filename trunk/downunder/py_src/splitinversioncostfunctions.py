@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data, inner, addJobPerWorld, addVariable, makeLocalOnly, makeScalarReducer, FunctionJob, Job
+from esys.escript import Data, inner, addJobPerWorld, addVariable, makeLocalOnly, makeScalarReducer, makeDataReducer, FunctionJob, Job
 import numpy as np
 
 
@@ -109,7 +109,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
         addVariable(splitworld,"Jx_0", makeScalarReducer,"SUM")
         addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
-        addVariable(splitworld, "g_Jx", makeScalarReducer, "SUM")
+        addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
+        addVariable(splitworld, "g_Jx_1", makeLocalOnly)	# This component is not merged with values from other worlds
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -468,6 +469,13 @@ class SplitInversionCostFunction(MeteredCostFunction):
     def _setPoint(self):
       """
       This should take in a value to set the point to, but that can wait
+      ... It probably the shouldn't actually.   We want all values to 
+      be constructed inside the subworlds, so being able to (easily - we 
+      can't stop closures) pass them 
+      in from outside would defeat the purpose.
+      
+      To modify the point, we probably want a separate translate_point()
+      function.
       
       There is also the question of how this is expected to get its info.
       Should it be passed in as a parameter or should it be read from
@@ -480,15 +488,12 @@ class SplitInversionCostFunction(MeteredCostFunction):
       if not self.configured:
         raise ValueError("This inversion function has not been configured yet")
 
-      def load_initial_guess(self, **args):
+      def load_guess_to_subworlds(self, **args):
           mods=self.importValue("fwdmodels")
           reg=self.importValue("regularization")
           mappings=self.importValue("mappings")
-          try:
-              initguess=args["initialguess"]
-          except KeyError as e:
-              # we are not passing in property values here because we don't have any yet
-              initguess=SplitInversionCostFunction.createLevelSetFunctionHelper(self, reg, mappings)
+          # we are not passing in property values here because we don't have any yet
+          initguess=SplitInversionCostFunction.createLevelSetFunctionHelper(self, reg, mappings)
           props=[]
           props=SplitInversionCostFunction.calculatePropertiesHelper(self, initguess, mappings)
           self.exportValue("props", props)              
@@ -502,7 +507,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
           self.exportValue("current_point", initguess)
           self.exportValue("model_args", local_args)
             
-      addJobPerWorld(self.splitworld, FunctionJob, load_initial_guess, imports=["fwdmodels", "regularization", "mappings"])
+      addJobPerWorld(self.splitworld, FunctionJob, load_guess_to_subworlds, imports=["fwdmodels", "regularization", "mappings"])
       self.splitworld.runJobs()
       
     def _getArguments(self, m):
@@ -654,10 +659,33 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
         return result
 
-    def calculateGradient(self, vnames):
-        return self._calculateGradient(vnames)
+    @staticmethod
+    def getModelArgs(self, fwdmodels):
+	"""
+	Attempts to import the arguments for forward models, if they are not available, 
+	Computes and exports them
+	"""
+	if not isinstance(self, Job):
+	    raise RuntimeError("This function should only be called inside a Job")
+	args=self.importValue("model_args")
+	p=self.importValue("current_point")
+	if args is not None:
+	  return args
+	args=[]
+	for mod in fwdmodels:
+	    args.append(mod.getArguments(p))
+	self.exportValue("model_arguments",args)
+	return args
+	
+    def calculateGradient(self, vnames1, vnames2):
+	"""
+	The gradient operation produces two components (designated (Y^,X) in the non-split version).
+	vnames1 gives the variable name(s) where the first component should be stored.
+	vnames2 gives the variable name(s) where the second component should be stored.
+	"""
+        return self._calculateGradient(vnames1, vnames2)
         
-    def _calculateGradient(self, vnames):
+    def _calculateGradient(self, vnames1, vnames2):
        if not self.configured:
           raise ValueError("This inversion function has not been configured yet")
 
@@ -670,17 +698,20 @@ class SplitInversionCostFunction(MeteredCostFunction):
           vnames1=args['vnames1']
           vnames2=args['vnames2']
           props=self.importValue("props")
-          mods=self.importValue("models")
+          mods=self.importValue("fwdmodels")
           reg=self.importValue("regularization")
           mu_model=self.importValue("mu_model")
           mappings=self.importValue("mappings")
+          m=self.importValue("current_point")
+          
+          model_args=SplitInversionCostFunction.getModelArgs(self, mods)
           
           g_J = reg.getGradientAtPoint()
           p_diffs=[]
           # Find the derivative for each mapping
           # If a mapping has a list of components (idx), then make a new Data object with only those
           # components, pass it to the mapping and get the derivative.
-          for i in range(len(numMappings)):
+          for i in range(len(mappings)):
               mm, idx=mappings[i]
               if idx and numLevelSets > 1:
                   if len(idx)>1:
@@ -695,20 +726,20 @@ class SplitInversionCostFunction(MeteredCostFunction):
           #Since we are going to be merging Y with other worlds, we need to make sure the the regularization
           #component is only added once.  However most of the ops below are in terms of += so we need to
           #create a zero object to use as a starting point
-          if self.subworldid==0:
+          if self.swid==0:
              Y=g_J[0]    # Because g_J==(Y,X)  Y_k=dKer/dm_k
           else:
              Y=Data(0, g_J[0].getShape(), g_J[0].getForwardModel())
-          for i in range(self.numModels):
-              mu=self.mu_model[i]
+          for i in range(len(mods)):
+              mu=mu_model[i]
               f, idx_f=mods[i]
-              args=tuple( [ props[k] for k in idx_f]  + list( args_f[i] ) )
-              Ys = f.getGradientAtPoint() # this d Jf/d props
+              args=tuple( [ props[k] for k in idx_f]  + list( model_args[i] ) )
+              Ys = f.getGradient(*args) # this d Jf/d props
               # in this case f depends on one parameter props only but this can
               # still depend on several level set components
               if Ys.getRank() == 0:
                   # run through all level sets k prop j is depending on:
-                  idx_m=self.mappings[idx_f[0]][1]
+                  idx_m=mappings[idx_f[0]][1]
                   # tmp[k] = dJ_f/d_prop * d prop/d m[idx_m[k]]
                   tmp=Ys * p_diffs[idx_f[0]] * mu
                   if idx_m:
@@ -725,7 +756,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
                   # run through all props j forward model f is depending on:
                   for j in range(len(idx_f)):
                       # run through all level sets k prop j is depending on:
-                      idx_m=self.mappings[j][1]
+                      idx_m=mappings[j][1]
                       if p_diffs[idx_f[j]].getRank() == 0 :
                           if idx_m: # this case is not needed (really?)
                               raise RuntimeError("something wrong A")
@@ -757,20 +788,18 @@ class SplitInversionCostFunction(MeteredCostFunction):
                               Y+=inner(Yss, p_diffs[idx_f[j]]) * mu
                           s+=l    
           if isinstance(vnames1, str):
-            self.exportValue(Y, vnames1)
+            self.exportValue(vnames1, Y)
           else:
             for n in vnames1:
               self.exportValue(Y, n)
           if isinstance(vnames2, str):          #The second component should be strictly local 
-            self.exportValue(g_J[1], vnames2)
+            self.exportValue(vnames2, g_J[1])
           else:
             for n in vnames2:
-              self.exportValue(g_J[1], n)
+              self.exportValue(n, g_J[1])
               
-              
-       #Need to work out what is happening with vnames
-       #does the caller need to to pass in two separate lists, or do we process that list in here?
-       addJobPerWorld(self.splitworld, FunctionJob, calculateGradientWorker, vnames1=vnames1, vnames2=vnames2, imports=["models", "regularization", "props", "mu_models"])
+
+       addJobPerWorld(self.splitworld, FunctionJob, calculateGradientWorker, vnames1=vnames1, vnames2=vnames2, imports=["models", "regularization", "props", "mu_models", "current_point"])
        self.splitworld.runJobs()                 
         
     def _getGradient(self, m, *args):

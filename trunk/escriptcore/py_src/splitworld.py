@@ -103,6 +103,12 @@ class Job(object):
     :var name: registered label for exported value
     :type name: ``str``
     """
+    if type(name)==type([]):
+        for x in name:
+	  if type(x)!=type(""):
+	    raise RuntimeError("Variable name must be a string or list of strings- instead got [%s]"%(str(type(x))))
+    elif type(name)!=type(""):
+      raise RuntimeError("Variable name must be a string or list of strings- instead got %s"%(str(type(name))))
     self.exportedvalues[name]=v
     
   def importValue(self, name):

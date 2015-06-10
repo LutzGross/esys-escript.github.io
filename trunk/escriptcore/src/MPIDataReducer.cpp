@@ -68,7 +68,6 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     if (op==MPI_SUM)
     {
 	// deliberately left blank
-	throw SplitWorldException("Unsupported MPI_Op");
     }
     else
     {

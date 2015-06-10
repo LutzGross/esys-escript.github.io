@@ -501,14 +501,17 @@ class SplitRegularization(CostFunction):
                     A += r
         return A/2
 
-    def getGradient(self, m,  grad_m):
+    def getGradient(self):
+        raise RuntimeError("Split versions do not support getGradient. Use getGradientAtPoint instead.")
+      
+    def getGradientAtPoint(self):
         """
         returns the gradient of the cost function J with respect to m.
 
         :note: This implementation returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj
         """
 
-        # substituting cached values
+        # Using cached values
         m=self.__pre_input
         grad_m=self.__pre_args        
         
