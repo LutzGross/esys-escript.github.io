@@ -27,7 +27,7 @@ def run_tests(modules, exit_on_failure=False):
         m = __import__(module)
         res = m.run_tests(module, exit_on_failure=exit_on_failure)
         skiplist.extend(["%s : %s\n"%(rearrange(str(i[0])),i[1]) for i in res.skipped])
-        faillist.extend([fail_format.format(str(i[0]).split()[0],str(i[0]).split()[1], i[1]) for i in res.failures])
+        faillist.extend([fail_format.format(str(i[0]).split()[0],str(i[0]).split()[1], i[1]) for i in res.failures+res.errors])
     return skiplist, faillist
 
 if __name__ == "__main__":
