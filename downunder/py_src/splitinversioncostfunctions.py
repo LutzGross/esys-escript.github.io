@@ -462,7 +462,31 @@ class SplitInversionCostFunction(MeteredCostFunction):
         raise RuntimeError("Still need to work this one out")        
         return self.regularization.getDualProduct(x, r)
 
-    
+   
+    @staticmethod
+    def update_point_helper(self, newpoint):
+        """
+        Call within a subworld to set 'current_point' to newpoint
+        and update all the cached args info
+        """
+        if not isinstance(self, Job):
+          raise RuntimeError("This function should only be called from within a Job")
+        mods=self.importValue("fwdmodels")
+        reg=self.importValue("regularization")
+        mappings=self.importValue("mappings")
+        props=[]
+        props=SplitInversionCostFunction.calculatePropertiesHelper(self, newpoint, mappings)
+        self.exportValue("props", props)              
+        reg.setPoint(newpoint)
+              #Going to try this - each world stores the args for its
+              #models rather than going the setPoint route.
+        local_args=[]
+        for m,idx in mods:
+            pp=tuple( [props[k] for k in idx] ) # build up collection of properties used by this model
+            local_args.append(m.getArguments(*pp))
+        self.exportValue("current_point", newpoint)
+        self.exportValue("model_args", local_args)
+
     def setPoint(self):
       self._setPoint()
     
@@ -474,7 +498,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
       can't stop closures) pass them 
       in from outside would defeat the purpose.
       
-      To modify the point, we probably want a separate translate_point()
+      To modify the point, we probably want a separate move_point()
       function.
       
       There is also the question of how this is expected to get its info.
@@ -489,23 +513,11 @@ class SplitInversionCostFunction(MeteredCostFunction):
         raise ValueError("This inversion function has not been configured yet")
 
       def load_guess_to_subworlds(self, **args):
-          mods=self.importValue("fwdmodels")
           reg=self.importValue("regularization")
           mappings=self.importValue("mappings")
           # we are not passing in property values here because we don't have any yet
           initguess=SplitInversionCostFunction.createLevelSetFunctionHelper(self, reg, mappings)
-          props=[]
-          props=SplitInversionCostFunction.calculatePropertiesHelper(self, initguess, mappings)
-          self.exportValue("props", props)              
-          reg.setPoint(initguess)
-              #Going to try this - each world stores the args for its
-              #models rather than going the setPoint route.
-          local_args=[]
-          for m,idx in mods:
-            pp=tuple( [props[k] for k in idx] ) # build up collection of properties used by this model
-            local_args.append(m.getArguments(*pp))
-          self.exportValue("current_point", initguess)
-          self.exportValue("model_args", local_args)
+          SplitInversionCostFunction.update_point_helper(self, initguess)
             
       addJobPerWorld(self.splitworld, FunctionJob, load_guess_to_subworlds, imports=["fwdmodels", "regularization", "mappings"])
       self.splitworld.runJobs()
