@@ -131,7 +131,7 @@ class TestDCResistivityForward(unittest.TestCase):
             for i in range(numElectrodes):
                 electrodes.append([start[0]+(directionVector[0]*i*interval_a), start[1]+(directionVector[1]*i*interval_a),0])
                 electrodeTags.append("e%d"%i)
-                electrodeLst.append([electrodeTags[i]],[electrodes[i][0], electrodes[i][1], electrodes[i][2], lc/lcDiv])
+                electrodeLst.append((electrodeTags[i],[electrodes[i][0], electrodes[i][1], electrodes[i][2], lc/lcDiv]))
             runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
             domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
             dom = domGen.getDom(mshName=runName+".msh",fieldSize=[70,100])
