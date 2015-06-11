@@ -191,7 +191,7 @@ class ESySXMLCreator(object):
         return n
 
     def getLinkableObjectId(self, obj):
-        for id, o in list(self.__linkable_object_registry.items()):
+        for id, o in sorted(self.__linkable_object_registry.items(), key=lambda x: x[0]):
             if o == obj: return id
         id =next(self.__number_sequence)
         self.__linkable_object_registry[id]=obj
@@ -490,7 +490,7 @@ class ParameterSet(LinkableObject):
         if isinstance(parameters,type([])):
             parameters = list(zip(parameters, itertools.repeat(None)))
         if isinstance(parameters,type(dict())):
-            parameters = iter(list(parameters.items()))
+            parameters = iter(sorted(parameters.items()))
 
         for prm, value in parameters:
             setattr(self,prm,value)
@@ -622,10 +622,10 @@ class ParameterSet(LinkableObject):
                 param.appendChild(esysxml.createDataNode('Value', str(value)))
             elif isinstance(value, dict):
                  dic = esysxml.createElement('dictionary')
-                 if len(list(value.keys()))>0:
-                     dic.setAttribute('key_type', list(value.keys())[0].__class__.__name__)
-                     dic.setAttribute('value_type', value[list(value.keys())[0]].__class__.__name__)
-                 for k,v in list(value.items()):
+                 if len(value.keys())>0:
+                     dic.setAttribute('key_type', sorted(value.keys())[0].__class__.__name__)
+                     dic.setAttribute('value_type', value[sorted(value.keys())[0]].__class__.__name__)
+                 for k,v in sorted(value.items(), key=lambda x: x[0]):
                     i=esysxml.createElement('item')
                     i.appendChild(esysxml.createDataNode('key', k))
                     i.appendChild(esysxml.createDataNode('value', v))
@@ -980,7 +980,7 @@ class Simulation(Model):
                out+=m.getAllModels()
             else:
                out.append(m)
-        return list(set(out))
+        return sorted(list(set(out)))
 
     def checkModels(self, models, hash):
         """

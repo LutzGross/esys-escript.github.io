@@ -174,7 +174,7 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None,
         ms=metadata
     if not metadata_schema is None:
         if hasattr(metadata_schema, 'items'):
-            for i,p in list(metadata_schema.items()):
+            for i,p in sorted(metadata_schema.items(), key=lambda x: x[0]):
                 ss="%s xmlns:%s=\"%s\""%(ss, i, p)
         else:
             ss=metadata_schema
@@ -203,7 +203,7 @@ def saveVoxet(filename, **data):
 
     new_data={}
     domain=None
-    for n,d in list(data.items()):
+    for n,d in sorted(data.items(), key=lambda x: x[0]):
         if d.isEmpty():
             continue
         fs=d.getFunctionSpace()
@@ -264,7 +264,7 @@ END_ORIGINAL_COORDINATE_SYSTEM\n""")
     f.write("\n")
 
     num=0
-    for n,d in list(new_data.items()):
+    for n,d in sorted(new_data.items(), key=lambda x: x[0]):
         num=num+1
         propfile=fileprefix+n
         domain.writeBinaryGrid(d, propfile, BYTEORDER_BIG_ENDIAN, DATATYPE_FLOAT32)

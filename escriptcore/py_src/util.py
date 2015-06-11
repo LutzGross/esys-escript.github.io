@@ -179,13 +179,13 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     """
     # find a function space:
     fs = None
-    for n,d in list(data.items()):
+    for n,d in sorted(data.items(), key=lambda x: x[0]):
         if isinstance(d, Data): fs=d.getFunctionSpace()
     if fs is None:
         raise ValueError("saveDataCSV: there must be at least one Data object in the argument list.")
     
     new_data={}
-    for n,d in list(data.items()):
+    for n,d in sorted(data.items(), key=lambda x: x[0]):
         if isinstance(d, Data):
             new_data[n]=d
         else:
@@ -250,7 +250,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
            file is updated in each iteration.
     """
     new_data = {}
-    for n,d in list(data.items()):
+    for n,d in sorted(data.items(), key=lambda x: x[0]):
           if not d.isEmpty(): 
             fs = d.getFunctionSpace() 
             domain2 = fs.getDomain()
@@ -292,7 +292,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
         outputString += "N=%d\n" % domain.getMPISize()
 
     # now add the variables
-    for varName, d in list(new_data.items()):
+    for varName,d in sorted(new_data.items(), key=lambda x: x[0]):
         varFile = datasetName+"_"+varName+".%s"%timeStepFormat
         d.dump(os.path.join(dataDir, (varFile + ".nc") % fileNumber))
         if domain.onMasterProcessor():

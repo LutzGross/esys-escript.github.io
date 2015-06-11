@@ -126,7 +126,7 @@ class DataManager(object):
         if self._restartdir != None:
             self.__clearData()
 
-        for name,var in list(data.items()):
+        for name,var in sorted(data.items(), key=lambda x: x[0]):
             if hasattr(var, "getDomain"):
                 if self._domain is None:
                     self._domain=var.getDomain()
@@ -221,7 +221,7 @@ class DataManager(object):
         """
         self._metadata=metadata
         ss=""
-        for i,p in list(schema.items()):
+        for i,p in sorted(list(schema.items()), key=lambda x: x[0]):
             ss="%s xmlns:%s=\"%s\""%(ss, i, p)
         self._md_schema=ss.strip()
 
@@ -325,7 +325,7 @@ class DataManager(object):
         pickle.dump(self._stamp, open(stamp_file, "wb"))
         ff=self.__getDumpFilename("_domain", restartdir)
         self._domain.dump(ff)
-        for name, var in list(self._data.items()):
+        for name, var in sorted(list(self._data.items(), key=lambda x: x[0])):
             ff=self.__getDumpFilename(name, restartdir)
             var.dump(ff)
         print(("Restart files saved in "+os.path.join(self._workdir, restartdir)))
