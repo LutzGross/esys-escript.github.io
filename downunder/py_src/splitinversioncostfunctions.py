@@ -111,6 +111,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
         addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
         addVariable(splitworld, "g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+        addVariable(splitworld, "search_direction", makeDataReducer, "SET")
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))

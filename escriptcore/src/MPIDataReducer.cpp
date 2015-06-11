@@ -38,6 +38,10 @@ Reducer_ptr makeDataReducer(std::string type)
     {
 	op=MPI_SUM;
     }
+    else if (type=="SET")
+    {
+	op=MPI_OP_NULL;
+    }
     else
     {
 	throw SplitWorldException("Unsupported operation for makeDataReducer.");
@@ -56,16 +60,20 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     if (op==MPI_SUM)
     {
 	d1+=d2;
+    } 
+    else if (op==MPI_OP_NULL) 
+    {
+	throw SplitWorldException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
     }
 }
 
 }
 
 MPIDataReducer::MPIDataReducer(MPI_Op op)
-  : reduceop(op)
+  : reduceop(op), had_an_export_this_round(false)
 {
     valueadded=false;
-    if (op==MPI_SUM)
+    if ((op==MPI_SUM) || (op==MPI_OP_NULL))
     {
 	// deliberately left blank
     }
@@ -75,6 +83,10 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     }
 }
 
+void MPIDataReducer::newRunJobs()
+{
+    had_an_export_this_round=false;
+}
 
 void MPIDataReducer::setDomain(escript::Domain_ptr d)
 {
@@ -84,6 +96,10 @@ void MPIDataReducer::setDomain(escript::Domain_ptr d)
 std::string MPIDataReducer::description()
 {
     std::string op="SUM";
+    if (reduceop==MPI_OP_NULL)
+    {
+	op="SET";
+    }
     return "Reducer("+op+") for Data objects"; 
 }
 
@@ -125,15 +141,32 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
     {
 	value=d;
 	dom=d.getDomain();
+        had_an_export_this_round=true;
     }
     else
     {
-	if (d.getFunctionSpace()!=value.getFunctionSpace())
+	
+	if (reduceop==MPI_OP_NULL)
 	{
-	    errstring="reduceLocalValue: FunctionSpaces for Data objects being combined must match.";
-	    return false;
+	    if (had_an_export_this_round) 
+	    {
+		errstring="reduceLocalValue: Multiple 'simultaneous' attempts to export a 'SET' variable.";
+		return false;
+	    }
+	    value=d;
+	    dom=d.getDomain();
+	    had_an_export_this_round=true;
 	}
-	combineData(value, d, reduceop);
+        else
+        { 
+	    had_an_export_this_round=true;
+	    if (d.getFunctionSpace()!=value.getFunctionSpace())
+	    {
+	        errstring="reduceLocalValue: FunctionSpaces for Data objects being combined must match.";
+	        return false;
+	    }
+	    combineData(value, d, reduceop);
+        }
     }
     return true;
 }
@@ -197,6 +230,10 @@ bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
     DataTypes::ValueType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
     DataTypes::ValueType& rr=value.getExpandedVectorReference();
+    if (reduceop==MPI_OP_NULL)
+    {
+	return false;		// this will stop bad things happening but won't give an informative error message
+    }
     if (MPI_Allreduce(&(vr[0]), &(rr[0]), vr.size(), MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
     {
 	return false;

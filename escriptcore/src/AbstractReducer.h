@@ -92,6 +92,10 @@ public:
    
     virtual boost::python::object getPyObj()=0; 
     
+	// notify the reducer that a new runJobs() call 
+	// is being executed
+    virtual void newRunJobs();
+
     virtual void clear();
 protected:
 
