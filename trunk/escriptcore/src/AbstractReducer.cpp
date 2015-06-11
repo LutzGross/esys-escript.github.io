@@ -46,3 +46,6 @@ void AbstractReducer::clear()
     valueadded=false;
 }
 
+void AbstractReducer::newRunJobs()
+{
+}

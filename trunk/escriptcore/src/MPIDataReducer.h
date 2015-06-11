@@ -62,11 +62,14 @@ public:
     
 	// reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);    
-    
+   
+
+    void newRunJobs();
 private:    
     escript::Data value;
     escript::const_Domain_ptr dom;
     MPI_Op reduceop;
+    bool had_an_export_this_round;
 };
 
 Reducer_ptr makeDataReducer(std::string type);

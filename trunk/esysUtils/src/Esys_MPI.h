@@ -50,6 +50,7 @@
    #define MPI_MIN 101
    #define MPI_MAX 102
 
+   #define MPI_OP_NULL 17
 // end MPI_op
 
    
