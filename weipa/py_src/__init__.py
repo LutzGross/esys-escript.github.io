@@ -36,7 +36,7 @@ def interpolateEscriptData(domain, data):
     from esys.escript.util import interpolate
     
     new_data={}
-    for n,d in list(data.items()):
+    for n,d in sorted(list(data.items()), key=lambda x: x[0]):
         if not d.isEmpty():
             fs=d.getFunctionSpace()
             if domain is None:
