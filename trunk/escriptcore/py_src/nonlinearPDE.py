@@ -334,7 +334,7 @@ class NonlinearPDE(object):
         # separate symbolic expressions from other coefficients
         constants={}
         expressions={}
-        for n, e in self._set_coeffs.items():
+        for n, e in sorted(self._set_coeffs.items(), key=lambda x: x[0]):
             if symb.isSymbol(e):
                 expressions[n]=e
             else:
@@ -651,7 +651,7 @@ class NonlinearPDE(object):
         """
 
         u=self._unknown
-        for name,val in coefficients.items():
+        for name,val in sorted(coefficients.items(), key=lambda x: x[0]):
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
                 raise lpe.IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
@@ -757,7 +757,7 @@ class NonlinearPDE(object):
         # if the solution etc are cached this could be omitted:
         constants={}
         expressions={}
-        for n, e in self._set_coeffs.items():
+        for n, e in sorted(self._set_coeffs.items(), key=lambda x: x[0]):
             if n not in self.__COEFFICIENTS:
                 if symb.isSymbol(e):
                     expressions[n]=e
@@ -779,7 +779,7 @@ class NonlinearPDE(object):
              if symb.isSymbol(self._r):
                  names.append('r')
                  ev.addExpression(self._r.diff(f))
-        for n in self._set_coeffs.keys():
+        for n in sorted(self._set_coeffs.keys()):
             if n in self.__COEFFICIENTS and symb.isSymbol(self._set_coeffs[n]):
                    if n=="X" or n=="X_reduced":
                       T0=time()

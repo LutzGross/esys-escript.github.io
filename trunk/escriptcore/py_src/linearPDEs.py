@@ -508,7 +508,7 @@ class LinearProblem(object):
 
        to introduce the coefficients *A* and *B*.
        """
-       for name, type in list(coeff.items()):
+       for name, type in sorted(coeff.items(), key=lambda x: x[0]):
            if not isinstance(type,PDECoef):
               raise ValueError("coefficient %s has no type."%name)
            self.__COEFFICIENTS[name]=type
@@ -1026,7 +1026,7 @@ class LinearProblem(object):
      """
      Resets all coefficients to their default values.
      """
-     for i in list(self.__COEFFICIENTS.keys()):
+     for i in sorted(self.__COEFFICIENTS.keys()):
          self.__COEFFICIENTS[i].resetValue()
 
    def alteredCoefficient(self,name):
@@ -1255,12 +1255,12 @@ class LinearProblem(object):
       :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
       # check if the coefficients are  legal:
-      for i in list(coefficients.keys()):
+      for i in sorted(coefficients.keys()):
          if not self.hasCoefficient(i):
             raise IllegalCoefficient("Attempt to set unknown coefficient %s"%i)
       # if the number of unknowns or equations is still unknown we try to estimate them:
       if self.__numEquations is None or self.__numSolutions is None:
-         for i,d in list(coefficients.items()):
+         for i,d in sorted(coefficients.items(), key=lambda x: x[0]):
             if hasattr(d,"shape"):
                 s=d.shape
             elif isinstance(d, escore.Data) and not d.isEmpty():
@@ -1278,7 +1278,7 @@ class LinearProblem(object):
       if self.__numEquations is None: raise UndefinedPDEError("unidentified number of equations")
       if self.__numSolutions is None: raise UndefinedPDEError("unidentified number of solutions")
       # now we check the shape of the coefficient if numEquations and numSolutions are set:
-      for i,d in list(coefficients.items()):
+      for i,d in sorted(coefficients.items(), key=lambda x: x[0]):
         try:
            self.__COEFFICIENTS[i].setValue(self.getDomain(),
                      self.getNumEquations(),self.getNumSolutions(),

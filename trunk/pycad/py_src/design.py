@@ -60,7 +60,7 @@ class TagMap(object):
       to a name.
       """
       self.__mapping={}
-      for tag, name in list(mapping.items()):
+      for tag, name in sorted(mapping.items(), key=lambda x: x[1]):
           if not isinstance(tag, int):
               raise TypeError("tag needs to be an int")
           if not isinstance(name, str):
@@ -74,7 +74,7 @@ class TagMap(object):
       the mapping will be overwritten. Otherwise a new mapping <tag> -> <name>
       is set. Notice that a single name can be assigned to different tags.
       """
-      for name, tag in list(kwargs.items()):
+      for name, tag in sorted(kwargs.items(), key=lambda x: x[0]):
           if not isinstance(tag, int):
              raise TypeError("tag needs to be an int")
           self.__mapping[tag]=name
@@ -85,10 +85,10 @@ class TagMap(object):
         a list of all tags is returned.
         """
         if name == None:
-           out=list(self.__mapping.keys())
+           out=sorted(self.__mapping.keys())
         else:
            out=[]
-           for tag, arg in list(self.__mapping.items()):
+           for tag, arg in sorted(self.__mapping.items(), key=lambda x: x[0]):
              if arg == name: out.append(tag)
         return out
 
@@ -98,7 +98,7 @@ class TagMap(object):
         is returned.
         """
         if tag == None:
-           return list(set(self.__mapping.values()))
+           return sorted(list(set(self.__mapping.values())))
         else:
             return self.__mapping[tag]
 
@@ -137,14 +137,14 @@ class TagMap(object):
         which map onto name with unspecified values.
         """
         d=self.map(default=default,**kwargs)
-        for t,v in list(d.items()):
+        for t,v in sorted(d.items(), key=lambda x: x[0]):
              data.setTaggedValue(t,v)
 
     def passToDomain(self,domain):
         """
         Passes the tag map to the `esys.escript.Domain` ``domain``.
         """
-        for tag, name in list(self.__mapping.items()):
+        for tag, name in sorted(self.__mapping.items(), key=lambda x: x[1]):
           print("Tag",name, "is mapped to id ", tag)
           domain.setTagMap(name,tag)
 
@@ -154,7 +154,7 @@ class TagMap(object):
          """
          tm=dom.createElement("TagMap")
          dom.appendChild(tm)
-         for tag,name in list(self.getMapping().items()):
+         for tag,name in sorted(self.getMapping().items(), key=lambda x: x[1]):
              item_dom=dom.createElement("map")
              tag_dom=dom.createElement("tag")
              name_dom=dom.createElement("name")

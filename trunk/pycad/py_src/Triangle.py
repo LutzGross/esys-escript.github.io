@@ -264,11 +264,11 @@ class Design(design.AbstractDesign):
                                                                   p.getID())
                                    if pt not in holePts:
                                        holePts.append(pt)
-                           vectors={} # the key corresponds to the ctrlPts index
+                           vectors=[] # the key corresponds to the ctrlPts index
                            # create vectors
                            for i in range(len(holePts)):
                                A=holePts[i]
-                               vectors[i]=[]
+                               vectors.append([])
                                if i == 0:
                                    B=holePts[1]
                                    C=holePts[-1]
@@ -281,13 +281,13 @@ class Design(design.AbstractDesign):
                                vectors[i].append(self.__getVector(A,B))
                                vectors[i].append(self.__getVector(A,C))
                            # get angle between vectors at each vertex
-                           for i in list(vectors.keys()):
+                           for i in range(len(vectors)):
                                angle=self.__getAngle(vectors[i][0],vectors[i][1])
                                vectors[i].append(angle)
                            # find the vertex with the smallest angle
                            minAngle=360.
                            indx=0
-                           for i in list(vectors.keys()):
+                           for i in range(len(vectors)):
                                if vectors[i][2] < minAngle:
                                    indx=i
                                    minAngle=vectors[i][2]

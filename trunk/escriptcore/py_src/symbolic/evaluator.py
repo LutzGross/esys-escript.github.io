@@ -162,7 +162,7 @@ class Evaluator(object):
 
     def __str__(self):
         ret="\n".join([str(e) for e in self.expressions])+"\n"
-        for k in self._subsdict:
+        for k in sorted(self._subsdict.keys()):
             v=self._subsdict[k]
             if v.__class__.__name__=="Data":
                 ret+="%s=<Data object>"%k

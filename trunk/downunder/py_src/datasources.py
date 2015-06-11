@@ -624,7 +624,7 @@ class NetCdfData(DataSource):
             except KeyError:
                 raise ValueError("Invalid data variable name supplied")
         else:
-            for n in f.variables.keys():
+            for n in sorted(f.variables.keys()):
                 dims=f.variables[n].dimensions
                 if (lat_name in dims) and (lon_name in dims):
                     self.__data_name=n

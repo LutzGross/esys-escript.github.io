@@ -155,7 +155,7 @@ def getDomain():
     global netotal
     
     v_p={}
-    for tag in list(rho_tab.keys()):
+    for tag in sorted(rho_tab.keys()):
        v_p[tag]=sqrt((2*mu_tab[tag]+lmbd_tab[tag])/rho_tab[tag])
     v_p_ref=min(v_p.values())
     print("velocities: bedrock = %s, sand = %s, water =%s, absorber =%s, reference =%s"%(v_p[bedrock],v_p[sand],v_p[water],v_p[absorber],v_p_ref))
@@ -283,7 +283,7 @@ def getMaterialProperties(dom):
    lmbd=Scalar(lmbd_tab[bedrock],Function(dom))
    tags=Scalar(bedrock,Function(dom))
    
-   for tag in list(rho_tab.keys()):
+   for tag in sorted(rho_tab.keys()):
       rho.setTaggedValue(tag,rho_tab[tag])
       eta.setTaggedValue(tag,eta_tab[tag])
       mu.setTaggedValue(tag,mu_tab[tag])
