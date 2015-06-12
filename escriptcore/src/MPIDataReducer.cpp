@@ -375,7 +375,8 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
 
 boost::python::object MPIDataReducer::getPyObj()
 {
-    throw SplitWorldException("getPyObj Not implemented yet.");
+    boost::python::object o(value);
+    return o;
 }
 
 
