@@ -112,6 +112,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
         addVariable(splitworld, "g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
         addVariable(splitworld, "search_direction", makeDataReducer, "SET")
+
+        addVariable(splitworld, "s_and_y", makeLocalOnly)
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -804,7 +806,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
             self.exportValue(vnames1, Y)
           else:
             for n in vnames1:
-              self.exportValue(Y, n)
+              self.exportValue(n, Y)
           if isinstance(vnames2, str):          #The second component should be strictly local 
             self.exportValue(vnames2, g_J[1])
           else:

@@ -142,6 +142,7 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
 	value=d;
 	dom=d.getDomain();
         had_an_export_this_round=true;
+	valueadded=true;
     }
     else
     {
