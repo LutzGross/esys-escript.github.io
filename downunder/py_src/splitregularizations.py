@@ -555,7 +555,7 @@ class SplitRegularization(CostFunction):
 
         return ArithmeticTuple(Y, X)
 
-    def getInverseHessianApproximation(self, m, r, grad_m, solve=True):
+    def getInverseHessianApproximationAtPoint(self, r, solve=True):
         """
         """
 

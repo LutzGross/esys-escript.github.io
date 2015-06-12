@@ -14,7 +14,8 @@
 ##############################################################################
 
 from .minimizers import AbstractMinimizer
-from esys.escriptcore.splitworld import Job
+from esys.escriptcore.splitworld import Job, FunctionJob
+from esys.escript import addJob
 
 
 class SplitMinimizerLBFGS(AbstractMinimizer):
@@ -282,7 +283,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                     self.logger.debug("\tH = %s"%invH_scale)
 
                 # determine search direction
-                p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
+                self._twoLoop(self.getCostFunction().splitworld)
 
                 # determine new step length using the last one as initial value
                 # however, avoid using too small steps for too long.
@@ -387,27 +388,52 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
         #This version does nor return the result
         #You need to set up a job to extract the result
 
-    def _twoLoop(self, invH_scale, g_Jx, s_and_y, x, *args):
+    def _twoLoop(self, splitworld):
         """
         Helper for the L-BFGS method.
         See 'Numerical Optimization' by J. Nocedal for an explanation.
+
+        This has been converted to use splitworld.
+          As such it doesn't return a result, instead it stores
+          The "p" result in the "search_direction" variable
+
+        Depends on the following splitworld variables:
+          g_Jx_0, g_Jx_1
+          current_point
+          s_and_y 
+
+        Other conversion notes:
+          The current cost function's inverseHessianApproximation and
+          dualProduct only
+          depend on the regularization term so this function can be 
+          done entirely by one world.   If the Hessian/dp ever needed
+          other worlds, this will need to be reworked.
+          Implicit in the above is that the overall cost function
+          has cf.provides_inverse_Hessian_approximation==True
         """
-        q=g_Jx
-        alpha=[]
-        for s,y, rho in reversed(s_and_y):
-            a=self.getCostFunction().getDualProduct(s, q)/rho
-            alpha.append(a)
-            q=q-a*y
+        # Make a fn to push the work into subworld
+        def two_loop_worker(self, **kwargs):
+            x=self.importValue("current_point")
+            reg=self.importValue("regularization")
+            g_Jx=(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
+            s_and_y=self.importValue("s_and_y")
+            q=g_Jx
+            alpha=[]
+            for s,y, rho in reversed(s_and_y):
+                a=reg.getDualProduct(s, q)/rho
+                alpha.append(a)
+                q=q-a*y
 
-        if self.getCostFunction().provides_inverse_Hessian_approximation:
-             r = self.getCostFunction().getInverseHessianApproximation(x, q, *args)
-        else:
-             r = invH_scale * q
+            r=reg.getInverseHessianApproximationAtPoint(q)
 
-        for s,y,rho in s_and_y:
-            beta = self.getCostFunction().getDualProduct(r, y)/rho
-            a = alpha.pop()
-            r = r + s * (a-beta)
-        return r
-        
-    
+            for s,y,rho in s_and_y:
+                beta = self.getCostFunction().getDualProduct(r, y)/rho
+                a = alpha.pop()
+                r = r + s * (a-beta)
+            # In the original version, the caller negated the result
+            self.exportValue("search_direction", -r)
+        print ("prior to twoloop call ",splitworld.getVarList())
+        addJob(splitworld, FunctionJob, two_loop_worker, imports=["current_point", "regularization", "g_Jx_0", "g_Jx_1"])
+        splitworld.runJobs() 
+
+
