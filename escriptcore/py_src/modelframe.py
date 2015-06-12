@@ -980,7 +980,7 @@ class Simulation(Model):
                out+=m.getAllModels()
             else:
                out.append(m)
-        return sorted(list(set(out)))
+        return sorted(list(set(out)), key=lambda x: str(x))
 
     def checkModels(self, models, hash):
         """
