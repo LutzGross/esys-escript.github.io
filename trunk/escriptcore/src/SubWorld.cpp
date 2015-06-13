@@ -24,6 +24,7 @@
 
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
+#include "NonReducedVariable.h"
 
 #include <boost/python/import.hpp>
 #include <boost/python/dict.hpp>
@@ -365,12 +366,20 @@ double SubWorld::getScalarVariable(const std::string& name)
 	throw SplitWorldException(std::string("(Getting scalar --- Variable value) ")+errmsg);
     }
 #endif
-	
-    if (dynamic_cast<MPIScalarReducer*>(it->second.get())==0)
+    if (dynamic_cast<MPIScalarReducer*>(it->second.get()))
     {
-	throw SplitWorldException("Variable is not scalar.");
+	return dynamic_cast<MPIScalarReducer*>(it->second.get())->getDouble();
     }
-    return dynamic_cast<MPIScalarReducer*>(it->second.get())->getDouble();
+    if (dynamic_cast<NonReducedVariable*>(it->second.get()))
+    {
+	boost::python::extract<double> ex(it->second->getPyObj());
+	if (!ex.check())
+	{
+	    throw SplitWorldException("Variable is not scalar.");
+	}
+	return ex();
+    }
+    throw SplitWorldException("Variable is not scalar.");
 }
 
 bool SubWorld::checkRemoteCompatibility(std::string& errmsg)

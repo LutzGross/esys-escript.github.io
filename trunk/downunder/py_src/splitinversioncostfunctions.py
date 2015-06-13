@@ -107,6 +107,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld,"current_point", makeLocalOnly)  # Current approximate solution. Starts out as initial_guess 
         addVariable(splitworld,"mu_model", makeLocalOnly)
 
+        addVariable(splitworld, "phi_a", makeScalarReducer, "SUM")
         addVariable(splitworld,"Jx_0", makeScalarReducer,"SUM")
         addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
         addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
@@ -114,6 +115,10 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld, "search_direction", makeDataReducer, "SET")
 
         addVariable(splitworld, "s_and_y", makeLocalOnly)
+        addVariable(splitworld, "gphi0", makeLocalOnly)
+        addVariable(splitworld, "old_phi_a", makeLocalOnly)
+        addVariable(splitworld, "phi0", makeLocalOnly)
+        addVariable(splitworld, "base_point", makeLocalOnly)
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -591,10 +596,12 @@ class SplitInversionCostFunction(MeteredCostFunction):
             J+=reg.getValueAtPoint()    # We actually want to get a value here but
                                         # I want to distiguish it from the other getValue call
           if isinstance(vnames, str):
-            self.exportValue(J, vnames)
+            self.exportValue(vnames, J)
           else:
             for n in vnames:
               self.exportValue(n,J)
+       # End calculateValueWorker
+
        addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props", 
             "model_args", "mu_model"], vnames=vnames)
        self.splitworld.runJobs()   
@@ -811,8 +818,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
             self.exportValue(vnames2, g_J[1])
           else:
             for n in vnames2:
-              self.exportValue(n, g_J[1])
-              
+              self.exportValue(n, g_J[1])              
+       # End CalculateGradientWorker
 
        addJobPerWorld(self.splitworld, FunctionJob, calculateGradientWorker, vnames1=vnames1, vnames2=vnames2, imports=["models", "regularization", "props", "mu_models", "current_point"])
        self.splitworld.runJobs()                 
