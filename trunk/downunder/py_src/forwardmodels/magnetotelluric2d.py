@@ -517,7 +517,7 @@ class MT2DModelTMMode(MT2DBase):
         Y=pde.getCoefficient('Y')
         X=pde.getCoefficient('X')
 
-        for i in xrange(DIM):
+        for i in range(DIM):
             A[0,i,0,i]=rho
             A[1,i,1,i]=rho
 
