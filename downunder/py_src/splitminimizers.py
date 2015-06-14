@@ -245,7 +245,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
         
         
         
-        
+        splitworld=self.getCostFunction().splitworld 
         if self.getCostFunction().provides_inverse_Hessian_approximation:
             self.getCostFunction().updateHessian()
             invH_scale = None
@@ -284,6 +284,9 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 #self.logger.debug("\tgrad f(x) = %s"%g_Jx)
                 if invH_scale:
                     self.logger.debug("\tH = %s"%invH_scale)
+
+		splitworld.copyVariable("g_Jx_0", "old_g_Jx_0")
+		splitworld.copyVariable("g_Jx_1", "old_g_Jx_1")
 
                 # determine search direction
                 self._twoLoop(self.getCostFunction().splitworld, reset_s_and_y)
@@ -324,15 +327,25 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
 
                     converged = converged and flag
                 if self._m_tol:
-                    norm_x = self.getCostFunction().getNorm(x_new)
-                    norm_dx = self.getCostFunction().getNorm(delta_x)
-                    flag = norm_dx <= self._m_tol * norm_x
-                    if self.logger.isEnabledFor(logging.DEBUG):
-                        if flag:
-                            self.logger.debug("Solution has converged: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
-                        else:
-                            self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
-                    converged = converged and flag
+		    def converged_check(self, **kwargs):
+			alpha=kwargs("alpha")
+			reg=self.importValue("regularization")
+			p=self.importValue("search_direction")
+			delta_x=alpha*p
+			x=self.importValue("current_point")
+			norm_x = reg.getNorm(x)
+			norm_dx = reg.getNorm(delta_x)
+                    	flag = norm_dx <= self._m_tol * norm_x
+                    	#if self.logger.isEnabledFor(logging.DEBUG):
+                            #if flag:
+                                #self.logger.debug("Solution has converged: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
+                            #else:
+                                #self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
+			self.exportValue('conv_flag', flag)
+		    # End of converged_check 
+		    addJobPerWorld(self.getCostFunction().splitworld, FunctionJob, alpha=alpha, imports=["regularization", "search_direction", "current_point"])
+		    self.getCostFunction().splitworld.runJobs()
+                    converged = converged and (self.getCostFunction().splitworld.getDouble()<0.001)
 
                 #Already done in the line_search call
                 #x=x_new
@@ -341,27 +354,48 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                     break
 
                 # unfortunately there is more work to do!
-                if g_Jx_new is None:
-                    args=self.getCostFunction().getArguments(x_new)
-                    g_Jx_new=self.getCostFunction().getGradient(x_new, args)
-                delta_g=g_Jx_new-g_Jx
+		def run_worker(self, **kwargs):
+		    break_down=False
+		    need_trunc=kwargs["trunc"]
+		    # Need to do some imports here
+		    alpha=kwargs["alpha"]
+		    g_Jx=(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
+		    old_g_Jx=(self.importValue("old_g_Jx_0"), self.importValue("old_g_Jx_1"))
+		    p=self.importValue("search_direction")
+		    reg=self.importValue("regularization")
 
-                rho=self.getCostFunction().getDualProduct(delta_x, delta_g)
-                if abs(rho)>0:
-                    s_and_y.append((delta_x,delta_g, rho ))
-                else:
-                    break_down=True
+		    ##The original code had this check
+		    #if g_Jx_new is None:
+                        #args=self.getCostFunction().getArguments(x_new)
+                        #g_Jx_new=self.getCostFunction().getGradient(x_new, args)
+		    #delta_g=g_Jx_new-g_Jx
+		    delta_g=g_J-old_g_Jx
+		    delta_x=alpha*p;
+		    rho=reg.getDualProduct(delta_x, delta_g)
+		    if abs(rho)>0:
+			s_and_y.append((delta_x,delta_g, rho ))
+		    else:
+			break_down=True
+		    if need_trunc:
+			s_and_y.pop(0)
+		    self.exportValue("break_down", break_down)
+		    self.exportValue("s_and_y",s_and_y)
+		# End run_worker
+		# Only one world has s_and_y
+		addJobWorld(self.getCostFunction().splitworld, FunctionJob, alpha=alpha, need_trunc=(k>=self._truncation))
+		self.getCostFunction().splitworld.runJobs()
 
                 self.getCostFunction().updateHessian()
-                g_Jx=g_Jx_new
-                Jx=Jx_new
+                #g_Jx=g_Jx_new
+                #Jx=Jx_new
 
                 k+=1
                 n_iter+=1
-                self._doCallback(n_iter, x, Jx, g_Jx)
+                #self._doCallback(n_iter, x, Jx, g_Jx)
 
                 # delete oldest vector pair
-                if k>self._truncation: s_and_y.pop(0)
+		# Already done in the run_worker
+                #if k>self._truncation: s_and_y.pop(0)
 
                 if not self.getCostFunction().provides_inverse_Hessian_approximation and not break_down:
                     # set the new scaling factor (approximation of inverse Hessian)
@@ -445,6 +479,9 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             # In the original version, the caller negated the result
             self.exportValue("search_direction", -r)
         print ("prior to twoloop call ",splitworld.getVarList())
+	# Note: this is only running on world world (of possibly many)
+	# Any jobs which also need the variables exported here
+	# need to be shared or the jobs need to run on the same world
         addJob(splitworld, FunctionJob, two_loop_worker, reset=reset, imports=["current_point", "regularization", "g_Jx_0", "g_Jx_1"])
         splitworld.runJobs() 
 

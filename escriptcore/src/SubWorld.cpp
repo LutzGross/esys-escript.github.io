@@ -866,3 +866,23 @@ std::list<std::pair<std::string, bool> > SubWorld::getVarList()
     }
     return res;
 }
+
+void SubWorld::copyVariable(std::string& src, std::string& dest)
+{
+	if (reducemap.find(src)==reducemap.end())
+	{
+	    throw SplitWorldException("Source variable name is not known");
+	}
+	if (reducemap.find(dest)==reducemap.end())
+	{
+	    throw SplitWorldException("Destination variable name is not known");
+	}
+        Reducer_ptr sptr=reducemap[src];
+	Reducer_ptr dptr=reducemap[dest];
+	dptr->copyValueFrom(sptr);
+}
+
+
+
+
+

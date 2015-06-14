@@ -411,6 +411,11 @@ int SplitWorld::getSubWorldID()
     return localid;
 }
 
+void SplitWorld::copyVariable(std::string& src, std::string& dest)
+{
+    localworld->copyVariable(src, dest);
+}
+
 
 namespace escript
 {

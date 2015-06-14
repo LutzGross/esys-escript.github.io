@@ -155,7 +155,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("getVarList", &escript::SplitWorld::getVarPyList, "Lists variables known to the system")
     .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable)
     .def("getSubWorldCount",&escript::SplitWorld::getSubWorldCount)
-    .def("getSubWorldID", &escript::SplitWorld::getSubWorldID);
+    .def("getSubWorldID", &escript::SplitWorld::getSubWorldID)
+    .def("copyVariable", &escript::SplitWorld::copyVariable, args("source","destination"), "Copy the contents of one variable to another");
     
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);

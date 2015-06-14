@@ -391,3 +391,14 @@ bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
     throw SplitWorldException("groupReduce Not implemented yet.");
 }
 
+void MPIDataReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
+{
+    MPIDataReducer* sr=dynamic_cast<MPIDataReducer*>(src.get());
+    if (sr==0)
+    {
+	throw SplitWorldException("Source and destination need to be the same reducer types.");
+    }
+    value=sr->value;
+    valueadded=true;
+}
+
