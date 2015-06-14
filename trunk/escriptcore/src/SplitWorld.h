@@ -58,7 +58,7 @@ public:
     int getSubWorldCount();
     int getSubWorldID();
 
-    void copyVariable(std::string& src, std::string& dest);     
+    void copyVariable(const std::string& src, const std::string& dest);     
     
     
 private:    
