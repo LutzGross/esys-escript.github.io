@@ -411,7 +411,7 @@ int SplitWorld::getSubWorldID()
     return localid;
 }
 
-void SplitWorld::copyVariable(std::string& src, std::string& dest)
+void SplitWorld::copyVariable(const std::string& src, const std::string& dest)
 {
     localworld->copyVariable(src, dest);
 }

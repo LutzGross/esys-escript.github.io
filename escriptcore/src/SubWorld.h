@@ -80,7 +80,7 @@ public:
     bool synchVariableValues(std::string& err);    
     void resetInterest();    
 
-    void copyVariable(std::string& src, std::string& dest);
+    void copyVariable(const std::string& src, const std::string& dest);
     
 private:
     esysUtils::JMPI everyone;	// communicator linking all procs in all subworlds

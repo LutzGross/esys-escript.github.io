@@ -867,7 +867,7 @@ std::list<std::pair<std::string, bool> > SubWorld::getVarList()
     return res;
 }
 
-void SubWorld::copyVariable(std::string& src, std::string& dest)
+void SubWorld::copyVariable(const std::string& src, const std::string& dest)
 {
 	if (reducemap.find(src)==reducemap.end())
 	{
