@@ -97,6 +97,8 @@ public:
     virtual void newRunJobs();
 
     virtual void clear();
+
+    virtual void copyValueFrom(boost::shared_ptr<AbstractReducer>& src);
 protected:
 
     bool valueadded;

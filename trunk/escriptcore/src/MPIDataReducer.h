@@ -65,6 +65,7 @@ public:
    
 
     void newRunJobs();
+    void copyValueFrom(boost::shared_ptr<AbstractReducer>& src);
 private:    
     escript::Data value;
     escript::const_Domain_ptr dom;
