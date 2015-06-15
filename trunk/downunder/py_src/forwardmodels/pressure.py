@@ -38,7 +38,7 @@ class IsostaticPressure(object):
     """
     class to calculate isostatic pressure field correction due to gravity forces
     """
-    def __init__(self, domain, p0=0., level0=0, gravity0=-9.81*U.m*U.sec**(-3),
+    def __init__(self, domain, p0=0., level0=0, gravity0=-9.81*U.m*U.sec**(-2),
                  background_density=2670* U.kg*U.m**(-3),
                  gravity_constant=U.Gravitational_Constant,
                  coordinates=None, tol=1e-8):
