@@ -48,10 +48,7 @@ void AbstractReducer::clear()
 
 void AbstractReducer::newRunJobs()
 {
+    had_an_export_this_round=false;
 }
 
-void AbstractReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
-{
-    throw SplitWorldException("Can't copy values into this type of reducer");
-}
 

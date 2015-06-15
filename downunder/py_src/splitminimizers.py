@@ -264,8 +264,8 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
         self.getCostFunction().setPoint()       # Set point to initial guess value (takes the place of a getArgs call)
         #args=self.getCostFunction().getArguments(x)
         
-        self.getCostFunction().calculateValue(["Jx","Jx_0"])    #evaluate the function and store the result in the named variables
-                      # note that call sets Jx=Jx_0
+        self.getCostFunction().calculateValue(["Jx","Jx_original"])    #evaluate the function and store the result in the named variables
+                      # note that call sets Jx=Jx_original
                       
         self.getCostFunction().calculateGradient("g_Jx_0","g_Jx_1")        #compute the gradient and store the result
         
@@ -287,6 +287,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
 
                 splitworld.copyVariable("g_Jx_0", "old_g_Jx_0")
                 splitworld.copyVariable("g_Jx_1", "old_g_Jx_1")
+                splitworld.copyVariable("Jx", "Jx_old")
 
                 # determine search direction
                 self._twoLoop(self.getCostFunction().splitworld, reset_s_and_y)
@@ -316,26 +317,31 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 #delta_x = alpha*p
                 #x_new = x + delta_x
 
+                Jx=splitworld.getDoubleVariable("Jx")
                 converged = True
                 if self._J_tol:
-                    flag=abs(Jx_new-Jx) <= self._J_tol * abs(Jx_new-Jx_0)
+                    Jx_old=splitworld.getDoubleVariable("Jx_old")
+                    Jx_original=splitworld.getDoubleVariable("Jx_original")
+                    flag=abs(Jx-Jx_old) <= self._J_tol * abs(Jx-Jx_original)
+                    #flag=abs(Jx_new-Jx) <= self._J_tol * abs(Jx_new-Jx_0)
                     if self.logger.isEnabledFor(logging.DEBUG):
                         if flag:
-                            self.logger.debug("Cost function has converged: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new-Jx_0)*self._J_tol))
+                            self.logger.debug("Cost function has converged: dJ, J*J_tol = %e, %e"%(Jx_old-Jx,abs(Jx-Jx_original)*self._J_tol))
                         else:
-                            self.logger.debug("Cost function checked: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new)*self._J_tol))
+                            self.logger.debug("Cost function checked: dJ, J*J_tol = %e, %e"%(Jx_old-Jx,abs(Jx)*self._J_tol))
 
                     converged = converged and flag
                 if self._m_tol:
                     def converged_check(self, **kwargs):
-                        alpha=kwargs("alpha")
+                        alpha=kwargs["alpha"]
+                        m_tol=kwargs["m_tol"]
                         reg=self.importValue("regularization")
                         p=self.importValue("search_direction")
                         delta_x=alpha*p
                         x=self.importValue("current_point")
                         norm_x = reg.getNorm(x)
                         norm_dx = reg.getNorm(delta_x)
-                        flag = norm_dx <= self._m_tol * norm_x
+                        flag = norm_dx <= m_tol * norm_x
                         #if self.logger.isEnabledFor(logging.DEBUG):
                             #if flag:
                                 #self.logger.debug("Solution has converged: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
@@ -343,14 +349,14 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                                 #self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
                         self.exportValue('conv_flag', flag)
                     # End of converged_check 
-                    addJobPerWorld(self.getCostFunction().splitworld, FunctionJob, alpha=alpha, imports=["regularization", "search_direction", "current_point"])
+                    addJobPerWorld(self.getCostFunction().splitworld, FunctionJob, converged_check, alpha=alpha, m_tol=self._m_tol, imports=["regularization", "search_direction", "current_point"])
                     self.getCostFunction().splitworld.runJobs()
-                    converged = converged and (self.getCostFunction().splitworld.getDouble()<0.001)
+                    converged = converged and (self.getCostFunction().splitworld.getDoubleVariable("conv_flag")<0.001)
 
                 #Already done in the line_search call
                 #x=x_new
                 if converged:
-                    self.logger.info("\tJ(x) = %s"%Jx_new)
+                    self.logger.info("\tJ(x) = %s"%Jx)
                     break
 
                 # unfortunately there is more work to do!

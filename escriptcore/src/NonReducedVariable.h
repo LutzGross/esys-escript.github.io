@@ -65,6 +65,8 @@ public:
 	// reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);
     
+    void copyValueFrom(boost::shared_ptr<AbstractReducer>& src);
+    
 private:    
     boost::python::object value;
     boost::python::object identity;
