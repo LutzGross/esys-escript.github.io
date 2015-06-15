@@ -79,7 +79,7 @@ class TestMinimizerLBFGS(unittest.TestCase):
 
     def test_callback(self):
         n=[0]
-        def callback(k, x, fg, gf):
+        def callback(**args):
             n[0]=n[0]+1
         self.minimizer.setCallback(callback)
         self.minimizer.setTolerance(1e-8)
@@ -115,7 +115,7 @@ class TestMinimizerBFGS(unittest.TestCase):
 
     def test_callback(self):
         n=[0]
-        def callback(k, x, fg, gf):
+        def callback(**args):
             n[0]=n[0]+1
         self.minimizer.setCallback(callback)
         self.minimizer.setTolerance(1e-10)
@@ -150,7 +150,7 @@ class TestMinimizerNLCG(unittest.TestCase):
 
     def test_callback(self):
         n=[0]
-        def callback(k, x, fg, gf):
+        def callback(**args):
             n[0]=n[0]+1
         self.minimizer.setCallback(callback)
         self.minimizer.setTolerance(1e-10)
