@@ -64,10 +64,16 @@ public:
 	// reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);
     
+    void copyValueFrom(boost::shared_ptr<AbstractReducer>& src);    
+    
+    void newRunJobs();
+    
 private:    
     double value;
     MPI_Op reduceop;
     double identity;
+    bool had_an_export_this_round;
+    
 };
 
 

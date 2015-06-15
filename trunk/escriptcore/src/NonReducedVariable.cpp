@@ -109,6 +109,18 @@ bool NonReducedVariable::groupReduce(MPI_Comm& com, char mystate)
     return true;
 }
 
+void NonReducedVariable::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
+{
+    NonReducedVariable* sr=dynamic_cast<NonReducedVariable*>(src.get());
+    if (sr==0)
+    {
+	throw SplitWorldException("Source and destination need to be the same reducer types.");
+    }
+    value=sr->value;
+    valueadded=true;
+}
+
+
 namespace escript
 {
 Reducer_ptr makeNonReducedVariable()

@@ -108,10 +108,16 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld,"mu_model", makeLocalOnly)
 
         addVariable(splitworld, "phi_a", makeScalarReducer, "SUM")
-        addVariable(splitworld,"Jx_0", makeScalarReducer,"SUM")
+        addVariable(splitworld,"Jx_original", makeScalarReducer,"SET")
         addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
+        addVariable(splitworld, "Jx_old", makeScalarReducer,"SET")
         addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
         addVariable(splitworld, "g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+
+        addVariable(splitworld, "old_g_Jx_0", makeDataReducer, "SUM")
+        addVariable(splitworld, "old_g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+        
+        
         addVariable(splitworld, "search_direction", makeDataReducer, "SET")
 
         addVariable(splitworld, "s_and_y", makeLocalOnly)
@@ -119,6 +125,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld, "old_phi_a", makeLocalOnly)
         addVariable(splitworld, "phi0", makeLocalOnly)
         addVariable(splitworld, "base_point", makeLocalOnly)
+        
+        addVariable(splitworld, "conv_flag", makeLocalOnly)
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))

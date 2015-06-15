@@ -47,6 +47,10 @@ Reducer_ptr makeScalarReducer(std::string type)
     {
 	op=MPI_MIN;
     }
+    else if (type=="SET")
+    {
+	op=MPI_OP_NULL;
+    }
     else
     {
 	throw SplitWorldException("Unsupported operation for makeScalarReducer.");
@@ -74,16 +78,20 @@ void combineDouble(double& d1, const double d2, MPI_Op op)
     else if (op==MPI_MIN)
     {
 	d1=(d2<d1)?d2:d1;      
+    }
+    else if (op==MPI_OP_NULL) 
+    {
+	throw SplitWorldException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
     }    
 }
 }
 
 
 MPIScalarReducer::MPIScalarReducer(MPI_Op op)
-  : reduceop(op)
+  : reduceop(op), had_an_export_this_round(false)
 {
     valueadded=false;
-    if (op==MPI_SUM)	// why not switch? because we don't know MPI_Op is scalar
+    if ((op==MPI_SUM) || (op==MPI_OP_NULL))	// why not switch? because we don't know MPI_Op is scalar
     {
 	identity=0;
     }
@@ -121,11 +129,20 @@ std::string MPIScalarReducer::description()
     {
 	op="MIN";
     }
+    else if (reduceop==MPI_OP_NULL)
+    {
+	op="SET";
+    }    
     else
     {
 	throw SplitWorldException("Unsupported MPI reduction operation");
     }
     return "Reducer("+op+") for double scalars"; 
+}
+
+void MPIScalarReducer::newRunJobs()
+{
+    had_an_export_this_round=false;
 }
 
 bool MPIScalarReducer::valueCompatible(boost::python::object v)
@@ -151,10 +168,25 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
     {
 	value=ex();
 	valueadded=true;
+        had_an_export_this_round=true;	
     }
     else
     {
-	combineDouble(value, ex(), reduceop);
+	if (reduceop==MPI_OP_NULL)
+	{
+	    if (had_an_export_this_round) 
+	    {
+		errstring="reduceLocalValue: Multiple 'simultaneous' attempts to export a 'SET' variable.";
+		return false;
+	    }
+	    value=ex();
+	}
+        else
+        { 
+	    combineDouble(value, ex(), reduceop);
+        }      
+        had_an_export_this_round=true;
+	
     }
     return true;
 }
@@ -180,6 +212,10 @@ bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active
         value=identity;
     }
 std::cout << "Value in " << value << std::endl;    
+    if (reduceop==MPI_OP_NULL)
+    {
+	return false;		// this will stop bad things happening but won't give an informative error message
+    }
     if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
     {
 	return false;
@@ -259,6 +295,10 @@ bool MPIScalarReducer::groupSend(MPI_Comm& com)
 bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
 {
     double answer=0;
+    if (reduceop==MPI_OP_NULL)
+    {
+	return false;
+    }
     if (MPI_Allreduce((mystate==reducerstatus::NEW)?&value:&identity, &answer, 1, MPI_DOUBLE, reduceop, com)==MPI_SUCCESS)
     {
 	value=answer;
@@ -269,3 +309,14 @@ bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
 }
 
 #endif
+
+void MPIScalarReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
+{
+    MPIScalarReducer* sr=dynamic_cast<MPIScalarReducer*>(src.get());
+    if (sr==0)
+    {
+	throw SplitWorldException("Source and destination need to be the same reducer types.");
+    }
+    value=sr->value;
+    valueadded=true;
+}

@@ -98,10 +98,11 @@ public:
 
     virtual void clear();
 
-    virtual void copyValueFrom(boost::shared_ptr<AbstractReducer>& src);
+    virtual void copyValueFrom(boost::shared_ptr<AbstractReducer>& src)=0;
 protected:
 
     bool valueadded;
+    bool had_an_export_this_round;
     static const int PARAMTAG;    
 };
 
