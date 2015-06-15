@@ -214,17 +214,18 @@ class AbstractMinimizer(object):
     def setCallback(self, callback):
         """
         Sets a callback function to be called after every iteration.
-        The arguments to the function are: (k, x, Jx, g_Jxx), where
-        k is the current iteration, x is the current estimate, Jx=f(x) and
-        g_Jxx=grad f(x).
+        It is up to the specific implementation what arguments are passed
+        to the callback. Subclasses should at least pass the current
+        iteration number k, the current estimate x, and possibly f(x),
+        grad f(x), and the current error.
         """
         if callback is not None and not callable(callback):
             raise TypeError("Callback function not callable.")
         self._callback = callback
 
-    def _doCallback(self, *args):
+    def _doCallback(self, **args):
         if self._callback is not None:
-            self._callback(*args)
+            self._callback(**args)
 
     def getResult(self):
         """
@@ -298,6 +299,14 @@ class MinimizerLBFGS(AbstractMinimizer):
 
     def run(self, x):
         """
+        The callback function is called with the following arguments:
+            k       - iteration number
+            x       - current estimate
+            Jx      - value of cost function at x
+            g_Jx    - gradient of cost function at x
+            norm_dJ - |Jx_k - Jx_{k-1}| (only if J_tol is set)
+            norm_dx - ||x_k - x_{k-1}|| (only if m_tol is set)
+
         :param x: Level set function representing our initial guess
         :type x: `Data`
         :return: Level set function representing the solution
@@ -316,8 +325,16 @@ class MinimizerLBFGS(AbstractMinimizer):
         converged = False
         args=self.getCostFunction().getArguments(x)
         g_Jx=self.getCostFunction().getGradient(x, *args)
-        Jx=self.getCostFunction()(x, *args) # equivalent to getValue() for Downunder CostFunctions
+        # equivalent to getValue() for Downunder CostFunctions
+        Jx=self.getCostFunction()(x, *args)
         Jx_0=Jx
+        cbargs = {'k':n_iter, 'x':x, 'Jx':Jx, 'g_Jx':g_Jx}
+        if self._J_tol:
+            cbargs.update(norm_dJ=None)
+        if self._m_tol:
+            cbargs.update(norm_dx=None)
+
+        self._doCallback(**cbargs)
 
         while not converged and not non_curable_break_down and n_iter < self._imax:
           k=0
@@ -325,7 +342,6 @@ class MinimizerLBFGS(AbstractMinimizer):
           s_and_y=[]
           # initial step length for line search
           alpha=1.0
-          self._doCallback(n_iter, x, Jx, g_Jx)
 
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
                 #self.logger.info("\033[1;31miteration %d\033[1;30m"%n_iter)
@@ -362,23 +378,27 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 converged = True
                 if self._J_tol:
-                    flag=abs(Jx_new-Jx) <= self._J_tol * abs(Jx_new-Jx_0)
+                    dJ = abs(Jx_new-Jx)
+                    JJtol = self._J_tol * abs(Jx_new-Jx_0)
+                    flag = dJ <= JJtol
                     if self.logger.isEnabledFor(logging.DEBUG):
                         if flag:
-                            self.logger.debug("Cost function has converged: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new-Jx_0)*self._J_tol))
+                            self.logger.debug("Cost function has converged: dJ=%e, J*J_tol=%e"%(dJ,JJtol))
                         else:
-                            self.logger.debug("Cost function checked: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new)*self._J_tol))
-
+                            self.logger.debug("Cost function checked: dJ=%e, J*J_tol=%e"%(dJ,JJtol))
+                    cbargs.update(norm_dJ=dJ)
                     converged = converged and flag
+
                 if self._m_tol:
                     norm_x = self.getCostFunction().getNorm(x_new)
                     norm_dx = self.getCostFunction().getNorm(delta_x)
                     flag = norm_dx <= self._m_tol * norm_x
                     if self.logger.isEnabledFor(logging.DEBUG):
                         if flag:
-                            self.logger.debug("Solution has converged: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
+                            self.logger.debug("Solution has converged: dx=%e, x*m_tol=%e"%(norm_dx, norm_x*self._m_tol))
                         else:
-                            self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
+                            self.logger.debug("Solution checked: dx=%e, x*m_tol=%e"%(norm_dx, norm_x*self._m_tol))
+                    cbargs.update(norm_dx=norm_dx)
                     converged = converged and flag
 
                 x=x_new
@@ -404,7 +424,8 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 k+=1
                 n_iter+=1
-                self._doCallback(n_iter, x, Jx, g_Jx)
+                cbargs.update(k=n_iter, x=x, Jx=Jx, g_Jx=g_Jx)
+                self._doCallback(**cbargs)
 
                 # delete oldest vector pair
                 if k>self._truncation: s_and_y.pop(0)
@@ -483,6 +504,15 @@ class MinimizerBFGS(AbstractMinimizer):
                 raise KeyError("Invalid option '%s'"%o)
 
     def run(self, x):
+        """
+        The callback function is called with the following arguments:
+            k     - iteration number
+            x     - current estimate
+            Jx    - value of cost function at x
+            g_Jx  - gradient of cost function at x
+            gnorm - norm of g_Jx (stopping criterion)
+        """
+
         args=self.getCostFunction().getArguments(x)
         g_Jx=self.getCostFunction().getGradient(x, *args)
         Jx=self.getCostFunction()(x, *args)
@@ -494,7 +524,7 @@ class MinimizerBFGS(AbstractMinimizer):
         I=np.eye(n)
         H=self._initial_H*I
         gnorm=Lsup(g_Jx)
-        self._doCallback(k, x, Jx, g_Jx)
+        self._doCallback(k=k, x=x, Jx=Jx, g_Jx=g_Jx, gnorm=gnorm)
 
         while gnorm > self._m_tol and k < self._imax:
             self.logger.debug("iteration %d, gnorm=%e"%(k,gnorm))
@@ -519,8 +549,8 @@ class MinimizerBFGS(AbstractMinimizer):
             delta_g=g_Jx_new-g_Jx
             g_Jx=g_Jx_new
             k+=1
-            self._doCallback(k, x, Jx, g_Jx)
             gnorm=Lsup(g_Jx)
+            self._doCallback(k=k, x=x, Jx=Jx, g_Jx=g_Jx, gnorm=gnorm)
             self._result=x
             if (gnorm<=self._m_tol): break
 
@@ -550,6 +580,15 @@ class MinimizerNLCG(AbstractMinimizer):
     """
 
     def run(self, x):
+        """
+        The callback function is called with the following arguments:
+            k     - iteration number
+            x     - current estimate
+            Jx    - value of cost function at x
+            g_Jx  - gradient of cost function at x
+            gnorm - norm of g_Jx (stopping criterion)
+        """
+
         i=0
         k=0
         args=self.getCostFunction().getArguments(x)
@@ -558,9 +597,10 @@ class MinimizerNLCG(AbstractMinimizer):
         d=r
         delta=self.getCostFunction().getDualProduct(r,r)
         delta0=delta
-        self._doCallback(i, x, Jx, -r)
+        gnorm=Lsup(r)
+        self._doCallback(k=i, x=x, Jx=Jx, g_Jx=-r, gnorm=gnorm)
 
-        while i<self._imax and Lsup(r)>self._m_tol:
+        while i < self._imax and gnorm > self._m_tol:
             self.logger.debug("iteration %d"%i)
             self.logger.debug("grad f(x) = %s"%(-r))
             self.logger.debug("d = %s"%d)
@@ -583,7 +623,8 @@ class MinimizerNLCG(AbstractMinimizer):
                 d=r
                 k=0
             i+=1
-            self._doCallback(i, x, Jx, g_Jx_new)
+            gnorm=Lsup(r)
+            self._doCallback(k=i, x=x, Jx=Jx, g_Jx=g_Jx_new, gnorm=gnorm)
             self._result=x
 
         if i >= self._imax:

@@ -319,20 +319,20 @@ class GravityInversion(InversionDriver):
         else:
             super(GravityInversion,self).setInitialGuess()
 
-    def siloWriterCallback(self, k, m, Jm, g_Jm):
+    def siloWriterCallback(self, k, x, Jx, g_Jx, norm_dJ=None, norm_dx=None):
         """
         callback function that can be used to track the solution
 
         :param k: iteration count
-        :param m: current m approximation
-        :param Jm: value of cost function
-        :param g_Jm: gradient of f at x
+        :param x: current approximation
+        :param Jx: value of cost function
+        :param g_Jx: gradient of f at x
         """
         fn='inv.%d'%k
-        ds=createDataset(density=self.getCostFunction().getProperties(m))
+        ds=createDataset(density=self.getCostFunction().getProperties(x))
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
-        self.logger.debug("J(m) = %e"%Jm)
+        self.logger.debug("J(m) = %e"%Jx)
 
 class MagneticInversion(InversionDriver):
     """
@@ -432,20 +432,20 @@ class MagneticInversion(InversionDriver):
         else:
             super(MagneticInversion,self).setInitialGuess()
 
-    def siloWriterCallback(self, k, m, Jm, g_Jm):
+    def siloWriterCallback(self, k, x, Jx, g_Jx, norm_dJ=None, norm_dx=None):
         """
         callback function that can be used to track the solution
 
         :param k: iteration count
-        :param m: current m approximation
-        :param Jm: value of cost function
-        :param g_Jm: gradient of f at x
+        :param x: current approximation
+        :param Jx: value of cost function
+        :param g_Jx: gradient of f at x
         """
         fn='inv.%d'%k
-        ds=createDataset(susceptibility=self.getCostFunction().getProperties(m))
+        ds=createDataset(susceptibility=self.getCostFunction().getProperties(x))
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
-        self.logger.debug("J(m) = %e"%Jm)
+        self.logger.debug("J(m) = %e"%Jx)
 
 class JointGravityMagneticInversion(InversionDriver):
     """
@@ -606,21 +606,21 @@ class JointGravityMagneticInversion(InversionDriver):
         """
         super(JointGravityMagneticInversion,self).setInitialGuess(rho, k)
 
-    def siloWriterCallback(self, k, m, Jm, g_Jm):
+    def siloWriterCallback(self, k, x, Jx, g_Jx, norm_dJ=None, norm_dx=None):
         """
         callback function that can be used to track the solution
 
         :param k: iteration count
-        :param m: current m approximation
-        :param Jm: value of cost function
-        :param g_Jm: gradient of f at x
+        :param x: current approximation
+        :param Jx: value of cost function
+        :param g_Jx: gradient of f at x
         """
         fn='inv.%d'%k
-        p=self.getCostFunction().getProperties(m)
+        p=self.getCostFunction().getProperties(x)
         ds=createDataset(density=p[self.DENSITY], susceptibility=p[self.SUSCEPTIBILITY])
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
-        self.logger.debug("J(m) = %e"%Jm)
+        self.logger.debug("J(m) = %e"%Jx)
 
 class StrongJointGravityMagneticInversion(InversionDriver):
     """
@@ -784,19 +784,19 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         """
         super(StrongJointGravityMagneticInversion,self).setInitialGuess(rho, k)
 
-    def siloWriterCallback(self, k, m, Jm, g_Jm):
+    def siloWriterCallback(self, k, x, Jx, g_Jx, norm_dJ=None, norm_dx=None):
         """
         callback function that can be used to track the solution
 
         :param k: iteration count
-        :param m: current m approximation
-        :param Jm: value of cost function
-        :param g_Jm: gradient of f at x
+        :param x: current m approximation
+        :param Jx: value of cost function
+        :param g_Jx: gradient of f at x
         """
         fn='inv.%d'%k
-        p=self.getCostFunction().getProperties(m)
+        p=self.getCostFunction().getProperties(x)
         ds=createDataset(density=p[self.DENSITY], susceptibility=p[self.SUSCEPTIBILITY])
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
-        self.logger.debug("J(m) = %e"%Jm)
+        self.logger.debug("J(m) = %e"%Jx)
 
