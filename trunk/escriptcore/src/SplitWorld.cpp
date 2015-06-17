@@ -116,7 +116,8 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
 void SplitWorld::runJobs()
 {
     esysUtils::NoCOMM_WORLD ncw;	// it's destructor will unset the flag
-    localworld->resetInterest();    
+    localworld->resetInterest();  
+    localworld->newRunJobs();
     try 
     {
 	distributeJobs();

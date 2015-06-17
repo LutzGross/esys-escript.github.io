@@ -857,6 +857,14 @@ void SubWorld::resetInterest()
     }
 }
 
+void SubWorld::newRunJobs()
+{
+    for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
+    {
+	it->second->newRunJobs();
+    }    
+}
+
 std::list<std::pair<std::string, bool> > SubWorld::getVarList()
 {
     std::list<std::pair<std::string,bool> > res;

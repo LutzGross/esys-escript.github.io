@@ -164,11 +164,11 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
 	errstring="reduceLocalValue: expected double value. Got something else.";
 	return false;
     }
-    if (!valueadded)	// first value so answer becomes this one
+    if (!valueadded || !had_an_export_this_round)	// first value so answer becomes this one
     {
 	value=ex();
 	valueadded=true;
-        had_an_export_this_round=true;	
+        had_an_export_this_round=true;
     }
     else
     {
