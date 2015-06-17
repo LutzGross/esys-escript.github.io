@@ -127,6 +127,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         addVariable(splitworld, "base_point", makeLocalOnly)
         
         addVariable(splitworld, "conv_flag", makeLocalOnly)
+        addVariable(splitworld, "dp_result", makeLocalOnly)
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -591,6 +592,10 @@ class SplitInversionCostFunction(MeteredCostFunction):
           except KeyError as e:
              raise RuntimeError("Function requires vnames as kwarg")
           J=None
+          if self.swid==0:    # we only want to add the regularization term once
+            J=reg.getValueAtPoint()    # We actually want to get a value here but
+                                        # I want to distiguish it from the other getValue call          
+                                               
           for i in range(len(mods)):    # note: iterating over local models not ones on other worlds
             m,idx=mods[i]
             args=local_args[i]
@@ -599,10 +604,9 @@ class SplitInversionCostFunction(MeteredCostFunction):
             if J is None:          
               J=z
             else:
-              J+=z            
-          if self.swid==0:    # we only want to add the regularization term once
-            J+=reg.getValueAtPoint()    # We actually want to get a value here but
-                                        # I want to distiguish it from the other getValue call
+              J+=z  
+          print("Final J =", str(J))
+
           if isinstance(vnames, str):
             self.exportValue(vnames, J)
           else:

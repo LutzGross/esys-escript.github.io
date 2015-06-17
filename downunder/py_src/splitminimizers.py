@@ -17,6 +17,7 @@ from .minimizers import AbstractMinimizer
 from esys.escriptcore.splitworld import Job, FunctionJob
 from esys.escript import addJob, addJobPerWorld
 from .splitinversioncostfunctions import SplitInversionCostFunction
+import numpy as np
 
 class SplitMinimizerLBFGS(AbstractMinimizer):
     """
@@ -72,20 +73,20 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
         # then returns f.dualProduct of search_direction and g_Jx_new
         # Not a splitworld function
         def grad_phi(f, **kwargs):
-                f.getGradient('g_Jx_new_0', 'g_Jx_new_1')
+                f.calculateGradient('g_Jx_0', 'g_Jx_1')
                 # need to call dualProduct here
                 def dual_p_g_Jx_new(self, **kwargs):
                     p=self.importValue("search_direction")
-                    g_Jx_new_0=self.importValue("g_Jx_new_0")
-                    g_Jx_new_1=self.importValue("g_Jx_new_1")
+                    g_Jx_0=self.importValue("g_Jx_0")
+                    g_Jx_1=self.importValue("g_Jx_1")
                     reg=self.importValue("regularization")
                         #again, this assumes that only the regularization term is relevant
-                    res=reg.getDualProduct(p, (g_Jx_new_0, g_Jx_new_1))
+                    res=reg.getDualProduct(p, (g_Jx_0, g_Jx_1))
                     self.exportValue("dp_result",res)
                 # Now we will only run this on one world and rely on getDouble to ship it
                 addJob(f.splitworld, FunctionJob, dual_p_g_Jx_new)
                 f.splitworld.runJobs()
-                res=f.splitworld.getDoubleValue("dp_result")
+                res=f.splitworld.getDoubleVariable("dp_result")
                 return res
         #End of grad_phi
 
@@ -423,7 +424,8 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
               self.logger.debug("Iteration is restarted after %d steps."%n_iter)
 
         # case handling for inner iteration:
-        self._result=x
+        #self._result=x
+        self._result=None
         if n_iter >= self._imax:
             self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
             raise MinimizerMaxIterReached("Gave up after %d steps."%n_iter)

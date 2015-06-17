@@ -82,6 +82,8 @@ public:
 
     void copyVariable(const std::string& src, const std::string& dest);
     
+    void newRunJobs();
+    
 private:
     esysUtils::JMPI everyone;	// communicator linking all procs in all subworlds
     esysUtils::JMPI swmpi;	// communicator linking all procs in this subworld
