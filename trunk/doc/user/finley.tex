@@ -17,13 +17,16 @@
 %\declaremodule{extension}{finley}
 %\modulesynopsis{Solving linear, steady partial differential equations using finite elements}
 
-{\it finley} is a C++ library for solving linear, steady partial differential
+The \finley library allows the creation of domains for solving
+linear, steady partial differential
 equations\index{partial differential equations} (PDEs) or systems
 of PDEs using isoparametrical finite elements\index{FEM!isoparametrical}.
 It supports unstructured 1D, 2D and 3D meshes.
-The module \finley provides access to the library through the \LinearPDE class
-of \escript supporting its full functionality.
-{\it finley} is parallelized using the \OPENMP paradigm.
+The PDEs themselves are represented by the \LinearPDE class
+of \escript.
+\finley is parallelized under both \OPENMP and \MPI.
+A more restricted form of this library ({\it dudley}) is described in 
+Section~\ref{sec:dudley}.
 
 \section{Formulation}
 For a single PDE that has a solution with a single component the linear PDE is
@@ -543,4 +546,16 @@ the diameter of the domain are combined to form a contact element\index{element!
 The corresponding face elements are removed from the mesh.
 \function{JoinFaces} is not supported under \MPI with more than one rank.
 \end{funcdesc}
+
+\section{\dudley}
+\label{sec:dudley}
+The {\it dudley} library is a restricted version of {\it finley}.
+So in many ways it can be used as a ``drop-in'' replacement.
+Dudley domains are simpler in that only triangular (2D), tetrahedral (3D) and line elements are supported.
+Note, this also means that dudley does not support:
+\begin{itemize}
+\item dirac delta functions
+\item contact elements
+\item macro elements
+\end{itemize}
 
