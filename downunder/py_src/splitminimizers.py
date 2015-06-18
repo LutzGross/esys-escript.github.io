@@ -17,6 +17,7 @@ from .minimizers import AbstractMinimizer
 from esys.escriptcore.splitworld import Job, FunctionJob
 from esys.escript import addJob, addJobPerWorld
 from .splitinversioncostfunctions import SplitInversionCostFunction
+from esys.escript.pdetools import ArithmeticTuple
 import numpy as np
 
 class SplitMinimizerLBFGS(AbstractMinimizer):
@@ -154,7 +155,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             def line_search_init_worker(self, **kwargs):
                 x=self.importValue("current_point")
                 p=self.importValue("search_direction")
-                g_Jx=(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
+                g_Jx=ArithmeticTuple(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
                 Jx=self.importValue("Jx")
                 regular=self.importValue("regularization")
                 phi0=Jx
@@ -188,15 +189,15 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             # then returns f.dualProduct of search_direction and g_Jx_new
             # Not a splitworld function
             def grad_phi(f, **kwargs):
-                f.getGradient('g_Jx_new_0', 'g_Jx_new_1')
+                f.calculateGradient('g_Jx_0', 'g_Jx_1')
                 # need to call dualProduct here
                 def dual_p_g_Jx_new(self, **kwargs):
                     p=self.importValue("search_direction")
-                    g_Jx_new_0=self.importValue("g_Jx_new_0")
-                    g_Jx_new_1=self.importValue("g_Jx_new_1")
+                    g_Jx_0=self.importValue("g_Jx_0")
+                    g_Jx_1=self.importValue("g_Jx_1")
                     reg=self.importValue("regularization")
                         #again, this assumes that only the regularization term is relevant
-                    res=reg.getDualProduct(p, (g_Jx_new_0, g_Jx_new_1))
+                    res=reg.getDualProduct(p, (g_Jx_0, g_Jx_1))
                     self.exportValue("dp_result",res)
                 # Now we will only run this on one world and rely on getDouble to ship it
                 addJob(f.splitworld, FunctionJob, dual_p_g_Jx_new)
@@ -265,8 +266,9 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
         self.getCostFunction().setPoint()       # Set point to initial guess value (takes the place of a getArgs call)
         #args=self.getCostFunction().getArguments(x)
         
-        self.getCostFunction().calculateValue(["Jx","Jx_original"])    #evaluate the function and store the result in the named variables
+        self.getCostFunction().calculateValue("Jx")    #evaluate the function and store the result in the named variable
                       # note that call sets Jx=Jx_original
+        splitworld.copyVariable("Jx", "Jx_original")
                       
         self.getCostFunction().calculateGradient("g_Jx_0","g_Jx_1")        #compute the gradient and store the result
         
@@ -352,7 +354,8 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                     # End of converged_check 
                     addJobPerWorld(self.getCostFunction().splitworld, FunctionJob, converged_check, alpha=alpha, m_tol=self._m_tol, imports=["regularization", "search_direction", "current_point"])
                     self.getCostFunction().splitworld.runJobs()
-                    converged = converged and (self.getCostFunction().splitworld.getDoubleVariable("conv_flag")<0.001)
+                    flag=self.getCostFunction().splitworld.getDoubleVariable("conv_flag")>0.001
+                    converged = converged and flag
 
                 #Already done in the line_search call
                 #x=x_new
@@ -363,20 +366,21 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 # unfortunately there is more work to do!
                 def run_worker(self, **kwargs):
                     break_down=False
-                    need_trunc=kwargs["trunc"]
+                    need_trunc=kwargs["need_trunc"]
                     # Need to do some imports here
                     alpha=kwargs["alpha"]
-                    g_Jx=(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
-                    old_g_Jx=(self.importValue("old_g_Jx_0"), self.importValue("old_g_Jx_1"))
+                    g_Jx=ArithmeticTuple(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
+                    old_g_Jx=ArithmeticTuple(self.importValue("old_g_Jx_0"), self.importValue("old_g_Jx_1"))
                     p=self.importValue("search_direction")
                     reg=self.importValue("regularization")
+                    s_and_y=self.importValue("s_and_y")
 
                     ##The original code had this check
                     #if g_Jx_new is None:
                         #args=self.getCostFunction().getArguments(x_new)
                         #g_Jx_new=self.getCostFunction().getGradient(x_new, args)
                     #delta_g=g_Jx_new-g_Jx
-                    delta_g=g_J-old_g_Jx
+                    delta_g=g_Jx-old_g_Jx
                     delta_x=alpha*p;
                     rho=reg.getDualProduct(delta_x, delta_g)
                     if abs(rho)>0:
@@ -388,10 +392,12 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                     self.exportValue("break_down", break_down)
                     self.exportValue("s_and_y",s_and_y)
                 # End run_worker
-                # Only one world has s_and_y
-                addJobWorld(self.getCostFunction().splitworld, FunctionJob, alpha=alpha, need_trunc=(k>=self._truncation))
+                # Only one world has s_and_y - so its important that only single jobs be run that manipulate
+                # s_and_y
+                addJob(self.getCostFunction().splitworld, FunctionJob, run_worker, alpha=alpha, need_trunc=(k>=self._truncation))
                 self.getCostFunction().splitworld.runJobs()
 
+                break_down=(splitworld.getDoubleVariable("break_down")>0.001)
                 self.getCostFunction().updateHessian()
                 #g_Jx=g_Jx_new
                 #Jx=Jx_new
@@ -465,7 +471,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             reset=kwargs['reset']
             x=self.importValue("current_point")
             reg=self.importValue("regularization")
-            g_Jx=(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
+            g_Jx=ArithmeticTuple(self.importValue("g_Jx_0"), self.importValue("g_Jx_1"))
             if reset:
                 s_and_y = []
                 self.exportValue('s_and_y', list())
@@ -481,7 +487,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             r=reg.getInverseHessianApproximationAtPoint(q)
 
             for s,y,rho in s_and_y:
-                beta = self.getCostFunction().getDualProduct(r, y)/rho
+                beta = reg.getDualProduct(r, y)/rho
                 a = alpha.pop()
                 r = r + s * (a-beta)
             # In the original version, the caller negated the result
