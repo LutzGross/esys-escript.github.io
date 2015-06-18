@@ -46,7 +46,7 @@ try:
     NY=10
 
     # Dummy value (for unset areas)
-    MISSING=-9999
+    MISSING=np.nan
 
     # Data error (can be constant or variable over the data points)
     SIGMA = 3.
