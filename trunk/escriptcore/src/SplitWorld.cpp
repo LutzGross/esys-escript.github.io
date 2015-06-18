@@ -414,7 +414,16 @@ int SplitWorld::getSubWorldID()
 
 void SplitWorld::copyVariable(const std::string& src, const std::string& dest)
 {
-    localworld->copyVariable(src, dest);
+    if (manualimport)
+    {
+	throw SplitWorldException("copyVariable is not yet supported for manualimport.");
+	  // we would need to make sure that the value is on this world
+	  // so we need to do a value transport here
+    }
+    else
+    {
+        localworld->copyVariable(src, dest);
+    }
 }
 
 

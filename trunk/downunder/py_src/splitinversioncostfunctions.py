@@ -128,6 +128,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         
         addVariable(splitworld, "conv_flag", makeLocalOnly)
         addVariable(splitworld, "dp_result", makeLocalOnly)
+        addVariable(splitworld, "break_down", makeLocalOnly)
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
@@ -139,7 +140,6 @@ class SplitInversionCostFunction(MeteredCostFunction):
         #reqd=["fwdmodels", "regularization", "mappings","mu_model"]
         reqd=["fwdmodels", "regularization", "mappings", "initial_guess"]     #For our script, mu_model appears not to be used
         knownvars=splitworld.getVarList()
-        print(knownvars)
         for n in reqd:
           if [n,True] not in knownvars:
             raise RuntimeError("Required variable "+n+" was not created by the world init function")
@@ -154,7 +154,6 @@ class SplitInversionCostFunction(MeteredCostFunction):
             forward_models = [ forward_models ]
         result=[]
         for i in range(len(forward_models)):
-            print("Doing iteration "+str(i))
             f=forward_models[i]
             if isinstance(f, ForwardModel):
                 idx=[0]
@@ -568,10 +567,10 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
         return props, args_f, args_reg
 
-    def calculateValue(self, vnames):
-        self._calculateValue(vnames)
+    def calculateValue(self, vname):
+        self._calculateValue(vname)
         
-    def _calculateValue(self, vnames):
+    def _calculateValue(self, vname):
         
        if not self.configured:
           raise ValueError("This inversion function has not been configured yet")
@@ -588,9 +587,9 @@ class SplitInversionCostFunction(MeteredCostFunction):
           local_args=self.importValue("model_args")
           current_point=self.importValue("current_point")
           try:
-             vnames=args['vnames']
+             vnames=args['vname']
           except KeyError as e:
-             raise RuntimeError("Function requires vnames as kwarg")
+             raise RuntimeError("Function requires vname as kwarg")
           J=None
           if self.swid==0:    # we only want to add the regularization term once
             J=reg.getValueAtPoint()    # We actually want to get a value here but
@@ -607,15 +606,14 @@ class SplitInversionCostFunction(MeteredCostFunction):
               J+=z  
           print("Final J =", str(J))
 
-          if isinstance(vnames, str):
-            self.exportValue(vnames, J)
+          if isinstance(vname, str):
+            self.exportValue(vname, J)
           else:
-            for n in vnames:
-              self.exportValue(n,J)
+            raise ValueError("vname must be a string")
        # End calculateValueWorker
 
        addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props", 
-            "model_args", "mu_model"], vnames=vnames)
+            "model_args", "mu_model"], vname=vname)
        self.splitworld.runJobs()   
        # The result will now be stored in the named variables
        # The caller will need to execute splitworld.getDoubleVariable to extract them

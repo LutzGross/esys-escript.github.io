@@ -159,6 +159,8 @@ class FunctionJob(Job):
   def __init__(self, fn, *args, **kwargs):
     super(FunctionJob, self).__init__(*args, **kwargs)
     self.__fn__ = fn
+    if fn is None:
+      raise ValueError("Attempt to create a Function Job with no function to run (fn argument missing).")
     self.__calldict__ = kwargs
     if "imports" in kwargs:
       if isinstance(kwargs["imports"], str):
