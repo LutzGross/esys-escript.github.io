@@ -770,8 +770,8 @@ class NetCdfData(DataSource):
             # NaNs by a large positive number which (hopefully) is not present
             # in the real dataset
             if np.isnan(self.__null_value):
-                data.replaceNaN(1e9)
-                self.__null_value = 1e9
+                data.replaceNaN(1.e300)
+                self.__null_value = 1.e300
             sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
