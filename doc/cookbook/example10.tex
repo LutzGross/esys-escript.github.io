@@ -19,7 +19,7 @@ In this chapter the gravitational potential field is developed for \esc.
 Gravitational fields are present in many modelling scenarios, including
 geophysical investigations, planetary motion and attraction and micro-particle
 interactions. Gravitational fields also present an opportunity to demonstrate
-the saving and visualisation of vector data for Mayavi, and the construction of
+the saving and visualisation of vector data for \mayavi, and the construction of
 variable sized meshes.
 
 The gravitational potential $U$ at a point $P$ due to a region with a mass
@@ -93,7 +93,7 @@ ser to \verb!r=0.0!. This is a Dirichlet boundary condition.
 \sslist{example10a.py}
 A gravity pole is used in this example to demonstrate the vector characteristics
 of gravity, and also to demonstrate how this information can be exported for
-visualisation to Mayavi or an equivalent using the VTK data format.
+visualisation to \mayavi or an equivalent using the VTK data format.
 
 The solution script for this section is very simple. First the domain is
 constructed, then the parameters of the model are set, and finally the steady
@@ -127,11 +127,11 @@ saveVTK(os.path.join(save_path,"ex10a.vtu"),\
         grav_pot=sol,g_field=g_field,g_fieldz=g_fieldz,gz=gz)
 \end{python}
 
-It is quite simple to visualise the data from the gravity solution in Mayavi2.
-With Mayavi2 open go to File, Load data, Open file \ldots as in
+It is quite simple to visualise the data from the gravity solution in \mayavi.
+With \mayavi open go to File, Load data, Open file \ldots as in
 \autoref{fig:mayavi2openfile} and select the saved data file. The data will
 have then been loaded and is ready for visualisation. Notice that under the data
-object in the Mayavi2 navigation tree the 4 values saved to the VTK file are
+object in the \mayavi navigation tree the 4 values saved to the VTK file are
 available (\autoref{fig:mayavi2data}). There are two vector values,
 \verb|gfield| and \verb|gfieldz|. Note that to plot both of these on the same
 chart requires that the data object be imported twice.
@@ -149,7 +149,7 @@ potential and gravitational field vectors is illustrated in
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.75\textwidth]{figures/mayavi2_openfile.png}
-\caption{Open a file in Mayavi2}
+\caption{Open a file in \mayavi}
 \label{fig:mayavi2openfile}
 \end{figure}
 
