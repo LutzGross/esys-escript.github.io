@@ -616,7 +616,7 @@ class Defect(object):
         """
         Returns the inner product of x0 and x1
         
-        NOTE: MUST BE OVERRIDDEN
+        NOTE: MUST BE OVERRIDDEN BY A SUBCLASS
 
         :param x0: value for x0
         :param x1: value for x1
@@ -642,7 +642,7 @@ class Defect(object):
         """
         Returns the value F of a given ``x``.
 
-        NOTE: MUST BE OVERRIDDEN
+        NOTE: MUST BE OVERRIDDEN BY A SUBCLASS
 
         :param x: value for which the defect ``F`` is evaluated
         :return: value of the defect at ``x``
