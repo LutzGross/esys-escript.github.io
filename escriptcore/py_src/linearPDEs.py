@@ -29,7 +29,7 @@ differential equations (PDEs) and Transport problems within `escript`.
 PDE over to the PDE solver library defined through the `Domain`
 of the PDE. The general interface is provided through the `LinearPDE` class.
 `TransportProblem` provides an interface to initial value problems dominated
-by its advective terms.
+by their advective terms.
 
 :var __author__: name of author
 :var __copyright__: copyrights
@@ -48,9 +48,8 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 SolverOptions = escore.SolverOptions
 SolverBuddy = escore.SolverBuddy
-        
+
 class IllegalCoefficient(ValueError):
-  
    """
    Exception that is raised if an illegal coefficient of the general or
    particular PDE is requested.
@@ -243,7 +242,7 @@ class PDECoef(object):
                 try:
                   newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
                 except RuntimeError as er:
-                 msg="Attempting to interpolate coefficient to function space %s encountered the followin error: %s"%(self.getFunctionSpace(domain),str(er))
+                 msg="Attempting to interpolate coefficient to function space %s encountered the following error: %s"%(self.getFunctionSpace(domain),str(er))
                  raise IllegalCoefficientFunctionSpace(msg)
                 except:
                   raise IllegalCoefficientFunctionSpace("Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain))
@@ -544,12 +543,12 @@ class LinearProblem(object):
      return self.__system_status
    def setSystemStatus(self,status=None):
      """
-     Sets the system status to ``status`` if ``status`` is not present the 
+     Sets the system status to ``status`` if ``status`` is not present the
      current status of the domain is used.
      """
      if status is None:
          self.__system_status=self.getDomainStatus()
-     else: 
+     else:
          self.__system_status=status
 
    def getDim(self):
@@ -655,16 +654,16 @@ class LinearProblem(object):
        else:
           raise ValueError("options must be a SolverOptions object.")
        self.__solver_options.setSymmetry(self.__sym)
-     
+
    def getSolverOptions(self):
        """
        Returns the solver options
-   
+
        :rtype: `SolverOptions`
        """
        self.__solver_options.setSymmetry(self.__sym)
        return self.__solver_options
-       
+
    def isUsingLumping(self):
       """
       Checks if matrix lumping is the current solver method.
@@ -688,7 +687,7 @@ class LinearProblem(object):
 
    def setSymmetryOn(self):
       """
-      Sets the symmetry flag. 
+      Sets the symmetry flag.
       :note: The method overwrites the symmetry flag set by the solver options
       """
       self.__sym=True
@@ -1067,7 +1066,7 @@ class LinearProblem(object):
        if not self.getDomainStatus()==self.getSystemStatus(): self.invalidateSolution()
        if self.__solution_rtol>self.getSolverOptions().getTolerance() or \
           self.__solution_atol>self.getSolverOptions().getAbsoluteTolerance():
-            self.invalidateSolution()  
+            self.invalidateSolution()
        return self.__is_solution_valid
 
    def validOperator(self):
@@ -1369,7 +1368,7 @@ class LinearProblem(object):
             d, y, d_contact, y_contact, d_dirac, y_dirac):
         """
         adds a PDE to the system, results depend on domain
-        
+
         :param mat:
         :type mat: `OperatorAdapter`
         :param rhs:
@@ -1408,11 +1407,11 @@ class LinearProblem(object):
         else:
             self.getDomain().addPDEToSystem(operator,righthandside, A, B, C, D,
                     X, Y, d, y, d_contact, y_contact, d_dirac, y_dirac)
-            
+
    def addToSystem(self, op, rhs, data):
         """
         adds a PDE to the system, results depend on domain
-        
+
         :param mat:
         :type mat: `OperatorAdapter`
         :param rhs:
@@ -1425,7 +1424,7 @@ class LinearProblem(object):
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """
         adds a PDE to the lumped system, results depend on domain
-        
+
         :param mat:
         :type mat: `OperatorAdapter`
         :param rhs:
@@ -1443,11 +1442,11 @@ class LinearProblem(object):
             self.getDomain().addPDEToLumpedSystem(operator, a, b, c, hrz_lumping, self.assembler)
         else:
             self.getDomain().addPDEToLumpedSystem(operator, a, b, c, hrz_lumping)
-   
+
    def addPDEToRHS(self, righthandside, X, Y, y, y_contact, y_dirac):
         """
         adds a PDE to the right hand side, results depend on domain
-        
+
         :param mat:
         :type mat: `OperatorAdapter`
         :param righthandside:
@@ -1468,13 +1467,13 @@ class LinearProblem(object):
                     ("y_dirac", y_dirac)]
             self.addToRHS(righthandside, data)
         else:
-            self.getDomain().addPDEToRHS(righthandside, X, Y, y, y_contact, 
+            self.getDomain().addPDEToRHS(righthandside, X, Y, y, y_contact,
                     y_dirac)
-   
+
    def addToRHS(self, rhs, data):
         """
         adds a PDE to the right hand side, results depend on domain
-        
+
         :param mat:
         :type mat: `OperatorAdapter`
         :param righthandside:
@@ -1794,7 +1793,7 @@ class LinearPDE(LinearProblem):
                         D_reduced_times_e=D_reduced
                  else:
                     D_reduced_times_e=escore.Data()
-                    
+
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         d_reduced_times_e=util.matrix_mult(d_reduced,numpy.ones((self.getNumSolutions(),)))
@@ -1802,7 +1801,7 @@ class LinearPDE(LinearProblem):
                         d_reduced_times_e=d_reduced
                  else:
                     d_reduced_times_e=escore.Data()
-                    
+
                  if not d_dirac.isEmpty():
                      if self.getNumSolutions()>1:
                         d_dirac_times_e=util.matrix_mult(d_dirac,numpy.ones((self.getNumSolutions(),)))
@@ -2104,7 +2103,7 @@ class LinearPDE(LinearProblem):
      A=self.getCoefficient("A")
      if not A.isEmpty():
            out+=util.tensormult(A,util.grad(u,self.getFunctionSpaceForCoefficient("A")))
-      
+
      B=self.getCoefficient("B")
      if not B.isEmpty():
            if B.getRank() == 1:
@@ -2112,7 +2111,7 @@ class LinearPDE(LinearProblem):
            else:
                out+=util.generalTensorProduct(B,u,axis_offset=1)
 
-     X=self.getCoefficient("X") 
+     X=self.getCoefficient("X")
      if not X.isEmpty():
            out-=X
 
@@ -2342,7 +2341,7 @@ class WavePDE(LinearPDE):
            q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH))
         self.assembler = self.getDomain().createAssembler("WaveAssembler", c)
 
-    
+
     def getSystem(self):
         """
         Returns the operator and right hand side of the PDE.
@@ -2366,7 +2365,7 @@ class WavePDE(LinearPDE):
                  D=self.getCoefficient("D")
                  d=self.getCoefficient("d")
                  d_dirac=self.getCoefficient("d_dirac")
-                 
+
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
                         D_times_e=util.matrix_mult(D,numpy.ones((self.getNumSolutions(),)))
@@ -2381,7 +2380,7 @@ class WavePDE(LinearPDE):
                         d_times_e=d
                  else:
                     d_times_e=escore.Data()
-                    
+
                  if not d_dirac.isEmpty():
                      if self.getNumSolutions()>1:
                         d_dirac_times_e=util.matrix_mult(d_dirac,numpy.ones((self.getNumSolutions(),)))
@@ -2394,7 +2393,7 @@ class WavePDE(LinearPDE):
                     hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
                     self.addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
                  else:
-                    self.addToRHS(operator, 
+                    self.addToRHS(operator,
                         [("Y", D_times_e), ("y", d_times_e),
                          ("y_dirac", d_dirac_times_e)])
                  self.trace("New lumped operator has been built.")
@@ -2402,7 +2401,7 @@ class WavePDE(LinearPDE):
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
                  self.addToRHS(righthandside,
-                                [(i, self.getCoefficient(i)) for i in 
+                                [(i, self.getCoefficient(i)) for i in
                                     ["du", "Y", "y", "y_dirac"]
                                 ])
                  self.trace("New right hand side has been built.")
@@ -2428,7 +2427,7 @@ class WavePDE(LinearPDE):
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
                  self.addToRHS(righthandside,
-                                [(i, self.getCoefficient(i)) for i in 
+                                [(i, self.getCoefficient(i)) for i in
                                     ["du", "Y", "y", "y_contact", "y_dirac"]
                                 ])
                  self.insertConstraint(rhs_only=True)
@@ -2533,7 +2532,7 @@ class LameEquation(LinearPDE):
 
         if name == "A" :
             out = self.createCoefficient("A")
-            if self.getCoefficient("lame_lambda").isEmpty(): 
+            if self.getCoefficient("lame_lambda").isEmpty():
                 if self.getCoefficient("lame_mu").isEmpty():
                     pass
                 else:
@@ -2541,7 +2540,7 @@ class LameEquation(LinearPDE):
                         for j in range(self.getDim()):
                             out[i,j,j,i] += self.getCoefficient("lame_mu")
                             out[i,j,i,j] += self.getCoefficient("lame_mu")
-            else: 
+            else:
                 if self.getCoefficient("lame_mu").isEmpty():
                     for i in range(self.getDim()):
                         for j in range(self.getDim()):
@@ -2622,7 +2621,7 @@ class LameEquation(LinearPDE):
                         D_reduced_times_e=D_reduced
                  else:
                     D_reduced_times_e=escore.Data()
-                    
+
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         d_reduced_times_e=util.matrix_mult(d_reduced,numpy.ones((self.getNumSolutions(),)))
@@ -2630,7 +2629,7 @@ class LameEquation(LinearPDE):
                         d_reduced_times_e=d_reduced
                  else:
                     d_reduced_times_e=escore.Data()
-                    
+
                  if not d_dirac.isEmpty():
                      if self.getNumSolutions()>1:
                         d_dirac_times_e=util.matrix_mult(d_dirac,numpy.ones((self.getNumSolutions(),)))
@@ -3043,7 +3042,7 @@ class TransportPDE(LinearProblem):
                        object on `FunctionOnContactOne` or `FunctionOnContactZero`
       :keyword y_contact_reduced: value for coefficient ``y_contact_reduced``
       :type y_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
-      
+
       :keyword d_dirac: value for coefficient ``d_dirac``
       :type d_dirac: any type that can be cast to a `Data` object on `DiracDeltaFunctions`
       :keyword y_dirac: value for coefficient ``y_dirac``
@@ -3067,7 +3066,7 @@ class TransportPDE(LinearProblem):
        Returns an instance of a new transport operator.
        """
        optype=self.getRequiredOperatorType()
-       self.trace("New Transport problem pf type %s is allocated."%optype)
+       self.trace("New Transport problem of type %s is allocated."%optype)
        return self.getDomain().newTransportProblem( \
                                self.getNumEquations(), \
                                self.getFunctionSpaceForSolution(), \
@@ -3110,8 +3109,9 @@ class TransportPDE(LinearProblem):
    #====================================================================
    def getSolution(self, dt=None, u0=None):
        """
-       Returns the solution by marching forward by time step dt. if ''u0'' is present,
-       ''u0'' is used as the initial value otherwise the solution from the last call is used.
+       Returns the solution by marching forward by time step dt.
+       If ''u0'' is present, ''u0'' is used as the initial value otherwise
+       the solution from the last call is used.
 
        :param dt: time step size. If ``None`` the last solution is returned.
        :type dt: positive ``float`` or ``None``
@@ -3276,13 +3276,13 @@ class TransportPDE(LinearProblem):
      Switches debug output on.
      """
      super(TransportPDE,self).setDebugOn()
-     
+
    def setDebugOff(self):
      """
      Switches debug output off.
      """
      super(TransportPDE,self).setDebugOff()
-     
+
 def SingleTransportPDE(domain, debug=False):
    """
    Defines a single transport problem
