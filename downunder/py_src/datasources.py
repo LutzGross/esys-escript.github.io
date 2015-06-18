@@ -766,6 +766,12 @@ class NetCdfData(DataSource):
                     FS, shape=(), fill=0., first=first, numValues=nValues,
                     multiplier=multiplier, reverse=reverse)
         else:
+            # arithmetics with NaN produces undesired results so we replace
+            # NaNs by a large positive number which (hopefully) is not present
+            # in the real dataset
+            if np.isnan(self.__null_value):
+                data.replaceNaN(1e9)
+                self.__null_value = 1e9
             sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
