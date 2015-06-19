@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,7 +11,7 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
@@ -25,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.finley import Brick, Rectangle
+from esys.speckley import Brick, Rectangle
 from esys.weipa import saveSilo
 from esys.downunder import Ricker, SonicWave, SimpleSEGYWriter
 from math import ceil
@@ -37,12 +35,12 @@ depth=1*U.km    # depth
 v_p_top=1.5*U.km/U.sec
 v_p_bottom=3*U.km/U.sec
 absorption_zone=300*U.m
-ne_z=400
+ne_z=40
 
 reflector_at=0.5*depth
 
 
-t_end=1.*U.sec
+t_end=0.008*U.sec #only this low for testing purposes
 frq=20.*U.Hz
 sampling_interval=4*U.msec
 numRcvPerLine=101
@@ -101,11 +99,12 @@ if DIM == 3:
 #
 # create domain:
 #
+order = 5
 if DIM == 2:
-   domain=Rectangle(ceil(ne_z*width_x/depth),ne_z,l0=width_x,l1=depth, 
+   domain=Rectangle(order, ceil(ne_z*width_x/depth),ne_z,l0=width_x,l1=depth, 
         diracPoints=src_locations, diracTags=src_tags)
 else:
-   domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
+   domain=Brick(order, ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
         diracPoints=src_locations, diracTags=src_tags)
 wl=Ricker(frq)
 m=whereNegative(Function(domain).getX()[DIM-1]-reflector_at)
