@@ -26,16 +26,18 @@ denotes the outer normal field on $\Gamma$.
 For a single PDE with a solution that has a single component the linear PDE is
 defined in the following form:
 \begin{equation}\label{LINEARPDE.SINGLE.1}
--(A_{jl} u_{,l})_{,j}-(B_{j} u)_{,j}+C_{l} u_{,l}+D u =-X_{j,j}+Y \; .
+-(A_{jl} u_{,l})_{,j}-(B_{j} u)_{,j}+C_{l} u_{,l}+D u + \sum_p d^{dirac}(p) \; u(p) =-X_{j,j}+Y + \sum_p y^{dirac}(p)  \; .
 \end{equation}
 $u_{,j}$ denotes the derivative of $u$ with respect to the $j$-th spatial direction.
 Einstein's summation convention, i.e. summation over indexes appearing twice
-in a term of a sum, is used in this chapter.
+in a term of a sum, is used in this chapter. $y^{dirac}(p)$ represent a nodal source term 
+at point $p$, cf. $y^{dirac}(p) $ and similar $d^{dirac}(p)$ define Dirac delta-function 
+terms. 
 The coefficients $A$, $B$, $C$, $D$, $X$ and $Y$ have to be specified through
 \Data objects in the \Function on the PDE or objects that can be converted
-into such \Data objects.
+into such \Data objects. $d^{dirac}$
 $A$ is a \RankTwo, $B$, $C$ and $X$ are each a \RankOne and $D$ and $Y$ are
-scalars.
+scalars. $y^{dirac}$ and $d^{dirac}$ are each scalars in the \DiracDeltaFunctions. 
 The following natural boundary conditions are considered\index{boundary condition!natural} on $\Gamma$:
 \begin{equation}\label{LINEARPDE.SINGLE.2}
 n_{j}(A_{jl} u_{,l}+B_{j} u)+d u=n_{j}X_{j} + y  \;.
@@ -54,9 +56,11 @@ condition set by \eqn{LINEARPDE.SINGLE.1} or \eqn{LINEARPDE.SINGLE.2}.
 
 For a system of PDEs and a solution with several components the PDE has the form
 \begin{equation}\label{LINEARPDE.SYSTEM.1}
--(A_{ijkl} u_{k,l})_{,j}-(B_{ijk} u_{k})_{,j}+C_{ikl} u_{k,l}+D_{ik} u_{k} =-X_{ij,j}+Y_{i} \; .
+-(A_{ijkl} u_{k,l})_{,j}-(B_{ijk} u_{k})_{,j}+C_{ikl} u_{k,l}+D_{ik} u_{k}+
+ \sum_p d^{dirac}_{ik}(p) \;  u_i(p)
+ =-X_{ij,j}+Y_{i} +\sum_p \; y^{dirac}_i(p)   \; .
 \end{equation}
-$A$ is a \RankFour, $B$ and $C$ are each a \RankThree, $D$ and $X$ are each a \RankTwo and $Y$ is a \RankOne.
+$A$ is a \RankFour, $B$ and $C$ are each a \RankThree, $D$, $d^{dirac}$ and $X$ are each a \RankTwo and $Y$ and $y^{dirac}$ is a \RankOne.
 The natural boundary conditions\index{boundary condition!natural} take the form:
 \begin{equation}\label{LINEARPDE.SYSTEM.2}
 n_{j}(A_{ijkl} u_{k,l}+B_{ijk} u_{k})+d_{ik} u_{k}=n_{j}X_{ij}+y_{i}  \;.
@@ -201,7 +205,8 @@ coefficient is defined.
 \optional{, X}\optional{, Y}
 \optional{, d}\optional{, y}
 \optional{, d_contact}\optional{, y_contact}
-\optional{, q}\optional{, r}}
+\optional{, d_dirac}\optional{, y_dirac}
+\optional{, q}\optional{, r}, }
 assigns new values to coefficients. By default all values are assumed to be
 zero\footnote{In fact, it is assumed they are not present by assigning the
 value \code{escript.Data()}. This can be used by the solver library to reduce
