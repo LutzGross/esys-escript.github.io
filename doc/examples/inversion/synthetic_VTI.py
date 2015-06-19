@@ -141,7 +141,8 @@ if DIM==3:
     tracerNS_z=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D,
         sampling_interval=sampling_interval,
         text='z-displacement - north-south line')
-
+if not tracerEW_x.check_obspy():
+    print("WARNING: obspy not available, SEGY files will not be written")
 
 t=0.
 mkDir('tmp')
@@ -159,10 +160,11 @@ while t < t_end:
         #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
         saveSilo("tmp/u_%d.silo"%(n,), u=u, cycle=n, time=t)
         n+=1
-tracerEW_x.write('lineEW_x.sgy')
-tracerEW_z.write('lineEW_z.sgy')
-if DIM == 3: 
-    tracerEW_y.write('lineEW_y.sgy')
-    tracerNS_x.write('lineNS_x.sgy')
-    tracerNS_y.write('lineNS_y.sgy')
-    tracerNS_z.write('lineNS_z.sgy')
+if tracerEW_x.check_obspy():
+    tracerEW_x.write('lineEW_x.sgy')
+    tracerEW_z.write('lineEW_z.sgy')
+    if DIM == 3: 
+        tracerEW_y.write('lineEW_y.sgy')
+        tracerNS_x.write('lineNS_x.sgy')
+        tracerNS_y.write('lineNS_y.sgy')
+        tracerNS_z.write('lineNS_z.sgy')

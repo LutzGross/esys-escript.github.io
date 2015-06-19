@@ -34,6 +34,15 @@ from esys.escript import *
 import esys.escript.unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE, SolverOptions
 
+OBSPY_AVAILABLE = False
+try:
+    from obspy import Trace, Stream, UTCDateTime
+    from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
+    from obspy.core import AttribDict
+    OBSPY_AVAILABLE = True
+except:
+    pass
+
 class Wavelet(object):
         """
         place holder for source wavelet
@@ -181,6 +190,12 @@ class SimpleSEGYWriter(object):
                """
                return self.__sampling_interval
 
+        def obspy_available(self):
+            """
+            for checking if the obspy module is available
+            """
+            return OBSPY_AVAILABLE
+
         def write(self, filename):
             """
             writes to segy file
@@ -189,11 +204,7 @@ class SimpleSEGYWriter(object):
             :note: the function uses the `obspy` module.
             """
 
-            try:
-                from obspy import Trace, Stream, UTCDateTime
-                from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
-                from obspy.core import AttribDict
-            except ImportError as e:
+            if not OBSPY_AVAILABLE:
                 raise RuntimeError("This feature (SimpleSEGYWriter.write())"+\
                         " depends on obspy, which is not installed, see "+\
                         "https://github.com/obspy/obspy for install guide")

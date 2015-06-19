@@ -118,6 +118,9 @@ if DIM==3:
    locNS=Locator(domain,rcvNS_locations)
    tracerNS=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D, sampling_interval=sampling_interval)
 
+if not tracerEW.check_obspy():
+    print("WARNING: obspy not available, SEGY files will not be written")
+
 
 t=0.
 mkDir('tmp')
@@ -129,5 +132,7 @@ while t < t_end:
     print(t, locEW(p)[:4], wl.getValue(t))
     if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n//5,), p=p)
     n+=1
-tracerEW.write('lineEW.sgy')
-if DIM == 3: tracerNS.write('lineNS.sgy')
+if tracerEW.check_obspy():
+    tracerEW.write('lineEW.sgy')
+    if DIM == 3:
+        tracerNS.write('lineNS.sgy')
