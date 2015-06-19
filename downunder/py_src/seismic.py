@@ -21,7 +21,9 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave', 'HTIWave', 'createAbsorbtionLayerFunction', 'SonicHTIWave' , "TTIWave"]
+__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave',
+'HTIWave', 'createAbsorbtionLayerFunction', 'createAbsorbtionLayerFunction',
+'SonicHTIWave' , "TTIWave"]
 
 
 from math import pi
@@ -44,8 +46,8 @@ class Ricker(Wavelet):
         """
         def __init__(self, f_dom=40, t_dom=None):
                 """
-                Sets up a Ricker wavelet wih dominant frequence `f_dom` and 
-                center at time `t_dom`. If `t_dom` is not given an estimate 
+                Sets up a Ricker wavelet wih dominant frequence `f_dom` and
+                center at time `t_dom`. If `t_dom` is not given an estimate
                 for suitable `t_dom` is calculated so f(0)~0.
 
                 :note: maximum frequence is about 2 x the dominant frequence.
@@ -66,7 +68,7 @@ class Ricker(Wavelet):
 
         def getTimeScale(self):
                 """
-                Returns the time scale which is the inverse of the largest 
+                Returns the time scale which is the inverse of the largest
                 frequence with a significant spectral component.
                 """
                 return 1/self.__f_max
@@ -148,7 +150,7 @@ class SimpleSEGYWriter(object):
                             rg = [(c[0],c[1])  for c in receiver_group]
                 else:
                     raise TypeError("illegal receiver_group type.")
-     
+
                 self.__source=source
                 self.__receiver_group=rg
                 self.__text=text
@@ -293,7 +295,12 @@ class WaveBase(object):
              self.t_last=t
              return t, self.u + self.v * (t-self.t)
 
-def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e-2, top_absorbation=False):
+def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m,
+        absorption_cut=1.e-2, top_absorption=False, top_absorbation=None):
+    print("WARNING: createAbsorbtionLayerFunction(): function is deprecated, use createAbsorptionLayerFunction")
+
+def createAbsorptionLayerFunction(x, absorption_zone=300*U.m,
+        absorption_cut=1.e-2, top_absorption=False, top_absorbation=None):
     """
     Creates a distribution which is one in the interior of the domain of `x`
     and is falling down to the value 'absorption_cut' over a margin of thickness 'absorption_zone'
@@ -301,14 +308,19 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
 
     :param x: location of points in the domain
     :type x: `Data`
-    :param absorption_zone: thickness of the aborption zone
+    :param absorption_zone: thickness of the absorption zone
     :param absorption_cut: value of decay function on domain boundary
     :return: function on 'x' which is one in the iterior and decays to almost zero over a margin
              toward the boundary.
     """
+    if top_absorbation is not None:
+        print("WARNING: createAbsorptionLayerFunction(): top_absorbation is deprecated, use top_absorption")
+        if top_absorption is False:
+            top_absorption = top_absorbation
+
     if absorption_zone is None or absorption_zone == 0:
         return 1
-    
+
     dom=x.getDomain()
     bb=boundingBox(dom)
     DIM=dom.getDim()
@@ -319,7 +331,7 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
         x_l=x_i-(bb[i][0]+absorption_zone)
         m_l=whereNegative(x_l)
         f=f*( (exp(-decay*(x_l*m_l)**2)-1) * m_l+1 )
-        if  top_absorbation or not DIM-1 == i:
+        if  top_absorption or not DIM-1 == i:
             x_r=(bb[i][1]-absorption_zone)-x_i
             m_r=whereNegative(x_r)
             f=f*( (exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
@@ -352,7 +364,7 @@ class SonicWave(WaveBase):
            :param absorption_cut: boundary value of absorption decay factor
            :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
            """
-           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+           f=createAbsorptionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
            v_p=v_p*f
 
            if p0 == None:
@@ -426,12 +438,13 @@ class VTIWave(WaveBase):
         :type disable_fast_assemblers: `boolean`
         """
         DIM=domain.getDim()
-        f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+        self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
+        f=createAbsorptionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+
+        f = interpolate(f, Function(domain))
 
         v_p=v_p*f
         v_s=v_s*f
-
-
 
         if u0 == None:
           u0=Vector(0.,Solution(domain))
@@ -450,7 +463,6 @@ class VTIWave(WaveBase):
 
         self.__wavelet=wavelet
 
-        self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
         self.c33=v_p**2 * rho
         self.c44=v_s**2 * rho
         self.c11=(1+2*eps) * self.c33
@@ -459,14 +471,17 @@ class VTIWave(WaveBase):
         self.c12=self.c11-2*self.c66
 
         if self.fastAssembler:
-            self.__mypde=WavePDE(domain, [("c11", self.c11),
+            C = [("c11", self.c11),
                     ("c12", self.c12), ("c13", self.c13), ("c33", self.c33),
-                    ("c44", self.c44), ("c66", self.c66)])
+                    ("c44", self.c44), ("c66", self.c66)]
+            if "speckley" in domain.getDescription().lower():
+                C = [(n, interpolate(d, ReducedFunction(domain))) for n,d in C]
+            self.__mypde=WavePDE(domain, C)
         else:
             self.__mypde=LinearPDESystem(domain)
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
 
-        if lumping: 
+        if lumping:
             self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
         self.__mypde.setSymmetryOn()
         self.__mypde.setValue(D=rho*kronecker(DIM))
@@ -504,7 +519,7 @@ class VTIWave(WaveBase):
 
                 s=self.c44*(du[2,1]+du[1,2])
                 sigma[1,2]=s
-                sigma[2,1]=s             
+                sigma[2,1]=s
 
                 s=self.c44*(du[2,0]+du[0,2])
                 sigma[0,2]=s
@@ -513,7 +528,7 @@ class VTIWave(WaveBase):
                 s=self.c66*(du[0,1]+du[1,0])
                 sigma[0,1]=s
                 sigma[1,0]=s
-                
+
 
             else:
                 e11=du[0,0]
@@ -532,149 +547,152 @@ class VTIWave(WaveBase):
 
 
 class HTIWave(WaveBase):
+    """
+    Solving the HTI wave equation (along the x_0 axis)
+
+    :note: In case of a two dimensional domain a horizontal domain is considered, i.e. the depth component is dropped.
+    """
+
+    def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
+            source_vector = [1.,0.,0.], eps=0., gamma=0., delta=0., rho=1.,
+            dt=None, u0=None, v0=None, absorption_zone=None,
+            absorption_cut=1e-2, lumping=True, disable_fast_assemblers=False):
+       """
+       initialize the VTI wave solver
+
+       :param domain: domain of the problem
+       :type domain: `Domain`
+       :param v_p: vertical p-velocity field
+       :type v_p: `Scalar`
+       :param v_s: vertical s-velocity field
+       :type v_s: `Scalar`
+       :param wavelet: wavelet to describe the time evolution of source term
+       :type wavelet: `Wavelet`
+       :param source_tag: tag of the source location
+       :type source_tag: 'str' or 'int'
+       :param source_vector: source orientation vector
+       :param eps: first Thompsen parameter
+       :param delta: second Thompsen parameter
+       :param gamma: third Thompsen parameter
+       :param rho: density
+       :param dt: time step size. If not present a suitable time step size is calculated.
+       :param u0: initial solution. If not present zero is used.
+       :param v0: initial solution change rate. If not present zero is used.
+       :param absorption_zone: thickness of absorption zone
+       :param absorption_cut: boundary value of absorption decay factor
+       :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
+       :param disable_fast_assemblers: if True, forces use of slower and more general PDE assemblers
+       """
+       DIM=domain.getDim()
+       self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
+       f=createAbsorptionLayerFunction(v_p.getFunctionSpace().getX(), absorption_zone, absorption_cut)
+
+       v_p=v_p*f
+       v_s=v_s*f
+
+       if u0 == None:
+          u0=Vector(0.,Solution(domain))
+       else:
+          u0=interpolate(p0, Solution(domain ))
+
+       if v0 == None:
+          v0=Vector(0.,Solution(domain))
+       else:
+          v0=interpolate(v0, Solution(domain ))
+
+       if dt == None:
+            dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+
+       super(HTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
+
+       self.__wavelet=wavelet
+
+       self.c33 = v_p**2 * rho
+       self.c44 = v_s**2 * rho
+       self.c11 = (1+2*eps) * self.c33
+       self.c66 = (1+2*gamma) * self.c44
+       self.c13 = sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+       self.c23 = self.c33-2*self.c66
+
+       if self.fastAssembler:
+            C = [("c11", self.c11),
+                ("c23", self.c23), ("c13", self.c13), ("c33", self.c33),
+                ("c44", self.c44), ("c66", self.c66)]
+            if "speckley" in domain.getDescription().lower():
+                C = [(n, interpolate(d, ReducedFunction(domain))) for n,d in C]
+            self.__mypde=WavePDE(domain, C)
+       else:
+            self.__mypde=LinearPDESystem(domain)
+            self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
+
+       if lumping:
+            self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
+       self.__mypde.setSymmetryOn()
+       self.__mypde.setValue(D=rho*kronecker(DIM))
+       self.__source_tag=source_tag
+
+       if DIM == 2:
+          source_vector= [source_vector[0],source_vector[2]]
+
+       self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+       self.__r.setTaggedValue(self.__source_tag, source_vector)
+
+
+    def setQ(self,q):
         """
-        Solving the HTI wave equation (along the x_0 axis)
+        sets the PDE q value
 
-        :note: In case of a two dimensional domain a horizontal domain is considered, i.e. the depth component is dropped.
+        :param q: the value to set
         """
-        
-        def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
-                source_vector = [1.,0.,0.], eps=0., gamma=0., delta=0., rho=1.,
-                dt=None, u0=None, v0=None, absorption_zone=None,
-                absorption_cut=1e-2, lumping=True, disable_fast_assemblers=False):
-           """
-           initialize the VTI wave solver
+        self.__mypde.setValue(q=q)
 
-           :param domain: domain of the problem
-           :type domain: `Domain`
-           :param v_p: vertical p-velocity field
-           :type v_p: `Scalar`
-           :param v_s: vertical s-velocity field
-           :type v_s: `Scalar`
-           :param wavelet: wavelet to describe the time evolution of source term
-           :type wavelet: `Wavelet`
-           :param source_tag: tag of the source location
-           :type source_tag: 'str' or 'int'
-           :param source_vector: source orientation vector
-           :param eps: first Thompsen parameter
-           :param delta: second Thompsen parameter
-           :param gamma: third Thompsen parameter
-           :param rho: density
-           :param dt: time step size. If not present a suitable time step size is calculated.
-           :param u0: initial solution. If not present zero is used.
-           :param v0: initial solution change rate. If not present zero is used.
-           :param absorption_zone: thickness of absorption zone
-           :param absorption_cut: boundary value of absorption decay factor
-           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
-           :param disable_fast_assemblers: if True, forces use of slower and more general PDE assemblers
-           """
-           DIM=domain.getDim()
-           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+    def  _getAcceleration(self, t, u):
+         """
+         returns the acceleraton for time `t` and solution `u` at time `t`
+         """
+         du = grad(u)
+         if self.fastAssembler:
+            self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getValue(t))
+         else:
+             sigma=self.__mypde.getCoefficient('X')
 
-           v_p=v_p*f
-           v_s=v_s*f
+             if self.__mypde.getDim() == 3:
+                e11=du[0,0]
+                e22=du[1,1]
+                e33=du[2,2]
 
-           if u0 == None:
-              u0=Vector(0.,Solution(domain))
-           else:
-              u0=interpolate(p0, Solution(domain ))
+                sigma[0,0]=self.c11*e11+self.c13*(e22+e33)
+                sigma[1,1]=self.c13*e11+self.c33*e22+self.c23*e33
+                sigma[2,2]=self.c13*e11+self.c23*e22+self.c33*e33
 
-           if v0 == None:
-              v0=Vector(0.,Solution(domain))
-           else:
-              v0=interpolate(v0, Solution(domain ))
+                s=self.c44*(du[2,1]+du[1,2])
+                sigma[1,2]=s
+                sigma[2,1]=s
 
-           if dt == None:
-                dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+                s=self.c66*(du[2,0]+du[0,2])
+                sigma[0,2]=s
+                sigma[2,0]=s
 
-           super(HTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
+                s=self.c66*(du[0,1]+du[1,0])
+                sigma[0,1]=s
+                sigma[1,0]=s
 
-           self.__wavelet=wavelet
-           
-           self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
-           self.c33 = v_p**2 * rho
-           self.c44 = v_s**2 * rho
-           self.c11 = (1+2*eps) * self.c33
-           self.c66 = (1+2*gamma) * self.c44
-           self.c13 = sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
-           self.c23 = self.c33-2*self.c66
-
-           if self.fastAssembler:
-                self.__mypde=WavePDE(domain, [("c11", self.c11),
-                    ("c23", self.c23), ("c13", self.c13), ("c33", self.c33),
-                    ("c44", self.c44), ("c66", self.c66)])
-           else:
-                self.__mypde=LinearPDESystem(domain)
-                self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
-           
-           if lumping: 
-                self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
-           self.__mypde.setSymmetryOn()
-           self.__mypde.setValue(D=rho*kronecker(DIM))
-           self.__source_tag=source_tag
-
-           if DIM == 2:
-              source_vector= [source_vector[0],source_vector[2]]
-
-           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
-           self.__r.setTaggedValue(self.__source_tag, source_vector)
-
-
-        def setQ(self,q):
-            """
-            sets the PDE q value
-
-            :param q: the value to set
-            """
-            self.__mypde.setValue(q=q)
-
-        def  _getAcceleration(self, t, u):
-             """
-             returns the acceleraton for time `t` and solution `u` at time `t`
-             """
-             du = grad(u)
-             if self.fastAssembler:
-                self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getValue(t))
              else:
-                 sigma=self.__mypde.getCoefficient('X')
+                e11=du[0,0]
+                e22=du[1,1]
+                sigma[0,0]=self.c11*e11+self.c13*e22
+                sigma[1,1]=self.c13*e11+self.c33*e22
 
-                 if self.__mypde.getDim() == 3:
-                    e11=du[0,0]
-                    e22=du[1,1]
-                    e33=du[2,2]
+                s=self.c66*(du[1,0]+du[0,1])
+                sigma[0,1]=s
+                sigma[1,0]=s
+             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getValue(t))
 
-                    sigma[0,0]=self.c11*e11+self.c13*(e22+e33)
-                    sigma[1,1]=self.c13*e11+self.c33*e22+self.c23*e33
-                    sigma[2,2]=self.c13*e11+self.c23*e22+self.c33*e33
-
-                    s=self.c44*(du[2,1]+du[1,2])
-                    sigma[1,2]=s
-                    sigma[2,1]=s
-
-                    s=self.c66*(du[2,0]+du[0,2])
-                    sigma[0,2]=s
-                    sigma[2,0]=s
-
-                    s=self.c66*(du[0,1]+du[1,0])
-                    sigma[0,1]=s
-                    sigma[1,0]=s
-
-                 else:
-                    e11=du[0,0]
-                    e22=du[1,1]
-                    sigma[0,0]=self.c11*e11+self.c13*e22
-                    sigma[1,1]=self.c13*e11+self.c33*e22
-
-                    s=self.c66*(du[1,0]+du[0,1])
-                    sigma[0,1]=s
-                    sigma[1,0]=s
-                 self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getValue(t))
-                 
-             return self.__mypde.getSolution()
+         return self.__mypde.getSolution()
 
 class TTIWave(WaveBase):
         """
-        Solving the 2D TTI wave equation with 
+        Solving the 2D TTI wave equation with
 
         `sigma_xx= c11*e_xx + c13*e_zz + c15*e_xz`
         `sigma_zz= c13*e_xx + c33*e_zz + c35*e_xz`
@@ -684,7 +702,7 @@ class TTIWave(WaveBase):
 
         :note: currently only the 2D case is supported.
         """
-        
+
         def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
                 source_vector = [0.,1.], eps=0., delta=0., theta=0., rho=1.,
                 dt=None, u0=None, v0=None, absorption_zone=300*U.m,
@@ -717,7 +735,7 @@ class TTIWave(WaveBase):
            DIM=domain.getDim()
            if not DIM == 2:
                 raise ValueError("Only 2D is supported.")
-           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+           f=createAbsorptionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
 
            v_p=v_p*f
            v_s=v_s*f
@@ -759,7 +777,7 @@ class TTIWave(WaveBase):
            self.c33= c0_11*sin(theta)**4 - 2*c0_13*cos(theta)**4 + 2*c0_13*cos(theta)**2 + c0_33*cos(theta)**4 - 4*c0_66*cos(theta)**4 + 4*c0_66*cos(theta)**2
            self.c36= (2*c0_11*cos(theta)**2 - 2*c0_11 + 4*c0_13*sin(theta)**2 - 2*c0_13 + 2*c0_33*cos(theta)**2 + 8*c0_66*sin(theta)**2 - 4*c0_66)*sin(theta)*cos(theta)/2
            self.c66= -c0_11*cos(theta)**4 + c0_11*cos(theta)**2 + 2*c0_13*cos(theta)**4 - 2*c0_13*cos(theta)**2 - c0_33*cos(theta)**4 + c0_33*cos(theta)**2 + c0_66*sin(theta)**4 + 3*c0_66*cos(theta)**4 - 2*c0_66*cos(theta)**2
-           
+
         def  _getAcceleration(self, t, u):
              """
              returns the acceleraton for time `t` and solution `u` at time `t`
@@ -787,70 +805,70 @@ class SonicHTIWave(WaveBase):
         Solving the HTI wave equation (along the x_0 axis) with azimuth (rotation around verticle axis)
         under the assumption of zero shear wave velocities
         The unknowns are the transversal (along x_0) and vertial stress (Q, P)
-        
+
         :note: In case of a two dimensional domain the second spatial dimenion is depth.
         """
-        def __init__(self, domain, v_p, wavelet, source_tag, source_vector = [1.,0.], eps=0., delta=0., azimuth=0.,    
+        def __init__(self, domain, v_p, wavelet, source_tag, source_vector = [1.,0.], eps=0., delta=0., azimuth=0.,
                      dt=None, p0=None, v0=None, absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True):
            """
            initialize the HTI wave solver
-           
+
            :param domain: domain of the problem
-           :type domain: `Doamin`        
-           :param v_p: vertical p-velocity field    
+           :type domain: `Doamin`
+           :param v_p: vertical p-velocity field
            :type v_p: `Scalar`
-           :param v_s: vertical s-velocity field    
-           :type v_s: `Scalar`          
-           :param wavelet: wavelet to describe the time evolution of source term 
-           :type wavelet: `Wavelet`          
+           :param v_s: vertical s-velocity field
+           :type v_s: `Scalar`
+           :param wavelet: wavelet to describe the time evolution of source term
+           :type wavelet: `Wavelet`
            :param source_tag: tag of the source location
            :type source_tag: 'str' or 'int'
            :param source_vector: source orientation vector
            :param eps: first Thompsen parameter
            :param azimuth: azimuth (rotation around verticle axis)
            :param gamma: third Thompsen parameter
-           :param rho: density           
-           :param dt: time step size. If not present a suitable time step size is calculated.           
-           :param p0: initial solution (Q(t=0), P(t=0)). If not present zero is used.           
-           :param v0: initial solution change rate. If not present zero is used.           
-           :param absorption_zone: thickness of absorption zone           
+           :param rho: density
+           :param dt: time step size. If not present a suitable time step size is calculated.
+           :param p0: initial solution (Q(t=0), P(t=0)). If not present zero is used.
+           :param v0: initial solution change rate. If not present zero is used.
+           :param absorption_zone: thickness of absorption zone
            :param absorption_cut: boundary value of absorption decay factor
-           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion. 
+           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
            """
            DIM=domain.getDim()
-           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+           f=createAbsorptionLayerFunction(v_p.getFunctionSpace().getX(), absorption_zone, absorption_cut)
 
            self.v2_p=v_p**2
            self.v2_t=self.v2_p*sqrt(1+2*delta)
            self.v2_n=self.v2_p*(1+2*eps)
-           
+
            if p0 == None:
               p0=Data(0.,(2,),Solution(domain))
            else:
               p0=interpolate(p0, Solution(domain ))
-              
+
            if v0 == None:
               v0=Data(0.,(2,),Solution(domain))
            else:
               v0=interpolate(v0, Solution(domain ))
-           
+
            if dt == None:
                   dt=min(min(inf(domain.getSize()/sqrt(self.v2_p)), inf(domain.getSize()/sqrt(self.v2_t)), inf(domain.getSize()/sqrt(self.v2_n))) , wavelet.getTimeScale())*0.2
-            
+
            super(SonicHTIWave, self).__init__( dt, u0=p0, v0=v0, t0=0.)
-           
+
            self.__wavelet=wavelet
-           
+
            self.__mypde=LinearPDESystem(domain)
            if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=kronecker(2), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag
-           
+
 
            self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
- 
+
         def  _getAcceleration(self, t, u):
             """
             returns the acceleraton for time `t` and solution `u` at time `t`
@@ -858,7 +876,7 @@ class SonicHTIWave(WaveBase):
             dQ = grad(u[0])[0]
             dP = grad(u[1])[1:]
             sigma=self.__mypde.getCoefficient('X')
-            
+
             sigma[0,0] = self.v2_n*dQ
             sigma[0,1:] = self.v2_t*dP
             sigma[1,0] = self.v2_t*dQ
