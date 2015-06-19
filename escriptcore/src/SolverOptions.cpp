@@ -457,7 +457,6 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_CGS:
         case SO_METHOD_CHOLEVSKY:
         case SO_METHOD_CR:
-        case SO_METHOD_DIRECT:
         case SO_METHOD_GMRES:
         case SO_METHOD_HRZ_LUMPING:
         case SO_METHOD_ITERATIVE:
@@ -470,6 +469,13 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_TFQMR:
             this->method = meth;
             break;
+        case SO_METHOD_DIRECT:
+#ifdef USE_UMFPACK
+            this->method = meth;
+            break;
+#else
+            throw SolverOptionsException("Cannot use DIRECT solver method, missing libsuitesparse");
+#endif
         default:
             throw SolverOptionsException("unknown solver method");
     }
