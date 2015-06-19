@@ -43,12 +43,11 @@ azmths=[  0.,0.,0,  0, 0.]
 
 dt=0.5*U.msec
 
-ne_z=400
+ne_z=40
 
-ne_z=800
 dt=0.5*U.msec
 
-t_end=3.0*U.sec
+t_end=0.008*U.sec #only this low for testing purposes
 frq=15.*U.Hz
 tcenter=None
 sampling_interval=4*U.msec

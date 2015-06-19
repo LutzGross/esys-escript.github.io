@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,7 +11,7 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
@@ -42,25 +40,25 @@ rho=     [ 2000 * U.kg/U.m**3  , 2000 * U.kg/U.m**3, 2000 * U.kg/U.m**3 ]
 #
 #   other input:
 #
-t_end=3.0*U.sec                     #  length of the record
+t_end=0.008*U.sec                   #only this low for testing purposes
 frq=10.*U.Hz                         #  dominant frequnce in the Ricker (maximum frequence ~ 2 * frq)
 sampling_interval=4*U.msec          # sampling interval
 ne_z=None                           # number of elements in vertical direction, if none it is guessed 
 n_out = 5                         # a silo file is created every n_out's sample
-absorption_zone=300*U.m             # absorbtion zone to be added in horizantal direction to the area covered by receiver line 
+absorption_zone=100*U.m             # absorbtion zone to be added in horizantal direction to the area covered by receiver line 
                                     # and subtracted from the lowest layer.
 # defines the receiver line 
 rangeRcv=800*U.m                    # width of the receveiver line
 numRcvPerLine=101                   # total number of receiver
-src_id=numRcvPerLine/2              # location of source in crossing array lines with in 0..numRcvInLine 
+src_id=numRcvPerLine//2              # location of source in crossing array lines with in 0..numRcvInLine 
 lumping = True
 src_dir=[0,1]
 
-# dommain dimension
+# domain dimension
 width_x=rangeRcv + 4*absorption_zone
 depth=sum(layers)
 if ne_z is None:
-    ne_z=int(ceil(depth*(2*frq)/min(v_P)*10))
+    ne_z=int(ceil(depth*(2*frq)/min(v_P))*10)
 ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create receiver array 
@@ -97,7 +95,8 @@ for i in range(len(layers)):
 #
 # create domain:
 #
-domain=Rectangle(ne_x,ne_z,l0=width_x,l1=depth, 
+order = 5
+domain=Rectangle(ne_x,ne_z, l0=width_x, l1=depth, 
                 diracPoints=src_locations, diracTags=src_tags)
 #
 # create the wavelet:
@@ -119,14 +118,14 @@ Rho=0
 z_top=depth
 
 for l in range(len(layers)):
-       m=whereNonPositive(z-z_top)*wherePositive(z-(z_top-layers[l]))
-       V_P = V_P     * (1-m)  + v_P[l]  * m
-       V_S = V_S     * (1-m)  + v_S[l]  * m
-       Delta = Delta * (1-m)  + delta[l]* m
-       Eps = Eps     * (1-m)  + eps[l]  * m
-       Tilt = Tilt   * (1-m)  + tilt[l] * m
-       Rho = Rho     * (1-m)  + rho[l]  * m
-       z_top-=layers[l]
+    m=whereNonPositive(z-z_top)*wherePositive(z-(z_top-layers[l]))
+    V_P = V_P     * (1-m)  + v_P[l]  * m
+    V_S = V_S     * (1-m)  + v_S[l]  * m
+    Delta = Delta * (1-m)  + delta[l]* m
+    Eps = Eps     * (1-m)  + eps[l]  * m
+    Tilt = Tilt   * (1-m)  + tilt[l] * m
+    Rho = Rho     * (1-m)  + rho[l]  * m
+    z_top-=layers[l]
 
 sw=TTIWave(domain, V_P, V_S, wl, src_tags[0], source_vector = src_dir,
                 eps=Eps, delta=Delta, rho=Rho, theta=Tilt,

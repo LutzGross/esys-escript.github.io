@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,9 +11,9 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2015 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2015 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -25,98 +23,133 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.finley import Brick, Rectangle
+from esys.speckley import Brick, Rectangle
 from esys.weipa import saveSilo
-from esys.downunder import Ricker, HTIWave, SimpleSEGYWriter
+from esys.downunder import Ricker, SimpleSEGYWriter, HTIWave
 from math import ceil
+from time import time
+
 
 DIM=2          # spatial dimension
 
-ne_z=550.
 
-absorption_zone=500*U.m
+ORDER = 5
+ne_z= 20
 
 # layers from the bottom up:
-layers=[absorption_zone, 100*U.m, 200 * U.m,  300*U.m ]
-v_Ps=[ 3*U.km/U.sec, 3*U.km/U.sec, 1.5*U.km/U.sec, 1.5*U.km/U.sec ]
-v_Ss=[1.4*U.km/U.sec, 1.4*U.km/U.sec, 0.7*U.km/U.sec, 0.7*U.km/U.sec ]
-rhos=[2000*U.kg/U.m**3, 2000*U.kg/U.m**3, 2000*U.kg/U.m**3,  2000*U.kg/U.m**3]
-epss=[0., 0., 0.1*0, 0. ]
-gammas=[0.,0.,  0.03*0, 0.]
-deltas=[0.,0., -0.1*0, 0.]        
+layers=[20*U.m, 180*U.m ]
+v_Ps=[i*U.km/U.sec for i in [3, 2.5]]
+v_Ss= [i*U.km/U.sec for i in [3, 2]]
+rhos=[i*U.kg/U.m**3 for i in [2.6, 2.1]]
+epss=[0, .110]
+gammas=[0, 0.035]
+deltas=[0, 0.255]
 src_dir=[0,0,1]
 
-t_end=3.0*U.sec
-frq=20.*U.Hz
-sampling_interval=4*U.msec
+t_end=0.01*U.sec #increase this end time as desired
+frq=50.*U.Hz
+sampling_interval=2*U.msec
 numRcvPerLine=101
-rangeRcv=800*U.m
+rangeRcv=200*U.m
 
 
-# location of source in crossing array lines with in 0..numRcvInLine one needs to be None
-srcEW=numRcvPerLine//2
-srcNS=None
+# location of source
+if DIM == 2:
+    src_locations = [(0, 0)]
+else:
+    src_locations = [(0, 0, 0)]
 
-# dommain dimension
-width_x=rangeRcv + 4*absorption_zone
+# domain dimensions
+width_x=rangeRcv
 width_y=width_x
 depth=sum(layers)
 #
-# create array 
+# create array
 #
-receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
+receiver_line=[i * (rangeRcv/(numRcvPerLine-1)) for i in range(numRcvPerLine)]
 #
 #   set source location with tag "source""
 #
 src_tags=["source"]
 
-if srcEW:
-      srcNS=numRcvPerLine//2
-elif srcNS:
-      srcEW=numRcvPerLine//2
-else:
-    raise ValueError("on of the variables srcEW or srcNS must be None!")
-if DIM == 2:    
-    src_locations  = [ (receiver_line[srcEW], depth) ]
-    src_loc_2D=(receiver_line[srcEW], 0.)
-else:
-    src_locations  = [ (receiver_line[srcEW], receiver_line[srcNS], depth)]
-    src_loc_2D=(receiver_line[srcEW], receiver_line[srcNS])
+src_loc_2D=(0, 0)
+
+
 
 #
 #   create sensor arrays:
 #
-# East-west line of receiver
-rcv_locations=[]
-rg=[]
+# East-west line of receivers
+rcvEW_locations=[]
+# North-south line of receivers (if 3 dimensional problem)
+rcvNS_locations=[]
+rgEW=[]
+rgNS=[]
 mid_point=receiver_line[len(receiver_line)//2]
 
 for ix in range(len(receiver_line)):
-        if DIM == 2:
-            rcv_locations.append((receiver_line[ix],  depth))
-            rg.append( ( receiver_line[ix], 0.) ) 
-        else:
-           rcv_locations.append((receiver_line[ix], mid_point, depth))
-           rg.append( ( receiver_line[ix], mid_point) ) 
-# North-south line of receiver
+    rgEW.append((receiver_line[ix], 0))
+    if DIM == 2:
+        rcvEW_locations.append((receiver_line[ix],  0))
+    else:
+        rcvEW_locations.append((receiver_line[ix], 0, 0))
+        rcvNS_locations.append((0, receiver_line[ix], 0))
+        rgNS.append((0, receiver_line[ix]))
+# North-south line of receivers
 if DIM == 3:
      for iy in range(len(receiver_line)):
-            rcv_locations.append((mid_point, receiver_line[iy],  depth))
-            rg.append( (  mid_point, receiver_line[iy]) ) 
+            rcv_locations.append((mid_point, receiver_line[iy],  0))
+            rg.append( (  mid_point, receiver_line[iy]) )
 #
 # create domain:
 #
 if DIM == 2:
-   domain=Rectangle(ceil(ne_z*width_x/depth), ne_z ,l0=width_x, l1=depth, 
-        diracPoints=src_locations, diracTags=src_tags)
+    domain = Rectangle(ORDER,
+            ceil(ne_z*width_x/depth), ne_z ,l0=width_x, l1=(-depth,0),
+            diracPoints=src_locations, diracTags=src_tags)
+    #suppress the x-component on the x boundary
+    q = whereZero(domain.getX()[0])*[1,0]
 else:
-   domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
-        diracPoints=src_locations, diracTags=src_tags)
-wl=Ricker(frq)
+    domain=Brick(ORDER,
+            ceil(ne_z*width_x/depth), ceil(ne_z*width_y/depth), ne_z,
+            l0=width_x, l1=width_y, l2=(-depth,0),
+            diracPoints=src_locations, diracTags=src_tags)
+    q = wherePositive(
+            #suppress the x-component on the x boundary
+            whereZero(domain.getX()[0])*[1,0,0]
+            + #logical or
+            #suppress the y-component on the y boundary at the source
+            whereZero(domain.getX()[1])*[0,1,0])
+
+# set up reciever locations
+locEW=Locator(domain,rcvEW_locations)
+tracerEW_x=SimpleSEGYWriter(receiver_group=rgEW, source=src_loc_2D,
+        sampling_interval=sampling_interval,
+        text='x-displacement - east-west line')
+tracerEW_z=SimpleSEGYWriter(receiver_group=rgEW, source=src_loc_2D,
+        sampling_interval=sampling_interval,
+        text='z-displacement - east-west line')
+if DIM==3:
+    locNS=Locator(domain,rcvNS_locations)
+    tracerEW_y=SimpleSEGYWriter(receiver_group=rgEW, source=src_loc_2D,
+            sampling_interval=sampling_interval,
+            text='x-displacement - east-west line')
+    tracerNS_x=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D,
+            sampling_interval=sampling_interval,
+            text='x-displacement - north-south line')
+    tracerNS_y=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D,
+            sampling_interval=sampling_interval,
+            text='y-displacement - north-south line')
+    tracerNS_z=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D,
+            sampling_interval=sampling_interval,
+            text='z-displacement - north-south line')
+
+
+
 
 #======================================================================
-z=Function(domain).getX()[DIM-1]
-z_bottom=0
+z=ReducedFunction(domain).getX()[DIM-1]
+z_bottom=-depth
 v_p=0
 v_s=0
 delta=0
@@ -124,43 +157,53 @@ vareps=0
 gamma=0
 rho=0
 for l in range(len(layers)):
-       m=wherePositive(z-z_bottom)*whereNonPositive(z-(z_bottom+layers[l]))
-       v_p=v_p*(1-m)+v_Ps[l]*m
-       v_s=v_s*(1-m)+v_Ss[l]*m
-       rho=rho*(1-m)+rhos[l]*m
-       vareps=vareps*(1-m)+epss[l]*m
-       gamma=gamma*(1-m)+gammas[l]*m
-       delta=delta*(1-m)+deltas[l]*m
-       z_bottom+=layers[l]
+    m=wherePositive(z-z_bottom)*whereNonPositive(z-(z_bottom+layers[l]))
+    v_p=v_p*(1-m)+v_Ps[l]*m
+    v_s=v_s*(1-m)+v_Ss[l]*m
+    rho=rho*(1-m)+rhos[l]*m
+    vareps=vareps*(1-m)+epss[l]*m
+    gamma=gamma*(1-m)+gammas[l]*m
+    delta=delta*(1-m)+deltas[l]*m
+    z_bottom+=layers[l]
 
-sw=HTIWave(domain, v_p, v_s, wl, src_tags[0], source_vector = src_dir, eps=vareps, gamma=gamma, delta=delta, rho=rho,  \
-                     absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True)
+wl=Ricker(frq)
+dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wl.getTimeScale())
 
+sw=HTIWave(domain, v_p, v_s, wl, src_tags[0], source_vector = src_dir,
+        eps=vareps, gamma=gamma, delta=delta, rho=rho,
+        absorption_zone=None, absorption_cut=1e-2, lumping=True, dt=dt)
+sw.setQ(q)
 
-loc=Locator(domain,rcv_locations)
-tracer_x=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='x-displacement')
-tracer_z=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='z-displacement')
-if DIM==3:
-   tracer_y=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='y-displacement')
+locEW=Locator(domain, rcvEW_locations)
+if DIM == 3:
+    locNS=Locator(domain, rcvNS_locations)
 
 t=0.
-mkDir('tmp')
 n=0
 k=0
+u=None
 while t < t_end:
+    start = time()
     t,u = sw.update(t+sampling_interval)
-    tracer_x.addRecord(loc(u[0]))
-    tracer_y.addRecord(loc(u[1]))
+    tracerEW_x.addRecord(locEW(u[0]))
+    tracerEW_z.addRecord(locEW(u[DIM-1]))
     if DIM==3:
-        tracer_z.addRecord(loc(u[2]))
-    print(t, loc(u[0])[len(rg)//2-4:len(rg)//2+1], wl.getValue(t))
-    #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
-    if t>0.3 and t< 0.5: 
-        saveSilo("tmp/u_%d.silo"%(k,), u=u)
-        k+=1
-        n+=1
-tracer_x.write('line_x.sgy')
-tracer_z.write('line_z.sgy')
-if DIM == 3: 
-        tracer_y.write('line_y.sgy')
+           tracerEW_y.addRecord(locEW(u[1]))
+           tracerNS_x.addRecord(locNS(u[0]))
+           tracerNS_y.addRecord(locNS(u[1]))
+           tracerNS_z.addRecord(locNS(u[2]))
+    print(t, locEW(u[DIM-1])[len(rgEW)//2-4:len(rgEW)//2+1], wl.getValue(t))
+    k+=1
+    if k%5 == 0:
+        saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+        n += 1
+if k%5 != 0:
+    saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
 
+tracerEW_x.write('output/lineEW_x.sgy')
+tracerEW_z.write('output/lineEW_z.sgy')
+if DIM == 3: 
+    tracerEW_y.write('output/lineEW_y.sgy')
+    tracerNS_x.write('output/lineNS_x.sgy')
+    tracerNS_y.write('output/lineNS_y.sgy')
+    tracerNS_z.write('output/lineNS_z.sgy')

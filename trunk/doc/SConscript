@@ -165,7 +165,16 @@ if len(skipped_tests)>0:
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 
-ex2=[os.path.join("examples", str(x)) for x in example_files]
+wave_examples = ['inversion/synthetic_HTI.py',
+    'inversion/synthetic_VTI.py',
+    'inversion/synthetic_TTI.py',
+    'inversion/synthetic_sonic.py',
+    'inversion/synthetic_sonicHTI.py']
+
+for i in wave_examples:
+    sortOutExample(i)
+
+ex2=[os.path.join("examples", str(x)) for x in example_files]#+wave_examples]
 
 #=============================================================================
 
