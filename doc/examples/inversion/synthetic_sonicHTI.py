@@ -155,7 +155,7 @@ loc=Locator(domain,rcv_locations)
 tracerP=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='P')
 tracerQ=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='Q')
 
-if not tracerP.check_obspy():
+if not tracerP.obspy_available():
     print("WARNING: obspy not available, SEGY files will not be written")
 
 t=0.
@@ -174,6 +174,6 @@ while t < t_end:
 timer1=time.time()-timer1
 print("time= %e sec; %s sec per step"%(timer1,timer1/max(sw.n,1)))
 
-if tracerP.check_obspy():
+if tracerP.obspy_available():
     tracerP.write(os.path.join(OUT_DIR,'lineP.sgy'))
     tracerQ.write(os.path.join(OUT_DIR,'lineQ.sgy'))
