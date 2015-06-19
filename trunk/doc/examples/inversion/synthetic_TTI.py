@@ -137,6 +137,9 @@ grploc=[ (x[0], 0.) for x in srclog.getX() ]
 tracer_x=SimpleSEGYWriter(receiver_group=grploc, source=srcloc, sampling_interval=sampling_interval, text='x-displacement')
 tracer_z=SimpleSEGYWriter(receiver_group=grploc, source=srcloc, sampling_interval=sampling_interval, text='z-displacement')
 
+if not tracer_x.check_obspy():
+    print("WARNING: obspy not available, SEGY files will not be written")
+
 t=0.
 mkDir('output')
 n=0
@@ -152,6 +155,7 @@ while t < t_end:
             saveSilo("output/u_%d.silo"%(k_out,), u=u)
             k_out+=1
         n+=1
-tracer_x.write('output/lineX.sgy')
-tracer_z.write('output/lineZ.sgy')
+if tracer_x.check_obspy():
+    tracer_x.write('output/lineX.sgy')
+    tracer_z.write('output/lineZ.sgy')
 print("calculation completed @ %s"%(time.asctime(),))
