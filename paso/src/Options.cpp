@@ -344,6 +344,12 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 #elif defined PASTIX
                     out = PASO_PASTIX
 #endif
+                } else{
+#if defined MKL
+                    Esys_setError(VALUE_ERROR, "MKL does not currecntly support MPI");
+#elif defined USE_UMFPACK
+                    Esys_setError(VALUE_ERROR, "UMFPACK does not currecntly support MPI");
+#endif
                 }
             }
             break;
