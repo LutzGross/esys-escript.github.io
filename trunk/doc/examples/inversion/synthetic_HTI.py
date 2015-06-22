@@ -179,6 +179,8 @@ locEW=Locator(domain, rcvEW_locations)
 if DIM == 3:
     locNS=Locator(domain, rcvNS_locations)
 
+mkDir('output')
+
 t=0.
 n=0
 k=0
