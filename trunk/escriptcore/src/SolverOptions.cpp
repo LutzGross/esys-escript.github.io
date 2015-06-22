@@ -473,8 +473,14 @@ void SolverBuddy::setSolverMethod(int method)
 #ifdef USE_UMFPACK
             this->method = meth;
             break;
+#elif defined MKL
+            this->method = meth;
+            break;
+#elif defined PASTIX
+            this->method = meth;
+            break;
 #else
-            throw SolverOptionsException("Cannot use DIRECT solver method, missing libsuitesparse");
+            throw SolverOptionsException("Cannot use DIRECT solver method, the running escript was not compiled with a direct solver enabled");
 #endif
         default:
             throw SolverOptionsException("unknown solver method");
