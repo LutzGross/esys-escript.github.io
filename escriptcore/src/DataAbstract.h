@@ -554,7 +554,7 @@ DataAbstract::getNumDPPSample() const
 {
   if (isEmpty())
   {
-     	throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+     	throw DataException("Error - Operations (getNumDPPSample) not permitted on instances of DataEmpty.");
   }
   return m_noDataPointsPerSample;
 }
@@ -565,7 +565,7 @@ DataAbstract::getNumSamples() const
 {
   if (isEmpty())
   {
-     	throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+     	throw DataException("Error - Operations (getNumSamples) not permitted on instances of DataEmpty.");
   }
   return m_noSamples;
 }
@@ -584,7 +584,7 @@ DataAbstract::getShape() const
 {
 	if (isEmpty())
 	{
-		throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+		throw DataException("Error - Operations (getShape) not permitted on instances of DataEmpty.");
 	}
 	return m_shape;
 }
@@ -595,7 +595,7 @@ DataAbstract::getRank() const
 {
 	if (isEmpty())
 	{
-		throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+		throw DataException("Error - Operations (getRank) not permitted on instances of DataEmpty.");
 	}
 	return m_rank;
 }
@@ -606,7 +606,7 @@ DataAbstract::getNoValues() const
 {	
 	if (isEmpty())
 	{
-		throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+		throw DataException("Error - Operations (getNoValues) not permitted on instances of DataEmpty.");
 	}
 	return m_novalues;
 }

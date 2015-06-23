@@ -581,7 +581,7 @@ Data::setToZero()
 {
     if (isEmpty())
     {
-        throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+        throw DataException("Error - Operations (setToZero)  permitted on instances of DataEmpty.");
     }
     if (isLazy())
     {

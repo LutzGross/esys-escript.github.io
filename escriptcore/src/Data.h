@@ -2279,7 +2279,7 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
     EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isEmpty()) {
-    throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+    throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
   } else if (isLazy()) {
     throw DataException("Error - Operations not permitted on instances of DataLazy.");
   } else {
@@ -2301,7 +2301,7 @@ Data
 Data::dp_algorithm(BinaryFunction operation, double initial_value) const
 {
   if (isEmpty()) {
-    throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+    throw DataException("Error - Operations (dp_algorithm) not permitted on instances of DataEmpty.");
   } 
   else if (isExpanded()) {
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
@@ -2352,7 +2352,7 @@ C_TensorBinaryOperation(Data const &arg_0,
 {
   if (arg_0.isEmpty() || arg_1.isEmpty())
   {
-     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+     throw DataException("Error - Operations (C_TensorBinaryOperation) not permitted on instances of DataEmpty.");
   }
   if (arg_0.isLazy() || arg_1.isLazy())
   {
@@ -3160,7 +3160,7 @@ C_TensorUnaryOperation(Data const &arg_0,
 {
   if (arg_0.isEmpty())	// do this before we attempt to interpolate
   {
-     throw DataException("Error - Operations not permitted on instances of DataEmpty.");
+     throw DataException("Error - Operations (C_TensorUnaryOperation) not permitted on instances of DataEmpty.");
   }
   if (arg_0.isLazy())
   {
