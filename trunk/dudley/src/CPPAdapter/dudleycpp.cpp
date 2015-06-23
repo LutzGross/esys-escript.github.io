@@ -121,7 +121,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":param periodic2: whether or not boundary conditions are periodic in direction 2\n:type periodic2: ``bool``\n"
 ":param integrationOrder: order of the quadrature scheme. If integrationOrder<0 the integration order is selected independently.\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If reducedIntegrationOrder<0 the integration order is selected independently.\n"
-":param useElementsOnFace:  whether or not to use elements on face\n"
+":param useElementsOnFace:  Not used\n"
 ":type useElementsOnFace: ``int``\n"
 ":param useFullElementOrder: Whether or not to use Hex27 elements\n"":type useFullElementOrder: ``bool``\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
@@ -149,7 +149,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":type useElementsOnFace: ``int``"
 ":param periodic0:  whether or not boundary conditions are periodic\n"
 ":param periodic1:\n"
-":param useFullElementOrder: Whether or not to use Rec9 elements\n"":type useFullElementOrder: ``bool``\n"
+":param useFullElementOrder: Not used: ``bool``\n"
 ":param useMacroElements: Enable the usage of first order macro elements.\n:type useMacroElements: ``bool``\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
