@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.ripley import Rectangle
+from esys.speckley import Rectangle
 from esys.weipa import saveSilo
 from esys.downunder import Ricker, TTIWave, SimpleSEGYWriter
 from math import ceil
@@ -58,7 +58,7 @@ src_dir=[0,1]
 width_x=rangeRcv + 4*absorption_zone
 depth=sum(layers)
 if ne_z is None:
-    ne_z=int(ceil(depth*(2*frq)/min(v_P))*10)
+    ne_z=int(ceil(depth*(2*frq)/min(v_P)))
 ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create receiver array 
@@ -96,8 +96,8 @@ for i in range(len(layers)):
 # create domain:
 #
 order = 5
-domain=Rectangle(ne_x,ne_z, l0=width_x, l1=depth, 
-                diracPoints=src_locations, diracTags=src_tags)
+domain=Rectangle(order, ne_x,ne_z, l0=width_x, l1=depth, 
+            diracPoints=src_locations, diracTags=src_tags, d0=getMPISizeWorld())
 #
 # create the wavelet:
 #
@@ -107,7 +107,7 @@ wl=Ricker(frq)
 #
 #  set 
 #
-z=Function(domain).getX()[1]
+z=ReducedFunction(domain).getX()[1]
 z_top=0
 V_P=0
 V_S=0
@@ -138,7 +138,9 @@ tracer_x=SimpleSEGYWriter(receiver_group=grploc, source=srcloc, sampling_interva
 tracer_z=SimpleSEGYWriter(receiver_group=grploc, source=srcloc, sampling_interval=sampling_interval, text='z-displacement')
 
 if not tracer_x.obspy_available():
-    print("WARNING: obspy not available, SEGY files will not be written")
+    print("\nWARNING: obspy not available, SEGY files will not be written\n")
+elif getMPISizeWorld() > 1:
+    print("\nWARNING: SEGY files cannot be written with multiple processes\n")
 
 t=0.
 mkDir('output')
@@ -151,11 +153,11 @@ while t < t_end:
         tracer_z.addRecord(srclog(u[1]))
         print("t=%s, src=%s: \t %s \t %s \t %s"%(t, wl.getValue(t),srclog(u[1])[0], srclog(u[1])[src_id], srclog(u[1])[-1]))
         if not n_out is None and n%n_out == 0:
-            print("time step %s writen to file %s."%(n_out, k_out))
+            print("time step %s written to file %s"%(n_out, "output/u_%d.silo"%(k_out,)))
             saveSilo("output/u_%d.silo"%(k_out,), u=u)
             k_out+=1
         n+=1
-if tracer_x.obspy_available():
+if tracer_x.obspy_available() and getMPISizeWorld() == 1:
     tracer_x.write('output/lineX.sgy')
     tracer_z.write('output/lineZ.sgy')
 print("calculation completed @ %s"%(time.asctime(),))
