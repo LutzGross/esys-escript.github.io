@@ -346,9 +346,9 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 #endif
                 } else{
 #if defined MKL
-                    Esys_setError(VALUE_ERROR, "MKL does not currecntly support MPI");
+                    Esys_setError(VALUE_ERROR, "MKL does not currently support MPI");
 #elif defined USE_UMFPACK
-                    Esys_setError(VALUE_ERROR, "UMFPACK does not currecntly support MPI");
+                    Esys_setError(VALUE_ERROR, "UMFPACK does not currently support MPI");
 #endif
                 }
             }
