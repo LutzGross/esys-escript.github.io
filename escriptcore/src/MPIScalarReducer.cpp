@@ -210,8 +210,7 @@ bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active
     if (!active)
     {
         value=identity;
-    }
-std::cout << "Value in " << value << std::endl;    
+    } 
     if (reduceop==MPI_OP_NULL)
     {
 	return false;		// this will stop bad things happening but won't give an informative error message
@@ -220,7 +219,6 @@ std::cout << "Value in " << value << std::endl;
     {
 	return false;
     }
-std::cout << "Value out " << value << std::endl;    
     return true;
 #else
     return true;

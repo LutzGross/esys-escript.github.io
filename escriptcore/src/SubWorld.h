@@ -96,7 +96,7 @@ private:
     
     
     unsigned int swcount;		// number of subwords
-    unsigned int localid;    	// my position within the sequence
+    unsigned int localid;    	// position of this subworld in that sequence
     
 typedef std::map<std::string, Reducer_ptr> str2reduce;  
 typedef std::map<std::string, unsigned char> str2char;
@@ -107,6 +107,7 @@ typedef std::map<std::string, unsigned char> str2char;
     
 #ifdef ESYS_MPI    
     std::vector<unsigned char> globalvarinfo;	// info about which worlds want which vars
+				  // [vars on process0][vars on process 1][vars on ...]
 typedef std::map<unsigned char, int> countmap;
 typedef std::map<std::string, countmap> str2countmap;
     str2countmap globalvarcounts;
@@ -128,7 +129,7 @@ typedef std::map<std::string, countmap> str2countmap;
     
       // change the various views of a variable's state
     void setMyVarState(const std::string& vname, char state);
-    void setVarState(const std::string& vname, char state, int rank);
+    void setVarState(const std::string& vname, char state, int swid);
     void setAllVarsState(std::string& name, char state);
 };
 

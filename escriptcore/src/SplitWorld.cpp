@@ -73,10 +73,15 @@ SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
 	corrcom=esysUtils::makeInfo(corrsub,true);
 	
     #else
+	if (numgroups!=1)
+	{
+	    throw SplitWorldException("SplitWorld error: non-MPI builds can only create 1 subworld.");
+	  
+	}
 	subcom=esysUtils::makeInfo(0);
 	corrcom=esysUtils::makeInfo(0);
     #endif
-    localworld=SubWorld_ptr(new SubWorld(globalcom, subcom,corrcom, swcount, grank%wsize,manualimport));
+    localworld=SubWorld_ptr(new SubWorld(globalcom, subcom,corrcom, swcount, grank/wsize,manualimport));
     localid=grank/wsize;
 }
 
@@ -171,7 +176,7 @@ void SplitWorld::runJobs()
 	if (!localworld->checkRemoteCompatibility(err))
 	{
 	    mres=4;
-	    err="Error in checkRemoteCompatibility.";
+	    err=std::string("Error in checkRemoteCompatibility. ")+err;
 	}
 	if (mres==0)	
 	{  	

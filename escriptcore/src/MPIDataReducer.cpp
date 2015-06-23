@@ -131,6 +131,11 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
 	return false;
     }
     Data& d=ex();
+    if (d.isEmpty())
+    {
+	errstring="reduceLocalValue: Got an empty Data object. Not allowed to reduce those.";
+	return false;
+    }
     if ((d.getDomain()!=dom) && (dom.get()!=0))
     {
 	errstring="reduceLocalValue: Got a Data object, but it was not using the SubWorld's domain.";
@@ -200,9 +205,13 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 	errstring="MPI failure in checkRemoteCompatibility.";
 	return false;
     }
-    for (int i=0;i<mpi_info->size-1;++i)
+    for (int i=0;i<(mpi_info->size-1);++i)
     {
-	for (int j=0;j<compat.size();++i)
+	if ((rbuff[i*compat.size()]==1) || (rbuff[(i+1)*compat.size()]==1))	// one of them doesn't have a value
+	{
+	    continue;
+	}
+	for (int j=0;j<compat.size();++j)
 	{
 	    if (rbuff[i*compat.size()+j]!=rbuff[(i+1)*compat.size()+j])
 	    {
@@ -223,6 +232,7 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 // are compatible
 bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
 {
+  using namespace std;
     if (!active)
     {
 	return false;	// shutting down this option until I implement it
@@ -230,7 +240,7 @@ bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
 #ifdef ESYS_MPI
     DataTypes::ValueType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
-    DataTypes::ValueType& rr=value.getExpandedVectorReference();
+    DataTypes::ValueType& rr=result.getExpandedVectorReference();
     if (reduceop==MPI_OP_NULL)
     {
 	return false;		// this will stop bad things happening but won't give an informative error message
@@ -239,6 +249,7 @@ bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
     {
 	return false;
     }
+    value=result;
     return true;
 #else
     return true;
@@ -248,7 +259,7 @@ bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
 // populate a vector of ints with enough information to ensure two values are compatible
 // or to construct a container for incomming data
 // Format for this:
-//  [0]    Type of Data:  {0 : error,  1: DataEmpty, 10: constant, 11:tagged, 12:expanded}
+//  [0]    Type of Data:  {0 : error,  1:no value, 10: constant, 11:tagged, 12:expanded}
 //  [1]    Functionspace type code
 //  [2]    Only used for tagged --- gives the number of tags (which exist in the data object)
 //  [3..6] Components of the shape  
@@ -258,6 +269,11 @@ void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
     for (int i=0;i<7;++i)
     {
 	params[0]=0;
+    }
+    if (!valueadded)
+    {
+	params[0]=1;
+	return;
     }
     if (value.isConstant())
     {
@@ -274,6 +290,7 @@ void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
     else	// This could be DataEmpty or some other weirdness but we won't allow that
     {
 	params[0]=0;	// invalid type to send
+	return;
     }    
     params[1]=value.getFunctionSpace().getTypeCode();
     params[2]=static_cast<unsigned>(value.getNumberOfTaggedValues());    
@@ -338,6 +355,10 @@ bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysU
 	// This is not a reduction and will replace any existing value    
 bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)
 {
+      if (!valueadded)
+      {
+	  return false;		// May be misinterpreted as an MPI failure
+      }
 #ifdef ESYS_MPI  
       // first step is to let the other world know what sort of thing it needs to make
       if (value.isLazy())
@@ -397,6 +418,10 @@ void MPIDataReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     if (sr==0)
     {
 	throw SplitWorldException("Source and destination need to be the same reducer types.");
+    }
+    if (sr->value.isEmpty())
+    {
+	throw SplitWorldException("Attempt to copy DataEmpty.");
     }
     value=sr->value;
     valueadded=true;

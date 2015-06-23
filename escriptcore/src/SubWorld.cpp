@@ -89,7 +89,7 @@ void SubWorld::setMyVarState(const std::string& vname, char state)
 void SubWorld::setAllVarsState(std::string& vname, char state)
 {
 #ifdef ESYS_MPI  
-      // we need to know where the variable is in thbe sequence
+      // we need to know where the variable is in the sequence
     str2char::iterator it=varstate.find(vname);
     size_t c=0;
     for (;it!=varstate.end();++it,++c)
@@ -125,7 +125,7 @@ void SubWorld::setAllVarsState(std::string& vname, char state)
 }
 
 
-void SubWorld::setVarState(const std::string& vname, char state, int rank)
+void SubWorld::setVarState(const std::string& vname, char state, int swid)
 {
 #ifdef ESYS_MPI  
       // we need to know where the variable is in thbe sequence
@@ -142,16 +142,15 @@ void SubWorld::setVarState(const std::string& vname, char state, int rank)
     {
 	return;
     }
-    
 	// we now have the sequence position of the variable
     if (!globalinfoinvalid)	// it will be updated in the next synch
     {
-	unsigned char ostate=globalvarinfo[c+getNumVars()*rank];
-	globalvarinfo[c+getNumVars()*rank]=state;
+	unsigned char ostate=globalvarinfo[c+getNumVars()*swid];
+	globalvarinfo[c+getNumVars()*swid]=state;
 	globalvarcounts[vname][ostate]--;
 	globalvarcounts[vname][state]++;
     }
-    if (rank==localid)	// we are updating our own state so we need to change "varstate"
+    if (swid==localid)	// we are updating our own state so we need to change "varstate"
     {
 	it->second=state;
     }
@@ -551,6 +550,16 @@ bool SubWorld::synchVariableValues(std::string& err)
 	    MPI_Comm_free(&com);
 	    continue;
 	}
+	if (newcount==swcount)		// everybody is in on this
+	{
+	    it->second->reduceRemoteValues(corrmpi, true);
+	        // Now record the fact that we have the variable now
+	    if (varstate[it->first]==rs::INTERESTED)
+	    {
+		setMyVarState(it->first, rs::OLDINTERESTED); 
+	    }	    
+	    continue;
+	}
 	if (newcount>1)
 	{
 	    // form a group to send to [updates and interested and oldinterested]
@@ -561,6 +570,11 @@ bool SubWorld::synchVariableValues(std::string& err)
 		return false;
 	    }
 	    it->second->groupReduce(com,varstate[it->first]);
+	        // Now record the fact that we have the variable now
+	    if (varstate[it->first]==rs::INTERESTED)
+	    {
+		setMyVarState(it->first, rs::OLDINTERESTED); 
+	    }		    
 	    MPI_Comm_free(&com);	    
 	    continue;
 	}
@@ -612,6 +626,10 @@ bool SubWorld::amLeader()
 // share that info around
 bool SubWorld::synchVariableInfo(std::string& err)
 {
+    if (getNumVars()==0)
+    {
+	return true;
+    }
     if (manualimports)		// manual control over imports
     {
 	for (size_t i=0;i<jobvec.size();++i)
