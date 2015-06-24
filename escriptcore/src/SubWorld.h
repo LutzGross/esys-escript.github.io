@@ -101,7 +101,7 @@ private:
 typedef std::map<std::string, Reducer_ptr> str2reduce;  
 typedef std::map<std::string, unsigned char> str2char;
     str2reduce reducemap;		// map: name ->reducer for that variable
-    str2char varstate;		// using the state values from Reducer.h
+    str2char varstate;		// using the state values from AbstractReducer.h
 
     bool manualimports;
     
@@ -123,7 +123,7 @@ typedef std::map<std::string, countmap> str2countmap;
 
     // A group with a single OLD or OLDINT at the front and all the INT worlds 
     // following it
-    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com);    
+    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com, bool& ingroup);    
     
 #endif
     
