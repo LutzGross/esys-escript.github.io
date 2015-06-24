@@ -119,8 +119,9 @@ if DIM==3:
    tracerNS=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D, sampling_interval=sampling_interval)
 
 if not tracerEW.obspy_available():
-    print("WARNING: obspy not available, SEGY files will not be written")
-
+    print("\nWARNING: obspy not available, SEGY files will not be written\n")
+elif getMPISizeWorld() > 1:
+    print("\nWARNING: SEGY files cannot be written with multiple processes\n")
 
 t=0.
 mkDir('tmp')
@@ -132,7 +133,7 @@ while t < t_end:
     print(t, locEW(p)[:4], wl.getValue(t))
     if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n//5,), p=p)
     n+=1
-if tracerEW.obspy_available():
+if tracerEW.obspy_available() and getMPISizeWorld() == 1:
     tracerEW.write('lineEW.sgy')
     if DIM == 3:
         tracerNS.write('lineNS.sgy')
