@@ -156,7 +156,9 @@ tracerP=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval
 tracerQ=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='Q')
 
 if not tracerP.obspy_available():
-    print("WARNING: obspy not available, SEGY files will not be written")
+    print("\nWARNING: obspy not available, SEGY files will not be written\n")
+elif getMPISizeWorld() > 1:
+    print("\nWARNING: SEGY files cannot be written with multiple processes\n")
 
 t=0.
 OUT_DIR="out%sm%smus"%(int(width_x/ne_x),int(sw.getTimeStepSize()*1000000))
@@ -174,6 +176,6 @@ while t < t_end:
 timer1=time.time()-timer1
 print("time= %e sec; %s sec per step"%(timer1,timer1/max(sw.n,1)))
 
-if tracerP.obspy_available():
+if tracerP.obspy_available() and getMPISizeWorld() == 1:
     tracerP.write(os.path.join(OUT_DIR,'lineP.sgy'))
     tracerQ.write(os.path.join(OUT_DIR,'lineQ.sgy'))

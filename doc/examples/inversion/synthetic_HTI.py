@@ -144,8 +144,9 @@ if DIM==3:
             sampling_interval=sampling_interval,
             text='z-displacement - north-south line')
 if not tracerEW_x.obspy_available():
-    print("WARNING: obspy not available, SEGY files will not be written")
-
+    print("\nWARNING: obspy not available, SEGY files will not be written\n")
+elif getMPISizeWorld() > 1:
+    print("\nWARNING: SEGY files cannot be written with multiple processes\n")
 
 
 #======================================================================
@@ -202,7 +203,7 @@ while t < t_end:
         n += 1
 if k%5 != 0:
     saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
-if tracerEW_x.obspy_available():
+if tracerEW_x.obspy_available() and getMPISizeWorld() == 1:
     tracerEW_x.write('output/lineEW_x.sgy')
     tracerEW_z.write('output/lineEW_z.sgy')
     if DIM == 3: 
