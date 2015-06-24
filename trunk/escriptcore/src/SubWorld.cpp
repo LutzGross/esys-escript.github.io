@@ -442,8 +442,9 @@ bool SubWorld::makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
 
 // A group with a single OLD or OLDINT at the front and all the INT worlds 
 // following it
-bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com)
+bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com, bool& ingroup)
 {
+      ingroup=false;
       if ((mystate==rs::OLD)
 	    || (mystate==rs::INTERESTED)
 	    || (mystate==rs::OLDINTERESTED))
@@ -453,17 +454,27 @@ bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
 	  bool havesrc=false;
 	  for (int i=0+vnum;i<globalvarinfo.size();i+=getNumVars())
 	  {
-	      // make a vector of the involved procs with New at the front
+	      int world=i/getNumVars(); 
+	      // make a vector of the involved procs with OLD/OLDINTERESTED at the front
 	      switch (globalvarinfo[i])
 	      {
 		case rs::NEW:   return false;  break;
-		case rs::INTERESTED: members.push_back(i/getNumVars());  break;     
+		case rs::INTERESTED: members.push_back(world);
+			  if (world==localid)
+			  {
+			      ingroup=true;
+			  }
+			  break;     
 		case rs::OLD: 
 		case rs::OLDINTERESTED:
 			  if (!havesrc)
 			  {
-			      members.insert(members.begin(), i/getNumVars());
+			      members.insert(members.begin(), world);
 			      havesrc=true;
+			      if (world==localid)
+			      {
+				ingroup=true;
+			      }
 			  }
 			  break;
 	      }
@@ -491,7 +502,7 @@ bool SubWorld::synchVariableValues(std::string& err)
     
     // need to keep track of which vars have updates
     std::vector<std::string> varswithupdates;
-    
+
     int vnum=0;    
     for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it, ++vnum)
     {
@@ -539,7 +550,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 	    }
 	    if (varstate[it->first]!=rs::NONE && varstate[it->first]!=rs::OLD)
 	    {
-		it->second->groupSend(com);
+		it->second->groupSend(com, (varstate[it->first]==rs::NEW));
 		  // Now record the fact that we have the variable now
 		if (varstate[it->first]==rs::INTERESTED)
 		{
@@ -589,13 +600,19 @@ bool SubWorld::synchVariableValues(std::string& err)
 	    continue;
 	}
 	MPI_Comm com;
-	if (!makeGroupComm2(corrmpi->comm, vnum, varstate[it->first],com))
+	bool ingroup=false;
+	if (!makeGroupComm2(corrmpi->comm, vnum, varstate[it->first],com, ingroup))
 	{
 	    err="Error creating group for sharing values";
 	    return false;
 	}
 	// form group to send to [latestsource and interested]
-	it->second->groupSend(com);
+	
+	if (ingroup)		// since only one holder needs to send
+	{
+	    bool imsending=(varstate[it->first]==rs::NEW);
+	    it->second->groupSend(com, imsending);
+	}
 	// dissolve the group	
 	MPI_Comm_free(&com);
     }
@@ -823,6 +840,11 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
 	std::ostringstream oss;
 	throw SplitWorldException(oss.str());    
     }
+    if (domain.get()==0)
+    {
+	throw SplitWorldException("No domain has been set yet.");
+    }
+    rp->setDomain(domain);
     reducemap[name]=rp;
     varstate[name]=reducerstatus::NONE;
     if (!manualimports)

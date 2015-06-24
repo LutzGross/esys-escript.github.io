@@ -99,7 +99,7 @@ boost::python::object NonReducedVariable::getPyObj()
     return value;
 }
 
-bool NonReducedVariable::groupSend(MPI_Comm& com)
+bool NonReducedVariable::groupSend(MPI_Comm& com, bool imsending)
 {
     return true;
 }

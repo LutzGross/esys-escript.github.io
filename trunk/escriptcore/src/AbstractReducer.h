@@ -57,12 +57,15 @@ public:
 	// same communicator requirements for reduceRemoteValues
 	// Must give the same answer when called on any process in the subworlds
 	// Must only be called on 
-    virtual bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)=0; 
+    virtual bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)=0;
+	// Some reducers need to know what domain they are operating in
+    virtual void setDomain(Domain_ptr dom){} 
     
 
 #ifdef ESYS_MPI  
 	// send from proc 0 in the communicator to all others
-    virtual bool groupSend(MPI_Comm& com)=0;
+	// second param is true if we have rank o
+    virtual bool groupSend(MPI_Comm& com, bool imsending)=0;
     
 	// reduction with some procs submitting identity values
     virtual bool groupReduce(MPI_Comm& com, char mystate)=0;  

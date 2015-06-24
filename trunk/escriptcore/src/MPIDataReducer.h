@@ -58,7 +58,7 @@ public:
     virtual boost::python::object getPyObj();
 
 	// send from proc 0 in the communicator to all others
-    bool groupSend(MPI_Comm& com);
+    bool groupSend(MPI_Comm& com, bool imsending);
     
 	// reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);    

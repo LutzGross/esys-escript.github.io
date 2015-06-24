@@ -142,7 +142,7 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
 	return false;
     }
     d.expand();		// because I don't want to mess about with types of Data
-    if (!valueadded)	// first value so answer becomes this one
+    if (!valueadded || !had_an_export_this_round)	// first value so answer becomes this one
     {
 	value=d;
 	dom=d.getDomain();
@@ -151,7 +151,6 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
     }
     else
     {
-	
 	if (reduceop==MPI_OP_NULL)
 	{
 	    if (had_an_export_this_round) 
@@ -232,7 +231,6 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 // are compatible
 bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
 {
-  using namespace std;
     if (!active)
     {
 	return false;	// shutting down this option until I implement it
@@ -402,9 +400,96 @@ boost::python::object MPIDataReducer::getPyObj()
 
 
 	// send from proc 0 in the communicator to all others
-bool MPIDataReducer::groupSend(MPI_Comm& com)
+	// second argument is true if this rank is sending
+bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
 {
-    throw SplitWorldException("groupSend Not implemented yet.");
+      if (dom.get()==0)
+      {
+	  return 0;	// trying to avoid throwing here
+			// this will still cause a lockup if it happens
+      }
+#ifdef ESYS_MPI
+      if (imsending)
+      {
+	  // first step is to let the other world know what sort of thing it needs to make
+	  if (value.isLazy())
+	  {
+	      value.resolve();
+	  }
+	  std::vector<unsigned> params;
+	  getCompatibilityInfo(params);
+	  if (MPI_Bcast(&params[0], params.size(), MPI_UNSIGNED, 0,comm)!=MPI_SUCCESS)
+	  {
+	      return false;
+	  }
+	    // now we have informed the other end of what happened
+	    // are we done or is there actually data to send
+	  if (params[0]<10)
+	  {
+	      return false;
+	  }
+	    // at this point, we know there is data to send
+	  const DataAbstract::ValueType::value_type* vect=value.getDataRO();
+	    // now the receiver knows how much data it should be receive
+	    // need to make sure that we aren't trying to send data with no local samples
+	  if (vect!=0)
+	  {
+	      if (MPI_Bcast(const_cast<DataAbstract::ValueType::value_type*>(vect), value.getLength(), MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+	      {
+		  return false;
+	      }
+	  }
+      }
+      else	// we are receiving
+      {
+	    // first we need to find out what we are expecting
+	  unsigned params[7];
+	  if (MPI_Bcast(params, 7, MPI_UNSIGNED, 0, comm)!=MPI_SUCCESS)
+	  {
+	      return false;
+	  }
+	  if (params[0]<10)	// the sender somehow tried to send something invalid
+	  {
+	      return false;
+	  }
+	    // now we put the shape object together
+	  escript::DataTypes::ShapeType s;
+	  for (int i=0;i<4;++i)
+	  {
+	      if (params[3+i]>0)
+	      {
+		  s.push_back(params[3+i]);
+	      }
+	      else
+	      {
+		  break;
+	      }
+	  }
+	    // Now we need the FunctionSpace
+	  FunctionSpace fs=FunctionSpace(dom, static_cast<int>(params[1]));
+	  value=Data(0, s, fs, params[0]==12);
+	  if (params[0]==11)	// The Data is tagged so we need to work out what tags we need
+	  {
+	      // TODO:  Need to ship the tags and names over but for now just make sure there
+	      // are the same number of tags
+	      value.tag();
+	      
+	      DataVector dv(DataTypes::noValues(s), 0, 1);
+	      for (unsigned i=0;i<params[2];++i)
+	      {
+		  value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
+	      }
+	      return false;	// because I don't trust this yet
+	  }
+	  DataAbstract::ValueType::value_type* vect=&(value.getExpandedVectorReference()[0]);
+	  if (MPI_Bcast(const_cast<DataAbstract::ValueType::value_type*>(vect), value.getLength(), MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+	  {
+	      return false;
+	  }
+	  valueadded=true;
+      }
+#endif        
+    return true;
 }
 
 bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
@@ -423,7 +508,11 @@ void MPIDataReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     {
 	throw SplitWorldException("Attempt to copy DataEmpty.");
     }
-    value=sr->value;
+    if (sr==this)
+    {
+	throw SplitWorldException("Source and destination can not be the same variable.");
+    }
+    value.copy(sr->value);    
     valueadded=true;
 }
 
