@@ -1,4 +1,3 @@
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,6 +12,7 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
@@ -51,6 +51,7 @@ except ImportError:
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
+from esys.escript import getEscriptParamInt
 from esys.escript.modelframe import Link,Simulation
 from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
 from esys.modellib.flow import SteadyIncompressibleFlow
@@ -148,6 +149,7 @@ def run(dom, stream):
     s.writeXML(stream)
     s.run()
 
+@unittest.skipIf(not getEscriptParamInt("PASO_DIRECT"), "Direct solver not available")
 class Test_Convection(unittest.TestCase):
     def setUp(self):
         import sys
