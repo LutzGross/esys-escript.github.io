@@ -1,4 +1,3 @@
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,6 +12,8 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
@@ -38,6 +39,7 @@ else:
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
+from esys.escript import getEscriptParamInt
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.flow import SteadyIncompressibleFlow
@@ -48,6 +50,8 @@ try:
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False
+
+have_direct=getEscriptParamInt("PASO_DIRECT")
 
 #Link() behaves badly inside a TestCase class
 def run(dom, stream):
@@ -95,6 +99,7 @@ class Test_RunFlow(unittest.TestCase):
         sys.stdout = self.old
 
     @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
+    @unittest.skipIf(not have_direct, "Direct solver not available")
     def test_order2(self):
         dom=RectangularDomain()
         dom.order=2

@@ -30,7 +30,7 @@ Test suite for linearPDEs class
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate, getMPISizeWorld
 from esys.escript.linearPDEs import SolverBuddy, LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
 import numpy
 import esys.escriptcore.utestselect as unittest
@@ -551,8 +551,15 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
         self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.")
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
-        sb.setSolverMethod(so.DIRECT)
-        self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
+
+        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+            with self.assertRaises(ValueError) as package:
+                sb.setSolverMethod(so.DIRECT)
+            self.assertTrue('SolverOptionsException' in str(package.exception))
+        else:
+            sb.setSolverMethod(so.DIRECT)
+            self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
+
         sb.setSolverMethod(so.CHOLEVSKY)
         self.assertTrue(sb.getSolverMethod() == so.CHOLEVSKY, "CHOLEVSKY is not set.")
         sb.setSolverMethod(so.PCG)
@@ -1673,10 +1680,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnDirect(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('SolverOptionsException' in str(package.exception))
+            return
+        else:
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+            self.assertTrue('PasoException' in str(package.exception))
+        else:
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1732,10 +1750,22 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('SolverOptionsException' in str(package.exception))
+            return
+        else:
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+            self.assertTrue('PasoException' in str(package.exception))
+        else:
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
+
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
@@ -2144,10 +2174,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('SolverOptionsException' in str(package.exception))
+            return
+        else:
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+            self.assertTrue('PasoException' in str(package.exception))
+        else:
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_JACOBI_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2222,10 +2263,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('SolverOptionsException' in str(package.exception))
+            return
+        else:
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+            self.assertTrue('PasoException' in str(package.exception))
+        else:
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_JACOBI_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
