@@ -1092,7 +1092,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
                     errorFlag = EARLY_EOF;
                 int tag_info[2] = {0};
                 char *position = &line[0];
-                //skip the first int, unsure why
+                //skip the first int, it's the physical dimension
                 if (next_space(&position, 1) == NULL 
                         || sscanf(position, "%d", tag_info) != 1 
                         || next_space(&position, 1) == NULL
