@@ -106,7 +106,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
             for (int color=elements->minColor; color<=elements->maxColor; color++) {
                 // loop over all elements:
 #pragma omp for
-                for (int e=0; e<elements->numElements; e++) {
+                for (index_t e=0; e<elements->numElements; e++) {
                     if (elements->Color[e]==color) {
                         const double *D_p=D.getSampleDataRO(e);
                         util::addScatter(1,
@@ -124,13 +124,13 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp parallel
         {
             std::vector<double> EM_lumpedMat(p.row_numShapesTotal*p.numEqu);
-            std::vector<int> row_index(p.row_numShapesTotal);
+            std::vector<index_t> row_index(p.row_numShapesTotal);
             if (p.numEqu == 1) { // single equation
                 if (expandedD) { // with expanded D
                     for (int color=elements->minColor; color<=elements->maxColor; color++) {
                         // loop over all elements:
 #pragma omp for
-                        for (int e=0; e<elements->numElements; e++) {
+                        for (index_t e=0; e<elements->numElements; e++) {
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
@@ -183,7 +183,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                     for (int color=elements->minColor; color<=elements->maxColor; color++) {
                         // loop over all elements:
 #pragma omp for
-                        for (int e=0; e<elements->numElements; e++) {
+                        for (index_t e=0; e<elements->numElements; e++) {
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
@@ -237,7 +237,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                     for (int color=elements->minColor; color<=elements->maxColor; color++) {
                         // loop over all elements:
 #pragma omp for
-                        for (int e=0; e<elements->numElements; e++) {
+                        for (index_t e=0; e<elements->numElements; e++) {
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
@@ -296,7 +296,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                     for (int color=elements->minColor; color<=elements->maxColor; color++) {
                         // loop over all elements:
 #pragma omp for
-                        for (int e=0; e<elements->numElements; e++) {
+                        for (index_t e=0; e<elements->numElements; e++) {
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);

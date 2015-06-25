@@ -55,18 +55,18 @@ struct AssembleParameters {
     /// leading dimension of element node table
     int NN;
     /// number of elements
-    int numElements;
+    dim_t numElements;
 
     int numEqu;
-    const int* row_DOF;
-    int row_DOF_UpperBound;
+    const index_t* row_DOF;
+    index_t row_DOF_UpperBound;
     ElementFile_Jacobians* row_jac;
     const int* row_node;
     int row_numShapesTotal;
     int row_numShapes;
     int numComp;
-    const int* col_DOF;
-    int col_DOF_UpperBound;
+    const index_t* col_DOF;
+    index_t col_DOF_UpperBound;
     ElementFile_Jacobians* col_jac;
     const int* col_node;
     int col_numShapesTotal;
@@ -123,8 +123,8 @@ void Assemble_PDE_System_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y);
 
 void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr S, const int NN_Equa,
-        const int* Nodes_Equa, const int num_Equa, const int NN_Sol,
-        const int* Nodes_Sol, const int num_Sol, const double* array);
+        const index_t* Nodes_Equa, const int num_Equa, const int NN_Sol,
+        const index_t* Nodes_Sol, const int num_Sol, const double* array);
 
 void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
@@ -158,59 +158,59 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
 
 void Assemble_jacobians_1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_3D_M2D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId);
+                           double* dTdX, double* volume, const index_t* elementId);
 
 } // namespace finley
 

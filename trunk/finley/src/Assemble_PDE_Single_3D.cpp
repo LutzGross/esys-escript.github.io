@@ -66,14 +66,14 @@ void Assemble_PDE_Single_3D(const AssembleParameters& p,
 
 #pragma omp parallel
     {
-        std::vector<int> row_index(len_EM_F);
+        std::vector<index_t> row_index(len_EM_F);
         std::vector<double> EM_S(len_EM_S);
         std::vector<double> EM_F(len_EM_F);
 
         for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
             // loop over all elements:
 #pragma omp for
-            for (int e=0; e<p.elements->numElements; e++) {
+            for (index_t e=0; e<p.elements->numElements; e++) {
                 if (p.elements->Color[e]==color) {
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);

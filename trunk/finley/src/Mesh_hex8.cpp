@@ -34,7 +34,7 @@
 
 namespace finley {
 
-Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
+Mesh* RectangularMesh_Hex8(const dim_t* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
                            bool optimize,
@@ -42,9 +42,9 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
 {
     const int N_PER_E = 1;
     const int DIM = 3;
-    int i0,i1,i2,k,Nstride0=0, Nstride1=0,Nstride2=0, local_NE0, local_NE1, local_NE2, local_N0=0, local_N1=0, local_N2=0;
-    int totalNECount,faceNECount,NDOF0=0,NDOF1=0,NDOF2=0,NFaceElements=0, NN;
-    int node0, e_offset2, e_offset1, e_offset0=0, offset1=0, offset2=0, offset0=0, global_i0, global_i1, global_i2;
+    dim_t i0,i1,i2,k,Nstride0=0, Nstride1=0,Nstride2=0, local_NE0, local_NE1, local_NE2, local_N0=0, local_N1=0, local_N2=0;
+    dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NDOF2=0,NFaceElements=0, NN;
+    dim_t node0, e_offset2, e_offset1, e_offset0=0, offset1=0, offset2=0, offset0=0, global_i0, global_i1, global_i2;
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
 #ifdef Finley_TRACE
     double time0=timer();
@@ -57,12 +57,12 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
     const int myRank=mpiInfo->rank;
 
     // set up the global dimensions of the mesh
-    int NE0=std::max(1,numElements[0]);
-    int NE1=std::max(1,numElements[1]);
-    int NE2=std::max(1,numElements[2]);
-    int N0=N_PER_E*NE0+1;
-    int N1=N_PER_E*NE1+1;
-    int N2=N_PER_E*NE2+1;
+    dim_t NE0=std::max(1,numElements[0]);
+    dim_t NE1=std::max(1,numElements[1]);
+    dim_t NE2=std::max(1,numElements[2]);
+    dim_t N0=N_PER_E*NE0+1;
+    dim_t N1=N_PER_E*NE1+1;
+    dim_t N2=N_PER_E*NE2+1;
 
     // allocate mesh
     std::stringstream name;

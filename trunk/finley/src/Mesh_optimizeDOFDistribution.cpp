@@ -45,7 +45,7 @@ namespace finley {
 // that every rank has at least 1 vertex (at line 129 of file
 // "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
 // any rank has no vertex).
-bool allRanksHaveNodes(esysUtils::JMPI& mpiInfo, const std::vector<int>& distribution)
+bool allRanksHaveNodes(esysUtils::JMPI& mpiInfo, const std::vector<index_t>& distribution)
 {
     int ret = 1;
 
@@ -70,18 +70,18 @@ bool allRanksHaveNodes(esysUtils::JMPI& mpiInfo, const std::vector<int>& distrib
 
 /****************************************************************************/
 
-void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
+void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 {
     // these two are not const because of parmetis call
     int mpiSize=MPIInfo->size;
     const int myRank=MPIInfo->rank;
-    const int myFirstVertex=distribution[myRank];
-    const int myLastVertex=distribution[myRank+1];
-    const int myNumVertices=myLastVertex-myFirstVertex;
+    const index_t myFirstVertex=distribution[myRank];
+    const index_t myLastVertex=distribution[myRank+1];
+    const dim_t myNumVertices=myLastVertex-myFirstVertex;
 
     // first step is to distribute the elements according to a global X of DOF
     // len is used for the sending around of partition later on
-    int len=0;
+    index_t len=0;
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
     std::vector<int> partition(len);
@@ -109,14 +109,14 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
         }
        
         // create the local matrix pattern
-        const int globalNumVertices=distribution[mpiSize];
+        const dim_t globalNumVertices=distribution[mpiSize];
         paso::Pattern_ptr pattern(paso::Pattern::fromIndexListArray(0,
                 myNumVertices, index_list.get(), 0, globalNumVertices, 0));
         // set the coordinates
         std::vector<real_t> xyz(myNumVertices*dim);
 #pragma omp parallel for
-        for (int i=0; i<Nodes->numNodes; ++i) {
-            const int k=Nodes->globalDegreesOfFreedom[i]-myFirstVertex;
+        for (index_t i=0; i<Nodes->numNodes; ++i) {
+            const index_t k=Nodes->globalDegreesOfFreedom[i]-myFirstVertex;
             if (k>=0 && k<myNumVertices) {
                 for (int j=0; j<dim; ++j)
                     xyz[k*dim+j]=static_cast<real_t>(Nodes->Coordinates[INDEX2(j,i,dim)]); 
@@ -138,21 +138,21 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
                               &ncon, &mpiSize, &tpwgts[0], &ubvec[0], options,
                               &edgecut, &partition[0], &MPIInfo->comm);
     } else {
-        for (int i=0; i<myNumVertices; ++i)
+        for (index_t i=0; i<myNumVertices; ++i)
             partition[i]=0; // CPU 0 owns all
     }
 #else
-    for (int i=0; i<myNumVertices; ++i)
+    for (index_t i=0; i<myNumVertices; ++i)
         partition[i]=myRank; // CPU myRank owns all
 #endif
 
     // create a new distribution and labeling of the DOF
-    std::vector<int> new_distribution(mpiSize+1, 0);
+    std::vector<index_t> new_distribution(mpiSize+1, 0);
 #pragma omp parallel
     {
         std::vector<int> loc_partition_count(mpiSize, 0);
 #pragma omp for
-        for (int i=0; i<myNumVertices; ++i)
+        for (index_t i=0; i<myNumVertices; ++i)
             loc_partition_count[partition[i]]++;
 #pragma omp critical
         {
@@ -164,19 +164,19 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
 #ifdef ESYS_MPI
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
-    MPI_Allgather(&new_distribution[0], mpiSize, MPI_INT, recvbuf, mpiSize,
+    MPI_Allgather(&new_distribution[0], mpiSize, MPI_DIM_T, recvbuf, mpiSize,
                   MPI_INT, MPIInfo->comm);
 #else
     for (int i=0; i<mpiSize; ++i)
         recvbuf[i]=new_distribution[i];
 #endif
     new_distribution[0]=0;
-    std::vector<int> newGlobalDOFID(len);
+    std::vector<index_t> newGlobalDOFID(len);
     for (int rank=0; rank<mpiSize; rank++) {
         int c=0;
         for (int i=0; i<myRank; ++i)
             c+=recvbuf[rank+mpiSize*i];
-        for (int i=0; i<myNumVertices; ++i) {
+        for (index_t i=0; i<myNumVertices; ++i) {
             if (rank==partition[i]) {
                 newGlobalDOFID[i]=new_distribution[rank]+c;
                 c++;
@@ -197,11 +197,11 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
     std::vector<short> setNewDOFId(Nodes->numNodes, 1);
 
     for (int p=0; p<mpiSize; ++p) {
-        const int firstVertex=distribution[current_rank];
-        const int lastVertex=distribution[current_rank+1];
+        const index_t firstVertex=distribution[current_rank];
+        const index_t lastVertex=distribution[current_rank+1];
 #pragma omp parallel for
-        for (int i=0; i<Nodes->numNodes; ++i) {
-            const int k=Nodes->globalDegreesOfFreedom[i];
+        for (index_t i=0; i<Nodes->numNodes; ++i) {
+            const index_t k=Nodes->globalDegreesOfFreedom[i];
             if (setNewDOFId[i] && (firstVertex<=k) && (k<lastVertex)) {
                 Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
                 setNewDOFId[i]=0;
@@ -211,7 +211,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
         if (p<mpiSize-1) { // the final send can be skipped
 #ifdef ESYS_MPI
             MPI_Status status;
-            MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_INT,
+            MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
                                dest, MPIInfo->msg_tag_counter,
                                source, MPIInfo->msg_tag_counter,
                                MPIInfo->comm, &status);

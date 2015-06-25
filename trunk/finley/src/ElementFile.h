@@ -49,7 +49,7 @@ struct ElementFile_Jacobians {
     /// (borrowed reference)
     const int* node_selection;
     /// number of elements
-    int numElements;
+    dim_t numElements;
     /// local volume
     double* volume;
     /// derivatives of shape functions in global coordinates at quadrature
@@ -64,15 +64,15 @@ public:
                 esysUtils::JMPI& mpiInfo);
     ~ElementFile();
 
-    void allocTable(int numElements);
+    void allocTable(dim_t numElements);
     void freeTable();
 
-    void distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, int *Id);
-    void createColoring(const std::vector<int>& dofMap);
+    void distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, index_t *Id);
+    void createColoring(const std::vector<index_t>& dofMap);
     /// reorders the elements so that they are stored close to the nodes
     void optimizeOrdering();
     /// assigns new node reference numbers to the elements
-    void relabelNodes(const std::vector<int>& newNode, int offset);
+    void relabelNodes(const std::vector<index_t>& newNode, index_t offset);
     void markNodes(std::vector<short>& mask, int offset, bool useLinear);
     void scatter(int* index, const ElementFile* in);
     void gather(int* index, const ElementFile* in);
@@ -80,14 +80,14 @@ public:
                    const ElementFile* in);
 
     void markDOFsConnectedToRange(int* mask, int offset, int marker,
-                                  int firstDOF, int lastDOF,
-                                  const int *dofIndex, bool useLinear);
+                                  index_t firstDOF, index_t lastDOF,
+                                  const index_t *dofIndex, bool useLinear);
 
     void setTags(const int newTag, const escript::Data& mask);
     ElementFile_Jacobians* borrowJacobians(const NodeFile*, bool, bool) const;
     /// returns the minimum and maximum reference number of nodes describing
     /// the elements
-    inline std::pair<int,int> getNodeRange() const;
+    inline std::pair<index_t,index_t> getNodeRange() const;
 
     /// updates the list of tags in use. This method must be called by all
     /// ranks.
@@ -102,11 +102,11 @@ public:
     /// the reference element to be used
     const_ReferenceElementSet_ptr referenceElementSet;
     /// number of elements
-    int numElements;
+    dim_t numElements;
     /// Id[i] is the id number of node i. This number is used when elements
     /// are resorted. In the entire code the term 'element id' refers to i and
     /// not to Id[i] unless explicitly stated otherwise.
-    int *Id;
+    index_t *Id;
     /// Tag[i] is the tag of element i
     int *Tag;
     /// Owner[i] contains the rank that owns element i
@@ -119,7 +119,7 @@ public:
     /// Note that in the way the nodes are ordered Nodes[INDEX(k, i, numNodes)
     /// is the k-th node of element i when referring to the linear version of
     /// the mesh.
-    int *Nodes;
+    index_t *Nodes;
     /// assigns each element a color. Elements with the same color don't share
     /// a node so they can be processed simultaneously.
     /// At any time Color must provide a valid value. In any case one can set
@@ -142,7 +142,7 @@ public:
     ElementFile_Jacobians* jacobians_reducedS_reducedQ;
 };
 
-inline std::pair<int,int> ElementFile::getNodeRange() const
+inline std::pair<index_t,index_t> ElementFile::getNodeRange() const
 {
     return util::getMinMaxInt(numNodes, numElements, Nodes);
 }

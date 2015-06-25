@@ -69,7 +69,7 @@ void Assemble_PDE_Single_1D(const AssembleParameters& p,
         for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
             // loop over all elements:
 #pragma omp for
-            for (int e=0; e<p.elements->numElements; e++) {
+            for (index_t e=0; e<p.elements->numElements; e++) {
                 if (p.elements->Color[e]==color) {
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
@@ -238,7 +238,7 @@ void Assemble_PDE_Single_1D(const AssembleParameters& p,
                         }
                         // add the element matrices onto the matrix and
                         // right hand side
-                        std::vector<int> row_index(p.row_numShapesTotal);
+                        std::vector<index_t> row_index(p.row_numShapesTotal);
                         for (int q=0; q<p.row_numShapesTotal; q++)
                             row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
 

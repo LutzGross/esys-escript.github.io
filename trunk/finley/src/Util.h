@@ -47,11 +47,11 @@ inline bool hasReducedIntegrationOrder(const escript::Data& in)
                 || fs == FINLEY_REDUCED_CONTACT_ELEMENTS_2);
 }
 
-void gather(int len, const int* index, int numData, const double* in,
+void gather(dim_t len, const index_t* index, dim_t numData, const double* in,
             double* out);
 
-void addScatter(int len, const int* index, int numData, const double* in,
-                double* out, int upperBound);
+void addScatter(dim_t len, const index_t* index, dim_t numData,
+                const double* in, double* out, index_t upperBound);
 
 void smallMatMult(int A1, int A2, double* A, int B2,
                   const std::vector<double>& B,
@@ -66,15 +66,15 @@ void invertSmallMat(int len, int dim, const double* A, double *invA,
 
 void normalVector(int len, int dim, int dim1, const double* A, double* Normal);
 
-int getMinInt(int dim, int N, const int* values);
+index_t getMinInt(int dim, dim_t N, const index_t* values);
 
-int getMaxInt(int dim, int N, const int* values);
+index_t getMaxInt(int dim, dim_t N, const index_t* values);
 
-std::pair<int,int> getMinMaxInt(int dim, int N, const int* values);
+std::pair<index_t,index_t> getMinMaxInt(int dim, dim_t N, const index_t* values);
 
-std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore);
+std::pair<index_t,index_t> getFlaggedMinMaxInt(dim_t N, const index_t* values, index_t ignore);
 
-std::vector<int> packMask(const std::vector<short>& mask);
+std::vector<index_t> packMask(const std::vector<short>& mask);
 
 void setValuesInUse(const int *values, const int numValues,
                     std::vector<int>& valuesInUse, esysUtils::JMPI& mpiinfo);

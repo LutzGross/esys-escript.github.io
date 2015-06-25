@@ -37,33 +37,33 @@ struct NodeMapping {
     /// initializes a node mapping. The target array is copied and a reverse
     /// map created.
     /// theTarget[i]=unused means that no target is defined for FEM node i.
-    void assign(const std::vector<int>& theTarget, int unused)
+    void assign(const std::vector<index_t>& theTarget, index_t unused)
     {
         if (theTarget.empty())
             return;
 
-        std::pair<int,int> range(
+        std::pair<index_t,index_t> range(
             util::getFlaggedMinMaxInt(theTarget.size(), &theTarget[0], unused));
         if (range.first < 0) {
             setError(VALUE_ERROR, "NodeMapping: target has negative entry.");
             return;
         }
         // now we assume min(target)=0!
-        const int numTargets = range.first<=range.second ? range.second+1 : 0;
+        const dim_t numTargets = range.first<=range.second ? range.second+1 : 0;
         target.assign(theTarget.begin(), theTarget.end());
-        const int targetSize = target.size();
+        const index_t targetSize = target.size();
         map.assign(numTargets, -1);
 
 #pragma omp parallel
         {
 #pragma omp for
-            for (int i=0; i<targetSize; ++i) {
+            for (index_t i=0; i<targetSize; ++i) {
                 if (target[i] != unused)
                     map[target[i]]=i;
             }
             // sanity check
 #pragma omp for
-            for (int i=0; i<numTargets; ++i) {
+            for (index_t i=0; i<numTargets; ++i) {
                 if (map[i]==-1) {
                     setError(VALUE_ERROR, "NodeMapping: target does not define a continuous labeling.");
                 }
@@ -72,12 +72,12 @@ struct NodeMapping {
     }
 
     /// returns the number of target nodes (number of items in the map array)
-    int getNumTargets() const { return map.size(); }
+    dim_t getNumTargets() const { return map.size(); }
 
     /// target[i] defines the target of FEM node i=0,...,numNodes-1
-    std::vector<int> target;
+    std::vector<index_t> target;
     /// maps the target nodes back to the FEM nodes: target[map[i]]=i
-    std::vector<int> map;
+    std::vector<index_t> map;
 };
 
 } // namespace finley

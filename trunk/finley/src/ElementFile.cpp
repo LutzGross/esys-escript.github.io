@@ -70,22 +70,22 @@ ElementFile::~ElementFile()
 }
 
 /// allocates the element table within this element file to hold NE elements.
-void ElementFile::allocTable(int NE) 
+void ElementFile::allocTable(dim_t NE) 
 {
     if (numElements>0)
         freeTable();
 
     numElements=NE;
     Owner=new int[numElements];
-    Id=new int[numElements];
-    Nodes=new int[numElements*numNodes];
+    Id=new index_t[numElements];
+    Nodes=new index_t[numElements*numNodes];
     Tag=new int[numElements];
     Color=new int[numElements];
   
     // this initialization makes sure that data are located on the right
     // processor
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int i=0; i<numNodes; i++)
             Nodes[INDEX2(i,e,numNodes)]=-1;
         Owner[e]=-1;
@@ -121,7 +121,7 @@ void ElementFile::copyTable(int offset, int nodeOffset, int idOffset,
     }
 
 #pragma omp parallel for
-    for (int n=0; n<in->numElements; n++) {
+    for (index_t n=0; n<in->numElements; n++) {
           Owner[offset+n]=in->Owner[n];
           Id[offset+n]=in->Id[n]+idOffset;
           Tag[offset+n]=in->Tag[n];
@@ -135,7 +135,7 @@ void ElementFile::gather(int* index, const ElementFile* in)
 {
     const int NN_in=in->numNodes;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         const int k=index[e];
         Id[e]=in->Id[k];
         Tag[e]=in->Tag[k];
@@ -154,7 +154,7 @@ void ElementFile::scatter(int* index, const ElementFile* in)
 {
     const int NN_in=in->numNodes;
 #pragma omp parallel for
-    for (int e=0; e<in->numElements; e++) {
+    for (index_t e=0; e<in->numElements; e++) {
         const int k=index[e];
         Owner[k]=in->Owner[e];
         Id[k]=in->Id[e];
@@ -192,15 +192,15 @@ void ElementFile::optimizeOrdering()
     out->allocTable(numElements);
     if (noError()) {
 #pragma omp parallel for
-        for (int e=0; e<numElements; e++) {
-            std::pair<int,int> entry(Nodes[INDEX2(0,e,NN)], e);
+        for (index_t e=0; e<numElements; e++) {
+            std::pair<index_t,index_t> entry(Nodes[INDEX2(0,e,NN)], e);
             for (int i=1; i<NN; i++)
                 entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
             item_list[e] = entry;
         }
         util::sortValueAndIndex(item_list);
 #pragma omp parallel for
-        for (int e=0; e<numElements; e++)
+        for (index_t e=0; e<numElements; e++)
             index[e]=item_list[e].second;
         out->gather(index, this);
         swapTable(out);
@@ -211,10 +211,10 @@ void ElementFile::optimizeOrdering()
 
 /// assigns new node reference numbers to the elements.
 /// If k is the old node, the new node is newNode[k-offset].
-void ElementFile::relabelNodes(const std::vector<int>& newNode, int offset)
+void ElementFile::relabelNodes(const std::vector<index_t>& newNode, index_t offset)
 {
 #pragma omp parallel for
-    for (int j=0; j<numElements; j++) {
+    for (index_t j=0; j<numElements; j++) {
         for (int i=0; i<numNodes; i++) {
             Nodes[INDEX2(i,j,numNodes)]=
                         newNode[Nodes[INDEX2(i,j,numNodes)]-offset];
@@ -240,13 +240,13 @@ void ElementFile::setTags(const int newTag, const escript::Data& mask)
 
     if (mask.actsExpanded()) {
 #pragma omp parallel for
-        for (int n=0; n<numElements; n++) {
+        for (index_t n=0; n<numElements; n++) {
             if (mask.getSampleDataRO(n)[0] > 0)
                 Tag[n]=newTag;
         }
     } else {
 #pragma omp parallel for
-        for (int n=0; n<numElements; n++) {
+        for (index_t n=0; n<numElements; n++) {
             const double *mask_array=mask.getSampleDataRO(n);
             bool check=false;
             for (int q=0; q<numQuad; q++)
@@ -259,31 +259,31 @@ void ElementFile::setTags(const int newTag, const escript::Data& mask)
 }
 
 /// Tries to reduce the number of colours used to colour the elements
-void ElementFile::createColoring(const std::vector<int>& dofMap)
+void ElementFile::createColoring(const std::vector<index_t>& dofMap)
 {
     if (numElements < 1)
         return;
 
     const int NN = numNodes;
-    const std::pair<int,int> idRange(util::getMinMaxInt(
+    const std::pair<index_t,index_t> idRange(util::getMinMaxInt(
                                             1, dofMap.size(), &dofMap[0]));
-    const int len=idRange.second-idRange.first+1;
+    const index_t len=idRange.second-idRange.first+1;
 
     // reset color vector
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++)
+    for (index_t e=0; e<numElements; e++)
         Color[e]=-1;
 
-    int numUncoloredElements=numElements;
+    index_t numUncoloredElements=numElements;
     minColor=0;
     maxColor=-1;
     while (numUncoloredElements>0) {
         // initialize the mask marking nodes used by a color
-        std::vector<int> maskDOF(len, -1);
+        std::vector<index_t> maskDOF(len, -1);
         numUncoloredElements=0;
 
         // TODO: OMP
-        for (int e=0; e<numElements; e++) {
+        for (index_t e=0; e<numElements; e++) {
             if (Color[e] < 0) {
                 // find out if element e is independent from the elements
                 // already coloured:
@@ -330,7 +330,7 @@ void ElementFile::markNodes(std::vector<short>& mask, int offset, bool useLinear
         const int NN=refElement->numLinearNodes;
         const int *lin_nodes=refElement->Type->linearNodes;
 #pragma omp parallel for
-        for (int e=0; e<numElements; e++) {
+        for (index_t e=0; e<numElements; e++) {
             for (int i=0; i<NN; i++) {
                 mask[Nodes[INDEX2(lin_nodes[i],e,numNodes)]-offset]=1;
             }
@@ -338,7 +338,7 @@ void ElementFile::markNodes(std::vector<short>& mask, int offset, bool useLinear
     } else {
         const int NN=refElement->Type->numNodes;
 #pragma omp parallel for
-        for (int e=0; e<numElements; e++) {
+        for (index_t e=0; e<numElements; e++) {
             for (int i=0; i<NN; i++) {
                 mask[Nodes[INDEX2(i,e,numNodes)]-offset]=1;
             }
@@ -347,7 +347,7 @@ void ElementFile::markNodes(std::vector<short>& mask, int offset, bool useLinear
 }
 
 void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
-        int firstDOF, int lastDOF, const int *dofIndex, bool useLinear) 
+        index_t firstDOF, index_t lastDOF, const index_t *dofIndex, bool useLinear) 
 {
     const_ReferenceElement_ptr refElement(referenceElementSet->
                                             borrowReferenceElement(false));
@@ -356,10 +356,10 @@ void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
         const int *lin_nodes=refElement->Type->linearNodes;
         for (int color=minColor; color<=maxColor; color++) {
 #pragma omp parallel for
-            for (int e=0; e<numElements; e++) {
+            for (index_t e=0; e<numElements; e++) {
                 if (Color[e]==color) {
                     for (int i=0; i<NN; i++) {
-                        const int k=dofIndex[Nodes[INDEX2(lin_nodes[i],e,numNodes)]];
+                        const index_t k=dofIndex[Nodes[INDEX2(lin_nodes[i],e,numNodes)]];
                         if (firstDOF<=k && k<lastDOF) {
                             for (int j=0; j<NN; j++)
                                 mask[dofIndex[Nodes[INDEX2(lin_nodes[j],e,numNodes)]]-offset]=marker;
@@ -373,10 +373,10 @@ void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
         const int NN=refElement->Type->numNodes;
         for (int color=minColor; color<=maxColor; color++) {
 #pragma omp parallel for
-            for (int e=0; e<numElements; e++) {
+            for (index_t e=0; e<numElements; e++) {
                 if (Color[e]==color) {
                     for (int i=0; i<NN; i++) {
-                        const int k=dofIndex[Nodes[INDEX2(i,e,numNodes)]];
+                        const index_t k=dofIndex[Nodes[INDEX2(i,e,numNodes)]];
                         if (firstDOF<=k && k<lastDOF) {
                             for (int j=0; j<NN; j++)
                                 mask[dofIndex[Nodes[INDEX2(j,e,numNodes)]]-offset]=marker;
@@ -390,7 +390,7 @@ void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
 }
 
 /// redistributes the elements including overlap by rank
-void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, int* index)
+void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, index_t* index)
 {
     const int size=MPIInfo->size;
 
@@ -411,7 +411,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         {
             std::vector<int> loc_send_count(size);
 #pragma omp for
-            for (int e=0; e<numElements; e++) {
+            for (index_t e=0; e<numElements; e++) {
                 if (Owner[e] == myRank) {
                     newOwner[e]=myRank;
                     std::vector<int> loc_proc_mask(size);
@@ -441,17 +441,17 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         MPI_Alltoall(&send_count[0], 1, MPI_INT, &recv_count[0], 1, MPI_INT,
                      MPIInfo->comm);
         // get the new number of elements for this processor
-        int newNumElements=0;
+        index_t newNumElements=0;
         int numElementsInBuffer=0;
         for (int p=0; p<size; ++p) {
             newNumElements+=recv_count[p];
             numElementsInBuffer+=send_count[p];
         }
 
-        std::vector<int> Id_buffer(numElementsInBuffer);
+        std::vector<index_t> Id_buffer(numElementsInBuffer);
         std::vector<int> Tag_buffer(numElementsInBuffer);
         std::vector<int> Owner_buffer(numElementsInBuffer);
-        std::vector<int> Nodes_buffer(numElementsInBuffer*numNodes);
+        std::vector<index_t> Nodes_buffer(numElementsInBuffer*numNodes);
         std::vector<int> send_offset(size);
         std::vector<int> recv_offset(size);
         std::vector<unsigned char> proc_mask(size);
@@ -465,7 +465,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         send_count.assign(size, 0);
         // copy element into buffers. proc_mask makes sure that an element is
         // copied once only for each processor
-        for (int e=0; e<numElements; e++) {
+        for (index_t e=0; e<numElements; e++) {
             if (Owner[e] == myRank) {
                 proc_mask.assign(size, TRUE);
                 for (int j=0; j<numNodes; j++) {
@@ -490,7 +490,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         // start to receive new elements
         for (int p=0; p<size; ++p) {
             if (recv_count[p] > 0) {
-                MPI_Irecv(&Id[recv_offset[p]], recv_count[p], MPI_INT, p,
+                MPI_Irecv(&Id[recv_offset[p]], recv_count[p], MPI_DIM_T, p,
                         MPIInfo->msg_tag_counter+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
@@ -503,7 +503,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Nodes[recv_offset[p]*numNodes],
-                        recv_count[p]*numNodes, MPI_INT, p,
+                        recv_count[p]*numNodes, MPI_DIM_T, p,
                         MPIInfo->msg_tag_counter+3*size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
@@ -512,7 +512,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         // now the buffers can be sent away
         for (int p=0; p<size; ++p) {
             if (send_count[p] > 0) {
-                MPI_Issend(&Id_buffer[send_offset[p]], send_count[p], MPI_INT,
+                MPI_Issend(&Id_buffer[send_offset[p]], send_count[p], MPI_DIM_T,
                         p, MPIInfo->msg_tag_counter+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
@@ -525,7 +525,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                         MPIInfo->comm, &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Nodes_buffer[send_offset[p]*numNodes],
-                        send_count[p]*numNodes, MPI_INT, p,
+                        send_count[p]*numNodes, MPI_DIM_T, p,
                         MPIInfo->msg_tag_counter+3*size+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
@@ -537,7 +537,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
 #endif
     } else { // single rank
 #pragma omp parallel for
-        for (int e=0; e<numElements; e++) {
+        for (index_t e=0; e<numElements; e++) {
             Owner[e]=0;
             for (int i=0; i<numNodes; i++)
                 Nodes[INDEX2(i,e,numNodes)]=index[Nodes[INDEX2(i,e,numNodes)]];
