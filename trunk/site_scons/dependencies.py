@@ -340,6 +340,9 @@ def checkOptionalLibraries(env):
     lapack_inc_path=''
     lapack_lib_path=''
     if env['uselapack']:
+        if env['longindices']:
+            print("Sorry, cannot use LAPACK with 64-bit index types. Set longindices to False or disable LAPACK.")
+            env.Exit(1)
         header='clapack.h'
         if env['lapack']=='mkl':
             env.AppendUnique(CPPDEFINES = ['MKL_LAPACK'])
