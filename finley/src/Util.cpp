@@ -51,10 +51,10 @@ void sortValueAndIndex(ValueAndIndexList& array)
 
 /// gathers values into vector out from vector in using index:
 ///   out(1:numData, 1:len) := in(1:numData, index(1:len))
-void gather(int len, const int* index, int numData, const double* in, double* out)
+void gather(dim_t len, const index_t* index, dim_t numData, const double* in, double* out)
 {
-    for (int s=0; s<len; s++) {
-        for (int i=0; i<numData; i++) {
+    for (index_t s=0; s<len; s++) {
+        for (index_t i=0; i<numData; i++) {
             out[INDEX2(i,s,numData)] = in[INDEX2(i,index[s],numData)];
         }
     }
@@ -63,10 +63,11 @@ void gather(int len, const int* index, int numData, const double* in, double* ou
 /// adds a vector in into out using an index:
 ///   out(1:numData,index[p])+=in(1:numData,p) where
 ///   p={k=1...len, index[k]<upperBound}
-void addScatter(const int len, const int* index, const int numData, const double* in, double* out, const int upperBound)
+void addScatter(dim_t len, const index_t* index, dim_t numData,
+                const double* in, double* out, index_t upperBound)
 {
-    for (int s=0; s<len; s++) {
-        for (int i=0; i<numData; i++) {
+    for (index_t s=0; s<len; s++) {
+        for (index_t i=0; i<numData; i++) {
             if (index[s] < upperBound) {
                 out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
             }
@@ -236,16 +237,16 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
 }
 
 /// calculates the minimum value from a dim X N integer array
-int getMinInt(int dim, int N, const int* values)
+index_t getMinInt(int dim, dim_t N, const index_t* values)
 {
-    int out = std::numeric_limits<int>::max();
+    index_t out = std::numeric_limits<index_t>::max();
     if (values && dim*N > 0) {
         out=values[0];
 #pragma omp parallel
         {
-            int out_local=out;
+            index_t out_local=out;
 #pragma omp for
-            for (int j=0; j<N; j++) {
+            for (index_t j=0; j<N; j++) {
                 for (int i=0; i<dim; i++)
                     out_local=std::min(out_local, values[INDEX2(i,j,dim)]);
             }
@@ -257,16 +258,16 @@ int getMinInt(int dim, int N, const int* values)
 }
 
 /// calculates the maximum value from a dim X N integer array
-int getMaxInt(int dim, int N, const int* values)
+index_t getMaxInt(int dim, dim_t N, const index_t* values)
 {
-    int out = std::numeric_limits<int>::min();
+    index_t out = std::numeric_limits<index_t>::min();
     if (values && dim*N > 0) {
         out=values[0];
 #pragma omp parallel
         {
-            int out_local=out;
+            index_t out_local=out;
 #pragma omp for
-            for (int j=0; j<N; j++) {
+            for (index_t j=0; j<N; j++) {
                 for (int i=0; i<dim; i++)
                     out_local=std::max(out_local, values[INDEX2(i,j,dim)]);
             }
@@ -277,18 +278,18 @@ int getMaxInt(int dim, int N, const int* values)
     return out;
 }
 
-std::pair<int,int> getMinMaxInt(int dim, int N, const int* values)
+std::pair<index_t,index_t> getMinMaxInt(int dim, dim_t N, const index_t* values)
 {
-    int vmin = std::numeric_limits<int>::max();
-    int vmax = std::numeric_limits<int>::min();
+    index_t vmin = std::numeric_limits<index_t>::max();
+    index_t vmax = std::numeric_limits<index_t>::min();
     if (values && dim*N > 0) {
         vmin = vmax = values[0];
 #pragma omp parallel
         {
-            int vmin_local=vmin;
-            int vmax_local=vmax;
+            index_t vmin_local=vmin;
+            index_t vmax_local=vmax;
 #pragma omp for
-            for (int j=0; j<N; j++) {
+            for (index_t j=0; j<N; j++) {
                 for (int i=0; i<dim; i++) {
                     vmin_local=std::min(vmin_local, values[INDEX2(i,j,dim)]);
                     vmax_local=std::max(vmax_local, values[INDEX2(i,j,dim)]);
@@ -301,23 +302,23 @@ std::pair<int,int> getMinMaxInt(int dim, int N, const int* values)
             }
         }
     }
-    return std::pair<int,int>(vmin,vmax);
+    return std::pair<index_t,index_t>(vmin,vmax);
 }
 
 /// calculates the minimum and maximum value from an integer array of length N
 /// disregarding the value 'ignore'
-std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore)
+std::pair<index_t,index_t> getFlaggedMinMaxInt(dim_t N, const index_t* values, index_t ignore)
 {
-    int vmin = std::numeric_limits<int>::max();
-    int vmax = std::numeric_limits<int>::min();
+    index_t vmin = std::numeric_limits<index_t>::max();
+    index_t vmax = std::numeric_limits<index_t>::min();
     if (values && N > 0) {
         vmin = vmax = values[0];
 #pragma omp parallel
         {
-            int vmin_local=vmin;
-            int vmax_local=vmax;
+            index_t vmin_local=vmin;
+            index_t vmax_local=vmax;
 #pragma omp for
-            for (int i=0; i<N; i++) {
+            for (index_t i=0; i<N; i++) {
                 if (values[i] != ignore) {
                     vmin_local=std::min(vmin_local, values[i]);
                     vmax_local=std::max(vmax_local, values[i]);
@@ -330,15 +331,15 @@ std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore)
             }
         }
     }
-    return std::pair<int,int>(vmin,vmax);
+    return std::pair<index_t,index_t>(vmin,vmax);
 }
 
 /// determines the indices of the positive entries in mask returning the
 /// length of index.
-std::vector<int> packMask(const std::vector<short>& mask)
+std::vector<index_t> packMask(const std::vector<short>& mask)
 {
-    std::vector<int> index;
-    for (int k=0; k<mask.size(); k++) {
+    std::vector<index_t> index;
+    for (index_t k=0; k<mask.size(); k++) {
         if (mask[k] >= 0) {
             index.push_back(k);
         }

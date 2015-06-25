@@ -73,7 +73,7 @@ void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
             std::vector<double> dVdv(numQuad*numDim*numDim_local);
             // open the element loop
 #pragma omp for
-            for (int e=0; e<elements->numElements; e++) {
+            for (index_t e=0; e<elements->numElements; e++) {
                 // gather local coordinates of nodes into local_X:
                 util::gather(NS, &(elements->Nodes[INDEX2(node_offset,e,NN)]),
                              numDim, nodes->Coordinates, &local_X[0]);

@@ -56,9 +56,9 @@ void Assemble_PDE_Points(const AssembleParameters& p,
         for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for (int e=0; e<p.elements->numElements; e++) {
+            for (index_t e=0; e<p.elements->numElements; e++) {
                 if (p.elements->Color[e]==color) {
-                    int row_index=p.row_DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
+                    index_t row_index=p.row_DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
                         const double *y_dirac_p=y_dirac.getSampleDataRO(e);
                         util::addScatter(1, &row_index, p.numEqu,

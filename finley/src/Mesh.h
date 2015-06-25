@@ -82,11 +82,11 @@ public:
     ~Mesh();
 
     static Mesh* load(esysUtils::JMPI& mpi_info, const std::string fname);
-    static Mesh* read(esysUtils::JMPI& mpi_info, const std::string fname, int order, int reducedOrder,
-                      bool optimize);
-    static Mesh* readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                          int reducedOrder, bool optimize,
-                          bool useMacroElements);
+    static Mesh* read(esysUtils::JMPI& mpi_info, const std::string fname,
+                      int order, int reducedOrder, bool optimize);
+    static Mesh* readGmsh(esysUtils::JMPI& mpi_info, const std::string fname,
+                          int numDim, int order, int reducedOrder,
+                          bool optimize, bool useMacroElements);
 
     void write(const std::string fname) const;
 
@@ -109,12 +109,12 @@ public:
 
     void prepare(bool optimize);
     void resolveNodeIds();
-    void createMappings(const std::vector<int>& dofDistribution,
-                        const std::vector<int>& nodeDistribution);
+    void createMappings(const std::vector<index_t>& dofDistribution,
+                        const std::vector<index_t>& nodeDistribution);
     void markDOFsConnectedToRange(int* mask, int offset, int marker,
-                                  int firstDOF, int lastDOF, bool useLinear);
+                                  index_t firstDOF, index_t lastDOF, bool useLinear);
     
-    void relabelElementNodes(const std::vector<int>&, int offset);
+    void relabelElementNodes(const std::vector<index_t>&, index_t offset);
 
     void glueFaces(double safetyFactor, double tolerance, bool);
     void joinFaces(double safetyFactor, double tolerance, bool);
@@ -123,20 +123,20 @@ public:
     void print();
 
 private:
-    void createColoring(const std::vector<int>& dofMap);
-    void distributeByRankOfDOF(const std::vector<int>& distribution);
+    void createColoring(const std::vector<index_t>& dofMap);
+    void distributeByRankOfDOF(const std::vector<index_t>& distribution);
     void markNodes(std::vector<short>& mask, int offset, bool useLinear);
-    void optimizeDOFDistribution(std::vector<int>& distribution);
-    void optimizeDOFLabeling(const std::vector<int>& distribution);
+    void optimizeDOFDistribution(std::vector<index_t>& distribution);
+    void optimizeDOFLabeling(const std::vector<index_t>& distribution);
     void optimizeElementOrdering();
     void setOrders();
     void updateTagList();
-    static Mesh* readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                          int reducedOrder, bool optimize,
-                          bool useMacroElements);
-    static Mesh* readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                          int reducedOrder, bool optimize,
-                          bool useMacroElements);
+    static Mesh* readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname,
+                               int numDim, int order, int reducedOrder,
+                               bool optimize, bool useMacroElements);
+    static Mesh* readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname,
+                                int numDim, int order, int reducedOrder,
+                                bool optimize, bool useMacroElements);
 
 public:
     // the name of the mesh

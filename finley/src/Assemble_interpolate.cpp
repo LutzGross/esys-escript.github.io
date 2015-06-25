@@ -44,8 +44,10 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
     const_ReferenceElement_ptr refElement(elements->referenceElementSet->
                                         borrowReferenceElement(reducedOrder));
 
-    const int *resort_nodes = NULL, *map = NULL;
-    int numSub = 0, numNodes = 0;
+    const int *resort_nodes = NULL;
+    const index_t* map = NULL;
+    int numSub = 0;
+    dim_t numNodes = 0;
     const_ShapeFunction_ptr basis;
     int dof_offset = 0;
 
@@ -132,10 +134,10 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
             const size_t numComps_size=numComps*sizeof(double);
             // open the element loop
 #pragma omp for
-            for (int e=0; e<elements->numElements; e++) {
+            for (index_t e=0; e<elements->numElements; e++) {
                 for (int isub=0; isub<numSub; isub++) {
                     for (int q=0; q<NS_DOF; q++) {
-                        const int i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
+                        const index_t i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
                         const double *data_array=data.getSampleDataRO(map[i]);
                         memcpy(&local_data[INDEX3(0,q,isub, numComps,NS_DOF)], data_array, numComps_size);
                     }

@@ -33,64 +33,64 @@ public:
     NodeFile(int nDim, esysUtils::JMPI& mpiInfo);
     ~NodeFile();
 
-    void allocTable(int numNodes);
+    void allocTable(dim_t numNodes);
     void freeTable();
 
     void print() const;
-    inline int getFirstNode() const;
-    inline int getLastNode() const;
-    inline int getGlobalNumNodes() const;
-    inline int* borrowGlobalNodesIndex() const;
+    inline index_t getFirstNode() const;
+    inline index_t getLastNode() const;
+    inline index_t getGlobalNumNodes() const;
+    inline index_t* borrowGlobalNodesIndex() const;
 
-    inline int getFirstReducedNode() const;
-    inline int getLastReducedNode() const;
-    inline int getGlobalNumReducedNodes() const;
-    inline int* borrowGlobalReducedNodesIndex() const;
+    inline index_t getFirstReducedNode() const;
+    inline index_t getLastReducedNode() const;
+    inline index_t getGlobalNumReducedNodes() const;
+    inline index_t* borrowGlobalReducedNodesIndex() const;
 
     /// returns the number of FEM nodes
-    inline int getNumNodes() const;
-    inline int getNumReducedNodes() const;
-    inline int getNumDegreesOfFreedom() const;
-    inline int getNumReducedDegreesOfFreedom() const;
+    inline dim_t getNumNodes() const;
+    inline dim_t getNumReducedNodes() const;
+    inline dim_t getNumDegreesOfFreedom() const;
+    inline dim_t getNumReducedDegreesOfFreedom() const;
 
-    inline const std::vector<int>& borrowReducedNodesTarget() const;
-    inline const std::vector<int>& borrowDegreesOfFreedomTarget() const;
-    inline const std::vector<int>& borrowNodesTarget() const;
-    inline const std::vector<int>& borrowReducedDegreesOfFreedomTarget() const;
+    inline const std::vector<index_t>& borrowReducedNodesTarget() const;
+    inline const std::vector<index_t>& borrowDegreesOfFreedomTarget() const;
+    inline const std::vector<index_t>& borrowNodesTarget() const;
+    inline const std::vector<index_t>& borrowReducedDegreesOfFreedomTarget() const;
 
-    inline const int* borrowTargetReducedNodes() const;
-    inline const int* borrowTargetDegreesOfFreedom() const;
-    inline const int* borrowTargetNodes() const;
-    inline const int* borrowTargetReducedDegreesOfFreedom() const;
+    inline const index_t* borrowTargetReducedNodes() const;
+    inline const index_t* borrowTargetDegreesOfFreedom() const;
+    inline const index_t* borrowTargetNodes() const;
+    inline const index_t* borrowTargetReducedDegreesOfFreedom() const;
 
-    void createNodeMappings(const std::vector<int>& indexReducedNodes,
-                            const std::vector<int>& dofDistribution,
-                            const std::vector<int>& nodeDistribution);
+    void createNodeMappings(const std::vector<index_t>& indexReducedNodes,
+                            const std::vector<index_t>& dofDistribution,
+                            const std::vector<index_t>& nodeDistribution);
     int createDenseDOFLabeling();
-    int createDenseNodeLabeling(std::vector<int>& nodeDistribution,
-                                const std::vector<int>& dofDistribution);
+    int createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
+                                const std::vector<index_t>& dofDistribution);
     int createDenseReducedLabeling(const std::vector<short>& reducedMask,
                                    bool useNodes);
-    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const std::vector<int>& distribution);
+    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const std::vector<index_t>& distribution);
 
     void copyTable(int offset, int idOffset, int dofOffset, const NodeFile* in);
     void gather(int* index, const NodeFile* in);
-    void gather_global(int* index, const NodeFile* in);
+    void gather_global(index_t* index, const NodeFile* in);
     void scatter(int* index, const NodeFile* in);
 
     void setCoordinates(const escript::Data& newX);
     void setTags(const int newTag, const escript::Data& mask);
     inline void updateTagList();
 
-    std::pair<int,int> getDOFRange() const;
+    std::pair<index_t,index_t> getDOFRange() const;
 
 private:
-    std::pair<int,int> getGlobalIdRange() const;
-    std::pair<int,int> getGlobalDOFRange() const;
-    std::pair<int,int> getGlobalNodeIDIndexRange() const;
+    std::pair<index_t,index_t> getGlobalIdRange() const;
+    std::pair<index_t,index_t> getGlobalDOFRange() const;
+    std::pair<index_t,index_t> getGlobalNodeIDIndexRange() const;
     int prepareLabeling(const std::vector<short>& mask,
-                        std::vector<int>& buffer,
-                        std::vector<int>& distribution, bool useNodes);
+                        std::vector<index_t>& buffer,
+                        std::vector<index_t>& distribution, bool useNodes);
     void createDOFMappingAndCoupling(bool reduced);
 
     NodeMapping nodesMapping;
@@ -106,11 +106,11 @@ public:
     /// MPI information
     esysUtils::JMPI MPIInfo;
     /// number of nodes
-    int numNodes;
+    dim_t numNodes;
     /// number of spatial dimensions
     int numDim;
     /// Id[i] is the id number of node i. It needs to be unique.
-    int *Id;
+    index_t *Id;
     /// Tag[i] is the tag of node i.
     int *Tag;
     /// vector of tags which are actually used
@@ -118,17 +118,17 @@ public:
     /// globalDegreesOfFreedom[i] is the global degree of freedom assigned
     /// to node i. This index is used to consider periodic boundary conditions
     /// by assigning the same degreesOfFreedom to the same node.
-    int* globalDegreesOfFreedom;
+    index_t* globalDegreesOfFreedom;
     /// Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of node i
     double *Coordinates;
     /// assigns each local node a global unique Id in a dense labeling of
     /// reduced DOF. Value <0 indicates that the DOF is not used.
-    int *globalReducedDOFIndex;
+    index_t *globalReducedDOFIndex;
     /// assigns each local node a global unique Id in a dense labeling.
     /// Value <0 indicates that the DOF is not used
-    int *globalReducedNodesIndex;
+    index_t *globalReducedNodesIndex;
     /// assigns each local reduced node a global unique Id in a dense labeling
-    int *globalNodesIndex;
+    index_t *globalNodesIndex;
 
     paso::Distribution_ptr nodesDistribution;
     paso::Distribution_ptr reducedNodesDistribution;
@@ -139,9 +139,9 @@ public:
     paso::Connector_ptr reducedDegreesOfFreedomConnector;
   
     /// these are the packed versions of Id
-    int *reducedNodesId;        
-    int *degreesOfFreedomId;
-    int *reducedDegreesOfFreedomId;
+    index_t *reducedNodesId;        
+    index_t *degreesOfFreedomId;
+    index_t *reducedDegreesOfFreedomId;
 
     /// the status counts the updates done on the node coordinates.
     /// The value is increased by 1 when the node coordinates are updated.
@@ -152,102 +152,102 @@ public:
 // implementation of inline methods
 //
 
-inline int NodeFile::getFirstNode() const
+inline index_t NodeFile::getFirstNode() const
 {
     return nodesDistribution->getFirstComponent();
 }
 
-inline int NodeFile::getLastNode() const
+inline index_t NodeFile::getLastNode() const
 {
     return nodesDistribution->getLastComponent();
 }
 
-inline int NodeFile::getGlobalNumNodes() const
+inline index_t NodeFile::getGlobalNumNodes() const
 {
     return nodesDistribution->getGlobalNumComponents();
 }
 
-inline int* NodeFile::borrowGlobalNodesIndex() const
+inline index_t* NodeFile::borrowGlobalNodesIndex() const
 {
     return globalNodesIndex;
 }
 
-inline int NodeFile::getFirstReducedNode() const
+inline index_t NodeFile::getFirstReducedNode() const
 {
     return reducedNodesDistribution->getFirstComponent();
 }
 
-inline int NodeFile::getLastReducedNode() const
+inline index_t NodeFile::getLastReducedNode() const
 {
     return reducedNodesDistribution->getLastComponent();
 }
 
-inline int NodeFile::getGlobalNumReducedNodes() const
+inline dim_t NodeFile::getGlobalNumReducedNodes() const
 {
     return reducedNodesDistribution->getGlobalNumComponents();
 }
 
-inline int* NodeFile::borrowGlobalReducedNodesIndex() const
+inline index_t* NodeFile::borrowGlobalReducedNodesIndex() const
 {
     return globalReducedNodesIndex;
 }
 
-inline int NodeFile::getNumNodes() const
+inline dim_t NodeFile::getNumNodes() const
 {
     return numNodes;
 }
 
-inline int NodeFile::getNumReducedNodes() const
+inline dim_t NodeFile::getNumReducedNodes() const
 {
     return reducedNodesMapping.getNumTargets();
 }
 
-inline int NodeFile::getNumDegreesOfFreedom() const
+inline dim_t NodeFile::getNumDegreesOfFreedom() const
 {
     return degreesOfFreedomDistribution->getMyNumComponents();
 }
 
-inline int NodeFile::getNumReducedDegreesOfFreedom() const
+inline dim_t NodeFile::getNumReducedDegreesOfFreedom() const
 {
     return reducedDegreesOfFreedomDistribution->getMyNumComponents();
 }
 
-inline const std::vector<int>& NodeFile::borrowNodesTarget() const
+inline const std::vector<index_t>& NodeFile::borrowNodesTarget() const
 {
     return nodesMapping.map;
 }
 
-inline const std::vector<int>& NodeFile::borrowReducedNodesTarget() const
+inline const std::vector<index_t>& NodeFile::borrowReducedNodesTarget() const
 {
     return reducedNodesMapping.map;
 }
 
-inline const std::vector<int>& NodeFile::borrowDegreesOfFreedomTarget() const
+inline const std::vector<index_t>& NodeFile::borrowDegreesOfFreedomTarget() const
 {
     return degreesOfFreedomMapping.map;
 }
 
-inline const std::vector<int>& NodeFile::borrowReducedDegreesOfFreedomTarget() const
+inline const std::vector<index_t>& NodeFile::borrowReducedDegreesOfFreedomTarget() const
 {
     return reducedDegreesOfFreedomMapping.map;
 }
 
-inline const int* NodeFile::borrowTargetNodes() const
+inline const index_t* NodeFile::borrowTargetNodes() const
 {
     return &nodesMapping.target[0];
 }
 
-inline const int* NodeFile::borrowTargetReducedNodes() const
+inline const index_t* NodeFile::borrowTargetReducedNodes() const
 {
     return &reducedNodesMapping.target[0];
 }
 
-inline const int* NodeFile::borrowTargetDegreesOfFreedom() const
+inline const index_t* NodeFile::borrowTargetDegreesOfFreedom() const
 {
     return &degreesOfFreedomMapping.target[0];
 }
 
-inline const int* NodeFile::borrowTargetReducedDegreesOfFreedom() const
+inline const index_t* NodeFile::borrowTargetReducedDegreesOfFreedom() const
 {
     return &reducedDegreesOfFreedomMapping.target[0];
 }

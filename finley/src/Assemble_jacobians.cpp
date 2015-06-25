@@ -20,13 +20,13 @@
     int numQuad
     const double* QuadWeights[numQuad]
     int numShape
-    int numElements
-    int numNodes
-    const int* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
+    dim_t numElements
+    dim_t numNodes
+    const index_t* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
     const double* DSDv[numShape*DIM*numQuad]
     int numTest
     double* DTDv[LOCDIM*numTest*numQuad] 
-    const int* elementId[numElements]
+    const index_t* elementId[numElements]
 
   output:
     double* dTdX[DIM*numTest*NUMSIDES*numQuad*numElements]
@@ -50,14 +50,14 @@ namespace finley {
 //
 void Assemble_jacobians_1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=1;
     const int LOCDIM=1;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double D=0.;
             for (int s=0; s<numShape; s++) {
@@ -87,14 +87,14 @@ void Assemble_jacobians_1D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=2;
     const int LOCDIM=2;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00=0.;
             double dXdv10=0.;
@@ -141,14 +141,14 @@ void Assemble_jacobians_2D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=2;
     const int LOCDIM=1;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00=0.;
             double dXdv10=0.;
@@ -187,14 +187,14 @@ void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=2;
     const int LOCDIM=1;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00_0=0;
             double dXdv10_0=0;
@@ -247,14 +247,14 @@ void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=2;
     const int LOCDIM=2;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00=0;
             double dXdv10=0;
@@ -301,14 +301,14 @@ void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=2;
     const int LOCDIM=2;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00_0=0;
             double dXdv10_0=0;
@@ -377,14 +377,14 @@ void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=3;
     const int LOCDIM=3;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00=0;
             double dXdv10=0;
@@ -453,14 +453,14 @@ void Assemble_jacobians_3D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=3;
     const int LOCDIM=3;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00=0;
             double dXdv10=0;
@@ -534,14 +534,14 @@ void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=3;
     const int LOCDIM=3;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00_0=0;
             double dXdv10_0=0;
@@ -667,14 +667,14 @@ void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=3;
     const int LOCDIM=2;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00=0;
             double dXdv10=0;
@@ -734,14 +734,14 @@ void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           int numElements, int numNodes, const int* nodes,
+                           dim_t numElements, dim_t numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
-                           double* dTdX, double* volume, const int* elementId)
+                           double* dTdX, double* volume, const index_t* elementId)
 {
     const int DIM=3;
     const int LOCDIM=2;
 #pragma omp parallel for
-    for (int e=0; e<numElements; e++) {
+    for (index_t e=0; e<numElements; e++) {
         for (int q=0; q<numQuad; q++) {
             double dXdv00_0=0;
             double dXdv10_0=0;

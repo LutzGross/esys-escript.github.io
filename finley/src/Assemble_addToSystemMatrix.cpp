@@ -85,14 +85,14 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
     const int num_subblocks_Sol=num_Sol/col_block_size;
     const int numMyCols=in->pattern->mainPattern->numInput;
     const int numMyRows=in->pattern->mainPattern->numOutput;
-    const int *mainBlock_ptr=in->mainBlock->pattern->ptr;
-    const int *mainBlock_index=in->mainBlock->pattern->index;
+    const index_t *mainBlock_ptr=in->mainBlock->pattern->ptr;
+    const index_t *mainBlock_index=in->mainBlock->pattern->index;
     double *mainBlock_val=in->mainBlock->val;
-    const int *col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
-    const int *col_coupleBlock_index=in->col_coupleBlock->pattern->index;
+    const index_t *col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
+    const index_t *col_coupleBlock_index=in->col_coupleBlock->pattern->index;
     double *col_coupleBlock_val=in->col_coupleBlock->val;
-    //const int *row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
-    const int *row_coupleBlock_index=in->row_coupleBlock->pattern->index;
+    //const index_t *row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
+    const index_t *row_coupleBlock_index=in->row_coupleBlock->pattern->index;
     double *row_coupleBlock_val=in->row_coupleBlock->val;
 
     for (int k_Sol=0; k_Sol<NN_Sol; ++k_Sol) {
@@ -215,14 +215,14 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
     const int num_subblocks_Sol=num_Sol/col_block_size;
     const int numMyCols=in->pattern->mainPattern->numInput;
     const int numMyRows=in->pattern->mainPattern->numOutput;
-    const int *mainBlock_ptr=in->mainBlock->pattern->ptr;
-    const int *mainBlock_index=in->mainBlock->pattern->index;
+    const index_t *mainBlock_ptr=in->mainBlock->pattern->ptr;
+    const index_t *mainBlock_index=in->mainBlock->pattern->index;
     double *mainBlock_val=in->mainBlock->val;
-    const int *col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
-    const int *col_coupleBlock_index=in->col_coupleBlock->pattern->index;
+    const index_t *col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
+    const index_t *col_coupleBlock_index=in->col_coupleBlock->pattern->index;
     double *col_coupleBlock_val=in->col_coupleBlock->val;
-    const int *row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
-    const int *row_coupleBlock_index=in->row_coupleBlock->pattern->index;
+    const index_t *row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
+    const index_t *row_coupleBlock_index=in->row_coupleBlock->pattern->index;
     double *row_coupleBlock_val=in->row_coupleBlock->val;
 
     for (int k_Equa=0; k_Equa<NN_Equa; ++k_Equa) {

@@ -37,12 +37,12 @@ using esysUtils::IndexList;
 class ElementFile;
 
 void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
-                              bool reduce_row_order, const int* row_map,
-                              bool reduce_col_order, const int* col_map);
+                              bool reduce_row_order, const index_t* row_map,
+                              bool reduce_col_order, const index_t* col_map);
 
 void IndexList_insertElementsWithRowRangeNoMainDiagonal(
-        IndexList* index_list, int firstRow, int lastRow,
-        ElementFile* elements, int* row_map, int* col_map);
+        IndexList* index_list, index_t firstRow, index_t lastRow,
+        ElementFile* elements, index_t* row_map, index_t* col_map);
 
 } // namespace finley
 

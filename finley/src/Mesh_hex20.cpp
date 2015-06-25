@@ -38,7 +38,7 @@ Mesh* RectangularMesh_Hex20(const int* numElements, const double* Length,
                             const bool* periodic, int order, int reduced_order, 
                             bool useElementsOnFace, bool useFullElementOrder,
                             bool useMacroElements, bool optimize,
-			    esysUtils::JMPI& mpi_info) 
+                            esysUtils::JMPI& mpi_info) 
 {
 #define N_PER_E 2
 #define DIM 3

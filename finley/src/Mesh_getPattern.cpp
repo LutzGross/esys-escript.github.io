@@ -82,7 +82,7 @@ paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool redu
 
     int myNumColTargets, myNumRowTargets;
     int numColTargets, numRowTargets;
-    const int *colTarget, *rowTarget;
+    const index_t *colTarget, *rowTarget;
 
     if (reduce_col_order) {
         myNumColTargets=Nodes->getNumReducedDegreesOfFreedom();

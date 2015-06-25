@@ -39,8 +39,8 @@
 namespace finley {
 
 void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
-                              bool reduce_row_order, const int* row_map,
-                              bool reduce_col_order, const int* col_map)
+                              bool reduce_row_order, const index_t* row_map,
+                              bool reduce_col_order, const index_t* col_map)
 {
     // index_list is an array of linked lists. Each entry is a row (DOF) and
     // contains the indices to the non-zero columns
@@ -75,13 +75,13 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
 
     for (int color=elements->minColor; color<=elements->maxColor; color++) {
 #pragma omp for
-        for (int e=0; e<elements->numElements; e++) {
+        for (index_t e=0; e<elements->numElements; e++) {
             if (elements->Color[e]==color) {
                 for (int isub=0; isub<numSub; isub++) {
                     for (int kr=0; kr<NN_row; kr++) {
-                        const int irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,isub,NN_row)],e,NN)]];
+                        const index_t irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,isub,NN_row)],e,NN)]];
                         for (int kc=0; kc<NN_col; kc++) {
-                            const int icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,isub,NN_col)],e,NN)]];
+                            const index_t icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,isub,NN_col)],e,NN)]];
                             index_list[irow].insertIndex(icol);
                         }
                     }
@@ -92,9 +92,9 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
 }
 
 void IndexList_insertElementsWithRowRangeNoMainDiagonal(
-                            IndexList* index_list, int firstRow,
-                            int lastRow, ElementFile* elements,
-                            int* row_map, int* col_map)
+                            IndexList* index_list, index_t firstRow,
+                            index_t lastRow, ElementFile* elements,
+                            index_t* row_map, index_t* col_map)
 {
     if (!elements)
         return;
@@ -103,14 +103,14 @@ void IndexList_insertElementsWithRowRangeNoMainDiagonal(
     const int NN=elements->numNodes;
     for (int color=elements->minColor; color<=elements->maxColor; color++) {
 #pragma omp for
-        for (int e=0; e<elements->numElements; e++) {
+        for (index_t e=0; e<elements->numElements; e++) {
             if (elements->Color[e]==color) {
                 for (int kr=0; kr<NN; kr++) {
-                    const int irow=row_map[elements->Nodes[INDEX2(kr,e,NN)]];
+                    const index_t irow=row_map[elements->Nodes[INDEX2(kr,e,NN)]];
                     if (firstRow<=irow && irow<lastRow) {
-                        const int irow_loc=irow-firstRow;
+                        const index_t irow_loc=irow-firstRow;
                         for (int kc=0; kc<NN; kc++) {
-                            const int icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
+                            const index_t icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
                             if (icol != irow)
                                 index_list[irow_loc].insertIndex(icol);
                         }

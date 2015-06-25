@@ -126,12 +126,12 @@ void Mesh::setOrders()
 }
 
 /// creates node mappings without (re-)distributing anything
-void Mesh::createMappings(const std::vector<int>& dofDistribution,
-                          const std::vector<int>& nodeDistribution)
+void Mesh::createMappings(const std::vector<index_t>& dofDistribution,
+                          const std::vector<index_t>& nodeDistribution)
 {
     std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
     markNodes(maskReducedNodes, 0, true);
-    std::vector<int> indexReducedNodes = util::packMask(maskReducedNodes);
+    std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
     if (noError())
         Nodes->createNodeMappings(indexReducedNodes, dofDistribution,
                                   nodeDistribution);
@@ -140,7 +140,7 @@ void Mesh::createMappings(const std::vector<int>& dofDistribution,
 /// redistributes the Nodes and Elements including overlap
 /// according to the DOF distribution. It will create an element colouring
 /// but will not create any mappings.
-void Mesh::distributeByRankOfDOF(const std::vector<int>& dof_distribution)
+void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
 {
     std::vector<int> mpiRankOfDOF(Nodes->numNodes);
     Nodes->assignMPIRankToDOFs(mpiRankOfDOF, dof_distribution);
@@ -163,14 +163,14 @@ void Mesh::distributeByRankOfDOF(const std::vector<int>& dof_distribution)
         resolveNodeIds();
 
     // create a local labeling of the DOFs
-    const std::pair<int,int> dof_range(Nodes->getDOFRange());
-    const int len=dof_range.second-dof_range.first+1;
+    const std::pair<index_t,index_t> dof_range(Nodes->getDOFRange());
+    const index_t len=dof_range.second-dof_range.first+1;
     // local mask for used nodes
-    std::vector<int> localDOF_mask(len, -1);
-    std::vector<int> localDOF_map(Nodes->numNodes, -1);
+    std::vector<index_t> localDOF_mask(len, -1);
+    std::vector<index_t> localDOF_map(Nodes->numNodes, -1);
 
 #pragma omp parallel for
-    for (int n=0; n<Nodes->numNodes; n++) {
+    for (index_t n=0; n<Nodes->numNodes; n++) {
 #ifdef BOUNDS_CHECK
         if ((Nodes->globalDegreesOfFreedom[n]-dof_range.first) >= len ||
                 (Nodes->globalDegreesOfFreedom[n]-dof_range.first) < 0) {
@@ -181,17 +181,17 @@ void Mesh::distributeByRankOfDOF(const std::vector<int>& dof_distribution)
         localDOF_mask[Nodes->globalDegreesOfFreedom[n]-dof_range.first]=n;
     }
 
-    int numDOFs=0;
+    index_t numDOFs=0;
     for (int n=0; n<len; n++) {
-        const int k=localDOF_mask[n];
+        const index_t k=localDOF_mask[n];
         if (k>=0) {
              localDOF_mask[n]=numDOFs;
              numDOFs++;
           }
     }
 #pragma omp parallel for
-    for (int n=0; n<Nodes->numNodes; n++) {
-        const int k=localDOF_mask[Nodes->globalDegreesOfFreedom[n]-dof_range.first];
+    for (index_t n=0; n<Nodes->numNodes; n++) {
+        const index_t k=localDOF_mask[Nodes->globalDegreesOfFreedom[n]-dof_range.first];
         localDOF_map[n]=k;
     }
     // create element coloring
@@ -210,80 +210,87 @@ void Mesh::print()
   
     // write elements
     if (Elements) {
-        printf("=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-               Elements->referenceElementSet->referenceElement->Type->Name,
-               Elements->numElements, Elements->minColor, Elements->maxColor);
+        std::cout << "=== "
+                 << Elements->referenceElementSet->referenceElement->Type->Name
+                 << ":\nnumber of elements=" << Elements->numElements
+                 << "\ncolor range=[" << Elements->minColor << ","
+                 << Elements->maxColor << "]\n";
         if (Elements->numElements > 0) {
             const int NN=Elements->referenceElementSet->referenceElement->Type->numNodes;
             const int NN2=Elements->numNodes;
-            printf("Id,Tag,Owner,Color,Nodes\n");
-            for (int i=0; i<Elements->numElements; i++) {
-                printf("%d,%d,%d,%d,", Elements->Id[i], Elements->Tag[i],
-                        Elements->Owner[i], Elements->Color[i]);
+            std::cout << "Id,Tag,Owner,Color,Nodes" << std::endl;
+            for (index_t i=0; i<Elements->numElements; i++) {
+                std::cout << Elements->Id[i] << "," << Elements->Tag[i] << ","
+                    << Elements->Owner[i] << "," << Elements->Color[i] << ",";
                 for (int j=0; j<NN; j++)
-                    printf(" %d", Nodes->Id[Elements->Nodes[INDEX2(j,i,NN2)]]);
-                printf("\n");
+                    std::cout << " " << Nodes->Id[Elements->Nodes[INDEX2(j,i,NN2)]];
+                std::cout << std::endl;
             }
         }
     }
 
     // write face elements
     if (FaceElements) {
-        printf("=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-               FaceElements->referenceElementSet->referenceElement->Type->Name,
-               FaceElements->numElements, FaceElements->minColor,
-               FaceElements->maxColor);
+        std::cout << "=== "
+                 << FaceElements->referenceElementSet->referenceElement->Type->Name
+                 << ":\nnumber of elements=" << FaceElements->numElements
+                 << "\ncolor range=[" << FaceElements->minColor << ","
+                 << FaceElements->maxColor << "]\n";
         if (FaceElements->numElements > 0) {
             const int NN=FaceElements->referenceElementSet->referenceElement->Type->numNodes;
             const int NN2=FaceElements->numNodes;
-            printf("Id,Tag,Owner,Color,Nodes\n");
-            for (int i=0; i<FaceElements->numElements; i++) {
-                printf("%d,%d,%d,%d,", FaceElements->Id[i],
-                        FaceElements->Tag[i], FaceElements->Owner[i],
-                        FaceElements->Color[i]);
+            std::cout << "Id,Tag,Owner,Color,Nodes" << std::endl;
+            for (index_t i=0; i<FaceElements->numElements; i++) {
+                std::cout << FaceElements->Id[i] << "," << FaceElements->Tag[i]
+                    << "," << FaceElements->Owner[i] << ","
+                    << FaceElements->Color[i] << ",";
                 for (int j=0; j<NN; j++)
-                    printf(" %d", Nodes->Id[FaceElements->Nodes[INDEX2(j,i,NN2)]]);
-                printf("\n");
+                    std::cout << " " << Nodes->Id[FaceElements->Nodes[INDEX2(j,i,NN2)]];
+                std::cout << std::endl;
             }
         }
     }
 
     // write Contact elements
     if (ContactElements) {
-        printf("=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-               ContactElements->referenceElementSet->referenceElement->Type->Name,
-               ContactElements->numElements, ContactElements->minColor,
-               ContactElements->maxColor);
+        std::cout << "=== "
+                 << ContactElements->referenceElementSet->referenceElement->Type->Name
+                 << ":\nnumber of elements=" << ContactElements->numElements
+                 << "\ncolor range=[" << ContactElements->minColor << ","
+                 << ContactElements->maxColor << "]\n";
         if (ContactElements->numElements > 0) {
             const int NN=ContactElements->referenceElementSet->referenceElement->Type->numNodes;
             const int NN2=ContactElements->numNodes;
-            printf("Id,Tag,Owner,Color,Nodes\n");
-            for (int i=0; i<ContactElements->numElements; i++) {
-                printf("%d,%d,%d,%d,", ContactElements->Id[i],
-                        ContactElements->Tag[i], ContactElements->Owner[i],
-                        ContactElements->Color[i]);
+            std::cout << "Id,Tag,Owner,Color,Nodes" << std::endl;
+            for (index_t i=0; i<ContactElements->numElements; i++) {
+                std::cout << ContactElements->Id[i] << ","
+                    << ContactElements->Tag[i] << ","
+                    << ContactElements->Owner[i] << ","
+                    << ContactElements->Color[i] << ",";
                 for (int j=0; j<NN; j++)
-                    printf(" %d", Nodes->Id[ContactElements->Nodes[INDEX2(j,i,NN2)]]);
-                printf("\n");
+                    std::cout << " " << Nodes->Id[ContactElements->Nodes[INDEX2(j,i,NN2)]];
+                std::cout << std::endl;
             }
         }
     }
   
     // write points
     if (Points) {
-        printf("=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-               Points->referenceElementSet->referenceElement->Type->Name,
-               Points->numElements, Points->minColor, Points->maxColor);
+        std::cout << "=== "
+                 << Points->referenceElementSet->referenceElement->Type->Name
+                 << ":\nnumber of elements=" << Points->numElements
+                 << "\ncolor range=[" << Points->minColor << ","
+                 << Points->maxColor << "]\n";
         if (Points->numElements > 0) {
             const int NN=Points->referenceElementSet->referenceElement->Type->numNodes;
             const int NN2=Points->numNodes;
-            printf("Id,Tag,Owner,Color,Nodes\n");
-            for (int i=0; i<Points->numElements; i++) {
-                printf("%d,%d,%d,%d,", Points->Id[i], Points->Tag[i],
-                        Points->Owner[i], Points->Color[i]);
+            std::cout << "Id,Tag,Owner,Color,Nodes" << std::endl;
+            for (index_t i=0; i<Points->numElements; i++) {
+                std::cout << Points->Id[i] << "," << Points->Tag[i] << ","
+                    << Points->Owner[i] << "," << Points->Color[i] << ",";
                 for (int j=0; j<NN; j++)
-                    printf(" %d", Nodes->Id[Points->Nodes[INDEX2(j,i,NN2)]]);
-                printf("\n");
+                    std::cout << " " << Nodes->Id[Points->Nodes[INDEX2(j,i,NN2)]];
+                std::cout << std::endl;
             }
         }
     }
@@ -298,9 +305,10 @@ void Mesh::markNodes(std::vector<short>& mask, int offset, bool useLinear)
 }
 
 void Mesh::markDOFsConnectedToRange(int* mask, int offset, int marker, 
-                                    int firstDOF, int lastDOF, bool useLinear)
+                                    index_t firstDOF, index_t lastDOF,
+                                    bool useLinear)
 {
-    const int *dofIndex = (useLinear ? Nodes->globalReducedDOFIndex
+    const index_t *dofIndex = (useLinear ? Nodes->globalReducedDOFIndex
                                      : Nodes->globalDegreesOfFreedom);
     Elements->markDOFsConnectedToRange(mask, offset, marker, firstDOF, lastDOF,
             dofIndex, useLinear);
@@ -313,19 +321,19 @@ void Mesh::markDOFsConnectedToRange(int* mask, int offset, int marker,
 }
 
 /// optimizes the labeling of the DOFs on each processor
-void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
+void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
 {
     const int myRank=MPIInfo->rank;
     const int mpiSize=MPIInfo->size;
-    const int myFirstVertex=distribution[myRank];
-    const int myLastVertex=distribution[myRank+1];
-    const int myNumVertices=myLastVertex-myFirstVertex;
-    int len=0;
+    const index_t myFirstVertex=distribution[myRank];
+    const index_t myLastVertex=distribution[myRank+1];
+    const dim_t myNumVertices=myLastVertex-myFirstVertex;
+    index_t len=0;
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
 
     boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-    std::vector<int> newGlobalDOFID(len);
+    std::vector<index_t> newGlobalDOFID(len);
     // create the adjacency structure xadj and adjncy
 #pragma omp parallel
     {
@@ -370,11 +378,11 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
 #endif
         int current_rank=myRank;
         for (int p=0; p<mpiSize; ++p) {
-            const int firstVertex=distribution[current_rank];
-            const int lastVertex=distribution[current_rank+1];
+            const index_t firstVertex=distribution[current_rank];
+            const index_t lastVertex=distribution[current_rank+1];
 #pragma omp parallel for
-            for (int i=0; i<Nodes->numNodes; ++i) {
-                const int k=Nodes->globalDegreesOfFreedom[i];
+            for (index_t i=0; i<Nodes->numNodes; ++i) {
+                const index_t k=Nodes->globalDegreesOfFreedom[i];
                 if (firstVertex<=k && k<lastVertex) {
                     Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
                 }
@@ -383,7 +391,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
             if (p<mpiSize-1) { // the final send can be skipped
 #ifdef ESYS_MPI
                 MPI_Status status;
-                MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_INT,
+                MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
                                      dest, MPIInfo->msg_tag_counter,
                                      source, MPIInfo->msg_tag_counter,
                                      MPIInfo->comm, &status);
@@ -402,10 +410,10 @@ void Mesh::prepare(bool optimize)
 
     // first step is to distribute the elements according to a global
     // distribution of DOF
-    std::vector<int> distribution(MPIInfo->size+1);
+    std::vector<index_t> distribution(MPIInfo->size+1);
 
     // first we create dense labeling for the DOFs
-    int newGlobalNumDOFs=Nodes->createDenseDOFLabeling();
+    index_t newGlobalNumDOFs=Nodes->createDenseDOFLabeling();
 
     // create a distribution of the global DOFs and determine the MPI rank
     // controlling the DOFs on this processor
@@ -437,9 +445,9 @@ void Mesh::prepare(bool optimize)
     // create the global indices
     if (noError()) {
         std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
-        std::vector<int> nodeDistribution(MPIInfo->size+1);
+        std::vector<index_t> nodeDistribution(MPIInfo->size+1);
         markNodes(maskReducedNodes, 0, true);
-        std::vector<int> indexReducedNodes = util::packMask(maskReducedNodes);
+        std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
 
         Nodes->createDenseNodeLabeling(nodeDistribution, distribution); 
         // created reduced DOF labeling
@@ -456,7 +464,7 @@ void Mesh::prepare(bool optimize)
 }
 
 /// tries to reduce the number of colours for all element files
-void Mesh::createColoring(const std::vector<int>& dofMap)
+void Mesh::createColoring(const std::vector<index_t>& dofMap)
 {
     if (noError())
         Elements->createColoring(dofMap);
@@ -492,7 +500,7 @@ void Mesh::updateTagList()
 }
 
 /// assigns new node reference numbers to all element files
-void Mesh::relabelElementNodes(const std::vector<int>& newNode, int offset)
+void Mesh::relabelElementNodes(const std::vector<index_t>& newNode, index_t offset)
 {
     Elements->relabelNodes(newNode, offset);
     FaceElements->relabelNodes(newNode, offset);
@@ -511,9 +519,9 @@ void Mesh::resolveNodeIds()
     // The function does not create a distribution of the degrees of freedom.
 
     // find the minimum and maximum id used by elements
-    int min_id=std::numeric_limits<int>::max();
-    int max_id=std::numeric_limits<int>::min();
-    std::pair<int,int> range(Elements->getNodeRange());
+    index_t min_id=std::numeric_limits<index_t>::max();
+    index_t max_id=std::numeric_limits<index_t>::min();
+    std::pair<index_t,index_t> range(Elements->getNodeRange());
     max_id=std::max(max_id,range.second);
     min_id=std::min(min_id,range.first);
     range=FaceElements->getNodeRange();
@@ -526,12 +534,12 @@ void Mesh::resolveNodeIds()
     max_id=std::max(max_id,range.second);
     min_id=std::min(min_id,range.first);
 #ifdef Finley_TRACE
-    int global_min_id, global_max_id;
+    index_t global_min_id, global_max_id;
 #ifdef ESYS_MPI
-    int id_range[2], global_id_range[2];
+    index_t id_range[2], global_id_range[2];
     id_range[0]=-min_id;
     id_range[1]=max_id;
-    MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, MPIInfo->comm);
+    MPI_Allreduce(id_range, global_id_range, 2, MPI_DIM_T, MPI_MAX, MPIInfo->comm);
     global_min_id=-global_id_range[0];
     global_max_id=global_id_range[1];
 #else
@@ -549,7 +557,7 @@ void Mesh::resolveNodeIds()
     // (newLocalToGlobalNodeLabels) and global node labeling to the new local
     // node labeling (globalToNewLocalNodeLabels[i-min_id] is the new local id
     // of global node i)
-    int len=(max_id>=min_id) ? max_id-min_id+1 : 0;
+    index_t len=(max_id>=min_id) ? max_id-min_id+1 : 0;
 
     // mark the nodes referred by elements in usedMask
     std::vector<short> usedMask(len, -1);
@@ -557,16 +565,16 @@ void Mesh::resolveNodeIds()
 
     // create a local labeling newLocalToGlobalNodeLabels of the local nodes
     // by packing the mask usedMask
-    std::vector<int> newLocalToGlobalNodeLabels=util::packMask(usedMask);
-    const int newNumNodes=newLocalToGlobalNodeLabels.size();
+    std::vector<index_t> newLocalToGlobalNodeLabels=util::packMask(usedMask);
+    const dim_t newNumNodes=newLocalToGlobalNodeLabels.size();
     usedMask.clear();
 
     // invert the new labeling and shift the index newLocalToGlobalNodeLabels
     // to global node ids
-    std::vector<int> globalToNewLocalNodeLabels(len, -1);
+    std::vector<index_t> globalToNewLocalNodeLabels(len, -1);
 
 #pragma omp parallel for
-    for (int n=0; n<newNumNodes; n++) {
+    for (index_t n=0; n<newNumNodes; n++) {
 #ifdef BOUNDS_CHECK
         if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0) {
             printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n);
