@@ -16,6 +16,21 @@
 \chapter{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{4.0 to 4.1}
+\begin{itemize}
+  \item The gmshReader now supports reading with multiple processes
+  \item Using the help() function on some domains is now more informative
+  \item User guide updated with information on use of Dirac points
+  \item Minimizer misfit now available via the callback function
+  \item Specifying use of a direct solver without a direct solver being available now raises an exception rather than silently default to a non-direct solver
+  \item Synthetic seismic examples for various wave types now included in the examples distributed
+  \item Reading NetCDF files when the default value in the file is nan no longer causes issues
+  \item Various documentation updates and fixes in user guide, install guide, and code documentation
+  \item Various compatibility fixes with Python3
+  \item HTI and VTIWave models now support setting a q value for custom boundary conditions
+  \item Using a MPI-enabled gmsh with an MPI build of \escript should now reliably wait for gmsh to end
+\end{itemize}
+
 \subsection*{3.4.2 to 4.0}
 \begin{itemize}
   \item New spectral element domain, \speckley
