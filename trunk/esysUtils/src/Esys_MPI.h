@@ -103,6 +103,11 @@ public:
     {
 	msg_tag_counter%=1010201;
     }
+
+    bool isValid()
+    {
+	return comm!=MPI_COMM_NULL;
+    }
 private:
     JMPI_(MPI_Comm comm, bool ocomm);
     friend JMPI makeInfo(MPI_Comm comm, bool owncom);
@@ -146,7 +151,7 @@ ESYSUTILS_DLL_API
 bool checkResult(int input, int& output, const JMPI& comm);
 
 
-// Do not cope with nested calls
+// Does not cope with nested calls
 class NoCOMM_WORLD
 {
 public:

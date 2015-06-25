@@ -61,7 +61,7 @@ JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
 JMPI_::~JMPI_()
 {
 #ifdef ESYS_MPI
-    if (ownscomm)
+    if (ownscomm && (comm!=MPI_COMM_NULL))
     {
         MPI_Comm_free(&comm);
     }
