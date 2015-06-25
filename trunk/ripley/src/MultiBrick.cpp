@@ -139,7 +139,7 @@ void MultiBrick::validateInterpolationAcross(int fsType_source,
 
     const double *len = other->getLength();
     const int *subdivs = other->getNumSubdivisionsPerDim();
-    const int *elements = other->getNumElementsPerDim();
+    const dim_t *elements = other->getNumElementsPerDim();
     const unsigned int level = other->getNumSubdivisionsPerElement();
     const unsigned int factor = m_subdivisions > level ? m_subdivisions/level : level/m_subdivisions;
     if ((factor & (factor - 1)) != 0) //factor == 2**x

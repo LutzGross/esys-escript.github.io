@@ -116,7 +116,7 @@ void MultiRectangle::validateInterpolationAcross(int fsType_source,
 
     const double *len = other->getLength();
     const int *subdivs = other->getNumSubdivisionsPerDim();
-    const int *elements = other->getNumElementsPerDim();
+    const dim_t *elements = other->getNumElementsPerDim();
     const unsigned int level = other->getNumSubdivisionsPerElement();
     const unsigned int factor = m_subdivisions > level ? m_subdivisions/level : level/m_subdivisions;
     if ((factor & (factor - 1)) != 0) //factor == 2**x
@@ -133,7 +133,8 @@ void MultiRectangle::validateInterpolationAcross(int fsType_source,
         }
         if (m_subdivisions > level) {
             if (m_NE[i]/elements[i] != factor) {
-            fprintf(stderr, "m_ownNE[i]/elements[i] = %d != %d\n", m_ownNE[i]/elements[i], factor);
+                std::cerr << "m_ownNE[i]/elements[i] = "
+                    << m_ownNE[i]/elements[i] << " != " << factor << std::endl;
                 throw RipleyException("Invalid interpolation: element factor mismatch");
             }
         } else {
