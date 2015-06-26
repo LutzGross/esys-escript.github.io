@@ -38,8 +38,8 @@ namespace finley {
 }
 
 
-Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, int reduced_order,
-                 bool optimize)
+Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
+                 int order, int reduced_order, bool optimize)
 {
     int numNodes, numDim=0, numEle, i0, i1;
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
@@ -96,7 +96,7 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, 
     if (noError()) {
         /* Each CPU will get at most chunkSize nodes so the message has to be sufficiently large */
         int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0,  nextCPU=1;
-        int *tempInts = new index_t[chunkSize*3+1];        /* Stores the integer message data */
+        int *tempInts = new int[chunkSize*3+1];        /* Stores the integer message data */
         double *tempCoords = new double[chunkSize*numDim]; /* Stores the double message data */
 
         /*
@@ -325,7 +325,7 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, 
 
     if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
-        int *tempInts = new index_t[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
+        int *tempInts = new int[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
         /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
         if (mpi_info->rank == 0) {  /* Master */
             for (;;) {            /* Infinite loop */
@@ -425,7 +425,7 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, 
     /******************* Read the contact element data **********************/
     if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
-        int *tempInts = new index_t[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
+        int *tempInts = new int[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
         /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
         if (mpi_info->rank == 0) {  /* Master */
             for (;;) {            /* Infinite loop */
@@ -528,7 +528,7 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, 
     if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
         // Store Id + Tag + node list (+ one int at end for chunkEle)
-        int *tempInts = new index_t[chunkSize*(2+numNodes)+1];
+        int *tempInts = new int[chunkSize*(2+numNodes)+1];
         // Elements are specified as a list of integers...only need one
         // message instead of two as with the nodes
         if (mpi_info->rank == 0) {  // Master
