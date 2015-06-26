@@ -37,14 +37,14 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                             const bool* periodic, int order, int reduced_order,
                             bool useElementsOnFace, bool useFullElementOrder,
                             bool useMacroElements, bool optimize,
-                            esysUtils::JMPI& mpi_info)
+                            esysUtils::JMPI& mpiInfo)
 {
-#define N_PER_E 2
-#define DIM 3
+    const int N_PER_E = 2;
+    const int DIM = 3;
     dim_t Nstride0=0, Nstride1=0, Nstride2=0, local_NE0, local_NE1, local_NE2;
     index_t e_offset0, e_offset1, e_offset2;
 
-    const Esys_MPI_rank myRank = mpi_info->rank;
+    const Esys_MPI_rank myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
     const dim_t NE0 = std::max(dim_t(1),numElements[0]);
@@ -55,10 +55,9 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     const dim_t N2 = N_PER_E*NE2+1;
 
     // allocate mesh
-    std::stringstream ss_name;
-    ss_name << "Brick " << N0 << " x " << N1 << " x " << N2;
-    std::string name(ss_name.str());
-    Mesh* out = new Mesh(name, DIM, mpi_info);
+    std::stringstream name;
+    name << "Brick " << N0 << " x " << N1 << " x " << N2;
+    Mesh* out = new Mesh(name.str(), DIM, mpiInfo);
 
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
     bool generateAllNodes=(useFullElementOrder || useMacroElements);
@@ -93,10 +92,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     }
     refPoints.reset(new ReferenceElementSet(Point1, order, reduced_order));
 
-    out->setPoints(new ElementFile(refPoints, mpi_info));
-    out->setContactElements(new ElementFile(refContactElements, mpi_info));
-    out->setFaceElements(new ElementFile(refFaceElements, mpi_info));
-    out->setElements(new ElementFile(refElements, mpi_info));
+    out->setPoints(new ElementFile(refPoints, mpiInfo));
+    out->setContactElements(new ElementFile(refContactElements, mpiInfo));
+    out->setFaceElements(new ElementFile(refFaceElements, mpiInfo));
+    out->setElements(new ElementFile(refElements, mpiInfo));
 
     // work out the largest dimension
     if (N2==MAX3(N0,N1,N2)) {
@@ -107,21 +106,21 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
         e_offset0 = 0;
         local_NE1 = NE1;
         e_offset1 = 0;
-        mpi_info->split(NE2, &local_NE2, &e_offset2);
+        mpiInfo->split(NE2, &local_NE2, &e_offset2);
     } else if (N1==MAX3(N0,N1,N2)) {
         Nstride0 = N2;
         Nstride1 = N0*N2;
         Nstride2 = 1;
         local_NE0 = NE0;
         e_offset0 = 0;
-        mpi_info->split(NE1, &local_NE1, &e_offset1);
+        mpiInfo->split(NE1, &local_NE1, &e_offset1);
         local_NE2 = NE2;
         e_offset2 = 0;
     } else {
         Nstride0 = N1*N2;
         Nstride1 = 1;
         Nstride2 = N1;
-        mpi_info->split(NE0, &local_NE0, &e_offset0);
+        mpiInfo->split(NE0, &local_NE0, &e_offset0);
         local_NE1 = NE1;
         e_offset1 = 0;
         local_NE2 = NE2;
@@ -145,14 +144,14 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
         NDOF2=N2-1;
     }
 
-    if (!periodic[0] && (local_NE0>0) ) {
+    if (!periodic[0] && local_NE0>0) {
         NDOF0=N0;
         if (e_offset0 == 0) NFaceElements+=local_NE1*local_NE2;
         if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1*local_NE2;
     } else {
         NDOF0=N0-1;
     }
-    if (!periodic[1] && (local_NE1>0) ) {
+    if (!periodic[1] && local_NE1>0) {
         NDOF1=N1;
         if (e_offset1 == 0) NFaceElements+=local_NE0*local_NE2;
         if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0*local_NE2;
@@ -193,7 +192,7 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     for (index_t i2=0; i2<local_NE2; i2++) {
         for (index_t i1=0; i1<local_NE1; i1++) {
             for (index_t i0=0; i0<local_NE0; i0++) {
-                const dim_t k=i0+local_NE0*i1+local_NE0*local_NE1*i2;
+                const dim_t k = i0+local_NE0*i1+local_NE0*local_NE1*i2;
                 const index_t node0 = Nstride0*N_PER_E*(i0+e_offset0)
                                     + Nstride1*N_PER_E*(i1+e_offset1)
                                     + Nstride2*N_PER_E*(i2+e_offset2);
@@ -298,7 +297,8 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
             faceNECount+=local_NE1*local_NE0;
         }
         totalNECount+=NE1*NE0;
-        // **  elements on boundary 200 (x3=1)
+
+        // **  elements on boundary 200 (x3=1):
         if (local_NE2+e_offset2 == NE2) {
 #pragma omp parallel for
             for (index_t i1=0; i1<local_NE1; i1++) {
