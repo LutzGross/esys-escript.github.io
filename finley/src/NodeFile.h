@@ -74,7 +74,7 @@ public:
     void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const std::vector<index_t>& distribution);
 
     void copyTable(int offset, int idOffset, int dofOffset, const NodeFile* in);
-    void gather(int* index, const NodeFile* in);
+    void gather(index_t* index, const NodeFile* in);
     void gather_global(index_t* index, const NodeFile* in);
     void scatter(int* index, const NodeFile* in);
 
