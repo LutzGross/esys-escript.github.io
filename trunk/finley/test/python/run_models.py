@@ -14,6 +14,7 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
@@ -25,19 +26,15 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
       
-
-
-VERBOSE=False  and True
+VERBOSE = False
 
 from esys.escript import *
-from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
+from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem
 from esys.escript.models import Mountains
 from esys.finley import Rectangle, Brick
 
 from math import pi
-import numpy
-import sys
-import os
+import numpy, os, sys, tempfile
 #======================================================================
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -1459,7 +1456,7 @@ class Test_FaultSystem(unittest.TestCase):
       s,d=f.getSideAndDistance([5.,12.,-4], tag=2)
       self.assertTrue( s<0, "wrong side.")
       self.assertTrue( abs(d-2.*0.70710678118654757)<self.EPS, "wrong distance.")
- 
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
