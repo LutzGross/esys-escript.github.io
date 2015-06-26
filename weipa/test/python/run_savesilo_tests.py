@@ -248,6 +248,14 @@ class SiloSaver(unittest.TestCase): #requires subclassing
         out=os.path.join(WEIPA_WORKDIR, outFileBase+".silo")
         self.compareSiloFiles(out, ref)
 
+class Test_Silo_import(unittest.TestCase):
+    def test_import(self):
+        if not HAVE_SILO:
+            try:
+                import Silo
+            except ImportError as e:
+                if "No module named Silo" not in str(e): raise e
+
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
 @unittest.skipIf(not HAVE_FINLEY, "finley module not available")
 @unittest.skipIf(not HAVE_SILO, "Silo module not available")
