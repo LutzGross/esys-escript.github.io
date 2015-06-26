@@ -43,7 +43,7 @@ public:
     void getCompatibilityInfo(std::vector<unsigned>& params);
     
       // talk to corresponding processes in other subworlds
-    bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active);
+    bool reduceRemoteValues(MPI_Comm& com);
     
       // human readable description
     std::string description();
@@ -60,6 +60,8 @@ public:
     
     	// send from proc 0 in the communicator to all others
     bool groupSend(MPI_Comm& com, bool imsending);
+
+    bool canClash();    
     
 	// reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);

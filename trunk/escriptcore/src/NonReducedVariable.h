@@ -44,7 +44,7 @@ public:
     void getCompatibilityInfo(std::vector<unsigned>& params);
     
       // talk to corresponding processes in other subworlds
-    bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active);
+    bool reduceRemoteValues(MPI_Comm& mpi_info);
     
       // human readable description
     std::string description();

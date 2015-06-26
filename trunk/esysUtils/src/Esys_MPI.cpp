@@ -48,10 +48,18 @@ JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
 {
         msg_tag_counter = 0;
 #ifdef ESYS_MPI
+    if (mpicomm!=MPI_COMM_NULL)
+    {
         if (MPI_Comm_rank(comm, &rank)!=MPI_SUCCESS || MPI_Comm_size(comm, &size)!=MPI_SUCCESS)
         {
             Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
         }
+    }
+    else
+    {
+	rank=0;
+	size=0;
+    }
 #else
         rank=0;
         size=1;        

@@ -69,7 +69,7 @@ void NonReducedVariable::getCompatibilityInfo(std::vector<unsigned>& params)
     // empty
 }
 
-bool NonReducedVariable::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
+bool NonReducedVariable::reduceRemoteValues(MPI_Comm& mpi_info)
 {
     return true;
 }

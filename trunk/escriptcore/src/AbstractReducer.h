@@ -77,11 +77,15 @@ public:
 	// Must only be called on participating SubWorlds
 	// the mpi_info holds a communicator linking corresponding processes
 	// in every participating subworld
-    virtual bool reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)=0;
+    virtual bool reduceRemoteValues(MPI_Comm& comm)=0;
     
 	// true if at least one localValue has been added
 	// used to check if this subworld should participate in remote merges
     bool hasValue();
+    
+	// true if reductions could fail for some reason other than MPI failure
+	// for example SET type variables 
+    virtual bool canClash();
     
 	// Get a value for this variable from another process
 	// This is not a reduction and will replace any existing value

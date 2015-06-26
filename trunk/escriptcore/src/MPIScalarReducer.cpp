@@ -176,6 +176,7 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
 	{
 	    if (had_an_export_this_round) 
 	    {
+		reset();
 		errstring="reduceLocalValue: Multiple 'simultaneous' attempts to export a 'SET' variable.";
 		return false;
 	    }
@@ -204,18 +205,15 @@ bool MPIScalarReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::
 
 // By the time this function is called, we know that all the values 
 // are compatible
-bool MPIScalarReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
+bool MPIScalarReducer::reduceRemoteValues(MPI_Comm& com)
 {
 #ifdef ESYS_MPI
-    if (!active)
-    {
-        value=identity;
-    } 
     if (reduceop==MPI_OP_NULL)
-    {
+    {	
+	reset();
 	return false;		// this will stop bad things happening but won't give an informative error message
     }
-    if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
+    if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, com)!=MPI_SUCCESS)
     {
 	return false;
     }
@@ -317,4 +315,9 @@ void MPIScalarReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     }
     value=sr->value;
     valueadded=true;
+}
+
+bool MPIScalarReducer::canClash()
+{
+    return (reduceop==MPI_OP_NULL);
 }

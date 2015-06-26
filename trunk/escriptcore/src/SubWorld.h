@@ -114,23 +114,27 @@ typedef std::map<std::string, countmap> str2countmap;
     bool globalinfoinvalid;
     
     
-    bool makeComm(MPI_Comm& sourcecom, MPI_Comm& subcom,std::vector<int>& members);
+    bool makeComm(MPI_Comm& sourcecom, esysUtils::JMPI& sub,std::vector<int>& members);
 
 
     // a group with NEW nodes at the front and INT and OLDINT at the back
     // NONE worlds get an empty communicator
-    bool makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com);
+    bool makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, esysUtils::JMPI& com);
+
+    // reduce on the first group and copy from cop[0] to others in cop
+    bool makeGroupReduceGroups(MPI_Comm& srccom, int vnum, char mystate, esysUtils::JMPI& red, esysUtils::JMPI& cop, bool& incopy);
+
 
     // A group with a single OLD or OLDINT at the front and all the INT worlds 
     // following it
-    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com, bool& ingroup);    
+    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, esysUtils::JMPI& com, bool& ingroup);    
     
 #endif
     
       // change the various views of a variable's state
     void setMyVarState(const std::string& vname, char state);
     void setVarState(const std::string& vname, char state, int swid);
-    void setAllVarsState(std::string& name, char state);
+    void setAllVarsState(const std::string& name, char state);
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;

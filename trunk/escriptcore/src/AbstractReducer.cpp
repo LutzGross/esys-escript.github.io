@@ -51,4 +51,8 @@ void AbstractReducer::newRunJobs()
     had_an_export_this_round=false;
 }
 
+bool AbstractReducer::canClash()
+{
+    return false;
+}
 
