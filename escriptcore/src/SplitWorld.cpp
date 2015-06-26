@@ -161,7 +161,6 @@ void SplitWorld::runJobs()
 		    }
 	        }
 	    }
-
 	} while (false);
         int res=mres;
         // now we find out about the other worlds
@@ -169,7 +168,6 @@ void SplitWorld::runJobs()
         {
 	    throw SplitWorldException("MPI appears to have failed.");
         }
-
 	localworld->clearJobs();
 	  // at this point, the remote world has all the reductions done
 	  // now we need to do the global merges

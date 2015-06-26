@@ -86,7 +86,7 @@ void SubWorld::setMyVarState(const std::string& vname, char state)
     setVarState(vname, state, localid);
 }
 
-void SubWorld::setAllVarsState(std::string& vname, char state)
+void SubWorld::setAllVarsState(const std::string& vname, char state)
 {
 #ifdef ESYS_MPI  
       // we need to know where the variable is in the sequence
@@ -395,23 +395,99 @@ bool SubWorld::checkRemoteCompatibility(std::string& errmsg)
 
 #ifdef ESYS_MPI  
   
-bool SubWorld::makeComm(MPI_Comm& sourcecom, MPI_Comm& subcom,std::vector<int>& members)
+bool SubWorld::makeComm(MPI_Comm& sourcecom, JMPI& ncom,std::vector<int>& members)
 {
+      MPI_Comm subcom;
       MPI_Group sourceg, g;
       if (MPI_Comm_group(sourcecom, &sourceg)!=MPI_SUCCESS) {return false;}
-      if (MPI_Group_incl(sourceg, members.size(), &members[0], &g)!=MPI_SUCCESS) {return false;}      
+      if (MPI_Group_incl(sourceg, members.size(), &members[0], &g)!=MPI_SUCCESS) {return false;}    
       // then create a communicator with that group
       if (MPI_Comm_create(sourcecom, g, &subcom)!=MPI_SUCCESS) 
       {
-	return false;
-	
+	  return false;	
       }
+      ncom=makeInfo(subcom, true);
       return true;
 }
 
+
+// The mystate, could be computed from vnum, this is just to shortcut
+// creates two groups, the first contains procs which need to reduce
+// the second group contains a single process with the new value and
+// all other interested parties
+bool SubWorld::makeGroupReduceGroups(MPI_Comm& srccom, int vnum, char mystate, JMPI& red, JMPI& cop, bool& incopy)
+{
+    incopy=false;
+    if ((mystate==rs::NEW)
+            || (mystate==rs::INTERESTED)
+            || (mystate==rs::OLDINTERESTED))
+    {
+	// first create a group with all the updates in it
+	std::vector<int> redmembers;
+	std::vector<int> copmembers;
+        for (int i=0+vnum;i<globalvarinfo.size();i+=getNumVars())
+        {
+	    bool havesrc=false;
+	    int world=i/getNumVars();
+            // make a vector of the involved procs with New at the front
+            switch (globalvarinfo[i])
+            {
+                case rs::NEW:
+		    if (!havesrc)
+		    {
+		        copmembers.insert(copmembers.begin(), world);
+			havesrc=true;
+			if (world==localid)
+			{
+			    incopy=true;			
+			}
+		    }
+		    redmembers.push_back(world);
+		    break;
+                case rs::INTERESTED:
+                case rs::OLDINTERESTED:
+                          copmembers.push_back(world);
+                          if (world==localid)
+                          {
+                              incopy=true;
+                          }
+                          break;
+            }
+        }
+	if (!makeComm(srccom, red, redmembers))
+	{
+	    return false;
+	}
+	if (!makeComm(srccom, cop, copmembers))
+	{
+	    return false;
+	}
+        return true;
+
+    }
+    else  // for people not in involved in the value shipping
+    {     // This would be a nice time to use MPI_Comm_create_group
+          // but it does not exist in MPI2.1
+        MPI_Comm temp;
+	if (MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &temp)!=MPI_SUCCESS)
+	{
+	    return false;
+	}
+	red=makeInfo(temp, true);
+        if (MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &temp)!=MPI_SUCCESS)
+	{
+	    return false;
+	}
+	cop=makeInfo(temp, true);
+	return true;
+    }
+
+}
+
+
 // a group with NEW nodes at the front and INT and OLDINT at the back
 // NONE worlds get an empty communicator
-bool SubWorld::makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com)
+bool SubWorld::makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, JMPI& com)
 {
       if ((mystate==rs::NEW)
 	    || (mystate==rs::INTERESTED)
@@ -436,13 +512,16 @@ bool SubWorld::makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
       else	// for people not in involved in the value shipping
       {		// This would be a nice time to use MPI_Comm_create_group
 		// but it does not exist in MPI2.1
-	  return MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &com);
+          MPI_Comm temp;
+	  MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &temp);
+	  com=makeInfo(temp, true);
+	  return true;
       }
 }
 
 // A group with a single OLD or OLDINT at the front and all the INT worlds 
 // following it
-bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm& com, bool& ingroup)
+bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, JMPI& com, bool& ingroup)
 {
       ingroup=false;
       if ((mystate==rs::OLD)
@@ -484,7 +563,10 @@ bool SubWorld::makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, MPI_Comm
       else	// for people not in involved in the value shipping
       {		// This would be a nice time to use MPI_Comm_create_group
 		// but it does not exist in MPI2.1	
-	  return MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &com);
+          MPI_Comm temp;
+	  MPI_Comm_create(srccom, MPI_GROUP_EMPTY, &temp);
+	  com=makeInfo(temp, true);
+	  return true;
       }
 }
 
@@ -542,7 +624,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 	    // first deal updates as source(s)
 	if (newcount==1)	// only one update so send from that
 	{
-	    MPI_Comm com;
+	    JMPI com;
 	    if (!makeGroupComm1(corrmpi->comm, vnum, varstate[it->first],com))
 	    {
 		err="Error creating group for sharing values,";
@@ -550,20 +632,25 @@ bool SubWorld::synchVariableValues(std::string& err)
 	    }
 	    if (varstate[it->first]!=rs::NONE && varstate[it->first]!=rs::OLD)
 	    {
-		it->second->groupSend(com, (varstate[it->first]==rs::NEW));
+		it->second->groupSend(com->comm, (varstate[it->first]==rs::NEW));
 		  // Now record the fact that we have the variable now
 		if (varstate[it->first]==rs::INTERESTED)
 		{
 		    setMyVarState(it->first, rs::OLDINTERESTED); 
 		}
 	    }
-	    // disolve the group
-	    MPI_Comm_free(&com);
 	    continue;
 	}
 	if (newcount==swcount)		// everybody is in on this
 	{
-	    it->second->reduceRemoteValues(corrmpi, true);
+	    if (!it->second->reduceRemoteValues(corrmpi->comm))
+	    {
+		it->second->reset();
+		setAllVarsState(it->first, rs::NONE);
+		//setMyVarState(it->first, rs::NONE);
+		err=it->first+"Either MPI failed, or there were multiple simultaneous updates to a variable with the SET operation.";
+		return false;
+	    }
 	        // Now record the fact that we have the variable now
 	    if (varstate[it->first]==rs::INTERESTED)
 	    {
@@ -573,20 +660,65 @@ bool SubWorld::synchVariableValues(std::string& err)
 	}
 	if (newcount>1)
 	{
-	    // form a group to send to [updates and interested and oldinterested]
-	    MPI_Comm com;
-	    if (!makeGroupComm1(corrmpi->comm, vnum, varstate[it->first],com))
+	    // make groups to reduce and then copy
+	    JMPI red;
+	    JMPI cop;
+	    bool incopy;
+	    if (!makeGroupReduceGroups(corrmpi->comm, vnum, varstate[it->first], red, cop, incopy))
 	    {
-		err="Error creating group for sharing values,";
+		err="Error creating groups for sharing values,";
 		return false;
 	    }
-	    it->second->groupReduce(com,varstate[it->first]);
-	        // Now record the fact that we have the variable now
-	    if (varstate[it->first]==rs::INTERESTED)
+	    char reduceresult=0;
+		// only new values get reduced
+	    if (varstate[it->first]==rs::NEW)
 	    {
-		setMyVarState(it->first, rs::OLDINTERESTED); 
-	    }		    
-	    MPI_Comm_free(&com);	    
+	        if (!it->second->reduceRemoteValues(red->comm))
+		{
+		    char s=1;
+		    MPI_Allreduce(&s, &reduceresult, 1, MPI_CHAR, MPI_MAX, corrmpi->comm);
+		    reduceresult=1;
+
+		}
+		else
+		{
+		    if (it->second->canClash())
+		    {
+			char s=0;
+			MPI_Allreduce(&s, &reduceresult, 1, MPI_CHAR, MPI_MAX, corrmpi->comm);		    
+		    }
+		}
+	    }
+	    else
+	    {
+		if (it->second->canClash())
+		{
+		    char s=0;
+		    MPI_Allreduce(&s, &reduceresult, 1, MPI_CHAR, MPI_MAX, corrmpi->comm);		    
+		}
+	    }
+		// if there was a clash somewhere
+	    if (reduceresult!=0)
+	    {
+		it->second->reset();
+		setAllVarsState(it->first, rs::NONE);
+		err="Either MPI failed, or there were multiple simultaneous updates to a variable with the SET operation.";
+		return false;	      
+	    }
+	      
+		// if we are involved in copying the new value around
+	    if (incopy)
+	    {
+                it->second->groupSend(cop->comm, (varstate[it->first]==rs::NEW));
+	        if (varstate[it->first]==rs::INTERESTED) 
+	        {
+		    setMyVarState(it->first, rs::OLDINTERESTED); 
+		}
+	    }
+            if (varstate[it->first]==rs::NEW)
+            {
+		setMyVarState(it->first, rs::OLDINTERESTED);
+            }
 	    continue;
 	}
 	    // at this point, we need to ship info around but there are no updates
@@ -599,7 +731,7 @@ bool SubWorld::synchVariableValues(std::string& err)
 	{
 	    continue;
 	}
-	MPI_Comm com;
+	JMPI com;
 	bool ingroup=false;
 	if (!makeGroupComm2(corrmpi->comm, vnum, varstate[it->first],com, ingroup))
 	{
@@ -611,10 +743,8 @@ bool SubWorld::synchVariableValues(std::string& err)
 	if (ingroup)		// since only one holder needs to send
 	{
 	    bool imsending=(varstate[it->first]==rs::NEW);
-	    it->second->groupSend(com, imsending);
+	    it->second->groupSend(com->comm, imsending);
 	}
-	// dissolve the group	
-	MPI_Comm_free(&com);
     }
 	// now we need to age any out of date copies of vars
     for (size_t i=0;i<varswithupdates.size();++i)
@@ -785,12 +915,6 @@ bool SubWorld::synchVariableInfo(std::string& err)
 
     return true;
 }
-
-// // merge / ship values as required
-// bool SubWorld::synchVariableValues(std::string& err)
-// {
-//     return reduceRemoteValues(err);
-// }
 
 // if 4, a Job performed an invalid export
 // if 3, a Job threw an exception 

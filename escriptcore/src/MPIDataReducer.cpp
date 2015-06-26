@@ -155,6 +155,7 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
 	{
 	    if (had_an_export_this_round) 
 	    {
+		reset();
 		errstring="reduceLocalValue: Multiple 'simultaneous' attempts to export a 'SET' variable.";
 		return false;
 	    }
@@ -229,21 +230,18 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 
 // By the time this function is called, we know that all the values 
 // are compatible
-bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info, bool active)
+bool MPIDataReducer::reduceRemoteValues(MPI_Comm& comm)
 {
-    if (!active)
-    {
-	return false;	// shutting down this option until I implement it
-    }
 #ifdef ESYS_MPI
     DataTypes::ValueType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
     DataTypes::ValueType& rr=result.getExpandedVectorReference();
     if (reduceop==MPI_OP_NULL)
     {
+	reset();	// we can't be sure what the value should be
 	return false;		// this will stop bad things happening but won't give an informative error message
     }
-    if (MPI_Allreduce(&(vr[0]), &(rr[0]), vr.size(), MPI_DOUBLE, reduceop, mpi_info->comm)!=MPI_SUCCESS)
+    if (MPI_Allreduce(&(vr[0]), &(rr[0]), vr.size(), MPI_DOUBLE, reduceop, comm)!=MPI_SUCCESS)
     {
 	return false;
     }
@@ -304,7 +302,7 @@ void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
 	// This is not a reduction and will replace any existing value
 bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
 {
-#ifdef ESYS_MPI  
+#ifdef ESYS_MPI 
       // first we need to find out what we are expecting
     unsigned params[7];
     MPI_Status stat;
@@ -442,6 +440,7 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
       }
       else	// we are receiving
       {
+	
 	    // first we need to find out what we are expecting
 	  unsigned params[7];
 	  if (MPI_Bcast(params, 7, MPI_UNSIGNED, 0, comm)!=MPI_SUCCESS)
@@ -492,6 +491,7 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
     return true;
 }
 
+	// We assume compatible values at this point
 bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
 {
     throw SplitWorldException("groupReduce Not implemented yet.");
@@ -516,3 +516,7 @@ void MPIDataReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     valueadded=true;
 }
 
+bool MPIDataReducer::canClash()
+{
+    return (reduceop==MPI_OP_NULL);
+}
