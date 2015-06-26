@@ -14,7 +14,7 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
@@ -29,20 +29,19 @@ from esys.escriptcore.testing import *
 VERBOSE = False
 
 from esys.escript import *
-from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
-from esys.escript.models import Mountains
+from esys.escript.models import StokesProblemCartesian, PowerLaw, FaultSystem, DarcyFlow
 from esys.dudley import Rectangle, Brick
 
 from math import pi
 import numpy, os, sys, tempfile
-#==============================================================================
+#======================================================================
 try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
      DUDLEY_WORKDIR='.'
 
-#==============================================================================
-@unittest.skip("Test not previously tested")
+#======================================================================
+@unittest.skip("Not previously tested")
 class Test_StokesProblemCartesian2D(unittest.TestCase):
    def setUp(self):
        NE=6
@@ -206,8 +205,8 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        self.assertTrue(error_p<10*self.TOL, "pressure error too large.")
        self.assertTrue(error_v0<10*self.TOL, "0-velocity error too large.")
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
-#==============================================================================
-@unittest.skip("Test not previously tested")
+#======================================================================
+@unittest.skip("Not previously tested")
 class Test_StokesProblemCartesian3D(unittest.TestCase):
    def setUp(self):
        NE=6

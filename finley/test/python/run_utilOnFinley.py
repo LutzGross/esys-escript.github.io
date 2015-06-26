@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -158,96 +160,88 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
+        d1 = Rectangle(n0=NE//2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
+        d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
-        d1 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
+        d1 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
+        d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
-        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
-        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
+        d1 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
+        d2 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
-        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
-        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
+        d1 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
+        d2 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=1
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
+        d1 = Rectangle(n0=NE//2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
+        d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=2
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
+        d1 = Rectangle(n0=NE//2+1,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
+        d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=1
-        d1 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
-        d2 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
+        d1 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
+        d2 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
 
-@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=2
-        d1 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-        d2 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
+        d1 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
+        d2 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
