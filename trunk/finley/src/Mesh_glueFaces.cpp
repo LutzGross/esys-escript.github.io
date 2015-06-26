@@ -58,13 +58,13 @@ void Mesh::glueFaces(double safety_factor, double tolerance, bool optimize)
     int* elem0=new int[FaceElements->numElements];
     std::vector<int> elem_mask(FaceElements->numElements, 0);
     int* matching_nodes_in_elem1=new int[FaceElements->numElements*NN];
-    std::vector<int> new_node_label(Nodes->numNodes);
+    std::vector<index_t> new_node_label(Nodes->numNodes);
     // find the matching face elements
     int numPairs;
     findMatchingFaces(safety_factor, tolerance, &numPairs, elem0, elem1,
                       matching_nodes_in_elem1);
     if (noError()) {
-        for (int n=0; n<Nodes->numNodes; n++)
+        for (index_t n=0; n<Nodes->numNodes; n++)
             new_node_label[n]=n;
         // mark matching face elements to be removed
         for (int e=0; e<numPairs; e++) {
@@ -76,27 +76,27 @@ void Mesh::glueFaces(double safety_factor, double tolerance, bool optimize)
             }
         }
         // create an index of face elements
-        int new_numFaceElements=0;
-        for (int e=0; e<FaceElements->numElements; e++) {
+        dim_t new_numFaceElements=0;
+        for (index_t e=0; e<FaceElements->numElements; e++) {
             if (elem_mask[e] < 1) {
                 elem_mask[new_numFaceElements]=e;
                 new_numFaceElements++;
             }
         }
         // get the new number of nodes
-        std::vector<int> new_node_mask(Nodes->numNodes, -1);
-        std::vector<int> new_node_list;
-        int newNumNodes=0;
-        for (int n=0; n<Nodes->numNodes; n++)
+        std::vector<index_t> new_node_mask(Nodes->numNodes, -1);
+        std::vector<index_t> new_node_list;
+        dim_t newNumNodes=0;
+        for (index_t n=0; n<Nodes->numNodes; n++)
             new_node_mask[new_node_label[n]]=1;
-        for (int n=0; n<Nodes->numNodes; n++) {
+        for (index_t n=0; n<Nodes->numNodes; n++) {
             if (new_node_mask[n]>0) {
                 new_node_mask[n]=newNumNodes;
                 new_node_list.push_back(n);
                 newNumNodes++;
             }
         }
-        for (int n=0; n<Nodes->numNodes; n++)
+        for (index_t n=0; n<Nodes->numNodes; n++)
             new_node_label[n]=new_node_mask[new_node_label[n]];
         // allocate new node and element files
         NodeFile *newNodeFile=new NodeFile(numDim, MPIInfo); 
