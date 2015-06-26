@@ -723,7 +723,7 @@ def print_summary():
     print("Escript/Finley revision %s"%global_revision)
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s"%sysconfig.PREFIX)
-    print("           boost:  %s"%env['boost_prefix'])
+    print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
     if env['numpy_h']:
         print("           numpy:  YES (with headers)")
     else:
@@ -732,6 +732,10 @@ def print_summary():
         print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
         print("             MPI:  NO")
+    if env['parmetis']:
+        print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
+    else:
+        print("        ParMETIS:  NO")
     if env['uselapack']:
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
@@ -742,17 +746,13 @@ def print_summary():
         print("            CUDA:  NO")
     d_list=[]
     e_list=[]
-    for i in 'debug','openmp','boomeramg','gdal','mkl','netcdf','papi','parmetis','pyproj','scipy','silo','sympy','umfpack','visit':
+    for i in 'debug','openmp','boomeramg','cppunit','gdal','mkl','netcdf','papi','pyproj','scipy','silo','sympy','umfpack','visit':
         if env[i]: e_list.append(i)
         else: d_list.append(i)
     for i in e_list:
         print("%16s:  YES"%i)
     for i in d_list:
         print("%16s:  NO"%i)
-    if env['cppunit']:
-        print("         CppUnit:  YES")
-    else:
-        print("         CppUnit:  NO")
     if env['gmshpy']:
         gmshpy=" + python module"
     else:

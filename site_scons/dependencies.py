@@ -196,8 +196,10 @@ def checkBoost(env):
             maj = boostversion/100000
             minor = (boostversion/100)%1000
             sub = boostversion % 100
+            env['boost_version'] = "%d.%d.%d"%(maj,minor,sub)
             if maj <= REQUIRED_BOOST[0] and minor < REQUIRED_BOOST[1]:
-                raise RuntimeError("The boost version referenced must be at least version %d.%d "%REQUIRED_BOOST + "(have %d.%d.%d)"%(maj,minor,sub))
+                print("The boost version referenced must be at least version %d.%d "%REQUIRED_BOOST + "(have %d.%d.%d)"%(maj,minor,sub))
+                env.Exit(1)
     boosthpp.close()
     env['buildvars']['boost_inc_path']=boost_inc_path
     env['buildvars']['boost_lib_path']=boost_lib_path
@@ -429,6 +431,40 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [parmetis_lib_path])
         env.AppendUnique(LIBS = env['parmetis_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], parmetis_lib_path)
+
+        # Try to extract the parmetis version from parmetis.h
+        header=open(os.path.join(parmetis_inc_path, 'parmetis.h')).readlines()
+        major,minor,sub = None,None,None
+        for line in header:
+            ver=re.match(r'#define PARMETIS_MAJOR_VERSION\s*(\d+)',line)
+            if ver:
+                major = int(ver.group(1))
+                continue
+            ver=re.match(r'#define PARMETIS_MINOR_VERSION\s*(\d+)',line)
+            if ver:
+                minor = int(ver.group(1))
+                continue
+            ver=re.match(r'#define PARMETIS_SUBMINOR_VERSION\s*(\d+)',line)
+            if ver:
+                sub = int(ver.group(1))
+                continue
+        if major is not None:
+            env['parmetis_version'] = "%d.%d.%d"%(major,minor,0 if sub is None else sub)
+            if env['longindices']:
+                # ParMETIS version 3.x does not support 64-bit indices
+                if major < 4:
+                    print("Sorry, cannot use ParMETIS version < 4.0 with 64-bit index types. Set longindices to False or disable ParMETIS.")
+                    env.Exit(1)
+                else:
+                    # check if ParMETIS was built with 64-bit indices
+                    conf = Configure(env.Clone())
+                    idxsize=conf.CheckTypeSize('idx_t', '#include <parmetis.h>', 'C++')
+                    if idxsize != 8:
+                        print("Sorry, ParMETIS was not compiled with 64-bit indices. Set longindices to False or disable/rebuild ParMETIS.")
+                        env.Exit(1)
+        else:
+            env['parmetis_version'] = "unknown"
+
         env.Append(CPPDEFINES = ['USE_PARMETIS'])
         env['buildvars']['parmetis_inc_path']=parmetis_inc_path
         env['buildvars']['parmetis_lib_path']=parmetis_lib_path
