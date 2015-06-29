@@ -15,13 +15,12 @@
 *****************************************************************************/
 
 #define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <esysUtils/first.h>
 
 #include "MeshAdapterFactory.h"
-#include "esysUtils/blocktimer.h"
-#ifdef ESYS_MPI
-#include "esysUtils/Esys_MPI.h"
-#endif
+#include <esysUtils/blocktimer.h>
+#include <esysUtils/Esys_MPI.h>
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -31,45 +30,43 @@
 
 #include <sstream>
 
-
 using namespace std;
 using namespace escript;
 
 namespace finley {
 
 #ifdef USE_NETCDF
-  // A convenience method to retrieve an integer attribute from a NetCDF file
-  int NetCDF_Get_Int_Attribute(NcFile *dataFile, const std::string &fName, char *attr_name)
-  {
-    NcAtt *attr;
-    char error_msg[LenErrorMsg_MAX];
-    if (! (attr=dataFile->get_att(attr_name)) ) {
-      sprintf(error_msg,"loadMesh: Error retrieving integer attribute '%s' from NetCDF file '%s'", attr_name, fName.c_str());
-      throw DataException(error_msg);
+// A convenience method to retrieve an integer attribute from a NetCDF file
+template<typename T>
+T ncReadAtt(NcFile *dataFile, const string &fName, const string& attrName)
+{
+    NcAtt *attr = dataFile->get_att(attrName.c_str());
+    if (!attr) {
+        stringstream msg;
+        msg << "loadMesh: Error retrieving integer attribute '" << attrName
+            << "' from NetCDF file '" << fName << "'";
+        throw FinleyAdapterException(msg.str());
     }
-    int temp = attr->as_int(0);
+    T value = (sizeof(T) > 4 ? attr->as_long(0) : attr->as_int(0));
     delete attr;
-    return(temp);
-  }
+    return value;
+}
 #endif
 
-  inline void cleanupAndThrow(Mesh* mesh, string msg)
-  {
-      delete mesh;
-      string msgPrefix("loadMesh: NetCDF operation failed - ");
-      throw DataException(msgPrefix+msg);
-  }
+inline void cleanupAndThrow(Mesh* mesh, string msg)
+{
+    delete mesh;
+    string msgPrefix("loadMesh: NetCDF operation failed - ");
+    throw FinleyAdapterException(msgPrefix+msg);
+}
 
-//   AbstractContinuousDomain* loadMesh(const std::string& fileName)
-  Domain_ptr loadMesh(const std::string& fileName)
-  {
+Domain_ptr loadMesh(const std::string& fileName)
+{
 #ifdef USE_NETCDF
     esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
-    Mesh *mesh_p=NULL;
-    char error_msg[LenErrorMsg_MAX];
 
-    const std::string fName(esysUtils::appendRankToFileName(fileName,
-                                              mpi_info->size, mpi_info->rank));
+    const string fName(esysUtils::appendRankToFileName(fileName,
+                        mpi_info->size, mpi_info->rank));
 
     double blocktimer_start = blocktimer_time();
     resetError();
@@ -82,54 +79,76 @@ namespace finley {
     // Create the NetCDF file.
     NcFile dataFile(fName.c_str(), NcFile::ReadOnly);
     if (!dataFile.is_valid()) {
-      sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
-      setError(IO_ERROR,error_msg);
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: Opening NetCDF file '" << fName << "' for reading failed.";
+        throw FinleyAdapterException(msg.str());
     }
 
     // Read NetCDF integer attributes
-    int mpi_size                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_size");
-    int mpi_rank                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_rank");
-    int numDim                          = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numDim");
-    int order                           = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"order");
-    int reduced_order                   = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"reduced_order");
-    int numNodes                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numNodes");
-    int num_Elements                    = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements");
-    int num_FaceElements                = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements");
-    int num_ContactElements             = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_ContactElements");
-    int num_Points                      = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Points");
-    int num_Elements_numNodes           = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements_numNodes");
-    int Elements_TypeId                 = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Elements_TypeId");
-    int num_FaceElements_numNodes       = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements_numNodes");
-    int FaceElements_TypeId             = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"FaceElements_TypeId");
-    int num_ContactElements_numNodes    = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_ContactElements_numNodes");
-    int ContactElements_TypeId          = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"ContactElements_TypeId");
-    int Points_TypeId                   = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Points_TypeId");
-    int num_Tags                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Tags");
+
+    // index_size was only introduced with 64-bit index support so fall back
+    // to 32 bits if not found.
+    int index_size;
+    try {
+        index_size = ncReadAtt<int>(&dataFile, fName, "index_size");
+    } catch (FinleyAdapterException& e) {
+        index_size = 4;
+    }
+    // technically we could cast if reading 32-bit data on 64-bit escript
+    // but cost-benefit analysis clearly favours this implementation for now
+    if (sizeof(index_t) != index_size) {
+        throw FinleyAdapterException("loadMesh: size of index types at runtime differ from dump file");
+    }
+
+    int mpi_size = ncReadAtt<int>(&dataFile, fName, "mpi_size");
+    int mpi_rank = ncReadAtt<int>(&dataFile, fName, "mpi_rank");
+    int numDim = ncReadAtt<int>(&dataFile, fName, "numDim");
+    int order = ncReadAtt<int>(&dataFile, fName, "order");
+    int reduced_order = ncReadAtt<int>(&dataFile, fName, "reduced_order");
+    dim_t numNodes = ncReadAtt<dim_t>(&dataFile, fName, "numNodes");
+    dim_t num_Elements = ncReadAtt<dim_t>(&dataFile, fName, "num_Elements");
+    dim_t num_FaceElements = ncReadAtt<dim_t>(&dataFile, fName, "num_FaceElements");
+    dim_t num_ContactElements = ncReadAtt<dim_t>(&dataFile, fName, "num_ContactElements");
+    dim_t num_Points = ncReadAtt<dim_t>(&dataFile, fName, "num_Points");
+    int num_Elements_numNodes = ncReadAtt<int>(&dataFile, fName, "num_Elements_numNodes");
+    int Elements_TypeId = ncReadAtt<int>(&dataFile, fName, "Elements_TypeId");
+    int num_FaceElements_numNodes = ncReadAtt<int>(&dataFile, fName, "num_FaceElements_numNodes");
+    int FaceElements_TypeId = ncReadAtt<int>(&dataFile, fName, "FaceElements_TypeId");
+    int num_ContactElements_numNodes = ncReadAtt<int>(&dataFile, fName, "num_ContactElements_numNodes");
+    int ContactElements_TypeId = ncReadAtt<int>(&dataFile, fName, "ContactElements_TypeId");
+    int Points_TypeId = ncReadAtt<int>(&dataFile, fName, "Points_TypeId");
+    int num_Tags = ncReadAtt<int>(&dataFile, fName, "num_Tags");
 
     // Verify size and rank
     if (mpi_info->size != mpi_size) {
-      sprintf(error_msg, "loadMesh: The NetCDF file '%s' can only be read on %d CPUs instead of %d", fName.c_str(), mpi_size, mpi_info->size);
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: The NetCDF file '" << fName
+            << "' can only be read on " << mpi_size
+            << " CPUs. Currently running: " << mpi_info->size;
+        throw FinleyAdapterException(msg.str());
     }
     if (mpi_info->rank != mpi_rank) {
-      sprintf(error_msg, "loadMesh: The NetCDF file '%s' should be read on CPU #%d instead of %d", fName.c_str(), mpi_rank, mpi_info->rank);
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: The NetCDF file '" << fName
+            << "' should be ready on CPU #" << mpi_rank
+            << " and NOT on #" << mpi_info->rank;
+        throw FinleyAdapterException(msg.str());
     }
 
     // Read mesh name
     if (! (attr=dataFile.get_att("Name")) ) {
-      sprintf(error_msg,"loadMesh: Error retrieving mesh name from NetCDF file '%s'", fName.c_str());
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: Error retrieving mesh name from NetCDF file '"
+            << fName << "'";
+        throw FinleyAdapterException(msg.str());
     }
     boost::scoped_array<char> name(attr->as_string(0));
     delete attr;
 
-    /* allocate mesh */
-    mesh_p = new Mesh(name.get(), numDim, mpi_info);
+    // allocate mesh
+    Mesh *mesh_p = new Mesh(name.get(), numDim, mpi_info);
     if (noError()) {
-
-        /* read nodes */
+        // read nodes
         mesh_p->Nodes->allocTable(numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
@@ -168,7 +187,7 @@ namespace finley {
             cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
         mesh_p->Nodes->updateTagList();
 
-        /* read elements */
+        // read elements
         if (noError()) {
             const_ReferenceElementSet_ptr refElements(new ReferenceElementSet(
                         (ElementTypeId)Elements_TypeId, order, reduced_order));
@@ -361,7 +380,7 @@ namespace finley {
            }
         }
 
-        /* get the Points (nodal elements) */
+        // get the Points (nodal elements)
         if (noError()) {
             const_ReferenceElementSet_ptr refPoints(new ReferenceElementSet(
                         (ElementTypeId)Points_TypeId, order, reduced_order));
@@ -422,9 +441,9 @@ namespace finley {
             }
         }
 
-        /* get the tags */
+        // get the tags
         if (noError()) {
-          if (num_Tags>0) {
+          if (num_Tags > 0) {
             // Temp storage to gather node IDs
             int *Tags_keys = new int[num_Tags];
             char name_temp[4096];
@@ -444,8 +463,9 @@ namespace finley {
               sprintf(name_temp, "Tags_name_%d", i);
               if (! (attr=dataFile.get_att(name_temp)) ) {
                   delete[] Tags_keys;
-                  sprintf(error_msg,"get_att(%s)", name_temp);
-                  cleanupAndThrow(mesh_p, error_msg);
+                  stringstream msg;
+                  msg << "get_att(" << name_temp << ")";
+                  cleanupAndThrow(mesh_p, msg.str());
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
@@ -457,7 +477,7 @@ namespace finley {
    
         if (noError()) {
             // Nodes_DofDistribution
-            std::vector<int> first_DofComponent(mpi_size+1);
+            std::vector<index_t> first_DofComponent(mpi_size+1);
             if (! (nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
                 cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
             }
@@ -466,7 +486,7 @@ namespace finley {
             }
 
             // Nodes_NodeDistribution
-            std::vector<int> first_NodeComponent(mpi_size+1);
+            std::vector<index_t> first_NodeComponent(mpi_size+1);
             if (! (nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
                 cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
             }
@@ -486,21 +506,17 @@ namespace finley {
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom;
 #else
-    throw DataException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
+    throw FinleyAdapterException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
 #endif /* USE_NETCDF */
-  }
+}
 
-  Domain_ptr readMesh(esysUtils::JMPI& info,
-		     const std::string& fileName,
-                      int integrationOrder,
-                      int reducedIntegrationOrder,
-                      bool optimize,
-		     const std::vector<double>& points,
-		     const std::vector<int>& tags 
-		    )
-  {
+Domain_ptr readMesh(esysUtils::JMPI& info, const std::string& fileName,
+                    int integrationOrder, int reducedIntegrationOrder,
+                    bool optimize, const std::vector<double>& points,
+                    const std::vector<int>& tags)
+{
     if (fileName.size() == 0 )
-        throw DataException("Null file name!");
+        throw FinleyAdapterException("Null file name!");
 
     double blocktimer_start = blocktimer_time();
     Mesh* fMesh=Mesh::read(info, fileName, integrationOrder, reducedIntegrationOrder, optimize);
@@ -509,117 +525,97 @@ namespace finley {
     ma->addDiracPoints(points, tags);    
     blocktimer_increment("ReadMesh()", blocktimer_start);
     return Domain_ptr(ma);
-  }
+}
 
   
-  Domain_ptr readMesh_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
-      int l=len(args);
-      if (l<7) 
-      {
-	  throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
-      }
-      std::string fileName=extract<string>(args[0])();
-      int integrationOrder=extract<int>(args[1])();
-      int reducedIntegrationOrder=extract<int>(args[2])();
-      bool optimize=extract<bool>(args[3])();
-      std::vector<double> points;
-      std::vector<int> tags;
-      
-      
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[4]);
-      boost::python::list pytags=extract<boost::python::list>(args[5]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
+Domain_ptr readMesh_driver(const boost::python::list& args)
+{
+    using boost::python::extract;
+    int l=len(args);
+    if (l<7) {
+        throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
+    }
+    string fileName=extract<string>(args[0])();
+    int integrationOrder=extract<int>(args[1])();
+    int reducedIntegrationOrder=extract<int>(args[2])();
+    bool optimize=extract<bool>(args[3])();
+    vector<double> points;
+    vector<int> tags;
 
-      boost::python::object pworld=args[6];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    // we need to convert lists to stl vectors
+    boost::python::list pypoints=extract<boost::python::list>(args[4]);
+    boost::python::list pytags=extract<boost::python::list>(args[5]);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
 
-      }
-      Domain_ptr result=readMesh(info, fileName,
-                      integrationOrder,
-                      reducedIntegrationOrder,
-                      optimize,
-		     points,
-		     tags 
-		    );
+    boost::python::object pworld=args[6];
+    esysUtils::JMPI info;
+    if (!pworld.is_none()) {
+        extract<SubWorld_ptr> ex(pworld);
+        if (!ex.check()) {
+            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+        }
+        info=ex()->getMPI();
+    } else {
+        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    }
+    Domain_ptr result=readMesh(info, fileName, integrationOrder,
+                               reducedIntegrationOrder, optimize, points, tags);
 
-      for (int i=0;i<numpts;++i) {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k) {
+    for (int i=0; i<numpts; ++i) {
+        boost::python::object temp=pypoints[i];
+        int l=extract<int>(temp.attr("__len__")());
+        for (int k=0;k<l;++k) {
               points.push_back(extract<double>(temp[k]));
-          }
-      }
-      int curmax=40; // bricks use up to 200 but the existing tag check 
-		     // will find that
-      TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
-		// first we work out what tags are already in use
-      for (TagMap::iterator it=tagmap.begin();
-		it!=tagmap.end();++it)
-      {
-	  if (it->second>curmax)
-	  {
-		curmax=it->second+1;
-	  }
-      }
+        }
+    }
+    // bricks use up to 200 but the existing tag check will find that
+    int curmax=40;
+    TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
+    // first we work out what tags are already in use
+    for (TagMap::iterator it=tagmap.begin(); it!=tagmap.end(); ++it) {
+        if (it->second>curmax) {
+            curmax=it->second+1;
+        }
+    }
 
-      tags.resize(numtags, -1);
-      for (int i=0;i<numtags;++i) {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check()) {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax) {
-                  curmax=tags[i]+1;
-              }
-          } else if (ex_str.check()) {
-              string s=ex_str();
-              map<string, int>::iterator it=tagmap.find(s);
-              if (it!=tagmap.end()) {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              } else {
-		  result->setTagMap(s,curmax);
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          } else {
-              throw FinleyAdapterException("Error - Unable to extract tag value.");
-          }
-      }
-	// now we need to add the dirac points
-      dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
-      return result;
-
-
-  }  
+    tags.resize(numtags, -1);
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s=ex_str();
+            map<string, int>::iterator it=tagmap.find(s);
+            if (it!=tagmap.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                result->setTagMap(s,curmax);
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyAdapterException("Error - Unable to extract tag value.");
+        }
+    }
+    // now we need to add the dirac points
+    dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
+    return result;
+}  
   
-  Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
-                                     int numDim,
-                                     int integrationOrder,
-                                     int reducedIntegrationOrder,
-                                     bool optimize,
-                                     bool useMacroElements,
-				   const std::vector<double>& points,
-				   const std::vector<int>& tags)
-  {
+Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
+                    int numDim, int integrationOrder,
+                    int reducedIntegrationOrder, bool optimize,
+                    bool useMacroElements, const std::vector<double>& points,
+                    const std::vector<int>& tags)
+{
     if (fileName.size() == 0 )
-        throw DataException("Null file name!");
+        throw FinleyAdapterException("Null file name!");
 
     double blocktimer_start = blocktimer_time();
     Mesh* fMesh=Mesh::readGmsh(info, fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
@@ -628,119 +624,99 @@ namespace finley {
     MeshAdapter* ma=new MeshAdapter(fMesh);
     ma->addDiracPoints(points, tags);
     return Domain_ptr(ma);
-  }
+}
   
+Domain_ptr readGmsh_driver(const boost::python::list& args)
+{
+    using boost::python::extract;
+    int l=len(args);
+    if (l<7) {
+        throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
+    }
+    string fileName=extract<string>(args[0])();
+    int numDim=extract<int>(args[1])();
+    int integrationOrder=extract<int>(args[2])();
+    int reducedIntegrationOrder=extract<int>(args[3])();
+    bool optimize=extract<bool>(args[4])();
+    bool useMacroElements=extract<bool>(args[5])();
+    vector<double> points;
+    vector<int> tags;
+
+    // we need to convert lists to stl vectors
+    boost::python::list pypoints=extract<boost::python::list>(args[6]);
+    boost::python::list pytags=extract<boost::python::list>(args[7]);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    boost::python::object pworld=args[8];
+    esysUtils::JMPI info;
+    if (!pworld.is_none()) {
+        extract<SubWorld_ptr> ex(pworld);
+        if (!ex.check()) {
+            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+        }
+        info=ex()->getMPI();
+    } else {
+        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    }
+    Domain_ptr result = readGmsh(info, fileName, numDim, integrationOrder,
+                                 reducedIntegrationOrder, optimize,
+                                 useMacroElements, points, tags);      
+
+    for (int i=0;i<numpts;++i) {
+        boost::python::object temp=pypoints[i];
+        int l=extract<int>(temp.attr("__len__")());
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    int curmax=40; // bricks use up to 30
+    TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
+    // first we work out what tags are already in use
+    for (TagMap::iterator it=tagmap.begin(); it!=tagmap.end(); ++it) {
+        if (it->second>curmax) {
+            curmax=it->second+1;
+        }
+    }
+
+    tags.resize(numtags, -1);
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s=ex_str();
+            map<string, int>::iterator it=tagmap.find(s);
+            if (it!=tagmap.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                result->setTagMap(s,curmax);
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyAdapterException("Error - Unable to extract tag value");
+        }
+    }
+    // now we need to add the dirac points
+    dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
+    return result;
+}   
   
-  
-
-  Domain_ptr readGmsh_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
-      int l=len(args);
-      if (l<7) 
-      {
-	  throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
-      }
-      std::string fileName=extract<string>(args[0])();
-      int numDim=extract<int>(args[1])();
-      int integrationOrder=extract<int>(args[2])();
-      int reducedIntegrationOrder=extract<int>(args[3])();
-      bool optimize=extract<bool>(args[4])();
-      bool useMacroElements=extract<bool>(args[5])();
-      std::vector<double> points;
-      std::vector<int> tags;
-      
-      
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[6]);
-      boost::python::list pytags=extract<boost::python::list>(args[7]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-      boost::python::object pworld=args[8];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
-      }
-      Domain_ptr result = readGmsh(info, fileName,
-                                     numDim,
-                                     integrationOrder,
-                                     reducedIntegrationOrder,
-                                     optimize,
-                                     useMacroElements,
-				   points,
-				   tags);      
-
-      for (int i=0;i<numpts;++i) {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k) {
-              points.push_back(extract<double>(temp[k]));
-          }
-      }
-      int curmax=40; // bricks use up to 30
-      TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
-                // first we work out what tags are already in use
-      for (TagMap::iterator it=tagmap.begin();
-                it!=tagmap.end();++it)
-      {
-          if (it->second>curmax)
-          {
-                curmax=it->second+1;
-          }
-      }
-
-      tags.resize(numtags, -1);
-      for (int i=0;i<numtags;++i) {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check()) {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax) {
-                  curmax=tags[i]+1;
-              }
-          } else if (ex_str.check()) {
-              string s=ex_str();
-              map<string, int>::iterator it=tagmap.find(s);
-              if (it!=tagmap.end()) {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              } else {
-                  result->setTagMap(s,curmax);
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          } else {
-              throw FinleyAdapterException("Error - Unable to extract tag value");
-          }
-      }
-        // now we need to add the dirac points
-      dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
-      return result;
-
-  }   
-  
-  Domain_ptr brick(esysUtils::JMPI& info, int n0, int n1, int n2, int order,
-                   double l0, double l1, double l2,
-                   bool periodic0, bool periodic1, bool periodic2,
-                   int integrationOrder, int reducedIntegrationOrder,
-                   bool useElementsOnFace, bool useFullElementOrder,
-                   bool optimize, const std::vector<double>& points,
-                   const std::vector<int>& tags,
-                   const std::map<std::string, int>& tagnamestonums
-		  )
-  {
-    const int numElements[] = {n0, n1, n2};
+Domain_ptr brick(esysUtils::JMPI& info, dim_t n0, dim_t n1, dim_t n2, int order,
+                 double l0, double l1, double l2,
+                 bool periodic0, bool periodic1, bool periodic2,
+                 int integrationOrder, int reducedIntegrationOrder,
+                 bool useElementsOnFace, bool useFullElementOrder,
+                 bool optimize, const std::vector<double>& points,
+                 const std::vector<int>& tags,
+                 const std::map<std::string, int>& tagnamestonums)
+{
+    const dim_t numElements[] = {n0, n1, n2};
     const double length[] = {l0, l1, l2};
     const bool periodic[] = {periodic0, periodic1, periodic2};
 
@@ -748,18 +724,15 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Hex8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, optimize, info);
     } else if (order==2) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, false, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, false, optimize, info);
     } else if (order==-1) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, true, optimize, info);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -777,96 +750,85 @@ namespace finley {
     }
     out->Points->updateTagList();
     return Domain_ptr(dom);
-  }
+}
 
-  Domain_ptr brick_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
+Domain_ptr brick_driver(const boost::python::list& args)
+{
+    using boost::python::extract;
 
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[15]);
-      boost::python::list pytags=extract<boost::python::list>(args[16]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-      vector<double> points;
-      vector<int> tags;
-      tags.resize(numtags, -1);
-      for (int i=0;i<numpts;++i) {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k) {
-              points.push_back(extract<double>(temp[k]));           
-          }
-      }
-      map<string, int> namestonums;
-      int curmax=40; // bricks use up to 30
-      for (int i=0;i<numtags;++i) {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check()) {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax) {
-                  curmax=tags[i]+1;
-              }
-          } else if (ex_str.check()) {
-              string s=ex_str();
-              map<string, int>::iterator it=namestonums.find(s);
-              if (it!=namestonums.end()) {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              } else {
-                  namestonums[s]=curmax;
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          } else {
-              throw FinleyAdapterException("Error - Unable to extract tag value.");
-          }
-        
-      }
-      boost::python::object pworld=args[17];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
-      }
-      return brick(info, static_cast<int>(extract<float>(args[0])),
-                   static_cast<int>(extract<float>(args[1])),
-                   static_cast<int>(extract<float>(args[2])),
+    // we need to convert lists to stl vectors
+    boost::python::list pypoints=extract<boost::python::list>(args[15]);
+    boost::python::list pytags=extract<boost::python::list>(args[16]);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    vector<double> points;
+    vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        boost::python::object temp=pypoints[i];
+        int l=extract<int>(temp.attr("__len__")());
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));           
+        }
+    }
+    map<string, int> namestonums;
+    int curmax=40; // bricks use up to 30
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s=ex_str();
+            map<string, int>::iterator it=namestonums.find(s);
+            if (it!=namestonums.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                namestonums[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyAdapterException("Error - Unable to extract tag value.");
+        }
+    }
+    boost::python::object pworld=args[17];
+    esysUtils::JMPI info;
+    if (!pworld.is_none()) {
+        extract<SubWorld_ptr> ex(pworld);
+        if (!ex.check())
+        {
+            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+        }
+        info=ex()->getMPI();
+    } else {
+        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    }
+    return brick(info, static_cast<dim_t>(extract<float>(args[0])),
+                   static_cast<dim_t>(extract<float>(args[1])),
+                   static_cast<dim_t>(extract<float>(args[2])),
                    extract<int>(args[3]), extract<double>(args[4]),
                    extract<double>(args[5]), extract<double>(args[6]),
                    extract<int>(args[7]), extract<int>(args[8]),
                    extract<int>(args[9]), extract<int>(args[10]),
                    extract<int>(args[11]), extract<int>(args[12]),
                    extract<int>(args[13]), extract<int>(args[14]),
-                   points, tags, namestonums
-		  );
-  }
+                   points, tags, namestonums);
+}
 
-  Domain_ptr rectangle(esysUtils::JMPI& info, int n0, int n1, int order,
-                       double l0, double l1,
-                       bool periodic0, bool periodic1,
-                       int integrationOrder,
-                       int reducedIntegrationOrder,
-                       bool useElementsOnFace,
-                       bool useFullElementOrder,
-                       bool optimize,
-                       const vector<double>& points,
-                       const vector<int>& tags,
-                       const std::map<std::string, int>& tagnamestonums
-		      )
-  {
-    const int numElements[] = {n0, n1};
+Domain_ptr rectangle(esysUtils::JMPI& info, dim_t n0, dim_t n1, int order,
+                     double l0, double l1, bool periodic0, bool periodic1,
+                     int integrationOrder, int reducedIntegrationOrder,
+                     bool useElementsOnFace, bool useFullElementOrder,
+                     bool optimize, const vector<double>& points,
+                     const vector<int>& tags,
+                     const std::map<std::string, int>& tagnamestonums)
+{
+    const dim_t numElements[] = {n0, n1};
     const double length[] = {l0, l1};
     const bool periodic[] = {periodic0, periodic1};
 
@@ -874,18 +836,15 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Rec4(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, optimize, info);
     } else if (order==2) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace,useFullElementOrder, false, optimize,
-		info);
+                useElementsOnFace,useFullElementOrder, false, optimize, info);
     } else if (order==-1) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, true, optimize, info);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -903,10 +862,10 @@ namespace finley {
     }
     out->Points->updateTagList();
     return Domain_ptr(dom);
-  }
+}
 
-  Domain_ptr meshMerge(const boost::python::list& meshList)
-  {
+Domain_ptr meshMerge(const boost::python::list& meshList)
+{
     // extract the meshes from meshList
     int num=boost::python::extract<int>(meshList.attr("__len__")());
     vector<Mesh*> meshes(num);
@@ -922,136 +881,106 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     return Domain_ptr(new MeshAdapter(fMesh));
-  }
+}
 
-  Domain_ptr rectangle_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
+Domain_ptr rectangle_driver(const boost::python::list& args)
+{
+    using boost::python::extract;
 
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[12]);
-      boost::python::list pytags=extract<boost::python::list>(args[13]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-      vector<double> points;
-      vector<int> tags;
-      tags.resize(numtags, -1);
-      for (int i=0;i<numpts;++i)
-      {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k)
-          {
-              points.push_back(extract<double>(temp[k]));           
-          }
-      }
-      map<string, int> tagstonames;
-      int curmax=40;
-      // but which order to assign tags to names?????
-      for (int i=0;i<numtags;++i)
-      {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check())
-          {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax)
-              {
-                  curmax=tags[i]+1;
-              }
-          } 
-          else if (ex_str.check())
-          {
-              string s=ex_str();
-              map<string, int>::iterator it=tagstonames.find(s);
-              if (it!=tagstonames.end())
-              {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              }
-              else
-              {
-                  tagstonames[s]=curmax;
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          }
-          else
-          {
-              throw FinleyAdapterException("Error - Unable to extract tag value.");
-          }
-      }
-      boost::python::object pworld=args[14];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-          extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-          }
-          info=ex()->getMPI();
-      }
-      else
-      {
-          info=esysUtils::makeInfo(MPI_COMM_WORLD);
-      }
+    // we need to convert lists to stl vectors
+    boost::python::list pypoints=extract<boost::python::list>(args[12]);
+    boost::python::list pytags=extract<boost::python::list>(args[13]);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    vector<double> points;
+    vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        boost::python::object temp=pypoints[i];
+        int l=extract<int>(temp.attr("__len__")());
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));           
+        }
+    }
+    map<string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s=ex_str();
+            map<string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyAdapterException("Error - Unable to extract tag value.");
+        }
+    }
+    boost::python::object pworld=args[14];
+    esysUtils::JMPI info;
+    if (!pworld.is_none()) {
+        extract<SubWorld_ptr> ex(pworld);
+        if (!ex.check()) {
+            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+        }
+        info=ex()->getMPI();
+    } else {
+        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    }
 
-      return rectangle(info, static_cast<int>(extract<float>(args[0])),
-                       static_cast<int>(extract<float>(args[1])),
+    return rectangle(info, static_cast<dim_t>(extract<float>(args[0])),
+                       static_cast<dim_t>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),
                        extract<int>(args[8]), extract<int>(args[9]),
                        extract<int>(args[10]), extract<int>(args[11]), 
-                       points, tags, tagstonames
-		       );
-  }  
+                       points, tags, tagstonames);
+}  
 
-
-  Domain_ptr glueFaces(const boost::python::list& meshList,
-                       double safety_factor, 
-                       double tolerance,
-                       bool optimize)
-  {
-    Mesh* fMesh=0;
-    //
+Domain_ptr glueFaces(const boost::python::list& meshList, double safety_factor,
+                     double tolerance, bool optimize)
+{
     // merge the meshes:
     Domain_ptr merged_meshes=meshMerge(meshList);
 
-    //
     // glue the faces:
     const MeshAdapter* merged_finley_meshes=dynamic_cast<const MeshAdapter*>(merged_meshes.get());
-    fMesh=merged_finley_meshes->getFinley_Mesh();
+    Mesh* fMesh = merged_finley_meshes->getFinley_Mesh();
     fMesh->glueFaces(safety_factor, tolerance, optimize);
 
-    //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     return merged_meshes;
-  }
+}
 
-  Domain_ptr joinFaces(const boost::python::list& meshList,
-                       double safety_factor, 
-                       double tolerance,
-                       bool optimize)
-  {
-    Mesh* fMesh=0;
-    //
+Domain_ptr joinFaces(const boost::python::list& meshList, double safety_factor,
+                     double tolerance, bool optimize)
+{
     // merge the meshes:
     Domain_ptr merged_meshes=meshMerge(meshList);
-    //
+
     // join the faces:
     const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes.get());
-    fMesh=merged_finley_meshes->getFinley_Mesh();
+    Mesh* fMesh=merged_finley_meshes->getFinley_Mesh();
     fMesh->joinFaces(safety_factor, tolerance, optimize);
-    //
+
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     return merged_meshes;
-  }
-
-  // end of namespace
-
 }
+
+} // end of namespace
 

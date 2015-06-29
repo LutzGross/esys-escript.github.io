@@ -125,16 +125,22 @@ void MeshAdapter::dump(const string& fileName) const
     const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
     NcVar *ids;
     int *int_ptr;
+    index_t *index_ptr;
+#ifdef ESYS_INDEXTYPE_LONG
+    NcType ncIdxType = ncLong;
+#else
+    NcType ncIdxType = ncInt;
+#endif
     Mesh *mesh = m_finleyMesh.get();
     int num_Tags = 0;
     int mpi_size                         = mesh->MPIInfo->size;
     int mpi_rank                         = mesh->MPIInfo->rank;
     int numDim                           = mesh->Nodes->numDim;
-    int numNodes                         = mesh->Nodes->numNodes;
-    int num_Elements                     = mesh->Elements->numElements;
-    int num_FaceElements                 = mesh->FaceElements->numElements;
-    int num_ContactElements              = mesh->ContactElements->numElements;
-    int num_Points                       = mesh->Points->numElements;
+    dim_t numNodes                       = mesh->Nodes->numNodes;
+    dim_t num_Elements                   = mesh->Elements->numElements;
+    dim_t num_FaceElements               = mesh->FaceElements->numElements;
+    dim_t num_ContactElements            = mesh->ContactElements->numElements;
+    dim_t num_Points                     = mesh->Points->numElements;
     int num_Elements_numNodes            = mesh->Elements->numNodes;
     int num_FaceElements_numNodes        = mesh->FaceElements->numNodes;
     int num_ContactElements_numNodes     = mesh->ContactElements->numNodes;
@@ -198,6 +204,8 @@ void MeshAdapter::dump(const string& fileName) const
             throw FinleyAdapterException(msgPrefix+"add_dim(dim_Tags)");
 
     // Attributes: MPI size, MPI rank, Name, order, reduced_order
+    if (!dataFile.add_att("index_size", (int)sizeof(index_t)))
+        throw FinleyAdapterException(msgPrefix+"add_att(index_size)");
     if (!dataFile.add_att("mpi_size", mpi_size))
         throw FinleyAdapterException(msgPrefix+"add_att(mpi_size)");
     if (!dataFile.add_att("mpi_rank", mpi_rank))
@@ -240,216 +248,194 @@ void MeshAdapter::dump(const string& fileName) const
     // // // // // Nodes // // // // //
 
     // Nodes nodeDistribution
-    if (! (ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
+    if (! (ids = dataFile.add_var("Nodes_NodeDistribution", ncIdxType, ncdims[2])) )
         throw FinleyAdapterException(msgPrefix+"add_var(Nodes_NodeDistribution)");
-    int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
-    if (! (ids->put(int_ptr, mpi_size+1)) )
+    index_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
+    if (! (ids->put(index_ptr, mpi_size+1)) )
         throw FinleyAdapterException(msgPrefix+"put(Nodes_NodeDistribution)");
 
     // Nodes degreesOfFreedomDistribution
-    if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncInt, ncdims[2])) )
+    if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncIdxType, ncdims[2])) )
         throw FinleyAdapterException(msgPrefix+"add_var(Nodes_DofDistribution)");
-    int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
-    if (! (ids->put(int_ptr, mpi_size+1)) )
+    index_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
+    if (! (ids->put(index_ptr, mpi_size+1)) )
         throw FinleyAdapterException(msgPrefix+"put(Nodes_DofDistribution)");
 
     // Only write nodes if non-empty because NetCDF doesn't like empty arrays
     // (it treats them as NC_UNLIMITED)
-    if (numNodes>0) {
+    if (numNodes > 0) {
         // Nodes Id
-        if (! ( ids = dataFile.add_var("Nodes_Id", ncInt, ncdims[0])) )
+        if (! ( ids = dataFile.add_var("Nodes_Id", ncIdxType, ncdims[0])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_Id)");
-        int_ptr = &mesh->Nodes->Id[0];
-        if (! (ids->put(int_ptr, numNodes)) )
+        if (! (ids->put(&mesh->Nodes->Id[0], numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_Id)");
 
         // Nodes Tag
         if (! ( ids = dataFile.add_var("Nodes_Tag", ncInt, ncdims[0])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_Tag)");
-        int_ptr = &mesh->Nodes->Tag[0];
-        if (! (ids->put(int_ptr, numNodes)) )
+        if (! (ids->put(&mesh->Nodes->Tag[0], numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_Tag)");
 
         // Nodes gDOF
-        if (! ( ids = dataFile.add_var("Nodes_gDOF", ncInt, ncdims[0])) )
+        if (! ( ids = dataFile.add_var("Nodes_gDOF", ncIdxType, ncdims[0])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_gDOF)");
-        int_ptr = &mesh->Nodes->globalDegreesOfFreedom[0];
-        if (! (ids->put(int_ptr, numNodes)) )
+        if (! (ids->put(&mesh->Nodes->globalDegreesOfFreedom[0], numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_gDOF)");
 
         // Nodes global node index
-        if (! ( ids = dataFile.add_var("Nodes_gNI", ncInt, ncdims[0])) )
+        if (! ( ids = dataFile.add_var("Nodes_gNI", ncIdxType, ncdims[0])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_gNI)");
-        int_ptr = &mesh->Nodes->globalNodesIndex[0];
-        if (! (ids->put(int_ptr, numNodes)) )
+        if (! (ids->put(&mesh->Nodes->globalNodesIndex[0], numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_gNI)");
 
         // Nodes grDof
-        if (! ( ids = dataFile.add_var("Nodes_grDfI", ncInt, ncdims[0])) )
+        if (! ( ids = dataFile.add_var("Nodes_grDfI", ncIdxType, ncdims[0])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_grDfI)");
-        int_ptr = &mesh->Nodes->globalReducedDOFIndex[0];
-        if (! (ids->put(int_ptr, numNodes)) )
+        if (! (ids->put(&mesh->Nodes->globalReducedDOFIndex[0], numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_grDfI)");
 
         // Nodes grNI
-        if (! ( ids = dataFile.add_var("Nodes_grNI", ncInt, ncdims[0])) )
+        if (! ( ids = dataFile.add_var("Nodes_grNI", ncIdxType, ncdims[0])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_grNI)");
-        int_ptr = &mesh->Nodes->globalReducedNodesIndex[0];
-        if (! (ids->put(int_ptr, numNodes)) )
+        if (! (ids->put(&mesh->Nodes->globalReducedNodesIndex[0], numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_grNI)");
 
         // Nodes Coordinates
         if (! ( ids = dataFile.add_var("Nodes_Coordinates", ncDouble, ncdims[0], ncdims[1]) ) )
             throw FinleyAdapterException(msgPrefix+"add_var(Nodes_Coordinates)");
-        if (! (ids->put(&(mesh->Nodes->Coordinates[INDEX2(0,0,numDim)]), numNodes, numDim)) )
+        if (! (ids->put(&mesh->Nodes->Coordinates[INDEX2(0,0,numDim)], numNodes, numDim)) )
             throw FinleyAdapterException(msgPrefix+"put(Nodes_Coordinates)");
     }
 
     // // // // // Elements // // // // //
-    if (num_Elements>0) {
+    if (num_Elements > 0) {
         // Elements_Id
-        if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
+        if (! ( ids = dataFile.add_var("Elements_Id", ncIdxType, ncdims[3])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Elements_Id)");
-        int_ptr = &mesh->Elements->Id[0];
-        if (! (ids->put(int_ptr, num_Elements)) )
+        if (! (ids->put(&mesh->Elements->Id[0], num_Elements)) )
             throw FinleyAdapterException(msgPrefix+"put(Elements_Id)");
 
         // Elements_Tag
         if (! ( ids = dataFile.add_var("Elements_Tag", ncInt, ncdims[3])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Elements_Tag)");
-        int_ptr = &mesh->Elements->Tag[0];
-        if (! (ids->put(int_ptr, num_Elements)) )
+        if (! (ids->put(&mesh->Elements->Tag[0], num_Elements)) )
             throw FinleyAdapterException(msgPrefix+"put(Elements_Tag)");
 
         // Elements_Owner
         if (! ( ids = dataFile.add_var("Elements_Owner", ncInt, ncdims[3])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Elements_Owner)");
-        int_ptr = &mesh->Elements->Owner[0];
-        if (! (ids->put(int_ptr, num_Elements)) )
+        if (! (ids->put(&mesh->Elements->Owner[0], num_Elements)) )
             throw FinleyAdapterException(msgPrefix+"put(Elements_Owner)");
 
         // Elements_Color
         if (! ( ids = dataFile.add_var("Elements_Color", ncInt, ncdims[3])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Elements_Color)");
-        int_ptr = &mesh->Elements->Color[0];
-        if (! (ids->put(int_ptr, num_Elements)) )
+        if (! (ids->put(&mesh->Elements->Color[0], num_Elements)) )
             throw FinleyAdapterException(msgPrefix+"put(Elements_Color)");
 
         // Elements_Nodes
-        if (! ( ids = dataFile.add_var("Elements_Nodes", ncInt, ncdims[3], ncdims[7]) ) )
+        if (! ( ids = dataFile.add_var("Elements_Nodes", ncIdxType, ncdims[3], ncdims[7]) ) )
             throw FinleyAdapterException(msgPrefix+"add_var(Elements_Nodes)");
-        if (! (ids->put(&(mesh->Elements->Nodes[0]), num_Elements, num_Elements_numNodes)) )
+        if (! (ids->put(&mesh->Elements->Nodes[0], num_Elements, num_Elements_numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(Elements_Nodes)");
     }
 
     // // // // // Face_Elements // // // // //
-    if (num_FaceElements>0) {
+    if (num_FaceElements > 0) {
         // FaceElements_Id
-        if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
+        if (! ( ids = dataFile.add_var("FaceElements_Id", ncIdxType, ncdims[4])) )
             throw FinleyAdapterException(msgPrefix+"add_var(FaceElements_Id)");
-        int_ptr = &mesh->FaceElements->Id[0];
-        if (! (ids->put(int_ptr, num_FaceElements)) )
+        if (! (ids->put(&mesh->FaceElements->Id[0], num_FaceElements)) )
             throw FinleyAdapterException(msgPrefix+"put(FaceElements_Id)");
 
         // FaceElements_Tag
         if (! ( ids = dataFile.add_var("FaceElements_Tag", ncInt, ncdims[4])) )
             throw FinleyAdapterException(msgPrefix+"add_var(FaceElements_Tag)");
-        int_ptr = &mesh->FaceElements->Tag[0];
-        if (! (ids->put(int_ptr, num_FaceElements)) )
+        if (! (ids->put(&mesh->FaceElements->Tag[0], num_FaceElements)) )
             throw FinleyAdapterException(msgPrefix+"put(FaceElements_Tag)");
 
         // FaceElements_Owner
         if (! ( ids = dataFile.add_var("FaceElements_Owner", ncInt, ncdims[4])) )
             throw FinleyAdapterException(msgPrefix+"add_var(FaceElements_Owner)");
-        int_ptr = &mesh->FaceElements->Owner[0];
-        if (! (ids->put(int_ptr, num_FaceElements)) )
+        if (! (ids->put(&mesh->FaceElements->Owner[0], num_FaceElements)) )
             throw FinleyAdapterException(msgPrefix+"put(FaceElements_Owner)");
 
         // FaceElements_Color
         if (! ( ids = dataFile.add_var("FaceElements_Color", ncInt, ncdims[4])) )
             throw FinleyAdapterException(msgPrefix+"add_var(FaceElements_Color)");
-        int_ptr = &mesh->FaceElements->Color[0];
-        if (! (ids->put(int_ptr, num_FaceElements)) )
+        if (! (ids->put(&mesh->FaceElements->Color[0], num_FaceElements)) )
             throw FinleyAdapterException(msgPrefix+"put(FaceElements_Color)");
 
         // FaceElements_Nodes
-        if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncInt, ncdims[4], ncdims[8]) ) )
+        if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncIdxType, ncdims[4], ncdims[8]) ) )
             throw FinleyAdapterException(msgPrefix+"add_var(FaceElements_Nodes)");
-        if (! (ids->put(&(mesh->FaceElements->Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
+        if (! (ids->put(&mesh->FaceElements->Nodes[0], num_FaceElements, num_FaceElements_numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(FaceElements_Nodes)");
     }
 
     // // // // // Contact_Elements // // // // //
-    if (num_ContactElements>0) {
+    if (num_ContactElements > 0) {
 
         // ContactElements_Id
-        if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
+        if (! ( ids = dataFile.add_var("ContactElements_Id", ncIdxType, ncdims[5])) )
             throw FinleyAdapterException(msgPrefix+"add_var(ContactElements_Id)");
-        int_ptr = &mesh->ContactElements->Id[0];
-        if (! (ids->put(int_ptr, num_ContactElements)) )
+        if (! (ids->put(&mesh->ContactElements->Id[0], num_ContactElements)) )
             throw FinleyAdapterException(msgPrefix+"put(ContactElements_Id)");
 
         // ContactElements_Tag
         if (! ( ids = dataFile.add_var("ContactElements_Tag", ncInt, ncdims[5])) )
             throw FinleyAdapterException(msgPrefix+"add_var(ContactElements_Tag)");
-        int_ptr = &mesh->ContactElements->Tag[0];
-        if (! (ids->put(int_ptr, num_ContactElements)) )
+        if (! (ids->put(&mesh->ContactElements->Tag[0], num_ContactElements)) )
             throw FinleyAdapterException(msgPrefix+"put(ContactElements_Tag)");
 
         // ContactElements_Owner
         if (! ( ids = dataFile.add_var("ContactElements_Owner", ncInt, ncdims[5])) )
             throw FinleyAdapterException(msgPrefix+"add_var(ContactElements_Owner)");
-        int_ptr = &mesh->ContactElements->Owner[0];
-        if (! (ids->put(int_ptr, num_ContactElements)) )
+        if (! (ids->put(&mesh->ContactElements->Owner[0], num_ContactElements)) )
             throw FinleyAdapterException(msgPrefix+"put(ContactElements_Owner)");
 
         // ContactElements_Color
         if (! ( ids = dataFile.add_var("ContactElements_Color", ncInt, ncdims[5])) )
             throw FinleyAdapterException(msgPrefix+"add_var(ContactElements_Color)");
-        int_ptr = &mesh->ContactElements->Color[0];
-        if (! (ids->put(int_ptr, num_ContactElements)) )
+        if (! (ids->put(&mesh->ContactElements->Color[0], num_ContactElements)) )
             throw FinleyAdapterException(msgPrefix+"put(ContactElements_Color)");
 
         // ContactElements_Nodes
-        if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncInt, ncdims[5], ncdims[9]) ) )
+        if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncIdxType, ncdims[5], ncdims[9]) ) )
             throw FinleyAdapterException(msgPrefix+"add_var(ContactElements_Nodes)");
-        if (! (ids->put(&(mesh->ContactElements->Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
+        if (! (ids->put(&mesh->ContactElements->Nodes[0], num_ContactElements, num_ContactElements_numNodes)) )
             throw FinleyAdapterException(msgPrefix+"put(ContactElements_Nodes)");
     }
 
     // // // // // Points // // // // //
-    if (num_Points>0) {
+    if (num_Points > 0) {
         // Points_Id
-        if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
+        if (! ( ids = dataFile.add_var("Points_Id", ncIdxType, ncdims[6])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Points_Id)");
-        int_ptr = &mesh->Points->Id[0];
-        if (! (ids->put(int_ptr, num_Points)) )
+        if (! (ids->put(&mesh->Points->Id[0], num_Points)) )
             throw FinleyAdapterException(msgPrefix+"put(Points_Id)");
 
         // Points_Tag
         if (! ( ids = dataFile.add_var("Points_Tag", ncInt, ncdims[6])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Points_Tag)");
-        int_ptr = &mesh->Points->Tag[0];
-        if (! (ids->put(int_ptr, num_Points)) )
+        if (! (ids->put(&mesh->Points->Tag[0], num_Points)) )
             throw FinleyAdapterException(msgPrefix+"put(Points_Tag)");
 
         // Points_Owner
         if (! ( ids = dataFile.add_var("Points_Owner", ncInt, ncdims[6])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Points_Owner)");
-        int_ptr = &mesh->Points->Owner[0];
-        if (! (ids->put(int_ptr, num_Points)) )
+        if (! (ids->put(&mesh->Points->Owner[0], num_Points)) )
             throw FinleyAdapterException(msgPrefix+"put(Points_Owner)");
 
         // Points_Color
         if (! ( ids = dataFile.add_var("Points_Color", ncInt, ncdims[6])) )
             throw FinleyAdapterException(msgPrefix+"add_var(Points_Color)");
-        int_ptr = &mesh->Points->Color[0];
-        if (! (ids->put(int_ptr, num_Points)) )
+        if (! (ids->put(&mesh->Points->Color[0], num_Points)) )
             throw FinleyAdapterException(msgPrefix+"put(Points_Color)");
 
         // Points_Nodes
         // mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]]
-        if (! ( ids = dataFile.add_var("Points_Nodes", ncInt, ncdims[6]) ) )
+        if (! ( ids = dataFile.add_var("Points_Nodes", ncIdxType, ncdims[6]) ) )
             throw FinleyAdapterException(msgPrefix+"add_var(Points_Nodes)");
         if (! (ids->put(&(mesh->Points->Nodes[0]), num_Points)) )
             throw FinleyAdapterException(msgPrefix+"put(Points_Nodes)");
@@ -632,7 +618,7 @@ int MeshAdapter::getDim() const
 //
 // Return the number of data points summed across all MPI processes
 //
-int MeshAdapter::getNumDataPointsGlobal() const
+dim_t MeshAdapter::getNumDataPointsGlobal() const
 {
     return m_finleyMesh.get()->Nodes->getGlobalNumNodes();
 }
@@ -641,10 +627,10 @@ int MeshAdapter::getNumDataPointsGlobal() const
 // return the number of data points per sample and the number of samples
 // needed to represent data on a parts of the mesh.
 //
-pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
+pair<int,dim_t> MeshAdapter::getDataShape(int functionSpaceCode) const
 {
     int numDataPointsPerSample=0;
-    int numSamples=0;
+    dim_t numSamples=0;
     Mesh* mesh=m_finleyMesh.get();
     switch (functionSpaceCode) {
         case Nodes:
@@ -1390,8 +1376,8 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
     if (getMPISize() > 1) {
 #ifdef ESYS_MPI
-        int myFirstNode=0, myLastNode=0, k=0;
-        int* globalNodeIndex=0;
+        index_t myFirstNode=0, myLastNode=0;
+        index_t* globalNodeIndex = NULL;
         Mesh* mesh_p=m_finleyMesh.get();
         /*
          * this method is only used by saveDataCSV which would use the returned
@@ -1410,8 +1396,8 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
             throw FinleyAdapterException("Unsupported function space type for ownSample()");
         }
 
-        k=globalNodeIndex[id];
-        return ((myFirstNode <= k) && (k < myLastNode));
+        const index_t k = globalNodeIndex[id];
+        return (myFirstNode <= k && k < myLastNode);
 #endif
     }
     return true;
@@ -1868,9 +1854,9 @@ escript::Data MeshAdapter::getSize() const
     return escript::function(*this).getSize();
 }
 
-const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
+const index_t* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
 {
-    int *out = NULL;
+    index_t *out = NULL;
     Mesh* mesh=m_finleyMesh.get();
     switch (functionSpaceType) {
         case Nodes:
@@ -1910,7 +1896,7 @@ const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
     }
     return out;
 }
-int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
+int MeshAdapter::getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const
 {
     int out=0;
     Mesh* mesh=m_finleyMesh.get();

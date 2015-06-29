@@ -38,25 +38,25 @@
 
 namespace finley {
 
-void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
-        const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
-        const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
-        const double* array);
+void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in, int NN_Equa,
+                                    const index_t* Nodes_Equa, int num_Equa,
+                                    int NN_Sol, const index_t* Nodes_Sol,
+                                    int num_Sol, const double* array);
 
 void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
-        const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
-        const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
-        const double* array);
+                        int NN_Equa, const index_t* Nodes_Equa, int num_Equa,
+                        int NN_Sol, const index_t* Nodes_Sol, int num_Sol,
+                        const double* array);
 
-void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
-        const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
-        const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
-        const double* array);
+void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in, int NN_Equa,
+                                    const index_t* Nodes_Equa, int num_Equa,
+                                    int NN_Sol, const index_t* Nodes_Sol,
+                                    int num_Sol, const double* array);
 
-void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in,
-        const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
-        const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
-        const double* array)
+void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in, int NN_Equa,
+                                const index_t* Nodes_Equa, int num_Equa,
+                                int NN_Sol, const index_t* Nodes_Sol,
+                                int num_Sol, const double* array)
 {
     // call the right function depending on storage type
     if (in->type & MATRIX_FORMAT_CSC) {
@@ -71,11 +71,10 @@ void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in,
     }
 }
 
-void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
-                                    const int NN_Equa, const int* Nodes_Equa,
-                                    const int num_Equa, const int NN_Sol,
-                                    const int* Nodes_Sol, const int num_Sol,
-                                    const double* array)
+void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in, int NN_Equa,
+                                    const index_t* Nodes_Equa, int num_Equa,
+                                    int NN_Sol, const index_t* Nodes_Sol,
+                                    int num_Sol, const double* array)
 {
     const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const int row_block_size=in->row_block_size;
@@ -83,8 +82,8 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
     const int block_size=in->block_size;
     const int num_subblocks_Equa=num_Equa/row_block_size;
     const int num_subblocks_Sol=num_Sol/col_block_size;
-    const int numMyCols=in->pattern->mainPattern->numInput;
-    const int numMyRows=in->pattern->mainPattern->numOutput;
+    const dim_t numMyCols=in->pattern->mainPattern->numInput;
+    const dim_t numMyRows=in->pattern->mainPattern->numOutput;
     const index_t *mainBlock_ptr=in->mainBlock->pattern->ptr;
     const index_t *mainBlock_index=in->mainBlock->pattern->index;
     double *mainBlock_val=in->mainBlock->val;
@@ -97,23 +96,23 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
 
     for (int k_Sol=0; k_Sol<NN_Sol; ++k_Sol) {
         // Down columns of array
-        const int j_Sol=Nodes_Sol[k_Sol];
+        const index_t j_Sol=Nodes_Sol[k_Sol];
         for (int l_col=0; l_col<num_subblocks_Sol; ++l_col) {
-            const int i_col=j_Sol*num_subblocks_Sol+l_col;
+            const index_t i_col=j_Sol*num_subblocks_Sol+l_col;
             if (i_col < numMyCols) {
                 for (int k_Equa=0;k_Equa<NN_Equa;++k_Equa) {
                     // Across cols of array
-                    const int j_Equa=Nodes_Equa[k_Equa];
+                    const index_t j_Equa=Nodes_Equa[k_Equa];
                     for (int l_row=0; l_row<num_subblocks_Equa; ++l_row) {
-                        const int i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
+                        const index_t i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
                         if (i_row < numMyRows + index_offset ) {
-                            for (int k=mainBlock_ptr[i_col]-index_offset; k<mainBlock_ptr[i_col+1]-index_offset; ++k) {
+                            for (index_t k=mainBlock_ptr[i_col]-index_offset; k<mainBlock_ptr[i_col+1]-index_offset; ++k) {
                                 if (mainBlock_index[k]==i_row) {
                                     // Entry array(k_Equa, j_Sol) is a block (col_block_size x col_block_size)
                                     for (int ic=0; ic<col_block_size; ++ic) {
                                         const int i_Sol=ic+col_block_size*l_col;
                                         for (int ir=0; ir<row_block_size; ++ir) {
-                                            const int i_Equa=ir+row_block_size*l_row;
+                                            const index_t i_Equa=ir+row_block_size*l_row;
                                             mainBlock_val[k*block_size+ir+row_block_size*ic]+=
                                                     array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                         }
@@ -122,12 +121,12 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
                                 }
                             }
                         } else {
-                            for (int k=col_coupleBlock_ptr[i_col]-index_offset; k<col_coupleBlock_ptr[i_col+1]-index_offset; ++k) {
+                            for (index_t k=col_coupleBlock_ptr[i_col]-index_offset; k<col_coupleBlock_ptr[i_col+1]-index_offset; ++k) {
                                 if (row_coupleBlock_index[k] == i_row-numMyRows) {
                                     for (int ic=0; ic<col_block_size; ++ic) {
                                         const int i_Sol=ic+col_block_size*l_col;
                                         for (int ir=0; ir<row_block_size; ++ir) {
-                                            const int i_Equa=ir+row_block_size*l_row;
+                                            const index_t i_Equa=ir+row_block_size*l_row;
                                             row_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
                                                 array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                         }
@@ -141,11 +140,11 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
             } else { // i_col >= numMyCols
                 for (int k_Equa=0;k_Equa<NN_Equa;++k_Equa) {
                     // Across rows of array
-                    const int j_Equa=Nodes_Equa[k_Equa];
+                    const index_t j_Equa=Nodes_Equa[k_Equa];
                     for (int l_row=0; l_row<num_subblocks_Equa; ++l_row) {
-                        const int i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
+                        const index_t i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
                         if (i_row < numMyRows + index_offset ) {
-                            for (int k=col_coupleBlock_ptr[i_col-numMyCols]-index_offset; k<col_coupleBlock_ptr[i_col-numMyCols+1]-index_offset; ++k) {
+                            for (index_t k=col_coupleBlock_ptr[i_col-numMyCols]-index_offset; k<col_coupleBlock_ptr[i_col-numMyCols+1]-index_offset; ++k) {
                                 if (col_coupleBlock_index[k] == i_row) {
                                     for (int ic=0; ic<col_block_size; ++ic) {
                                         const int i_Sol=ic+col_block_size*l_col;
@@ -167,12 +166,9 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
 }
 
 void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
-                                         const int NN_Equa,
-                                         const int* Nodes_Equa,
-                                         const int num_Equa,
-                                         const int NN_Sol,
-                                         const int* Nodes_Sol,
-                                         const int num_Sol,
+                                         int NN_Equa, const index_t* Nodes_Equa,
+                                         int num_Equa, int NN_Sol,
+                                         const index_t* Nodes_Sol, int num_Sol,
                                          const double* array)
 {
     // FIXME: this needs to be modified
@@ -201,11 +197,10 @@ void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
 #endif
 }
 
-void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
-                                    const int NN_Equa, const int* Nodes_Equa,
-                                    const int num_Equa, const int NN_Sol,
-                                    const int* Nodes_Sol, const int num_Sol,
-                                    const double* array)
+void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in, int NN_Equa,
+                                    const index_t* Nodes_Equa, int num_Equa,
+                                    int NN_Sol, const index_t* Nodes_Sol,
+                                    int num_Sol, const double* array)
 {
     const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const int row_block_size=in->row_block_size;
@@ -213,8 +208,8 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
     const int block_size=in->block_size;
     const int num_subblocks_Equa=num_Equa/row_block_size;
     const int num_subblocks_Sol=num_Sol/col_block_size;
-    const int numMyCols=in->pattern->mainPattern->numInput;
-    const int numMyRows=in->pattern->mainPattern->numOutput;
+    const dim_t numMyCols=in->pattern->mainPattern->numInput;
+    const dim_t numMyRows=in->pattern->mainPattern->numOutput;
     const index_t *mainBlock_ptr=in->mainBlock->pattern->ptr;
     const index_t *mainBlock_index=in->mainBlock->pattern->index;
     double *mainBlock_val=in->mainBlock->val;
@@ -227,26 +222,26 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
 
     for (int k_Equa=0; k_Equa<NN_Equa; ++k_Equa) {
         // Down columns of array
-        const int j_Equa=Nodes_Equa[k_Equa];
+        const index_t j_Equa=Nodes_Equa[k_Equa];
         for (int l_row=0; l_row<num_subblocks_Equa; ++l_row) {
-            const int i_row=j_Equa*num_subblocks_Equa+l_row;
+            const index_t i_row=j_Equa*num_subblocks_Equa+l_row;
             // only look at the matrix rows stored on this processor
             if (i_row < numMyRows) {
                 for (int k_Sol=0; k_Sol<NN_Sol; ++k_Sol) {
                     // Across rows of array
-                    const int j_Sol=Nodes_Sol[k_Sol];
+                    const index_t j_Sol=Nodes_Sol[k_Sol];
                     for (int l_col=0; l_col<num_subblocks_Sol; ++l_col) {
                         // only look at the matrix rows stored on this processor
-                        const int i_col=j_Sol*num_subblocks_Sol+index_offset+l_col;
+                        const index_t i_col=j_Sol*num_subblocks_Sol+index_offset+l_col;
                         if (i_col < numMyCols + index_offset ) {
-                            for (int k=mainBlock_ptr[i_row]-index_offset; k<mainBlock_ptr[i_row+1]-index_offset; ++k) {
+                            for (index_t k=mainBlock_ptr[i_row]-index_offset; k<mainBlock_ptr[i_row+1]-index_offset; ++k) {
                                 if (mainBlock_index[k]==i_col) {
                                     // Entry array(k_Sol, j_Equa) is a block
                                     // (row_block_size x col_block_size)
                                     for (int ic=0; ic<col_block_size; ++ic) {
                                         const int i_Sol=ic+col_block_size*l_col;
                                         for (int ir=0; ir<row_block_size; ++ir) {
-                                            const int i_Equa=ir+row_block_size*l_row;
+                                            const index_t i_Equa=ir+row_block_size*l_row;
                                             mainBlock_val[k*block_size+ir+row_block_size*ic]+=
                                                   array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                         }
@@ -255,14 +250,14 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
                                 }
                             }
                         } else {
-                            for (int k=col_coupleBlock_ptr[i_row]-index_offset; k<col_coupleBlock_ptr[i_row+1]-index_offset; ++k) {
+                            for (index_t k=col_coupleBlock_ptr[i_row]-index_offset; k<col_coupleBlock_ptr[i_row+1]-index_offset; ++k) {
                                 if (col_coupleBlock_index[k] == i_col-numMyCols) {
                                     // Entry array(k_Sol, j_Equa) is a block
                                     // (row_block_size x col_block_size)
                                     for (int ic=0; ic<col_block_size; ++ic) {
-                                        const int i_Sol=ic+col_block_size*l_col;
+                                        const index_t i_Sol=ic+col_block_size*l_col;
                                         for (int ir=0; ir<row_block_size; ++ir) {
-                                            const int i_Equa=ir+row_block_size*l_row;
+                                            const index_t i_Equa=ir+row_block_size*l_row;
                                             col_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
                                                   array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                         }
@@ -276,18 +271,18 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
             } else { // i_row >= numMyRows
                 for (int k_Sol=0; k_Sol<NN_Sol; ++k_Sol) {
                     // Across rows of array
-                    const int j_Sol=Nodes_Sol[k_Sol];
+                    const index_t j_Sol=Nodes_Sol[k_Sol];
                     for (int l_col=0; l_col<num_subblocks_Sol; ++l_col) {
-                        const int i_col=j_Sol*num_subblocks_Sol+index_offset+l_col;
+                        const index_t i_col=j_Sol*num_subblocks_Sol+index_offset+l_col;
                         if (i_col < numMyCols + index_offset ) {
-                            for (int k=row_coupleBlock_ptr[i_row-numMyRows]-index_offset; k<row_coupleBlock_ptr[i_row-numMyRows+1]-index_offset; ++k) {
+                            for (index_t k=row_coupleBlock_ptr[i_row-numMyRows]-index_offset; k<row_coupleBlock_ptr[i_row-numMyRows+1]-index_offset; ++k) {
                                 if (row_coupleBlock_index[k] == i_col) {
                                     // Entry array(k_Sol, j_Equa) is a block
                                     // (row_block_size x col_block_size)
                                     for (int ic=0; ic<col_block_size; ++ic) {
                                         const int i_Sol=ic+col_block_size*l_col;
                                         for (int ir=0; ir<row_block_size; ++ir) {
-                                            const int i_Equa=ir+row_block_size*l_row;
+                                            const index_t i_Equa=ir+row_block_size*l_row;
                                             row_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
                                                   array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
                                         }

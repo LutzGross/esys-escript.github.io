@@ -28,17 +28,27 @@
 
 namespace finley {
 
-Mesh* RectangularMesh_Hex20(const int* numElements, const double* Length,
-                            const bool* periodic, int order, int reduced_order, 
+Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* length,
+                            const bool* periodic, int order, int reducedOrder,
                             bool useElementsOnFace, bool useFullElementOrder,
                             bool useMacroElements, bool optimize,
                             esysUtils::JMPI& mpi_info);
 
-Mesh* RectangularMesh_Hex8(const int*, const double*, const bool*, int, int, bool, bool, bool, esysUtils::JMPI& info);
+Mesh* RectangularMesh_Hex8(const dim_t* numElements, const double* length,
+                           const bool* periodic, int order, int reducedOrder,
+                           bool useElementsOnFace, bool useFullElementOrder,
+                           bool useMacroElements, esysUtils::JMPI& mpi_info);
 
-Mesh* RectangularMesh_Rec8(const int*, const double*, const bool*, int, int, bool, bool, bool, bool, esysUtils::JMPI& info);
+Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* length,
+                           const bool* periodic, int order, int reducedOrder,
+                           bool useElementsOnFace, bool useFullElementOrder,
+                           bool useMacroElements, bool optimize,
+                           esysUtils::JMPI& mpi_info);
 
-Mesh* RectangularMesh_Rec4(const int*, const double*, const bool*, int, int, bool, bool, bool, esysUtils::JMPI& info);
+Mesh* RectangularMesh_Rec4(const dim_t* numElements, const double* length,
+                           const bool* periodic, int order, int reducedOrder,
+                           bool useElementsOnFace, bool useFullElementOrder,
+                           bool useMacroElements, esysUtils::JMPI& mpi_info);
 
 }
 
