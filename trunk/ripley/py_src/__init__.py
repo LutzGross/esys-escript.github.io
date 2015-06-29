@@ -24,7 +24,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import esys.escript		# This is just to ensure required libraries are loaded
+import esys.escript       # This is just to ensure required libraries are loaded
 from .ripleycpp import *
 from .MultiResolutionDomain import *
 

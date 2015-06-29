@@ -123,8 +123,8 @@ saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 t=T0
 while t<T_END:
-    print("time step t=",t+dt)	
-    u=fc.solve(dt)	
+    print("time step t=",t+dt)
+    u=fc.solve(dt)
     if TEST_SUPG:
         #========== supg tests ================
         nn=max(ceil(dt/dt_supg),1.)

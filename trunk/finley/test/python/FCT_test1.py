@@ -122,7 +122,7 @@ print("QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0))
 #T_END=200*dt
 while t<T_END:
    
-    print("time step t=",t+dt)	
+    print("time step t=",t+dt)
     u=fc.getSolution(dt)
     print("QUALITY FCT: time = %s pi"%(t+dt/pi),inf(u),sup(u),integrate(u))
     saveVTK("u.%s.vtu"%(c+1,),u=u)

@@ -97,7 +97,7 @@ fc.setInitialSolution(u0)
 t=T0
 print("QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0))
 while t<T_END:
-    print("time step t=",t+dt)	
+    print("time step t=",t+dt)
     u=fc.solve(dt, verbose=True)
     print("QUALITY FCT: time = %s pi"%(t+dt/pi),inf(u),sup(u),integrate(u))
     if TEST_SUPG:

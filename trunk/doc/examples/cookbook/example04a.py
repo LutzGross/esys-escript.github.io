@@ -47,9 +47,9 @@ except ImportError:
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+    import sys
+    print("This example will not run in an MPI world.")
+    sys.exit(0)
 
 if HAVE_FINLEY:
     # make sure path exists 

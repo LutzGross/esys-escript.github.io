@@ -53,7 +53,7 @@ print("u0 =",u0)
 T_END=dt
 print("dt = ",dt)
 while t<T_END:
-    print("time step t=",t+dt)	
+    print("time step t=",t+dt)
     u=fc.getSolution(dt)
     saveVTK("u.%s.vtu"%(c+1,),u=u)
     print("u =",u)

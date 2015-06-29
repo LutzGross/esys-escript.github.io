@@ -7,10 +7,10 @@ from esys.weipa import saveVTK
 
 
 #physical properties
-rho1 = 1000		#fluid density on bottom
-rho2 = 1010		#fluid density on top
-eta1 = 100.0		#fluid viscosity on bottom
-eta2 = 100.0		#fluid viscosity on top
+rho1 = 1000             #fluid density on bottom
+rho2 = 1010             #fluid density on top
+eta1 = 100.0            #fluid viscosity on bottom
+eta2 = 100.0            #fluid viscosity on top
 g=10.0
 
 #solver settings

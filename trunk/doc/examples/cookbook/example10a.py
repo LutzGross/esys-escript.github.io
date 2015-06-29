@@ -122,7 +122,7 @@ if HAVE_FINLEY and HAVE_NATGRID:
 
     pl.clf()
 
-    r=np.linspace(0.0000001,mx/2,100)	# starting point would be 0 but that would cause division by zero later
+    r=np.linspace(0.0000001,mx/2,100)   # starting point would be 0 but that would cause division by zero later
     m=2*pl.pi*10*10*200*-G/(r*r)
 
     pl.plot(xi,zi[:,cut])

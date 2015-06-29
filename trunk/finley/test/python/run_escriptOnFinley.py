@@ -272,7 +272,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     if mpisize==1:
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
-    v.setTaggedValue(500,(-100,-100))	# non-existant tag
+    v.setTaggedValue(500,(-100,-100))   # non-existant tag
     if mpisize==1:
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
@@ -300,7 +300,7 @@ class Test_DiracOnFinley(unittest.TestCase):
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
       self.assertEquals(inf(v[2]),-500)
-    v.setTaggedValue(500,(-100,-100, -100))	# non-existant tag
+    v.setTaggedValue(500,(-100,-100, -100))     # non-existant tag
     if mpisize==1:
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
@@ -328,7 +328,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     if mpisize==1:
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
-    v.setTaggedValue(500,(-100,-100))	# non-existant tag
+    v.setTaggedValue(500,(-100,-100))   # non-existant tag
     if mpisize==1:
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
@@ -357,7 +357,7 @@ class Test_DiracOnFinley(unittest.TestCase):
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
       self.assertEquals(inf(v[2]), -0.5)
-    v.setTaggedValue(500,(-100,-100, -100))	# non-existant tag
+    v.setTaggedValue(500,(-100,-100, -100))     # non-existant tag
     if mpisize==1:
       self.assertEquals(inf(v[0]), -10)
       self.assertEquals(inf(v[1]), 0.5)
