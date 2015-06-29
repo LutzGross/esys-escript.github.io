@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2015 by The University of Queensland
@@ -16,6 +14,7 @@ from __future__ import print_function
 ##############################################################################
 
 """3D magnetic inversion example using netCDF data"""
+from __future__ import division, print_function
 
 __copyright__="""Copyright (c) 2009-2015 by The University of Queensland
 http://www.uq.edu.au

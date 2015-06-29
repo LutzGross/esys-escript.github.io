@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -16,6 +14,8 @@ from __future__ import division
 ##############################################################################
 
 """Base classes for forward models"""
+
+from __future__ import division, print_function
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au

@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -19,6 +17,7 @@ from __future__ import print_function
 This example shows how to create a netCDF input file that is suitable for
 inversions in esys.downunder. 
 """
+from __future__ import division, print_function
 
 import sys
 from datetime import datetime

@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -15,8 +13,9 @@ from __future__ import print_function
 #
 ##############################################################################
 
-"""This example show how to display netCDF input data with matplotlib"""
+"""This example shows how to display netCDF input data with matplotlib"""
 
+from __future__ import division, print_function
 import matplotlib
 # The following line is here to allow automated testing. Remove or comment if
 # you would like to display the final plot in a window instead.
