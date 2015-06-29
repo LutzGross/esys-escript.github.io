@@ -1,5 +1,4 @@
-from __future__ import division
-from __future__ import print_function
+
 ##############################################################################
 #
 # Copyright (c) 2012-2015 by The University of Queensland
@@ -14,10 +13,10 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-
 """
 example to demonstrate the use of Dirac Delta functions 
 """
+from __future__ import division, print_function
 
 __copyright__="""Copyright (c) 2012-2015 by The University of Queensland
 http://www.uq.edu.au

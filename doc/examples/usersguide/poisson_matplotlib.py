@@ -1,4 +1,3 @@
-from __future__ import division
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,7 +12,7 @@ from __future__ import division
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au

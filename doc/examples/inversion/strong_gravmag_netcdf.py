@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2015 by The University of Queensland
@@ -14,6 +12,7 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+from __future__ import division, print_function
 
 """3D gravity/magnetic joint inversion example using netCDF data"""
 

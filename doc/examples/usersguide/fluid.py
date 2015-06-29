@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 ##############################################################################
 #
 # Copyright (c) 2008-2015 by The University of Queensland
@@ -17,6 +16,7 @@ from __future__ import division, print_function
 ########      August 2008      ########
 ##########    Leon Graham    ########## 
 ## Newtonian fluid using StokesProblemCartesian class##
+from __future__ import division, print_function
 
 from esys.escript import *
 try:
