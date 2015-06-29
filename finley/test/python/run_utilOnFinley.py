@@ -49,6 +49,7 @@ except KeyError:
 
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
+FINLEY_MERGE_ERROR = "FinleyAdapterException: Mesh_merge: more than 1 processor is not supported yet."
 
 NE=4 # number elements, must be even
 
@@ -166,7 +167,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_Spatial
         d1 = Rectangle(n0=NE//2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -177,7 +186,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_Spatial
         d1 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -188,7 +205,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_Spatial
         d1 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -199,7 +224,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_Spatial
         d1 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -210,7 +243,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact(
         d1 = Rectangle(n0=NE//2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -221,7 +262,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact(
         d1 = Rectangle(n0=NE//2+1,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2 = Rectangle(n0=NE//2,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -232,7 +281,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact(
         d1 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -243,7 +300,15 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
         d1 = Brick(n0=NE//2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2 = Brick(n0=NE//2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
         d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
+        if getMPISizeWorld() > 1:
+            with self.assertRaises(RuntimeError) as pkg:
+                self.domain = JoinFaces([d1,d2],optimize=False)
+            e = pkg.exception
+            if FINLEY_MERGE_ERROR not in str(e):
+                raise e
+            raise unittest.SkipTest(FINLEY_MERGE_ERROR)
+        else:
+            self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
