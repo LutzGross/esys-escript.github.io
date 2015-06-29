@@ -129,7 +129,8 @@ bool RipleyNodes::initFromRipley(const ripley::RipleyDomain* dom)
     globalNumNodes = dom->getNumDataPointsGlobal();
     pair<int,dim_t> shape = dom->getDataShape(ripley::Nodes);
     numNodes = shape.second;
-    nodeDist.assign(dom->getNodeDistribution().begin(), dom->getNodeDistribution().end());
+    ripley::IndexVector dist = dom->getNodeDistribution();
+    nodeDist.assign(dist.begin(), dist.end());
 
     if (numNodes > 0) {
         for (int d=0; d<numDims; d++) {
