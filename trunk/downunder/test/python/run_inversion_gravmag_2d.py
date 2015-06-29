@@ -1,4 +1,3 @@
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,6 +12,8 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+
+from __future__ import print_function, division
 
 """2D magnetic/gravity joint inversion example using synthetic data"""
 

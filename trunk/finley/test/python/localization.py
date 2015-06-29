@@ -18,6 +18,9 @@ with a plastic layer above a viscous layer of thickness H_VISC.
 The yield condition is perturbed along a line at the boundary between
 viscous and plastic layer to trigger localization.
 """
+
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""

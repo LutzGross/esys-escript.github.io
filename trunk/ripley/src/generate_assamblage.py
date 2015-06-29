@@ -1,3 +1,7 @@
+
+from __future__ import print_function, division
+
+
 """
 this script generates the assemblage routine for the ripley rectangular grid solver
 

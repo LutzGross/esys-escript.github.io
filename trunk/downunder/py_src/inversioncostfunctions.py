@@ -16,6 +16,8 @@
 
 """Cost functions for inversions with one or more forward models"""
 
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""

@@ -1,4 +1,3 @@
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -13,6 +12,8 @@ from __future__ import print_function
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+
+from __future__ import print_function, division
 
 """Collection of parametrizations that map physical values to model parameters
    and back"""

@@ -1,4 +1,3 @@
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -15,6 +14,8 @@ from __future__ import print_function
 ##############################################################################
 
 """2D magnetic inversion example using synthetic data"""
+
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au

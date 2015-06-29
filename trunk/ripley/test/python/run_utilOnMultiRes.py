@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -55,15 +57,15 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
         break
 
 def Rectangle(**kwargs):
-    kwargs['n0'] /= 2
-    kwargs['n1'] /= 2
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
     m = MultiResolutionDomain(2, **kwargs)
     return m.getLevel(1)
 
 def Brick(**kwargs):
-    kwargs['n0'] /= 2
-    kwargs['n1'] /= 2
-    kwargs['n2'] /= 2
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    kwargs['n2'] //= 2
     m = MultiResolutionDomain(3, **kwargs)
     return m.getLevel(1)
 

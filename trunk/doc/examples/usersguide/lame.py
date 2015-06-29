@@ -1,3 +1,5 @@
+from __future__ import division, print_function
+
 #set up domain and symbols
 from esys.escript import *
 from esys.finley import Rectangle

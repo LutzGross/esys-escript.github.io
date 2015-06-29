@@ -21,6 +21,8 @@ must already support interpolation in at least one direction.
 
 """
 
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2014-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""

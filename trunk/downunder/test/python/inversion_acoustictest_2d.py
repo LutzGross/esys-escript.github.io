@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function, division
+
 """this a very simple test for inversion of acoustic data in the freqency domain
 
 

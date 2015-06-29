@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function, division
+
 """Collection of forward models that define the inversion problem"""
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
