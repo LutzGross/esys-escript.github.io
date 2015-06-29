@@ -24,23 +24,23 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh
+from esys.dudley import Rectangle, Brick, ReadMesh, ReadGmsh
 from test_splitworld import Test_SplitWorld, sw_testing
 
 
 mpisize=getMPISizeWorld()
 NE=4 # number elements, must be even
 
-class Test_SplitOnFinley(Test_SplitWorld):
+class Test_SplitOnDudley(Test_SplitWorld):
   def setUp(self):
     self.domainpars=[Rectangle, NE, NE]
     
   def tearDown(self):
     del self.domainpars
     
-class Test_finley_sw_2D(sw_testing):
+class Test_dudley_sw_2D(sw_testing):
     def setUp(self):
-        from esys.finley import Rectangle
+        from esys.dudley import Rectangle
         self.domain_ctr=Rectangle
         self.domain_vec=(6,6)
         self.domain_dict={}
@@ -50,9 +50,9 @@ class Test_finley_sw_2D(sw_testing):
         del self.domain_vec
 
 
-class Test_finley_sw_3D(sw_testing):
+class Test_dudley_sw_3D(sw_testing):
     def setUp(self):
-        from esys.finley import Brick
+        from esys.dudley import Brick
         self.domain_ctr=Brick
         self.domain_vec=(6,6,6)
         self.domain_dict={}
@@ -66,4 +66,3 @@ class Test_finley_sw_3D(sw_testing):
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-
