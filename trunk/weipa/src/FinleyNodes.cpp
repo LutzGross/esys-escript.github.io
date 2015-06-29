@@ -206,10 +206,10 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
     numNodes = finleyFile->numNodes;
 
     int mpisize = finleyFile->MPIInfo->size;
-    int* iPtr = finleyFile->nodesDistribution->first_component;
+    index_t* idxPtr = finleyFile->nodesDistribution->first_component;
     nodeDist.clear();
     nodeDist.insert(nodeDist.end(), mpisize+1, 0);
-    copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
+    copy(idxPtr, idxPtr+mpisize+1, nodeDist.begin());
 
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
@@ -227,34 +227,34 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
             double* srcPtr = finleyFile->Coordinates + i;
             float* c = new float[numNodes];
             coords.push_back(c);
-            for (int j=0; j<numNodes; j++, srcPtr+=numDims) {
+            for (index_t j=0; j<numNodes; j++, srcPtr+=numDims) {
                 *c++ = (float) *srcPtr;
             }
         }
 
-        iPtr = finleyFile->Id;
+        idxPtr = finleyFile->Id;
         nodeID.insert(nodeID.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeID.begin());
+        copy(idxPtr, idxPtr+numNodes, nodeID.begin());
 
-        iPtr = finleyFile->Tag;
+        int* iPtr = finleyFile->Tag;
         nodeTag.insert(nodeTag.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeTag.begin());
 
-        iPtr = finleyFile->globalDegreesOfFreedom;
+        idxPtr = finleyFile->globalDegreesOfFreedom;
         nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGDOF.begin());
+        copy(idxPtr, idxPtr+numNodes, nodeGDOF.begin());
 
-        iPtr = finleyFile->globalNodesIndex;
+        idxPtr = finleyFile->globalNodesIndex;
         nodeGNI.insert(nodeGNI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGNI.begin());
+        copy(idxPtr, idxPtr+numNodes, nodeGNI.begin());
 
-        iPtr = finleyFile->globalReducedDOFIndex;
+        idxPtr = finleyFile->globalReducedDOFIndex;
         nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
+        copy(idxPtr, idxPtr+numNodes, nodeGRDFI.begin());
 
-        iPtr = finleyFile->globalReducedNodesIndex;
+        idxPtr = finleyFile->globalReducedNodesIndex;
         nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
+        copy(idxPtr, idxPtr+numNodes, nodeGRNI.begin());
 
     }
     return true;

@@ -45,33 +45,28 @@ namespace finley {
 // They are only fwd declared here so that vis.studio will accept the friend
 // decls
 FINLEY_DLL_API
-escript::Domain_ptr brick(esysUtils::JMPI& p,int n0, int n1, int n2, int order,
-                    double l0, double l1, double l2,
-                    bool periodic0, bool periodic1, bool periodic2,
-                    int integrationOrder, int reducedIntegrationOrder,
-                    bool useElementsOnFace, bool useFullElementOrder,
-                    bool optimize, const std::vector<double>& points,
-                    const std::vector<int>& tags,
-                    const std::map<std::string, int>& tagnamestonums
-		    );
+escript::Domain_ptr brick(esysUtils::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
+                          int order, double l0, double l1, double l2,
+                          bool periodic0, bool periodic1, bool periodic2,
+                          int integrationOrder, int reducedIntegrationOrder,
+                          bool useElementsOnFace, bool useFullElementOrder,
+                          bool optimize, const std::vector<double>& points,
+                          const std::vector<int>& tags,
+                          const std::map<std::string, int>& tagNamesToNums
+                    );
                     
 FINLEY_DLL_API              
-escript::Domain_ptr rectangle(esysUtils::JMPI& p, int n0, int n1, int order,
-                        double l0, double l1,
-                        bool periodic0, bool periodic1,
-                        int integrationOrder, int reducedIntegrationOrder,
-                        bool useElementsOnFace, bool useFullElementOrder,
-                        bool optimize, const std::vector<double>& points,
-                        const std::vector<int>& tags,
-                        const std::map<std::string, int>& tagnamestonums
- 			    );        
+escript::Domain_ptr rectangle(esysUtils::JMPI& p, dim_t n0, dim_t n1,
+                              int order, double l0, double l1,
+                              bool periodic0, bool periodic1,
+                              int integrationOrder, int reducedIntegrationOrder,
+                              bool useElementsOnFace, bool useFullElementOrder,
+                              bool optimize, const std::vector<double>& points,
+                              const std::vector<int>& tags,
+                              const std::map<std::string, int>& tagNamesToNums
+                    );        
   
-struct null_deleter
-{
-  void operator()(void const *ptr) const
-  {
-  }
-};
+struct null_deleter { void operator()(void const *ptr) const {} };
 
 
 /**
@@ -115,7 +110,7 @@ public:
                                Finley_Mesh_free in the MeshAdapter 
                                destructor.
   */
-  MeshAdapter(Mesh* finleyMesh=0);
+  MeshAdapter(Mesh* finleyMesh=NULL);
 
   /**
      \brief
@@ -170,7 +165,7 @@ public:
      \brief
      \param full
   */
-  void Print_Mesh_Info(const bool full=false) const;
+  void Print_Mesh_Info(bool full=false) const;
 
   /**
      \brief
@@ -191,14 +186,14 @@ public:
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
-  int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+  int getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const;
 
   /**
      \brief
      Return the reference number of  the given sample number.
      \param functionSpaceType Input - The function space type.
   */
-  const int* borrowSampleReferenceIDs(int functionSpaceType) const;
+  const index_t* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
      \brief
@@ -328,14 +323,14 @@ public:
      \brief
      Return the number of data points summed across all MPI processes
   */
-  virtual int getNumDataPointsGlobal() const;
+  virtual dim_t getNumDataPointsGlobal() const;
 
   /**
      \brief
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
-  virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
+  virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
   /**
      \brief
@@ -382,21 +377,18 @@ public:
      \brief
      interpolates data given on source onto target where source and target have to be given on the same domain.
   */
-  virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
+  virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
 
-
-  virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+  virtual bool probeInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
   
-  virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+  virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
   
   
-
   /**
     \brief given a vector of FunctionSpace typecodes, pass back a code which then can all be interpolated to.
     \return true is result is valid, false if not
   */
-  bool
-  commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
+  bool commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
 
   /**
      \brief
@@ -409,7 +401,7 @@ public:
   \brief determines whether interpolation from source to target is possible.
   Must be implemented by the actual Domain adapter
   */
-  virtual bool probeInterpolationAcross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
+  virtual bool probeInterpolationAcross(int functionSpaceType_source, const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
   /**
      \brief
@@ -430,14 +422,14 @@ public:
      copies the gradient of arg into grad. The actual function space to be considered
      for the gradient is defined by grad. arg and grad have to be defined on this.
   */
-  virtual void setToGradient(escript::Data& grad,const escript::Data& arg) const;
+  virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
 
   /**
      \brief
      copies the integrals of the function defined by arg into integrals.
      arg has to be defined on this.
   */
-  virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
+  virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
 
   /**
      \brief
@@ -467,7 +459,7 @@ public:
   virtual bool isCellOriented(int functionSpaceCode) const;
 
 
-  virtual bool ownSample(int fs_code, index_t id) const;
+  virtual bool ownSample(int fsCode, index_t id) const;
 
   /**
      \brief
@@ -505,11 +497,11 @@ public:
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const;
+
   /**
      \brief
      adds a PDE onto a transport problem
   */
-
   virtual void addPDEToTransportProblem(
                      escript::AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
@@ -517,7 +509,6 @@ public:
                      const  escript::Data& X,const  escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact,const escript::Data& y_contact, const escript::Data& d_dirac,const escript::Data& y_dirac) const;
-
 
   /**
      \brief
@@ -529,12 +520,12 @@ public:
                       const int column_blocksize,
                       const escript::FunctionSpace& column_functionspace,
                       const int type) const;
+
   /**
    \brief 
     creates a TransportProblemAdapter 
 
   */
-
   escript::ATP_ptr newTransportProblem(
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
@@ -576,7 +567,6 @@ public:
 
   virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
-
   /**
      \brief Checks if this domain allows tags for the specified functionSpaceCode.
   */
@@ -591,13 +581,12 @@ public:
   int getApproximationOrder(const int functionSpaceCode) const;
 
   bool supportsContactElements() const;
-  
 
   virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;       
-  
-  
-  private:
+
+
+private:
   
   /**
    \brief  adds points to support more Dirac delta function.
@@ -605,13 +594,10 @@ public:
    Do NOT call these at any time other than construction!
    Using them later creates consistency problems
    */
-  void addDiracPoints( const std::vector<double>& points, const std::vector<int>& tags) const;
+  void addDiracPoints(const std::vector<double>& points, const std::vector<int>& tags) const;
 //  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
 //   void addDiracPointWithTagName( const boost::python::list& points, const std::string& tag) const;
 
- protected:
-
- private:
   //
   // pointer to the externally created finley mesh
   boost::shared_ptr<Mesh> m_finleyMesh;
@@ -625,7 +611,8 @@ public:
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
-  friend escript::Domain_ptr brick(esysUtils::JMPI& p, int n0, int n1, int n2, int order,
+  friend escript::Domain_ptr brick(esysUtils::JMPI& p,
+                    dim_t n0, dim_t n1, dim_t n2, int order,
                     double l0, double l1, double l2,
                     bool periodic0, bool periodic1, bool periodic2,
                     int integrationOrder,
@@ -635,10 +622,11 @@ public:
                     bool optimize, 
                     const std::vector<double>& points,
                     const std::vector<int>& tags,
-                    const std::map<std::string, int>& tagnamestonums);
+                    const std::map<std::string, int>& tagNamesToNums);
                     
                     
-  friend escript::Domain_ptr rectangle(esysUtils::JMPI& p,int n0, int n1, int order,
+  friend escript::Domain_ptr rectangle(esysUtils::JMPI& p,
+                        dim_t n0, dim_t n1, int order,
                         double l0, double l1,
                         bool periodic0, bool periodic1,
                         int integrationOrder,
@@ -648,30 +636,29 @@ public:
                         bool optimize,
                         const std::vector<double>& points,
                         const std::vector<int>& tags,
-                        const std::map<std::string, int>& tagnamestonums); 
+                        const std::map<std::string, int>& tagNamesToNums); 
 
    friend escript::Domain_ptr readMesh_driver(const boost::python::list& args);
 
-   friend escript::Domain_ptr readMesh(esysUtils::JMPI& p, const std::string& fileName,
+   friend escript::Domain_ptr readMesh(esysUtils::JMPI& p,
+                                     const std::string& fileName,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
                                      bool optimize,
-				   const std::vector<double>& points,
-				   const std::vector<int>& tags
- 			      );
+                                     const std::vector<double>& points,
+                                     const std::vector<int>& tags);
+
   friend escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
 
-  friend escript::Domain_ptr readGmsh(esysUtils::JMPI& p, const std::string& fileName,
+  friend escript::Domain_ptr readGmsh(esysUtils::JMPI& p,
+                               const std::string& fileName,
                                int numDim, 
                                int integrationOrder,
                                int reducedIntegrationOrder, 
                                bool optimize,
                                bool useMacroElements,
-			      const std::vector<double>& points,
-			      const std::vector<int>& tags
-			      );
-  
-  
+                               const std::vector<double>& points,
+                               const std::vector<int>& tags);
 };
 
 

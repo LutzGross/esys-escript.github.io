@@ -221,22 +221,20 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
     if (numElements > 0) {
         nodesPerElement = finleyFile->numNodes;
 
-        int* iPtr;
-   
-        iPtr = finleyFile->Nodes;
+        index_t* idxPtr = finleyFile->Nodes;
         nodes.clear();
         nodes.insert(nodes.end(), numElements*nodesPerElement, 0);
-        copy(iPtr, iPtr+numElements*nodesPerElement, nodes.begin());
+        copy(idxPtr, idxPtr+numElements*nodesPerElement, nodes.begin());
 
-        iPtr = finleyFile->Color;
+        int* iPtr = finleyFile->Color;
         color.clear();
         color.insert(color.end(), numElements, 0);
         copy(iPtr, iPtr+numElements, color.begin());
 
-        iPtr = finleyFile->Id;
+        idxPtr = finleyFile->Id;
         ID.clear();
         ID.insert(ID.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, ID.begin());
+        copy(idxPtr, idxPtr+numElements, ID.begin());
 
         iPtr = finleyFile->Owner;
         owner.clear();

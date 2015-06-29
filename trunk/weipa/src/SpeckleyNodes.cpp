@@ -129,7 +129,7 @@ bool SpeckleyNodes::initFromSpeckley(const speckley::SpeckleyDomain* dom)
     globalNumNodes = dom->getNumDataPointsGlobal();
     pair<int,dim_t> shape = dom->getDataShape(speckley::Nodes);
     numNodes = shape.second;
-    nodeDist = dom->getNodeDistribution();
+    nodeDist.assign(dom->getNodeDistribution().begin(), dom->getNodeDistribution().end());
 
     if (numNodes > 0) {
         for (int d=0; d<numDims; d++) {
