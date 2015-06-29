@@ -19,6 +19,8 @@ This script generates the assemblage routine for the ripley rectangular grid
 solver.
 """
 
+from __future__ import print_function, division
+
 from multiprocessing import Process
 from sympy import *
 

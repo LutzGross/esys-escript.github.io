@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function, division
+
 from .minimizers import AbstractMinimizer
 from esys.escriptcore.splitworld import Job, FunctionJob
 from esys.escript import addJob, addJobPerWorld

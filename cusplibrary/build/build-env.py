@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 EnsureSConsVersion(1,2)
 
 import os

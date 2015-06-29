@@ -9,6 +9,8 @@ selection method.
 This file copied with modifications from: http://www.scons.org/wiki/CudaTool
 """
 
+from __future__ import print_function, division
+
 import SCons.Tool
 import SCons.Scanner.C
 import SCons.Defaults

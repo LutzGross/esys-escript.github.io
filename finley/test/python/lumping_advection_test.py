@@ -1,8 +1,4 @@
-"""
 
-   a simple comparison for row-sum and HRZ lumping in case of the advection equation
-
-"""
 
 ##############################################################################
 #
@@ -18,6 +14,14 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+
+"""
+
+   a simple comparison for row-sum and HRZ lumping in case of the advection equation
+
+"""
+
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au

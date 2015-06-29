@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -149,7 +151,7 @@ def build_py(target, source, env):
        py_compile.compile(str(source[0]), str(target[0]), doraise=True)
        return 0
     except py_compile.PyCompileError, e:
-       print e
+       print(e)
        return 1
 
 
@@ -167,12 +169,12 @@ def runUnitTest(target, source, env):
             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
       else:
            app = "cd "+ pn +" & "+sn
-  print "Executing test: " + app
+  print("Executing test: " + app)
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
   else:
     return 1
-  print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+  print("Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath))
   return None
 
 def binpath(env, name=None):
@@ -200,12 +202,12 @@ def runPyUnitTest(target, source, env):
         pass
      app = "cd "+pn+"; "+binpath(env, "run-escript")+" -ov "+binpath(env,
             "../tools/testrunner.py")+" -skipfile="+skipfile+" "+"-failfile="+failfile+" "+"-exit "+sn
-   print "Executing test: ",app
+   print("Executing test: ",app)
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
    else:
      return 1
-   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+   print("Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath))
    return None
 
 def runPyExample(target, source, env): 
@@ -222,12 +224,12 @@ def runPyExample(target, source, env):
    else:
     
      app = "cd "+pn+"; pwd; "+binpath(env, "run-escript")+" -ov "+sn
-   print "Executing test: ",app
+   print("Executing test: ",app)
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
    else:
      return 1
-   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+   print("Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath))
    return None
 
 def eps2pdf(target, source, env):

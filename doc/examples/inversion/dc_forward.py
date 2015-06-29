@@ -1,4 +1,3 @@
-from __future__ import print_function
 # -------------------------------------------------------------------------------------------------
 # DESCRIPTION:
 # ------------
@@ -11,6 +10,8 @@ from __future__ import print_function
 # topography -- I. Modelling", Geophysical Journal International (2006) 166, 495-505
 # Carsten Rucker, Thomas Gunther and Klaus Spitzer
 # -------------------------------------------------------------------------------------------------
+
+from __future__ import division, print_function
 
 import esys.finley      as finley
 import esys.escript     as escript

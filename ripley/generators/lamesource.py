@@ -1,3 +1,6 @@
+
+from __future__ import print_function, division
+
 expanded3Dtemps = ["const double tmp0 = w18*(-A_{0}1{1}2[7] + A_{0}2{1}1[3]);",
 "const double tmp1 = w13*(A_{0}2{1}2[1] + A_{0}2{1}2[2] + A_{0}2{1}2[5] + A_{0}2{1}2[6]);",
 "const double tmp2 = w11*(-A_{0}0{1}2[2] - A_{0}0{1}2[5] + A_{0}2{1}0[1] + A_{0}2{1}0[6]);",

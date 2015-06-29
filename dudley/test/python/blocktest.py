@@ -1,15 +1,4 @@
-#
-# this script is testing block solvers for PDEs
-#
-#
-#    - u_{j,ii} + b*u_j+ a*sum_{k<>j}  (u_j-u_k) = F_j
-#
-#  where a controls the degree of coupling and b the degree of diagonal dominance.
-#  a and b may have any value.
-#  
-#  The domain needs to be a unit square or cube with any type of mesh
-#
-#
+
 ##############################################################################
 #
 # Copyright (c) 2003-2015 by The University of Queensland
@@ -24,6 +13,20 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
+#
+# this script is testing block solvers for PDEs
+#
+#
+#    - u_{j,ii} + b*u_j+ a*sum_{k<>j}  (u_j-u_k) = F_j
+#
+#  where a controls the degree of coupling and b the degree of diagonal dominance.
+#  a and b may have any value.
+#  
+#  The domain needs to be a unit square or cube with any type of mesh
+#
+##############################################################################
+
+from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 http://www.uq.edu.au

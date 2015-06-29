@@ -11,6 +11,8 @@
 #
 ########################################################
 
+from __future__ import print_function, division
+
 __copyright__="""Copyright (c) 2003-2015 by The University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au

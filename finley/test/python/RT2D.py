@@ -1,3 +1,6 @@
+
+from __future__ import print_function, division
+
 from esys.escript import *
 import esys.finley
 from esys.escript.models import StokesProblemCartesian

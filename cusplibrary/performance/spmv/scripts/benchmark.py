@@ -1,4 +1,7 @@
 #!/usr/bin/env python 
+
+from __future__ import print_function, division
+
 import os,csv
 
 device_id = '0'  # index of the device to use
