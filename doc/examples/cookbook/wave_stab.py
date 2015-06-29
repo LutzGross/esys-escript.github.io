@@ -39,9 +39,9 @@ mtim= np.zeros(len(ndx),'float')
 nvel= np.arange(500.,5000.,500.)
 
 for vel in nvel:
-	mtim=ndx/vel
-	pl.plot(ndx,mtim,label='%d m/s'%vel)
-	
+    mtim=ndx/vel
+    pl.plot(ndx,mtim,label='%d m/s'%vel)
+
 pl.title('Maximum time steps calculations by velocity')
 pl.xlabel('Minimum grid spacing (m)')
 pl.ylabel('Maximum stable time step (s)')

@@ -56,13 +56,13 @@ def get_mkl_paths():
     lib_base = os.environ['MKLROOT'] + '/lib'
     dirs = os.listdir(lib_base)
     for dir in dirs :
-	# select 64/32 bit MKL library path based on architecture
-	if arch64 == True and dir.find('64') > -1 :
-    	  lib_path = lib_base + '/' + dir
-	  break
-	elif arch64 == False and dir.find('64') == -1 :
-    	  lib_path = lib_base + '/' + dir
-	  break
+        # select 64/32 bit MKL library path based on architecture
+        if arch64 == True and dir.find('64') > -1 :
+          lib_path = lib_base + '/' + dir
+          break
+        elif arch64 == False and dir.find('64') == -1 :
+          lib_path = lib_base + '/' + dir
+          break
 
     if lib_path == lib_base :
       raise ValueError, 'Could not find MKL library directory which matches the arctitecture.'
@@ -306,7 +306,7 @@ def Environment():
   if env['hostspblas'] == 'mkl':
     intel_lib = 'mkl_intel'
     if platform.machine()[-2:] == '64':
-	intel_lib += '_lp64'
+        intel_lib += '_lp64'
     
     (mkl_lib_path,mkl_inc_path) = get_mkl_paths()
     env.Append(CPPPATH = [mkl_inc_path])
@@ -327,7 +327,7 @@ def Environment():
   # XXX we should probably just copy the entire environment
   if os.name == 'posix':
     if ('DYLD_LIBRARY_PATH' in os.environ) and (env['PLATFORM'] == "darwin") :
-      	env['ENV']['DYLD_LIBRARY_PATH'] = os.environ['DYLD_LIBRARY_PATH']
+        env['ENV']['DYLD_LIBRARY_PATH'] = os.environ['DYLD_LIBRARY_PATH']
     elif 'LD_LIBRARY_PATH' in os.environ:
       env['ENV']['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH']
 

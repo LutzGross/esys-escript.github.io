@@ -37,12 +37,12 @@ if not HAVE_FINLEY:
     print("Finley module not available")
 else:
 
-    n=4		#Change this to whatever you like
+    n=4         #Change this to whatever you like
     r=Rectangle(n,n)
     x=r.getX()
     x0=x[0]
     x1=x[1]    #we'll use this later
-    toobig=100	#An exception will be thrown if interpolation produces a value larger than this
+    toobig=100  #An exception will be thrown if interpolation produces a value larger than this
 
     #First one dimensional interpolation
 
@@ -56,7 +56,7 @@ else:
     minval=0
     maxval=1
 
-    step=sup(maxval-minval)/numslices	#The width of the gap between entries in the table
+    step=sup(maxval-minval)/numslices   #The width of the gap between entries in the table
 
     result=interpolateTable(sine_table, x0, minval, step, toobig)
 

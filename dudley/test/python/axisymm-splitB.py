@@ -90,7 +90,7 @@ while istep < nstep:
     print("time step :",istep," t = ",t)
     r=Function(dom).getX()[0]
     r_b=FunctionOnBoundary(dom).getX()[0]
-    print("	volume : ",integrate(r))
+    print("volume : ",integrate(r))
     #
     #  step 1:
     #
@@ -98,7 +98,7 @@ while istep < nstep:
     n_d=dom.getNormal()
     t_d=matrixmult(numpy.array([[0.,-1.],[1.,0]]),n_d)
     sigma_d=(sign(inner(t_d,U))*alpha_w*t_d-n_d)*Pen*clip(inner(n_d,U),0.)
-    print("	sigma_d =",inf(sigma_d),sup(sigma_d))
+    print("sigma_d =",inf(sigma_d),sup(sigma_d))
 
     momentumStep1.setValue(D=r*ro*kronecker(dom),
                            Y=r*ro*U+dt*r*[0.,-ro*g], 
@@ -134,8 +134,8 @@ while istep < nstep:
     #
     p+=dp         
     U=U_new
-    print("	U:",inf(U),sup(U))
-    print("	P:",inf(p),sup(p)) 
+    print("U:",inf(U),sup(U))
+    print("P:",inf(p),sup(p)) 
 
 
     p_pos=clip(p,small)
@@ -144,7 +144,7 @@ while istep < nstep:
     gamma=sqrt(2*((gg[0,0]-vol/3)**2+(gg[1,1]-vol/3)**2+(U[0]/r-vol/3)**2+(gg[1,0]+gg[0,1])**2/2))
     m=whereNegative(eta*gamma-alpha*p_pos) 
     eta_d=m*eta+(1.-m)*alpha*p_pos/(gamma+small)  
-    print("	viscosity =",inf(eta_d),sup(eta_d)) 
+    print("viscosity =",inf(eta_d),sup(eta_d)) 
     dev_stress=eta_d*(symmetric(gg)-2./3.*vol*kronecker(dom))
     #
     # step size control:
@@ -153,7 +153,7 @@ while istep < nstep:
     dt1=inf(dom.getSize()/(length(U)+small))
     dt2=inf(0.5*ro*(len**2)/eta_d)
     dt=dt1*dt2/(dt1+dt2)
-    print("	new step size = ",dt)
+    print("new step size = ",dt)
     #
     #  update geometry
     #

@@ -86,14 +86,14 @@ def checkPython(env):
         initstring='from __future__ import print_function;from distutils import sysconfig;'
         if env['pythonlibname']!='':
             python_libs=env['pythonlibname']
-        else:	# work it out by calling python
+        else:   # work it out by calling python
             if ['IS_WINDOWS']:
                 cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
             else:
                 cmd='print("python"+sysconfig.get_python_version())'
             p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
             python_libs=p.stdout.readline()
-            if env['usepython3']:		# This is to convert unicode str into py2 string
+            if env['usepython3']:       # This is to convert unicode str into py2 string
                 python_libs=python_libs.encode() # If scons runs on py3 then this must be rethought
             p.wait()
             python_libs=python_libs.strip()

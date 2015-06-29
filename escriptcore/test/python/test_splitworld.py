@@ -447,7 +447,7 @@ class Test_SplitWorld(unittest.TestCase):
       # define PDE and get its solution u
       mypde = Poisson(domain=self.domain)
       mypde.setValue(f=self.jobid, q=gammaD)
-      u = Lsup(mypde.getSolution())        # we won't actually export the value to make
+      u = Lsup(mypde.getSolution())   # we won't actually export the value to make
       self.exportValue("answer", self.jobid) # testing easier
       return True
       

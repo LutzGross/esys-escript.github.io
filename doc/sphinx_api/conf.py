@@ -21,7 +21,7 @@ import sys, os
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '1.0'	# For the autodoc_default_flags variable
+needs_sphinx = '1.0'    # For the autodoc_default_flags variable
 
 autodoc_default_flags=['show-inheritance', 'inherited-members', 'members', 'undoc-members']
 

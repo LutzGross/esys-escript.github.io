@@ -18,10 +18,10 @@ for dirn, subdir, files in os.walk("esys"):
       if first:
         first=False
         print("os.makedirs("+dirn+")")
-	try:
+        try:
           os.makedirs(dirn)
-	except OSError:
-	  pass
+        except OSError:
+          pass
       lst=dirn.split("/")
       if len(lst)==1:
         continue

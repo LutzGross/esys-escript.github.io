@@ -85,7 +85,7 @@ class ESySXMLParser(object):
     """
     def __init__(self,xml, debug=False):
         if sys.version_info[0]<3:
-            xml=str(xml)	# xml might be unicode 
+            xml=str(xml)        # xml might be unicode 
         #print("\n")
         #print(type(xml))
         #print(xml)
@@ -424,7 +424,7 @@ class _ParameterIterator(object):
         o=next(self.__iter)
         return (o,self.__set.getAttributeObject(o))
         
-    def next(self):	#Still needed by py2.6
+    def next(self):     #Still needed by py2.6
         return self.__next__()
 
     def __iter__(self):

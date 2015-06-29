@@ -39,14 +39,14 @@ NE_L=int(ceil(L*NE_H/H))
 CASE=1
 
 #Boundary conditions: 
-#	axial loading: they applied a stress inversely proportional to the acoustic emission rate. We could have the axial forcing a stress or velocity inversely proportional to dalpha/dt (only when it is positive, and with the applied forcing rate going to zero when damage accumulation rate goes to a value we can determine in a test run with constant forcing). If this is to challenging or time consuming we could have a constant axial strain rate with very short time steps (at least when alpha increases above 0.3).
+#   axial loading: they applied a stress inversely proportional to the acoustic emission rate. We could have the axial forcing a stress or velocity inversely proportional to dalpha/dt (only when it is positive, and with the applied forcing rate going to zero when damage accumulation rate goes to a value we can determine in a test run with constant forcing). If this is to challenging or time consuming we could have a constant axial strain rate with very short time steps (at least when alpha increases above 0.3).
 
 #Variables calculated and written to an output file:
-#	time
-#	differential stress (S_33-S_11)
-#	deviatoric stress (S_33 - p)
-#	Axial and transverse strain
-#	damage and damage rate
+#   time
+#   differential stress (S_33-S_11)
+#   deviatoric stress (S_33 - p)
+#   Axial and transverse strain
+#   damage and damage rate
 
 
 T_END=60000000.0*U.sec                       # end time
