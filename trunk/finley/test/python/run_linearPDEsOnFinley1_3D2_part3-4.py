@@ -22,15 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on finley
-
-:remark:
-
-:var __author__: name of author
-:var __licence__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
+Test suite for the linearPDE and pdetools test on finley
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -39,12 +31,8 @@ import os
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-#from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE
 from test_assemblage_3Do2 import Test_assemblage_3Do2_cont3 
-#from test_pdetools import Test_pdetools, Test_pdetools_noLumping
-#from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces, ReadMesh
-import sys
+from esys.finley import Brick
 
 
 try:
