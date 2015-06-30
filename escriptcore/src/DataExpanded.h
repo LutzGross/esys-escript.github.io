@@ -381,22 +381,14 @@ TODO Note that this constructor will also copy data to all points if it only con
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
 /**
- *      \brief
- *           reorders data sample ordered by reference_ids to the ordering of the functions space
- *
- *                \param reference_ids - Input - reference_ids used for current ordering
- *                  */
+    \brief
+    reorders data sample ordered by reference_ids to the ordering of the functions space
+
+    \param reference_ids - Input - reference_ids used for current ordering
+*/
   ESCRIPT_DLL_API
   virtual void
   reorderByReferenceIDs(int *reference_ids);
-
-//   /**
-//   \brief Fill the object with random values
-// 
-//   \param seed - random seed
-//   */
-//   ESCRIPT_DLL_API
-//   void randomFill(long seed);
 
  protected:
 
