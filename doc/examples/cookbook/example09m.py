@@ -150,6 +150,8 @@ if HAVE_FINLEY:
 
     d.setScriptFileName(os.path.join(save_path,"example09m.geo"))
     d.setMeshFileName(os.path.join(save_path,"example09m.msh"))
+    if testing:
+        d.setOptions(optimize_quality=0)
     #
     #  make the domain:
     #
