@@ -170,6 +170,8 @@ if HAVE_FINLEY:
     cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
     cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
     cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
+    if testing:
+        cmplx_domain.setOptions(optimize_quality=0)
     dcmplx=MakeDomain(cmplx_domain)
     dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 
