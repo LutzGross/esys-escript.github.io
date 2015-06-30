@@ -477,12 +477,11 @@ class MeshAdapter : public escript::AbstractContinuousDomain
 
   /**
      \brief
-     return the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner,
+     return the identifier of the matrix type to be used for the global
+     stiffness matrix when a particular solver, package, preconditioner,
      and symmetric matrix is used.
-     \param solver 
-     \param preconditioner
-     \param package
-     \param symmetry 
+     
+     \param options a SolverBuddy instance with the desired options set
   */
   DUDLEY_DLL_API
   virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
