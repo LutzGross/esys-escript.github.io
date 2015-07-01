@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <esysUtils/first.h>
 
 #include <pasowrap/PasoException.h>
 #include <pasowrap/TransportProblemAdapter.h>
@@ -2184,7 +2184,8 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 
     if ( points.size() % dim != 0 ) {
         char err[200];
-        sprintf(err,"Error - number of coords in diractags is %ld this should be a multiple of the specified dimension:%d.",points.size(),dim);
+        unsigned long size = points.size();
+        sprintf(err,"Error - number of coords in diractags is %lu this should be a multiple of the specified dimension:%d.",size,dim);
         throw FinleyAdapterException(err);
     }
 
