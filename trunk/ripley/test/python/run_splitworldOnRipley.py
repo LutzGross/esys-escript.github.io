@@ -26,7 +26,7 @@ __url__="https://launchpad.net/escript-ripley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.ripley import Rectangle, Brick
+from esys.ripley import Rectangle, Brick, MultiRectangle,  MultiBrick
 from test_splitworld import Test_SplitWorld, sw_testing
 
 
@@ -63,7 +63,35 @@ class Test_ripley_sw_3D(sw_testing):
         del self.domain_ctr
         del self.domain_vec
     
+class Test_SplitOnMultiRipley(Test_SplitWorld):
+  def setUp(self):
+    self.domainpars=[MultiRectangle, NE, NE]
+    
+  def tearDown(self):
+    del self.domainpars
+    
+class Test_multiripley_sw_2D(sw_testing):
+    def setUp(self):
+        from esys.ripley import MultiRectangle
+        self.domain_ctr=MultiRectangle
+        self.domain_vec=(6,6)
+        self.domain_dict={}
 
+    def tearDown(self):
+        del self.domain_ctr
+        del self.domain_vec
+
+
+class Test_multiripley_sw_3D(sw_testing):
+    def setUp(self):
+        from esys.ripley import MultiBrick
+        self.domain_ctr=MultiBrick
+        self.domain_vec=(6,6,6)
+        self.domain_dict={}
+        
+    def tearDown(self):
+        del self.domain_ctr
+        del self.domain_vec
 
 
 if __name__ == '__main__':
