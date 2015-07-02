@@ -50,7 +50,7 @@ class Job(object):
   To do specific work, this class should be subclassed and the work() 
   (and possibly __init__ methods overloaded).
   The majority of the work done by the job will be in the *overloaded* work() method.
-  The work() method should retreive values from the outside using importValue() and pass values to
+  The work() method should retrieve values from the outside using importValue() and pass values to
   the rest of the system using exportValue().
   The rest of the methods should be considered off limits.
   """
@@ -71,11 +71,6 @@ class Job(object):
     self.swid=kwargs["swid"]    # which subworld are we running in?
     
     
-  def wantValue(self, name):
-    """
-    Register your interest in importing a variable with the given name
-    """
-    self.wantedvalues.append(name)
     
   def setImportValue(self, name, v):
     """
@@ -83,19 +78,9 @@ class Job(object):
     :var name: label used to identify this import
     :type name: ``str``
     :var v: value to be imported
-    :type v: ?
+    :type v: python object
     """
     self.importedvalues[name]=v
-  
-  
-  def getExportValue(self, name):
-    """
-    get value exported by work()  [called from outside the job]
-    """
-    if name in self.exportedvalues:
-        return self.exportedvalues[name]
-    else:
-        return None
         
   def exportValue(self, name, v):
     """
@@ -104,6 +89,8 @@ class Job(object):
     For use inside the work() method.
     :var name: registered label for exported value
     :type name: ``str``
+    :var v: value to be imported
+    :type v: python object
     """
     if type(name)==type([]):
         for x in name:
@@ -137,7 +124,7 @@ class Job(object):
     """
     self.importedvalues.clear()
     
-  def requestImport(self, name):
+  def declareImport(self, name):
     """
     Adds name to the list of imports
     """
@@ -145,18 +132,18 @@ class Job(object):
       raise ValueError("Imports must be identified with non-empty strings")
     if not name in self.wantedvalues:
       self.wantedvalues+=name
-    
+
   def work(self):
     """
     Need to be overloaded for the job to actually do anthing.
-    A return value of True, indicates this job thinks it is done.
+    A return value of True indicates this job thinks it is done.
     A return value of False indicates work still to be done
     """
-    return True
+    raise RuntimeError("work() function not overridden as required")
 
 class FunctionJob(Job):
   """
-  Takes a python function (with only keyword params) to be called as the work method
+  Takes a python function (with only self and keyword params) to be called as the work method
   """
   def __init__(self, fn, *args, **kwargs):
     super(FunctionJob, self).__init__(*args, **kwargs)
@@ -166,10 +153,10 @@ class FunctionJob(Job):
     self.__calldict__ = kwargs
     if "imports" in kwargs:
       if isinstance(kwargs["imports"], str):
-        self.requestImport(kwargs["imports"])
+        self.declareImport(kwargs["imports"])
       else:
         for n in kwargs["imports"]:
-          self.requestImport(n)
+          self.declareImport(n)
 
   def work(self):
     self.__fn__(self, **self.__calldict__)
