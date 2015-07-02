@@ -975,7 +975,7 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
     {
 	for (size_t i=0;i<jobvec.size();++i)
 	{
-	    jobvec[i].attr("requestImport")(name);
+	    jobvec[i].attr("declareImport")(name);
 	}
     }
 #ifdef ESYS_MPI
