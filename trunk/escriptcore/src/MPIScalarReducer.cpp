@@ -213,10 +213,12 @@ bool MPIScalarReducer::reduceRemoteValues(MPI_Comm& com)
 	reset();
 	return false;		// this will stop bad things happening but won't give an informative error message
     }
-    if (MPI_Allreduce(&value, &value, 1, MPI_DOUBLE, reduceop, com)!=MPI_SUCCESS)
+    double rvalue;
+    if (MPI_Allreduce(&value, &rvalue, 1, MPI_DOUBLE, reduceop, com)!=MPI_SUCCESS)
     {
 	return false;
     }
+    value=rvalue;
     return true;
 #else
     return true;
