@@ -278,9 +278,9 @@ else
             NUM_HOSTS=$(cat "$HOSTFILE" | wc -l)
             if [ ! -z $ESCRIPT_NUM_NODES ]
             then
-                if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
+                if [ $NUM_HOSTS -lt $ESCRIPT_NUM_NODES ]
                 then
-                    die "Number of hosts selected in the host file $ESCRIPT_HOSTFILE needs to match the requested number of nodes $ESCRIPT_NUM_NODES!"
+		   die "Number of requested nodes must not exceed the number of entries selected in the host file $ESCRIPT_HOSTFILE.  You asked for $ESCRIPT_NUM_NODES from $NUM_HOSTS."
                 fi
              else
                 ESCRIPT_NUM_NODES=$NUM_HOSTS
