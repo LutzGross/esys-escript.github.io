@@ -85,7 +85,7 @@ MultiBrick::MultiBrick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doubl
     m_subdivisions(subdivisions)
 {
     if (m_mpiInfo->size != 1)
-        throw RipleyException("Multiresolution domains don't currently support multiple processes");
+        throw RipleyException("Multiresolution Brick domains don't currently support multiple processes");
 
     if (subdivisions == 0 || (subdivisions & (subdivisions - 1)) != 0)
         throw RipleyException("Element subdivisions must be a power of two");
