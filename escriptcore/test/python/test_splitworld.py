@@ -59,13 +59,7 @@ def f3(self, **kwargs):
     print("Scal=", str(z), file=sys.stderr)
     
 
-def poisson_work(self, **args):
-    x = self.domain.getX()
-    gammaD = whereZero(x[0])+whereZero(x[1])
-    mypde = Poisson(domain=self.domain)
-    mypde.setValue(f=1+self.swid,q=gammaD)
-    u = mypde.getSolution()
-    return True
+
 
 def set_var(self, **kwargs):
     self.exportValue("v_scalar", 7)
@@ -132,6 +126,15 @@ def var_check(self, **kwargs):
         raise RuntimeError("Python list appears not to linked.")
 
 class sw_testing(unittest.TestCase):
+    @staticmethod
+    def pde_work(self, **args):
+        x = self.domain.getX()
+        gammaD = whereZero(x[0])+whereZero(x[1])
+        mypde = Poisson(domain=self.domain)
+        mypde.setValue(f=1+self.swid,q=gammaD)
+        u = mypde.getSolution()
+        return True
+
     
     def create_singleworld(self):
         sw=SplitWorld(1)    
@@ -255,28 +258,28 @@ class sw_testing(unittest.TestCase):
 
     def testbigworld_singleround(self):
         sw=self.create_singleworld()
-        addJob(sw, FunctionJob, poisson_work) 
+        addJob(sw, FunctionJob, self.pde_work) 
         sw.runJobs()
         
         sw=self.create_singleworld()
-        addJobPerWorld(sw, FunctionJob, poisson_work)
+        addJobPerWorld(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         
         sw=self.create_singleworld()
         for i in range(4):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         
     def testbigworld_multiround(self):        
         sw=self.create_singleworld()
         for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(2):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         
     def testbigworld_sum_vars(self):
@@ -296,16 +299,16 @@ class sw_testing(unittest.TestCase):
     @unittest.skipIf(mpisize%2!=0, "test only fires for even numbers of processes")
     def test2world_singleround(self):
         sw=self.create_twoworlds()
-        addJob(sw, FunctionJob, poisson_work) 
+        addJob(sw, FunctionJob, self.pde_work) 
         sw.runJobs()
         
         sw=self.create_twoworlds()
-        addJobPerWorld(sw, FunctionJob, poisson_work)
+        addJobPerWorld(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         
         sw=self.create_twoworlds()
         for i in range(4):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
 
        
@@ -313,13 +316,13 @@ class sw_testing(unittest.TestCase):
     def test2world_multiround(self):        
         sw=self.create_twoworlds()
         for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(2):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
 
     @unittest.skipIf(mpisize%2!=0, "test only fires for even numbers of processes")
@@ -341,29 +344,29 @@ class sw_testing(unittest.TestCase):
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
     def testmanyworld_singleround(self):
         sw=self.create_many_subworlds()
-        addJob(sw, FunctionJob, poisson_work) 
+        addJob(sw, FunctionJob, self.pde_work) 
         sw.runJobs()
         
         sw=self.create_many_subworlds()
-        addJobPerWorld(sw, FunctionJob, poisson_work)
+        addJobPerWorld(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         
         sw=self.create_many_subworlds()
         for i in range(4):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()        
         
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
     def testmanyworld_multiround(self):        
         sw=self.create_many_subworlds()
         for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(2):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, poisson_work)
+            addJob(sw, FunctionJob, self.pde_work)
         sw.runJobs()
 
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
@@ -418,26 +421,11 @@ class sw_testing(unittest.TestCase):
 class Test_SplitWorld(unittest.TestCase):
   """
   Class to test splitworld functions.
-  Requires subclasses to supply self.domainpars which is a list of constructor function followed
-  by arguments.
+  Requires subclasses to supply self.domainpars  which is a list of constructor function followed
+  by arguments [also - self.domain.kwargs]
   eg:  if your domain is created with Rectangle(3,4), then your domainpars would be [Rectangle,3,4]
   """
   
-  
-  class PoissonJob1(Job):
-    def __init__(self, **kwargs):
-      super(PoissonJob1, self).__init__(**kwargs)
-    
-    def work(self):
-      x = self.domain.getX()
-      gammaD = whereZero(x[0])+whereZero(x[1])
-      # define PDE and get its solution u
-      mypde = Poisson(domain=self.domain)
-      mypde.setValue(f=1, q=gammaD)
-      u = mypde.getSolution()
-      self.exportValue("answer", Lsup(u))
-      return True
-
   class PoissonJob(Job):
     def __init__(self, **kwargs):
       super(Test_SplitWorld.PoissonJob, self).__init__(**kwargs)
@@ -464,7 +452,10 @@ class Test_SplitWorld(unittest.TestCase):
       self.exportValue("hanswer", 2*self.jobid)
       self.exportValue("v", self.jobid)
       return True
-      
+
+  eqnJob2=PoissonJob
+  eqnJob3=HelmholtzJob
+  
   class InjectJob(Job):
     """
     Tests jobs taking parameters
@@ -583,7 +574,7 @@ class Test_SplitWorld(unittest.TestCase):
     sw=SplitWorld(getMPISizeWorld())
     buildDomains(sw,*self.domainpars)
     addVariable(sw, "answer", makeScalarReducer, "SUM")
-    addJob(sw, Test_SplitWorld.PoissonJob)
+    addJob(sw, self.eqnJob2)
     sw.runJobs()
     self.assertEquals(sw.getDoubleVariable("answer"),1)
     
@@ -598,7 +589,7 @@ class Test_SplitWorld(unittest.TestCase):
     total=0
     jobid=1
     for x in range(0,getMPISizeWorld()):
-        addJob(sw, Test_SplitWorld.PoissonJob)
+        addJob(sw, self.eqnJob2)
         total+=jobid
         jobid+=1
     sw.runJobs()
@@ -617,7 +608,7 @@ class Test_SplitWorld(unittest.TestCase):
     if getMPISizeWorld()%2==1:
       mid=mid+1
     for x in range(0,mid):
-        addJob(sw, Test_SplitWorld.PoissonJob)
+        addJob(sw, self.eqnJob2)
         total=total+(x+1)
     for x in range(0,mid):
         addJob(sw, Test_SplitWorld.DummyJob)
@@ -638,7 +629,7 @@ class Test_SplitWorld(unittest.TestCase):
     if getMPISizeWorld()%2==1:
       mid=mid+1    
     for x in range(0,mid):
-        addJob(sw, Test_SplitWorld.PoissonJob)
+        addJob(sw, self.eqnJob2)
         total=total+(x+1)
     sw.runJobs()
       # expecting this to fail until I work out the answer
@@ -656,14 +647,14 @@ class Test_SplitWorld(unittest.TestCase):
     total=0
     sw.runJobs()
     for x in range(0,getMPISizeWorld()):
-        addJob(sw, Test_SplitWorld.PoissonJob)
+        addJob(sw, self.eqnJob2)
         total=total+x
     sw.runJobs()
     sw.runJobs()
     sw.clearVariable("answer")
     total=0
     for x in range(0,getMPISizeWorld()):
-        addJob(sw, Test_SplitWorld.PoissonJob)
+        addJob(sw, self.eqnJob2)
         total=total+(x+1+getMPISizeWorld())
     sw.runJobs()
       # expecting this to fail until I work out the answer
@@ -688,10 +679,10 @@ class Test_SplitWorld(unittest.TestCase):
     jobid=1
        #first put jobs of the same type close.
     for x in range(0, max(wc//3,1)):
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1
     for x in range(0, max(wc//3,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*(jobid)
       jobid+=1
     for x in range(0, max(wc//3,1)):
@@ -706,13 +697,13 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # similar but separated by dummy Jobs
     for x in range(0, max(wc//3,1)):
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1
     for x in range(0, max(wc//3,1)):
       addJob(sw, Test_SplitWorld.DummyJob)      
       jobid+=1
     for x in range(0, max(wc//3,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       jobid+=1
     sw.runJobs()
@@ -724,11 +715,11 @@ class Test_SplitWorld(unittest.TestCase):
       # mixed
     tot=0
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       addJob(sw, Test_SplitWorld.DummyJob)
       jobid+=2
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
@@ -753,10 +744,10 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
        #first put jobs of the same type close.
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       jobid+=1      
     for x in range(0, max(wc//2,1)):
@@ -771,13 +762,13 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # similar but separated by dummy Jobs
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1      
     for x in range(0, max(wc//2,1)):
       addJob(sw, Test_SplitWorld.DummyJob) 
       jobid+=1     
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       jobid+=1
     sw.runJobs()
@@ -789,11 +780,11 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # mixed
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       jobid+=1
       addJob(sw, Test_SplitWorld.DummyJob)
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=2
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
@@ -816,10 +807,10 @@ class Test_SplitWorld(unittest.TestCase):
     jobid=1
        #first put jobs of the same type close together.
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       jobid+=1
     for x in range(0,getMPISizeWorld()//3):
@@ -834,13 +825,13 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # similar but separated by dummy Jobs
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=1
     for x in range(0,getMPISizeWorld()//3):
       addJob(sw, Test_SplitWorld.DummyJob)      
       jobid+=1      
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=2*jobid
       jobid+=1      
     sw.runJobs()
@@ -852,10 +843,10 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # mixed
     for x in range(0, max(getMPISizeWorld()//2,1)):
-      addJob(sw, Test_SplitWorld.HelmholtzJob)
+      addJob(sw, self.eqnJob3)
       tot+=jobid*2
       addJob(sw, Test_SplitWorld.DummyJob)
-      addJob(sw, Test_SplitWorld.PoissonJob)
+      addJob(sw, self.eqnJob2)
       jobid+=3
     sw.runJobs()
     ha=sw.getDoubleVariable("hanswer")
