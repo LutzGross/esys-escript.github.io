@@ -27,7 +27,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.ripley import Rectangle, Brick, MultiRectangle,  MultiBrick
-from test_splitworld import Test_SplitWorld, sw_testing
+from test_splitworld import Test_SplitWorld, sw_testing, sw_testmany
 
 
 mpisize=getMPISizeWorld()
@@ -82,7 +82,7 @@ class Test_multiripley_sw_2D(sw_testing):
         del self.domain_vec
 
 
-class Test_multiripley_sw_3D(sw_testing):
+class Test_multiripley_sw_3D(sw_testmany):
     def setUp(self):
         from esys.ripley import MultiBrick
         self.domain_ctr=MultiBrick
