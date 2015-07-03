@@ -125,7 +125,8 @@ def var_check(self, **kwargs):
     if l!=lc:
         raise RuntimeError("Python list appears not to linked.")
 
-class sw_testing(unittest.TestCase):
+        
+class sw_testmany(unittest.TestCase):
     @staticmethod
     def pde_work(self, **args):
         x = self.domain.getX()
@@ -134,20 +135,6 @@ class sw_testing(unittest.TestCase):
         mypde.setValue(f=1+self.swid,q=gammaD)
         u = mypde.getSolution()
         return True
-
-    
-    def create_singleworld(self):
-        sw=SplitWorld(1)    
-        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
-        return sw
-    
-    # This is to test multiple subworlds
-    def create_twoworlds(self):
-        sw=SplitWorld(2)
-        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
-        return sw
-
-      
     def create_many_subworlds(self):
         sw=SplitWorld(getMPISizeWorld())
         buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
@@ -254,6 +241,96 @@ class sw_testing(unittest.TestCase):
         sw.runJobs()
         sw.runJobs()    # Just to make sure empty list doesn't break it
 
+ 
+    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
+    def testmanyworld_singleround(self):
+        sw=self.create_many_subworlds()
+        addJob(sw, FunctionJob, self.pde_work) 
+        sw.runJobs()
+        
+        sw=self.create_many_subworlds()
+        addJobPerWorld(sw, FunctionJob, self.pde_work)
+        sw.runJobs()
+        
+        sw=self.create_many_subworlds()
+        for i in range(4):
+            addJob(sw, FunctionJob, self.pde_work)
+        sw.runJobs()        
+        
+    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
+    def testmanyworld_multiround(self):        
+        sw=self.create_many_subworlds()
+        for i in range(4*getMPISizeWorld()):
+            addJob(sw, FunctionJob, self.pde_work)
+        sw.runJobs()
+        for i in range(2):
+            addJob(sw, FunctionJob, self.pde_work)
+        sw.runJobs()
+        for i in range(3*getMPISizeWorld()+1):
+            addJob(sw, FunctionJob, self.pde_work)
+        sw.runJobs()
+
+    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
+    def testmanyworld_sum_vars(self):
+        sw=self.create_many_subworlds()
+        self.sum_vars_tester(sw) 
+        
+        
+    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
+    def testmanyworld_copy_vars(self):
+        sw=self.create_many_subworlds()
+        self.copy_vars_tester(sw)         
+        
+    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
+    def testmanyworld_partial_reduce(self):
+        sw=self.create_many_subworlds()
+        addVariable(sw, 'v_scalar', makeScalarReducer, "SUM")
+        addVariable(sw, 'v_data', makeDataReducer, "SUM")
+        addJob(sw, FunctionJob, f1)
+        sw.runJobs()    # only one world has the value
+                # value=1
+        addJobPerWorld(sw, FunctionJob, f2, expected=1, imports=['v_data']) # can everyone get the correct value
+        sw.runJobs()
+            # now we change some of the values (we know we have at least 3 worlds)
+        addJob(sw, FunctionJob, f1)
+        addJob(sw, FunctionJob, f1)
+        sw.runJobs()
+        addJobPerWorld(sw, FunctionJob, f2, expected=2) # can everyone get the correct value
+        sw.runJobs()
+            # Now we try the same with a clean start
+        sw.clearVariable('v_data')
+        sw.clearVariable('v_scalar')
+        addJob(sw, FunctionJob, f1)
+        addJob(sw, FunctionJob, f1)
+        sw.runJobs()
+        addJobPerWorld(sw, FunctionJob, f2, expected=2) # can everyone get the correct value
+        sw.runJobs()
+        
+        
+    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
+    def testmanyworld_set_vars(self):
+        sw=self.create_many_subworlds()
+        self.set_tester(sw)
+#------------------------------------------------         
+
+    def test_illegal_ws(self):
+        self.assertRaises(RuntimeError, SplitWorld, getMPISizeWorld()+1)
+   
+
+class sw_testing(sw_testmany):
+    def create_singleworld(self):
+        sw=SplitWorld(1)    
+        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
+        return sw
+    
+    # This is to test multiple subworlds
+    def create_twoworlds(self):
+        sw=SplitWorld(2)
+        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
+        return sw
+
+      
+
 #-------------------------------------------  
 
     def testbigworld_singleround(self):
@@ -340,80 +417,6 @@ class sw_testing(unittest.TestCase):
         sw=self.create_twoworlds()
         self.set_tester(sw)
 #------------------------------------------------         
-
-    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
-    def testmanyworld_singleround(self):
-        sw=self.create_many_subworlds()
-        addJob(sw, FunctionJob, self.pde_work) 
-        sw.runJobs()
-        
-        sw=self.create_many_subworlds()
-        addJobPerWorld(sw, FunctionJob, self.pde_work)
-        sw.runJobs()
-        
-        sw=self.create_many_subworlds()
-        for i in range(4):
-            addJob(sw, FunctionJob, self.pde_work)
-        sw.runJobs()        
-        
-    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
-    def testmanyworld_multiround(self):        
-        sw=self.create_many_subworlds()
-        for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, self.pde_work)
-        sw.runJobs()
-        for i in range(2):
-            addJob(sw, FunctionJob, self.pde_work)
-        sw.runJobs()
-        for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, self.pde_work)
-        sw.runJobs()
-
-    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
-    def testmanyworld_sum_vars(self):
-        sw=self.create_many_subworlds()
-        self.sum_vars_tester(sw) 
-        
-        
-    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
-    def testmanyworld_copy_vars(self):
-        sw=self.create_many_subworlds()
-        self.copy_vars_tester(sw)         
-        
-    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
-    def testmanyworld_partial_reduce(self):
-        sw=self.create_many_subworlds()
-        addVariable(sw, 'v_scalar', makeScalarReducer, "SUM")
-        addVariable(sw, 'v_data', makeDataReducer, "SUM")
-        addJob(sw, FunctionJob, f1)
-        sw.runJobs()    # only one world has the value
-                # value=1
-        addJobPerWorld(sw, FunctionJob, f2, expected=1, imports=['v_data']) # can everyone get the correct value
-        sw.runJobs()
-            # now we change some of the values (we know we have at least 3 worlds)
-        addJob(sw, FunctionJob, f1)
-        addJob(sw, FunctionJob, f1)
-        sw.runJobs()
-        addJobPerWorld(sw, FunctionJob, f2, expected=2) # can everyone get the correct value
-        sw.runJobs()
-            # Now we try the same with a clean start
-        sw.clearVariable('v_data')
-        sw.clearVariable('v_scalar')
-        addJob(sw, FunctionJob, f1)
-        addJob(sw, FunctionJob, f1)
-        sw.runJobs()
-        addJobPerWorld(sw, FunctionJob, f2, expected=2) # can everyone get the correct value
-        sw.runJobs()
-        
-        
-    @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
-    def testmanyworld_set_vars(self):
-        sw=self.create_many_subworlds()
-        self.set_tester(sw)
-#------------------------------------------------         
-
-    def test_illegal_ws(self):
-        self.assertRaises(RuntimeError, SplitWorld, getMPISizeWorld()+1)
 
 
 
