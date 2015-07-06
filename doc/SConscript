@@ -98,6 +98,7 @@ sortOutExample('usersguide/quad.py', needsGMSH=True)
 sortOutExample('usersguide/brick.py', needsGMSH=True)
 sortOutExample('usersguide/refine.py', needsGMSH=True)
 sortOutExample('usersguide/poisson_matplotlib.py', needsGD=True, allowsMPI=False)
+sortOutExample('usersguide/voxet_reader.py')
 
 sortOutExample('geotutorial/steadystate_variablek.py')
 sortOutExample('geotutorial/steadystate.py')

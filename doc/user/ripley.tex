@@ -13,11 +13,11 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{The \ripley Module}\label{chap:ripley}
+\chapter{The \ripley Module}\label{chap:ripley}\index{ripley}
 %\declaremodule{extension}{ripley}
 %\modulesynopsis{Solving linear, steady partial differential equations using finite elements}
 
-esys.ripley is an alternative domain library to esys.finley/dudley; it supports structured, uniform meshes with rectangular elements in 2D and hexahedral elements in 3D.
+\ripley is an alternative domain library to \finley; it supports structured, uniform meshes with rectangular elements in 2D and hexahedral elements in 3D.
 Uniform meshes allow a straightforward division of elements among processes
 with \MPI and allow for a number of optimizations when solving PDEs.
 \ripley also supports fast assemblers for certain types of PDE (specifically
@@ -32,7 +32,12 @@ since only one element type is supported and all elements need to be equally
 sized.
 For the same reasons, \ripley does not allow assigning coordinates via
 \function{setX}.
-Other than that \ripley and \finley are generally interchangeable in a script
+
+While \ripley cannot be used with mesh files, it can be used to read in \GOCAD \index{GOCAD} \index{ripley!GOCAD}
+data. A script with an example of a voxet reader is included in the examples as
+\texttt{voxet_reader.py}.
+
+Other than use of meshfiles, \ripley and \finley are generally interchangeable in a script
 with both modules having the \class{Rectangle} or \class{Brick} functions
 available. Consider the following example which creates a 2D \ripley domain:
 
@@ -41,6 +46,10 @@ available. Consider the following example which creates a 2D \ripley domain:
  dom = Rectangle(9, 9)
 \end{python}
 
+
+
+
+\index{ripley!multi-resolution domains} \index{multi-resolution domains}
 Multi-resolution domains are supported in \ripley via use of \class{MultiBrick}
 and \class{MultiRectangle}. Each level of one of
 these domains has twice the elements in each axis of the next lower resolution.
