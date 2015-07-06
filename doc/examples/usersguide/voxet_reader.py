@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-from __future__ import print_function
+from __future__ import print_function, division
 
 import os
 from esys.downunder import CartesianReferenceSystem
