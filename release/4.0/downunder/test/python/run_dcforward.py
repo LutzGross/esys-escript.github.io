@@ -1,4 +1,3 @@
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -14,6 +13,7 @@ from __future__ import print_function
 #
 ##############################################################################
 
+from __future__ import print_function, division
 from esys.downunder import *
 from esys.escript import *
 from esys.escriptcore.testing import *
@@ -65,22 +65,9 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[1000,1000,1000]
             dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=50.0
-            bufferThickness=3000
             extents=[1000,2000,2000]
-            electrodeDict={}
-            lcDiv=10
-            electrodeDict["e1"]=[0.2*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e2"]=[0.4*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e3"]=[0.6*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e4"]=[0.8*extents[0], 0.5*extents[1], 0,lc/lcDiv]
-            runName=os.path.join(WORKDIR, "dcResPolePole%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
+            meshname= os.path.join(TEST_DATA_ROOT, "dcResPolePole50-5.msh")
+            dom = ReadGmsh(meshname, 3)
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -99,28 +86,9 @@ class TestDCResistivityForward(unittest.TestCase):
             self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotential3dSchlumberger(self):
-        structured=True
         totalApparentRes = 130.
-        if structured:
-            extents=[100,100,100]
-            dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
-        else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=50.0
-            bufferThickness=3000
-            extents=[1000,2000,2000]
-            electrodeDict={}
-            lcDiv=10
-            electrodeDict["e1"]=[440., 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e2"]=[480., 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e3"]=[520., 0.5*extents[1], 0,lc/lcDiv]
-            electrodeDict["e4"]=[560., 0.5*extents[1], 0,lc/lcDiv]
-            runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
+        extents=[100,100,100]
+        dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
@@ -147,34 +115,12 @@ class TestDCResistivityForward(unittest.TestCase):
     def test_getPotentialDipDip(self):
         structured=False
         totalApparentRes = 130.
+        extents=[100,100,100]
         if structured:
-            extents=[100,100,100]
             dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=10.0
-            bufferThickness=300
-            extents=[100,100,100]
-            electrodeDict={}
-            lcDiv=10
-            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
-            runName=os.path.join(WORKDIR, "dcResdipdip%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
+            meshname= os.path.join(TEST_DATA_ROOT, "dcResdipdip10-1.msh")
+            dom = ReadGmsh(meshname, 3)
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -199,37 +145,8 @@ class TestDCResistivityForward(unittest.TestCase):
     def test_getPotentialWenner(self):
         structured=True
         totalApparentResVal = 130.
-        if structured:
-            extents=[100,100,100]
-            dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
-        else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=50.0
-            bufferThickness=3000
-            extents=[1000,2000,2000]
-            electrodeDict={}
-            lcDiv=10
-
-            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
-
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            runName=os.path.join(WORKDIR, "wenner%d-%d"%(lc,lc/lcDiv))
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
-        totalApparentRes = 130.
+        extents=[100,100,100]
+        dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
         current=1000.
@@ -256,30 +173,9 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[100,100,100]
             dom=Brick(25,25,25,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=10.0
-            bufferThickness=300
             extents=[100,100,100]
-            electrodeDict={}
-            lcDiv=10
-            electrodeDict["e0" ] = [28.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e1" ] = [32.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e2" ] = [36.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e3" ] = [40.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e4" ] = [44.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e5" ] = [48.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e6" ] = [52.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e7" ] = [56.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e8" ] = [60.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e9" ] = [64.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e10"] = [68.0, 48.0, 0, lc/lcDiv]
-            electrodeDict["e11"] = [72.0, 48.0, 0, lc/lcDiv]
-            runName=os.path.join(WORKDIR, "dcRespoldip%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeDict,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
+            meshname= os.path.join(TEST_DATA_ROOT, "dcRespoldip10-1.msh")
+            dom = ReadGmsh(meshname, 3)
         n=5
         totalApparentResVal = 130.
         primaryConductivity   =  Scalar(1/100., ContinuousFunction(dom))
