@@ -44,23 +44,23 @@ each node being accessed via OpenMP threads); so we will use ``nodes'' in this c
 There are some restrictions on the type of parameters which can be passed to the function. 
 The same function can be executed many times (possibly with different parameters) but each execution is 
 handled by a separate Job instance.
-\item[Domain object] the representation of the discretized domain PDEs are defined on.
+\item[Domain object] the representation of the discretized domain the PDEs are defined on.
 Behind the scenes, it also contains information about the nodes which share information about the domain.
 Normally in escript, this will be all of them but for subworlds this can change.
 \item[Subworld] the context in which a job executes.
 All the nodes which will be executing a particular job belong to the same subworld.
 Each subworld supplies the domain which jobs running on it will use as well as some other variables.
 Python scripts will not normally interact with subworlds directly.
-\item[Splitworld] a partition of available nodes into subworlds; and the python interface to that partition.
+\item[SplitWorld] a partition of available nodes into subworlds; and the python interface to that partition.
 For example:
 \begin{python}
-sw=Splitworld(4) 
+sw=SplitWorld(4) 
 \end{python}
 will create 4 equal sized subworlds.
 If there are not enough nodes to do this or the number of nodes is not divisible by the 
 number of subworlds, then an exception will be raised.
 
-Note that creating a Splitworld object does not prevent escript from solving PDEs normally.
+Note that creating a SplitWorld object does not prevent escript from solving PDEs normally.
 You can have scripts which use both modes of operation.
 
 Each subworld has its own domain object but those objects must represent the same content (and be created in the same way).
@@ -72,9 +72,9 @@ describes the creation of a domain which would normally be made constructed with
 \begin{python}
 Rectangle(10, 10, optimize=True)
 \end{python}.
-Note that you do not create domains and pass them into the splitworld\footnote{
+Note that you do not create domains and pass them into the SplitWorld\footnote{
 This would not work because such a domain would expect to use all the nodes rather than a subset of them.}.
-Also note that \texttt{buildDomains} (and the later addJob and addVariable calls) are not methods of splitworld\footnote{
+Also note that \texttt{buildDomains} (and the later \texttt{addJob} and \texttt{addVariable calls)} are not methods of SplitWorld\footnote{
 This has to do with a limitation of the \texttt{boost::python} library used in the development of \escript.}.
 
 The fact that each subworld has its own domain means that objects build directly (or indirectly) on domains 
@@ -91,10 +91,10 @@ addJobPerWorld(sw, FunctionJob, myfunction, par1=value1, par2=value2)
 The first call adds a single job to execute on an available subworld.
 The second creates a job instance on each subworld\footnote{
 Note that this is not the same as calling \texttt{addJob} $n$ times where $n$ is the number of subworlds.
-It is better not to make assumptions about how splitworld distributes jobs to subworlds.
+It is better not to make assumptions about how SplitWorld distributes jobs to subworlds.
 }.
 One use for this would be to perform some setup on each subworld. 
-The keyword paramters are illustrative only.
+The keyword parameters are illustrative only.
 Since task functions run by jobs must have the parameter list \texttt{(self, **kwargs)}, keyword arguments are the best way
 to get extra information into your function.
 
@@ -138,8 +138,8 @@ addVariable(sw, name, makeDataReducer, op)
 These calls are made in the top level python script and ensure that all subworlds know about all the possible variables.
 The difference between the types is how they interact with other subworlds and what sort of values they can store.
 \begin{itemize}
- \item ``LocalOnly'' variables can store any python object but each subworld has its own value independant of the others.
- Because they could be storing anything (and it is not guaranteed to be consistant across worlds), we do not provide an 
+ \item ``LocalOnly'' variables can store any python object but each subworld has its own value independent of the others.
+ Because they could be storing anything (and it is not guaranteed to be consistent across worlds), we do not provide an 
  interface to extract these variables from subworlds.
  \item ``ScalarReducer'' variables store a floating point value.
 Any values which are exported by jobs during a \texttt{runJobs} call are gathered together and combined (reduced) and then 
@@ -148,7 +148,7 @@ In this version, this will be all subworlds, but the capability exists to be
 more selective.}.
   There are currently two possible reduction operators: \emph{SET} and \emph{SUM}.
   SUM adds all exported values together.
-  SET only accepts one value (per runJobs()) and raises an exception if more than one.
+  SET only accepts one value per \texttt{runJobs} call and raises an exception if more than one set is attempted.
 It is possible to read these variables outside the splitword with:
 \begin{python}
  z=sw.getDoubleVariable(name)
@@ -157,7 +157,7 @@ It is possible to read these variables outside the splitword with:
 We do not provide an interface to extract Data objects from subworlds.
 \end{itemize}
 
-Note that all the normal save/load will work inside subworlds so while Data objects can't be passed out of splitworlds, 
+Note that all the normal save/load functions will work inside subworlds so while Data objects can't be passed out of SplitWorlds, 
 they can be saved from inside the subworlds.
 
 \end{description}
@@ -196,23 +196,23 @@ sw.runJobs()
 
 
 \begin{funcdesc}{addVariable}{name, constructor, args}
-Adds a variable to each of the subworlds build by the function \var{constructor} with argumemnts \var{args}. 
+Adds a variable to each of the subworlds built by the function \var{constructor} with arguments \var{args}. 
 \end{funcdesc}
 
 \begin{funcdesc}{makeLocalOnly}{name, op}
 Used to create a variable to store a python object which will be local to each subworld.
 These values will not be transferred between or out of subworlds.
-For example, calculating a list of values once on each world, and caching them for use by later jobs.
+An example use case is calculating a list of values once on each world and caching them for use by later jobs.
 \end{funcdesc}
 
 \begin{funcdesc}{makeScalarReducer}{name, op}
 Used to create a variable to share and combine floating point values.
-The operation can currently be ``SET''(allow only one assignment each runJobs call.) or ``SUM''
+The operation can currently be ``SET''(allows only one assignment for each \texttt{runJobs} call) or ``SUM''.
 \end{funcdesc}
 
 \begin{funcdesc}{makeDataReducer}{name, op}
 Used to create a variable to share and combine Data values.
-The operation can currently be ``SET''(allow only one assignment each runJobs call.) or ``SUM''
+The operation can currently be ``SET''(allows only one assignment for each \texttt{runJobs} call) or ``SUM''.
 \end{funcdesc}
 
 \begin{funcdesc}{buildDomains}{splitworld, constructor, args}
@@ -225,7 +225,7 @@ Submit a job to run \var{function} with \var{args} to be executed in an availabl
 
 \begin{funcdesc}{addJob}{splitworld, FunctionJob, function, args}
 Submit a job to run \var{function} with \var{args} to be executed in each subworld.
-Individual jobs can use properties of \var{self} such as \member{swid} or \member{jobid} to distiguish between
+Individual jobs can use properties of \var{self} such as \member{swid} or \member{jobid} to distinguish between
 themselves.
 \end{funcdesc}
 
@@ -234,7 +234,7 @@ All of these methods are only to be called by the top level python script.
 Do not attempt to use them inside a job.
 
 \begin{methoddesc}[SplitWorld]{SplitWorld}{n}
-Returns a splitworld which contains $n$ subworlds; will raise an exception if this is not possible.
+Returns a SplitWorld which contains $n$ subworlds; will raise an exception if this is not possible.
 \end{methoddesc}
 
 \begin{methoddesc}[SplitWorld]{removeVariable}{name}
@@ -249,7 +249,7 @@ The variable no longer has a value but a new value can be exported for it.
 \begin{methoddesc}[SplitWorld]{getVarList}{}
 Return a python list of pairs \texttt{[name, hasvalue]} (one for each variable).
 \var{hasvalue} is True if the variable currently has a value.
-Mainly useful for debugguing.
+Mainly useful for debugging.
 \end{methoddesc}
 
 \begin{methoddesc}[SplitWorld]{getDoubleVariable}{name}
@@ -280,11 +280,11 @@ Each job is given an id from an increasing sequence.
 \end{memberdesc}
 
 \begin{memberdesc}[FunctionJob]{swcount}
-The number of subworlds in the splitworld. 
+The number of subworlds in the SplitWorld. 
 \end{memberdesc}
 
 \begin{memberdesc}[FunctionJob]{swcount}
-The number of subworlds in the splitworld. 
+The number of subworlds in the SplitWorld. 
 \end{memberdesc}
 
 \begin{memberdesc}[FunctionJob]{swid}
