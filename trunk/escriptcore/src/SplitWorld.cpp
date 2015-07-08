@@ -495,7 +495,7 @@ boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dic
     int l=len(t);
     if (l<3)
     {
-	throw SplitWorldException("Insufficient parameters to addReducer.");
+	throw SplitWorldException("Insufficient parameters to addVariable.");
     }
     extract<SplitWorld&> exw(t[0]);
     if (!exw.check())
