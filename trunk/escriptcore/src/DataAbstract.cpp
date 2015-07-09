@@ -103,6 +103,10 @@ DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bo
     m_rank(DataTypes::getRank(shape))
 
 {
+#ifdef EXWRITECHK
+    exclusivewritecalled=false;
+#endif  
+  
     m_isempty=isDataEmpty;
     if (m_rank>ESCRIPT_MAX_DATA_RANK)
     {

@@ -65,6 +65,7 @@ void TransportProblemAdapter::setToSolution(escript::Data& out,
     u0.expand();
     out.requireWrite();
     source.requireWrite();
+    u0.requireWrite();
     double* out_dp = out.getSampleDataRW(0);
     double* u0_dp = u0.getSampleDataRW(0);
     double* source_dp = source.getSampleDataRW(0);

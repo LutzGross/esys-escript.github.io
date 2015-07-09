@@ -145,6 +145,9 @@ void DataTaggedTestCase::testOperations() {
     CPPUNIT_ASSERT(myData.getRank()==0);
     CPPUNIT_ASSERT(myData.getNoValues()==1);
     CPPUNIT_ASSERT(myData.getShape().size()==0);
+#ifdef EXWRITECHK		
+		myData.exclusivewritecalled=true;
+#endif	    
     CPPUNIT_ASSERT(myData.getDataAtOffsetRW(0)==0.0);
 
     // Test non-existent tag returns the default value.
@@ -312,6 +315,10 @@ void DataTaggedTestCase::testOperations() {
     // be used for missing tags in each object
 //     myData.getDefaultValue()()=1.0;
 //     right.getDefaultValue()()=2.0;
+#ifdef EXWRITECHK		
+    myData.exclusivewritecalled=true;
+#endif	    
+    
     myData.getVectorRW()[myData.getDefaultOffset()]=1.0;
     right.getVectorRW()[right.getDefaultOffset()]=2.0;
 
@@ -397,6 +404,9 @@ void DataTaggedTestCase::testOperations() {
     // be used for missing tags in each object
 /*    myData.getDefaultValue()()=2.0;
     right.getDefaultValue()()=3.0;*/
+#ifdef EXWRITECHK		
+    myData.exclusivewritecalled=true;
+#endif	
     myData.getVectorRW()[myData.getDefaultOffset()]=2.0;
     right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
@@ -633,6 +643,9 @@ void DataTaggedTestCase::testOperations() {
     // be used for missing tags in each object
 //     myData.getDefaultValue()()=2.0;
 //     right.getDefaultValue()()=3.0;
+#ifdef EXWRITECHK		
+    myData.exclusivewritecalled=true;
+#endif	    
     myData.getVectorRW()[myData.getDefaultOffset()]=2.0;
     right.getVectorRW()[right.getDefaultOffset()]=3.0;
 

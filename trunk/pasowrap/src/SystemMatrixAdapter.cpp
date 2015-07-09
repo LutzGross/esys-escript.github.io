@@ -277,6 +277,8 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
    }
    out.expand();
    in.expand();
+   out.requireWrite();
+   in.requireWrite();
    double* out_dp=out.getSampleDataRW(0);        
    double* in_dp=in.getSampleDataRW(0);                
    paso::solve(m_system_matrix, out_dp, in_dp, &paso_options);

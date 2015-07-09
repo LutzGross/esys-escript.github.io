@@ -475,6 +475,15 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 	return m_lazyshared || (m_owners.size()>1);
   }
 
+#ifdef EXWRITECHK
+  bool exclusivewritecalled;	// used to check for some potential programming faults 
+				// involving shared data.
+				// This flag only asserts that exclusive write has been called
+				// on this object, it does not definitively guarantee that
+				// sharing has not occurred since that call
+				// This flag is for internal use only may be removed without warning
+#endif
+  
 protected:
     /**
     \brief Returns true if this object is not shared.

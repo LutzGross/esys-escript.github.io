@@ -169,6 +169,7 @@ void MultiBrick::interpolateNodesToNodesFiner(const escript::Data& source,
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NN0 = m_NN[0], NN1 = m_NN[1], NN2 = m_NN[2], *otherNN = other.getNumNodesPerDim();
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
 #pragma omp parallel for
     for (dim_t nz = 0; nz < NN2 - 1; nz++) { //source nodes
         for (dim_t ny = 0; ny < NN1 - 1; ny++) {
@@ -208,6 +209,7 @@ void MultiBrick::interpolateReducedToElementsFiner(const escript::Data& source,
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
     //for each of ours
 #pragma omp parallel for
     for (dim_t ez = 0; ez < m_NE[2]; ez++) {
@@ -241,6 +243,7 @@ void MultiBrick::interpolateReducedToReducedFiner(const escript::Data& source,
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
     //for each of ours
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
@@ -267,6 +270,7 @@ void MultiBrick::interpolateNodesToElementsFiner(const escript::Data& source,
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NE0 = m_NE[0], NE1 = m_NE[1], NE2 = m_NE[2], *theirNE = other.getNumElementsPerDim();
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
 #pragma omp parallel for
     for (dim_t ez = 0; ez < NE2; ez++) { //source nodes
         for (dim_t ey = 0; ey < NE1; ey++) {
@@ -398,7 +402,7 @@ void MultiBrick::interpolateElementsToElementsCoarser(const escript::Data& sourc
         first_lagrange[i] = (points[i] - SECOND_QUAD) / (FIRST_QUAD - SECOND_QUAD);
         second_lagrange[i] = (points[i] - FIRST_QUAD) / (SECOND_QUAD - FIRST_QUAD);
     }
-    
+    target.requireWrite();
     //for each of theirs
 #pragma omp parallel for
     for (dim_t tz = 0; tz < theirNE[2]; tz++) {
@@ -455,6 +459,7 @@ void MultiBrick::interpolateElementsToElementsFiner(const escript::Data& source,
         lagranges[i] = (points[i] - SECOND_QUAD) / (FIRST_QUAD - SECOND_QUAD);
         lagranges[i + 2*scaling] = (points[i] - FIRST_QUAD) / (SECOND_QUAD - FIRST_QUAD);
     }
+    target.requireWrite();
     //for each of ours
 #pragma omp parallel for
     for (dim_t ez = 0; ez < m_NE[2]; ez++) {

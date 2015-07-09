@@ -23,3 +23,6 @@ pythoncmd='python3'
 pythonlibname='python3.4m'
 pythonincpath='/usr/include/python3.4'
 
+# This seemed as good a place as any to test this
+cxx_extra = '-Wextra -Wno-unused-parameter -DEXWRITECHK'
+
