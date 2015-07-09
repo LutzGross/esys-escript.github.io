@@ -174,7 +174,7 @@ buildDomains(sw, Rectangle, 100, 100)
 
 #describe the work we want to do
 # In this case we solve a Poisson equation
-def fish(self, **kwargs):
+def task(self, **kwargs):
     v=kwargs['v']
     dom=self.domain
     pde=Poisson(dom)
@@ -186,7 +186,7 @@ def fish(self, **kwargs):
 
 # Now we add some jobs
 for i in range(1,20):
-    addJob(sw, FunctionJob, fish, v=i)
+    addJob(sw, FunctionJob, task, v=i)
 # Run them
 sw.runJobs() 
 \end{python}
@@ -217,6 +217,7 @@ The operation can currently be ``SET''(allows only one assignment for each \text
 
 \begin{funcdesc}{buildDomains}{splitworld, constructor, args}
 Indicates how subworlds should construct their domains.
+\emph{Note that the splitworld code does not support multi-resolution ripley domains yet.}
 \end{funcdesc}
 
 \begin{funcdesc}{addJob}{splitworld, FunctionJob, function, args}
