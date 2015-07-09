@@ -1858,6 +1858,9 @@ template <class BinaryOp>
 		DataAbstract* t=m_data->deepCopy();
    		set_m_data(DataAbstract_ptr(t));
 	}
+#ifdef EXWRITECHK		
+	m_data->exclusivewritecalled=true;
+#endif	
   }
 
   /**
@@ -1972,6 +1975,12 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
    {
 	throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
    }
+#ifdef EXWRITECHK
+   if (!getReady()->exclusivewritecalled)
+   {
+        throw DataException("Error, call to Data::getSampleDataRW without a preceeding call to requireWrite/exclusiveWrite.");
+   }
+#endif
    return getReady()->getSampleDataRW(sampleNo);
 }
 

@@ -596,6 +596,9 @@ void DataTestCase::testDataTagged()
     CPPUNIT_ASSERT(myData.getDataAtOffsetRO(1)==1.0);
     CPPUNIT_ASSERT(myData.getDataAtOffsetRO(2)==2.0);
 
+#ifdef EXWRITECHK		
+    myData.requireWrite();
+#endif	    
     double* sampleData=myData.getSampleDataRW(0);
     for (int i=0; i<myData.getNoValues(); i++) {
       CPPUNIT_ASSERT(sampleData[i]==i);

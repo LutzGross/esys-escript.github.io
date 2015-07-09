@@ -320,6 +320,7 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
     const int inFS = in.getFunctionSpace().getTypeCode();
     const int outFS = target.getFunctionSpace().getTypeCode();
 
+    target.requireWrite();
     // simplest case: 1:1 copy
     if (inFS==outFS) {
         copyData(target, in);

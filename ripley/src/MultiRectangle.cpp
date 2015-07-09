@@ -151,6 +151,7 @@ void MultiRectangle::interpolateNodesToNodesFiner(const escript::Data& source,
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NN0 = m_NN[0], NN1 = m_NN[1], otherNN0 = other.getNumNodesPerDim()[0];
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
 #pragma omp parallel for
     for (dim_t ny = 0; ny < NN1 - 1; ny++) { //source nodes
         for (dim_t nx = 0; nx < NN0 - 1; nx++) {
@@ -178,6 +179,7 @@ void MultiRectangle::interpolateReducedToElementsFiner(const escript::Data& sour
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
     //for each of ours
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
@@ -207,6 +209,7 @@ void MultiRectangle::interpolateReducedToReducedFiner(const escript::Data& sourc
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
     //for each of ours
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
@@ -233,6 +236,7 @@ void MultiRectangle::interpolateNodesToElementsFiner(const escript::Data& source
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NE0 = m_NE[0], NE1 = m_NE[1];
     const dim_t numComp = source.getDataPointSize();
+    target.requireWrite();
 #pragma omp parallel for
     for (dim_t ey = 0; ey < NE1; ey++) { //source nodes
         for (dim_t ex = 0; ex < NE0; ex++) {
@@ -281,7 +285,7 @@ void MultiRectangle::interpolateElementsToElementsCoarser(const escript::Data& s
         first_lagrange[i] = (points[i] - SECOND_QUAD) / (FIRST_QUAD - SECOND_QUAD);
         second_lagrange[i] = (points[i] - FIRST_QUAD) / (SECOND_QUAD - FIRST_QUAD);
     }
-    
+    target.requireWrite();
     //for each of theirs
 #pragma omp parallel for
     for (dim_t ty = 0; ty < theirNE[1]; ty++) {
@@ -328,6 +332,7 @@ void MultiRectangle::interpolateElementsToElementsFiner(const escript::Data& sou
         lagranges[i] = (points[i] - SECOND_QUAD) / (FIRST_QUAD - SECOND_QUAD);
         lagranges[i + 2*scaling] = (points[i] - FIRST_QUAD) / (SECOND_QUAD - FIRST_QUAD);
     }
+    target.requireWrite();
     //for each of ours
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
