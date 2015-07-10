@@ -231,7 +231,7 @@ string Brick::getDescription() const
     return "ripley::Brick";
 }
 
-bool Brick::operator==(const AbstractDomain& other) const
+bool Brick::operator==(const escript::AbstractDomain& other) const
 {
     const Brick* o=dynamic_cast<const Brick*>(&other);
     if (o) {
@@ -3345,7 +3345,7 @@ namespace
  */
 escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
                                 const escript::FunctionSpace& what,
-                                long seed, const bp::tuple& filter) const
+                                long seed, const boost::python::tuple& filter) const
 {
     int numvals=escript::DataTypes::noValues(shape);
     if (len(filter) > 0 && numvals != 1) {
@@ -3398,7 +3398,7 @@ that ripley has.
 */
 escript::Data Brick::randomFillWorker(
                         const escript::DataTypes::ShapeType& shape, long seed,
-                        const bp::tuple& filter) const
+                        const boost::python::tuple& filter) const
 {
     unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;

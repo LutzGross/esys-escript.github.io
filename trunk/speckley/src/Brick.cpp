@@ -220,7 +220,7 @@ std::string Brick::getDescription() const
     return "speckley::Brick";
 }
 
-bool Brick::operator==(const AbstractDomain& other) const
+bool Brick::operator==(const escript::AbstractDomain& other) const
 {
     const Brick* o=dynamic_cast<const Brick*>(&other);
     if (o) {

@@ -125,7 +125,7 @@ escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
     \param optimize whether to apply optimization
     \param points
     \param tags
-    \param tagnamestonums
+    \param tagNamesToNums
 */
 FINLEY_DLL_API
 escript::Domain_ptr brick(esysUtils::JMPI& info,
@@ -138,7 +138,7 @@ escript::Domain_ptr brick(esysUtils::JMPI& info,
                           bool useFullElementOrder=false, bool optimize=false,
                           const std::vector<double>& points=std::vector<double>(),
                           const std::vector<int>& tags=std::vector<int>(),
-                          const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>());
+                          const std::map<std::string, int>& tagNamesToNums=std::map<std::string, int>());
                     
    /**
    \brief Python driver for brick()
@@ -177,7 +177,7 @@ escript::Domain_ptr brick(esysUtils::JMPI& info,
      \param optimize
      \param points
      \param tags
-     \param tagnamestonums
+     \param tagNamesToNums
   */
 FINLEY_DLL_API
 escript::Domain_ptr rectangle(esysUtils::JMPI& info,
@@ -191,7 +191,7 @@ escript::Domain_ptr rectangle(esysUtils::JMPI& info,
                               bool optimize=false,
                               const std::vector<double>& points=std::vector<double>(),
                               const std::vector<int>& tags=std::vector<int>(),
-                              const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>());
+                              const std::map<std::string, int>& tagNamesToNums=std::map<std::string, int>());
 
 /**
     \brief

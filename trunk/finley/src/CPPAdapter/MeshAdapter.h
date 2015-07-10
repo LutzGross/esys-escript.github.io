@@ -54,7 +54,7 @@ escript::Domain_ptr brick(esysUtils::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
                           const std::vector<int>& tags,
                           const std::map<std::string, int>& tagNamesToNums
                     );
-                    
+
 FINLEY_DLL_API              
 escript::Domain_ptr rectangle(esysUtils::JMPI& p, dim_t n0, dim_t n1,
                               int order, double l0, double l1,

@@ -198,7 +198,7 @@ string Rectangle::getDescription() const
     return "ripley::Rectangle";
 }
 
-bool Rectangle::operator==(const AbstractDomain& other) const
+bool Rectangle::operator==(const escript::AbstractDomain& other) const
 {
     const Rectangle* o=dynamic_cast<const Rectangle*>(&other);
     if (o) {
@@ -2235,7 +2235,7 @@ namespace
  */
 escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
                                 const escript::FunctionSpace& what, long seed,
-                                const bp::tuple& filter) const
+                                const boost::python::tuple& filter) const
 {
     int numvals=escript::DataTypes::noValues(shape);
     if (len(filter) > 0 && numvals != 1)
@@ -2287,7 +2287,7 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
  */
 escript::Data Rectangle::randomFillWorker(
                         const escript::DataTypes::ShapeType& shape, long seed,
-                        const bp::tuple& filter) const
+                        const boost::python::tuple& filter) const
 {
     unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;

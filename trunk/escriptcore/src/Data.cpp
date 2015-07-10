@@ -249,7 +249,7 @@ Data::Data()
 }
 
 Data::Data(double value,
-           const bp::tuple& shape,
+           const boost::python::tuple& shape,
            const FunctionSpace& what,
            bool expanded)
     : m_shared(false), m_lazy(false)
@@ -371,7 +371,7 @@ Data::Data(const DataTypes::ValueType& value,
 }
 
 
-Data::Data(const bp::object& value,
+Data::Data(const boost::python::object& value,
            const FunctionSpace& what,
            bool expanded)
         : m_shared(false), m_lazy(false)
@@ -391,7 +391,7 @@ Data::Data(const WrappedArray& w, const FunctionSpace& what,
 }
 
 
-Data::Data(const bp::object& value,
+Data::Data(const boost::python::object& value,
            const Data& other)
         : m_shared(false), m_lazy(false)
 {
@@ -2326,7 +2326,7 @@ Data::operator+=(const Data& right)
 }
 
 Data&
-Data::operator+=(const bp::object& right)
+Data::operator+=(const boost::python::object& right)
 {
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -2358,7 +2358,7 @@ Data::operator-=(const Data& right)
 }
 
 Data&
-Data::operator-=(const bp::object& right)
+Data::operator-=(const boost::python::object& right)
 {
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -2381,7 +2381,7 @@ Data::operator*=(const Data& right)
 }
 
 Data&
-Data::operator*=(const bp::object& right)
+Data::operator*=(const boost::python::object& right)
 {  
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -2404,7 +2404,7 @@ Data::operator/=(const Data& right)
 }
 
 Data&
-Data::operator/=(const bp::object& right)
+Data::operator/=(const boost::python::object& right)
 {
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
@@ -2504,7 +2504,7 @@ escript::operator/(const Data& left, const Data& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator+(const Data& left, const bp::object& right)
+escript::operator+(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
     MAKELAZYBIN2(left,tmp,ADD);
@@ -2514,7 +2514,7 @@ escript::operator+(const Data& left, const bp::object& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator-(const Data& left, const bp::object& right)
+escript::operator-(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
     MAKELAZYBIN2(left,tmp,SUB);
@@ -2524,7 +2524,7 @@ escript::operator-(const Data& left, const bp::object& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator*(const Data& left, const bp::object& right)
+escript::operator*(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
     MAKELAZYBIN2(left,tmp,MUL);
@@ -2534,7 +2534,7 @@ escript::operator*(const Data& left, const bp::object& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator/(const Data& left, const bp::object& right)
+escript::operator/(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
     MAKELAZYBIN2(left,tmp,DIV);
@@ -2544,7 +2544,7 @@ escript::operator/(const Data& left, const bp::object& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator+(const bp::object& left, const Data& right)
+escript::operator+(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
     MAKELAZYBIN2(tmp,right,ADD);
@@ -2554,7 +2554,7 @@ escript::operator+(const bp::object& left, const Data& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator-(const bp::object& left, const Data& right)
+escript::operator-(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
     MAKELAZYBIN2(tmp,right,SUB);
@@ -2564,7 +2564,7 @@ escript::operator-(const bp::object& left, const Data& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator*(const bp::object& left, const Data& right)
+escript::operator*(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
     MAKELAZYBIN2(tmp,right,MUL);
@@ -2574,7 +2574,7 @@ escript::operator*(const bp::object& left, const Data& right)
 //
 // NOTE: It is essential to specify the namespace this operator belongs to
 Data
-escript::operator/(const bp::object& left, const Data& right)
+escript::operator/(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
     MAKELAZYBIN2(tmp,right,DIV);
@@ -4374,7 +4374,7 @@ size_t Data::getNumberOfTaggedValues() const
 }
 
 
-Data escript::randomData(const bp::tuple& shape,
+Data escript::randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
        long seed, const boost::python::tuple& filter)
 {

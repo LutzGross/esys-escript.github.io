@@ -1823,7 +1823,7 @@ bool MeshAdapter::operator!=(const escript::AbstractDomain& other) const
     return !(operator==(other));
 }
 
-int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
+int MeshAdapter::getSystemMatrixTypeId(const boost::python::object& options) const
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
@@ -2161,7 +2161,8 @@ bool MeshAdapter::supportsContactElements() const
 }
 
 escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const bp::tuple& filter) const
+       const escript::FunctionSpace& what, long seed,
+       const boost::python::tuple& filter) const
 {
     escript::Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't need to check for
