@@ -714,7 +714,7 @@ Domain_ptr brick(esysUtils::JMPI& info, dim_t n0, dim_t n1, dim_t n2, int order,
                  bool useElementsOnFace, bool useFullElementOrder,
                  bool optimize, const std::vector<double>& points,
                  const std::vector<int>& tags,
-                 const std::map<std::string, int>& tagnamestonums)
+                 const std::map<std::string, int>& tagNamesToNums)
 {
     const dim_t numElements[] = {n0, n1, n2};
     const double length[] = {l0, l1, l2};
@@ -744,7 +744,7 @@ Domain_ptr brick(esysUtils::JMPI& info, dim_t n0, dim_t n1, dim_t n2, int order,
     MeshAdapter* dom = new MeshAdapter(fMesh);
     dom->addDiracPoints(points, tags);
     Mesh* out=dom->getMesh().get();     
-    for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
+    for (map<string, int>::const_iterator it=tagNamesToNums.begin();it!=tagNamesToNums.end();++it)
     {
         out->addTagMap(it->first.c_str(), it->second);
     }
@@ -826,7 +826,7 @@ Domain_ptr rectangle(esysUtils::JMPI& info, dim_t n0, dim_t n1, int order,
                      bool useElementsOnFace, bool useFullElementOrder,
                      bool optimize, const vector<double>& points,
                      const vector<int>& tags,
-                     const std::map<std::string, int>& tagnamestonums)
+                     const std::map<std::string, int>& tagNamesToNums)
 {
     const dim_t numElements[] = {n0, n1};
     const double length[] = {l0, l1};
@@ -856,7 +856,7 @@ Domain_ptr rectangle(esysUtils::JMPI& info, dim_t n0, dim_t n1, int order,
     MeshAdapter* dom = new MeshAdapter(fMesh);
     dom->addDiracPoints(points, tags);
     Mesh* out=dom->getMesh().get();     
-    for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
+    for (map<string, int>::const_iterator it=tagNamesToNums.begin();it!=tagNamesToNums.end();++it)
     {
         out->addTagMap(it->first.c_str(), it->second);
     }

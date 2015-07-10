@@ -188,7 +188,7 @@ std::string Rectangle::getDescription() const
     return "speckley::Rectangle";
 }
 
-bool Rectangle::operator==(const AbstractDomain& other) const
+bool Rectangle::operator==(const escript::AbstractDomain& other) const
 {
     const Rectangle* o=dynamic_cast<const Rectangle*>(&other);
     if (o) {
