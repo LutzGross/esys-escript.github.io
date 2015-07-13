@@ -137,33 +137,33 @@ class sw_testmany(unittest.TestCase):
         return True
     def create_many_subworlds(self):
         sw=SplitWorld(getMPISizeWorld())
-        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
+        sw.buildDomains(self.domain_ctr, *self.domain_vec, **self.domain_dict)
         return sw
         
 
     def set_tester(self, sw):
         import time
         #time.sleep(20)
-        addVariable(sw, "v_scalar", makeScalarReducer, "SET")
-        addVariable(sw, "v_data", makeDataReducer, "SET")
-        addVariable(sw, "v_list", makeLocalOnly)    # so we can use var_setup
-        addVariable(sw, "ex", makeScalarReducer, "SUM")         # So we have something to read when the others are wiped out
+        sw.addVariable("v_scalar", "float", "SET")
+        sw.addVariable("v_data", "Data", "SET")
+        sw.addVariable("v_list", "local")    # so we can use var_setup
+        sw.addVariable("ex", "float", "SUM")         # So we have something to read when the others are wiped out
 
         def ex_set(self, **kwargs):
             self.exportValue("ex",7)
 
-        addJob(sw, FunctionJob, ex_set)
-        addJob(sw, FunctionJob, var_setup)
+        sw.addJob(FunctionJob, ex_set)
+        sw.addJob(FunctionJob, var_setup)
         sw.runJobs()
 
         if sw.getSubWorldCount()>1:
-            addJobPerWorld(sw, FunctionJob, var_setup)
+            sw.addJobPerWorld(FunctionJob, var_setup)
             sw.runJobs()
-            self.assertRaises(RuntimeError, sw.getDoubleVariable, "v_scalar")
-            self.assertRaises(RuntimeError, sw.getDoubleVariable, "v_scalar")
+            self.assertRaises(RuntimeError, sw.getFloatVariable, "v_scalar")
+            self.assertRaises(RuntimeError, sw.getFloatVariable, "v_scalar")
 
-        addJob(sw, FunctionJob, var_setup)
-        addJob(sw, FunctionJob, var_setup)
+        sw.addJob(FunctionJob, var_setup)
+        sw.addJob(FunctionJob, var_setup)
         if sw.getSubWorldCount()==1:
             self.assertRaises(RuntimeError, sw.runJobs)
         else:
@@ -171,58 +171,58 @@ class sw_testmany(unittest.TestCase):
             self.assertRaises(RuntimeError, sw.runJobs) # This gives up after the first dud resolve
             self.assertRaises(RuntimeError, sw.runJobs) # since we have multiple vars we need to flush
         print(sw.getVarList())
-        sw.getDoubleVariable("ex")
+        sw.getFloatVariable("ex")
 
-        addJob(sw, FunctionJob, var_setup)
+        sw.addJob(FunctionJob, var_setup)
         sw.runJobs()
         
     def sum_vars_tester(self, sw):
-        addVariable(sw, "v_scalar", makeScalarReducer, "SUM")
-        addVariable(sw, "v_data", makeDataReducer, "SUM")
-        addVariable(sw, "notused", makeLocalOnly)
+        sw.addVariable("v_scalar", "float", "SUM")
+        sw.addVariable("v_data", "Data", "SUM")
+        sw.addVariable("notused", "local")
         flags1=[['notused', False], ['v_data', False], ['v_scalar', False]]
         self.assertEqual(flags1, sw.getVarList())
         lim=2*getMPISizeWorld()
         for i in range(1,lim+1):
-          addJob(sw, FunctionJob, sum_work)
+          sw.addJob(FunctionJob, sum_work)
         sw.runJobs()
         flags2=[['notused', False], ['v_data', True], ['v_scalar', True]]
 
         self.assertEqual(flags2, sw.getVarList())
-        addJob(sw, FunctionJob, sum_check, imports=['v_scalar', 'v_data'], low=1, high=lim)
+        sw.addJob(FunctionJob, sum_check, imports=['v_scalar', 'v_data'], low=1, high=lim)
         sw.runJobs()
         total=0
         for i in range(1, lim+1):
             total+=i
-        act=sw.getDoubleVariable("v_scalar")
+        act=sw.getFloatVariable("v_scalar")
         self.assertEqual(total, act, "Extract of double variable failed")
         sw.removeVariable("v_scalar")
         self.assertEqual([['notused', False], ['v_data', True]], sw.getVarList())
-        self.assertRaises(RuntimeError, sw.getDoubleVariable, "v_scalar")
+        self.assertRaises(RuntimeError, sw.getFloatVariable, "v_scalar")
         
-        addJobPerWorld(sw, FunctionJob, set_var)
+        sw.addJobPerWorld(FunctionJob, set_var)
         self.assertRaises(RuntimeError, sw. runJobs)
         
-        addJobPerWorld(sw, FunctionJob, inp_var)
+        sw.addJobPerWorld(FunctionJob, inp_var)
         self.assertRaises(RuntimeError, sw. runJobs)
         
-        addVariable(sw, "v_scalar", makeScalarReducer, "SUM")
+        sw.addVariable("v_scalar", "float", "SUM")
         flags3=[['notused', False], ['v_data', True], ['v_scalar', False]]
         self.assertEqual(flags3, sw.getVarList())
         
-        addJob(sw, FunctionJob, set_var)        # note that this will only set the value in one world
+        sw.addJob(FunctionJob, set_var)        # note that this will only set the value in one world
         sw.runJobs()                            # want to test if getDouble is transporting values        
-        self.assertEqual(7, sw.getDoubleVariable("v_scalar"))    
+        self.assertEqual(7, sw.getFloatVariable("v_scalar"))    
         
         
     def copy_vars_tester(self, sw):
-        addVariable(sw, "v_scalar", makeScalarReducer, "SUM")
-        addVariable(sw, "v_data", makeDataReducer, "SUM")
-        addVariable(sw, "v_list", makeLocalOnly)
-        addVariable(sw, "v_scalar_copy", makeScalarReducer, "SUM")
-        addVariable(sw, "v_data_copy", makeDataReducer, "SUM")
-        addVariable(sw, "v_list_copy", makeLocalOnly)
-        addJobPerWorld(sw, FunctionJob, var_setup)
+        sw.addVariable("v_scalar", "float", "SUM")
+        sw.addVariable("v_data", "Data", "SUM")
+        sw.addVariable("v_list", "local")
+        sw.addVariable("v_scalar_copy", "float", "SUM")
+        sw.addVariable("v_data_copy", "Data", "SUM")
+        sw.addVariable("v_list_copy", "local")
+        sw.addJobPerWorld(FunctionJob, var_setup)
         sw.runJobs()
         sw.copyVariable("v_scalar", "v_scalar_copy")
         sw.copyVariable("v_data", "v_data_copy")
@@ -235,9 +235,9 @@ class sw_testmany(unittest.TestCase):
         self.assertRaises(RuntimeError, sw.copyVariable, "v_list", "v_scalar_copy")
         self.assertRaises(RuntimeError, sw.copyVariable, "v_data", "v_data")
        
-        addJobPerWorld(sw, FunctionJob, var_increment)
+        sw.addJobPerWorld(FunctionJob, var_increment)
         sw.runJobs()
-        addJobPerWorld(sw, FunctionJob, var_check)
+        sw.addJobPerWorld(FunctionJob, var_check)
         sw.runJobs()
         sw.runJobs()    # Just to make sure empty list doesn't break it
 
@@ -245,29 +245,29 @@ class sw_testmany(unittest.TestCase):
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
     def testmanyworld_singleround(self):
         sw=self.create_many_subworlds()
-        addJob(sw, FunctionJob, self.pde_work) 
+        sw.addJob(FunctionJob, self.pde_work) 
         sw.runJobs()
         
         sw=self.create_many_subworlds()
-        addJobPerWorld(sw, FunctionJob, self.pde_work)
+        sw.addJobPerWorld(FunctionJob, self.pde_work)
         sw.runJobs()
         
         sw=self.create_many_subworlds()
         for i in range(4):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()        
         
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")
     def testmanyworld_multiround(self):        
         sw=self.create_many_subworlds()
         for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(2):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
 
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
@@ -284,26 +284,26 @@ class sw_testmany(unittest.TestCase):
     @unittest.skipIf(mpisize<3, "test is redundant on fewer than three processes")        
     def testmanyworld_partial_reduce(self):
         sw=self.create_many_subworlds()
-        addVariable(sw, 'v_scalar', makeScalarReducer, "SUM")
-        addVariable(sw, 'v_data', makeDataReducer, "SUM")
-        addJob(sw, FunctionJob, f1)
+        sw.addVariable('v_scalar', "float", "SUM")
+        sw.addVariable('v_data', "Data", "SUM")
+        sw.addJob(FunctionJob, f1)
         sw.runJobs()    # only one world has the value
                 # value=1
-        addJobPerWorld(sw, FunctionJob, f2, expected=1, imports=['v_data']) # can everyone get the correct value
+        sw.addJobPerWorld(FunctionJob, f2, expected=1, imports=['v_data']) # can everyone get the correct value
         sw.runJobs()
             # now we change some of the values (we know we have at least 3 worlds)
-        addJob(sw, FunctionJob, f1)
-        addJob(sw, FunctionJob, f1)
+        sw.addJob(FunctionJob, f1)
+        sw.addJob(FunctionJob, f1)
         sw.runJobs()
-        addJobPerWorld(sw, FunctionJob, f2, expected=2) # can everyone get the correct value
+        sw.addJobPerWorld(FunctionJob, f2, expected=2) # can everyone get the correct value
         sw.runJobs()
             # Now we try the same with a clean start
         sw.clearVariable('v_data')
         sw.clearVariable('v_scalar')
-        addJob(sw, FunctionJob, f1)
-        addJob(sw, FunctionJob, f1)
+        sw.addJob(FunctionJob, f1)
+        sw.addJob(FunctionJob, f1)
         sw.runJobs()
-        addJobPerWorld(sw, FunctionJob, f2, expected=2) # can everyone get the correct value
+        sw.addJobPerWorld(FunctionJob, f2, expected=2) # can everyone get the correct value
         sw.runJobs()
         
         
@@ -320,13 +320,13 @@ class sw_testmany(unittest.TestCase):
 class sw_testing(sw_testmany):
     def create_singleworld(self):
         sw=SplitWorld(1)    
-        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
+        sw.buildDomains(self.domain_ctr, *self.domain_vec, **self.domain_dict)
         return sw
     
     # This is to test multiple subworlds
     def create_twoworlds(self):
         sw=SplitWorld(2)
-        buildDomains(sw,self.domain_ctr, *self.domain_vec, **self.domain_dict)
+        sw.buildDomains(self.domain_ctr, *self.domain_vec, **self.domain_dict)
         return sw
 
       
@@ -335,28 +335,28 @@ class sw_testing(sw_testmany):
 
     def testbigworld_singleround(self):
         sw=self.create_singleworld()
-        addJob(sw, FunctionJob, self.pde_work) 
+        sw.addJob(FunctionJob, self.pde_work) 
         sw.runJobs()
         
         sw=self.create_singleworld()
-        addJobPerWorld(sw, FunctionJob, self.pde_work)
+        sw.addJobPerWorld(FunctionJob, self.pde_work)
         sw.runJobs()
         
         sw=self.create_singleworld()
         for i in range(4):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         
     def testbigworld_multiround(self):        
         sw=self.create_singleworld()
         for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(2):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         
     def testbigworld_sum_vars(self):
@@ -376,16 +376,16 @@ class sw_testing(sw_testmany):
     @unittest.skipIf(mpisize%2!=0, "test only fires for even numbers of processes")
     def test2world_singleround(self):
         sw=self.create_twoworlds()
-        addJob(sw, FunctionJob, self.pde_work) 
+        sw.addJob(FunctionJob, self.pde_work) 
         sw.runJobs()
         
         sw=self.create_twoworlds()
-        addJobPerWorld(sw, FunctionJob, self.pde_work)
+        sw.addJobPerWorld(FunctionJob, self.pde_work)
         sw.runJobs()
         
         sw=self.create_twoworlds()
         for i in range(4):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
 
        
@@ -393,13 +393,13 @@ class sw_testing(sw_testmany):
     def test2world_multiround(self):        
         sw=self.create_twoworlds()
         for i in range(4*getMPISizeWorld()):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(2):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
         for i in range(3*getMPISizeWorld()+1):
-            addJob(sw, FunctionJob, self.pde_work)
+            sw.addJob(FunctionJob, self.pde_work)
         sw.runJobs()
 
     @unittest.skipIf(mpisize%2!=0, "test only fires for even numbers of processes")
@@ -528,9 +528,9 @@ class Test_SplitWorld(unittest.TestCase):
   def test_faults(self):
       for x in range(1,5):
         sw=SplitWorld(getMPISizeWorld())
-        buildDomains(sw,*self.domainpars)
-        addVariable(sw, "answer", makeScalarReducer, "MAX") 
-        addJob(sw, Test_SplitWorld.ThrowJob, fault=x)
+        sw.buildDomains(*self.domainpars)
+        sw.addVariable("answer", "float", "MAX") 
+        sw.addJob(Test_SplitWorld.ThrowJob, fault=x)
         self.assertRaises(RuntimeError, sw.runJobs)
 
   @unittest.skipIf(getMPISizeWorld()>97, "Too many ranks for this test")
@@ -539,104 +539,104 @@ class Test_SplitWorld(unittest.TestCase):
       test importing, multiple phases, max as a flag
       """
       sw=SplitWorld(getMPISizeWorld())
-      buildDomains(sw,*self.domainpars)
-      addVariable(sw, "value", makeScalarReducer, "MAX")
-      addVariable(sw, "boolean", makeScalarReducer, "MAX")
+      sw.buildDomains(*self.domainpars)
+      sw.addVariable("value", "float", "MAX")
+      sw.addVariable("boolean", "float", "MAX")
          # first we will load in a value to factorise
          # Don't run this test with 99 or more processes
-      addJob(sw, Test_SplitWorld.InjectJob, name='value', val=101)      # Feed it a prime  
-      addJob(sw, Test_SplitWorld.InjectJob, name='boolean', val=0)              # so we have a value
+      sw.addJob(Test_SplitWorld.InjectJob, name='value', val=101)      # Feed it a prime  
+      sw.addJob(Test_SplitWorld.InjectJob, name='boolean', val=0)              # so we have a value
       sw.runJobs()
       for x in range(2,getMPISizeWorld()+2):
-        addJob(sw, Test_SplitWorld.FactorJob, fact=x)
+        sw.addJob(Test_SplitWorld.FactorJob, fact=x)
       sw.runJobs()
-      self.assertEquals(sw.getDoubleVariable('boolean'),0)
+      self.assertEquals(sw.getFloatVariable('boolean'),0)
       sw.clearVariable('value')
       sw.clearVariable('boolean')
-      addJob(sw, Test_SplitWorld.InjectJob, name='value', val=101)      # Feed it a prime  
-      addJob(sw, Test_SplitWorld.InjectJob, name='boolean', val=0)              # so we have a value
+      sw.addJob(Test_SplitWorld.InjectJob, name='value', val=101)      # Feed it a prime  
+      sw.addJob(Test_SplitWorld.InjectJob, name='boolean', val=0)              # so we have a value
       sw.runJobs()
       sw.clearVariable("value")
       
         # Now test with a value which has a factor
-      addJob(sw, Test_SplitWorld.InjectJob, name='value', val=100)       # Feed it a prime  
-      addJob(sw, Test_SplitWorld.InjectJob, name='boolean', val=0)               # so we have a value
+      sw.addJob(Test_SplitWorld.InjectJob, name='value', val=100)       # Feed it a prime  
+      sw.addJob(Test_SplitWorld.InjectJob, name='boolean', val=0)               # so we have a value
       sw.runJobs()
       m=0
       for x in range(2,getMPISizeWorld()+2):
-        addJob(sw, Test_SplitWorld.FactorJob, fact=x)
+        sw.addJob(Test_SplitWorld.FactorJob, fact=x)
         if 100%x==0:
           m=x
       sw.runJobs()
-      self.assertEquals(sw.getDoubleVariable('boolean'),m)      
+      self.assertEquals(sw.getFloatVariable('boolean'),m)      
       
   def test_split_simple_solve(self):
     """
     Solve a single equation
     """
     sw=SplitWorld(getMPISizeWorld())
-    buildDomains(sw,*self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")
-    addJob(sw, self.eqnJob2)
+    sw.buildDomains(*self.domainpars)
+    sw.addVariable("answer", "float", "SUM")
+    sw.addJob(self.eqnJob2)
     sw.runJobs()
-    self.assertEquals(sw.getDoubleVariable("answer"),1)
+    self.assertEquals(sw.getFloatVariable("answer"),1)
     
   def test_split_simple_solve_multiple(self):
     """
     Solve a number of the same equation in one batch
     """
     sw=SplitWorld(getMPISizeWorld())
-    buildDomains(sw,*self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")
+    sw.buildDomains(*self.domainpars)
+    sw.addVariable("answer", "float", "SUM")
         # this gives us 1 job per world
     total=0
     jobid=1
     for x in range(0,getMPISizeWorld()):
-        addJob(sw, self.eqnJob2)
+        sw.addJob(self.eqnJob2)
         total+=jobid
         jobid+=1
     sw.runJobs()
-    self.assertEquals(sw.getDoubleVariable("answer"), total)
+    self.assertEquals(sw.getFloatVariable("answer"), total)
     
   def test_split_simple_and_dummy(self):
     """
     Solve a number of the same equation with some worlds doing dummy Jobs
     """
     sw=SplitWorld(getMPISizeWorld())
-    buildDomains(sw,*self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")
+    sw.buildDomains(*self.domainpars)
+    sw.addVariable("answer", "float", "SUM")
         # this gives us 1 job per world
     total=0
     mid=getMPISizeWorld()//2
     if getMPISizeWorld()%2==1:
       mid=mid+1
     for x in range(0,mid):
-        addJob(sw, self.eqnJob2)
+        sw.addJob(self.eqnJob2)
         total=total+(x+1)
     for x in range(0,mid):
-        addJob(sw, Test_SplitWorld.DummyJob)
+        sw.addJob(Test_SplitWorld.DummyJob)
     sw.runJobs()
       # expecting this to fail until I work out the answer
-    self.assertEqual(sw.getDoubleVariable("answer"), total)
+    self.assertEqual(sw.getFloatVariable("answer"), total)
     
   def test_split_simple_and_empty(self):
     """
     Solve a number of the same equation with some worlds doing nothing
     """
     sw=SplitWorld(getMPISizeWorld())
-    buildDomains(sw, *self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")
+    sw.buildDomains( *self.domainpars)
+    sw.addVariable("answer", "float", "SUM")
         # this gives us at most 1 job per world
     total=0    
     mid=getMPISizeWorld()//2
     if getMPISizeWorld()%2==1:
       mid=mid+1    
     for x in range(0,mid):
-        addJob(sw, self.eqnJob2)
+        sw.addJob(self.eqnJob2)
         total=total+(x+1)
     sw.runJobs()
       # expecting this to fail until I work out the answer
-    self.assertEquals(sw.getDoubleVariable("answer"),total)    
+    self.assertEquals(sw.getFloatVariable("answer"),total)    
     
     
   def test_split_multiple_batches(self):
@@ -644,24 +644,24 @@ class Test_SplitWorld(unittest.TestCase):
     Solve a number of the same equation in multiple batches
     """
     sw=SplitWorld(getMPISizeWorld())
-    buildDomains(sw,*self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")
+    sw.buildDomains(*self.domainpars)
+    sw.addVariable("answer", "float", "SUM")
         # this gives us 1 job per world
     total=0
     sw.runJobs()
     for x in range(0,getMPISizeWorld()):
-        addJob(sw, self.eqnJob2)
+        sw.addJob(self.eqnJob2)
         total=total+x
     sw.runJobs()
     sw.runJobs()
     sw.clearVariable("answer")
     total=0
     for x in range(0,getMPISizeWorld()):
-        addJob(sw, self.eqnJob2)
+        sw.addJob(self.eqnJob2)
         total=total+(x+1+getMPISizeWorld())
     sw.runJobs()
       # expecting this to fail until I work out the answer
-    self.assertEquals(sw.getDoubleVariable("answer"),total)    
+    self.assertEquals(sw.getFloatVariable("answer"),total)    
   
   @unittest.skipIf(getMPISizeWorld()%2!=0, "Test requires even number of processes")
   def test_multiple_equations_size2world(self):
@@ -673,26 +673,26 @@ class Test_SplitWorld(unittest.TestCase):
     """
     wc=getMPISizeWorld()//2
     sw=SplitWorld(wc)
-    buildDomains(sw, *self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")   
-    addVariable(sw, "hanswer", makeScalarReducer, "SUM")  
-    addVariable(sw, "v", makeScalarReducer, "MAX")
+    sw.buildDomains( *self.domainpars)
+    sw.addVariable("answer", "float", "SUM")   
+    sw.addVariable("hanswer", "float", "SUM")  
+    sw.addVariable("v", "float", "MAX")
     
     tot=0
     jobid=1
        #first put jobs of the same type close.
     for x in range(0, max(wc//3,1)):
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1
     for x in range(0, max(wc//3,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*(jobid)
       jobid+=1
     for x in range(0, max(wc//3,1)):
-      addJob(sw, Test_SplitWorld.DummyJob)
+      sw.addJob(Test_SplitWorld.DummyJob)
       jobid+=1
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
@@ -700,17 +700,17 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # similar but separated by dummy Jobs
     for x in range(0, max(wc//3,1)):
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1
     for x in range(0, max(wc//3,1)):
-      addJob(sw, Test_SplitWorld.DummyJob)      
+      sw.addJob(Test_SplitWorld.DummyJob)      
       jobid+=1
     for x in range(0, max(wc//3,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
       jobid+=1
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
@@ -718,14 +718,14 @@ class Test_SplitWorld(unittest.TestCase):
       # mixed
     tot=0
     for x in range(0, max(wc//2,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
-      addJob(sw, Test_SplitWorld.DummyJob)
+      sw.addJob(Test_SplitWorld.DummyJob)
       jobid+=2
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)    
 
   @unittest.skipIf(getMPISizeWorld()%4!=0, "Test requires number of processes divisible by 4")
@@ -738,26 +738,26 @@ class Test_SplitWorld(unittest.TestCase):
     """
     wc=getMPISizeWorld()//4
     sw=SplitWorld(wc)
-    buildDomains(sw,*self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")   
-    addVariable(sw, "hanswer", makeScalarReducer, "SUM")  
-    addVariable(sw, "v", makeScalarReducer, "MAX")
+    sw.buildDomains(*self.domainpars)
+    sw.addVariable("answer", "float", "SUM")   
+    sw.addVariable("hanswer", "float", "SUM")  
+    sw.addVariable("v", "float", "MAX")
     
     jobid=1
     tot=0
        #first put jobs of the same type close.
     for x in range(0, max(wc//2,1)):
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1
     for x in range(0, max(wc//2,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
       jobid+=1      
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.DummyJob)
+      sw.addJob(Test_SplitWorld.DummyJob)
       jobid+=1
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
@@ -765,17 +765,17 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # similar but separated by dummy Jobs
     for x in range(0, max(wc//2,1)):
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1      
     for x in range(0, max(wc//2,1)):
-      addJob(sw, Test_SplitWorld.DummyJob) 
+      sw.addJob(Test_SplitWorld.DummyJob) 
       jobid+=1     
     for x in range(0, max(wc//2,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
       jobid+=1
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
@@ -783,14 +783,14 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # mixed
     for x in range(0, max(wc//2,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
       jobid+=1
-      addJob(sw, Test_SplitWorld.DummyJob)
-      addJob(sw, self.eqnJob2)
+      sw.addJob(Test_SplitWorld.DummyJob)
+      sw.addJob(self.eqnJob2)
       jobid+=2
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)        
     
     
@@ -801,26 +801,26 @@ class Test_SplitWorld(unittest.TestCase):
     worlds in different patterns
     """
     sw=SplitWorld(getMPISizeWorld())
-    buildDomains(sw,*self.domainpars)
-    addVariable(sw, "answer", makeScalarReducer, "SUM")   
-    addVariable(sw, "hanswer", makeScalarReducer, "SUM")  
-    addVariable(sw, "v", makeScalarReducer, "MAX")
+    sw.buildDomains(*self.domainpars)
+    sw.addVariable("answer", "float", "SUM")   
+    sw.addVariable("hanswer", "float", "SUM")  
+    sw.addVariable("v", "float", "MAX")
     
     tot=0
     jobid=1
        #first put jobs of the same type close together.
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
       jobid+=1
     for x in range(0,getMPISizeWorld()//3):
-      addJob(sw, Test_SplitWorld.DummyJob)
+      sw.addJob(Test_SplitWorld.DummyJob)
       jobid+=1
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
@@ -828,17 +828,17 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # similar but separated by dummy Jobs
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, self.eqnJob2)
+      sw.addJob(self.eqnJob2)
       jobid+=1
     for x in range(0,getMPISizeWorld()//3):
-      addJob(sw, Test_SplitWorld.DummyJob)      
+      sw.addJob(Test_SplitWorld.DummyJob)      
       jobid+=1      
     for x in range(0,max(getMPISizeWorld()//3,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=2*jobid
       jobid+=1      
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
@@ -846,11 +846,11 @@ class Test_SplitWorld(unittest.TestCase):
     tot=0
       # mixed
     for x in range(0, max(getMPISizeWorld()//2,1)):
-      addJob(sw, self.eqnJob3)
+      sw.addJob(self.eqnJob3)
       tot+=jobid*2
-      addJob(sw, Test_SplitWorld.DummyJob)
-      addJob(sw, self.eqnJob2)
+      sw.addJob(Test_SplitWorld.DummyJob)
+      sw.addJob(self.eqnJob2)
       jobid+=3
     sw.runJobs()
-    ha=sw.getDoubleVariable("hanswer")
+    ha=sw.getFloatVariable("hanswer")
     self.assertEquals(ha, tot)     

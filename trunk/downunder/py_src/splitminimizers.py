@@ -17,7 +17,6 @@ from __future__ import print_function, division
 
 from .minimizers import AbstractMinimizer
 from esys.escriptcore.splitworld import Job, FunctionJob
-from esys.escript import addJob, addJobPerWorld
 from .splitinversioncostfunctions import SplitInversionCostFunction
 from esys.escript.pdetools import ArithmeticTuple
 import numpy as np
@@ -87,7 +86,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                     res=reg.getDualProduct(p, (g_Jx_0, g_Jx_1))
                     self.exportValue("dp_result",res)
                 # Now we will only run this on one world and rely on getDouble to ship it
-                addJob(f.splitworld, FunctionJob, dual_p_g_Jx_new)
+                f.splitworld.addJob( FunctionJob, dual_p_g_Jx_new)
                 f.splitworld.runJobs()
                 res=f.splitworld.getDoubleVariable("dp_result")
                 return res
@@ -103,7 +102,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             i=0
             while True:
                 alpha=alpha_lo+.5*(alpha_hi-alpha_lo) # should use interpolation...
-                addJobPerWorld(f.splitworld, FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['base_point', 'search_direction'])
+                f.splitworld.addJobPerWorld( FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['base_point', 'search_direction'])
                 f.splitworld.runJobs()
                 f.calculateValue('phi_a')
                 phi_a=f.splitworld.getDoubleVariable('phi_a')
@@ -183,7 +182,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
             
             old_alpha=0
             i=1
-            addJobPerWorld(f.splitworld, FunctionJob, line_search_init_worker, imports=['search_direction', 'g_Jx_0', 'g_Jx_1', 'Jx', 'regularization'])       
+            f.splitworld.addJobPerWorld( FunctionJob, line_search_init_worker, imports=['search_direction', 'g_Jx_0', 'g_Jx_1', 'Jx', 'regularization'])       
             f.splitworld.runJobs()
 
         
@@ -202,7 +201,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                     res=reg.getDualProduct(p, (g_Jx_0, g_Jx_1))
                     self.exportValue("dp_result",res)
                 # Now we will only run this on one world and rely on getDouble to ship it
-                addJob(f.splitworld, FunctionJob, dual_p_g_Jx_new)
+                f.splitworld.addJob( FunctionJob, dual_p_g_Jx_new)
                 f.splitworld.runJobs()
                 res=f.splitworld.getDoubleValue("dp_result")
                 return res
@@ -210,7 +209,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
 
             while i<IMAX and alpha>0. and alpha<alpha_truncationax:
                 alpha_at_loop_start=alpha
-                addJobPerWorld(f.splitworld, FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['current_point', 'search_direction'])
+                f.splitworld.addJobPerWorld( FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['current_point', 'search_direction'])
                 f.splitworld.runJobs()
                 f.calculateValue('phi_a')
                 #lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
@@ -224,7 +223,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
 
                    # Need to check if alpha has changed. If it has, we need to move the point again
                 if alpha_at_loop_start!=alpha:
-                   addJobPerWorld(f.splitworld, FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['current_point', 'search_direction'])
+                   f.splitworld.addJobPerWorld( FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['current_point', 'search_direction'])
                    f.splitworld.runJobs()
 
                 gphi_a=grad_phi(f)

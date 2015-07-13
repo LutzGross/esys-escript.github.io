@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data, inner, addJobPerWorld, addVariable, makeLocalOnly, makeScalarReducer, makeDataReducer, FunctionJob, Job
+from esys.escript import Data, inner, FunctionJob, Job
 import numpy as np
 
 
@@ -98,44 +98,44 @@ class SplitInversionCostFunction(MeteredCostFunction):
         self.numLevelSets=numLevelSets
         self.splitworld=splitworld
         
-        addVariable(splitworld,"regularization", makeLocalOnly)
-        addVariable(splitworld,"mappings", makeLocalOnly)
-        addVariable(splitworld,"fwdmodels", makeLocalOnly)
-        addVariable(splitworld,"initial_guess", makeLocalOnly)  # Used to load the initial guess
-        addVariable(splitworld,"model_args", makeLocalOnly)     # arguments for models stored on that world
-        addVariable(splitworld,"props", makeLocalOnly)          # Properties for the current guess
-        addVariable(splitworld,"current_point", makeLocalOnly)  # Current approximate solution. Starts out as initial_guess 
-        addVariable(splitworld,"mu_model", makeLocalOnly)
+        splitworld.addVariable("regularization", makeLocalOnly)
+        splitworld.addVariable("mappings", makeLocalOnly)
+        splitworld.addVariable("fwdmodels", makeLocalOnly)
+        splitworld.addVariable("initial_guess", makeLocalOnly)  # Used to load the initial guess
+        splitworld.addVariable("model_args", makeLocalOnly)     # arguments for models stored on that world
+        splitworld.addVariable("props", makeLocalOnly)          # Properties for the current guess
+        splitworld.addVariable("current_point", makeLocalOnly)  # Current approximate solution. Starts out as initial_guess 
+        splitworld.addVariable("mu_model", makeLocalOnly)
 
-        addVariable(splitworld, "phi_a", makeScalarReducer, "SUM")
-        addVariable(splitworld,"Jx_original", makeScalarReducer,"SET")
-        addVariable(splitworld, "Jx", makeScalarReducer, "SUM")
-        addVariable(splitworld, "Jx_old", makeScalarReducer,"SET")
-        addVariable(splitworld, "g_Jx_0", makeDataReducer, "SUM")
-        addVariable(splitworld, "g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+        splitworld.addVariable("phi_a", makeScalarReducer, "SUM")
+        splitworld.addVariable("Jx_original", makeScalarReducer,"SET")
+        splitworld.addVariable("Jx", makeScalarReducer, "SUM")
+        splitworld.addVariable("Jx_old", makeScalarReducer,"SET")
+        splitworld.addVariable("g_Jx_0", makeDataReducer, "SUM")
+        splitworld.addVariable("g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
 
-        addVariable(splitworld, "old_g_Jx_0", makeDataReducer, "SUM")
-        addVariable(splitworld, "old_g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+        splitworld.addVariable("old_g_Jx_0", makeDataReducer, "SUM")
+        splitworld.addVariable("old_g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
         
         
-        addVariable(splitworld, "search_direction", makeDataReducer, "SET")
+        splitworld.addVariable("search_direction", makeDataReducer, "SET")
 
-        addVariable(splitworld, "s_and_y", makeLocalOnly)
-        addVariable(splitworld, "gphi0", makeLocalOnly)
-        addVariable(splitworld, "old_phi_a", makeLocalOnly)
-        addVariable(splitworld, "phi0", makeLocalOnly)
-        addVariable(splitworld, "base_point", makeLocalOnly)
+        splitworld.addVariable("s_and_y", makeLocalOnly)
+        splitworld.addVariable("gphi0", makeLocalOnly)
+        splitworld.addVariable("old_phi_a", makeLocalOnly)
+        splitworld.addVariable("phi0", makeLocalOnly)
+        splitworld.addVariable("base_point", makeLocalOnly)
         
-        addVariable(splitworld, "conv_flag", makeLocalOnly)
-        addVariable(splitworld, "dp_result", makeLocalOnly)
-        addVariable(splitworld, "break_down", makeLocalOnly)
+        splitworld.addVariable("conv_flag", makeLocalOnly)
+        splitworld.addVariable("dp_result", makeLocalOnly)
+        splitworld.addVariable("break_down", makeLocalOnly)
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
         rstart=rlen*splitworld.getSubWorldID()
         extraparams={'rangelen':rlen, 'rangestart':rstart, 'numLevelSets':numLevelSets}        
         # sanity check
-        addJobPerWorld(splitworld, FunctionJob, worldsinit_fn, **extraparams)
+        splitworld.addJobPerWorld(FunctionJob, worldsinit_fn, **extraparams)
         splitworld.runJobs()
         #reqd=["fwdmodels", "regularization", "mappings","mu_model"]
         reqd=["fwdmodels", "regularization", "mappings", "initial_guess"]     #For our script, mu_model appears not to be used
@@ -289,7 +289,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
                     self.mu_model= [mu, ]
                 else:
                     raise ValueError("Trade-off factor must be positive.")
-        addJobPerWorld(self.splitworld, FunctionJob, self.subworld_setMu_model, mu=self.mu_model)
+        self.splitworld.addJobPerWorld( FunctionJob, self.subworld_setMu_model, mu=self.mu_model)
         self.splitworld.runJobs()
         
 
@@ -535,7 +535,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
           initguess=SplitInversionCostFunction.createLevelSetFunctionHelper(self, reg, mappings)
           SplitInversionCostFunction.update_point_helper(self, initguess)
             
-      addJobPerWorld(self.splitworld, FunctionJob, load_guess_to_subworlds, imports=["fwdmodels", "regularization", "mappings"])
+      self.splitworld.addJobPerWorld( FunctionJob, load_guess_to_subworlds, imports=["fwdmodels", "regularization", "mappings"])
       self.splitworld.runJobs()
       
     def _getArguments(self, m):
@@ -612,7 +612,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
             raise ValueError("vname must be a string")
        # End calculateValueWorker
 
-       addJobPerWorld(self.splitworld,FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props", 
+       self.splitworld.addJobPerWorld(FunctionJob, calculateValueWorker, imports=["fwdmodels", "regularization", "props", 
             "model_args", "mu_model"], vname=vname)
        self.splitworld.runJobs()   
        # The result will now be stored in the named variables
@@ -831,7 +831,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
               self.exportValue(n, g_J[1])              
        # End CalculateGradientWorker
 
-       addJobPerWorld(self.splitworld, FunctionJob, calculateGradientWorker, vnames1=vnames1, vnames2=vnames2, imports=["models", "regularization", "props", "mu_models", "current_point"])
+       self.splitworld.addJobPerWorld( FunctionJob, calculateGradientWorker, vnames1=vnames1, vnames2=vnames2, imports=["models", "regularization", "props", "mu_models", "current_point"])
        self.splitworld.runJobs()                 
         
     def _getGradient(self, m, *args):
@@ -969,7 +969,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         """
         if not self.configured:
           raise ValueError("This inversion function has not been configured yet")
-        addJobPerWorld(self.splitworld, FunctionJob, updateHessianWorker, imports=["regularization"]) 
+        self.splitworld.addJobPerWorld( FunctionJob, updateHessianWorker, imports=["regularization"]) 
         self.splitworld.runJobs()
 
     def _getNorm(self, m):
