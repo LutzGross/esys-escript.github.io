@@ -30,7 +30,7 @@ __all__ = ['InversionDriver', 'GravityInversion','MagneticInversion', 'JointGrav
 import logging
 import numpy as np
 
-from esys.escript import *
+import esys.escript as es
 from esys.escript import unitsSI as U
 from esys.weipa import createDataset
 
@@ -287,11 +287,11 @@ class GravityInversion(InversionDriver):
         g=[]
         w=[]
         for g_i,sigma_i in surveys:
-            w_i=safeDiv(1., sigma_i)
+            w_i=es.safeDiv(1., sigma_i)
             if g_i.getRank()==0:
-                g_i=g_i*kronecker(DIM)[DIM-1]
+                g_i=g_i*es.kronecker(DIM)[DIM-1]
             if w_i.getRank()==0:
-                w_i=w_i*kronecker(DIM)[DIM-1]
+                w_i=w_i*es.kronecker(DIM)[DIM-1]
             g.append(g_i)
             w.append(w_i)
             self.logger.debug("Added gravity survey:")
@@ -393,12 +393,12 @@ class MagneticInversion(InversionDriver):
 
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
-        d_b=normalize(domainbuilder.getBackgroundMagneticFluxDensity())
+        d_b=es.normalize(domainbuilder.getBackgroundMagneticFluxDensity())
         surveys=domainbuilder.getMagneticSurveys()
         B=[]
         w=[]
         for B_i,sigma_i in surveys:
-            w_i=safeDiv(1., sigma_i)
+            w_i=es.safeDiv(1., sigma_i)
             if B_i.getRank()==0:
                 B_i=B_i*d_b
             if w_i.getRank()==0:
@@ -490,9 +490,9 @@ class JointGravityMagneticInversion(InversionDriver):
         :param k_beta: exponent for  depth weighting for susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
         :type k_beta: ``float`` or `Scalar`
         :param w0: weighting factors for level set term regularization, see `Regularization`. If not set zero is assumed.
-        :type w0: `Data` or ``ndarray`` of shape (2,)
+        :type w0: `es.Data` or ``ndarray`` of shape (2,)
         :param w1: weighting factor for the gradient term in the regularization see `Regularization`. If not set zero is assumed
-        :type w1: `Data` or ``ndarray`` of shape (2,DIM)
+        :type w1: `es.Data` or ``ndarray`` of shape (2,DIM)
         :param w_gc: weighting factor for the cross gradient term in the regularization, see `Regularization`. If not set one is assumed
         :type w_gc: `Scalar` or `float`
         :param k_at_depth: value for susceptibility at depth, see `DomainBuilder`.
@@ -534,13 +534,13 @@ class JointGravityMagneticInversion(InversionDriver):
         if w1 is None:
             w1=np.ones((2,DIM))
 
-        wc=Data(0.,(2,2), Function(dom))
+        wc=es.Data(0.,(2,2), es.Function(dom))
         if w_gc is  None:
             wc[0,1]=1
         else:
             wc[0,1]=w_gc
 
-        reg_mask=Data(0.,(2,), Solution(dom))
+        reg_mask=es.Data(0.,(2,), es.Solution(dom))
         reg_mask[self.DENSITY] = rho_mask
         reg_mask[self.SUSCEPTIBILITY] = k_mask
         regularization=Regularization(dom, numLevelSets=2,\
@@ -551,11 +551,11 @@ class JointGravityMagneticInversion(InversionDriver):
         g=[]
         w=[]
         for g_i,sigma_i in surveys:
-            w_i=safeDiv(1., sigma_i)
+            w_i=es.safeDiv(1., sigma_i)
             if g_i.getRank()==0:
-                g_i=g_i*kronecker(DIM)[DIM-1]
+                g_i=g_i*es.kronecker(DIM)[DIM-1]
             if w_i.getRank()==0:
-                w_i=w_i*kronecker(DIM)[DIM-1]
+                w_i=w_i*es.kronecker(DIM)[DIM-1]
             g.append(g_i)
             w.append(w_i)
             self.logger.debug("Added gravity survey:")
@@ -568,12 +568,12 @@ class JointGravityMagneticInversion(InversionDriver):
         gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
-        d_b=normalize(domainbuilder.getBackgroundMagneticFluxDensity())
+        d_b=es.normalize(domainbuilder.getBackgroundMagneticFluxDensity())
         surveys=domainbuilder.getMagneticSurveys()
         B=[]
         w=[]
         for B_i,sigma_i in surveys:
-            w_i=safeDiv(1., sigma_i)
+            w_i=es.safeDiv(1., sigma_i)
             if B_i.getRank()==0:
                 B_i=B_i*d_b
             if w_i.getRank()==0:
@@ -680,7 +680,7 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         :type w0: ``Scalar`` or ``float``
         :param w1: weighting factor for the gradient term in the regularization
                    see `Regularization`.  If not set zero is assumed.
-        :type w1: `Data` or ``ndarray`` of shape (DIM,)
+        :type w1: `es.Data` or ``ndarray`` of shape (DIM,)
         :param w_gc: weighting factor for the cross gradient term in the
                      regularization, see `Regularization`. If not set one is
                      assumed.
@@ -730,11 +730,11 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         g=[]
         w=[]
         for g_i,sigma_i in surveys:
-            w_i=safeDiv(1., sigma_i)
+            w_i=es.safeDiv(1., sigma_i)
             if g_i.getRank()==0:
-                g_i=g_i*kronecker(DIM)[DIM-1]
+                g_i=g_i*es.kronecker(DIM)[DIM-1]
             if w_i.getRank()==0:
-                w_i=w_i*kronecker(DIM)[DIM-1]
+                w_i=w_i*es.kronecker(DIM)[DIM-1]
             g.append(g_i)
             w.append(w_i)
             self.logger.debug("Added gravity survey:")
@@ -747,12 +747,12 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
-        d_b=normalize(domainbuilder.getBackgroundMagneticFluxDensity())
+        d_b=es.normalize(domainbuilder.getBackgroundMagneticFluxDensity())
         surveys=domainbuilder.getMagneticSurveys()
         B=[]
         w=[]
         for B_i,sigma_i in surveys:
-            w_i=safeDiv(1., sigma_i)
+            w_i=es.safeDiv(1., sigma_i)
             if B_i.getRank()==0:
                 B_i=B_i*d_b
             if w_i.getRank()==0:
