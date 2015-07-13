@@ -66,28 +66,28 @@ class TestDCResistivityForward(unittest.TestCase):
             extents=[1000,1000,1000]
             dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=30.0
-            bufferThickness=3000
             extents=[1000,2000,2000]
-            electrodeLst=[]
-            lcDiv=10
-            electrodeLst.append(("e1",[-0.4*extents[0], 0, 0,lc/lcDiv]))
-            electrodeLst.append(("e2",[-0.2*extents[0], 0, 0,lc/lcDiv]))
-            electrodeLst.append(("e3",[0.2*extents[0], 0, 0,lc/lcDiv]))
-            electrodeLst.append(("e4",[0.4*extents[0], 0, 0,lc/lcDiv]))
-            runName=os.path.join(WORKDIR, "dcResPolePole%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
+            tags=[]
+            points=[]
+            tags.append("e1")
+            tags.append("e2")
+            tags.append("e3")
+            tags.append("e4")
+            points.append([-0.4*extents[0], 0, 0])
+            points.append([-0.2*extents[0], 0, 0])
+            points.append([0.2*extents[0], 0,  0])
+            points.append([0.4*extents[0], 0,  0])
+            verbosity = 3 
+            filename  = os.path.join(TEST_DATA_ROOT, "pole.geo")
+            meshname  = os.path.join(TEST_DATA_ROOT, "dcResPolePole50-5.msh")
+            gmshGeo2Msh(filename, meshname, 3, 1, verbosity)
+            dom = ReadGmsh(meshname, 3, diracTags=tags, diracPoints=points)
         totalApparentRes = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
         current=1000.
         a=4*0.05*extents[0]
-        midPoint = [0,0]
+        midPoint = [0.5*extents[0],0.5*extents[1]]
         directionVector=[1.,0.]
         numElectrodes = 4
 
@@ -96,11 +96,10 @@ class TestDCResistivityForward(unittest.TestCase):
         totalApparentResList = pps.getApparentResistivityTotal()
         for i in totalApparentResList:
             res_a = abs(i-totalApparentRes)
-            res_b = 0.1 * totalApparentRes
+            res_b = 0.05 * totalApparentRes
             self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotential3dSchlumberger(self):
-        structured=False
         numElectrodes = 12
         directionVector=[1.,0.]
         midPoint=[]
@@ -108,37 +107,30 @@ class TestDCResistivityForward(unittest.TestCase):
         current=0.5
         interval_a = 5
         interval_n = 5
-
-
-        if structured:
-            #does not work because finley does not allow the specification of domain origin
-            extents=[200,200,200]
-            dom=Brick(25,25,25,l0=(-extents[0]/2,extents[0]/2),l1=(-extents[1]/2,extents[1]/2),l2=-extents[2])
-            midPoint = [0,0]
-        else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=10.0
-            bufferThickness=100
-            extents=[200,200,200]
-            midPoint = [0,0]
-            lcDiv=10.0
-            electrodes=[]
-            start=[]
-            start.append(midPoint[0] - (((numElectrodes-1)*interval_a)/2. * directionVector[0]))
-            start.append(midPoint[1] - (((numElectrodes-1)*interval_a)/2. * directionVector[1]))
-            electrodeTags=[]
-            electrodeLst=[]
-            for i in range(numElectrodes):
-                electrodes.append([start[0]+(directionVector[0]*i*interval_a), start[1]+(directionVector[1]*i*interval_a),0])
-                electrodeTags.append("e%d"%i)
-                electrodeLst.append((electrodeTags[i],[electrodes[i][0], electrodes[i][1], electrodes[i][2], lc/lcDiv]))
-            runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh",fieldSize=[70,100])
-            fn = domGen.getFileName()
-            if mpirank==0: 
-                os.unlink(runName+".msh")
+        if not HAVE_GMSH:
+            raise unittest.SkipTest("gmsh required for test")
+        lc=10.0
+        bufferThickness=100
+        extents=[200,200,200]
+        midPoint = [0,0]
+        lcDiv=10.0
+        electrodes=[]
+        start=[]
+        start.append(midPoint[0] - (((numElectrodes-1)*interval_a)/2. * directionVector[0]))
+        start.append(midPoint[1] - (((numElectrodes-1)*interval_a)/2. * directionVector[1]))
+        electrodeTags=[]
+        electrodeLst=[]
+        for i in range(numElectrodes):
+            electrodes.append([start[0]+(directionVector[0]*i*interval_a), start[1]+(directionVector[1]*i*interval_a),0])
+            electrodeTags.append("e%d"%i)
+        runName=os.path.join(WORKDIR, "dcResSchlum%d-%d"%(lc,lc/lcDiv))
+        filename  = os.path.join(TEST_DATA_ROOT, "schlum.geo")
+        meshname  = os.path.join(TEST_DATA_ROOT, "dcResSchlum10-1.msh")
+        verbosity=3
+        gmshGeo2Msh(filename, meshname, 3, 1, verbosity)
+        dom = ReadGmsh(meshname, 3, diracTags=electrodeTags, diracPoints=electrodes)
+        if mpirank==0: 
+            os.unlink(meshname)
             
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))    
@@ -165,25 +157,40 @@ class TestDCResistivityForward(unittest.TestCase):
             lc=10.0
             bufferThickness=300
             extents=[100,100,100]
-            electrodeLst=[]
+            electrodes=[]
+            tags=[]
             lcDiv=10
-            electrodeLst.append(("e0" , [-22.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e1" , [-18.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e2" , [-14.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e3" , [-10.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e4" , [-6.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e5" , [-2.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e6" , [ 2.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e7" , [ 6.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e8" , [ 10.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e9" , [ 14.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e10", [ 18.0, 0.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e11", [ 22.0, 0.0, 0, lc/lcDiv]))
-            runName=os.path.join(WORKDIR, "dcResdipdip%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh",reUse=False)
+            tags.append("e0" )
+            tags.append("e1" )
+            tags.append("e2" )
+            tags.append("e3" )
+            tags.append("e4" )
+            tags.append("e5" )
+            tags.append("e6" )
+            tags.append("e7" )
+            tags.append("e8" )
+            tags.append("e9" )
+            tags.append("e10")
+            tags.append("e11")
+            electrodes.append([-22.0, 0.0, 0])
+            electrodes.append([-18.0, 0.0, 0])
+            electrodes.append([-14.0, 0.0, 0])
+            electrodes.append([-10.0, 0.0, 0])
+            electrodes.append([-6.0, 0.0, 0])
+            electrodes.append([-2.0, 0.0, 0])
+            electrodes.append([ 2.0, 0.0, 0])
+            electrodes.append([ 6.0, 0.0, 0])
+            electrodes.append([ 10.0, 0.0, 0])
+            electrodes.append([ 14.0, 0.0, 0])
+            electrodes.append([ 18.0, 0.0, 0])
+            electrodes.append([ 22.0, 0.0, 0])
+            filename  = os.path.join(TEST_DATA_ROOT, "dip.geo")
+            meshname  = os.path.join(TEST_DATA_ROOT, "dcResdipdip-1.msh")
+            verbosity=3
+            gmshGeo2Msh(filename, meshname, 3, 1, verbosity)
+            dom = ReadGmsh(meshname, 3, diracTags=tags, diracPoints=electrodes)
             if mpirank==0: 
-                os.unlink(runName+".msh")
+                os.unlink(meshname)
         n=5
         totalApparentResVal = 130.
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
@@ -206,44 +213,13 @@ class TestDCResistivityForward(unittest.TestCase):
                 self.assertLess(res_a, res_b, "result of %g greater than tolerance of %g"%(res_a, res_b))
 
     def test_getPotentialWenner(self):
-        structured=True
         totalApparentResVal = 130.
-        if structured:
-            extents=[100,100,100]
-            dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
-        else:
-            if not HAVE_GMSH:
-                raise unittest.SkipTest("gmsh required for test")
-            lc=50.0
-            bufferThickness=3000
-            extents=[1000,2000,2000]
-            electrodeLst=[]
-            lcDiv=10
-
-            electrodeLst.append(("e0"  , [28.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e1"  , [32.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e2"  , [36.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e3"  , [40.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e4"  , [44.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e5"  , [48.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e6"  , [52.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e7"  , [56.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e8"  , [60.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e9"  , [64.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e10" , [68.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e11" , [72.0, 48.0, 0, lc/lcDiv]))
-
-            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            runName=os.path.join(WORKDIR, "wenner%d-%d"%(lc,lc/lcDiv))
-            dom = domGen.getDom(mshName=runName+".msh")
-            if mpirank==0: 
-                os.unlink(runName+".msh")
-        totalApparentRes = 130.
+        extents=[100,100,100]
+        dom=Brick(50,50,50,l0=extents[0],l1=extents[1],l2=-extents[2])
         primaryConductivity=Scalar(1/100., ContinuousFunction(dom))
         secondaryConductivity=Scalar(1/130., ContinuousFunction(dom))
         current=1000.
         numElectrodes = 8
-        # a=(.8*extents[0])/numElectrodes
         a=2
         midPoint = [0.5*extents[0]+1,0.5*extents[1]]
         directionVector=[1.,0.]
@@ -267,28 +243,42 @@ class TestDCResistivityForward(unittest.TestCase):
         else:
             if not HAVE_GMSH:
                 raise unittest.SkipTest("gmsh required for test")
-            lc=10.0
-            bufferThickness=300
+
             extents=[100,100,100]
-            electrodeLst=[]
-            lcDiv=10
-            electrodeLst.append(("e0"  , [28.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e1"  , [32.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e2"  , [36.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e3"  , [40.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e4"  , [44.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e5"  , [48.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e6"  , [52.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e7"  , [56.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e8"  , [60.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e9"  , [64.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e10" , [68.0, 48.0, 0, lc/lcDiv]))
-            electrodeLst.append(("e11" , [72.0, 48.0, 0, lc/lcDiv]))
-            runName=os.path.join(WORKDIR, "dcRespoldip%d-%d"%(lc,lc/lcDiv))
-            domGen=DCResDomGenerator(extents, electrodeLst,lc=lc,tmpDir=WORKDIR,bufferThickness=bufferThickness,prism=None)
-            dom = domGen.getDom(mshName=runName+".msh")
+            electrodes=[]
+            tags=[]
+            tags.append("e0" )
+            tags.append("e1" )
+            tags.append("e2" )
+            tags.append("e3" )
+            tags.append("e4" )
+            tags.append("e5" )
+            tags.append("e6" )
+            tags.append("e7" )
+            tags.append("e8" )
+            tags.append("e9" )
+            tags.append("e10")
+            tags.append("e11")
+            electrodes.append([-22.0, 0.0, 0])
+            electrodes.append([-18.0, 0.0, 0])
+            electrodes.append([-14.0, 0.0, 0])
+            electrodes.append([-10.0, 0.0, 0])
+            electrodes.append([-6.0, 0.0, 0])
+            electrodes.append([-2.0, 0.0, 0])
+            electrodes.append([ 2.0, 0.0, 0])
+            electrodes.append([ 6.0, 0.0, 0])
+            electrodes.append([ 10.0, 0.0, 0])
+            electrodes.append([ 14.0, 0.0, 0])
+            electrodes.append([ 18.0, 0.0, 0])
+            electrodes.append([ 22.0, 0.0, 0])
+            filename  = os.path.join(TEST_DATA_ROOT, "dip.geo")
+            meshname  = os.path.join(TEST_DATA_ROOT, "dcRespoldip10-1.msh")
+            verbosity=3
+            gmshGeo2Msh(filename, meshname, 3, 1, verbosity)
+            dom = ReadGmsh(meshname, 3, diracTags=tags, diracPoints=electrodes)
+
             if mpirank==0: 
-                os.unlink(runName+".msh")
+                os.unlink(meshname)
         n=5
         totalApparentResVal = 130.
         primaryConductivity   =  Scalar(1/100., ContinuousFunction(dom))
@@ -297,7 +287,7 @@ class TestDCResistivityForward(unittest.TestCase):
         numElectrodes = 12
         # a=(.8*extents[0])/numElectrodes
         a=4
-        midPoint = [0.5*extents[0],0.5*extents[1] - 2]
+        midPoint = [0,0]
         directionVector=[1.,0.]
         poldips=PoleDipoleSurvey(dom, primaryConductivity,
                 secondaryConductivity, current, a,n, midPoint,
