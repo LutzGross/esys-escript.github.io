@@ -26,13 +26,6 @@ __author__="Joel Fenwick"
 
 """
 This module contains the Python side of the SplitWorld functionality.
-
-:var __author__: name of author
-:var __copyright__: copyrights
-:var __license__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
 """
 
 import warnings
@@ -40,6 +33,125 @@ warnings.simplefilter('default', category=DeprecationWarning)
 
 from . import escriptcpp as escore
 
+
+class SplitWorld(object):
+  """
+  Wrapper for the C++ class exposed as __SplitWorld.
+  This is a namespace consideration, it allows us to make 
+  boost::python::raw_functions into members of a class.
+  """
+  
+  def __init__(self, count):
+    """
+    :var count: How many equally sized subworlds should our compute resources be partitioned into?
+    :var type: `int`
+    """
+    self.cpp_obj=escore.Internal_SplitWorld(count)
+    
+  def buildDomains(self, fn, *vec, **kwargs):
+    """
+    Instruct subworlds how to build the domain.
+    :var fn: The function/class to call to create a domain.
+    :type fn: `callable`
+    The remaining parameters are for the arguments of the function.
+    """
+    escore.internal_buildDomains(self.cpp_obj, fn, *vec, **kwargs)
+
+    
+  def addJob(self, jobctr, *vec, **kwargs):
+    """
+    Submit a job to be run later on an available subworld.
+    :var jobctr: class or function to be called to create a job
+    :type jobctr: `callable`
+    The remaining parameters are for the arguments of the function.
+    """
+    escore.internal_addJob(self.cpp_obj, jobctr, *vec, **kwargs)
+    
+  def addJobPerWorld(self, jobctr, *vec, **kwargs):
+    """
+    Submit one job per subworld to run later.
+    :var jobctr: class or function to be called to create a job
+    :type jobctr: `callable`
+    The remaining parameters are for the arguments of the function.    
+    """
+    escore.internal_addJobPerWorld(self.cpp_obj, jobctr,  *vec, **kwargs)
+    
+    
+  def addVariable(self, vname, vartype, *vec, **kwargs):
+    """
+    Create a variable on all subworlds.
+    :var vartype: the type of variable to be created
+    :type vartype: `str`
+    The remaining parameters are for optional arguments depending on the variable type.
+    """
+    if vartype=="local":
+        escore.internal_addVariable(self.cpp_obj, vname, escore.internal_makeLocalOnly);
+    elif vartype=="Data":
+        escore.internal_addVariable(self.cpp_obj, vname, escore.internal_makeDataReducer, *vec)
+    elif vartype=="float":
+        escore.internal_addVariable(self.cpp_obj, vname, escore.internal_makeScalarReducer, *vec)
+    else:
+        raise ValueError("Unknown variable type (%s)"%str(vartype))
+
+  def runJobs(self):
+    """
+    Executes pending jobs.
+    """
+    self.cpp_obj.runJobs()
+
+  def removeVariable(self, name):
+    """
+    Removes the named variable from all subworlds.
+    :var name: 
+    :type name: `str`
+    """
+    self.cpp_obj.removeVariable(name)
+    
+    
+  def clearVariable(self, name):
+    """
+    Clears the value of the named variable.  The variable itself still exists.
+    :var name: variable to clear
+    :type name: `str`
+    """
+    self.cpp_obj.clearVariable(name)
+    
+  def getVarList(self):
+    """
+    Returns the names of all declared variables and a boolean for each indicating whether they have values.
+    """
+    return self.cpp_obj.getVarList()
+    
+    
+  def getFloatVariable(self, vname):
+    """
+    Return the value of a floating point variable
+    """
+    return self.cpp_obj.getDoubleVariable(vname)
+    
+  def getSubWorldCount(self):
+    """
+    Return the number of subworlds in this splitworld
+    """
+    return self.cpp_obj.getSubWorldCount()
+
+  def getSubWorldID(self):
+    """
+    Return the id of the subworld which _this_ MPI process belongs to.
+    """
+    return self.cpp_obj.getSubWorldID()
+    
+    
+  def copyVariable(self, src, dest):
+    """
+    copy the contents of one splitworld variable into another
+    :var src: name of variable to copy from
+    :type src: `str`
+    :var dest: name of variable to copy to 
+    :type dest: `str`
+    """
+    self.cpp_obj.copyVariable(src, dest)
+    
 class Job(object):
   """
   Describes a sequence of work to be carried out in a subworld.

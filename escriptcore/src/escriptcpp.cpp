@@ -117,8 +117,7 @@ bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
     boost::python::throw_error_already_set();   
     return false;
 }
-
-
+  
 }
 
 BOOST_PYTHON_MODULE(escriptcpp)
@@ -132,23 +131,22 @@ BOOST_PYTHON_MODULE(escriptcpp)
   scope().attr("__doc__") = "To use this module, please import esys.escript";      
 
 /* begin SubWorld things */
-  
 
   class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
   
   // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one
   // These functions take a SplitWorld instance as their first parameter
-  def("buildDomains", raw_function(escript::raw_buildDomains,2));
-  def("addJob", raw_function(escript::raw_addJob,2));
-  def("addJobPerWorld", raw_function(escript::raw_addJobPerWorld,2));
-  def("addVariable", raw_function(escript::raw_addVariable,3));
+  def("internal_buildDomains", raw_function(escript::raw_buildDomains,2));
+  def("internal_addJob", raw_function(escript::raw_addJob,2));
+  def("internal_addJobPerWorld", raw_function(escript::raw_addJobPerWorld,2));
+  def("internal_addVariable", raw_function(escript::raw_addVariable,3));
   
   
-  def("makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
-  def("makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
-  def("makeLocalOnly", escript::makeNonReducedVariable, "Create a variable which is not connected to copies in other worlds.");
+  def("internal_makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
+  def("internal_makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
+  def("internal_makeLocalOnly", escript::makeNonReducedVariable, "Create a variable which is not connected to copies in other worlds.");
       
-  class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
+  class_<escript::SplitWorld, boost::noncopyable>("Internal_SplitWorld", "Manages a group of sub worlds. For internal use only.", init<unsigned int>(args("num_worlds")))
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
     .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
     .def("clearVariable", &escript::SplitWorld::clearVariable, arg("name"), "Remove the value from the named variable")
