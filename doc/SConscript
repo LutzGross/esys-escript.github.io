@@ -144,6 +144,11 @@ sortOutExample('inversion/mag_netcdf.py')
 sortOutExample('inversion/plot_ermapper.py', needsMPL=True, allowsMPI=False)
 sortOutExample('inversion/plot_netcdf.py', needsMPL=True, allowsMPI=False)
 sortOutExample('inversion/dc_forward.py', needsGMSH=True)
+
+
+sortOutExample('inversion/test_commemi1.py', needsMPL=True, allowsMPI=True)
+sortOutExample('inversion/test_commemi4.py', needsMPL=True, allowsMPI=True)
+
 example_deps.append('inversion/content.txt')
 example_deps.append('inversion/data/GravitySmall')
 example_deps.append('inversion/data/MagneticSmall')
