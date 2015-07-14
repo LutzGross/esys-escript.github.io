@@ -39,7 +39,6 @@ from .regularizations import *
 from .splitregularizations import *
 from .coordinates import *
 from .seismic import *
-from .domaingeneratordcresistivity import *
 from .dcresistivityforwardmodeling import *
 
 import logging
