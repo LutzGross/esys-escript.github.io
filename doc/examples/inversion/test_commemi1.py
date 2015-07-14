@@ -2,6 +2,7 @@
 Test script to run test model COMMEMI-1
 """
 
+from __future__ import print_function, division
 
 import matplotlib
 # The following line is here to allow automated testing. Remove or comment if
@@ -22,7 +23,7 @@ import esys.escript.pdetools   as pdetools
 
 
 def makeLayerCake(x_start,x_extent,z_layers):
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # DESCRIPTION:
     # -----------
     # This is a utility function which sets up a 2D model with N layers.
@@ -47,7 +48,7 @@ def makeLayerCake(x_start,x_extent,z_layers):
     # HISTORY:
     # --------
     #
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     import esys.pycad   as pycad     # @UnresolvedImport
     import esys.weipa   as weipa     # @UnresolvedImport    
@@ -55,9 +56,9 @@ def makeLayerCake(x_start,x_extent,z_layers):
     import esys.escript as escript   # @UnresolvedImport
 
          
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Point definitions.
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
          
     # Loop through all layers and define the vertices at all interfaces.
     scale = 1.0
@@ -72,9 +73,9 @@ def makeLayerCake(x_start,x_extent,z_layers):
             points.append( pycad.Point(x_start + x_extent, z_layers[i], 0.0, local_scale = scale) ) # Right-Corner. 
 
 
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Line definitions.
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Now connect the points to define the horizontal lines for all interfaces:
     hlines = []
@@ -95,9 +96,9 @@ def makeLayerCake(x_start,x_extent,z_layers):
 
 
 
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Curveloop and Area definitions.
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Join line segments for each layer.          
     borders = []
@@ -107,22 +108,22 @@ def makeLayerCake(x_start,x_extent,z_layers):
 
 
 
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Return values.
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Explicitly specify the air-earth-boundary:
     air_earth_interface = hlines[1]
     
     return borders, air_earth_interface
                                       
-#__________________________________________________________________________________________________
+#_______________________________________________________________________________
 
 
 
 
 def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_sizes):
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # DESCRIPTION:
     # -----------
     # This is a utility function which sets up the COMMEMI-1 mesh.
@@ -152,13 +153,13 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
     # HISTORY:
     # --------
     #
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
 
 
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Imports.
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     
     # System imports.
     import math
@@ -175,9 +176,9 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
         print("TM mode not yet supported")
         return None
         
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Anomaly border.
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
      
     #<Note>: define the anomaly which must be 'cut out' in the main mesh. 
     
@@ -205,14 +206,14 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
         
         # And define the border of the anomalous area.
         border_anomaly.append( pycad.CurveLoop(*lines0) ) 
-    #__________________________________________________________________________________________________________________
+    #___________________________________________________________________________
 
 
 
 
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Get the borders for each layer (air & host).
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Borders around layers and the air/earth interface.
     borders, air_earth_interface = makeLayerCake(x_start,x_extent,z_layers)
@@ -221,9 +222,9 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
 
 
 
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Specification of number of elements in domains.
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
         
     #<Note>: specifying the number of mesh elements is somewhat heuristic 
     #        and is dependent on the mesh size and the anomaly sizes. 
@@ -238,14 +239,14 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
     nr_elements_air       = 1 * x_extent / elem_sizes["large"]
     nr_elements_anomaly   = 2 * length   / elem_sizes["small"]
     nr_elements_interface = 4 * x_extent / elem_sizes["small"]
-    #__________________________________________________________________________________________________________________
+    #___________________________________________________________________________
     
     
     
      
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Domain definitions.
-    # -----------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Define the air & layer areas; note the 'holes' specifiers.
     domain_air     = pycad.PlaneSurface( borders[0] )   
@@ -267,16 +268,16 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
     
     # Now define the unstructured finley-mesh..
     model2D = finley.MakeDomain(design2D)
-    #__________________________________________________________________________________________________________________
+    #___________________________________________________________________________
 
 
     return model2D    
-    #__________________________________________________________________________________________________________________
+    #___________________________________________________________________________
     
 def generateCommemi1Mesh():
-    # -------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Geometric mesh parameters.
-    # -------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Mesh extents.
     a_extent = 20000    # 20km - Vertical extent of air-layer in (m).
@@ -295,14 +296,14 @@ def generateCommemi1Mesh():
                 'normal': 05.00 * x_extent/100.0, # 2.50% of x_extent.
                 'small' : 00.50 * x_extent/100.0  # 0.25% of x_extent.
                 }
-    #__________________________________________________________________________________________________
+    #___________________________________________________________________________
 
 
 
 
-    # -------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Geometric anomaly parameters.
-    # -------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Extents of the rectangular 2D anomaly.
     x_anomaly = 1000    # 1km - Horizontal extent of anomaly in (m).
@@ -318,18 +319,18 @@ def generateCommemi1Mesh():
     anomaly_coord = { 
                     'anomaly_1': ([xa1,ya1],[xa1,ya2],[xa2,ya2],[xa2,ya1]) 
                     }
-    #__________________________________________________________________________________________________
+    #___________________________________________________________________________
 
 
 
 
-    # -------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Setup the COMMEMI-1 mesh.
-    # -------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # This creates the mesh and saves it to the output folder.
     return setupMesh("TE", x_start, x_extent, a_extent, z_layers,  anomaly_coord, elem_sizes)
-    #__________________________________________________________________________________________________
+    #___________________________________________________________________________
 
 
 
@@ -408,18 +409,22 @@ rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
 mt2d.MT_2D._solver = "DIRECT"
 mt2d.MT_2D._debug   = False
 
-# Instantiate an MT_2D object with required & optional parameters:
-obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d, xstep=xstep ,zstep=zstep, maps=None, plot=True)
+if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
+    print("Direct solvers and multiple MPI processes are not currently supported")
+else:
+    # Instantiate an MT_2D object with required & optional parameters:
+    obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
+            xstep=xstep ,zstep=zstep, maps=None, plot=True)
 
-# Solve for fields, apparent resistivity and phase:
-mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
+    # Solve for fields, apparent resistivity and phase:
+    mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
 
 
-#
-print(datetime.datetime.now()-startTime)
+    #
+    print(datetime.datetime.now()-startTime)
 
 
-print "Done!"
+    print("Done!")
 
 
 
