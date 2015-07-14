@@ -15,7 +15,8 @@
 
 from templates.wheezy_options import *
 
-mpi = 'none'
+# mpi = 'none'
+mpi = 'OPENMPI'
 boost_libs = ['boost_python-py27']
 umfpack = True
 #lapack = 'clapack'
