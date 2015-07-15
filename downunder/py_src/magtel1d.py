@@ -115,20 +115,20 @@ class MT_1D(object):
     # Setup layer thicknesses from interface coordinates.
     dl = []
     for i in range(0,len(depths)-1):
-	# Don't include air-layer:
-	if rho[i] < 1.0e+10:
-	    dl.append( abs(depths[i+1] - depths[i]) )
+        # Don't include air-layer:
+        if rho[i] < 1.0e+10:
+            dl.append( abs(depths[i+1] - depths[i]) )
 
     # Setup list for cumulative layer depths:
     zl = [0] * (len(dl)) ; zl[0] = dl[0]
     if len(dl)-1 >=1:
-	for n in range(1,len(dl)):
-	    zl[n] = zl[n-1] + dl[n]
+        for n in range(1,len(dl)):
+            zl[n] = zl[n-1] + dl[n]
 
     # Setup resistivity list without air-layer.
     rl = list(rho)
     if rl[0] > 1.0e+10:
-	  rl.pop(0)
+          rl.pop(0)
 
 
     # ---
@@ -232,7 +232,7 @@ class MT_1D(object):
     # Cycle layers and compute wave numbers of other layers:
     k = [None]*nl
     for i in range(nl):
-	k[i] = cmath.sqrt( -1j*wm/rl[i] )
+        k[i] = cmath.sqrt( -1j*wm/rl[i] )
 
 
 
@@ -242,11 +242,11 @@ class MT_1D(object):
 
     # Half-space case:
     if nl == 1:
-	an[0] = 2*k0/(k[0] + k0) # = 1+Ro
-	rn[0] = (k0 - k[0])/(k0 + k[0])
+        an[0] = 2*k0/(k[0] + k0) # = 1+Ro
+        rn[0] = (k0 - k[0])/(k0 + k[0])
 
-	# All done, return the coefficients.
-	return an, rn
+        # All done, return the coefficients.
+        return an, rn
 
 
 
@@ -264,11 +264,11 @@ class MT_1D(object):
     # Setup arguments for the exponential for each layer..
     # .. and compute the tanh function and also exp(-2kh).
     for j in range(nl-1):
-	arg[j] = 1j*k[j]*dl[j]
-	tnh[j]= cmath.tanh(arg[j])
-	# Save also exponentials for coefficient calculations later:
-	exp[j] = cmath.exp( -arg[j] )
-	ex2[j] = exp[j]*exp[j]
+        arg[j] = 1j*k[j]*dl[j]
+        tnh[j]= cmath.tanh(arg[j])
+        # Save also exponentials for coefficient calculations later:
+        exp[j] = cmath.exp( -arg[j] )
+        ex2[j] = exp[j]*exp[j]
 
 
 
@@ -287,13 +287,13 @@ class MT_1D(object):
     # Compute the reflection coefficients for all sub-surface layers..
     # ..start the loop at the basement and cycle up to the first layer:
     for j in range(nl-1,0,-1):
-	# Wave impedance of next layer-up:
-	zu = wm/k[j-1]
-	# Ratio of layer impedances of current-layer and layer-up::
-	rn[j] = (zn - zu)/(zn + zu)
-	# New apparent impedance for up-layer via Wait's formula:
-	zn = zu*(zn + zu*tnh[j-1])/(zu + zn*tnh[j-1])
-	# <Note>: "zn" is the surface impedance when finishing the loop.
+        # Wave impedance of next layer-up:
+        zu = wm/k[j-1]
+        # Ratio of layer impedances of current-layer and layer-up::
+        rn[j] = (zn - zu)/(zn + zu)
+        # New apparent impedance for up-layer via Wait's formula:
+        zn = zu*(zn + zu*tnh[j-1])/(zu + zn*tnh[j-1])
+        # <Note>: "zn" is the surface impedance when finishing the loop.
 
     # For the first sub-surface layer, we also ..
     # ..have to mind the air-layer at index '0':
@@ -306,11 +306,11 @@ class MT_1D(object):
 
     # And now compute the transmission coefficients for rest of the layers:
     if (nl-1) > 1:
-	for n in range(1,nl-1):
-	    #<Note>: Wannamaker uses num: ~ exp[n-1]!
-	    num   = (1+rn[n] )*exp[n-1]
-	    den   = (1+rn[n+1]*ex2[n])
-	    an[n] = an[n-1]*num/den
+        for n in range(1,nl-1):
+            #<Note>: Wannamaker uses num: ~ exp[n-1]!
+            num   = (1+rn[n] )*exp[n-1]
+            den   = (1+rn[n+1]*ex2[n])
+            an[n] = an[n-1]*num/den
     # And mind the basement as well (numerator is 1):
     an[nl-1] = an[nl-2]*exp[nl-2]*(1+rn[nl-1])
 

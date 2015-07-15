@@ -544,7 +544,7 @@ class MT_2D(object):
 
       # Map a user-defined conductivity distribution if given:
       if maps is not None:
-	    # Guard against undefined elements:
+            # Guard against undefined elements:
         if maps[i] is not None:
           # Map the conductivity according to the defined functions:
           m = maps[i]( X[0], X[1], rho[i] )
