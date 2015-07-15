@@ -513,6 +513,8 @@ mt2d.MT_2D._debug   = False
 
 if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
     print("Direct solvers and multiple MPI processes are not currently supported")
+elif mt2d.MT_2D._solver == "DIRECT" and not getEscriptParamInt('PASO_DIRECT'):
+    print("escript was not built with support for direct solvers, aborting")
 else:
 
     # Instantiate an MT_2D object with required & optional parameters:
