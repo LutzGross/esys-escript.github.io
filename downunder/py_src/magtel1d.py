@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2003-2014 by University of Queensland
+# Copyright (c) 2015 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,9 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2014 by University of Queensland
+from __future__ import print_function, division
+
+__copyright__="""Copyright (c) 2015 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -42,7 +44,7 @@ class MT_1D(object):
   """
   Calculates the electromagnetic fields in the subsurface for a 1D layered earth.
 
-  Based on Fortran code by  Phil Wannamaker in MT2D
+  Partly based on Fortran code by  Phil Wannamaker in MT2D
   (http://marineemlab.ucsd.edu/Projects/Occam/2DMT/index.html)
 
   """
@@ -237,7 +239,7 @@ class MT_1D(object):
 
 
     # ---
-    # Reflection & transmission coefficients for halfspace.
+    # Reflection & transmission coefficients for half-space.
     # ---
 
     # Half-space case:
@@ -270,13 +272,9 @@ class MT_1D(object):
         exp[j] = cmath.exp( -arg[j] )
         ex2[j] = exp[j]*exp[j]
 
-
-
-
     # ---
     # Reflection & transmission coefficients for layers.
     # ---
-
 
     #<Note>: Following section is based on the formulae by Wannamaker's code.
 
