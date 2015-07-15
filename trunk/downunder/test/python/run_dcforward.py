@@ -32,7 +32,7 @@ except KeyError:
     WORKDIR='.'
 
 try:
-    from esys.finley import Rectangle, Brick
+    from esys.finley import Rectangle, Brick, ReadGmsh
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False
