@@ -88,7 +88,7 @@ def readVoxet(domain, filename, voproperty=1, origin=None, fillValue=0.,
             NE=[int(i) for i in line.split()[1:4]]
         elif line.startswith('PROPERTY '):
             propid=int(line.split()[1])
-            if not props.has_key(propid):
+            if not propid in props:
                 props[propid]=[None,None,None]
             props[propid][0]=line.split()[2].strip()
         elif line.startswith('PROP_ESIZE '):
