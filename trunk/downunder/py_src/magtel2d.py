@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2003-2014 by University of Queensland
+# Copyright (c) 2015 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -14,7 +14,9 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2014 by University of Queensland
+from __future__ import print_function, division
+
+__copyright__="""Copyright (c) 2015 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -39,7 +41,7 @@ import numpy
 import math
 import cmath
 import types
-from . import magtel1d         as mt1d
+from . import magtel1d	       as mt1d
 import matplotlib.pyplot       as plt
 import esys.weipa              as weipa
 import esys.escript            as escript
@@ -100,7 +102,7 @@ class MT_2D(object):
   [7] div( rho*grad(Hi) ) - w*mu*Hr = 0
 
      (resistivity 'rho' is 1/sigma)
-     the complementary magnetic fields
+     the complementary electric fields
      are calculated via Ampere's Law:
 
   [8] Er = d/dz(Hr) * rho
@@ -129,7 +131,7 @@ class MT_2D(object):
   inside the domain are solved in this class.
   """
 
-  def __init__(self, domain, mode, freq_def, tags, rho, rho_1d, ifc_1d, xstep=100, zstep=100, maps=None, plot=False):
+  def __init__(self, domain, mode, freq_def, tags, rho, rho_1d, ifc_1d, xstep=100, zstep=100, maps=None, plot=False, limits=None):
     """
     DESCRIPTION:
     -----------
@@ -309,6 +311,26 @@ class MT_2D(object):
 
 
     # ---
+    # Projector and Locator objects.
+    # ---
+
+    print("Setting up Escript Locator and Projector objects...")
+
+    # Setup a list with sample points along the vertical mesh extent, bottom to top:
+    xsample = self.__getSamplePoints(escript.inf(X[0]),escript.sup(X[0]),xstep, constant=0.0)
+
+    # Get the locations of mesh points at the surface via the Locator object
+    # operating on the continuous function-space (i.e. nodes) of the domain.
+    loc  = pdetools.Locator(escript.ContinuousFunction(domain),xsample )
+
+    # Instantiate the Projector class with smoothing on (fast=False);
+    # the Projector is used to calculate the gradient correctly.
+    proj = pdetools.Projector(domain, reduce=False, fast=False)
+
+
+
+
+    # ---
     # Print information:
     # ---
 
@@ -352,9 +374,12 @@ class MT_2D(object):
     self.rho_1d         = rho_1d
     self.ifc_1d         = ifc_1d
     self.plot           = plot
+    self.limits         = limits
     self.sigma          = sigma_model
     self.frequencies    = frequencies
     self.boundary_mask  = boundary_mask
+    self.proj           = proj
+    self.loc            = loc
 
 #__________________________________________________________________________________________________
 
@@ -541,7 +566,7 @@ class MT_2D(object):
 
       # Default: assign conductivity which is the inverse of resistivity:
       m = 1.0/rho[i]
-
+      
       # Map a user-defined conductivity distribution if given:
       if maps is not None:
             # Guard against undefined elements:
@@ -722,7 +747,7 @@ class MT_2D(object):
 #__________________________________________________________________________________________________
 
 
-  def __showPlot(self, loc, rho_2d, phi_2d, f):
+  def __showPlot(self, loc, rho_2d, phi_2d, f, **kwargs):
     """
     DESCRIPTION:
     -----------
@@ -739,13 +764,12 @@ class MT_2D(object):
     --------
     Plot in window.
 
-    """
-
+    """            
     # Abscissas/Ordinates:
     x  = numpy.array( loc.getX() )[:,0]
     y0 = numpy.array( loc.getValue(rho_2d) )
     y1 = numpy.array( loc.getValue(phi_2d) )
-
+       
     # Plot labels:
     title = 'Escript MT-2D ' + '(' + self.mode.upper() + ')' + ' freq: ' + str(f) + ' Hz'
     ylbl0 = r'Apparent Resistivity $(\Omega\cdot\,m)$'
@@ -759,15 +783,21 @@ class MT_2D(object):
     f.suptitle(title)           # This is actually the plot-title
 
     # Top: apparent resistivity on semi-log plot
-    ax[0].semilogy(x,y0, color='red')
+    ax[0].plot(x,y0, color='red') # semilogy
     ax[0].grid(b=True, which='both', color='grey',linestyle=':')
     ax[0].set_title( ylbl0 )
+    # Plot limits in **kwargs:
+    if 'limits' in kwargs:
+        ax[0].set_xlim(kwargs["limits"])    
 
     # Bottom: phase on linear plot
     ax[1].plot(x,y1, color='blue')
     ax[1].grid(b=True, which='both', color='grey',linestyle=':')
     ax[1].set_xlabel( xlbl1 )
     ax[1].set_title( ylbl1 )
+    # Plot limits in **kwargs:
+    if 'limits' in kwargs:
+        ax[1].set_xlim(kwargs["limits"])    
 
     plt.show()
 
@@ -833,14 +863,16 @@ class MT_2D(object):
     # Define the PDE parameters, mind boundary conditions.
     # ---
 
+
     # Now define the rank-4 coefficient A:
     for i in range(domain.getDim()):
         A[0,i,0,i] = a_val
         A[1,i,1,i] = a_val
-
+    
     # And define the elements of 'D' which are decomposed into real/imaginary values:
     D[0,0] = 0     ; D[1,0] = d_val
     D[0,1] =-d_val ; D[1,1] = 0
+
 
     # Set Dirichlet boundaries and values:
     q[0] = boundary_mask ; r[0] = boundary_value['real']
@@ -896,24 +928,6 @@ class MT_2D(object):
 
 
     # ---
-    # Projector and Locator objects.
-    # ---
-
-    print("Setting up Escript Locator and Projector objects...")
-
-    # Setup a list with sample points along the vertical mesh extent, bottom to top:
-    xsample = self.__getSamplePoints(escript.inf(self.X[0]),escript.sup(self.X[0]),self.xstep, constant=0.0)
-
-    # Get the locations of mesh points at the surface via the Locator object
-    # operating on the continuous function-space (i.e. nodes) of the domain.
-    loc  = pdetools.Locator(escript.ContinuousFunction(self.domain),xsample )
-
-    # Instantiate the Projector class with smoothing on (fast=False);
-    # the Projector is used to calculate the gradient correctly.
-    proj = pdetools.Projector(self.domain, reduce=False, fast=False)
-
-
-    # ---
     # Solve the PDE for all frequencies.
     # ---
 
@@ -939,19 +953,19 @@ class MT_2D(object):
       fld_2d = self.__setSolver(self.mode.upper(),self.domain, self.sigma, self.boundary_mask, boundary_value, f)
 
       # Calculate the field gradients:
-      grd_2d = self.__getGradField(proj, fld_2d, wm)
+      grd_2d = self.__getGradField(self.proj, fld_2d, wm)
 
       # Calculate the apparent resistivity and phase:
       rho_2d, phi_2d = self.__getAppResPhase(fld_2d, grd_2d, wm)
 
       # Save in lists for each frequency:
       mt2d.append( fld_2d )
-      arho.append( rho_2d )
-      aphi.append( phi_2d )
+      arho.append( self.loc.getValue(rho_2d) )
+      aphi.append( self.loc.getValue(phi_2d) )
 
       # Optionally plot the apparent resistivity and phase:
       if self.plot:
-          self.__showPlot(loc, rho_2d, phi_2d, f)
+          self.__showPlot(self.loc, rho_2d, phi_2d, f, limits=self.limits)
 
 
     # ---
