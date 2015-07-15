@@ -271,8 +271,8 @@ class MT_2D(object):
     if xmin >= xmax or zmin >= zmax: raise ValueError("The mesh limits are not valid (min >= max)" )
     if zmin >= 0                   : raise ValueError("The mesh must be defined with a negative vertical axis" )
     if not set(mesh_tags) == set(tags)       :
-        print "user-tags:", tags
-        print "mesh-tags:", mesh_tags
+        print("user-tags:", tags)
+        print("mesh-tags:", mesh_tags)
         raise ValueError("Input parameter TAGS does not match the tags defined in the mesh")
 
 
@@ -312,26 +312,26 @@ class MT_2D(object):
     # Print information:
     # ---
 
-    print
-    print "="*72
-    print "Escript MT2D, version", self.__version
-    print "="*72
-    print "Mesh XMin/XMax       : ", xmin, xmax
-    print "Mesh ZMin/ZMax       : ", zmin, zmax
-    print "Number of Tags       : ", len( tags )
-    print "Mapping              : ", {True: 'Yes', False: 'No'}[maps is not None]
-    print "Conductivity Model   : ", sigma_model
-    print "Nr of Frequencies    : ", len( frequencies )
-    print "Start/End/Step (Hz)  : ", freq_def["high"], freq_def["low"], freq_def["step"]
-    print "Mode                 : ", mode.upper()
-    print "Solver               : ", MT_2D._solver
-    print "Show plots           : ", plot
-    print "="*72
-    print
+    print("")
+    print("="*72)
+    print("Escript MT2D, version", self.__version)
+    print("="*72)
+    print("Mesh XMin/XMax       : ", xmin, xmax)
+    print("Mesh ZMin/ZMax       : ", zmin, zmax)
+    print("Number of Tags       : ", len( tags ))
+    print("Mapping              : ", {True: 'Yes', False: 'No'}[maps is not None])
+    print("Conductivity Model   : ", sigma_model)
+    print("Nr of Frequencies    : ", len( frequencies ))
+    print("Start/End/Step (Hz)  : ", freq_def["high"], freq_def["low"], freq_def["step"])
+    print("Mode                 : ", mode.upper())
+    print("Solver               : ", MT_2D._solver)
+    print("Show plots           : ", plot)
+    print("="*72)
+    print("")
 
     if self._debug:
-      print "Mesh-Info     : "
-      print domain.print_mesh_info(full=False)
+      print("Mesh-Info     : ")
+      print(domain.print_mesh_info(full=False))
 
 
 
@@ -557,10 +557,10 @@ class MT_2D(object):
       sigma.expand()
       mydir = os.getcwd()
       dbgfl = mydir + os.sep + "mt2d_sigma_dbg.silo"
-      print
-      print "DEBUG: writing SILO debug output of conductivity model:"
-      print dbgfl
-      print
+      print("")
+      print("DEBUG: writing SILO debug output of conductivity model:")
+      print(dbgfl)
+      print("")
       weipa.saveSilo(dbgfl, sigma = sigma)
 
 
@@ -899,7 +899,7 @@ class MT_2D(object):
     # Projector and Locator objects.
     # ---
 
-    print "Setting up Escript Locator and Projector objects..."
+    print("Setting up Escript Locator and Projector objects...")
 
     # Setup a list with sample points along the vertical mesh extent, bottom to top:
     xsample = self.__getSamplePoints(escript.inf(self.X[0]),escript.sup(self.X[0]),self.xstep, constant=0.0)
@@ -923,14 +923,14 @@ class MT_2D(object):
     mt2d = []
 
     # Cycle over all frequencies:
-    print "Solving for frequency: ..."
+    print("Solving for frequency: ...")
     for n in xrange( nfreq ):
 
       f = self.frequencies[n] # actual frequency (Hz)
       wm  = (2*pi*f)*mu       # angular frequency (rad/s)
       T = 1.0 / f             # sounding period (s)
 
-      print n+1,":", f, "(Hz)"
+      print(n+1,":", f, "(Hz)")
 
       # Calculate 1D Dirichlet boundary values:
       boundary_value = self.__getBoundaryValues(self.mode.upper(), self.X, self.rho_1d, self.ifc_1d, self.xstep, self.zstep, f)
@@ -958,7 +958,7 @@ class MT_2D(object):
     # All done
     # ---
 
-    print "field calculations finished."
+    print("field calculations finished.")
     return mt2d, arho, aphi
 #__________________________________________________________________________________________________
 
