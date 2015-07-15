@@ -227,7 +227,7 @@ class MT_2D(object):
         raise ValueError("Optional input parameter PLOT must be True or False")
 
     # Values:
-    if mode.upper() <> "TE" and mode.upper() <> "TM": # Check mode:
+    if mode.upper() != "TE" and mode.upper() != "TM": # Check mode:
       raise ValueError("Input parameter mode must be either 'TE' or 'TM'")
     if not 'high' in freq_def and not 'low' in freq_def and not 'step' in freq_def:
        raise ValueError("Input dictionary FREQ_DEF must have keys 'high', 'low' and 'step' defined" )
@@ -237,13 +237,13 @@ class MT_2D(object):
       raise ValueError("Step frequency value is smaller than 1 in input parameter FREQ_DEF")
     if not all(r>0 for r in rho): # Check resistivity values:
       raise ValueError("Input parameter RHO must be all positive")
-    if len(rho) <> len(tags): # Check resistivity list-length:
+    if len(rho) != len(tags): # Check resistivity list-length:
       raise ValueError("Input parameter RHO must have the same length as input parameter TAGS")
     if not 'left' in rho_1d and not 'right' in rho_1d:
        raise ValueError("Input dictionary RHO_1D must have keys 'left' and 'right' defined" )
     if not 'left' in ifc_1d and not 'right' in ifc_1d:
       raise ValueError("Input dictionary IFC_1D must have keys 'left' and 'right' defined" )
-    if len(ifc_1d['left'])-1 <> len(rho_1d['left']) and len(ifc_1d['right'])-1 <> len(rho_1d['right']):
+    if len(ifc_1d['left'])-1 != len(rho_1d['left']) and len(ifc_1d['right'])-1 != len(rho_1d['right']):
       raise ValueError("Lists with values in input dictionary RHO_1D must have length equal to IFC_1D" )
     if xstep < 0.5: # Step size should be non-zero but should not be smaller than 0.5m:
       raise ValueError("Input parameter XSTEP must be at least 0.5" )
