@@ -36,7 +36,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __author__="Ralf Schaa, r.schaa@uq.edu.au"
 
-import os
+import os, sys
 import numpy
 import math
 import cmath
@@ -196,6 +196,9 @@ class MT_2D(object):
     self.boundary_mask  :: Dirichlet mask at boundaries
     """
 
+    #make python3 compatible, since long disappeared in python 3
+    if sys.version_info[0] == 3:
+        long = int
 
     # ---
     # Checks
