@@ -210,12 +210,12 @@ def setupMesh(mode, x_start, x_extent, a_extent, z_layers, anomaly_coord, elem_s
             
         # Points defining the anomaly from left-top.
         points0 = []
-        for i in xrange( 0, len(coord) ):            
+        for i in range( 0, len(coord) ):            
             points0.append(pycad.Point(coord[i][0], coord[i][1], 0.0))
     
         # Define the line segments connecting the points.
         lines0 = []
-        for i in xrange( 0, len(points0)-1 ):
+        for i in range( 0, len(points0)-1 ):
             lines0.append(pycad.Line(points0[i],points0[i+1]))
         # Connect the last segment from end to start:    
         lines0.append(pycad.Line(points0[-1], points0[0])) 
