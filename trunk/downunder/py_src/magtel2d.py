@@ -485,7 +485,7 @@ class MT_2D(object):
     # Number of periods in range:
     nt = int(math.log10(tme_n/tme_1) * tme_p) + 1
     # Fill list with times:
-    for n in xrange(nt):
+    for n in range(nt):
       # Sounding period in seconds:
       period = tme_1*10**( (n)/float(tme_p))
       # And store as frequency in Hertz:
@@ -565,7 +565,7 @@ class MT_2D(object):
     sigma = escript.Scalar(0, escript.Function(domain))
 
     # Setup conductivity domains.
-    for i in xrange( len(tags) ):
+    for i in range( len(tags) ):
 
       # Default: assign conductivity which is the inverse of resistivity:
       m = 1.0/rho[i]
@@ -697,7 +697,7 @@ class MT_2D(object):
     table2d_imag = []
 
      # 1D-interpolation of values from left to right at different depths 'i':
-    for i in xrange( len(zsamples)):
+    for i in range( len(zsamples)):
       table2d_real.append( self.__interpolLinear(xstep, xmin, xmax, mt_1d["left"].real[i], mt_1d["right"].real[i]) )
       table2d_imag.append( self.__interpolLinear(xstep, xmin, xmax, mt_1d["left"].imag[i], mt_1d["right"].imag[i]) )
 
@@ -952,7 +952,7 @@ class MT_2D(object):
 
     # Cycle over all frequencies:
     print("Solving for frequency: ...")
-    for n in xrange( nfreq ):
+    for n in range( nfreq ):
 
       f = self.frequencies[n] # actual frequency (Hz)
       wm  = (2*pi*f)*mu       # angular frequency (rad/s)

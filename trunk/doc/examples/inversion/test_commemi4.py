@@ -258,7 +258,7 @@ def setupMesh(mode, coord, elem_sizes):
 
     # And next the domains.
     domains = []
-    for i in xrange( len(borders) ):        
+    for i in range( len(borders) ):        
         domains.append( pycad.PlaneSurface(borders[i]) ) 
     #___________________________________________________________________________
 
