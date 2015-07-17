@@ -23,8 +23,9 @@ try:
   # The following line is here to allow automated testing. Remove or comment if
   # you would like to display the final plot in a window instead.
   matplotlib.use('agg')
+  
+  from matplotlib import pyplot
   HAVE_MPL=True
-  import esys.downunder.magtel2d as mt2d
 except:
   HAVE_MPL=False
 
@@ -33,6 +34,7 @@ from esys.escriptcore.testing import *
 
 import numpy
 import datetime
+import esys.downunder.magtel2d as mt2d
 import esys.escript            as escript
 import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
@@ -448,7 +450,9 @@ def generateCommemi4Mesh():
 # ==========================================================
 
 class Test_COMMEMI4(unittest.TestCase):
-    @unittest.skipIf(not HAVE_FINLEY or not HAVE_MPL, "Test expects finley and matplotlib to be available")    
+    @unittest.skipIf(not HAVE_FINLEY, "Test requires finley to be available")
+    @unittest.skipIf(not escript.getEscriptParamInt("PASO_DIRECT"), "Missing direct solvers")
+    @unittest.skipIf(escript.getMPISizeWorld() > 1, "Direct solvers and MPI are currently incompatible")
     def test_comm4(self):
         # ---
         # Initialisations
@@ -543,11 +547,12 @@ class Test_COMMEMI4(unittest.TestCase):
         # ---
 
         # Class options:
-        mt2d.MT_2D._solver = "DIRECT" #"ITERATIVE" #"CHOLEVSKY" #"CGLS " #"BICGSTAB" #"DIRECT" "ITERATIVE" "DIRECT" #
+        mt2d.MT_2D._solver = "DIRECT" #"ITERATIVE" #"CHOLEVSKY" #"CGLS " #"BICGSTAB" #"DIRECT" "ITERATIVE"
         mt2d.MT_2D._debug   = False
 
         # Instantiate an MT_2D object with required & optional parameters:
-        obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d, xstep=xstep ,zstep=zstep, maps=None, plot=False)
+        obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
+                xstep=xstep ,zstep=zstep, maps=None, plot=False)
 
         # Solve for fields, apparent resistivity and phase:
         mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
@@ -570,7 +575,6 @@ class Test_COMMEMI4(unittest.TestCase):
         # User defined plots
         # ---
 
-        from matplotlib        import pyplot
         from scipy.interpolate import InterpolatedUnivariateSpline
 
         # Setup abscissas/Ordinates for escript data:
@@ -607,38 +611,42 @@ class Test_COMMEMI4(unittest.TestCase):
         ylbl0 = r'resistivity $(\Omega m)$'
         ylbl1 = r'phase $(\circ)$'
         xlbl1 = 'X (m)'
+        if HAVE_MPL:
+            # Setup the plot window with app. res. on top and phase on bottom:
+            f, ax = pyplot.subplots(2, figsize=(3.33,3.33), dpi=1200,
+                    facecolor='w', edgecolor='k', sharex=True) # Mind shared axis
+            f.subplots_adjust(hspace=0.1, top=0.95, left=0.135, bottom=0.125, right=0.975)  
+            f.suptitle(title, y=0.99,fontsize=8) # 
+                
+            # Top: apparent resistivity and points from Weaver for comparison:
+            ax[0].plot(x, y0, color='red',  label = 'escript')
+            ax[0].plot(xs,ra, linestyle='', markersize=3, marker='o',
+                    color='blue', label = 'Weaver') 
+            ax[0].grid(b=True, which='both', color='grey',linestyle=':')
+            ax[0].set_ylabel( ylbl0)
+            ax[0].yaxis.set_label_coords(-0.082, 0.5)
+            # Plot limits:
+            ax[0].set_xlim(x0lim)      
+            #ax[0].set_ylim(y1lim)    
 
-        # Setup the plot window with app. res. on top and phase on bottom:
-        f, ax = pyplot.subplots(2, figsize=(3.33,3.33), dpi=1200, facecolor='w', edgecolor='k', sharex=True) # Mind shared axis
-        f.subplots_adjust(hspace=0.1, top=0.95, left=0.135, bottom=0.125, right=0.975)  
-        f.suptitle(title, y=0.99,fontsize=8) # 
-            
-        # Top: apparent resistivity and points from Weaver for comparison:
-        ax[0].plot(x, y0, color='red',  label = 'escript')
-        ax[0].plot(xs,ra, linestyle='', markersize=3, marker='o',color='blue',  label = 'Weaver') 
-        ax[0].grid(b=True, which='both', color='grey',linestyle=':')
-        ax[0].set_ylabel( ylbl0)
-        ax[0].yaxis.set_label_coords(-0.082, 0.5)
-        # Plot limits:
-        ax[0].set_xlim(x0lim)      
-        #ax[0].set_ylim(y1lim)    
+            # Bottom: phase on linear plot
+            ax[1].plot(x,y1, color='blue')
+            ax[1].grid(b=True, which='both', color='grey',linestyle=':')
+            ax[1].set_xlabel( xlbl1 )
+            ax[1].set_ylabel( ylbl1 )
+            # Plot limits:
+            ax[1].set_xlim(x0lim)      
+            #ax[1].set_ylim(y2lim)     
 
-        # Bottom: phase on linear plot
-        ax[1].plot(x,y1, color='blue')
-        ax[1].grid(b=True, which='both', color='grey',linestyle=':')
-        ax[1].set_xlabel( xlbl1 )
-        ax[1].set_ylabel( ylbl1 )
-        # Plot limits:
-        ax[1].set_xlim(x0lim)      
-        #ax[1].set_ylim(y2lim)     
+            # ask matplotlib for the plotted objects and their labels
+            lna, la = ax[0].get_legend_handles_labels()
+            ax[0].legend(lna, la, bbox_to_anchor=(0.02, 0.325), loc=2,
+                    borderaxespad=0.,prop={'size':8}, frameon=False)
 
-        # ask matplotlib for the plotted objects and their labels
-        lna, la = ax[0].get_legend_handles_labels()
-        ax[0].legend(lna, la, bbox_to_anchor=(0.02, 0.325), loc=2, borderaxespad=0.,prop={'size':8}, frameon=False)
-
-        pyplot.ticklabel_format(style='sci', axis='x', scilimits=(0,0), useMathText=True)
-        ax[0].xaxis.major.formatter._useMathText = True
-        pyplot.rc('font', **{'size': 8,'family':'sans-serif'})
+            pyplot.ticklabel_format(style='sci', axis='x', scilimits=(0,0),
+                    useMathText=True)
+            ax[0].xaxis.major.formatter._useMathText = True
+            pyplot.rc('font', **{'size': 8,'family':'sans-serif'})
         #uncomment to allow visual inspection
         #f.savefig("mesh/commemi-4/commemi4_"+mode.lower()+".png", dpi=1200)
 
