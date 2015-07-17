@@ -36,9 +36,9 @@ Some models for flow
 
 __author__="Ralf Schaa, r.schaa@uq.edu.au"
 
+import sys
 import numpy
 import cmath
-
 
 class MT_1D(object):
   """
@@ -81,6 +81,10 @@ class MT_1D(object):
     # ---
     # Check input types:
     # ---
+
+    #make python3 compatible, since long disappeared in python 3
+    if sys.version_info[0] == 3:
+        long = int
 
     if not isinstance(freq, (int,long,float) ):
       raise ValueError("Input parameter FREQ must be a number")
