@@ -58,7 +58,7 @@ using namespace boost::python;
 
 /*! \mainpage Esys Documentation
  *
- * \version 4.0
+ * \version 4.1
  *
  * Main modules/namespaces:
  *
