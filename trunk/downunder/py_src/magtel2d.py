@@ -41,14 +41,12 @@ import numpy
 import math
 import cmath
 import types
-from . import magtel1d	       as mt1d
-import matplotlib.pyplot       as plt
+from . import magtel1d         as mt1d
 import esys.weipa              as weipa
 import esys.escript            as escript
 import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
 import esys.escript.linearPDEs as pde
-
 
 class MT_2D(object):
 
@@ -131,7 +129,8 @@ class MT_2D(object):
   inside the domain are solved in this class.
   """
 
-  def __init__(self, domain, mode, freq_def, tags, rho, rho_1d, ifc_1d, xstep=100, zstep=100, maps=None, plot=False, limits=None):
+  def __init__(self, domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
+        xstep=100, zstep=100, maps=None, plot=False, limits=None):
     """
     DESCRIPTION:
     -----------
@@ -381,7 +380,8 @@ class MT_2D(object):
     self.proj           = proj
     self.loc            = loc
 
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __interpolLinear(self,dx,x0,x1,y0,y1):
@@ -416,7 +416,8 @@ class MT_2D(object):
         x = x + dx
 
     return y
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __getSamplePoints(self, min,max,step,constant=None):
@@ -454,7 +455,7 @@ class MT_2D(object):
 
     # Return the list:
     return sample
-    #______________________________________________________________________________________________
+    #___________________________________________________________________________
 
 
   def __getSoundingFrequencies(self, frequencies):
@@ -491,7 +492,8 @@ class MT_2D(object):
       sounding_frequencies.append( 1.0/period )
 
     return sounding_frequencies
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __getGradField(self, proj, mt2d_field, wm):
@@ -533,7 +535,8 @@ class MT_2D(object):
     #<Note>: the derivative w.r.t. 'z' is used (i.e. '[1]').
 
     return mt2d_grad
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __tagDomain(self, domain, X, tags, rho, maps):
@@ -566,7 +569,7 @@ class MT_2D(object):
 
       # Default: assign conductivity which is the inverse of resistivity:
       m = 1.0/rho[i]
-      
+
       # Map a user-defined conductivity distribution if given:
       if maps is not None:
             # Guard against undefined elements:
@@ -591,7 +594,8 @@ class MT_2D(object):
 
     # All done:
     return sigma
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __setBoundaryMask(self, X):
@@ -621,7 +625,8 @@ class MT_2D(object):
 
     return boundary_mask
     #<Note>: this boundary mask is used later on as PDE coefficient 'q'.
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __getBoundaryValues(self, mode, X, rho_1d, ifc_1d, xstep, zstep, frequency):
@@ -705,7 +710,8 @@ class MT_2D(object):
 
 
     return boundary_value
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __getAppResPhase(self, mt2d_field, mt2d_grad, wm):
@@ -744,14 +750,14 @@ class MT_2D(object):
     aphi_2d = escript.atan( (Ei*Hr - Er*Hi)/(Er*Hr + Ei*Hi) ) * 180.0/cmath.pi
 
     return arho_2d, aphi_2d
-#__________________________________________________________________________________________________
+#_______________________________________________________________________________
 
 
   def __showPlot(self, loc, rho_2d, phi_2d, f, **kwargs):
     """
     DESCRIPTION:
     -----------
-    Plot of apparent resistivity and phase.
+    Plot of apparent resistivity and phase. Requires matplotlib to be available.
 
     ARGUMENTS:
     ----------
@@ -764,12 +770,18 @@ class MT_2D(object):
     --------
     Plot in window.
 
-    """            
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("Warning: matplotlib not available, plot will not be shown")
+        return
+
     # Abscissas/Ordinates:
     x  = numpy.array( loc.getX() )[:,0]
     y0 = numpy.array( loc.getValue(rho_2d) )
     y1 = numpy.array( loc.getValue(phi_2d) )
-       
+
     # Plot labels:
     title = 'Escript MT-2D ' + '(' + self.mode.upper() + ')' + ' freq: ' + str(f) + ' Hz'
     ylbl0 = r'Apparent Resistivity $(\Omega\cdot\,m)$'
@@ -788,7 +800,7 @@ class MT_2D(object):
     ax[0].set_title( ylbl0 )
     # Plot limits in **kwargs:
     if 'limits' in kwargs:
-        ax[0].set_xlim(kwargs["limits"])    
+        ax[0].set_xlim(kwargs["limits"])
 
     # Bottom: phase on linear plot
     ax[1].plot(x,y1, color='blue')
@@ -797,11 +809,12 @@ class MT_2D(object):
     ax[1].set_title( ylbl1 )
     # Plot limits in **kwargs:
     if 'limits' in kwargs:
-        ax[1].set_xlim(kwargs["limits"])    
+        ax[1].set_xlim(kwargs["limits"])
 
     plt.show()
 
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def __setSolver(self, mode, domain, sigma, boundary_mask, boundary_value, f):
@@ -868,7 +881,7 @@ class MT_2D(object):
     for i in range(domain.getDim()):
         A[0,i,0,i] = a_val
         A[1,i,1,i] = a_val
-    
+
     # And define the elements of 'D' which are decomposed into real/imaginary values:
     D[0,0] = 0     ; D[1,0] = d_val
     D[0,1] =-d_val ; D[1,1] = 0
@@ -891,7 +904,8 @@ class MT_2D(object):
     #        the magnetic field is returned for TM-mode.
 
     return mt2d_fields
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
   def pdeSolve(self):
@@ -947,10 +961,12 @@ class MT_2D(object):
       print(n+1,":", f, "(Hz)")
 
       # Calculate 1D Dirichlet boundary values:
-      boundary_value = self.__getBoundaryValues(self.mode.upper(), self.X, self.rho_1d, self.ifc_1d, self.xstep, self.zstep, f)
+      boundary_value = self.__getBoundaryValues(self.mode.upper(), self.X,
+            self.rho_1d, self.ifc_1d, self.xstep, self.zstep, f)
 
       # Solve the 2D-MT PDE:
-      fld_2d = self.__setSolver(self.mode.upper(),self.domain, self.sigma, self.boundary_mask, boundary_value, f)
+      fld_2d = self.__setSolver(self.mode.upper(),self.domain, self.sigma,
+            self.boundary_mask, boundary_value, f)
 
       # Calculate the field gradients:
       grd_2d = self.__getGradField(self.proj, fld_2d, wm)
@@ -974,7 +990,8 @@ class MT_2D(object):
 
     print("field calculations finished.")
     return mt2d, arho, aphi
-#__________________________________________________________________________________________________
+
+#_______________________________________________________________________________
 
 
 
