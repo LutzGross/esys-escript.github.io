@@ -197,9 +197,9 @@ class MT_2D(object):
     """
 
     #make python3 compatible, since long disappeared in python 3
+    long_type = long
     if sys.version_info[0] == 3:
-        long = int
-
+        long_type = int
     # ---
     # Checks
     # ---
@@ -213,15 +213,15 @@ class MT_2D(object):
       raise ValueError("Input parameter FREQ_DEF must be a dictionary with length 3")
     if not isinstance(tags, list) or not all(isinstance(t,str) for t in tags):
       raise ValueError("Input parameter TAGS must be a list of strings")
-    if not isinstance(rho, list) or not all(isinstance(d,(int,long,float)) for d in rho):
+    if not isinstance(rho, list) or not all(isinstance(d,(int,long_type,float)) for d in rho):
       raise ValueError("Input parameter RHO must be a list of numbers")
     if not isinstance(rho_1d, dict) or len(rho_1d) != 2:
       raise ValueError("Input parameter RHO_1D must be a dictionary with length 2")
     if not isinstance(ifc_1d, dict) or len(ifc_1d) != 2:
       raise ValueError("Input parameter IFC_1D must be a dictionary with length 2")
-    if not isinstance(xstep, (int,long,float)):
+    if not isinstance(xstep, (int,long_type,float)):
         raise ValueError("Optional input parameter XSTEP must be a number")
-    if not isinstance(zstep, (int,long,float)):
+    if not isinstance(zstep, (int,long_type,float)):
         raise ValueError("Optional input parameter ZSTEP must be a number")
     if maps is not None:
       if not isinstance(maps, list) or not all(isinstance(m,(types.FunctionType, types.NoneType)) for m in maps):

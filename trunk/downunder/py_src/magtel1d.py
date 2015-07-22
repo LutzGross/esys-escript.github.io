@@ -83,16 +83,17 @@ class MT_1D(object):
     # ---
 
     #make python3 compatible, since long disappeared in python 3
+    long_type = long
     if sys.version_info[0] == 3:
-        long = int
+        long_type = int
 
-    if not isinstance(freq, (int,long,float) ):
+    if not isinstance(freq, (int,long_type,float) ):
       raise ValueError("Input parameter FREQ must be a number")
-    if not isinstance(depths, list) or not all(isinstance(d,(int,long,float)) for d in depths):
+    if not isinstance(depths, list) or not all(isinstance(d,(int,long_type,float)) for d in depths):
       raise ValueError("Input parameter DEPTHS must be a list of numbers")
-    if not isinstance(rho, list) or not all(isinstance(d,(int,long,float)) for d in rho):
+    if not isinstance(rho, list) or not all(isinstance(d,(int,long_type,float)) for d in rho):
       raise ValueError("Input parameter RHO must be a list of numbers")
-    if not isinstance(zcoord, list) or not all(isinstance(d,(int,long,float)) for d in zcoord):
+    if not isinstance(zcoord, list) or not all(isinstance(d,(int,long_type,float)) for d in zcoord):
       raise ValueError("Input parameter ZCOORD must be a list of numbers")
 
 
