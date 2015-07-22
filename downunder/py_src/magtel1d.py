@@ -83,9 +83,10 @@ class MT_1D(object):
     # ---
 
     #make python3 compatible, since long disappeared in python 3
-    long_type = long
     if sys.version_info[0] == 3:
         long_type = int
+    else:
+        long_type = long
 
     if not isinstance(freq, (int,long_type,float) ):
       raise ValueError("Input parameter FREQ must be a number")
