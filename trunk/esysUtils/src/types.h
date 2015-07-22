@@ -18,11 +18,11 @@
 #ifndef __ESYS_TYPES_H__
 #define __ESYS_TYPES_H__
  
-//#ifdef ESYS_INDEXTYPE_LONG
-//typedef long index_t;
-//#else
+#ifdef ESYS_INDEXTYPE_LONG
+typedef long index_t;
+#else
 typedef int index_t;
-//#endif
+#endif
 
 typedef index_t dim_t;
 typedef int type_t;
