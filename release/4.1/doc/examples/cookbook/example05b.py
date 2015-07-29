@@ -41,7 +41,7 @@ from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector
-from cblib import toRegGrid
+from cblib import toRegGrid, HAVE_NATGRID
 import pylab as pl #Plotting package
 
 try:
@@ -57,11 +57,8 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-try:
-    from mpl_toolkits.natgrid import _natgrid
-    HAVE_NATGRID=True
-except ImportError:
-    HAVE_NATGRID=False
+if not HAVE_NATGRID:
+    print("This example requires natgrid to be available to matplotlib")
 
 
 if HAVE_FINLEY and HAVE_NATGRID:
