@@ -36,10 +36,13 @@ However, it also passes our tests when compiled using ``clang++''.
 
 Our current test compilers include:
 \begin{itemize}
- \item g++ 4.7.2, 4.9.1
- \item clang++ (OSX 10.9 default, OSX 10.10 default)
- \item intel icpc v14
+ \item g++ 4.7.2, 4.9.2
+ \item clang++ (OSX 10.10 default)
+ \item intel icpc v15
 \end{itemize}
+
+g++ 5 is known to have an optimisation bug that will cause \escript to
+crash. An alternate compiler will be required until this bug has been fixed.
 
 Note that:
 \begin{itemize}
@@ -246,7 +249,9 @@ scons -j1 options_file=scons/templates/centos7_0_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using release $21.5$.
+These instructions were prepared using release $21.5$. Release $22$ by default
+uses gcc 5.2, which currently has an optimisation bug that will cause
+\escript to crash.
 
 \noindent Install packages
 \begin{shellCode}
