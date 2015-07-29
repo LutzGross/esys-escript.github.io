@@ -57,7 +57,7 @@ err_t ReactiveSolver::solve(double* u, double* u_old, const double* source,
                 const double F_i = source[i];
                 const double e_i = exp(x_i);
                 double u_i = e_i*u_old[i];
-                if (abs(x_i) > EXP_LIM_MIN) {
+                if (std::abs(x_i) > EXP_LIM_MIN) {
                     u_i += F_i/d_ii*(e_i-1.);
                 } else {
                     // second order approximation of (exp(x_i)-1)/x_i

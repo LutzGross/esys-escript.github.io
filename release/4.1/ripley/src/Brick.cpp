@@ -1452,9 +1452,9 @@ void Brick::Print_Mesh_Info(const bool full) const
 void Brick::assembleCoordinates(escript::Data& arg) const
 {
     int numDim = m_numDim;
-    if (&arg!=0 && !arg.isDataPointShapeEqual(1, &numDim))
+    if (!arg.isDataPointShapeEqual(1, &numDim))
         throw RipleyException("setToX: Invalid Data object shape");
-    if (&arg!=0 && !arg.numSamplesEqual(1, getNumNodes()))
+    if (!arg.numSamplesEqual(1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
     const dim_t NN0 = m_NN[0];
