@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2015 by The University of Queensland
@@ -14,6 +13,7 @@ from __future__ import division, print_function
 #
 ##############################################################################
 
+from __future__ import division, print_function
 __copyright__="""Copyright (c) 2009-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -39,7 +39,7 @@ from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 import pylab as pl #Plotting package
-from cblib import toRegGrid
+from cblib import toRegGrid, HAVE_NATGRID
 import os
 try:
     # This imports the rectangle domain function 
@@ -60,6 +60,9 @@ try:
     HAVE_NATGRID=True
 except ImportError:
     HAVE_NATGRID=False
+
+if not HAVE_NATGRID:
+    print("This example requires that natgrid is available to matplotlib")
 
 if HAVE_FINLEY and HAVE_NATGRID:
     # make sure path exists

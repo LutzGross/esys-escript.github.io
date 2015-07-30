@@ -520,3 +520,4 @@ bool MPIDataReducer::canClash()
 {
     return (reduceop==MPI_OP_NULL);
 }
+

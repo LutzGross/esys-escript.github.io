@@ -45,6 +45,7 @@ SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldco
     ,globalinfoinvalid(true)
 #endif    
 {
+	swcount=subworldcount;	// redundant to keep clang happy
 }
 
 SubWorld::~SubWorld()

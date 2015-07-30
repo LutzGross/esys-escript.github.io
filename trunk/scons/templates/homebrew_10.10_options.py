@@ -54,6 +54,7 @@ escript_opts_version = 202
 # what you are doing - use cc_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 #cc_flags = ''
+cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
 
 # Additional compiler (optimization) flags for non-debug builds
 # DEFAULT: compiler-dependent

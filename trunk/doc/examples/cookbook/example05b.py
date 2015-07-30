@@ -41,7 +41,7 @@ from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector
-from cblib import toRegGrid
+from cblib import toRegGrid, HAVE_NATGRID
 import pylab as pl #Plotting package
 
 try:
@@ -56,7 +56,12 @@ if getMPISizeWorld() > 1:
         import sys
         print("This example will not run in an MPI world.")
         sys.exit(0)
-if HAVE_FINLEY:
+
+if not HAVE_NATGRID:
+    print("This example requires natgrid to be available to matplotlib")
+
+
+if HAVE_FINLEY and HAVE_NATGRID:
     #################################################ESTABLISHING VARIABLES
     #set modal to 1 for a syncline or -1 for an anticline structural 
     #configuration

@@ -323,3 +323,4 @@ bool MPIScalarReducer::canClash()
 {
     return (reduceop==MPI_OP_NULL);
 }
+
