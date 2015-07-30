@@ -137,13 +137,13 @@ cppunit_prefix = '/usr/local'
 # Whether to use the netCDF library for dump file support and netCDF-based
 # downunder data import
 # DEFAULT: False
-netcdf = True
+#netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
 netcdf_prefix = '/usr/local'
 
 # netCDF library/libraries to link against
-#netcdf_libs = ['netcdf_c++', 'netcdf']
+netcdf_libs = ['netcdf_c++4', 'netcdf']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
@@ -204,7 +204,7 @@ silo = True
 silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
-silo_libs = ['silo']
+silo_libs = ['siloh5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
