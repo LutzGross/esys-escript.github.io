@@ -1,4 +1,3 @@
-from __future__ import division
 ##############################################################################
 #
 # Copyright (c) 2009-2015 by The University of Queensland
@@ -14,6 +13,7 @@ from __future__ import division
 #
 ##############################################################################
 
+from __future__ import division, print_function
 __copyright__="""Copyright (c) 2009-2015 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -29,6 +29,12 @@ from esys.escript import inf,sup
 from esys.escript.pdetools import Locator
 import numpy as np
 import pylab as pl
+
+try:
+    from mpl_toolkits.natgrid import _natgrid
+    HAVE_NATGRID=True
+except ImportError:
+    HAVE_NATGRID=False
 
 def toXYTuple(coords):
     """

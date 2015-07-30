@@ -60,6 +60,7 @@ class TestDCResistivityForward(unittest.TestCase):
                         secondaryConductivity, current, a, start,
                         directionVector, numElectrodes))
 
+    @unittest.skipIf(not HAVE_GMSH, "gmsh not available")
     def test_getpotential3dPolePole(self):
         structured=False
         if structured:

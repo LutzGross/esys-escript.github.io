@@ -446,7 +446,8 @@ mode = 'TE'
 # Read the mesh file and define the 'finley' domain:
 #mesh_file = "commemi4_tm.fly"
 #domain = finley.ReadMesh(mesh_file, numDim=2)
-domain=generateCommemi4Mesh()
+if escript.getEscriptParamInt('GMSH_SUPPORT'):
+    domain=generateCommemi4Mesh()
 
 # Sounding frequencies (in Hz):
 freq_def = {"high":1.0e+0,"low":1.0e-0,"step":1}
@@ -530,6 +531,8 @@ if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
     print("Direct solvers and multiple MPI processes are not currently supported")
 elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
     print("escript was not built with support for direct solvers, aborting")
+elif not escript.getEscriptParamInt('GMSH_SUPPORT'):
+    print("This example requires gmsh")
 else:
 
     # Instantiate an MT_2D object with required & optional parameters:
