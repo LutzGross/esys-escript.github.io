@@ -40,7 +40,9 @@ Architecture: any
 Section: science
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, libgomp1, openmpi-bin,
+Depends: ${python:Depends}, 
+ python-numpy,
+ libgomp1, openmpi-bin,
  ${shlibs:Depends},
  ${misc:Depends}
 Recommends: python-sympy, python-matplotlib, python-scipy
