@@ -631,6 +631,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("_whereZero",&escript::Data::whereZero,(arg("tol")=0.0))
     .def("_whereNonZero",&escript::Data::whereNonZero,(arg("tol")=0.0))
     .def("_erf",&escript::Data::erf)
+    .def("_besselFirstKind",&escript::Data::besselFirstKind,arg("order"))
+    .def("_besselSecondKind",&escript::Data::besselSecondKind,arg("order"))
     .def("_sin",&escript::Data::sin)
     .def("_cos",&escript::Data::cos)
     .def("_tan",&escript::Data::tan)
