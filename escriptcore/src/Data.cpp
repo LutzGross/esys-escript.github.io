@@ -1398,6 +1398,108 @@ Data::integrateWorker() const
 }
 
 Data
+Data::besselFirstKind(int order)
+{
+    return bessel(order,boost::math::cyl_bessel_j);
+}
+
+Data
+Data::besselSecondKind(int order)
+{
+    return bessel(order,boost::math::cyl_neumann);
+}
+
+Data
+Data::bessel(int order, double (*besselfunc) (int,double) )
+{
+    if (isEmpty())  // do this before we attempt to interpolate
+    {
+     throw DataException("Error - Operations (bessel) not permitted on instances of DataEmpty.");
+    }
+    if (isLazy())
+    {
+        resolve();
+    }
+    // Interpolate if necessary and find an appropriate function space
+    Data arg_0_Z = Data(*this);
+
+    // Get rank and shape of inputs
+    const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
+    int size0 = arg_0_Z.getDataPointSize();
+
+    // Declare output Data object
+    Data res;
+
+    if (arg_0_Z.isConstant()) {
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
+        double *ptr_2 = &(res.getDataAtOffsetRW(0));
+        for (int i = 0; i < size0; ++i) {
+            ptr_2[i] = besselfunc(order, ptr_0[i]);
+        }
+    }
+    else if (arg_0_Z.isTagged()) {
+
+        // Borrow DataTagged input from Data object
+        DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+        // Prepare a DataTagged output 2
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
+        res.tag();
+        DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+        // Get the pointers to the actual data
+        const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+        double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        // Compute a result for the default
+        for (int i = 0; i < size0; ++i) {
+            ptr_2[i] = besselfunc(order, ptr_0[i]);
+        }
+        // Compute a result for each tag
+        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+            tmp_2->addTag(i->first);
+            const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+            double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+            for (int i = 0; i < size0; ++i) {
+                ptr_2[i] = besselfunc(order, ptr_0[i]);
+            }
+
+        }
+
+    }
+    else if (arg_0_Z.isExpanded()) {
+
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
+        DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+        DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+        int sampleNo_0,dataPointNo_0;
+        int numSamples_0 = arg_0_Z.getNumSamples();
+        int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+        #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+        for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+            dataPointNo_0=0;
+        //      for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+            int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+            int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+            const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+            double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+            for (int i = 0; i < size0*numDataPointsPerSample_0; ++i) {
+                ptr_2[i] = besselfunc(order, ptr_0[i]);
+            }
+        //      }
+        }
+  }
+  else {
+    throw DataException("Error - Bessel function: unknown combination of inputs");
+  }
+
+  return res;
+}
+
+Data
 Data::sin() const
 {
     MAKELAZYOP(SIN);
@@ -2464,6 +2566,7 @@ Data::powD(const Data& right) const
     MAKELAZYBIN(right,POW);
     return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
 }
+
 
 //
 // NOTE: It is essential to specify the namespace this operator belongs to

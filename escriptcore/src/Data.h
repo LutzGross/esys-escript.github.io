@@ -41,6 +41,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
+#include <boost/math/special_functions/bessel.hpp>
 
 namespace escript {
 
@@ -1153,6 +1154,35 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   Data
   cos() const;
+
+  /**
+     \brief
+     Bessel worker function.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  bessel(int order, double (*besselfunc) (int,double) );
+  
+
+  /**
+     \brief
+     Return the Bessel function of the first kind for each data point of this Data object.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  besselFirstKind(int order);
+
+  /**
+     \brief
+     Return the Bessel function of the second kind for each data point of this Data object.
+     *
+  */
+  ESCRIPT_DLL_API
+  Data
+  besselSecondKind(int order);
+
 
   /**
      \brief
