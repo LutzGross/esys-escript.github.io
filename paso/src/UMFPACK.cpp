@@ -62,10 +62,16 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
 
     UMFPACK_Handler* pt = reinterpret_cast<UMFPACK_Handler*>(A->solver_p);
     double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
+#ifdef ESYS_INDEXTYPE_LONG
+    umfpack_dl_defaults(control);
+#else
     umfpack_di_defaults(control);
+#endif
+#ifdef UMFPACK_ORDERING_METIS
+    control[UMFPACK_ORDERING] = UMFPACK_ORDERING_METIS; // in versions > 5.2
+#endif
     double time0;
     int error;
-
     if (pt == NULL) {
         int n = A->numRows;
         pt = new UMFPACK_Handler;
