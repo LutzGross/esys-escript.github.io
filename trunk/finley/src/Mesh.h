@@ -131,6 +131,12 @@ private:
     void optimizeElementOrdering();
     void setOrders();
     void updateTagList();
+    void printElementInfo(const ElementFile* e, const std::string title,
+                          const std::string defaultType, bool full) const;
+
+    void writeElementInfo(std::ostream& stream, const ElementFile* e,
+                          const std::string defaultType) const;
+
     static Mesh* readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname,
                                int numDim, int order, int reducedOrder,
                                bool optimize, bool useMacroElements);

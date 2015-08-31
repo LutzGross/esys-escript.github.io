@@ -32,105 +32,125 @@ using std::cout;
 using std::endl;
 using std::ios;
 using std::setw;
+using std::string;
 
 namespace finley {
 
-/// writes the mesh to the external file fname using the Finley file format
-void Mesh::write(const std::string fname) const
+// private
+void Mesh::writeElementInfo(std::ostream& stream, const ElementFile* e,
+                            const string defaultType) const
+{
+    if (e != NULL) {
+        stream << e->referenceElementSet->referenceElement->Type->Name
+          << " " << e->numElements << endl;
+        const int NN = e->numNodes;
+        for (index_t i=0; i < e->numElements; i++) {
+            stream << e->Id[i] << " " << e->Tag[i];
+            for (int j=0; j<NN; j++)
+                stream << " " << Nodes->Id[e->Nodes[INDEX2(j,i,NN)]];
+            stream << endl;
+        }
+    } else {
+        stream << defaultType << " 0" << endl;
+    }
+}
+
+// private
+void Mesh::printElementInfo(const ElementFile* e, const string title,
+                            const string defaultType, bool full) const
+{
+    if (e != NULL) {
+        dim_t mine=0, overlap=0;
+        for (index_t i=0; i < e->numElements; i++) {
+            if (e->Owner[i] == MPIInfo->rank)
+                mine++;
+            else
+                overlap++;
+        }
+        cout << "\t" << title << ": "
+            << e->referenceElementSet->referenceElement->Type->Name
+            << " " << e->numElements << " (TypeId="
+            << e->referenceElementSet->referenceElement->Type->TypeId
+            << ") owner=" << mine << " overlap=" << overlap << endl;
+        if (full) {
+            const int NN = e->numNodes;
+            cout << "\t     Id   Tag Owner Color:  Nodes" << endl;
+            for (index_t i=0; i < e->numElements; i++) {
+                cout << "\t" << setw(7) << e->Id[i]
+                     << setw(6) << e->Tag[i]
+                     << setw(6) << e->Owner[i]
+                     << setw(6) << e->Color[i] << ": ";
+                for (int j=0; j<NN; j++)
+                    cout << setw(6) << Nodes->Id[e->Nodes[INDEX2(j,i,NN)]];
+                cout << endl;
+            }
+        }
+    } else {
+        cout << "\t" << title << ": " << defaultType << " 0" << endl;
+    }
+}
+
+                             
+/// writes the mesh to an external file using the 'fly' file format
+void Mesh::write(const string filename) const
 {
     if (MPIInfo->size >1) {
-        setError(IO_ERROR, "Mesh_write: only single processor runs are supported.");
+        setError(IO_ERROR, "Mesh::write: only single rank runs are supported.");
         return;
     }
-    // open file
-    FILE* f=fopen(fname.c_str(), "w");
-    if (f==NULL) {
-        char error_msg[LenErrorMsg_MAX];
-        sprintf(error_msg, "Mesh_write: Opening file %s for writing failed.",fname.c_str());
-        setError(IO_ERROR,error_msg);
+
+    std::ofstream f(filename.c_str());
+    if (!f.is_open()) {
+        std::stringstream ss;
+        ss << "Mesh::write: Opening file " << filename << " for writing failred.";
+        string err(ss.str());
+        setError(IO_ERROR, err.c_str());
         return;
     }
 
     // write header
-    fprintf(f, "%s\n", m_name.c_str());
+    f << m_name << endl;
 
-    // write nodes:
+    // write nodes
     if (Nodes != NULL) {
         const int numDim = getDim();
-        fprintf(f,"%1dD-Nodes %d\n", numDim, Nodes->numNodes);
+        f << numDim << "D-Nodes " << Nodes->numNodes << endl;
         for (index_t i=0; i<Nodes->numNodes; i++) {
-            fprintf(f,"%d %d %d",Nodes->Id[i],Nodes->globalDegreesOfFreedom[i],Nodes->Tag[i]);
+            f << Nodes->Id[i] << " " << Nodes->globalDegreesOfFreedom[i]
+              << " " << Nodes->Tag[i];
+            f.setf(ios::scientific, ios::floatfield);
+            f.precision(15);
             for (int j=0; j<numDim; j++)
-                fprintf(f," %20.15e",Nodes->Coordinates[INDEX2(j,i,numDim)]);
-            fprintf(f,"\n");
+                f << " " << Nodes->Coordinates[INDEX2(j,i,numDim)];
+            f << endl;
         }
     } else {
-        fprintf(f,"0D-Nodes 0\n");
+        f << "0D-Nodes 0" << endl;
     }
 
-    // write elements:
-    if (Elements != NULL) {
-        fprintf(f, "%s %d\n",Elements->referenceElementSet->referenceElement->Type->Name,Elements->numElements);
-        const int NN=Elements->numNodes;
-        for (index_t i=0; i<Elements->numElements; i++) {
-            fprintf(f,"%d %d",Elements->Id[i],Elements->Tag[i]);
-            for (int j=0; j<NN; j++)
-                fprintf(f," %d",Nodes->Id[Elements->Nodes[INDEX2(j,i,NN)]]);
-            fprintf(f,"\n");
-        }
-    } else {
-        fprintf(f,"Tet4 0\n");
-    }
+    // write elements
+    writeElementInfo(f, Elements, "Tet4");
 
-    // write face elements:
-    if (FaceElements != NULL) {
-        fprintf(f, "%s %d\n", FaceElements->referenceElementSet->referenceElement->Type->Name,FaceElements->numElements);
-        const int NN=FaceElements->numNodes;
-        for (index_t i=0; i<FaceElements->numElements; i++) {
-            fprintf(f,"%d %d",FaceElements->Id[i],FaceElements->Tag[i]);
-            for (int j=0; j<NN; j++)
-                fprintf(f," %d",Nodes->Id[FaceElements->Nodes[INDEX2(j,i,NN)]]);
-            fprintf(f,"\n");
-        }
-    } else {
-        fprintf(f,"Tri3 0\n");
-    }
+    // write face elements
+    writeElementInfo(f, FaceElements, "Tri3");
 
-    // write contact elements:
-    if (ContactElements != NULL) {
-        fprintf(f, "%s %d\n",ContactElements->referenceElementSet->referenceElement->Type->Name,ContactElements->numElements);
-        const int NN=ContactElements->numNodes;
-        for (index_t i=0; i<ContactElements->numElements; i++) {
-            fprintf(f,"%d %d",ContactElements->Id[i],ContactElements->Tag[i]);
-            for (int j=0; j<NN; j++)
-                fprintf(f," %d",Nodes->Id[ContactElements->Nodes[INDEX2(j,i,NN)]]);
-            fprintf(f,"\n");
-        }
-    } else {
-        fprintf(f,"Tri3_Contact 0\n");
-    }
+    // write contact elements
+    writeElementInfo(f, ContactElements, "Tri3_Contact");
 
-    // write points:
-    if (Points != NULL) {
-        fprintf(f, "%s %d\n",Points->referenceElementSet->referenceElement->Type->Name,Points->numElements);
-        for (index_t i=0; i<Points->numElements; i++) {
-            fprintf(f,"%d %d %d\n",Points->Id[i],Points->Tag[i],Nodes->Id[Points->Nodes[INDEX2(0,i,1)]]);
-        }
-    } else {
-        fprintf(f,"Point1 0\n");
-    }
+    // write points
+    writeElementInfo(f, Points, "Point1");
 
-    // write tags:
+    // write tags
     if (tagMap.size() > 0) {
-        fprintf(f, "Tags\n");
+        f <<  "Tags" << endl;
         TagMap::const_iterator it;
         for (it=tagMap.begin(); it!=tagMap.end(); it++) {
-            fprintf(f, "%s %d\n", it->first.c_str(), it->second);
+            f << it->first << " " << it->second << endl;
         }
     }
-    fclose(f);
+    f.close();
 #ifdef Finley_TRACE
-    cout << "mesh " << m_name << " has been written to file " << fname << endl;
+    cout << "mesh " << m_name << " has been written to file " << filename << endl;
 #endif
 }
 
@@ -144,7 +164,7 @@ void Mesh::printInfo(bool full)
     cout << "\tIntegration order " << integrationOrder << endl;
     cout << "\tReduced Integration order " << reducedIntegrationOrder << endl;
 
-    // write nodes:
+    // write nodes
     if (Nodes != NULL) {
         const int numDim = getDim();
         cout << "\tNodes: " << numDim << "D-Nodes " << Nodes->numNodes << endl;
@@ -168,127 +188,17 @@ void Mesh::printInfo(bool full)
         cout << "\tNodes: 0D-Nodes 0\n";
     }
 
-    // write elements:
-    if (Elements != NULL) {
-        dim_t mine=0, overlap=0;
-        for (index_t i=0; i<Elements->numElements; i++) {
-            if (Elements->Owner[i] == MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        cout << "\tElements: "
-            << Elements->referenceElementSet->referenceElement->Type->Name
-            << " " << Elements->numElements << " (TypeId="
-            << Elements->referenceElementSet->referenceElement->Type->TypeId
-            << ") owner=" << mine << " overlap=" << overlap << endl;
-        if (full) {
-            const int NN=Elements->numNodes;
-            cout << "\t     Id   Tag Owner Color:  Nodes\n";
-            for (index_t i=0; i<Elements->numElements; i++) {
-                cout << "\t" << setw(7) << Elements->Id[i]
-                     << setw(6) << Elements->Tag[i]
-                     << setw(6) << Elements->Owner[i]
-                     << setw(6) << Elements->Color[i] << ": ";
-                for (int j=0; j<NN; j++)
-                    cout << setw(6) << Nodes->Id[Elements->Nodes[INDEX2(j,i,NN)]];
-                cout << endl;
-            }
-        }
-    } else {
-        cout << "\tElements: Tet4 0\n";
-    }
+    // write elements
+    printElementInfo(Elements, "Elements", "Tet4", full);
 
-    // write face elements:
-    if (FaceElements != NULL) {
-        dim_t mine=0, overlap=0;
-        for (index_t i=0; i < FaceElements->numElements; i++) {
-            if (FaceElements->Owner[i] == MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        cout << "\tFace elements: "
-            << FaceElements->referenceElementSet->referenceElement->Type->Name
-            << " " << FaceElements->numElements << " (TypeId="
-            << FaceElements->referenceElementSet->referenceElement->Type->TypeId
-            << ") owner=" << mine << " overlap=" << overlap << endl;
-        if (full) {
-            const int NN=FaceElements->numNodes;
-            cout << "\t     Id   Tag Owner Color:  Nodes\n";
-            for (index_t i=0; i<FaceElements->numElements; i++) {
-                cout << "\t" << setw(7) << FaceElements->Id[i]
-                     << setw(6) << FaceElements->Tag[i]
-                     << setw(6) << FaceElements->Owner[i]
-                     << setw(6) << FaceElements->Color[i] << ": ";
-                for (int j=0; j<NN; j++)
-                    cout << setw(6) << Nodes->Id[FaceElements->Nodes[INDEX2(j,i,NN)]];
-                cout << endl;
-            }
-        }
-    } else {
-        cout << "\tFace elements: Tri3 0\n";
-    }
+    // write face elements
+    printElementInfo(FaceElements, "Face elements", "Tri3", full);
 
-    // write Contact elements:
-    if (ContactElements != NULL) {
-        dim_t mine=0, overlap=0;
-        for (index_t i=0; i<ContactElements->numElements; i++) {
-            if (ContactElements->Owner[i] == MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        cout << "\tContact elements: "
-            << ContactElements->referenceElementSet->referenceElement->Type->Name
-            << " " << ContactElements->numElements << " (TypeId="
-            << ContactElements->referenceElementSet->referenceElement->Type->TypeId
-            << ") owner=" << mine << " overlap=" << overlap << endl;
-        if (full) {
-            const int NN=ContactElements->numNodes;
-            cout << "\t     Id   Tag Owner Color:  Nodes\n";
-            for (index_t i=0; i<ContactElements->numElements; i++) {
-                cout << "\t" << setw(7) << ContactElements->Id[i]
-                     << setw(6) << ContactElements->Tag[i]
-                     << setw(6) << ContactElements->Owner[i]
-                     << setw(6) << ContactElements->Color[i] << ": ";
-                for (int j=0; j<NN; j++)
-                    cout << setw(6) << Nodes->Id[ContactElements->Nodes[INDEX2(j,i,NN)]];
-                cout << endl;
-            }
-        }
-    } else {
-        cout << "\tContact elements: Tri3_Contact 0\n";
-    }
+    // write contact elements
+    printElementInfo(ContactElements, "Contact elements", "Tri3_Contact", full);
 
-    // write points:
-    if (Points != NULL) {
-        dim_t mine=0, overlap=0;
-        for (index_t i=0; i<Points->numElements; i++) {
-            if (Points->Owner[i] == MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        cout << "\tPoints: "
-            << Points->referenceElementSet->referenceElement->Type->Name
-            << " " << Points->numElements << " (TypeId="
-            << Points->referenceElementSet->referenceElement->Type->TypeId
-            << ") owner=" << mine << " overlap=" << overlap << endl;
-        if (full) {
-            cout << "\t     Id   Tag Owner Color:  Nodes\n";
-            for (index_t i=0; i<Points->numElements; i++) {
-                cout << "\t" << setw(7) << Points->Id[i]
-                     << setw(6) << Points->Tag[i]
-                     << setw(6) << Points->Owner[i]
-                     << setw(6) << Points->Color[i]
-                     << setw(8) << Nodes->Id[Points->Nodes[INDEX2(0,i,1)]]
-                     << endl;
-            }
-        }
-    } else {
-        cout << "\tPoints: Point1 0\n";
-    }
+    // write points
+    printElementInfo(Points, "Points", "Point1", full);
 
     // write tags
     if (tagMap.size() > 0) {
