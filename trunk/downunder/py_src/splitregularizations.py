@@ -31,7 +31,7 @@ import numpy as np
 from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue,SolverOptions
 from esys.escript.pdetools import ArithmeticTuple
-from .coordinates import makeTranformation
+from .coordinates import makeTransformation
 from .costfunctions import CostFunction
 
 class SplitRegularization(CostFunction):
@@ -113,7 +113,7 @@ class SplitRegularization(CostFunction):
         self.__domain=domain
         DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
-        self.__trafo=makeTranformation(domain, coordinates)
+        self.__trafo=makeTransformation(domain, coordinates)
         self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()

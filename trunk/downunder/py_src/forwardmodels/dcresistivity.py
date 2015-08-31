@@ -26,7 +26,7 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['DcRes']
 
 from .base import ForwardModel
-from esys.downunder.coordinates import makeTranformation
+from esys.downunder.coordinates import makeTransformation
 from esys.escript import Scalar, DiracDeltaFunctions
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
@@ -81,7 +81,7 @@ class DcRes(ForwardModel):
         if not len(w) == len(delphiIn):
             raise ValueError("Number of confidence factors and number of potential input values don't match.")
 
-        self.__trafo = makeTranformation(domain, coordinates)
+        self.__trafo = makeTransformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not isinstance(locator, Locator):

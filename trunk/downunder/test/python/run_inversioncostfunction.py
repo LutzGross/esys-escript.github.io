@@ -53,7 +53,7 @@ class LinearMappingX(Mapping):
 class SimpleModel(ForwardModel):
     def __init__(self, domain, coordinates, numComps=1):
         self.domain = domain
-        self.trafo=makeTranformation(domain, coordinates)
+        self.trafo=makeTransformation(domain, coordinates)
         self.numComps=numComps
 
     def getCoordinateTransformation(self):

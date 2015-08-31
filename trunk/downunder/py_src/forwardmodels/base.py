@@ -26,7 +26,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['ForwardModel','ForwardModelWithPotential']
 
-from esys.downunder.coordinates import makeTranformation
+from esys.downunder.coordinates import makeTransformation
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 import numpy as np
@@ -87,7 +87,7 @@ class ForwardModelWithPotential(ForwardModel):
         """
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
-        self.__trafo = makeTranformation(domain, coordinates)
+        self.__trafo = makeTransformation(domain, coordinates)
 
         try:
             n=len(w)

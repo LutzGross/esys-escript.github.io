@@ -27,7 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['MT2DModelTEMode', 'MT2DModelTMMode']
 
 from .base import ForwardModel
-from esys.downunder.coordinates import makeTranformation
+from esys.downunder.coordinates import makeTransformation
 from esys.escript import Data, Scalar, Vector, Function, FunctionOnBoundary, Solution
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.util import *
@@ -89,7 +89,7 @@ class MT2DBase(ForwardModel):
         :type directSolver: ``bool``
         """
         super(MT2DBase, self).__init__()
-        self.__trafo = makeTranformation(domain, coordinates)
+        self.__trafo = makeTransformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian coordinates are not supported yet.")
         if len(x) != len(Z):
