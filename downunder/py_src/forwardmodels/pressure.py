@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['IsostaticPressure']
 
-from esys.downunder.coordinates import makeTranformation
+from esys.downunder.coordinates import makeTransformation
 from esys.escript import unitsSI as U
 from esys.escript import Scalar, Vector, Function
 from esys.escript.linearPDEs import LinearSinglePDE
@@ -59,7 +59,7 @@ class IsostaticPressure(object):
         """
         DIM=domain.getDim()
         self.__domain = domain
-        self.__trafo=makeTranformation(domain, coordinates)
+        self.__trafo=makeTransformation(domain, coordinates)
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()

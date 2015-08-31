@@ -26,7 +26,7 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['AcousticWaveForm']
 
 from .base import ForwardModel
-from esys.downunder.coordinates import makeTranformation
+from esys.downunder.coordinates import makeTransformation
 from esys.escript import Data, DiracDeltaFunctions, FunctionOnBoundary
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.util import *
@@ -82,7 +82,7 @@ class AcousticWaveForm(ForwardModel):
         :type fixAtBottom: ``bool``
         """
         super(AcousticWaveForm, self).__init__()
-        self.__trafo = makeTranformation(domain, coordinates)
+        self.__trafo = makeTransformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not isinstance(data, Data):

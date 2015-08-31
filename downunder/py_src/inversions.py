@@ -40,7 +40,7 @@ from .mappings import *
 from .minimizers import *
 from .regularizations import Regularization
 from .datasources import DataSource
-from .coordinates import makeTranformation
+from .coordinates import makeTransformation
 
 class InversionDriver(object):
     """
@@ -259,7 +259,7 @@ class GravityInversion(InversionDriver):
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
-        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
+        trafo=makeTransformation(dom, domainbuilder.getReferenceSystem())
         DIM=dom.getDim()
         rho_mask = domainbuilder.getSetDensityMask()
         #========================
@@ -371,7 +371,7 @@ class MagneticInversion(InversionDriver):
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
         DIM=dom.getDim()
-        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
+        trafo=makeTransformation(dom, domainbuilder.getReferenceSystem())
         #========================
         self.logger.info('Creating mapping ...')
         k_mask = domainbuilder.getSetSusceptibilityMask()
@@ -503,7 +503,7 @@ class JointGravityMagneticInversion(InversionDriver):
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
         DIM=dom.getDim()
-        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
+        trafo=makeTransformation(dom, domainbuilder.getReferenceSystem())
         #========================
         self.logger.info('Creating mappings ...')
         rho_mask=domainbuilder.getSetDensityMask()
@@ -693,7 +693,7 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
         DIM=dom.getDim()
-        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
+        trafo=makeTransformation(dom, domainbuilder.getReferenceSystem())
 
         rock_mask=wherePositive(domainbuilder.getSetDensityMask() + domainbuilder.getSetSusceptibilityMask())
         #========================
