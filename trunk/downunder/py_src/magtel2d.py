@@ -44,7 +44,12 @@ import types
 from . import magtel1d         as mt1d
 import esys.weipa              as weipa
 import esys.escript            as escript
-import esys.finley             as finley
+try:
+    import esys.finley         as finley
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
+
 import esys.escript.pdetools   as pdetools
 import esys.escript.linearPDEs as pde
 
@@ -196,6 +201,8 @@ class MT_2D(object):
     self.boundary_mask  :: Dirichlet mask at boundaries
     """
 
+    if not HAVE_FINLEY:
+        raise ImportError("Finley module not available")
     #make python3 compatible, since long disappeared in python 3
     if sys.version_info[0] == 3:
         long_type = int
