@@ -44,22 +44,16 @@ import numpy
 import datetime
 import esys.downunder.magtel2d as mt2d
 import esys.escript            as escript
-import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
-
-
-
-
-# this is mainly to avoid warning messages
-logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
-
 try:
-    from esys.finley import Rectangle as fRect, Brick as fBrick
+    import esys.finley         as finley
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False
 
 
+# this is mainly to avoid warning messages
+logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
 
 def makeLayerCake(x_start,x_extent,z_layers):
