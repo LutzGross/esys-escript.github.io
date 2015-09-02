@@ -36,8 +36,12 @@ import numpy
 import datetime
 import esys.downunder.magtel2d as mt2d
 import esys.escript            as escript
-import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
+try:
+    import esys.finley         as finley
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
 
 # Matplotlib uses outdated code -- ignore the warnings until an update is available:
 import warnings
@@ -46,11 +50,6 @@ import logging
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
-try:
-    from esys.finley import Rectangle as fRect, Brick as fBrick
-    HAVE_FINLEY = True
-except ImportError:
-    HAVE_FINLEY = False
 
 # ==========================================================
 # ==========================================================
