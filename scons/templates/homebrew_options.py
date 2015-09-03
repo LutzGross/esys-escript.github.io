@@ -228,6 +228,10 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
+# List of domain families to build [new in 202]
+# DEFAULT: 'all' (i.e. dudley, finley, ripley, speckley)
+#domains = 'finley,ripley'
+
 # Build dynamic libraries only
 #DEFAULT: False
 #build_shared = True

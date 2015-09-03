@@ -218,7 +218,7 @@ silo_libs = ['silo']
 
 # List of domain families to build [new in 202]
 # DEFAULT: 'all' (i.e. dudley, finley, ripley, speckley)
-#domains = ['finley', 'ripley']
+#domains = 'finley,ripley'
 
 
 ### ADVANCED OPTIONS ###
