@@ -35,7 +35,7 @@ void MKL_free(SparseMatrix* A)
 {
 #ifdef MKL
     if (A && A->solver_p && A->solver_package==PASO_MKL) {
-        ES_MKL_INT mtype = MKL_MTYPE_UNSYM;
+        ES_MKL_INT mtype = MKL_MTYPE_REAL_UNSYM;
         ES_MKL_INT n = A->numRows;
         ES_MKL_INT maxfct=1; // number of factorizations on the same pattern
         ES_MKL_INT mnum =1;  // factorization to be handled in this call
@@ -82,7 +82,7 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
     ES_MKL_INT* ptr = reinterpret_cast<ES_MKL_INT*>(A->pattern->ptr);
     ES_MKL_INT* index = reinterpret_cast<ES_MKL_INT*>(A->pattern->index);
 
-    ES_MKL_INT mtype = MKL_MTYPE_UNSYM;
+    ES_MKL_INT mtype = MKL_MTYPE_REAL_UNSYM;
     ES_MKL_INT n = A->numRows;
     ES_MKL_INT maxfct = 1; /* number of factorizations on the same pattern */
     ES_MKL_INT mnum = 1; /* factorization to be handled in this call */
@@ -103,20 +103,23 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
             iparm[1] = MKL_REORDERING_MINIMUM_DEGREE;
             break;
         default:
+#ifdef _OPENMP
+            iparm[1] = MKL_REORDERING_NESTED_DISSECTION_OMP;
+#else
             iparm[1] = MKL_REORDERING_NESTED_DISSECTION;
+#endif
             break;
     }
-#ifdef _OPENMP
-    iparm[2] = omp_get_max_threads();
-#else
-    iparm[2] = 1;
-#endif
     iparm[5] = 0; // store solution into output array
     iparm[7] = numRefinements; // maximum number of refinements
     iparm[9] = 13; // 10**(-iparm[9]) perturbation of pivot elements
     iparm[10] = 1; // rescaling the matrix before factorization started
     iparm[17] = 0; // =-1 report number of non-zeroes
     iparm[18] = 0; // =-1 report flops
+#ifdef _OPENMP
+    if (omp_get_max_threads() > 8)
+        iparm[23] = 1;
+#endif
 
     double time0;
 
