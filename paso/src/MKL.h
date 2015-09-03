@@ -30,18 +30,19 @@
 #define __PASO_MKL_H__
 
 #include "SparseMatrix.h"
-#include "performance.h"
 
 namespace paso {
 
-#if defined(_WIN32) || defined(_WIN64)
-#define PARDISO pardiso
+#ifdef ESYS_INDEXTYPE_LONG
+#define ES_PARDISO pardiso_64
+#define ES_MKL_INT MKL_INT64
 #else
-#define PARDISO pardiso_
+#define ES_PARDISO pardiso
+#define ES_MKL_INT MKL_INT
 #endif
 
 #ifdef MKL
-#include "mkl_pardiso.h"
+#include <mkl_pardiso.h>
 #endif
 
 
@@ -55,12 +56,6 @@ namespace paso {
 #define MKL_PHASE_FACTORIZATION 22
 #define MKL_PHASE_SOLVE 33
 #define MKL_PHASE_RELEASE_MEMORY -1
-
-/* extern int PARDISO
-#         (void *, int *, int *, int *, int *, int *,
-#         double *, int *, int *, int *, int *, int *,
-#         int *, double *, double *, int *);
-*/
 
 
 void MKL_free(SparseMatrix* A);
