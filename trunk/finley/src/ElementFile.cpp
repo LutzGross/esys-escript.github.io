@@ -111,8 +111,8 @@ void ElementFile::freeTable()
 
 /// copies element file 'in' into this element file starting from 'offset'.
 /// The elements offset to in->numElements+offset-1 will be overwritten
-void ElementFile::copyTable(int offset, int nodeOffset, int idOffset,
-                            const ElementFile* in)
+void ElementFile::copyTable(index_t offset, index_t nodeOffset,
+                            index_t idOffset, const ElementFile* in)
 {
     const int NN_in=in->numNodes;
     if (NN_in > numNodes) {
@@ -131,12 +131,12 @@ void ElementFile::copyTable(int offset, int nodeOffset, int idOffset,
     }
 }
 
-void ElementFile::gather(int* index, const ElementFile* in)
+void ElementFile::gather(index_t* index, const ElementFile* in)
 {
     const int NN_in=in->numNodes;
 #pragma omp parallel for
     for (index_t e=0; e<numElements; e++) {
-        const int k=index[e];
+        const index_t k=index[e];
         Id[e]=in->Id[k];
         Tag[e]=in->Tag[k];
         Owner[e]=in->Owner[k];
@@ -150,12 +150,12 @@ void ElementFile::gather(int* index, const ElementFile* in)
 
 /// scatters the ElementFile in into this ElementFile.
 /// A conservative assumption on the coloring is made.
-void ElementFile::scatter(int* index, const ElementFile* in)
+void ElementFile::scatter(index_t* index, const ElementFile* in)
 {
     const int NN_in=in->numNodes;
 #pragma omp parallel for
     for (index_t e=0; e<in->numElements; e++) {
-        const int k=index[e];
+        const index_t k=index[e];
         Owner[k]=in->Owner[e];
         Id[k]=in->Id[e];
         Tag[k]=in->Tag[e];
@@ -187,7 +187,7 @@ void ElementFile::optimizeOrdering()
 
     const int NN=referenceElementSet->getNumNodes();
     util::ValueAndIndexList item_list(numElements);
-    int *index=new int[numElements];
+    index_t *index=new index_t[numElements];
     ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
     out->allocTable(numElements);
     if (noError()) {
@@ -222,7 +222,7 @@ void ElementFile::relabelNodes(const std::vector<index_t>& newNode, index_t offs
     }
 }
 
-void ElementFile::setTags(const int newTag, const escript::Data& mask)
+void ElementFile::setTags(int newTag, const escript::Data& mask)
 {
     resetError();
 
@@ -404,22 +404,22 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         // count the number of elements that have to be sent to each processor
         // (send_count) and define a new element owner as the processor with
         // the largest number of DOFs and the smallest id
-        std::vector<int> send_count(size);
-        std::vector<int> recv_count(size);
+        std::vector<dim_t> send_count(size);
+        std::vector<dim_t> recv_count(size);
         std::vector<int> newOwner(numElements);
 #pragma omp parallel
         {
-            std::vector<int> loc_send_count(size);
+            std::vector<dim_t> loc_send_count(size);
 #pragma omp for
             for (index_t e=0; e<numElements; e++) {
                 if (Owner[e] == myRank) {
                     newOwner[e]=myRank;
-                    std::vector<int> loc_proc_mask(size);
+                    std::vector<dim_t> loc_proc_mask(size);
                     for (int j=0; j<numNodes; j++) {
                         const int p=mpiRankOfDOF[Nodes[INDEX2(j,e,numNodes)]];
                         loc_proc_mask[p]++;
                     }
-                    int loc_proc_mask_max=0;
+                    dim_t loc_proc_mask_max=0;
                     for (int p=0; p<size; ++p) {
                         if (loc_proc_mask[p] > 0)
                             loc_send_count[p]++;
@@ -438,11 +438,11 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                     send_count[p]+=loc_send_count[p];
             }
         }
-        MPI_Alltoall(&send_count[0], 1, MPI_INT, &recv_count[0], 1, MPI_INT,
+        MPI_Alltoall(&send_count[0], 1, MPI_DIM_T, &recv_count[0], 1, MPI_DIM_T,
                      MPIInfo->comm);
         // get the new number of elements for this processor
-        index_t newNumElements=0;
-        int numElementsInBuffer=0;
+        dim_t newNumElements=0;
+        dim_t numElementsInBuffer=0;
         for (int p=0; p<size; ++p) {
             newNumElements+=recv_count[p];
             numElementsInBuffer+=send_count[p];
@@ -452,8 +452,8 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         std::vector<int> Tag_buffer(numElementsInBuffer);
         std::vector<int> Owner_buffer(numElementsInBuffer);
         std::vector<index_t> Nodes_buffer(numElementsInBuffer*numNodes);
-        std::vector<int> send_offset(size);
-        std::vector<int> recv_offset(size);
+        std::vector<index_t> send_offset(size);
+        std::vector<index_t> recv_offset(size);
         std::vector<unsigned char> proc_mask(size);
 
         // calculate the offsets for the processor buffers
@@ -471,7 +471,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                 for (int j=0; j<numNodes; j++) {
                     const int p=mpiRankOfDOF[Nodes[INDEX2(j,e,numNodes)]];
                     if (proc_mask[p]) {
-                        int k=send_offset[p]+send_count[p];
+                        index_t k=send_offset[p]+send_count[p];
                         Id_buffer[k]=Id[e];
                         Tag_buffer[k]=Tag[e];
                         Owner_buffer[k]=newOwner[e];

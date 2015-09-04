@@ -53,7 +53,7 @@ void Assemble_AverageElementData(const ElementFile* elements,
     }
 
     // check out and in
-    const int numElements=elements->numElements;
+    const dim_t numElements=elements->numElements;
     const int numComps=out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
@@ -71,7 +71,7 @@ void Assemble_AverageElementData(const ElementFile* elements,
             const double volinv=1./vol;
             out.requireWrite();
 #pragma omp parallel for
-            for (int n=0; n<numElements; n++) {
+            for (index_t n=0; n<numElements; n++) {
                 const double *in_array = in.getSampleDataRO(n);
                 double *out_array = out.getSampleDataRW(n);
                 for (int i=0; i<numComps; ++i) {
@@ -87,7 +87,7 @@ void Assemble_AverageElementData(const ElementFile* elements,
             const size_t numComps_size=numComps*sizeof(double);
             out.requireWrite();
 #pragma omp parallel for
-            for (int n=0; n<numElements; n++) {
+            for (index_t n=0; n<numElements; n++) {
                 const double *in_array = in.getSampleDataRO(n);
                 double *out_array = out.getSampleDataRW(n);
                 for (int q=0; q<numQuad_out; q++)

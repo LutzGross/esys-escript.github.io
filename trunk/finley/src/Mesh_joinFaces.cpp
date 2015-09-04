@@ -67,7 +67,7 @@ void Mesh::joinFaces(double safety_factor, double tolerance, bool optimize)
     // allocate work arrays
     int* elem1=new int[FaceElements->numElements];
     int* elem0=new int[FaceElements->numElements];
-    int* elem_mask=new int[FaceElements->numElements];
+    index_t* elem_mask=new index_t[FaceElements->numElements];
     int* matching_nodes_in_elem1=new int[FaceElements->numElements*NN];
 
     // find the matching face elements
@@ -76,15 +76,15 @@ void Mesh::joinFaces(double safety_factor, double tolerance, bool optimize)
     if (noError()) {
         // get a list of the face elements to be kept
 #pragma omp parallel for
-        for (int e=0; e<FaceElements->numElements; e++)
+        for (index_t e=0; e<FaceElements->numElements; e++)
             elem_mask[e]=1;
         for (int e=0; e<numPairs; e++) {
             elem_mask[elem0[e]]=0;
             elem_mask[elem1[e]]=0;
         }
-        int new_numFaceElements=0;
+        dim_t new_numFaceElements=0;
         // OMP
-        for (int e=0; e<FaceElements->numElements; e++) {
+        for (index_t e=0; e<FaceElements->numElements; e++) {
             if (elem_mask[e]>0) {
                 elem_mask[new_numFaceElements]=e;
                 new_numFaceElements++;
@@ -101,7 +101,7 @@ void Mesh::joinFaces(double safety_factor, double tolerance, bool optimize)
         newFaceElementsFile->gather(elem_mask, FaceElements);
         // get the contact elements which are still in use
         newContactElementsFile->copyTable(0, 0, 0, ContactElements);
-        int c=ContactElements->numElements;
+        dim_t c=ContactElements->numElements;
         // OMP
         for (int e=0; e<numPairs; e++) {
             const int e0=elem0[e];

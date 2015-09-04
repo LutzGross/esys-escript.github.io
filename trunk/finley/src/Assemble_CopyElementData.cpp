@@ -44,7 +44,7 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
         numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
     }
 
-    const int numElements=elements->numElements;
+    const dim_t numElements=elements->numElements;
     const int numComps=out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
@@ -60,13 +60,13 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
             const size_t len_size=numComps*numQuad*sizeof(double);
             out.requireWrite();
 #pragma omp parallel for
-            for (int n=0; n<numElements; n++) 
+            for (index_t n=0; n<numElements; n++) 
                 memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), len_size);
         } else {
             const size_t len_size=numComps*sizeof(double);
             out.requireWrite();
 #pragma omp parallel for
-            for (int n=0; n<numElements; n++) {
+            for (index_t n=0; n<numElements; n++) {
                 const double *in_array = in.getSampleDataRO(n);
                 double *out_array = out.getSampleDataRW(n);
                 for (int q=0; q<numQuad; q++)

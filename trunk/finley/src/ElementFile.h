@@ -74,9 +74,9 @@ public:
     /// assigns new node reference numbers to the elements
     void relabelNodes(const std::vector<index_t>& newNode, index_t offset);
     void markNodes(std::vector<short>& mask, int offset, bool useLinear);
-    void scatter(int* index, const ElementFile* in);
-    void gather(int* index, const ElementFile* in);
-    void copyTable(int offset, int nodeOffset, int idOffset,
+    void scatter(index_t* index, const ElementFile* in);
+    void gather(index_t* index, const ElementFile* in);
+    void copyTable(index_t offset, index_t nodeOffset, index_t idOffset,
                    const ElementFile* in);
 
     void markDOFsConnectedToRange(int* mask, int offset, int marker,
