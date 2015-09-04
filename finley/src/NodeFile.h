@@ -66,14 +66,15 @@ public:
     void createNodeMappings(const std::vector<index_t>& indexReducedNodes,
                             const std::vector<index_t>& dofDistribution,
                             const std::vector<index_t>& nodeDistribution);
-    int createDenseDOFLabeling();
-    int createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
-                                const std::vector<index_t>& dofDistribution);
-    int createDenseReducedLabeling(const std::vector<short>& reducedMask,
-                                   bool useNodes);
+    dim_t createDenseDOFLabeling();
+    dim_t createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
+                                  const std::vector<index_t>& dofDistribution);
+    dim_t createDenseReducedLabeling(const std::vector<short>& reducedMask,
+                                     bool useNodes);
     void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const std::vector<index_t>& distribution);
 
-    void copyTable(int offset, int idOffset, int dofOffset, const NodeFile* in);
+    void copyTable(index_t offset, index_t idOffset, index_t dofOffset,
+                   const NodeFile* in);
     void gather(const index_t* index, const NodeFile* in);
     void gather_global(const index_t* index, const NodeFile* in);
     void scatter(const index_t* index, const NodeFile* in);
@@ -88,9 +89,9 @@ private:
     std::pair<index_t,index_t> getGlobalIdRange() const;
     std::pair<index_t,index_t> getGlobalDOFRange() const;
     std::pair<index_t,index_t> getGlobalNodeIDIndexRange() const;
-    int prepareLabeling(const std::vector<short>& mask,
-                        std::vector<index_t>& buffer,
-                        std::vector<index_t>& distribution, bool useNodes);
+    dim_t prepareLabeling(const std::vector<short>& mask,
+                          std::vector<index_t>& buffer,
+                          std::vector<index_t>& distribution, bool useNodes);
     void createDOFMappingAndCoupling(bool reduced);
 
     NodeMapping nodesMapping;

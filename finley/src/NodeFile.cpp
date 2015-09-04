@@ -179,7 +179,7 @@ void NodeFile::print() const
     std::cout << "=== " << numDim << "D-Nodes:\nnumber of nodes=" << numNodes
         << std::endl;
     std::cout << "Id,Tag,globalDegreesOfFreedom,degreesOfFreedom,reducedDegreesOfFeedom,node,reducedNode,Coordinates" << std::endl;
-    for (int i=0; i<numNodes; i++) {
+    for (index_t i=0; i<numNodes; i++) {
         std::cout << Id[i] << "," << Tag[i] << "," << globalDegreesOfFreedom[i]
             << "," << degreesOfFreedomMapping.target[i]
             << "," << reducedDegreesOfFreedomMapping.target[i]
@@ -220,7 +220,7 @@ void NodeFile::setCoordinates(const escript::Data& newX)
 }
 
 /// sets tags to newTag where mask>0
-void NodeFile::setTags(const int newTag, const escript::Data& mask)
+void NodeFile::setTags(int newTag, const escript::Data& mask)
 {
     resetError();
 
@@ -307,7 +307,7 @@ std::pair<index_t,index_t> NodeFile::getGlobalNodeIDIndexRange() const
     return result;
 }
 
-void NodeFile::copyTable(int offset, int idOffset, int dofOffset,
+void NodeFile::copyTable(index_t offset, index_t idOffset, index_t dofOffset,
                          const NodeFile* in)
 {
     // check number of dimensions and table size
@@ -480,9 +480,10 @@ void NodeFile::assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF,
     }
 }
 
-int NodeFile::prepareLabeling(const std::vector<short>& mask,
-                              std::vector<index_t>& buffer,
-                              std::vector<index_t>& distribution, bool useNodes)
+dim_t NodeFile::prepareLabeling(const std::vector<short>& mask,
+                                std::vector<index_t>& buffer,
+                                std::vector<index_t>& distribution,
+                                bool useNodes)
 {
     const index_t UNSET_ID=-1,SET_ID=1;
 
@@ -509,7 +510,7 @@ int NodeFile::prepareLabeling(const std::vector<short>& mask,
     for (int p=0; p<MPIInfo->size; ++p) {
         if (p>0) { // the initial send can be skipped
 #ifdef ESYS_MPI
-            MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_INT, dest,
+            MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_DIM_T, dest,
                     MPIInfo->msg_tag_counter, source, MPIInfo->msg_tag_counter,
                     MPIInfo->comm, &status);
 #endif
@@ -521,7 +522,7 @@ int NodeFile::prepareLabeling(const std::vector<short>& mask,
 #pragma omp parallel for
         for (index_t n=0; n<numNodes; n++) {
             if (mask.size()<numNodes || mask[n]>-1) {
-                const int k=indexArray[n];
+                const index_t k=indexArray[n];
                 if (id0<=k && k<id1) {
                     buffer[k-id0] = SET_ID;
                 }
@@ -540,7 +541,7 @@ int NodeFile::prepareLabeling(const std::vector<short>& mask,
     return myNewCount;
 }
 
-int NodeFile::createDenseDOFLabeling()
+dim_t NodeFile::createDenseDOFLabeling()
 {
     std::vector<index_t> DOF_buffer;
     std::vector<index_t> distribution;
@@ -603,10 +604,10 @@ int NodeFile::createDenseDOFLabeling()
     return new_numGlobalDOFs;
 }
 
-int NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
-                                      const std::vector<index_t>& dofDistribution)
+dim_t NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
+                                   const std::vector<index_t>& dofDistribution)
 {
-    const int UNSET_ID=-1, SET_ID=1;
+    const index_t UNSET_ID=-1, SET_ID=1;
     const index_t myFirstDOF=dofDistribution[MPIInfo->rank];
     const index_t myLastDOF=dofDistribution[MPIInfo->rank+1];
 
@@ -619,7 +620,7 @@ int NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
         index_t loc_min_id=min_id;
 #pragma omp for
         for (index_t n=0; n<numNodes; n++) {
-            const int dof=globalDegreesOfFreedom[n];
+            const dim_t dof=globalDegreesOfFreedom[n];
             if (myFirstDOF<=dof && dof<myLastDOF) {
                 loc_max_id=std::max(loc_max_id, Id[n]);
                 loc_min_id=std::min(loc_min_id, Id[n]);
@@ -672,7 +673,7 @@ int NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
 
     dim_t globalNumNodes=0;
     for (int p=0; p<MPIInfo->size; ++p) {
-        const int itmp=nodeDistribution[p];
+        const dim_t itmp=nodeDistribution[p];
         nodeDistribution[p]=globalNumNodes;
         globalNumNodes+=itmp;
     }
@@ -717,8 +718,8 @@ int NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
     return globalNumNodes;
 }
 
-int NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask,
-                                         bool useNodes)
+dim_t NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask,
+                                           bool useNodes)
 {
     std::vector<index_t> buffer;
     std::vector<index_t> distribution;
@@ -828,7 +829,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         setError(SYSTEM_ERROR, "Local elements do not span local degrees of freedom.");
         return;
     }
-    const int UNUSED = -1;
+    const index_t UNUSED = -1;
     const index_t len_loc_dof=max_DOF-min_DOF+1;
     std::vector<index_t> shared(numNodes*(p_max-p_min+1));
     std::vector<index_t> offsetInShared(mpiSize+1);
@@ -862,12 +863,12 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     }
 
     std::vector<index_t> wanted_DOFs(numNodes);
-    std::vector<int> rcv_len(mpiSize);
-    std::vector<int> snd_len(mpiSize);
-    std::vector<int> neighbor(mpiSize);
+    std::vector<index_t> rcv_len(mpiSize);
+    std::vector<index_t> snd_len(mpiSize);
+    std::vector<Esys_MPI_rank> neighbor(mpiSize);
     int numNeighbors=0;
-    int n=0;
-    int lastn=n;
+    index_t n=0;
+    index_t lastn=n;
     for (int p=p_min; p<=p_max; ++p) {
         if (p != myRank) {
             const index_t firstDOF=std::max(min_DOF, dof_distribution->first_component[p]);
@@ -947,7 +948,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 #ifdef ESYS_MPI
     std::vector<MPI_Request> mpi_requests(mpiSize*2);
     std::vector<MPI_Status> mpi_stati(mpiSize*2);
-    MPI_Alltoall(&rcv_len[0], 1, MPI_INT, &snd_len[0], 1, MPI_INT, MPIInfo->comm);
+    MPI_Alltoall(&rcv_len[0], 1, MPI_DIM_T, &snd_len[0], 1, MPI_DIM_T, MPIInfo->comm);
     int count=0;
 #else
     snd_len[0]=rcv_len[0];
@@ -1049,7 +1050,7 @@ void NodeFile::createNodeMappings(const std::vector<index_t>& indexReducedNodes,
 #endif
     index_t globalNumReducedNodes=0;
     index_t globalNumReducedDOF=0;
-    for (int i=0; i<mpiSize;++i) {
+    for (int i=0; i<mpiSize; ++i) {
         index_t k=rnodeDist[i];
         rnodeDist[i]=globalNumReducedNodes;
         globalNumReducedNodes+=k;
@@ -1074,7 +1075,7 @@ void NodeFile::createNodeMappings(const std::vector<index_t>& indexReducedNodes,
     std::vector<index_t> nodeMask(numNodes);
 
     if (noError()) {
-        const int UNUSED = -1;
+        const index_t UNUSED = -1;
         // ==== nodes mapping which is a dummy structure ========
 #pragma omp parallel for
         for (index_t i=0; i<numNodes; ++i)

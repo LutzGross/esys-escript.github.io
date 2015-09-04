@@ -56,7 +56,7 @@ void Mesh::glueFaces(double safety_factor, double tolerance, bool optimize)
     // allocate work arrays
     int* elem1=new int[FaceElements->numElements];
     int* elem0=new int[FaceElements->numElements];
-    std::vector<int> elem_mask(FaceElements->numElements, 0);
+    std::vector<index_t> elem_mask(FaceElements->numElements, 0);
     int* matching_nodes_in_elem1=new int[FaceElements->numElements*NN];
     std::vector<index_t> new_node_label(Nodes->numNodes);
     // find the matching face elements

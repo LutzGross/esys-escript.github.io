@@ -74,7 +74,7 @@ void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
     {
         std::vector<double> local_X(NN*numDim);
 #pragma omp parallel for
-        for (int e=0; e<elements->numElements; e++) {
+        for (index_t e=0; e<elements->numElements; e++) {
             // gather local coordinates of nodes into
             // local_X(numDim,NN):
             util::gather(NS, &(elements->Nodes[INDEX2(node_offset,e,NN)]),

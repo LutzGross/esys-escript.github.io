@@ -160,7 +160,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
                 new_distribution[i]+=loc_partition_count[i];
         }
     }
-    int *recvbuf=new int[mpiSize*mpiSize];
+    index_t *recvbuf=new index_t[mpiSize*mpiSize];
 #ifdef ESYS_MPI
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
@@ -173,7 +173,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
     new_distribution[0]=0;
     std::vector<index_t> newGlobalDOFID(len);
     for (int rank=0; rank<mpiSize; rank++) {
-        int c=0;
+        index_t c=0;
         for (int i=0; i<myRank; ++i)
             c+=recvbuf[rank+mpiSize*i];
         for (index_t i=0; i<myNumVertices; ++i) {
