@@ -388,7 +388,7 @@ TODO Note that this constructor will also copy data to all points if it only con
 */
   ESCRIPT_DLL_API
   virtual void
-  reorderByReferenceIDs(int *reference_ids);
+  reorderByReferenceIDs(dim_t *reference_ids);
 
  protected:
 
