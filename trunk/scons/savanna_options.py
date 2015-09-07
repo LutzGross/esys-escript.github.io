@@ -90,7 +90,7 @@ openmp = True
 mpi = 'INTELMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/sw/intel/impi/5.0.2.044/intel64'
+mpi_prefix = '/sw/intel/impi/5.1.1.109/intel64'
 
 # MPI libraries to link against
 #mpi_libs = ['mpi']
