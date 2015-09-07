@@ -801,19 +801,18 @@ DataExpanded::setTaggedValue(int tagKey,
 
 
 void
-DataExpanded::reorderByReferenceIDs(int *reference_ids)
+DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
 {
   CHECK_FOR_EX_WRITE
   int numSamples = getNumSamples();
   DataTypes::ValueType::size_type n = getNoValues() * getNumDPPSample();
   int sampleNo, sampleNo2,i;
   double* p,*p2;
-  register double rtmp;
   FunctionSpace fs=getFunctionSpace();
 
   for (sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-     const int id_in=reference_ids[sampleNo];
-     const int id=fs.getReferenceIDOfSample(sampleNo);
+     const index_t id_in=reference_ids[sampleNo];
+     const index_t id=fs.getReferenceIDOfSample(sampleNo);
      if (id!=id_in) {
          bool matched=false;
          for (sampleNo2 = sampleNo+1; sampleNo2 < numSamples; sampleNo2++) {
@@ -821,7 +820,7 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
                  p=&(m_data[getPointOffset(sampleNo,0)]);
                  p2=&(m_data[getPointOffset(sampleNo2,0)]);
                  for (i=0; i<n ;i++) {
-                         rtmp=p[i];
+                         const double rtmp=p[i];
                          p[i]=p2[i];
                          p2[i]=rtmp;
                  }
@@ -841,8 +840,8 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
 DataTypes::ValueType&
 DataExpanded::getVectorRW()
 {
-        CHECK_FOR_EX_WRITE
-        return m_data.getData();
+    CHECK_FOR_EX_WRITE
+    return m_data.getData();
 }
 
 const DataTypes::ValueType&
