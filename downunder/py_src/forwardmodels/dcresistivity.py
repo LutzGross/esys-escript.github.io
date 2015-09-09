@@ -158,7 +158,7 @@ class DcRes(ForwardModel):
         :rtype: ``Data`` of shape (1,)
         """
         pde = self.setUpPDE()
-        X = (self.__sigmaPrimary - sigma) * grad(self.__phiPrimary)
+        X = (sigma - self.__sigmaPrimary) * grad(self.__phiPrimary)
         pde.setValue(A=sigma * kronecker(self.__domain), X=X)
         phi = pde.getSolution()
         loc = self.__locator
