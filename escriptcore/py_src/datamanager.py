@@ -327,7 +327,7 @@ class DataManager(object):
         pickle.dump(self._stamp, open(stamp_file, "wb"))
         ff=self.__getDumpFilename("_domain", restartdir)
         self._domain.dump(ff)
-        for name, var in sorted(list(self._data.items(), key=lambda x: x[0])):
+        for name, var in sorted(list(self._data.items()), key=lambda x: x[0]):
             ff=self.__getDumpFilename(name, restartdir)
             var.dump(ff)
         print(("Restart files saved in "+os.path.join(self._workdir, restartdir)))
