@@ -87,21 +87,21 @@ class TemperatureCartesian(lpe.TransportPDE):
         self.setInitialSolution(T)
 
     def setValue(self,rhocp=None,v=None,k=None,Q=None,surface_flux=None,given_T_mask=None):
-        if rhocp!=None:
+        if rhocp is not None:
             self.__rhocp=rhocp
-        if v!=None:
+        if v is not None:
             self.__v=v
-        if rhocp!=None:
+        if rhocp is not None:
             super(TemperatureCartesian,self).setValue(M=self.__rhocp)
-        if (rhocp!=None or v!=None) and self.__rhocp!=None and self.__v!=None:
+        if (rhocp is not None or v is not None) and self.__rhocp is not None and self.__v is not None:
             super(TemperatureCartesian,self).setValue(C=-self.__rhocp*self.__v)
-        if k!=None:
+        if k is not None:
             super(TemperatureCartesian,self).setValue(A=-k*util.kronecker(self.getDomain()))
-        if Q!=None:
+        if Q is not None:
             super(TemperatureCartesian,self).setValue(Y=Q)
-        if surface_flux!=None:
+        if surface_flux is not None:
             super(TemperatureCartesian,self).setValue(y=surface_flux)
-        if given_T_mask!=None:
+        if given_T_mask is not None:
             super(TemperatureCartesian,self).setValue(q=given_T_mask)
 
     def getTemperature(self,dt,**kwargs):
@@ -158,12 +158,12 @@ class Tracer(lpe.TransportPDE):
         """
         self.setInitialSolution(C)
 
-    def setValue(self,v=None,given_C_mask=None, k=None):
-        if v!=None:
+    def setValue(self, v=None, given_C_mask=None, k=None):
+        if v is not None:
             super(Tracer,self).setValue(C=-v)
-        if k!=None:
+        if k is not None:
             super(Tracer,self).setValue(A=-k*util.kronecker(self.getDomain()))
-        if given_C_mask!=None:
+        if given_C_mask is not None:
             super(Tracer,self).setValue(q=given_C_mask)
 
     def getTracer(self,dt,**kwargs):
