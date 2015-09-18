@@ -447,10 +447,12 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
             DataVar_ptr var = viIt->dataChunks[0];
             if (var->getRank() == 2) {
                 tensorDefStrings.push_back(var->getTensorDef());
-                tensorDefs.push_back((char*)tensorDefStrings.back().c_str());
                 tensorNames.push_back((char*)var->getName().c_str());
             }
         }
+        for (vector<string>::const_iterator sit=tensorDefStrings.begin();
+                sit != tensorDefStrings.end(); sit++)
+            tensorDefs.push_back((char*)sit->c_str());
 
         if (tensorDefs.size()) {
             DBSetDir(dbfile, "/");
@@ -1102,10 +1104,12 @@ void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
             siloPath << "/";
             siloPath << meshName;
             tempstrings.push_back(siloPath.str());
-            meshnames.push_back((char*)tempstrings.back().c_str());
             meshtypes.push_back(DB_UCDMESH);
         }
     }
+    for (vector<string>::const_iterator sit=tempstrings.begin();
+            sit != tempstrings.end(); sit++)
+        meshnames.push_back((char*)sit->c_str());
 
     // ignore empty mesh
     if (!meshnames.empty()) {
@@ -1150,10 +1154,12 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
             siloPath << "/";
             siloPath << vi.varName;
             tempstrings.push_back(siloPath.str());
-            varnames.push_back((char*)tempstrings.back().c_str());
             vartypes.push_back(DB_UCDVAR);
         }
     }
+    for (vector<string>::const_iterator sit=tempstrings.begin();
+            sit != tempstrings.end(); sit++)
+        varnames.push_back((char*)sit->c_str());
 
     // ignore empty variables
     if (!varnames.empty()) {
