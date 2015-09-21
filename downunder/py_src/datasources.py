@@ -726,6 +726,7 @@ class NetCdfData(DataSource):
             # this should give us about meter-accuracy with lat/lon coords
             r=5
         self.__delta=[np.round(lengths[i]/self.__nPts[i],r) for i in range(2)]
+        del longitude, latitude, d, datavar
         f.close()
 
     def getDataExtents(self):
