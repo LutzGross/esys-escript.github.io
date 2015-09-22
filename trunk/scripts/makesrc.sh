@@ -13,5 +13,5 @@ then
 fi
 svnversion > svn_version
 
-tar -czf ../python-escript_$SRCVERSION.orig.tar.gz --exclude-vcs --exclude=debian --exclude=scons/*options.py *
+tar -czf ../python-escript_$SRCVERSION.orig.tar.gz --exclude-vcs --exclude=debian --exclude=localdebian --exclude=scons/*options.py *
 
