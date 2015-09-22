@@ -2008,4 +2008,25 @@ def MaskFromTag(domain,*tags):
    pde.setValue(Y=d)
    return util.whereNonZero(pde.getRightHandSide())
 
+def BoundaryValuesFromVolumeTag(domain,**values):
+   """
+   Creates a mask on the Solution(domain) function space where the value is
+   one for samples that touch regions tagged by tags.
+
+   Usage: m=BoundaryValuesFromVolumeTag(domain, ham=1, f=6)
+
+   :param domain: domain to be used
+   :type domain: `escript.Domain`
+   :return: a mask which marks samples that are touching the boundary tagged
+            by any of the given tags
+   :rtype: `escript.Data` of rank 0
+   """
+   pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
+   out=escore.Scalar(0.,escore.FunctionOnBoundary(domain))
+   for t,v in values.items():
+       d=escore.Scalar(0.,escore.Function(domain))
+       d.setTaggedValue(t,1.)
+       pde.setValue(Y=d)
+       out+=v*util.whereZero(util.interpolate(util.whereNonZero(pde.getRightHandSide()), escore.FunctionOnBoundary(domain))-1.)
+   return out
 

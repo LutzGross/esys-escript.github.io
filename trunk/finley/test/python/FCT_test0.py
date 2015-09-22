@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 
 from esys.escript import *
-from esys.escript.linearPDEs import TransportPDE
+from esys.escript.linearPDEs import TransportPDE, SolverOptions
 from esys.finley import Rectangle, Brick
 #from esys.ripley import Rectangle, Brick
 from esys.weipa import saveVTK
@@ -36,9 +36,9 @@ dom=Rectangle(NE,1,l1=1./NE)
 dom=Rectangle(NE,NE)
 fc=TransportPDE(dom,numEquations=1)
 fc.getSolverOptions().setVerbosityOn()
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().CRANK_NICOLSON)
+fc.getSolverOptions().setODESolver(SolverOptions.LINEAR_CRANK_NICOLSON)
+fc.getSolverOptions().setODESolver(SolverOptions.BACKWARD_EULER)
+fc.getSolverOptions().setODESolver(SolverOptions.CRANK_NICOLSON)
 fc.setValue(M=1,C=[-1,0])
 x=dom.getX()
 u0=whereNegative(x[0]-1./NE)

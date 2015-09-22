@@ -31,6 +31,7 @@
 
 #include <cstring> // memcpy
 #include <vector>
+#include <iostream>
 
 namespace paso {
 
@@ -209,10 +210,10 @@ void SystemMatrix::makeZeroRowSums(double* left_over)
     for (index_t ir=0; ir<n; ir++) {
         for (index_t ib=0; ib<blk; ib++) {
             const index_t irow = ib+blk*ir;
-            const double rtmp1 = left_over[irow];
             const double rtmp2 = mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib];
-            mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = -rtmp1;
-            left_over[irow]=rtmp2+rtmp1;
+            const double rtmp1 = rtmp2-left_over[irow];
+            mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = rtmp1;
+            left_over[irow]=rtmp2-rtmp1;
         }
     }
 }
