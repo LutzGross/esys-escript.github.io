@@ -319,16 +319,16 @@ while t<T_END:
     #for d in range(DIM):
          #print("range %d-velocity "%d,inf(v[d]),sup(v[d]))
     #print("Courant = ",inf(dom.getSize()/(length(v)+1e-19)), inf(dom.getSize()**2))
-    #print("<%s> flow solver completed."%time.asctime())
+    print("<%s> flow solver completed."%time.asctime())
     n+=1
     t+=dt
     #print("influx= ",integrate(inner(v,dom.getNormal())), sqrt(integrate(length(v)**2,FunctionOnBoundary(dom))), integrate(1., FunctionOnBoundary(dom)))
-    #print("<%s> Time step %d (t=%e) completed."%(time.asctime(),n,t))
+    print("<%s> Time step %d (t=%e) completed."%(time.asctime(),n,t))
 
     #====================== setup temperature problem ========================
     heat.setValue(v=v,Q=CHI_REF*flow.getTau()**2/flow.getCurrentEtaEff())
     dt=heat.getSafeTimeStepSize()
-    #print("<%s> New time step size is %e"%(time.asctime(),dt))
+    print("<%s> New time step size is %e"%(time.asctime(),dt))
     #=========================== setup topography ============================
     if CREATE_TOPO:
         dt=min(mts.getSafeTimeStepSize()*0.5,dt)
@@ -338,8 +338,8 @@ while t<T_END:
     #  solve temperature:
     #
     T=heat.getSolution(dt)
-    #print("Temperature range ",inf(T),sup(T))
-    #print("<%s> temperature update completed."%time.asctime())
+    print("Temperature range ",inf(T),sup(T))
+    print("<%s> temperature update completed."%time.asctime())
     #============================== analysis =================================
     #
     #  .... Nusselt number
