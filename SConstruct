@@ -689,12 +689,17 @@ install_all=env.Alias('install_all', install_all_list)
 env.Default('install_all')
 
 
-env.Alias('sanity', [env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['prefix'],'scripts', 'release_sanity.py')), install_all])
+sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['prefix'],'scripts', 'release_sanity.py')))
+env.Requires(sanity, install_all)
+if env['usempi']:
+   env.Requires(sanity, 'build_pythonMPI')
+
 if 'install_dudley' in install_all_list and \
    'install_finley' in install_all_list and \
    'install_ripley' in install_all_list and \
    'install_speckley' in install_all_list:
-       env.AlwaysBuild('sanity')
+       #env.AlwaysBuild('sanity')
+       pass
 
 ################## Targets to build and run the test suite ###################
 
