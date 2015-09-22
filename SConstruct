@@ -648,6 +648,8 @@ env.Alias('install_weipa', ['build_weipa', 'install_weipa_lib', 'install_weipacp
 env.Alias('build_escriptreader', ['install_weipa_headers', 'build_escriptreader_lib'])
 env.Alias('install_escriptreader', ['build_escriptreader', 'install_escriptreader_lib'])
 
+env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['prefix'],'scripts', 'release_sanity.py')))
+
 # Now gather all the above into some easy targets: build_all and install_all
 build_all_list = []
 build_all_list += ['build_esysUtils']
@@ -675,6 +677,12 @@ if 'dudley' in env['domains']: install_all_list += ['install_dudley']
 if 'finley' in env['domains']: install_all_list += ['install_finley']
 if 'ripley' in env['domains']: install_all_list += ['install_ripley']
 if 'speckley' in env['domains']: install_all_list += ['install_speckley']
+if 'install_dudley' in install_all_list and \
+   'install_finley' in install_all_list and \
+   'install_ripley' in install_all_list and \
+   'install_speckley' in install_all_list:
+       install_all_list += ['sanity']
+       env.AlwaysBuild('sanity')
 install_all_list += ['install_weipa']
 if not IS_WINDOWS and 'finley' in env['domains']:
     install_all_list += ['install_escriptreader']
