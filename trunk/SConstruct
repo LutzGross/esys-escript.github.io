@@ -683,23 +683,29 @@ install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:
     install_all_list += ['install_pythonMPI', 'install_overlord']
+install_all_list += ['install_weipa_py']    
 install_all=env.Alias('install_all', install_all_list)
 
 # Default target is install
-env.Default('install_all')
+#env.Default('install_all')
 
 
 sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['prefix'],'scripts', 'release_sanity.py')))
-env.Requires(sanity, install_all)
+env.Depends('dummy', install_all)
 if env['usempi']:
-   env.Requires(sanity, 'build_pythonMPI')
+   #env.Requires('dummy', ['build_pythonMPI', 'install_pythonMPI'])
+   #env.Requires('dummy', env['prefix']+"/lib/pythonMPI")
+   env.Depends('dummy', ['build_pythonMPI', 'install_pythonMPI'])
+   env.Depends('dummy', env['prefix']+"/lib/pythonMPI")   
 
 if 'install_dudley' in install_all_list and \
    'install_finley' in install_all_list and \
    'install_ripley' in install_all_list and \
    'install_speckley' in install_all_list:
-       #env.AlwaysBuild('sanity')
-       pass
+       env.AlwaysBuild('sanity')
+       env.Default('sanity')
+else:
+    env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
