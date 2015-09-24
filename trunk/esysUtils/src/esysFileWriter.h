@@ -29,7 +29,7 @@ class FileWriter
 {
 public:
     FileWriter(MPI_Comm comm = MPI_COMM_NULL) :
-        mpiComm(comm), mpiRank(0), mpiSize(1)
+        mpiComm(comm), mpiRank(0), mpiSize(1), m_open(false)
     {
 #ifdef ESYS_MPI
         MPI_Comm_rank(mpiComm, &mpiRank);
@@ -37,9 +37,19 @@ public:
 #endif
     }
 
+    ~FileWriter()
+    {
+        if (m_open)
+            close();
+    }
+
     bool openFile(std::string filename, size_t initialSize=0,
                   bool binary=false, bool append=false)
     {
+        // close any open file first
+        if (m_open)
+            close();
+
         bool success=false;
 
         if (mpiSize > 1) {
@@ -103,11 +113,15 @@ public:
                 success = !ofs.fail();
             }
         }
+        m_open = success;
         return success;
     }
 
     bool writeOrdered(std::ostringstream& oss)
     {
+        if (!m_open)
+            return false;
+
         bool success=false;
         if (mpiSize>1) {
 #ifdef ESYS_MPI
@@ -129,6 +143,9 @@ public:
 
     bool writeShared(std::ostringstream& oss)
     {
+        if (!m_open)
+            return false;
+
         bool success=false;
         if (mpiSize>1) {
 #ifdef ESYS_MPI
@@ -150,6 +167,9 @@ public:
 
     bool writeAt(std::ostringstream& oss, long offset)
     {
+        if (!m_open)
+            return false;
+
         bool success=false;
         if (mpiSize>1) {
 #ifdef ESYS_MPI
@@ -172,6 +192,9 @@ public:
 
     void close()
     {
+        if (!m_open)
+            return;
+
         if (mpiSize>1) {
 #ifdef ESYS_MPI
             MPI_File_close(&fileHandle);
@@ -179,12 +202,14 @@ public:
         } else {
             ofs.close();
         }
+        m_open = false;
     }
 
 private:
     MPI_Comm mpiComm;
     int mpiRank;
     int mpiSize;
+    bool m_open;
 #ifdef ESYS_MPI
     MPI_File fileHandle;
 #endif
