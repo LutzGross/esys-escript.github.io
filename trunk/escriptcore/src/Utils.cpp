@@ -604,6 +604,8 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     int rerror = 0;
     MPI_Allreduce(&error, &rerror, 1, MPI_INT, MPI_MAX, com);
     error = rerror;
+#else
+    MPI_Comm com = MPI_COMM_NULL;
 #endif
 
     if (error)
