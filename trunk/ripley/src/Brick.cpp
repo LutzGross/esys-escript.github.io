@@ -780,8 +780,8 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
 
     // from here on we know that each sample consists of one value
-    FileWriter fw;
-    fw.openFile(filename, fileSize);
+    FileWriter fw(m_mpiInfo->comm);
+    fw.openFile(filename, fileSize, true);
     MPIBarrier();
 
     for (index_t z=0; z<myN2; z++) {

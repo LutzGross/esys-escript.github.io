@@ -15,50 +15,23 @@
 *****************************************************************************/
 
 #define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <esysUtils/first.h>
 
 #include <ripley/MultiRectangle.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
-#include <paso/SystemMatrix.h>
-#include <esysUtils/esysFileWriter.h>
-#include <esysUtils/EsysRandom.h>
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
-#include <boost/scoped_array.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>	// for isnan
-
-#ifdef USE_NETCDF
-#include <netcdfcpp.h>
-#endif
-
-#if USE_SILO
-#include <silo.h>
-#ifdef ESYS_MPI
-#include <pmpio.h>
-#endif
-#endif
 
 #define FIRST_QUAD 0.21132486540518711775
 #define SECOND_QUAD 0.78867513459481288225
 
+#include <algorithm>
 #include <iomanip>
 #include <limits>
 
-
-#include <algorithm>
-
-namespace bp = boost::python;
-using esysUtils::FileWriter;
-using escript::AbstractSystemMatrix;
-
 using std::vector;
 using std::string;
-using std::min;
-using std::max;
-using std::copy;
-using std::ios;
-using std::fill;
 
 namespace ripley {
 
@@ -272,9 +245,9 @@ void MultiRectangle::interpolateElementsToElementsCoarser(const escript::Data& s
     const dim_t *theirNE = other.getNumElementsPerDim();
     const dim_t numComp = source.getDataPointSize();
 
-    std::vector<double> points(scaling*2, 0);
-    std::vector<double> first_lagrange(scaling*2, 1);
-    std::vector<double> second_lagrange(scaling*2, 1);
+    vector<double> points(scaling*2, 0);
+    vector<double> first_lagrange(scaling*2, 1);
+    vector<double> second_lagrange(scaling*2, 1);
     
     for (int i = 0; i < scaling*2; i+=2) {
         points[i] = (i/2 + FIRST_QUAD)/scaling;
@@ -321,8 +294,8 @@ void MultiRectangle::interpolateElementsToElementsFiner(const escript::Data& sou
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
 
-    std::vector<double> points(scaling*2, 0);
-    std::vector<double> lagranges(scaling*4, 1);
+    vector<double> points(scaling*2, 0);
+    vector<double> lagranges(scaling*4, 1);
 
     for (int i = 0; i < scaling*2; i+=2) {
         points[i] = (i/2 + FIRST_QUAD)/scaling;
