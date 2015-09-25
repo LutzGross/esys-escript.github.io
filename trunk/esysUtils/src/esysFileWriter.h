@@ -87,8 +87,11 @@ public:
                         const_cast<char*>("native"), mpiInfo);
             }
             if (mpiErr == MPI_SUCCESS) {
-                if (!append)
+                if (append) {
+                    mpiErr = MPI_File_seek_shared(fileHandle, 0, MPI_SEEK_END);
+                } else {
                     mpiErr = MPI_File_set_size(fileHandle, initialSize);
+                }
             }
             if (mpiErr != MPI_SUCCESS) {
                 char errorstr[MPI_MAX_ERROR_STRING];
