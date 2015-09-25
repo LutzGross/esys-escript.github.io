@@ -1374,7 +1374,8 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
-    if (getMPISize() > 1) {
+    if (getMPISize() > 1 && fs_code != FINLEY_DEGREES_OF_FREEDOM &&
+            fs_code != FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
 #ifdef ESYS_MPI
         index_t myFirstNode=0, myLastNode=0;
         index_t* globalNodeIndex = NULL;
