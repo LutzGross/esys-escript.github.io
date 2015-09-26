@@ -684,13 +684,14 @@ install_all_list += ['install_pycad_py']
 if env['usempi']:
     install_all_list += ['install_pythonMPI', 'install_overlord']
 install_all_list += ['install_weipa_py']    
+install_all_list += [env.Install(os.path.join(env['build_dir'],'scripts'), os.path.join('scripts', 'release_sanity.py'))]
 install_all=env.Alias('install_all', install_all_list)
 
 # Default target is install
 #env.Default('install_all')
 
 
-sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['prefix'],'scripts', 'release_sanity.py')))
+sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['build_dir'],'scripts', 'release_sanity.py')))
 env.Depends('dummy', install_all)
 if env['usempi']:
    #env.Requires('dummy', ['build_pythonMPI', 'install_pythonMPI'])
