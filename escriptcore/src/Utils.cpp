@@ -424,7 +424,8 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     std::vector<int> step(numdata);
     std::vector<std::string> names(numdata);
     std::vector<Data> data(numdata);
-    std::vector<int> fstypes(numdata); // FunctionSpace types for each data
+    // FunctionSpace types for each data for interpolation
+    std::vector<int> fstypes(numdata+int(hasmask));
 
     keys.sort(); // to get some predictable order to things
 
@@ -441,6 +442,12 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
             }
         }
     }
+    if (hasmask) {
+        if (mask.getDomain() != data[0].getDomain())
+            throw DataException("saveDataCSV: mask domain must be the same as the data domain.");
+        fstypes[numdata] = mask.getFunctionSpace().getTypeCode();
+    }
+
     int bestfnspace = 0;
     if (!data[0].getDomain()->commonFunctionSpace(fstypes, bestfnspace)) {
         throw DataException("saveDataCSV: FunctionSpaces of data are incompatible");
@@ -450,6 +457,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     for (int i=0; i<numdata; ++i) {
         data[i] = data[i].interpolate(best);
     }
+    if (hasmask)
+        mask = mask.interpolate(best);
+
     // these must be the same for all data
     int numsamples = data[0].getNumSamples();
     int dpps=data[0].getNumDataPointsPerSample();
