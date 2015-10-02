@@ -467,6 +467,14 @@ then
    EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
 fi
 
+if [ "$MPI_FLAVOUR" = "OPENMPI" ]
+then
+    if [ -z `which rsh``which ssh` ]
+    then
+        AGENTOVERRIDE="--gmca orte_rsh_agent /bin/false"
+    fi
+fi 
+
 vlog "Pre-launch command: \"@@PRELAUNCH\""
 @@PRELAUNCH
 vlog "Launch command: \"@@LAUNCH\""
