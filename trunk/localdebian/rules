@@ -46,6 +46,9 @@ clean:
 	rm -rf $(CURDIR)/debian/tmp/*
 	rm -f debian/files
 	rm -f debian/substvars
+	find scons -name '*.pyc' | xargs rm -f
+	find site_scons -name '*.pyc' | xargs rm -f
+	rm -f utest.sh itest.sh
 	dh_clean
 
 build: build-arch build-indep
