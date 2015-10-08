@@ -200,8 +200,9 @@ def runPyUnitTest(target, source, env):
          os.unlink(skipfile)
      except Exception as e:
         pass
-     app = "cd "+pn+"; "+binpath(env, "run-escript")+" -ov "+binpath(env,
-            "../tools/testrunner.py")+" -skipfile="+skipfile+" "+"-failfile="+failfile+" "+"-exit "+sn
+     app = "cd " + pn + "; " + binpath(env, "run-escript") + " -ov " + \
+             str(env.Dir('#').abspath) + "/tools/testrunner.py -skipfile=" + \
+             skipfile + " -failfile=" + failfile + " -exit " + sn
    print("Executing test: ",app)
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
