@@ -32,8 +32,10 @@ public:
         mpiComm(comm), mpiRank(0), mpiSize(1), m_open(false)
     {
 #ifdef ESYS_MPI
-        MPI_Comm_rank(mpiComm, &mpiRank);
-        MPI_Comm_size(mpiComm, &mpiSize);
+        if (comm != MPI_COMM_NULL) {
+            MPI_Comm_rank(mpiComm, &mpiRank);
+            MPI_Comm_size(mpiComm, &mpiSize);
+        }
 #endif
     }
 
