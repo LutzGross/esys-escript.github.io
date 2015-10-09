@@ -43,6 +43,8 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
+HAVE_GMSH = escript.getEscriptParamInt("GMSH_SUPPORT")
+
 # Matplotlib uses outdated code -- ignore the warnings until an update is available:
 import warnings
 warnings.filterwarnings("ignore")  #, category=DeprecationWarning
@@ -450,6 +452,7 @@ def generateCommemi4Mesh():
 
 class Test_COMMEMI4(unittest.TestCase):
     @unittest.skipIf(not HAVE_FINLEY, "Test requires finley to be available")
+    @unittest.skipIf(not HAVE_GMSH, "Test requires gmsh to be available")
     @unittest.skipIf(not escript.getEscriptParamInt("PASO_DIRECT"), "Missing direct solvers")
     @unittest.skipIf(escript.getMPISizeWorld() > 1, "Direct solvers and MPI are currently incompatible")
     def test_comm4(self):
