@@ -233,7 +233,6 @@ double TransportProblem::getSafeTimeStepSize()
             Esys_setError(VALUE_ERROR, "TransportProblem::getSafeTimeStepSize: "
                                      "negative mass matrix entries detected.");
         // split off row-sum from transport_matrix
-        //FIXME: See bug #326 - this has never worked and should be reviewed.
         transport_matrix->makeZeroRowSums(reactive_matrix);
         // get a copy of the main diagonal of the mass matrix
         mass_matrix->copyFromMainDiagonal(main_diagonal_mass_matrix);
