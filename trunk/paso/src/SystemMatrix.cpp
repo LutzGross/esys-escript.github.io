@@ -31,7 +31,6 @@
 
 #include <cstring> // memcpy
 #include <vector>
-#include <iostream>
 
 namespace paso {
 
