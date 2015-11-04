@@ -98,37 +98,37 @@ class SplitInversionCostFunction(MeteredCostFunction):
         self.numLevelSets=numLevelSets
         self.splitworld=splitworld
         
-        splitworld.addVariable("regularization", makeLocalOnly)
-        splitworld.addVariable("mappings", makeLocalOnly)
-        splitworld.addVariable("fwdmodels", makeLocalOnly)
-        splitworld.addVariable("initial_guess", makeLocalOnly)  # Used to load the initial guess
-        splitworld.addVariable("model_args", makeLocalOnly)     # arguments for models stored on that world
-        splitworld.addVariable("props", makeLocalOnly)          # Properties for the current guess
-        splitworld.addVariable("current_point", makeLocalOnly)  # Current approximate solution. Starts out as initial_guess 
-        splitworld.addVariable("mu_model", makeLocalOnly)
+        splitworld.addVariable("regularization", "local")
+        splitworld.addVariable("mappings", "local")
+        splitworld.addVariable("fwdmodels", "local")
+        splitworld.addVariable("initial_guess", "local")  # Used to load the initial guess
+        splitworld.addVariable("model_args", "local")     # arguments for models stored on that world
+        splitworld.addVariable("props", "local")          # Properties for the current guess
+        splitworld.addVariable("current_point", "local")  # Current approximate solution. Starts out as initial_guess 
+        splitworld.addVariable("mu_model", "local")
 
-        splitworld.addVariable("phi_a", makeScalarReducer, "SUM")
-        splitworld.addVariable("Jx_original", makeScalarReducer,"SET")
-        splitworld.addVariable("Jx", makeScalarReducer, "SUM")
-        splitworld.addVariable("Jx_old", makeScalarReducer,"SET")
-        splitworld.addVariable("g_Jx_0", makeDataReducer, "SUM")
-        splitworld.addVariable("g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+        splitworld.addVariable("phi_a", "float", "SUM")
+        splitworld.addVariable("Jx_original", "float","SET")
+        splitworld.addVariable("Jx", "float", "SUM")
+        splitworld.addVariable("Jx_old", "float","SET")
+        splitworld.addVariable("g_Jx_0", "Data", "SUM")
+        splitworld.addVariable("g_Jx_1", "local")        # This component is not merged with values from other worlds
 
-        splitworld.addVariable("old_g_Jx_0", makeDataReducer, "SUM")
-        splitworld.addVariable("old_g_Jx_1", makeLocalOnly)        # This component is not merged with values from other worlds
+        splitworld.addVariable("old_g_Jx_0", "Data", "SUM")
+        splitworld.addVariable("old_g_Jx_1", "local")        # This component is not merged with values from other worlds
         
         
-        splitworld.addVariable("search_direction", makeDataReducer, "SET")
+        splitworld.addVariable("search_direction", "Data", "SET")
 
-        splitworld.addVariable("s_and_y", makeLocalOnly)
-        splitworld.addVariable("gphi0", makeLocalOnly)
-        splitworld.addVariable("old_phi_a", makeLocalOnly)
-        splitworld.addVariable("phi0", makeLocalOnly)
-        splitworld.addVariable("base_point", makeLocalOnly)
+        splitworld.addVariable("s_and_y", "local")
+        splitworld.addVariable("gphi0", "local")
+        splitworld.addVariable("old_phi_a", "local")
+        splitworld.addVariable("phi0", "local")
+        splitworld.addVariable("base_point", "local")
         
-        splitworld.addVariable("conv_flag", makeLocalOnly)
-        splitworld.addVariable("dp_result", makeLocalOnly)
-        splitworld.addVariable("break_down", makeLocalOnly)
+        splitworld.addVariable("conv_flag", "local")
+        splitworld.addVariable("dp_result", "local")
+        splitworld.addVariable("break_down", "local")
         
         howmany=splitworld.getSubWorldCount()
         rlen=int(math.ceil(numModels/howmany))
