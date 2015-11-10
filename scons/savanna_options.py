@@ -99,7 +99,7 @@ cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
 
 # Prefix or paths to NVidia CUDA installation. See note above. [new in 202]
-cuda_prefix = ['/sw/libs/cuda/6.5/include', '/sw/libs/cuda/6.5/lib64']
+cuda_prefix = ['/sw/libs/cuda/7.5/include', '/sw/libs/cuda/7.5/lib64']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = '/sw/libs/boost/1.57.0'
@@ -152,7 +152,8 @@ parmetis_libs = ['parmetis']
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/intel/composer_xe_2015.1.133/mkl/include', '/sw/intel/composer_xe_2015.1.133/mkl/lib/intel64']
+_mklroot='/sw/intel/compilers_and_libraries_2016.0.109/linux/mkl'
+mkl_prefix = ['%s/include'%_mklroot, '%s/lib/intel64'%_mklroot]
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -231,7 +232,7 @@ postlaunch = ""
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/intel/composer_xe_2015.1.133'})]
+tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2016.0.109'})]
 
 
 #iknowwhatimdoing = False
