@@ -311,7 +311,7 @@ def checkOptionalLibraries(env):
     mkl_inc_path=''
     mkl_lib_path=''
     if env['mkl']:
-        mkl_inc_path,mkl_lib_path=findLibWithHeader(env, env['mkl_libs'], 'mkl_solver.h', env['mkl_prefix'], lang='c++')
+        mkl_inc_path,mkl_lib_path=findLibWithHeader(env, env['mkl_libs'], 'mkl_pardiso.h', env['mkl_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mkl_inc_path])
         env.AppendUnique(LIBPATH = [mkl_lib_path])
         env.AppendUnique(LIBS = env['mkl_libs'])
