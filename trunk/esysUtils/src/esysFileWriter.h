@@ -36,6 +36,10 @@ public:
             MPI_Comm_rank(mpiComm, &mpiRank);
             MPI_Comm_size(mpiComm, &mpiSize);
         }
+#else
+        (void)mpiRank;	// to prevent the compiler from complaining
+        (void)mpiSize;  // that these are unused
+        (void)mpiComm;
 #endif
     }
 
