@@ -29,7 +29,7 @@ Tests to ensure that splitworld features operate correctly
 import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 
-from esys.escriptcore.splitworld import *
+from esys.escript.splitworld import *
 from esys.escript.linearPDEs import Poisson, Helmholtz
 from esys.escriptcore.testing import *
 import sys
