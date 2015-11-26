@@ -60,7 +60,7 @@ class PowerLaw(object):
    
          :param numMaterials: number of materials
          :type numMaterials: ``int``
-         :param verbose: if ``True`` some informations are printed.
+         :param verbose: if ``True`` some information is printed.
          :type verbose: ``bool``
          """
          if numMaterials<1:
@@ -623,7 +623,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
          :type t: ``float``
          :param numMaterials: number of materials
          :type numMaterials: ``int``
-         :param verbose: if ``True`` some informations are printed.
+         :param verbose: if ``True`` some information is printed.
          :type verbose: ``bool``         
          """
          PowerLaw. __init__(self, numMaterials,verbose=verbose)

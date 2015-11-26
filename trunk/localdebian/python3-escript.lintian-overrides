@@ -2,4 +2,4 @@
 # All libraries are build with the same flags, only some are reported
 # as being un-hardened.
 python3-escript: hardening-no-fortify-functions
-
+python3-escript: hyphen-used-as-minus-sign

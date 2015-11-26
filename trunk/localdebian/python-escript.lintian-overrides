@@ -5,3 +5,5 @@ python-escript: wrong-section-according-to-package-name
 # All libraries are build with the same flags, only some are reported
 # as being un-hardened.
 python-escript: hardening-no-fortify-functions
+
+python-escript: hyphen-used-as-minus-sign

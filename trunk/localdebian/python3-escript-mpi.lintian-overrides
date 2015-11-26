@@ -3,3 +3,4 @@
 # as being un-hardened.
 python3-escript-mpi: hardening-no-fortify-functions
 
+python3-escript-mpi: hyphen-used-as-minus-sign
