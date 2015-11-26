@@ -38,6 +38,14 @@ double SplitWorld::getScalarVariable(const std::string& name)
     return localworld->getScalarVariable(name);
 }
 
+boost::python::object SplitWorld::getLocalObjectVariable(const std::string& name)
+{
+    // do we have a variable of that name?
+    return localworld->getLocalObjectVariable(name);  
+}
+
+
+
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
     :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1), manualimport(false)
 {
@@ -324,6 +332,23 @@ boost::python::object SplitWorld::getVarPyList()
     }
     return l;
 }
+
+// We make no committments that the format of the output will remain the same
+boost::python::object SplitWorld::getVarPyInfo()
+{
+    std::list<std::pair<std::string, std::string> > r=localworld->getVarInfo();
+    boost::python::list l;
+    for (std::list<std::pair<std::string, std::string> >::iterator it=r.begin();it!=r.end();++it)
+    {
+        boost::python::list t;
+	t.append(it->first);
+	t.append(it->second);
+        l.append(t);
+    }
+    return l;
+}
+
+
 
 void SplitWorld::clearAllJobs()
 {

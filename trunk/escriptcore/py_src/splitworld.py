@@ -121,6 +121,14 @@ class SplitWorld(object):
     Returns the names of all declared variables and a boolean for each indicating whether they have values.
     """
     return self.cpp_obj.getVarList()
+  
+  
+  def getVarInfo(self):
+    """
+    Returns the names of all declared variables and a description of type.
+    The details of the output are not fixed and may change without notice
+    """
+    return self.cpp_obj.getVarInfo()
     
     
   def getFloatVariable(self, vname):
@@ -128,6 +136,14 @@ class SplitWorld(object):
     Return the value of a floating point variable
     """
     return self.cpp_obj.getDoubleVariable(vname)
+  
+  
+  def getLocalObjectVariable(self, vname):
+    """
+    Return the value of a local object variable - that is, an object (eg tuple) which does not need to
+    be reduced/shared between worlds
+    """
+    return self.cpp_obj.getLocalObjectVariable(vname)
     
   def getSubWorldCount(self):
     """

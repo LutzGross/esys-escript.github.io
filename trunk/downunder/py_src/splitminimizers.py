@@ -398,7 +398,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 self.getCostFunction().splitworld.addJob( FunctionJob, run_worker, alpha=alpha, need_trunc=(k>=self._truncation))
                 self.getCostFunction().splitworld.runJobs()
 
-                break_down=(splitworld.getFloatVariable("break_down")>0.001)
+                break_down=(splitworld.getLocalObjectVariable("break_down")>0.001)
                 self.getCostFunction().updateHessian()
                 #g_Jx=g_Jx_new
                 #Jx=Jx_new

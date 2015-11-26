@@ -24,7 +24,7 @@ namespace escript
 {
 
 // plugs into the import/export mechanism but stays on the 
-// subworld it was created by (no actual reduction takes place
+// subworld it was created by (no actual reduction takes place)
 class NonReducedVariable : public AbstractReducer
 {
 public:

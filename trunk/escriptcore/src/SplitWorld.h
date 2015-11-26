@@ -50,10 +50,12 @@ public:
     void clearVariable(std::string name); 
     std::list<std::pair<std::string, bool> > getVarList();
     boost::python::object getVarPyList();
+    boost::python::object getVarPyInfo();    
 
     void clearAllJobs();
 
     double getScalarVariable(const std::string& name);
+    boost::python::object getLocalObjectVariable(const std::string& name);
     
     int getSubWorldCount();
     int getSubWorldID();
