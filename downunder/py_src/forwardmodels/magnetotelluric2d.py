@@ -39,10 +39,9 @@ class MT2DBase(ForwardModel):
     Base class for 2D MT forward models. See `MT2DModelTEMode` and
     `MT2DModelTMMode` for actual implementations.
     """
-    def __init__(self, domain, omega, x, Z, eta=None, w0=1., mu=4*PI*1e-7,
-                 Ftop=1., fixAtTop=False, fixAboveLevel=None, Fbottom=0.,
-                 fixAtBottom=False, coordinates=None, tol=1e-8,
-                 saveMemory=False, directSolver=True):
+    def __init__(self, domain, omega, x, Z, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
+                 airLayerLevel=None, fixAirLayer=False,
+                 coordinates=None, tol=1e-8, saveMemory=False, directSolver=True):
         """
         initializes a new forward model.
 
@@ -60,21 +59,13 @@ class MT2DBase(ForwardModel):
         :type w0: ``None`` or a list of positive ``float``
         :param mu: permeability
         :type mu: ``float``
-        :param Ftop: value of field at top of the domain, see `fixAtTop` and
-                     `fixAboveLevel`
-        :type Ftop: ``float``, ``complex`` or ``Data`` of shape (2,)
-        :param fixAtTop: if true F is set to Ftop at the top of the domain.
-                         If both `fixAtTop` and `fixAboveLevel` are set, then
-                         `fixAboveLevel` takes precedence.
-        :type fixAtTop: ``bool``
-        :param fixAboveLevel: level above which F is set to Ftop (typically
-                              the level of the air layer).
-                              Use `fixAtTop` *or* `fixAboveLevel`, not both.
-        :type fixAboveLevel : ``float`` or ``None``
-        :param Fbottom: value of field at base of the domain
-        :type Fbottom: ``float``, ``complex`` or ``Data`` of shape (2,)
-        :param fixAtBottom: if true F is set to Fbottom at the bottom of the domain
-        :type fixAtBottom: ``bool``
+        :param sigma0: background conductivity
+        :type sigma0: ``float``
+        :param airLayerLevel: position of the air layer from to bottom of the domain. If not set
+                            the air layer starts at the top of the domain
+        :type airLayerLevel : ``float`` or ``None``        
+        :param fixAirLayer: fix air layer (TM mode)
+        :type fixAirLayer: ``bool``
         :param coordinates: defines coordinate system to be used (not supported yet)
         :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
@@ -110,6 +101,7 @@ class MT2DBase(ForwardModel):
 
         self.__domain = domain
         self._omega_mu = omega * mu
+        self._ks=sqrt(self._omega_mu * sigma0 /2.)
 
         xx=Function(domain).getX()
         totalS=0
@@ -130,44 +122,30 @@ class MT2DBase(ForwardModel):
         if not totalS > 0:
             raise ValueError("Scaling of weight factors failed as sum is zero.")
 
+
         DIM = domain.getDim()
         z = domain.getX()[DIM-1]
-        self._ztop = sup(z)
+        self._ztop= sup(z)
         self._zbottom = inf(z)
-        self._q=Vector(0.,Solution(domain))
-        self._r=Vector(0.,Solution(domain))
-        #====================================
-        if fixAtTop or fixAboveLevel is not None:
-            if fixAboveLevel is not None:
-                m=whereNonNegative(z-fixAboveLevel)
-            else:
-                m=whereZero(z-self._ztop)
-            if isinstance(Ftop, float) or isinstance(Ftop, int):
-                d = Data((Ftop,0), Solution(domain))
-            elif isinstance(Ftop, tuple):
-                d = Data((Ftop[0],Ftop[1]), Solution(domain))
-            elif isinstance(Ftop, complex):
-                d = Data((Ftop.real,Ftop.imag), Solution(domain))
-            else:
-                if not Ftop.getShape() == (2,):
-                    raise ValueError("Expected shape of top value is (2,)")
-                d = Ftop
-            self._r+=m*d
-            self._q+=m*[1.,1.]
-        if fixAtBottom:
-            m=whereZero(z-self._zbottom)
-            if isinstance(Fbottom, float) or isinstance(Fbottom, int) :
-                d = Data((Fbottom,0), Solution(domain))
-            elif isinstance(Fbottom, tuple):
-                d = Data((Fbottom[0],Fbottom[1]), Solution(domain))
-            elif isinstance(Fbottom, complex):
-                d = Data((Fbottom.real,Fbottom.imag), Solution(domain))
-            else:
-                if not Fbottom.getShape() == (2,):
-                    raise ValueError("Expected shape of top value is (2,)")
-                d = Fbottom
-            self._r+=m*d
-            self._q+=m*[1.,1.]
+        if airLayerLevel is None:
+            airLayerLevel=self._ztop
+        self._airLayerLevel=airLayerLevel
+                
+        # botton:
+        mask0=whereZero(z-self._zbottom)
+        r=mask0* [ exp(self._ks*(self._zbottom -airLayerLevel))*cos(self._ks*(self._zbottom -airLayerLevel)), 
+                   exp(self._ks*(self._zbottom -airLayerLevel))*sin(self._ks*(self._zbottom -airLayerLevel))]
+
+        #top:
+        if  fixAirLayer:
+          mask1=whereNonNegative(z-airLayerLevel)
+          r+=mask1*[ 1, 0 ]
+        else:
+          mask1=whereZero(z-self._ztop)
+          r+=mask1*[ self._ks*(self._ztop-airLayerLevel)+1, self._ks*(self._ztop-airLayerLevel) ]
+          
+        self._q=(mask0+mask1)*[1,1]
+        self._r=r       
         #====================================
         self.__tol = tol
         self._directSolver = directSolver
@@ -267,13 +245,12 @@ class MT2DModelTEMode(MT2DBase):
 
         * -E_{x,ii} - i omega * mu * sigma * E_x = 0
 
-    where by default the normal derivative of E_x at the top of the domain 
-    is set to Ex_n=1 and E_x is set to zero at the bottom. Homogeneous Neuman
-    conditions are assumed elsewhere. If fixAtTop is set E_x is set to Ex_top. 
+    where E_x at top and bottom is set to solution for background field. Homogeneous Neuman
+    conditions are assumed elsewhere. 
     """
-    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7,
-                 Ex_n=1, coordinates=None, Ex_top=1, fixAtTop=False, tol=1e-8,
-                 saveMemory=False, directSolver=True):
+    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
+                 airLayerLevel=None, coordinates=None, Ex_top=1, fixAtTop=False, 
+                 tol=1e-8, saveMemory=False, directSolver=True):
         """
         initializes a new forward model. See base class for a description of
         the arguments.
@@ -281,10 +258,9 @@ class MT2DModelTEMode(MT2DBase):
         
         f = -1./(complex(0,1)*omega*mu)
         scaledZXY = [ z*f for z in Z_XY ]
-        self.__Ex_n=complex(Ex_n)
         super(MT2DModelTEMode, self).__init__(domain=domain, omega=omega, x=x, 
-                                              Z=scaledZXY, eta=eta, w0=w0, mu=mu, 
-                                              Ftop=Ex_top, fixAtTop=fixAtTop, fixAboveLevel= None, Fbottom=0., fixAtBottom=True, 
+                                              Z=scaledZXY, eta=eta, w0=w0, mu=mu, sigma0=sigma0,
+                                              airLayerLevel= airLayerLevel,  fixAirLayer=False,
                                               coordinates=coordinates, tol=tol, saveMemory=saveMemory, directSolver=directSolver)
 
         
@@ -306,9 +282,8 @@ class MT2DModelTEMode(MT2DBase):
         A= pde.getCoefficient('A')
         A[0,:,0,:]=kronecker(DIM)
         A[1,:,1,:]=kronecker(DIM)
-        
-        Z = FunctionOnBoundary(self.getDomain()).getX()[DIM-1]
-        pde.setValue(A=A, D=D, y=whereZero(Z-self._ztop)*[self.__Ex_n.real,self.__Ex_n.imag],  r=self._r)
+    
+        pde.setValue(A=A, D=D,  r=self._r)
         u = pde.getSolution()
         return u, grad(u)[:,1]
 
@@ -415,25 +390,20 @@ class MT2DModelTMMode(MT2DBase):
 
         * -(rho*H_{x,i})_{,i} + i omega * mu * H_x = 0
 
-    where H_x is set to Hx_top on the top of the domain. Homogeneous Neuman
-    conditions are assumed elsewhere. If fixAtBottom is set H_x is set to Hx_bottom
-    at the bottom of the domain overwrtining the Neuman condition. 
-    If fixAboveLevel is set then H_x is set to Hx_top for any location above and including fixAboveLevel
-    typically including teh top boundary. 
+    where H_x at top and bottom is set to solution for background field. 
+    Homogeneous Neuman conditions are assumed elsewhere.
     """
-    def __init__(self, domain, omega, x, Z_YX, eta=None, w0=1., mu=4*PI*1e-7,
-                 fixAboveLevel=None, Hx_top=1, coordinates=None, Hx_bottom=1.,
-                 fixAtBottom=False, tol=1e-8, saveMemory=False,
+    def __init__(self, domain, omega, x, Z_YX, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
+                 airLayerLevel=None, coordinates=None, tol=1e-8, saveMemory=False,
                  directSolver=True):
         """
         initializes a new forward model. See base class for a description of
         the arguments.
         """
         super(MT2DModelTMMode, self).__init__(domain=domain, omega=omega, x=x,
-                Z=Z_YX, eta=eta, w0=w0, mu=mu, Ftop=Hx_top, fixAtTop=True,
-                fixAboveLevel=fixAboveLevel, Fbottom=Hx_bottom,
-                fixAtBottom=fixAtBottom, coordinates=coordinates, tol=tol,
-                saveMemory=saveMemory, directSolver=directSolver)
+                Z=Z_YX, eta=eta, w0=w0, mu=mu, sigma0=sigma0, 
+                airLayerLevel=airLayerLevel, fixAirLayer=True,
+                coordinates=coordinates, tol=tol,saveMemory=saveMemory, directSolver=directSolver)
 
     def getArguments(self, rho):
         """
