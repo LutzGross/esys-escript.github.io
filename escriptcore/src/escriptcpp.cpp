@@ -1021,7 +1021,7 @@ args("source", "q", "r","factor"),
         "'residual_norm', 'converged'.\n"
         ":param value: new value of the diagnostic information\n"
         ":note: this function is used by a solver to report diagnostics\n"
-        "informations.")
+        "information.")
     .def("getDiagnostics", &escript::SolverBuddy::getDiagnostics, args("name"),"Returns the diagnostic information ``name``. Possible values are:\n\n"
         "- 'num_iter': the number of iteration steps\n"
         "- 'cum_num_iter': the cumulative number of iteration steps\n"
