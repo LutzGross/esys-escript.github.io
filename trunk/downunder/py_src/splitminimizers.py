@@ -161,7 +161,6 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 regular=self.importValue("regularization")
                 phi0=Jx
                
-                print("Type of phi0=", type(phi0),phi0) 
                 # In the original, this part calls getDualProduct on f
                 # However, since that only ends up referring to the 
                 # regularisation term, I've called that directly
@@ -313,7 +312,6 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
                 # gradient for the new solution approximation x_new=x+alpha*p
-                print("alpha=",alpha)
                 self.logger.debug("\tSearch direction scaling alpha=%e"%alpha)
 
                 # execute the step
@@ -493,7 +491,6 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 r = r + s * (a-beta)
             # In the original version, the caller negated the result
             self.exportValue("search_direction", -r)
-        print ("prior to twoloop call ",splitworld.getVarList())
         # Note: this is only running on world world (of possibly many)
         # Any jobs which also need the variables exported here
         # need to be shared or the jobs need to run on the same world

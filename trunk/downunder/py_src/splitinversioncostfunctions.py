@@ -604,8 +604,6 @@ class SplitInversionCostFunction(MeteredCostFunction):
               J=z
             else:
               J+=z  
-          print("Final J =", str(J))
-
           if isinstance(vname, str):
             self.exportValue(vname, J)
           else:
