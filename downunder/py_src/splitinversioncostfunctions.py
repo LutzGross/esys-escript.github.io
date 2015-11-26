@@ -127,7 +127,7 @@ class SplitInversionCostFunction(MeteredCostFunction):
         splitworld.addVariable("base_point", "local")
         
         splitworld.addVariable("conv_flag", "local")
-        splitworld.addVariable("dp_result", "local")
+        splitworld.addVariable("dp_result", "float", "SET")
         splitworld.addVariable("break_down", "local")
         
         howmany=splitworld.getSubWorldCount()

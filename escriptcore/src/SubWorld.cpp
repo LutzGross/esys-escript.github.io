@@ -382,6 +382,47 @@ double SubWorld::getScalarVariable(const std::string& name)
     throw SplitWorldException("Variable is not scalar.");
 }
 
+
+// not to be called while running jobs
+// The tricky bit, is that this could be be called between job runs
+// this means that the values of variables may not have been synched yet
+boost::python::object SubWorld::getLocalObjectVariable(const std::string& name)
+{
+    str2reduce::iterator it=reducemap.find(name);
+    if (it==reducemap.end())
+    {
+	throw SplitWorldException("No variable of that name.");
+    }
+	// need to indicate we are interested in the variable
+    if (varstate[name]==rs::NONE)
+    {
+	setMyVarState(name, rs::INTERESTED);
+    }
+    else if (varstate[name]==rs::OLD)
+    {
+      	setMyVarState(name, rs::OLDINTERESTED);
+    }
+	// anything else, indicates interest anyway
+#ifdef ESYS_MPI
+    std::string errmsg;
+    if (!synchVariableInfo(errmsg))
+    {
+	throw SplitWorldException(std::string("(Getting local object --- Variable information) ")+errmsg);
+    }
+    if (!synchVariableValues(errmsg))
+    {
+	throw SplitWorldException(std::string("(Getting local object --- Variable value) ")+errmsg);
+    }
+#endif
+    if (dynamic_cast<NonReducedVariable*>(it->second.get()))
+    {
+	return dynamic_cast<NonReducedVariable*>(it->second.get())->getPyObj();
+    }
+    throw SplitWorldException("Variable is not a local object.");
+}
+
+
+
 bool SubWorld::checkRemoteCompatibility(std::string& errmsg)
 {
     for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
@@ -1039,6 +1080,22 @@ std::list<std::pair<std::string, bool> > SubWorld::getVarList()
     }
     return res;
 }
+
+std::list<std::pair<std::string, std::string> > SubWorld::getVarInfo()
+{
+    std::list<std::pair<std::string,std::string> > res;
+    for (std::map<std::string, Reducer_ptr>::iterator it=reducemap.begin();it!=reducemap.end();++it)
+    {
+        std::string desc=it->second->description();
+	if (!it->second->hasValue())
+	{
+	    desc+=" (No value)";
+	}
+        res.push_back(std::pair<std::string, std::string>(it->first, desc));
+    }
+    return res;
+}
+
 
 void SubWorld::copyVariable(const std::string& src, const std::string& dest)
 {

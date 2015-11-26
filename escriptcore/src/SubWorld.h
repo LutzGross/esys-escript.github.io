@@ -61,6 +61,7 @@ public:
     void removeVariable(std::string& name);  
     void clearVariable(std::string& name);
     std::list<std::pair<std::string, bool> > getVarList();
+    std::list<std::pair<std::string, std::string> > getVarInfo();
     size_t getNumVars();
     
     bool localTransport(std::string& errmsg);	// gather exported values from jobs
@@ -71,6 +72,7 @@ public:
     bool amLeader();	// true if this proc is the leader for its world
     
     double getScalarVariable(const std::string& name);
+    boost::python::object getLocalObjectVariable(const std::string& name);    
     
     void debug();	// print out current state information
     
