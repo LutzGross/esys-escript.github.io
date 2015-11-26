@@ -430,13 +430,15 @@ class TestMT2DModelTEMode(unittest.TestCase):
     def test_API(self):
         domain=ripRectangle(25, 25, d1=mpisize)
         omega=2.
+        SIGMA=15.
+
         x=[ [0.2,0.5], [0.3,0.5] ]
         Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
+
         eta=1.
         w0=1.
-        Ex0=1.
         # now we do a real one
-        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta, w0=w0, Ex_top=Ex0)
+        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta, sigma0=SIGMA, w0=w0)
         self.assertEqual(model.getDomain(),  domain)
         pde=model.setUpPDE()
         self.assertIsInstance(pde, LinearPDE)
@@ -445,12 +447,12 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertEqual(pde.getDomain(),  domain)
 
         # other things that should work
-        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta=None, w0=[2.,3.], Ex_top=complex(4.5,6) )
+        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta=None, w0=[2.,3.] , sigma0=SIGMA, airLayerLevel=1.)
 
         # these shouldn't work
-        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, x, [3.], eta=[1.,1.], w0=[2.,3.], Ex_top=complex(4.5,6) )
-        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, x, Z_XY, eta=[1.], w0=[2.,3.], Ex_top=complex(4.5,6) )
-        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], Ex_top=complex(4.5,6) )
+        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, x, [3.], eta=[1.,1.], w0=[2.,3.],  sigma0=SIGMA)
+        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, x, Z_XY, eta=[1.], w0=[2.,3.] , sigma0=SIGMA)
+        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.] , sigma0=SIGMA)
 
     def test_PDE(self):
         omega=1.
@@ -465,19 +467,20 @@ class TestMT2DModelTEMode(unittest.TestCase):
         X1=(int(0.3/H)+0.5)*H
         X2=(int(0.6/H)+0.5)*H
 
-        IMP=-(1j*omega*mu0)/k*(cmath.exp(k*Z0)-cmath.exp(-k*Z0))/(cmath.exp(k*Z0)+cmath.exp(-k*Z0))
+        
+        IMP=-(1j*omega*mu0)/k*cmath.exp(k*Z0)/cmath.exp(k*Z0)
         Z_XY=[ IMP, IMP ]
 
         x=[ [X1,Z0], [X2,Z0] ]
         eta=None
 
         z=domain.getX()[1]
-        Ex0_ex=cos(k.imag*z)*(exp(k.real*z)-exp(-k.real*z))
-        Ex0_ex_z=-sin(k.imag*z)*k.imag*(exp(k.real*z)-exp(-k.real*z))+cos(k.imag*z)*(exp(k.real*z)+exp(-k.real*z))*k.real
-        Ex1_ex=sin(k.imag*z)*(exp(k.real*z)+exp(-k.real*z))
-        Ex1_ex_z=cos(k.imag*z)*k.imag*(exp(k.real*z)+exp(-k.real*z))+sin(k.imag*z)*(exp(k.real*z)-exp(-k.real*z))*k.real
+        Ex0_ex=cos(k.imag*(z-1))*exp(k.real*(z-1))
+        Ex1_ex=sin(k.imag*(z-1))*exp(k.real*(z-1))
+        Ex0_ex_z=-sin(k.imag*(z-1))*k.imag*exp(k.real*(z-1))+cos(k.imag*(z-1))*exp(k.real*(z-1))*k.real
+        Ex1_ex_z=cos(k.imag*(z-1))*k.imag*exp(k.real*(z-1))+sin(k.imag*(z-1))*exp(k.real*(z-1))*k.real
 
-        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtTop=True, Ex_top=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], tol=1e-9,  directSolver=True)
+        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, tol=1e-9,  directSolver=True, sigma0=SIGMA)
 
         args=model.getArguments(SIGMA)
         Ex=args[0]
@@ -498,10 +501,10 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertTrue( d <= 3e-3 * ref ) # d should be zero (some sort of)
 
         z=ReducedFunction(domain).getX()[1]
-        Ex0_ex=cos(k.imag*z)*(exp(k.real*z)-exp(-k.real*z))
-        Ex1_ex=sin(k.imag*z)*(exp(k.real*z)+exp(-k.real*z))
-        Ex0_ex_z=-sin(k.imag*z)*k.imag*(exp(k.real*z)-exp(-k.real*z))+cos(k.imag*z)*(exp(k.real*z)+exp(-k.real*z))*k.real
-        Ex1_ex_z=cos(k.imag*z)*k.imag*(exp(k.real*z)+exp(-k.real*z))+sin(k.imag*z)*(exp(k.real*z)-exp(-k.real*z))*k.real
+        Ex0_ex=cos(k.imag*(z-1))*exp(k.real*(z-1))
+        Ex1_ex=sin(k.imag*(z-1))*exp(k.real*(z-1))
+        Ex0_ex_z=-sin(k.imag*(z-1))*k.imag*exp(k.real*(z-1))+cos(k.imag*(z-1))*exp(k.real*(z-1))*k.real
+        Ex1_ex_z=cos(k.imag*(z-1))*k.imag*exp(k.real*(z-1))+sin(k.imag*(z-1))*exp(k.real*(z-1))*k.real
         # and this should be zero
         d0=model.getDefect(SIGMA, Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], Ex0_ex_z*[1.,0]+ Ex1_ex_z*[0,1.])
         self.assertTrue( d0 <= 1e-8 * ref ) # d should be zero (some sort of)
@@ -537,7 +540,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         Ex1_ex=sin(k.imag*z)*(exp(k.real*z)+exp(-k.real*z))
         Ex1_ex_z=cos(k.imag*z)*k.imag*(exp(k.real*z)+exp(-k.real*z))+sin(k.imag*z)*(exp(k.real*z)-exp(-k.real*z))*k.real
 
-        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtTop=True, Ex_top=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], tol=1e-9,  directSolver=True)
+        model=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, sigma0=SIGMA, tol=1e-9,  directSolver=True,  airLayerLevel=1.)
 
         # this is the base line:
         xx=domain.getX()[0]
@@ -578,13 +581,14 @@ class TestMT2DModelTMMode(unittest.TestCase):
     def test_API(self):
         domain=ripRectangle(25, 25, d0=mpisize)
         omega=2.
+        SIGMA=15.
         x=[ [0.2,0.5], [0.3,0.5] ]
         Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
         eta=1.
         w0=1.
         Hx0=1.
         # now we do a real one
-        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta, w0=w0, Hx_bottom=Hx0)
+        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta, w0=w0, sigma0=SIGMA)
         self.assertEqual(model.getDomain(),  domain)
         pde=model.setUpPDE()
         self.assertIsInstance(pde, LinearPDE)
@@ -593,19 +597,20 @@ class TestMT2DModelTMMode(unittest.TestCase):
         self.assertEqual(pde.getDomain(),  domain)
 
         # other things that should work
-        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta=None, w0=[2.,3.], Hx_bottom=complex(4.5,6) )
+        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta=None, w0=[2.,3.], sigma0=SIGMA,  airLayerLevel=1.)
 
         # these shouldn't work
-        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, x, [3.], eta=[1.,1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
-        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, x, Z_XY, eta=[1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
-        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], Hx_bottom=complex(4.5,6) )
+        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, x, [3.], eta=[1.,1.], w0=[2.,3.], sigma0=SIGMA)
+        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, x, Z_XY, eta=[1.], w0=[2.,3.], sigma0=SIGMA)
+        self.assertRaises(ValueError, MT2DModelTMMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], sigma0=SIGMA)
 
     def test_PDE(self):
         omega=10.
         mu0=0.123
         RHO=0.15
+        SIGMA=1/RHO
         k=cmath.sqrt(1j*omega*mu0/RHO)  # Hx=exp(k*z)
-        NE=101
+        NE=151
         L=1
         domain=ripRectangle(NE,NE, d0=mpisize)
 
@@ -614,19 +619,19 @@ class TestMT2DModelTMMode(unittest.TestCase):
         X1=(int(0.3/H)+0.5)*H
         X2=(int(0.6/H)+0.5)*H
 
-        IMP=RHO*k*(cmath.exp(k*(Z0-L))-cmath.exp(-k*(Z0-L)))/(cmath.exp(k*(Z0-L))+cmath.exp(-k*(Z0-L)))
+        IMP=RHO*k*cmath.exp(k*(Z0-L))/cmath.exp(k*(Z0-L))
         Z_XY=[ IMP, IMP ]
 
         x=[ [X1,Z0], [X2,Z0] ]
         eta=None
 
         z=domain.getX()[1]
-        Hx0_ex=cos(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))/2
-        Hx0_ex_z=(-sin(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))+exp(-k.real*(z-L)))+cos(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))*k.real)/2
-        Hx1_ex=sin(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))/2
-        Hx1_ex_z=(cos(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))-exp(-k.real*(z-L)))+sin(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))*k.real)/2
+        Hx0_ex=cos(k.imag*(z-L))*exp(k.real*(z-L))
+        Hx1_ex=sin(k.imag*(z-L))*exp(k.real*(z-L))
+        Hx0_ex_z=-sin(k.imag*(z-L))*k.imag*exp(k.real*(z-L))+cos(k.imag*(z-L))*exp(k.real*(z-L))*k.real
+        Hx1_ex_z=cos(k.imag*(z-L))*k.imag*exp(k.real*(z-L))+sin(k.imag*(z-L))*exp(k.real*(z-L))*k.real
 
-        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, Hx_bottom=Hx0_ex*[1.,0]+ Hx1_ex*[0,1.], tol=1e-9,  directSolver=True)
+        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, sigma0=SIGMA, tol=1e-9,  directSolver=True,  airLayerLevel=1.)
 
         args=model.getArguments(RHO)
         Hx=args[0]
@@ -648,10 +653,10 @@ class TestMT2DModelTMMode(unittest.TestCase):
         self.assertTrue( d <= 3e-3 * ref ) # d should be zero (some sort of)
 
         z=ReducedFunction(domain).getX()[1]
-        Hx0_ex=cos(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))/2
-        Hx0_ex_z=(-sin(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))+exp(-k.real*(z-L)))+cos(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))*k.real)/2
-        Hx1_ex=sin(k.imag*(z-L))*(exp(k.real*(z-L))-exp(-k.real*(z-L)))/2
-        Hx1_ex_z=(cos(k.imag*(z-L))*k.imag*(exp(k.real*(z-L))-exp(-k.real*(z-L)))+sin(k.imag*(z-L))*(exp(k.real*(z-L))+exp(-k.real*(z-L)))*k.real)/2
+        Hx0_ex=cos(k.imag*(z-L))*exp(k.real*(z-L))
+        Hx1_ex=sin(k.imag*(z-L))*exp(k.real*(z-L))
+        Hx0_ex_z=-sin(k.imag*(z-L))*k.imag*exp(k.real*(z-L))+cos(k.imag*(z-L))*exp(k.real*(z-L))*k.real
+        Hx1_ex_z=cos(k.imag*(z-L))*k.imag*exp(k.real*(z-L))+sin(k.imag*(z-L))*exp(k.real*(z-L))*k.real
         g_Hx = Data(0, (2,2), Hx0_ex_z.getFunctionSpace())
         g_Hx[0,1] = Hx0_ex_z
         g_Hx[1,1] = Hx1_ex_z
@@ -670,6 +675,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
         omega=5.
         mu0=0.123
         RHO=0.15
+        SIGMA=1/RHO
         k=cmath.sqrt(1j*omega*mu0*1/RHO)  # Hx=exp(k*z)
 
         L=1
@@ -685,7 +691,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
         x=[ [X1,Z0], [X2,Z0] ]
         eta=None
 
-        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, tol=1e-9,  directSolver=True)
+        model=MT2DModelTMMode(domain, omega, x, Z_XY, eta, mu=mu0, tol=1e-9, sigma0=SIGMA, directSolver=True)
 
         # this is the base line:
         xx=domain.getX()[0]
@@ -718,7 +724,6 @@ class TestMT2DModelTMMode(unittest.TestCase):
         args1=model.getArguments(RHO1)
         d1=model.getDefect(RHO1, *args1)
         self.assertLess( abs( d1-d0-integrate(dg0*p) ), 1e-2*abs(d1-d0) )
-
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
