@@ -7,3 +7,6 @@ python-escript: wrong-section-according-to-package-name
 python-escript: hardening-no-fortify-functions
 
 python-escript: hyphen-used-as-minus-sign
+
+#tEH in the binary is a coincidence
+python-escript: spelling-error-in-binary

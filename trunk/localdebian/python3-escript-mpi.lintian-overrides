@@ -4,3 +4,6 @@
 python3-escript-mpi: hardening-no-fortify-functions
 
 python3-escript-mpi: hyphen-used-as-minus-sign
+
+# tEH in the binary is a coincidence
+python3-escript-mpi: spelling-error-in-binary

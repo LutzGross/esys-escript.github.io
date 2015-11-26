@@ -5,3 +5,6 @@ python-escript-mpi: hardening-no-fortify-functions
 
 python-escript-mpi: wrong-section-according-to-package-name
 python-escript-mpi: hyphen-used-as-minus-sign
+
+#tEH in the binary is a coincidence
+python-escript-mpi: spelling-error-in-binary

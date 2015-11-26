@@ -95,7 +95,7 @@ Suggests: python3-pyproj, python3-gdal, python-escript-doc
 
 Package: python3-escript-mpi
 Description: Escript/Finley finite elements Python3 system (OpenMP + MPI)
- Escript is a programming tool for implementing mathematical models in python 
+ Escript is a programming tool for implementing mathematical models in Python 
  using the finite element method (FEM). Because users do not access the data 
  structures it is very easy to use and scripts can run on desktop computers as 
  well as highly parallel supercomputer without changes. Application areas for 
