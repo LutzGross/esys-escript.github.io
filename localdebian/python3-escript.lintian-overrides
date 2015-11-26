@@ -3,3 +3,6 @@
 # as being un-hardened.
 python3-escript: hardening-no-fortify-functions
 python3-escript: hyphen-used-as-minus-sign
+
+# tEH in the binary is a coincidence
+python3-escript: spelling-error-in-binary
