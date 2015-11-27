@@ -28,6 +28,8 @@ if len(sys.argv)!=2:
 print("TESTING")
 
 for dirn, subdir, files in os.walk("esys"):
+  if dirn.find('__pycache__')!=-1:
+    continue
   first=True
   for n in files:
     if n.endswith(".pyc"):
