@@ -1,3 +1,4 @@
+#Using this instead of python-escript-doc.docs because I want to rename the c++ doco from "doxygen"
 debian/stage2/release/doc/install/install.pdf	usr/share/doc/python-escript-doc
 debian/stage2/release/doc/user/user.pdf		usr/share/doc/python-escript-doc
 debian/stage2/release/doc/cookbook/cookbook.pdf	usr/share/doc/python-escript-doc

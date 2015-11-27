@@ -220,6 +220,7 @@ binary-indep:
 	dh_installdirs		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_install 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_installchangelogs	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST) debian/changelog.trivial
+	dh_installdocs		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_installexamples	-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_link 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
 	dh_lintian 		-ppython-escript-doc -Npython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -P$(DDEST)
