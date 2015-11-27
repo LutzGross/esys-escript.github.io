@@ -759,7 +759,6 @@ class SplitInversionCostFunction(MeteredCostFunction):
           if self.swid==0:
              Y=g_J[0]    # Because g_J==(Y,X)  Y_k=dKer/dm_k
           else:
-             #Y=Data(0, g_J[0].getShape(), g_J[0].getForwardModel())
              Y=Data(0, g_J[0].getShape(), g_J[0].getFunctionSpace())
           for i in range(len(mods)):
               mu=mu_model[i]
