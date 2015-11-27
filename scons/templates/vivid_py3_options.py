@@ -14,6 +14,12 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
+from .vivid_options import *
 
-from esys.escriptcore.splitworld import *
+# boost-python library/libraries to link against
+boost_libs = ['boost_python-py34']
+usepython3=True
+pythoncmd='python3'
+pythonlibname='python3.4m'
+pythonincpath='/usr/include/python3.4'
+

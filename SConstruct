@@ -370,7 +370,7 @@ if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
     elif env['mpi'] == 'OPENMPI':
-        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
+        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
     elif env['mpi'] == 'MPT':
         env['launcher'] = "mpirun %h -np %p %b"
     elif env['mpi'] == 'MPICH':
@@ -683,30 +683,10 @@ install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:
     install_all_list += ['install_pythonMPI', 'install_overlord']
-install_all_list += ['install_weipa_py']    
-install_all_list += [env.Install(os.path.join(env['build_dir'],'scripts'), os.path.join('scripts', 'release_sanity.py'))]
-install_all=env.Alias('install_all', install_all_list)
+env.Alias('install_all', install_all_list)
 
 # Default target is install
-#env.Default('install_all')
-
-
-sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['build_dir'],'scripts', 'release_sanity.py')))
-env.Depends('dummy', install_all)
-if env['usempi']:
-   #env.Requires('dummy', ['build_pythonMPI', 'install_pythonMPI'])
-   #env.Requires('dummy', env['prefix']+"/lib/pythonMPI")
-   env.Depends('dummy', ['build_pythonMPI', 'install_pythonMPI'])
-   env.Depends('dummy', env['prefix']+"/lib/pythonMPI")   
-
-if 'install_dudley' in install_all_list and \
-   'install_finley' in install_all_list and \
-   'install_ripley' in install_all_list and \
-   'install_speckley' in install_all_list:
-       env.AlwaysBuild('sanity')
-       env.Default('sanity')
-else:
-    env.Default('install_all')
+env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 

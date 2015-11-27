@@ -84,7 +84,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
     index_t len=0;
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
-    std::vector<index_t> partition(len);
+    std::vector<int> partition(len);
 
 #ifdef USE_PARMETIS
     if (mpiSize>1 && allRanksHaveNodes(MPIInfo, distribution)) {
@@ -123,21 +123,19 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
             }
         }
 
-        index_t wgtflag = 0;
-        index_t numflag = 0;
-        index_t ncon = 1;
-        index_t edgecut;
-        index_t impiSize = mpiSize;
-        index_t idim = dim;
+        int wgtflag = 0;
+        int numflag = 0;
+        int ncon = 1;
+        int edgecut;
         // options[0]=1 -> non-default values, evaluate rest of options
         // options[1]=15 -> DBG_TIME | DBG_INFO | DBG_PROGRESS | DBG_REFINEINFO
         // options[2] -> random seed
-        index_t options[3] = { 1, 15, 0 };
+        int options[3] = { 1, 15, 0 };
         std::vector<real_t> tpwgts(ncon*mpiSize, 1.f/mpiSize);
         std::vector<real_t> ubvec(ncon, 1.05f);
         ParMETIS_V3_PartGeomKway(&distribution[0], pattern->ptr, pattern->index,
-                              NULL, NULL, &wgtflag, &numflag, &idim, &xyz[0],
-                              &ncon, &impiSize, &tpwgts[0], &ubvec[0], options,
+                              NULL, NULL, &wgtflag, &numflag, &dim, &xyz[0],
+                              &ncon, &mpiSize, &tpwgts[0], &ubvec[0], options,
                               &edgecut, &partition[0], &MPIInfo->comm);
     } else {
         for (index_t i=0; i<myNumVertices; ++i)
@@ -162,7 +160,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
                 new_distribution[i]+=loc_partition_count[i];
         }
     }
-    index_t *recvbuf=new index_t[mpiSize*mpiSize];
+    int *recvbuf=new int[mpiSize*mpiSize];
 #ifdef ESYS_MPI
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
@@ -175,7 +173,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
     new_distribution[0]=0;
     std::vector<index_t> newGlobalDOFID(len);
     for (int rank=0; rank<mpiSize; rank++) {
-        index_t c=0;
+        int c=0;
         for (int i=0; i<myRank; ++i)
             c+=recvbuf[rank+mpiSize*i];
         for (index_t i=0; i<myNumVertices; ++i) {

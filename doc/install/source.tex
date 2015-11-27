@@ -41,6 +41,9 @@ Our current test compilers include:
  \item intel icpc v15
 \end{itemize}
 
+g++ 5 is known to have an optimisation bug that will cause \escript to
+crash. An alternate compiler will be required until this bug has been fixed.
+
 Note that:
 \begin{itemize}
  \item OpenMP will not function correctly for g++ $\leq$ 4.2.1 (and is not currently supported by clang).
@@ -246,7 +249,9 @@ scons -j1 options_file=scons/templates/centos7_0_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using release $21.5$.
+These instructions were prepared using release $21.5$. Release $22$ by default
+uses gcc 5.2, which currently has an optimisation bug that will cause
+\escript to crash.
 
 \noindent Install packages
 \begin{shellCode}

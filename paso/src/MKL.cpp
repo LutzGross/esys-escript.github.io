@@ -35,25 +35,24 @@ void MKL_free(SparseMatrix* A)
 {
 #ifdef MKL
     if (A && A->solver_p && A->solver_package==PASO_MKL) {
-        ES_MKL_INT mtype = MKL_MTYPE_REAL_UNSYM;
-        ES_MKL_INT n = A->numRows;
-        ES_MKL_INT maxfct=1; // number of factorizations on the same pattern
-        ES_MKL_INT mnum =1;  // factorization to be handled in this call
-        ES_MKL_INT msglvl=0; // message level
-        ES_MKL_INT nrhs=1;   // number of right hand sides
-        ES_MKL_INT idum;     // dummy integer
+        _INTEGER_t mtype = MKL_MTYPE_UNSYM;
+        _INTEGER_t n = A->numRows;
+        _INTEGER_t maxfct=1; // number of factorizations on the same pattern
+        _INTEGER_t mnum =1;  // factorization to be handled in this call
+        _INTEGER_t msglvl=0; // message level
+        _INTEGER_t nrhs=1;   // number of right hand sides
+        _INTEGER_t idum;     // dummy integer
         _DOUBLE_PRECISION_t ddum;      // dummy float
-        ES_MKL_INT error=MKL_ERROR_NO; // error code
-        ES_MKL_INT iparm[64];          // parameters
+        _INTEGER_t error=MKL_ERROR_NO; // error code
+        _INTEGER_t iparm[64];          // parameters
         _MKL_DSS_HANDLE_t* pt = (_MKL_DSS_HANDLE_t*)A->solver_p;
-        ES_MKL_INT phase = MKL_PHASE_RELEASE_MEMORY;
-        ES_MKL_INT* ptr = reinterpret_cast<ES_MKL_INT*>(A->pattern->ptr);
-        ES_MKL_INT* index = reinterpret_cast<ES_MKL_INT*>(A->pattern->index);
+        _INTEGER_t phase = MKL_PHASE_RELEASE_MEMORY;
         for (index_t i=0; i<64; ++i)
             iparm[i]=0;
 
-        ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val, ptr,
-                   index, &idum, &nrhs, iparm, &msglvl,&ddum, &ddum, &error);
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
+                A->pattern->ptr, A->pattern->index, &idum, &nrhs,
+                iparm, &msglvl,&ddum, &ddum, &error);
         delete[] A->solver_p;
         A->solver_p=NULL;
         if (error != MKL_ERROR_NO)
@@ -72,27 +71,17 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         return;
     }
 
-    // MKL uses 'long long int' in 64-bit version, escript 'long'. Make sure
-    // they are compatible
-    if (sizeof(ES_MKL_INT) != sizeof(index_t)) {
-        Esys_setError(TYPE_ERROR, "Paso: MKL index type is not compatible with this escript build. Check compile options.");
-        return;
-    }
-
-    ES_MKL_INT* ptr = reinterpret_cast<ES_MKL_INT*>(A->pattern->ptr);
-    ES_MKL_INT* index = reinterpret_cast<ES_MKL_INT*>(A->pattern->index);
-
-    ES_MKL_INT mtype = MKL_MTYPE_REAL_UNSYM;
-    ES_MKL_INT n = A->numRows;
-    ES_MKL_INT maxfct = 1; /* number of factorizations on the same pattern */
-    ES_MKL_INT mnum = 1; /* factorization to be handled in this call */
-    ES_MKL_INT msglvl = (verbose? 1 : 0); /* message level */
-    ES_MKL_INT nrhs = 1; /* number of right hand sides */
-    ES_MKL_INT idum; /* dummy integer */
+    _INTEGER_t mtype = MKL_MTYPE_UNSYM;
+    _INTEGER_t n = A->numRows;
+    _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
+    _INTEGER_t mnum =1; /* factorization to be handled in this call */
+    _INTEGER_t msglvl=0; /* message level */
+    _INTEGER_t nrhs=1; /* number of right hand sides */
+    _INTEGER_t idum; /* dummy integer */
     _DOUBLE_PRECISION_t ddum; /* dummy float */
-    ES_MKL_INT phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
-    ES_MKL_INT error=MKL_ERROR_NO;  /* error code */
-    ES_MKL_INT iparm[64]; /* parameters */
+    _INTEGER_t phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
+    _INTEGER_t error=MKL_ERROR_NO;  /* error code */
+    _INTEGER_t iparm[64]; /* parameters */
     _MKL_DSS_HANDLE_t* pt = (_MKL_DSS_HANDLE_t *)(A->solver_p);
 
     for (index_t i=0; i<64; ++i)
@@ -103,23 +92,20 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
             iparm[1] = MKL_REORDERING_MINIMUM_DEGREE;
             break;
         default:
-#ifdef _OPENMP
-            iparm[1] = MKL_REORDERING_NESTED_DISSECTION_OMP;
-#else
             iparm[1] = MKL_REORDERING_NESTED_DISSECTION;
-#endif
             break;
     }
+#ifdef _OPENMP
+    iparm[2] = omp_get_max_threads();
+#else
+    iparm[2] = 1;
+#endif
     iparm[5] = 0; // store solution into output array
     iparm[7] = numRefinements; // maximum number of refinements
     iparm[9] = 13; // 10**(-iparm[9]) perturbation of pivot elements
     iparm[10] = 1; // rescaling the matrix before factorization started
     iparm[17] = 0; // =-1 report number of non-zeroes
     iparm[18] = 0; // =-1 report flops
-#ifdef _OPENMP
-    if (omp_get_max_threads() > 8)
-        iparm[23] = 1;
-#endif
 
     double time0;
 
@@ -133,8 +119,9 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         // symbolic factorization
         phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
         time0 = Esys_timer();
-        ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
-                   ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
+                iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
              if (verbose)
                  printf("MKL: symbolic factorization failed.\n");
@@ -143,8 +130,9 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         } else {
             // LDU factorization
             phase = MKL_PHASE_FACTORIZATION;
-            ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val, ptr,
-                       index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
+                    A->pattern->ptr, A->pattern->index, &idum, &nrhs,
+                    iparm, &msglvl, in, out, &error);
             if (error != MKL_ERROR_NO) {
                 if (verbose)
                     printf("MKL: LDU factorization failed.\n");
@@ -159,8 +147,9 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
     if (Esys_noError())  {
         time0 = Esys_timer();
         phase = MKL_PHASE_SOLVE;
-        ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
-                   ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
+                A->pattern->ptr, A->pattern->index, &idum, &nrhs, iparm,
+                &msglvl, in, out, &error);
         if (verbose) printf("MKL: solve completed.\n");
         if (error != MKL_ERROR_NO) {
             if (verbose)

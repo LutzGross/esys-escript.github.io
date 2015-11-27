@@ -36,14 +36,8 @@ import numpy
 import datetime
 import esys.downunder.magtel2d as mt2d
 import esys.escript            as escript
+import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
-try:
-    import esys.finley         as finley
-    HAVE_FINLEY = True
-except ImportError:
-    HAVE_FINLEY = False
-
-HAVE_GMSH = escript.getEscriptParamInt("GMSH_SUPPORT")
 
 # Matplotlib uses outdated code -- ignore the warnings until an update is available:
 import warnings
@@ -52,6 +46,11 @@ import logging
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
+try:
+    from esys.finley import Rectangle as fRect, Brick as fBrick
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
 
 # ==========================================================
 # ==========================================================
@@ -452,7 +451,6 @@ def generateCommemi4Mesh():
 
 class Test_COMMEMI4(unittest.TestCase):
     @unittest.skipIf(not HAVE_FINLEY, "Test requires finley to be available")
-    @unittest.skipIf(not HAVE_GMSH, "Test requires gmsh to be available")
     @unittest.skipIf(not escript.getEscriptParamInt("PASO_DIRECT"), "Missing direct solvers")
     @unittest.skipIf(escript.getMPISizeWorld() > 1, "Direct solvers and MPI are currently incompatible")
     def test_comm4(self):

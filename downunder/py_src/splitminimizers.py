@@ -88,7 +88,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 # Now we will only run this on one world and rely on getDouble to ship it
                 f.splitworld.addJob( FunctionJob, dual_p_g_Jx_new)
                 f.splitworld.runJobs()
-                res=f.splitworld.getFloatVariable("dp_result")
+                res=f.splitworld.getDoubleVariable("dp_result")
                 return res
         #End of grad_phi
 
@@ -105,7 +105,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 f.splitworld.addJobPerWorld( FunctionJob, SplitMinimizerLBFGS.move_point_from_base, alpha=alpha, imports=['base_point', 'search_direction'])
                 f.splitworld.runJobs()
                 f.calculateValue('phi_a')
-                phi_a=f.splitworld.getFloatVariable('phi_a')
+                phi_a=f.splitworld.getDoubleVariable('phi_a')
                 #zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
                 if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
                     alpha_hi=alpha
@@ -161,6 +161,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 regular=self.importValue("regularization")
                 phi0=Jx
                
+                print("Type of phi0=", type(phi0),phi0) 
                 # In the original, this part calls getDualProduct on f
                 # However, since that only ends up referring to the 
                 # regularisation term, I've called that directly
@@ -202,7 +203,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 # Now we will only run this on one world and rely on getDouble to ship it
                 f.splitworld.addJob( FunctionJob, dual_p_g_Jx_new)
                 f.splitworld.runJobs()
-                res=f.splitworld.getFloatVariable("dp_result")
+                res=f.splitworld.getDoubleValue("dp_result")
                 return res
             #End of grad_phi
 
@@ -212,10 +213,10 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 f.splitworld.runJobs()
                 f.calculateValue('phi_a')
                 #lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
-                phi_a=f.splitworld.getFloatVariable('phi_a')
-                phi0=f.splitworld.getFloatVariable('phi0')
-                gphi0=f.splitworld.getFloatVariable('gphi0')
-                old_phi_a=f.splitworld.getFloatVariable('old_phi_a')
+                phi_a=f.splitworld.getDoubleVariable('phi_a')
+                phi0=f.splitworld.getDoubleVariable('phi0')
+                gphi0=f.splitworld.getDoubleVariable('gphi0')
+                old_phi_a=f.splitworld.getDoubleVariable('old_phi_a')
                 if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
                     alpha, phi_a, gphi_a = _zoom(f, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0)
                     break
@@ -312,6 +313,7 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
                 # gradient for the new solution approximation x_new=x+alpha*p
+                print("alpha=",alpha)
                 self.logger.debug("\tSearch direction scaling alpha=%e"%alpha)
 
                 # execute the step
@@ -319,11 +321,11 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 #delta_x = alpha*p
                 #x_new = x + delta_x
 
-                Jx=splitworld.getFloatVariable("Jx")
+                Jx=splitworld.getDoubleVariable("Jx")
                 converged = True
                 if self._J_tol:
-                    Jx_old=splitworld.getFloatVariable("Jx_old")
-                    Jx_original=splitworld.getFloatVariable("Jx_original")
+                    Jx_old=splitworld.getDoubleVariable("Jx_old")
+                    Jx_original=splitworld.getDoubleVariable("Jx_original")
                     flag=abs(Jx-Jx_old) <= self._J_tol * abs(Jx-Jx_original)
                     #flag=abs(Jx_new-Jx) <= self._J_tol * abs(Jx_new-Jx_0)
                     if self.logger.isEnabledFor(logging.DEBUG):
@@ -351,9 +353,9 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                                 #self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
                         self.exportValue('conv_flag', flag)
                     # End of converged_check 
-                    self.getCostFunction().splitworld.addJobPerWorld(FunctionJob, converged_check, alpha=alpha, m_tol=self._m_tol, imports=["regularization", "search_direction", "current_point"])
+                    addJobPerWorld(self.getCostFunction().splitworld, FunctionJob, converged_check, alpha=alpha, m_tol=self._m_tol, imports=["regularization", "search_direction", "current_point"])
                     self.getCostFunction().splitworld.runJobs()
-                    flag=self.getCostFunction().splitworld.getFloatVariable("conv_flag")>0.001
+                    flag=self.getCostFunction().splitworld.getDoubleVariable("conv_flag")>0.001
                     converged = converged and flag
 
                 #Already done in the line_search call
@@ -393,10 +395,10 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 # End run_worker
                 # Only one world has s_and_y - so its important that only single jobs be run that manipulate
                 # s_and_y
-                self.getCostFunction().splitworld.addJob( FunctionJob, run_worker, alpha=alpha, need_trunc=(k>=self._truncation))
+                addJob(self.getCostFunction().splitworld, FunctionJob, run_worker, alpha=alpha, need_trunc=(k>=self._truncation))
                 self.getCostFunction().splitworld.runJobs()
 
-                break_down=(splitworld.getLocalObjectVariable("break_down")>0.001)
+                break_down=(splitworld.getDoubleVariable("break_down")>0.001)
                 self.getCostFunction().updateHessian()
                 #g_Jx=g_Jx_new
                 #Jx=Jx_new
@@ -491,10 +493,11 @@ class SplitMinimizerLBFGS(AbstractMinimizer):
                 r = r + s * (a-beta)
             # In the original version, the caller negated the result
             self.exportValue("search_direction", -r)
+        print ("prior to twoloop call ",splitworld.getVarList())
         # Note: this is only running on world world (of possibly many)
         # Any jobs which also need the variables exported here
         # need to be shared or the jobs need to run on the same world
-        splitworld.addJob(FunctionJob, two_loop_worker, reset=reset, imports=["current_point", "regularization", "g_Jx_0", "g_Jx_1"])
+        addJob(splitworld, FunctionJob, two_loop_worker, reset=reset, imports=["current_point", "regularization", "g_Jx_0", "g_Jx_1"])
         splitworld.runJobs() 
 
 

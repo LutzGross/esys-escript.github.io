@@ -21,71 +21,51 @@
 #include <iostream>
 #include <sstream>
 
-#include <esysUtils/Esys_MPI.h>
+#ifdef ESYS_MPI
+#include <mpi.h>
+#endif
 
 namespace esysUtils {
 
 class FileWriter
 {
 public:
-    FileWriter(MPI_Comm comm = MPI_COMM_NULL) :
-        mpiComm(comm), mpiRank(0), mpiSize(1), m_open(false)
-    {
+    FileWriter() : mpiSize(1) {}
+
 #ifdef ESYS_MPI
-        if (comm != MPI_COMM_NULL) {
-            MPI_Comm_rank(mpiComm, &mpiRank);
-            MPI_Comm_size(mpiComm, &mpiSize);
-        }
-#else
-        (void)mpiRank;	// to prevent the compiler from complaining
-        (void)mpiSize;  // that these are unused
-        (void)mpiComm;
+    FileWriter(MPI_Comm comm) : mpiComm(comm)
+    {
+        MPI_Comm_rank(mpiComm, &mpiRank);
+        MPI_Comm_size(mpiComm, &mpiSize);
+    }
 #endif
-    }
 
-    ~FileWriter()
+    bool openFile(std::string filename, size_t initialSize=0)
     {
-        if (m_open)
-            close();
-    }
-
-    bool openFile(std::string filename, size_t initialSize=0,
-                  bool binary=false, bool append=false)
-    {
-        // close any open file first
-        if (m_open)
-            close();
-
         bool success=false;
 
-        if (mpiSize > 1) {
+        if (mpiSize>1) {
 #ifdef ESYS_MPI
+            // remove file first if it exists
+            int error = 0;
             int mpiErr;
-            if (!append) {
-                // remove file first if it exists
-                int error = 0;
-                if (mpiRank == 0) {
-                    std::ifstream f(filename.c_str());
-                    if (f.is_open()) {
-                        f.close();
-                        if (std::remove(filename.c_str())) {
-                            error=1;
-                        }
+            if (mpiRank == 0) {
+                std::ifstream f(filename.c_str());
+                if (f.is_open()) {
+                    f.close();
+                    if (std::remove(filename.c_str())) {
+                        error=1;
                     }
                 }
-                MPI_Allreduce(&error, &mpiErr, 1, MPI_INT, MPI_MAX, mpiComm);
-                if (mpiErr != 0) {
-                    std::cerr << "Error removing " << filename << "!"
-                              << std::endl;
-                    return false;
-                }
+            }
+            MPI_Allreduce(&error, &mpiErr, 1, MPI_INT, MPI_MAX, mpiComm);
+            if (mpiErr != 0) {
+                std::cerr << "Error removing " << filename << "!" << std::endl;
+                return false;
             }
 
             MPI_Info mpiInfo = MPI_INFO_NULL;
             int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;
-            if (append)
-                amode |= MPI_MODE_APPEND;
-
             mpiErr = MPI_File_open(mpiComm, const_cast<char*>(filename.c_str()),
                     amode, mpiInfo, &fileHandle);
             if (mpiErr == MPI_SUCCESS) {
@@ -93,44 +73,28 @@ public:
                         const_cast<char*>("native"), mpiInfo);
             }
             if (mpiErr == MPI_SUCCESS) {
-                if (append) {
-                    mpiErr = MPI_File_seek_shared(fileHandle, 0, MPI_SEEK_END);
-                } else {
-                    mpiErr = MPI_File_set_size(fileHandle, initialSize);
-                }
+                mpiErr = MPI_File_set_size(fileHandle, initialSize);
             }
             if (mpiErr != MPI_SUCCESS) {
-                char errorstr[MPI_MAX_ERROR_STRING];
-                int len;
-                MPI_Error_string(mpiErr, errorstr, &len);
-                std::cerr << "Error " << " opening " << filename
-                          << " for parallel writing: " << errorstr << std::endl;
+                std::cerr << "Error opening " << filename << " for parallel writing!" << std::endl;
             } else {
                 success=true;
             }
 #endif
         } else {
-            std::ios_base::openmode mode =
-                        (binary ? std::ios_base::binary : std::ios_base::out);
-            if (append)
-                mode |= std::ios_base::app;
-
+            std::ios_base::openmode mode = std::ios_base::binary;
             ofs.open(filename.c_str(), mode);
             success = !ofs.fail();
-            if (success && initialSize>0 && !append) {
+            if (success && initialSize>0) {
                 ofs.seekp(initialSize-1, ofs.beg).put(0).seekp(0, ofs.beg);
                 success = !ofs.fail();
             }
         }
-        m_open = success;
         return success;
     }
 
     bool writeOrdered(std::ostringstream& oss)
     {
-        if (!m_open)
-            return false;
-
         bool success=false;
         if (mpiSize>1) {
 #ifdef ESYS_MPI
@@ -152,9 +116,6 @@ public:
 
     bool writeShared(std::ostringstream& oss)
     {
-        if (!m_open)
-            return false;
-
         bool success=false;
         if (mpiSize>1) {
 #ifdef ESYS_MPI
@@ -176,9 +137,6 @@ public:
 
     bool writeAt(std::ostringstream& oss, long offset)
     {
-        if (!m_open)
-            return false;
-
         bool success=false;
         if (mpiSize>1) {
 #ifdef ESYS_MPI
@@ -201,9 +159,6 @@ public:
 
     void close()
     {
-        if (!m_open)
-            return;
-
         if (mpiSize>1) {
 #ifdef ESYS_MPI
             MPI_File_close(&fileHandle);
@@ -211,15 +166,13 @@ public:
         } else {
             ofs.close();
         }
-        m_open = false;
     }
 
 private:
-    MPI_Comm mpiComm;
-    int mpiRank;
     int mpiSize;
-    bool m_open;
 #ifdef ESYS_MPI
+    int mpiRank;
+    MPI_Comm mpiComm;
     MPI_File fileHandle;
 #endif
     std::ofstream ofs;

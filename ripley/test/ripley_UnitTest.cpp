@@ -14,21 +14,17 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-#include <esysUtils/Esys_MPI.h>
+#include <iostream>
 
 #include "SystemMatrixTestCase.h"
-
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
 #include <cppunit/TestResultCollector.h>
 #include <cppunit/TestRunner.h>
 
-#include <iostream>
-
 using namespace CppUnit;
 
+#include "esysUtils/Esys_MPI.h"
 
 int main(int argc, char* argv[])
 {

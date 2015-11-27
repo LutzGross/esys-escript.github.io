@@ -151,9 +151,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
     .def("clearVariable", &escript::SplitWorld::clearVariable, arg("name"), "Remove the value from the named variable")
     .def("getVarList", &escript::SplitWorld::getVarPyList, "Lists variables known to the system")
-    .def("getVarInfo", &escript::SplitWorld::getVarPyInfo, "Lists variable descriptions known to the system")
-    .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable, "Return the value of floating point variable")
-    .def("getLocalObjectVariable", &escript::SplitWorld::getLocalObjectVariable, "Returns python object for a variable which is not shared between worlds")
+    .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable)
     .def("getSubWorldCount",&escript::SplitWorld::getSubWorldCount)
     .def("getSubWorldID", &escript::SplitWorld::getSubWorldID)
     .def("copyVariable", &escript::SplitWorld::copyVariable, args("source","destination"), "Copy the contents of one variable to another");
@@ -633,8 +631,6 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("_whereZero",&escript::Data::whereZero,(arg("tol")=0.0))
     .def("_whereNonZero",&escript::Data::whereNonZero,(arg("tol")=0.0))
     .def("_erf",&escript::Data::erf)
-    .def("_besselFirstKind",&escript::Data::besselFirstKind,arg("order"))
-    .def("_besselSecondKind",&escript::Data::besselSecondKind,arg("order"))
     .def("_sin",&escript::Data::sin)
     .def("_cos",&escript::Data::cos)
     .def("_tan",&escript::Data::tan)
@@ -1021,7 +1017,7 @@ args("source", "q", "r","factor"),
         "'residual_norm', 'converged'.\n"
         ":param value: new value of the diagnostic information\n"
         ":note: this function is used by a solver to report diagnostics\n"
-        "information.")
+        "informations.")
     .def("getDiagnostics", &escript::SolverBuddy::getDiagnostics, args("name"),"Returns the diagnostic information ``name``. Possible values are:\n\n"
         "- 'num_iter': the number of iteration steps\n"
         "- 'cum_num_iter': the cumulative number of iteration steps\n"
