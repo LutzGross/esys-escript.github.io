@@ -55,4 +55,4 @@ find . -name 'src' | xargs rm -r
 rm -r scons
 rm -r doc/user doc/cookbook 
 find doc -name '*.tex' | xargs rm
-rm -rf debian
+rm -rf localdebian

@@ -199,9 +199,11 @@ zip_path=os.path.join(release_dir, 'escript_examples.zip')
 zip = local_env.Command(zip_path, None, dir_cmd+"zip "+zip_path+" "+" ".join(ex2))
 env.Alias('examples_zipfile', zip)
 
-tar_path=os.path.join(release_dir, 'escript_examples.tar.gz')
-tar = local_env.Command(tar_path, None, dir_cmd+"tar -czf "+tar_path+" "+" ".join(ex2))
-env.Alias('examples_tarfile', tar)
+tar_path=os.path.join(release_dir, 'escript_examples.tar')
+targz_path=os.path.join(release_dir, 'escript_examples.tar.gz')
+tar = local_env.Command(tar_path, None, dir_cmd+"tar -cf "+tar_path+" "+" ".join(ex2))
+targz = local_env.Command(targz_path, tar, "gzip -n -9 "+tar_path)
+env.Alias('examples_tarfile', targz)
 
 #env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
 #if 'Tar' in dir(env):
