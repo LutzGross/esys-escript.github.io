@@ -130,9 +130,9 @@ binary-arch2:
 	dh_lintian		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
 	dh_compress		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
 	dh_fixperms		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
-	dh_strip			-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
+	dh_strip			-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)		
 	dh_makeshlibs		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)
-	dh_shlibdeps		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	 -l$(BDEST)/usr/lib/python-escript	
+	dh_shlibdeps		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	 -l$(BDEST)/usr/lib/python-escript/lib	
 	dh_installdeb		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)	
 	dh_gencontrol		-ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi  -Npython-escript-doc -P$(BDEST)
 	#This should not be necessary
@@ -156,7 +156,7 @@ binary-arch2M:
 	dh_fixperms -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 	dh_strip		-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 	dh_makeshlibs	-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
-	dh_shlibdeps	-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST) -l$(BMDEST)/usr/lib/python-escript-mpi
+	dh_shlibdeps	-ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST) -l$(BMDEST)/usr/lib/python-escript-mpi/lib
 	dh_installdeb -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 	dh_gencontrol -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST)
 	#This should not be necessary
@@ -180,7 +180,7 @@ binary-arch3:
 	dh_fixperms 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 	dh_strip			-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 	dh_makeshlibs		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
-	dh_shlibdeps		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST) -l$(B3DEST)/usr/lib/python3-escript
+	dh_shlibdeps		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST) -l$(B3DEST)/usr/lib/python3-escript/lib
 	dh_installdeb 		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 	dh_gencontrol  		-ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST)
 	#This should not be necessary
@@ -204,7 +204,7 @@ binary-arch3M:
 	dh_fixperms		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 	dh_strip			-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 	dh_makeshlibs		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
-	dh_shlibdeps		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST) -l$(B3MDEST)/usr/lib/python3-escript-mpi
+	dh_shlibdeps		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST) -l$(B3MDEST)/usr/lib/python3-escript-mpi/lib
 	dh_installdeb		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 	dh_gencontrol		-ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST)
 	#This should not be necessary
