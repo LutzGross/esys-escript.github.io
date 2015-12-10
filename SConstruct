@@ -150,7 +150,9 @@ vars.AddVariables(
   BoolVariable('papi', 'Enable PAPI', False),
   ('papi_prefix', 'Prefix/Paths to PAPI installation', default_prefix),
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
-  BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False)
+  BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
+  BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)',
+False)
 )
 
 ##################### Create environment and help text #######################
@@ -685,7 +687,17 @@ if env['usempi']:
     install_all_list += ['install_pythonMPI', 'install_overlord']
 install_all_list += ['install_weipa_py']    
 install_all_list += [env.Install(os.path.join(env['build_dir'],'scripts'), os.path.join('scripts', 'release_sanity.py'))]
-install_all=env.Alias('install_all', install_all_list)
+
+
+if env['osx_dependency_fix']:
+    print("Require dependency fix")
+    install_all=env.Command('install_all',install_all_list,'scripts/moveall.sh')
+else:
+    print("Not here")
+    install_all=env.Alias('install_all', install_all_list)
+
+
+
 
 # Default target is install
 #env.Default('install_all')
@@ -707,6 +719,11 @@ if 'install_dudley' in install_all_list and \
        env.Default('sanity')
 else:
     env.Default('install_all')
+
+
+print("Here")
+
+
 
 ################## Targets to build and run the test suite ###################
 
