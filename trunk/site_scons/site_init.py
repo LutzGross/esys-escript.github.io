@@ -244,3 +244,8 @@ def effectiveName(inname):
     if m.match(inname):
         return "savanna"
     return inname
+
+def osxlib_dep_rewrite(libname, targetdir, env):
+    if env.Execute("tools/libmover.sh %s %s"%(libname, targetdir)):
+       return 1
+    return None
