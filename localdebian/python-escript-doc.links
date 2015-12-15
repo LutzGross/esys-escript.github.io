@@ -7,6 +7,7 @@
 /usr/share/sphinx/themes/basic/static/down-pressed.png	usr/share/doc/python-escript-doc/python_html/_static/down-pressed.png
 /usr/share/sphinx/themes/basic/static/file.png		usr/share/doc/python-escript-doc/python_html/_static/file.png
 /usr/share/sphinx/themes/basic/static/jquery.js		usr/share/doc/python-escript-doc/python_html/_static/jquery.js
+/usr/share/sphinx/themes/basic/static/jquery.js		usr/share/doc/python-escript-doc/c++_html/jquery.js
 /usr/share/sphinx/themes/basic/static/minus.png		usr/share/doc/python-escript-doc/python_html/_static/minus.png
 /usr/share/sphinx/themes/basic/static/plus.png		usr/share/doc/python-escript-doc/python_html/_static/plus.png
 /usr/share/javascript/sphinxdoc/1.0/searchtools.js	usr/share/doc/python-escript-doc/python_html/_static/searchtools.js

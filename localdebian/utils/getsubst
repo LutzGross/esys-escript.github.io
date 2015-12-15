@@ -16,6 +16,8 @@ case "$distr" in
     "trusty") opf="trusty";;
     "utopic") opf="utopic";;
     "vivid") opf="vivid";;
+    "stretch") opf="jessie";;
+    "sid") opf="jessie";;
     *) echo "No file found" >&2; exit 1;;
 esac
 rm -f debian/substvars

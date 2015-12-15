@@ -693,7 +693,6 @@ if env['osx_dependency_fix']:
     print("Require dependency fix")
     install_all=env.Command('install_all',install_all_list,'scripts/moveall.sh')
 else:
-    print("Not here")
     install_all=env.Alias('install_all', install_all_list)
 
 
@@ -719,11 +718,6 @@ if 'install_dudley' in install_all_list and \
        env.Default('sanity')
 else:
     env.Default('install_all')
-
-
-print("Here")
-
-
 
 ################## Targets to build and run the test suite ###################
 

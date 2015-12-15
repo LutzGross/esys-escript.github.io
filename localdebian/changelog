@@ -1,5 +1,5 @@
-python-escript (4.1~1-1) experimental; urgency=low
-  * Begin preparations for proper debianisation and next upstream.
+python-escript (4.1-1) experimental; urgency=low
+  * First debian release of escript. Upstream version 4.1.
   * closes: 783157
  -- Joel Fenwick <j.oelpublic@gmail.com>  Thu, 23 Apr 2015 17:28:21 +1000
 
