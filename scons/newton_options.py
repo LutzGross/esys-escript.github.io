@@ -21,6 +21,7 @@ boost_libs = ['boost_python-py27']
 parmetis = True
 umfpack = True
 lapack = 'clapack'
+lapack_libs = ['lapack']
 silo = True
 silo_libs = ['siloh5', 'hdf5']
 build_shared = False
