@@ -1,20 +1,48 @@
 Source: python-escript
+Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Joel Fenwick <j.oelpublic@gmail.com>
 Section: science
 Priority: extra
+Build-Depends: python-all-dev (>= 2.6.6-3~),
+               python3-all-dev,
+               python-numpy,
+               python3-numpy,
+               libboost-python-dev,
+               libboost-random-dev,
+               libnetcdf-dev,
+               libnetcdf-cxx-legacy-dev,
+               lsb-release,
+               scons,
+               zip,
+               python-sphinx,
+               doxygen,
+               python-docutils,
+               texlive,
+               ghostscript,
+               texlive-latex-extra,
+               latex-xcolor,
+               lsb-release,
+               libopenmpi-dev,
+               openmpi-bin,
+               debhelper (>= 9),
+               dh-python
+Standards-Version: 3.9.6
+Homepage: https://launchpad.net/escript-finley
 X-Python-Version: >=2.7
 X-Python3-Version: >=3.2
-Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
-Uploaders:
- Joel Fenwick <j.oelpublic@gmail.com>
-Homepage: https://launchpad.net/escript-finley
-Build-Depends: python-all-dev (>= 2.6.6-3~), python3-all-dev, python-numpy, python3-numpy,
- libboost-python-dev, libboost-random-dev, libnetcdf-dev, scons,
- zip, python-sphinx, doxygen, python-docutils, texlive, ghostscript, 
- texlive-latex-extra, latex-xcolor, lsb-release,
- libopenmpi-dev, openmpi-bin, debhelper (>=9), dh-python
-Standards-Version: 3.9.6
 
 Package: python-escript
+Architecture: any
+Depends: ${python:Depends},
+         python-numpy,
+         ${shlibs:Depends},
+         ${misc:Depends}
+Recommends: python-sympy,
+            python-matplotlib,
+            python-scipy
+Suggests: python-pyproj,
+          python-gdal,
+          python-escript-doc
 Description: Escript/Finley finite elements Python2 system (with OpenMP)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data 
@@ -32,17 +60,19 @@ Description: Escript/Finley finite elements Python2 system (with OpenMP)
  .
  This package contains the commands and libraries for Python2 with 
  OpenMP threading.
-Architecture: any
-Pre-Depends: dpkg (>= 1.15.6~)
-Depends: 
- ${python:Depends}, 
- python-numpy, 
- ${shlibs:Depends},
- ${misc:Depends}
-Recommends: python-sympy, python-matplotlib, python-scipy
-Suggests: python-pyproj, python-gdal, python-escript-doc
 
 Package: python-escript-mpi
+Architecture: any
+Depends: ${python:Depends},
+         openmpi-bin,
+         ${shlibs:Depends},
+         ${misc:Depends}
+Recommends: python-sympy,
+            python-matplotlib,
+            python-scipy
+Suggests: python-pyproj,
+          python-gdal,
+          python-escript-doc
 Description: Escript/Finley finite elements Python2 system (OpenMP + MPI)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data 
@@ -59,15 +89,19 @@ Description: Escript/Finley finite elements Python2 system (OpenMP + MPI)
  .
  This package contains the commands and libraries for Python2 with 
  both OpenMP threading and MPI multiprocess support. 
-Architecture: any
-Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, openmpi-bin,
- ${shlibs:Depends},
- ${misc:Depends}
-Recommends: python-sympy, python-matplotlib, python-scipy
-Suggests: python-pyproj, python-gdal, python-escript-doc
 
 Package: python3-escript
+Architecture: any
+Depends: ${python3:Depends},
+         python3-numpy,
+         ${shlibs:Depends},
+         ${misc:Depends}
+Recommends: python3-sympy,
+            python3-matplotlib,
+            python3-scipy
+Suggests: python3-pyproj,
+          python3-gdal,
+          python-escript-doc
 Description: Escript/Finley finite elements Python3 system (with OpenMP)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data
@@ -85,15 +119,20 @@ Description: Escript/Finley finite elements Python3 system (with OpenMP)
  .
  This package contains the commands and libraries for Python3 with 
  OpenMP threading and MPI multiprocess support. 
-Architecture: any
-Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, python3-numpy, 
- ${shlibs:Depends},
- ${misc:Depends}
-Recommends: python3-sympy, python3-matplotlib, python3-scipy
-Suggests: python3-pyproj, python3-gdal, python-escript-doc
 
 Package: python3-escript-mpi
+Architecture: any
+Depends: ${python3:Depends},
+         python3-numpy,
+         openmpi-bin,
+         ${shlibs:Depends},
+         ${misc:Depends}
+Recommends: python3-sympy,
+            python3-matplotlib,
+            python3-scipy
+Suggests: python3-pyproj,
+          python3-gdal,
+          python-escript-doc
 Description: Escript/Finley finite elements Python3 system (OpenMP + MPI)
  Escript is a programming tool for implementing mathematical models in Python 
  using the finite element method (FEM). Because users do not access the data 
@@ -111,16 +150,13 @@ Description: Escript/Finley finite elements Python3 system (OpenMP + MPI)
  .
  This package contains the commands and libraries for Python3 with 
  both OpenMP threading and MPI multiprocess support.  
-Architecture: any
-Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${python:Depends}, python3-numpy, openmpi-bin,
- ${shlibs:Depends},
- ${misc:Depends}
-Recommends: python3-sympy, python3-matplotlib, python3-scipy
-Suggests: python3-pyproj, python3-gdal, python-escript-doc
-
 
 Package: python-escript-doc
+Architecture: all
+Depends: doc-base,
+         libjs-sphinxdoc,
+         ${misc:Depends}
+Recommends: python-escript
 Description: Documentation for Escript/Finley
  Escript is a programming tool for implementing mathematical models in Python 
  using the finite element method (FEM). Because users do not access the data 
@@ -140,8 +176,3 @@ Description: Documentation for Escript/Finley
  including example scripts the user guide, the cookbook (an introduction from 
  a geoscientists point of view) and a guide to the esys.downunder inversion 
  toolkit.
-Architecture: all
-Pre-Depends: dpkg (>= 1.15.6~)
-Depends: doc-base(>=0.8.4), libjs-sphinxdoc,
- ${misc:Depends}
-Recommends: python-escript
