@@ -1,0 +1,32 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Windows binary installation}
+\label{sec:binwin}
+
+There is no automated install/uninstall procedure for \esfinley on Windows at this time.
+However, the following procedure appears to work for the previous release\footnote{Thanks to Peter Hornby and Frederick Roger for this report.}
+
+Please ensure you have the following software installed: 
+\begin{itemize}
+ \item pythonxy (\url{http://www.pythonxy.com})
+%\item numarray 1-5-2win32py2.5  for  win32
+\end{itemize}
+
+From the escript zip file:
+\begin{itemize}
+\item 
+ copy the \filename{esys} directory to your Python 2.5 site-packages folder (usually \filename{C:\textbackslash Python25\textbackslash Lib\textbackslash site-packages}).
+\item 
+ copy the \filename{.dll} files from \filename{esys\_dlls} to a directory on your PATH. For example copy the directory to \filename{C:\textbackslash Python25\textbackslash libs\textbackslash esys\_dlls} and add  \filename{C:\textbackslash Python25\textbackslash libs\textbackslash esys\_dlls} to your PATH.
+\end{itemize}
+

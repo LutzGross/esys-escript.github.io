@@ -1,0 +1,63 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Changes from previous releases}
+\label{app:changes}
+
+\subsection*{2.0 to 3.0}
+\begin{itemize}
+\item The major change here was replacing \module{numarray} with \numpy.
+For general instructions on converting scripts to use numpy see \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray2numpy.pdf}.
+The specific changes to \escript are:
+\begin{itemize}
+  \item getValueOfDataPoint() which returned a \module{numarray}.array has been replaced by
+ getTupleForDataPoint() which returns a \PYTHON tuple containing
+the components of the data point. In the case of matricies or higher ranked data, the tuples will be nested. Use 
+\numpy.array(data.getTupleForDataPoint()) if a \numpyNDA object is required.
+ \item getValueOfGlobalDataPoint has similarly been replaced by getTupleForGlobalDataPoint().
+ \item integrate(data) now returns a \numpyNDA instead of a \module{numarray}.array.
+\end{itemize}
+Any python methods which previously accepted \module{numarray} objects will accept \numpy objects instead.
+
+\item
+The way solver options are defined for \LinearPDE objects has been changed. There is now a \SolverOptions object attached to the \LinearPDE object which is handeling the options of solvers used to solve the PDE. The following changes apply:  
+\begin{itemize}
+\item The \method{setTolerance} and \method{setAbsoluteTolerance} methods have been removed. Use now \method{getSolverOptions().setTolerance} 
+and \method{getSolverOptions().setAbsoluteTolerance}
+
+\item The \method{setSolverPackage} and \method{setSolverMethod} methods have been removed. Use now \method{getSolverOptions().setPackage},
+\method{getSolverOptions().setSolverMethod} and
+\method{getSolverOptions().setPreconditioner}.
+
+\item The \method{setSolverPackage} and \method{setSolverMethod} methods have been removed. Use now \method{getSolverOptions().setPackage},
+\method{getSolverOptions().setSolverMethod} and
+\method{getSolverOptions().setPreconditioner}.
+
+\item The static class variables defining packages, solvers and preconditioners have been removed and are now accessed via the corresponding  static class variables in \SolverOptions. For instance use \method{SolverOptions.PCG} instead of 
+\method{LinearPDE.PCG} to select the preconditioned conjugate gradient method.
+
+\item The \method{getSolution} takes now no argument. Use the corresponding
+methods of the \SolverOptions object returned by \method{getSolverOptions()} 
+to set values, e.g. use 
+\method{getSolverOptions().setVerbosityOn()} instead of argument \code{verbose=True}
+and \method{getSolverOptions().setIterMax(1000)} instead of argument \code{iter_max=1000}
+\end{itemize}
+
+\item
+The \pyvisi module from previous releases has been deprecated and will no longer be supported.
+It is still present in the source code and can still be used if you compile \escript from source.
+It will not be available in binary releases.
+Its use is discouraged.
+The documentation for \pyvisi can be found in Appendix~\ref{PYVISI CHAP}.
+
+\end{itemize}

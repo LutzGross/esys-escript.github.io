@@ -1,0 +1,96 @@
+libinstall = None
+incinstall = None
+
+Import('*')
+
+import os
+import string
+paso_env = Environment(ENV = os.environ)
+
+paso_path = Dir(str(esysroot) + '/paso/src')
+solvers_path = Dir(str(esysroot) + '/paso/src/Solvers')
+mmio_path = Dir(str(esysroot) + '/tools/mmio/inc')
+
+cpp_path = [paso_path,
+            solvers_path,
+            mmio_path,
+            python_path,
+            boost_path]
+
+paso_env.Replace(CC = cc)
+paso_env.Replace(CCFLAGS = cc_flags)
+if len(mkl_libs) >0: paso_env.Append(CCFLAGS=' -DMKL')
+if len(scsl_libs)>0 : paso_env.Append(CCFLAGS=' -DSCSL')
+if len(mkl_path)>0: cpp_path.append(mkl_path)
+if len(scsl_path)>0: cpp_path.append(scsl_path)
+if len(umfpack_path)>0: cpp_path.append(umfpack_path)
+if len(papi_path)>0: cpp_path.append(papi_path)
+if len(umfpack_libs)>0 : paso_env.Append(CCFLAGS=' -DUMFPACK')
+if len(papi_libs)>0 : paso_env.Append(CCFLAGS=' -DPAPI')
+
+paso_env.Replace(CPPPATH = cpp_path)
+paso_env.Replace(ARFLAGS = ar_flags)
+
+lib = 'paso'
+
+incs = ['Common.h',
+        'mmio.h',
+        'MKL.h',
+        'Options.h',
+        'Paso.h',
+        'SCSL.h',
+        'SystemMatrix.h',
+        'SystemMatrixPattern.h',
+        'PasoUtil.h',
+        'performance.h',
+        'Solvers/Solver.h']
+
+sources = ['Options_getPackage.c',
+           'Options_getSolver.c',
+           'Options_setDefaults.c',
+           'mmio.c',
+           'performance.c',
+           'Paso.c',
+           'solve.c',
+           'SystemMatrix_borrowNormalization.c',
+           'SystemMatrix.c',
+           'SystemMatrix_copy.c',
+           'SystemMatrix_getSubmatrix.c',
+           'SystemMatrix_getSystemMatrixTypeId.c',
+           'SystemMatrix_loadMM.c',
+           'SystemMatrix_MatrixVector.c',
+           'SystemMatrix_nullifyRowsAndCols.c',
+           'SystemMatrixPattern.c',
+           'SystemMatrixPattern_getSubpattern.c',
+           'SystemMatrixPattern_mis.c',
+           'SystemMatrixPattern_unrollBlocks.c',
+           'SystemMatrix_saveHB.c',
+           'SystemMatrix_saveMM.c',
+           'SystemMatrix_setValues.c',
+           'PasoUtil.c',
+           'MKL.c',
+           'SCSL.c',
+           'SCSL_direct.c',
+           'SCSL_iterative.c',
+           'Solvers/BiCGStab.c',
+           'Solvers/GMRES.c',
+           'Solvers/PCG.c',
+           'Solvers/Solver_applyBlockDiagonalMatrix.c',
+           'Solvers/Solver.c',
+           'Solvers/Solver_ILU.c',
+           'Solvers/Solver_RILU.c',
+           'Solvers/Solver_jacobi.c',
+           'Solvers/Solver_preconditioner.c',
+           'Solvers/Solver_SchurComplement.c']
+
+paso_lib = paso_env.StaticLibrary(lib, sources)
+
+Default(paso_env.Install(incdir, incs))
+Default(paso_env.Install(incdir2, incs))
+if incinstall != None:
+  Default(paso_env.Install(incinstall, incs))
+
+Default(paso_env.Install(libdir, paso_lib))
+Default(paso_env.Install(libdir2, paso_lib))
+if libinstall != None:
+  Default(paso_env.Install(libinstall, paso_lib))

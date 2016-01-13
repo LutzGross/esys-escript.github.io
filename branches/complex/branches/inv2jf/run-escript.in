@@ -1,0 +1,504 @@
+#!/usr/bin/env sh
+
+##############################################################################
+#
+# Copyright (c) 2003-2015 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+# Escript wrapper for python
+# Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI
+# launcher.
+
+# Extra paths can be configured about a page further down
+# Search for EXTRA_PATH=""
+
+# set to 1 if this is a standalone build and ../../pkg contains the relevant
+# tools
+STANDALONE=0
+
+# set to 1 if this is part of a packaged build (.deb) and files will be
+# installed in standard locations rather than everything in a single directory
+# Do not use this together with STANDALONE
+STDLOCATION=0
+
+# Now we find the location of this script
+# Note that this location should be absolute but does not need to be unique
+scriptdir=""
+CURDIR=$(pwd)
+
+# Environment vars which control operations:
+# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
+
+HOSTFILE=/tmp/escript.$USER.$$
+
+die () {
+    echo "Error: $@" 1>&2
+    exit 1
+}
+
+#Begin finding ESCRIPT_ROOT
+if [ $STDLOCATION -ne 0 ]
+then
+    ESCRIPT_ROOT=/usr/lib/python-escript
+else
+  # We don't know the escript root so we need to work it out from the invocation
+  # Need to match if the name contains /
+  if $(echo $0|grep -q /)
+  then
+      # We are not using the PATH to find the script
+      cd "$(dirname $0)"
+      scriptdir=$(pwd)
+      cd "$CURDIR"
+  else
+      # name does not contain / therefore we are using
+      tscriptdir=$(which $0)
+      if [ $? -ne 0 ]
+      then
+          die "Unable to determine script directory!"
+      fi
+      scriptdir=$(dirname $tscriptdir)
+  fi
+
+  cd "$scriptdir/.."
+  ESCRIPT_ROOT=$(pwd)
+  cd ..
+  ESCRIPT_PARENT=$(pwd)
+  cd "$CURDIR"
+
+fi
+##### End finding ESCRIPT_ROOT ########
+
+PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
+PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
+PYTHON_CMD=python
+
+# if possible please express paths relative to $ESCRIPT_ROOT unless
+# they are in an unrelated location
+
+EXTRA_DYLD_LIBRARY_PATH=""
+EXTRA_PATH=$ESCRIPT_ROOT/bin
+EXTRA_PYTHONPATH=$ESCRIPT_ROOT
+
+if [ $STDLOCATION -eq 1 ]
+then
+    EXTRA_LD_LIBRARY_PATH=/usr/lib/python-escript
+else
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
+fi
+
+
+if [ $STANDALONE -eq 1 ]
+then
+    EXTRA_PATH=$ESCRIPT_PARENT/pkg/python/bin:$ESCRIPT_PARENT/pkg/scons/bin:$EXTRA_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/boost/lib:$ESCRIPT_PARENT/pkg/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/python/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/matplotlib/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+fi
+
+
+BUILDINFO_FILE="$ESCRIPT_ROOT/lib/buildvars"
+if [ "$STDLOCATION" = "1" ]
+then
+    BUILDINFO_FILE=/usr/lib/python-escript/buildvars
+fi
+if [ ! -r "$BUILDINFO_FILE" ]; then
+    if [ "$1" = "-e" ]; then
+        echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+        echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+        echo "export PATH=$EXTRA_PATH:\$PATH"
+        if [ "$(uname)" = "Darwin" ]
+        then
+            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+        fi
+        exit 0
+    fi
+    die "Unable to read escript build information!"
+fi
+
+get_buildvar () {
+    echo $(grep "^$1=" "$BUILDINFO_FILE" |cut -d= -f2)
+}
+
+HELP_TEXT="
+Usage: run-escript [options] script.py [arguments...]
+	-n nn		number of nodes to use
+	-p np		number of MPI processes to spawn per node
+	-t nt		number of OpenMP threads to use
+	-f file		name of MPI hostfile
+	-c		print compile information for escript and exit
+	-V		print escript version and exit
+	-i		interactive mode
+	-b		do not invoke python (run non-python programs)
+	-e		print export statements for environment and exit
+	-o		redirect output from MPI to files
+	-v		print diagnostics
+	-x		run in new xterm instance
+	-m tool		run with valgrind {tool=m[emcheck]/c[allgrind]/[cac]h[egrind]}
+	script.py	Your python script
+	arguments...	The optional command-line arguments to your script
+"
+
+if [ "$1" = "--help" ]; then
+  echo "$HELP_TEXT"
+  exit 0
+fi
+#==============================================================================
+
+# Parse the command-line options
+while getopts 'bn:p:t:f:echim:oVvx' option
+do
+    case "$option" in
+      "b")  DO_BINARY=y
+        ;;
+      "m")  DO_VALGRIND=$OPTARG
+        ;;
+      "n")  ESCRIPT_NUM_NODES=$OPTARG
+        ;;
+      "p")  ESCRIPT_NUM_PROCS=$OPTARG
+        ;;
+      "t")  ESCRIPT_NUM_THREADS=$OPTARG
+        ;;
+      "f")  ESCRIPT_HOSTFILE=$OPTARG
+        ;;
+      "c")  cat "$BUILDINFO_FILE"
+        exit 0
+        ;;
+      "V")  echo "escript-development(build "$(get_buildvar svn_revision)")"
+        exit 0
+        ;;
+      "h")  echo "$HELP_TEXT"
+        exit 0
+        ;;
+      "i")  DO_INTERACTIVE=y
+        ;;
+      "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+        echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+        echo "export PATH=$EXTRA_PATH:\$PATH"
+        if [ "$(uname)" = "Darwin" ]
+        then
+            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+        fi
+        exit 0
+        ;;
+      "o")  ESCRIPT_CREATESTDFILES=y
+        ;;
+      "v")  ESCRIPT_VERBOSE=y
+        ;;
+      "x")  DO_XTERM=y
+        ;;
+      ?)    echo "$HELP_TEXT"
+        exit 1
+        ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+vlog () {
+    if [ ! -z $ESCRIPT_VERBOSE ]; then
+        echo "$@"
+    fi
+}
+
+#==============================================
+#
+#   Read MPI_FLAVOUR and WITH_OPENMP from the buildvars
+#
+MPI_FLAVOUR=$(get_buildvar mpi)
+WITH_OPENMP=$(get_buildvar openmp)
+
+vlog "MPI flavour is $MPI_FLAVOUR."
+if [ "$WITH_OPENMP" = "1" ]; then
+    vlog "OpenMP enabled."
+else
+    vlog "OpenMP disabled."
+fi
+
+#
+#   Add VisIt paths if required
+#
+WITH_VISIT=$(get_buildvar visit)
+if [ "$WITH_VISIT" = "1" ]; then
+    VISIT_BIN=$(which visit 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        VISIT_PY_PATH=$($VISIT_BIN -env | grep LIBPATH | cut -d= -f2)
+        EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
+        EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$VISIT_PY_PATH
+    else
+        vlog "Warning: VisIt module enabled but VisIt not in path!"
+    fi
+fi
+
+#
+#  extend path variables
+#
+export PATH=$EXTRA_PATH:$PATH
+export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
+export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
+EXPORT_ENV="PATH,LD_LIBRARY_PATH,PYTHONPATH"
+if [ "$(uname)" = "Darwin" ]
+then
+    export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
+    EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
+fi
+vlog "PATH = $PATH
+LD_LIBRARY_PATH = $LD_LIBRARY_PATH
+PYTHONPATH = $PYTHONPATH"
+if [ ! -z $DYLD_LIBRARY_PATH ]; then
+    vlog "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH"
+fi
+
+#==============================================
+#
+#  Ensure the variables have sensible values
+#
+if [ "$MPI_FLAVOUR" = "none" ]
+then
+    if [ ! -z "$ESCRIPT_NUM_NODES" ]; then
+        if [ $ESCRIPT_NUM_NODES -gt 1 ]; then
+            echo "Warning: MPI disabled but number of nodes set. Option ignored."
+        fi
+    fi
+    if [ ! -z "$ESCRIPT_NUM_PROCS" ]; then
+        if [ $ESCRIPT_NUM_PROCS -gt 1 ]; then
+            echo "Warning: MPI disabled but number of processors per node set. Option ignored."
+        fi
+    fi
+    if [ ! -z "$ESCRIPT_HOSTFILE" ]
+    then
+        echo "Warning: MPI disabled but host file is given. Option ignored."
+    fi
+    ESCRIPT_NUM_NODES=1
+    ESCRIPT_NUM_PROCS=1
+else
+    # use the PBS_NODEFILE if not otherwise specified
+    if [ ! -z "$PBS_NODEFILE" ] && [ -z "$ESCRIPT_HOSTFILE" ]
+    then
+        ESCRIPT_HOSTFILE=$PBS_NODEFILE
+    fi
+
+    if [ ! -z "$ESCRIPT_HOSTFILE" ]
+    then
+        if [ -f "$ESCRIPT_HOSTFILE" ]
+        then
+            sort -u "${ESCRIPT_HOSTFILE}" > $HOSTFILE
+            HOSTLIST=$(awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE")
+
+            NUM_HOSTS=$(cat "$HOSTFILE" | wc -l)
+            if [ ! -z $ESCRIPT_NUM_NODES ]
+            then
+                if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
+                then
+                    die "Number of hosts selected in the host file $ESCRIPT_HOSTFILE needs to match the requested number of nodes $ESCRIPT_NUM_NODES!"
+                fi
+             else
+                ESCRIPT_NUM_NODES=$NUM_HOSTS
+             fi
+        else
+           die "Cannot find hostfile $ESCRIPT_HOSTFILE!"
+        fi
+    else
+        echo "localhost" > $HOSTFILE
+        HOSTLIST="localhost"
+    fi
+
+    if [ -z $ESCRIPT_NUM_NODES ]
+    then
+        ESCRIPT_NUM_NODES=1
+    fi
+
+    if [ -z $ESCRIPT_NUM_PROCS ]
+    then
+        ESCRIPT_NUM_PROCS=1
+    fi
+
+    vlog "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES\nESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS"
+fi
+
+if [ "$WITH_OPENMP" = "1" ]
+then
+    if [ -z $ESCRIPT_NUM_THREADS ]
+    then
+        ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
+        if [ -z $ESCRIPT_NUM_THREADS ]
+        then
+            ESCRIPT_NUM_THREADS=1
+        fi
+    fi
+    vlog "ESCRIPT_NUM_THREADS = $ESCRIPT_NUM_THREADS"
+else
+    if [ ! -z $ESCRIPT_NUM_THREADS ] && [ $ESCRIPT_NUM_THREADS != 1 ]
+    then
+       echo "Warning: OpenMP is disabled but number of threads requested is $ESCRIPT_NUM_THREADS!=1. Option ignored."
+    fi
+    ESCRIPT_NUM_THREADS=1
+fi
+
+#
+# Now we compute total number of Processes
+#
+TOTPROC=$((ESCRIPT_NUM_NODES * ESCRIPT_NUM_PROCS))
+if [ $? -ne 0 ] #Some compute error
+then            #This could happen if the args were not a number
+    die "Expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical!"
+fi
+
+# set up thread binding if unset -- disabled by default because it interfers
+# with MPI binding
+#if [ "$OMP_PROC_BIND" = "" ]; then
+#    #Force OpenMP binding for Intel (and GCC, though GCC is on by default)
+#    export OMP_PROC_BIND=true
+#fi
+#if [ "$KMP_AFFINITY" = "" ]; then
+#    #Set the style of binding (overrides OMP_PROC_BIND in many cases)
+#    export KMP_AFFINITY=verbose,compact
+#fi
+
+#
+# Test to ensure people aren't trying to combine interactive and multi-process
+#
+if ([ ! -z $DO_INTERACTIVE ] || [ $# -eq 0 ]) && ([ $TOTPROC -gt 1 ])
+then
+    die "Interactive mode cannot be used with more than one process!"
+fi
+
+if [ $TOTPROC -gt 1 ]
+then
+    if [ "$ESCRIPT_CREATESTDFILES" = "y" ]
+    then
+        PYTHON_MPI=$PYTHON_MPI_REDIRECT
+    else
+        PYTHON_MPI=$PYTHON_MPI_NULL
+    fi
+else
+    PYTHON_MPI=$PYTHON_MPI_NULL
+fi
+#==============================================================================
+# Must have at least one command-line arg: the python script
+if [ $# -eq 0 ]
+then
+    if [ ! -z $DO_BINARY ]
+    then
+        die "No program to run was specified!"
+    else
+        DO_INTERACTIVE=y
+    fi
+fi
+
+#==============================================================================
+
+if [ ! -z $DO_XTERM ]
+then
+    EXEC_CMD="xterm -e"
+else
+    EXEC_CMD=""
+fi
+
+if [ ! -z "$DO_VALGRIND" ]
+then
+    VALGRIND_BIN=$(which valgrind 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        LOGDIR=$ESCRIPT_ROOT/valgrind_logs
+        [ -d $LOGDIR ] || mkdir $LOGDIR
+        VG_TOOL=$(echo $DO_VALGRIND | awk '{ s=substr($0,1,1);print s;}')
+        if [ $VG_TOOL = "c" ];
+        then
+            # run callgrind
+            LOGFILE=${LOGDIR}/callgrind.%p.xml
+            VALGRIND="valgrind --tool=callgrind --callgrind-out-file=$LOGFILE"
+            EXEC_CMD="$EXEC_CMD $VALGRIND"
+        elif [ $VG_TOOL = "h" ];
+        then
+            # run cachegrind
+            LOGFILE=${LOGDIR}/cachegrind.%p.xml
+            VALGRIND="valgrind --tool=cachegrind --cachegrind-out-file=$LOGFILE"
+            EXEC_CMD="$EXEC_CMD $VALGRIND"
+        else
+            # run memcheck by default
+            LAST_N=$(ls -1 $LOGDIR|grep "^memcheck"|tail -1|cut -d. -f2)
+            NEW_N=$(printf "%04d" $((LAST_N + 1)))
+            LOGFILE=${LOGDIR}/memcheck.${NEW_N}.%p.xml
+            VALGRIND="valgrind --tool=memcheck --xml=yes --show-reachable=yes --error-limit=no --suppressions=$ESCRIPT_ROOT/scripts/escript.supp --leak-check=full --xml-file=$LOGFILE"
+            EXEC_CMD="$EXEC_CMD $VALGRIND"
+        fi
+    else
+        die "Execution with valgrind requested but valgrind not in path!"
+    fi
+fi
+
+if [ ! -z $DO_BINARY ]
+then
+    EXEC_CMD="$EXEC_CMD $@"
+else
+    # Check to see if the python version we were compiled with matches the
+    # one of PYTHON_CMD.
+    compfull=$(get_buildvar python_version)
+    compversion=$(echo $compfull | cut -d. -f1,2)
+    compmajor=$(echo $compfull | cut -d. -f1)
+    if [ "$PYTHON_CMD" = "python" ] # if people have customised the command they
+    then                                # might not want us changing it
+        if [ "$compmajor" = "3" ]
+        then
+            PYTHON_CMD=python3
+        fi
+    fi
+    intversion=$($PYTHON_CMD -c 'from __future__ import print_function;import sys;print("%d.%d"%(sys.version_info[0], sys.version_info[1]))')
+    if [ "$compversion" != "$intversion" ]
+    then
+        die "Python versions do not match. Escript was compiled for '$compversion'.
+Current version of Python appears to be '$intversion'."
+    fi
+    if [ "$MPI_FLAVOUR" = "none" ]
+    then
+        if [ ! -z $DO_INTERACTIVE ]
+        then
+           EXEC_CMD="$EXEC_CMD $PYTHON_CMD -i $@"
+        else
+           EXEC_CMD="$EXEC_CMD $PYTHON_CMD $@"
+        fi
+    else
+        if [ ! -z $DO_INTERACTIVE ]
+        then
+           EXEC_CMD="$EXEC_CMD $PYTHON_MPI -i $@"
+        else
+           EXEC_CMD="$EXEC_CMD $PYTHON_MPI $@"
+        fi
+    fi
+fi
+vlog "Command to be executed is \"$EXEC_CMD\""
+#==============================================================================
+#
+#   now we start to spawn things:
+#
+if [ "$WITH_OPENMP" = "1" ]
+then
+   export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
+   EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
+fi
+
+vlog "Pre-launch command: \"@@PRELAUNCH\""
+@@PRELAUNCH
+vlog "Launch command: \"@@LAUNCH\""
+@@LAUNCH
+EXIT_CODE=$?
+vlog "Post-launch command: \"@@POSTLAUNCH\""
+@@POSTLAUNCH
+
+if [ ! -z "$DO_VALGRIND" ]; then
+   echo "Valgrind log file written to ${LOGFILE}"
+fi
+
+rm -f $HOSTFILE
+
+exit $EXIT_CODE
+

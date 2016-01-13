@@ -1,0 +1,15 @@
+#
+# Copy autotest-scons to /raid3/ksteube/AutoTests and then use this
+# crontab to run the escript tests every day (except on Sunday we rest)
+#
+# min  hour day  month weekday          command
+# 0-59 0-23 1-31 1-12  0-6 (0 = Sunday)
+#
+SHELL=/bin/sh
+MAILTO=k.steube@uq.edu.au
+#
+# Run 'autotest-scons run_tests' in the wee hours every weekday
+# Temporarily changed to 'all_tests' to have full test for tonight
+0      1    *    *     1-5	/raid3/ksteube/AutoTests/autotest-scons run_tests
+# Run 'autotest-scons all_tests' in the wee hours only on Saturdays because it takes a long time to run
+0      1    *    *     6	/raid3/ksteube/AutoTests/autotest-scons all_tests

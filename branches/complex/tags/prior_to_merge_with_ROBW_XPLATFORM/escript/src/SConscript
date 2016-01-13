@@ -1,0 +1,111 @@
+libinstall = None
+incinstall = None
+
+Import('*')
+
+import os
+import string
+
+libname = 'escriptcpp'
+
+escript_path = str(esysroot) + '/escript/src'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
+
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+
+esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
+
+cpp_path = [escript_path,
+            esysUtils_path,
+            python_path,
+            boost_path]
+
+incs = ['AbstractContinuousDomain.h',
+        'AbstractDomain.h',
+        'AbstractSystemMatrix.h',
+        'BinaryOp.h',
+        'DataAbstract.h',
+        'DataAlgorithm.h',
+        'DataArray.h',
+        'DataArrayView.h',
+        'DataBlocks2D.h',
+        'DataCached.h',
+        'DataC.h',
+        'DataConstant.h',
+        'DataEmpty.h',
+        'DataException.h',
+        'DataExpanded.h',
+        'DataFactory.h',
+        'Data.h',
+        'DataProf.h',
+        'DataTagged.h',
+        'DataVariable.h',
+        'DataVector.h',
+        'DomainException.h',
+        'FunctionSpaceException.h',
+        'FunctionSpaceFactory.h',
+        'FunctionSpace.h',
+        'NullDomain.h',
+        'SystemMatrixException.h',
+        'Taipan.h',
+        'UnaryFuncs.h',
+        'UnaryOp.h',
+        'UtilC.h',
+        'LocalOps.h',
+        'Utils.h']
+
+sources = ['AbstractContinuousDomain.cpp',
+           'AbstractDomain.cpp',
+           'AbstractSystemMatrix.cpp',
+           'DataAbstract.cpp',
+           'DataArray.cpp',
+           'DataArrayView.cpp',
+           'DataBlocks2D.cpp',
+           'DataCached.cpp',
+           'DataC.cpp',
+           'DataConstant.cpp',
+           'Data.cpp',
+           'DataEmpty.cpp',
+           'DataExpanded.cpp',
+           'DataFactory.cpp',
+           'DataProf.cpp',
+           'DataTagged.cpp',
+           'DataVariable.cpp',
+           'DataVector.cpp',
+           'FunctionSpace.cpp',
+           'FunctionSpaceFactory.cpp',
+           'NullDomain.cpp',
+           'Taipan.cpp',
+           'Utils.cpp',
+           'escriptcpp.cpp']
+
+lib_path = [esysUtils_lib_path,
+            boost_lib_path]
+
+libs = ['esysUtils',
+        str(boost_lib)]
+
+libs.extend(sys_libs)
+
+escript_env = Environment(ENV = os.environ)
+
+escript_env.Replace(CXX = cxx)
+escript_env.Replace(SHOBJSUFFIX = '.lo')
+escript_env.Replace(CXXFLAGS = cxx_flags)
+escript_env.Replace(CPPPATH = cpp_path)
+escript_env.Replace(LIBPATH = lib_path)
+escript_env.Replace(LIBS = libs)
+
+escript_lib = escript_env.SharedLibrary(libname, sources)
+
+Depends(escript_lib, esysUtils_lib)
+
+Default(escript_env.Install(incdir, incs))
+Default(escript_env.Install(incdir2, incs))
+if incinstall != None:
+  Default(escript_env.Install(incinstall, incs))
+
+Default(escript_env.Install(libdir, escript_lib))
+Default(escript_env.Install(libdir2, escript_lib))
+if libinstall != None:
+  Default(escript_env.Install(libinstall, escript_lib))

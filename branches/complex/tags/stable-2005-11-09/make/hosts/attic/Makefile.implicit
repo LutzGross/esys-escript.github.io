@@ -1,0 +1,113 @@
+# $Id$
+
+# Implicit targets
+
+# set flags
+CC_INC_DIR_FLAGS := ${patsubst %, ${CC_INC_DIR_FLAG}%, ${L_SRC_DIR} ${L_INC_DIR} ${PKG_CC_INC_DIRS} ${L_EXT_INC_DIRS} ${CC_SYS_INC_DIRS}}
+CPP_INC_DIR_FLAGS := ${patsubst %, ${CPP_INC_DIR_FLAG}%, ${L_SRC_DIR} ${L_INC_DIR} ${PKG_CPP_INC_DIRS} ${L_EXT_INC_DIRS} ${CPP_SYS_INC_DIRS}}
+CC_DEF_FLAGS := ${patsubst %, ${CC_DEF_FLAG}%, ${L_DEFS}}
+CPP_DEF_FLAGS := ${patsubst %, ${CPP_DEF_FLAG}%, ${L_DEFS}}
+LD_LIB_DIR_FLAGS := ${patsubst %, ${LD_LIB_DIR_FLAG}%, ${L_EXT_LIB_DIRS} ${PKG_LD_LIB_DIRS} ${LD_SYS_LIB_DIRS}}
+LD_LIB_FLAGS := ${patsubst %, ${LD_LIB_FLAG}%, ${L_EXT_LIBS} ${PKG_LD_LIBS} ${LD_SYS_LIBS}}
+
+CC_FLAGS := ${CC_OPT_FLAGS} ${CC_ARCH_FLAGS} ${CC_CONFORM_FLAGS} ${CC_OBJ_FLAGS} ${CC_DIAG_FLAGS} ${CC_DEF_FLAGS} ${CC_INC_DIR_FLAGS}
+CPP_FLAGS := ${CPP_OPT_FLAGS} ${CPP_ARCH_FLAGS} ${CPP_CONFORM_FLAGS} ${CPP_OBJ_FLAGS} ${CPP_DIAG_FLAGS} ${CPP_DEF_FLAGS} ${CPP_INC_DIR_FLAGS}
+SWIG_FLAGS := ${SWIG_LANG_FLAG} ${SWIG_DOC_FLAG} ${SWIG_OPT_FLAGS} ${SWIG_INC_DIR_FLAGS}
+PYTHON_FLAGS := ${PYTHON_OPT_FLAGS} ${PYTHON_DIAG_FLAGS}
+AR_FLAGS := crus
+LD_FLAGS := ${LD_DIAG_FLAGS} ${LD_LIB_DIR_FLAGS} ${LD_LIB_FLAGS}
+
+# .a
+%.a: ${CC_OBJ} ${CPP_OBJ} ${SWIG_OBJ} force
+	@echo ----------------------------------------------------------------------------
+	${AR} ${AR_FLAGS} ${L_LIB_DIR}/$@ ${addprefix ${L_OBJ_DIR}/, ${sort ${CC_OBJ} ${CPP_OBJ} ${SWIG_OBJ}}} ${L_EXT_OBJS}
+	@echo Generated \"$@: ${sort ${CC_OBJ} ${CPP_OBJ} ${SWIG_OBJ}}\".
+
+# .so
+%.so: ${CC_SHOBJ} ${CPP_SHOBJ} ${SWIG_SHOBJ} force
+	@echo ----------------------------------------------------------------------------
+	${LD} ${LD_SHARE_FLAG} ${addprefix ${L_OBJ_DIR}/, ${sort ${CC_SHOBJ} ${CPP_SHOBJ} ${SWIG_SHOBJ}}} ${L_EXT_OBJS} ${LD_LIB_DIR_FLAGS} ${LD_LIB_FLAGS} ${LD_OUTPUT_FLAG} ${L_LIB_DIR}/$@
+	@echo Generated \"$@: ${sort ${CC_SHOBJ} ${CPP_SHOBJ} ${SWIG_SHOBJ}}\".
+
+# .i to .cpp
+%.cpp: %.i
+	@echo ----------------------------------------------------------------------------
+	${strip ${SWIG} ${SWIG_FLAGS} ${SWIG_OUTPUT_FLAG} "${L_SRC_DIR}/${@}" $<}
+	@echo Implicitly Generated \"$@: $<\".
+
+# .c to .o
+%.o: %.c
+	@echo ----------------------------------------------------------------------------
+	@if test ! -e "${L_OBJ_DIR}/${@D}"; \
+		then \
+		mkdir -p "${L_OBJ_DIR}/${@D}"; \
+	fi
+	${strip ${CC} ${CC_FLAGS} $< ${CC_OUTPUT_FLAG} ${L_OBJ_DIR}/${@}}
+	@echo Implicitly Compiled \"$@: $<\".
+
+# .c to .lo
+%.lo: %.c
+	@echo ----------------------------------------------------------------------------
+	@if test ! -e "${L_OBJ_DIR}/${@D}"; \
+		then \
+		mkdir -p "${L_OBJ_DIR}/${@D}"; \
+	fi
+	${strip ${CC} ${CC_FLAGS} ${CC_SHARE_FLAGS} $< ${CC_OUTPUT_FLAG} ${L_OBJ_DIR}/${@}}
+	@echo Implicitly Compiled \"$@: $<\".
+
+# .cpp to .o
+%.o: %.cpp
+	@echo ----------------------------------------------------------------------------
+	@if test ! -e "${L_OBJ_DIR}/${@D}"; \
+		then \
+		mkdir -p "${L_OBJ_DIR}/${@D}"; \
+	fi
+	${strip ${CPP} ${CPP_FLAGS} $< ${CPP_OUTPUT_FLAG} ${L_OBJ_DIR}/${@}}
+	@echo Implicitly Compiled \"$@: $<\".
+
+# .cpp to .lo
+%.lo: %.cpp
+	@echo ----------------------------------------------------------------------------
+	@if test ! -e "${L_OBJ_DIR}/${@D}"; \
+		then \
+		mkdir -p "${L_OBJ_DIR}/${@D}"; \
+	fi
+	${strip ${CPP} ${CPP_FLAGS} ${CPP_SHARE_FLAGS} $< ${CPP_OUTPUT_FLAG} ${L_OBJ_DIR}/${@}}
+	@echo Implicitly Compiled \"$@: $<\".
+
+%.exe: ${CC_OBJ} ${CPP_OBJ} ${SWIG_OBJ} force
+	@echo ----------------------------------------------------------------------------
+	${CPP} -o $@ ${addprefix ${L_OBJ_DIR}/, ${CC_OBJ} ${CPP_OBJ} ${SWIG_OBJ}} ${L_EXT_OBJS} ${LD_LIB_DIR_FLAGS} ${LD_LIB_FLAGS}
+	@echo Implicitly Generated \"$@: $<\".
+
+%.pyc: %.py
+	@echo ----------------------------------------------------------------------------
+	${PYTHON} ${PYTHON_FLAGS} ${PYTHON_CMD_FLAG} ${PYTHON_COMPILE_CMD}
+	@echo Implicitly Generated \"$@: $<\".
+
+# $Log$
+# Revision 1.1  2004/10/26 06:53:58  jgs
+# Initial revision
+#
+# Revision 1.1.2.1  2004/09/27 06:29:16  jgs
+# moved from make/hosts
+#
+# Revision 1.1.1.1  2004/06/24 04:00:39  johng
+# Initial version of eys using boost-python.
+#
+# Revision 1.5  2003/09/30 02:55:06  davies
+# Added local makefile macro settings to replace hardcoded header files.
+#
+# Revision 1.4  2003/09/11 02:03:52  davies
+# Added makefile configurations for several platforms.
+#
+# Revision 1.3  2003/08/29 04:25:06  davies
+# Implement new feature for arbitrary external object linkage to provide a
+# mechanism for direct shared object access.
+#
+# Revision 1.2  2003/08/25 02:14:10  davies
+# Force builds of linked objects.
+#
+# Revision 1.1.1.1  2003/08/21 00:58:20  davies
+# Imported sources from Lutz Gross.
+#

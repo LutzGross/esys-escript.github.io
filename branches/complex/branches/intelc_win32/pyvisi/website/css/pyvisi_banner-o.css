@@ -1,0 +1,23 @@
+/* $Id: pyvisi_banner-o.css,v 1.1 2004/11/24 07:54:45 paultcochrane Exp $ */
+
+/* Like banner.css, but with different color.
+ * Use for public Overview and related pages.
+ *
+ * Author: Bert Bos <bert@w3.org>
+ * Created: 26 July 2000
+
+   Modified by: Paul Cochrane <cochrane@physics.uq.edu.au>
+   Date: 15 Jan 2004
+
+ */
+@import "pyvisi_banner.css";
+
+/* Override the colors */
+/* div.banner p { background-color: #900; border-color: #900 }
+div.banner a, div.banner em { border-top-color: #900 } */
+
+/* chuck in the ACQAO settings */
+@import "pyvisi.css";
+
+/* Hide from NS4 (there is a higher-specificity rule in banner.css) */
+div.banner { display: none }

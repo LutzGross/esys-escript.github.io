@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# Escript/Finley wrapper for python
+# Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
+
+HELP_TEXT="
+Usage: escript [options] script.py [arguments...]
+	-O N		Use N OpenMP threads (OMP_NUM_THREADS=N)
+	-M K		Use K MPI processes
+	-l 'launcher'	MPI launcher, usually -l 'mpirun -np' or -l 'mpiexec -n'
+	-L /path	Prepend /path to library search path
+	-P /path	Prepend /path to python module search path
+	script.py	Your python script
+	arguments...	The optional command-line arguments to your python script
+"
+
+if [ "$1" = "--help" ]; then
+  echo "$HELP_TEXT"
+  exit 0
+fi
+
+PYTHON_CMD="@@PYTHON_CMD@@"
+
+ESCRIPT_ROOT="@@ESCRIPT_ROOT@@"
+
+export PATH="@@PATH@@"
+
+export LD_LIBRARY_PATH="@@LD_LIBRARY_PATH@@"
+
+export PYTHONPATH="@@PYTHONPATH@@"
+
+# Avoid bug in hybrid runs with MPT MPI
+export MPI_NUM_MEMORY_REGIONS=0
+
+# Try to guess the MPI launcher (mpirun unless in PBS batch job in which case mpiexec)
+mpi_launcher='mpirun -np'
+if [ $?PBS_ENVIRONMENT ]; then
+  if [ "X_$PBS_ENVIRONMENT" = "X_PBS_BATCH" ]; then
+    mpi_launcher='mpiexec -n'
+  fi  
+fi
+
+PYTHON_MPI="$ESCRIPT_ROOT/lib/pythonMPI"
+OMP_NUM_THREADS=1
+MPI_NUM_PROCS=1
+
+# Parse the command-line options
+while getopts 'L:P:O:M:l:' option
+do
+	case "$option" in
+	  "L")	export LD_LIBRARY_PATH="$OPTARG:$LD_LIBRARY_PATH"
+		;;
+	  "P")	export PYTHONPATH="$OPTARG:$PYTHONPATH"
+		;;
+	  "O")	OMP_NUM_THREADS="$OPTARG"
+		;;
+	  "M")	MPI_NUM_PROCS="$OPTARG"
+		;;
+	  "l")	mpi_launcher="$OPTARG"
+		;;
+	  ?)	echo "$HELP_TEXT"
+		exit 1
+		;;
+	esac
+done
+shift `expr $OPTIND - 1`
+
+# Must have at least one command-line arg: the python script
+if [ $# -eq 0 ]; then
+  echo "Missing python script"
+  echo "$HELP_TEXT"
+  exit 1
+fi
+
+# Using OpenMP?
+OMP_OPTIONS=''
+if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.openmp" ]; then
+#  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+  OMP_OPTIONS="env OMP_NUM_THREADS=$OMP_NUM_THREADS"
+fi
+
+# Using MPI?
+if [ -f "$ESCRIPT_ROOT/lib/Compiled.with.mpi" ]; then
+  PYTHON_CMD="$mpi_launcher $MPI_NUM_PROCS $PYTHON_MPI"
+else
+  if [ "$MPI_NUM_PROCS" -ne 1 ]; then
+    echo "Escript/Finley was not compiled for MPI so you must use -M 1"
+    exit 1
+  fi
+fi
+
+set -x
+$OMP_OPTIONS $PYTHON_CMD "$@"
+

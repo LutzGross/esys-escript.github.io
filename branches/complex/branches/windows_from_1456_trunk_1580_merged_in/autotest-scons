@@ -1,0 +1,154 @@
+#!/bin/sh
+
+#
+# Submit a PBS job to run the tests
+#
+#	Usage: autotest-scons		# Short testing, only C++ tests
+#	Usage: autotest-scons run_tests	# Short testing, only C++ tests
+#	Usage: autotest-scons all_tests	# Long testing, C++ and python tests
+#
+# Copy this somewhere and run it every day via cron
+#
+# This file should be maintained in SVN as esys13/trunk/autotest-scons,
+# be sure to copy it there and commit after modification
+#
+
+# Which tests should we run?
+target='run_tests'	# Default scons target that runs the tests
+test "x$1" != "x" && target="$1"
+requested_cpus=2
+test "x$target" = "xall_tests" && requested_cpus=4
+
+MAIL_RECIPIENTS="l.gross@uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au k.steube@uq.edu.au"
+# MAIL_RECIPIENTS="k.steube@uq.edu.au"
+
+# This time is when the job was submitted. If it waits in the queue it might run on another day.
+# This date is also used to create the sandbox directory where the tests are run.
+RunDate=`date '+%Y_%m_%d'`	# Time stamp for log file names
+
+WorkDir=/raid3/ksteube/AutoTests
+cd $WorkDir
+
+# Where to put the output of scons run_tests
+out_file="$WorkDir/Logs/$RunDate.test.output"
+
+# Save the name of this script
+SCRIPT_NAME=$0
+
+# Below here \$variable means I want the variable interpreted when PBS runs the job, not when the job is submitted
+# Similarly for \`...\`
+
+# Write the PBS script to run the tests
+cat << EOF > Logs/$RunDate.pbs.script.sh
+#!/bin/bash
+
+#PBS -q q80
+#PBS -N autotest
+#PBS -l ncpus=$requested_cpus
+#PBS -o $RunDate.pbs.stdout
+#PBS -e $RunDate.pbs.stderr
+#PBS -W umask=022
+
+echo "PBS_JOBNAME       \$PBS_JOBNAME"
+echo "PBS_JOBID         \$PBS_JOBID"
+echo "PBS_QUEUE         \$PBS_QUEUE"
+echo "NCPUS             \$NCPUS"
+echo "USER              \$USER"
+echo "PBS_O_HOST        \$PBS_O_HOST"
+echo "PBS_O_WORKDIR     \$PBS_O_WORKDIR"
+echo "PBS_O_SHELL       \$PBS_O_SHELL"
+date
+echo ""
+echo ""
+
+
+
+START=\`date '+%Y/%m/%d %H:%M'\`
+
+finish () {
+  # state will be 'FAILURE' or 'SUCCESS'
+  state="\$1"
+  date
+  # Clean up the sandbox
+  cd $WorkDir
+  /bin/rm -rf sandbox.$RunDate
+  END=\`date '+%Y/%m/%d %H:%M'\`
+  cat << END_MSG | mail -s "ESYS_TESTS $target $RunDate \$state" $MAIL_RECIPIENTS
+\$2.
+The tests ran from \$START to \$END on \$NCPUS CPUs
+See the log files in $WorkDir/Logs/$RunDate*
+This mail was sent by $SCRIPT_NAME
+running as \$USER on \`hostname\`.
+END_MSG
+  if [ "x\$state" = "xFAILURE" ]; then
+    touch Logs/$RunDate.FAILURE
+    exit 1
+  fi
+  exit 0
+}
+
+
+# set -x
+
+
+cd $WorkDir				|| finish FAILURE "Could not cd to WorkDir $WorkDir"
+
+# Create an empty out_file
+cat /dev/null > $out_file		|| finish FAILURE "Could not create out_file $out_file"
+
+umask 022
+
+test -d sandbox.$RunDate		&& finish FAILURE "Today's sandbox already exists"
+mkdir sandbox.$RunDate			|| finish FAILURE "Could not mkdir sandbox"
+cd sandbox.$RunDate			|| finish FAILURE "Could not cd to sandbox"
+
+echo "Checking out esys13/trunk"
+svn checkout svn+ssh://shake200.esscc.uq.edu.au/home/www_svn/repos/esys13/trunk >> $out_file 2>&1 || finish FAILURE "Could not check out esys13/trunk"
+
+# Load modules
+. /opt/modules/default/init/bash
+module use /raid2/matt/modules/modulefiles
+module use /raid2/toolspp4/modulefiles/gcc-3.3.6
+module use /usr/share/modules/modulefiles
+module load esys/env	# Recommended modules
+module load doxygen/1.4.6
+module load boost/1.33.0/python-2.4.1
+module load gmsh-1.65.0
+module load epydoc/2.1/python-2.4.3
+
+# How many threads? One per CPU.
+export OMP_NUM_THREADS=\$NCPUS
+
+# Run the tests
+echo "Running the tests $target"
+cd trunk				|| finish FAILURE "Could not cd to trunk"
+scons -j \$NCPUS $target >> $out_file 2>&1		|| finish FAILURE "Could not run scons $target"
+
+# Run epydoc to create the python documentation
+echo "Running epydoc"
+export LD_LIBRARY_PATH="$PWD/lib:$LD_LIBRARY_PATH"
+mkdir release release/doc release/doc/epydoc
+scons api_epydoc >> $out_file 2>&1		|| finish FAILURE "Could not run scons api_epydoc"
+cd release/doc/epydoc
+tar cf - . | ssh shake200 "cd /home/www/esys/esys13/nightly/epydoc; tar xf -"	|| finish FAILURE "Could not copy epydoc to shake200"
+cd ../../..
+
+echo "Cleaning up after the tests"
+
+# Delete files older than 60 days
+find $WorkDir -atime +60 -exec rm -f {} \;
+
+finish SUCCESS "Successfully ran 'scons $target' on \`hostname\`"
+
+EOF
+
+# cd to the logs area so the PBS logs are deposited there
+cd $WorkDir/Logs
+
+# Submit the job
+. /opt/modules/default/init/sh
+module load pbspro
+
+# Submit the job
+qsub -S /bin/bash $RunDate.pbs.script.sh > /dev/null
+

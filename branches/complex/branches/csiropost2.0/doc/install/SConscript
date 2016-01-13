@@ -1,0 +1,48 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = clone_env(env)
+
+latexmode='-interaction=nonstopmode'
+
+tex_dir = local_env.Dir('.').srcnode().abspath
+tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
+     [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]
+
+#env.Command(env['prefix']+'/release/doc/install/install.pdf',tex,
+            #[ "latex %s install.tex"%latexmode,  \
+              #"makeindex install",               \
+              #"latex %s install"%latexmode,      \
+              #"latex %s install"%latexmode,      \
+              #"dvipdf install.dvi %s"%env['prefix']+'/release/doc/install/install.pdf' ],
+            #chdir=tex_dir)
+
+latexcmd="pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{install.tex}"%latexmode
+
+env.Command(env['prefix']+'/doc/install/install.pdf',tex,
+            [ latexcmd,  \
+              "makeindex install",               \
+              latexcmd,      \
+              latexcmd],      \
+            chdir=tex_dir)
+
+tmp=local_env.InstallAs(target=env['prefix']+'/release/doc/install/install.pdf', source=env['prefix']+'/doc/install/install.pdf')
+
+env.Alias('install_pdf', tmp)
+
+
+

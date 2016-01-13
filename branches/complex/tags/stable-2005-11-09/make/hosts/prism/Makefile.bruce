@@ -1,0 +1,10 @@
+# $Id$
+
+# bruce
+
+PKG_CC_INC_DIRS  += $(ESYS_ROOT)/bruce/inc
+PKG_CPP_INC_DIRS += $(ESYS_ROOT)/bruce/inc
+
+PKG_LD_LIB_DIRS += $(ESYS_ROOT)/bruce/lib
+
+PKG_LD_LIBS += brucecpp

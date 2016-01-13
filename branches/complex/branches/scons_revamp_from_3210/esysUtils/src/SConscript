@@ -1,0 +1,56 @@
+
+########################################################
+#
+# Copyright (c) 2003-2010 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+Import('*')
+local_env = env.Clone()
+
+sources = """
+    blocktimer.c
+    EsysAssertException.cpp
+    EsysException.cpp
+    esysExceptionTranslator.cpp
+""".split()
+
+headers = """
+    blocktimer.h
+    EsysAssert.h
+    EsysAssertException.h
+    EsysException.h
+    EsysTypes.h
+    esys_malloc.h
+    esysExceptionTranslator.h
+    system_dep.h
+""".split()
+
+lib_name = 'esysUtils'
+
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['ESYSUTILS_EXPORTS'])
+
+include_path = Dir(lib_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+if local_env['share_esysutils']:
+    lib = local_env.SharedLibrary(lib_name, sources)
+else:
+    lib = local_env.StaticLibrary(lib_name, sources)
+
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+env.Alias('build_esysUtils_lib', lib)
+env.Alias('install_esysUtils_headers', hdr_inst)
+env.Alias('install_esysUtils_lib', lib_inst)
+
+# configure the unit tests
+local_env.SConscript(dirs=['#/esysUtils/test'], variant_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)
+

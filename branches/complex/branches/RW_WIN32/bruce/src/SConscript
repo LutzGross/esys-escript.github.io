@@ -1,0 +1,46 @@
+Import('*')
+
+lib_name = 'brucecpp'
+
+local_env=env.Copy()
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+
+include = Dir('Bruce', esys_inc)
+local_env.Install( include, headers )
+local_env.Append(LIBS=[boost_lib_name, 'esysUtils', 'escriptcpp'])
+
+if env['PLATFORM'] == "win32":
+   local_env.Append(CPPDEFINES=['_WINDOWS', '_USRDLL', 'BRUCE_EXPORTS'])
+   local_env['PDB'] = 'brucecpp.pdb'
+elif env['PLATFORM'] == "posix":
+    pass
+else:
+    import os
+    
+    cxx_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+    
+    cpp_path = ['#../bruce/inc', '#../escript/inc',
+                '#../esysUtils/inc',
+                '/raid2/tools/python-2.3.4/include/python2.3',
+                '/raid2/tools/boost/include/boost-1_31']
+    
+    local_env = Environment(ENV = os.environ)
+    
+    local_env.Replace(CXX = 'icc')
+    local_env.Replace(SHOBJSUFFIX = '.lo')
+    local_env.Replace(CXXFLAGS = cxx_flags)
+    local_env.Replace(CPPPATH = cpp_path)
+
+bruce_lib = local_env.SharedLibrary(lib_name, sources)
+#Default(bruce_lib)
+local_env.Install(esys_lib, bruce_lib)
+
+# Python
+local_env.Export('lib_name')
+env.SConscript(dirs = ['#/bruce/py_src'], build_dir='py', duplicate=0)

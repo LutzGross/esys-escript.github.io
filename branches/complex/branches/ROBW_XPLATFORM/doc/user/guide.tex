@@ -1,0 +1,59 @@
+% $Id$
+\documentclass{manual}
+
+% grab the handy definitions and \usepackage statements etc
+\input{guide_defs}
+
+% title, author, etc stuff
+\title{\escript Users Guide}
+
+\author{Lutz Gross et. al.(Editor)}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+The University of Queensland \\
+Australia \\
+Email: \email{esys@access.edu.au}
+}                                                                                         
+\date{\today}      
+\release{$Revision$}
+\setreleaseinfo{} 
+\setshortversion{}
+
+\makeindex
+
+% the actual start of the document
+\begin{document}
+
+\maketitle
+
+\input{copyrights}
+
+\begin{abstract}
+This document is a guide of how to use the \escript software and
+associated tools.
+\end{abstract}
+
+\tableofcontents
+
+\input{Installation}
+\input{TutorialPDE}
+
+
+\input{escript}
+\input{linearPDE}
+\input{finley}
+%\input{pyvisi}
+
+\input{modelframe}
+%\input{bruce}
+
+\input{troubleshooting}
+\makemodindex
+
+\printindex
+%\input{guide.ind}
+
+\bibliographystyle{plain}
+\bibliography{esys}
+
+\end{document}

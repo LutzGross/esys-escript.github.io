@@ -1,0 +1,48 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{manual}
+
+\input{install_defs}
+
+\title{Installation guide for Escript and Finley}
+
+\author{Escript development team}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}
+\date{\today}      
+\release{Revision: \RepVersion}
+\setreleaseinfo{2.0Beta} 
+\setshortversion{\RepVersion}
+
+\makeindex
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\include{intro}
+\include{bincommon}		% material common to all binary installs
+\include{binmac}
+\include{binwin}
+\chapter{Source releases}
+\label{chap:src}
+\input{srcommon}		% material common to all source installs
+\include{srclinux}
+\include{srcmac}
+ 
+\end{document}

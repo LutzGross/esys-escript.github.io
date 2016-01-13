@@ -1,0 +1,11 @@
+Rectangular mesh with 2 nodes
+1D-Nodes 2
+0 0 1 0.000000000000000e+000
+1 1 2 1.000000000000000e+000
+Line2 1
+0 0 0 1
+Line2Face 2
+2 2 1 0
+1 1 0 1
+Line2Face_Contact 0
+Point1 0

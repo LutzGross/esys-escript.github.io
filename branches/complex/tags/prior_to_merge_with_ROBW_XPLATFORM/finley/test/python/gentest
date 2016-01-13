@@ -1,0 +1,125 @@
+#!/usr/bin/python
+t_prog={}
+t_prog["2Do1"]=""
+t_prog["2Do2"]=""
+t_prog["3Do1"]=""
+t_prog["3Do2"]=""
+t_prog["2Do1_contact"]=""
+t_prog["2Do2_contact"]=""
+t_prog["3Do1_contact"]=""
+t_prog["3Do2_contact"]=""
+intend="  "
+
+def makeTitle(d,o,s,coef,case,type,body="",mark=""):
+   if mark=="":
+     name="test_assemblage_%sD_order%s_neq%s_%s_%s_%s"%(d,o,s,coef,case,type)
+   else:
+     name="test_assemblage_%sD_order%s_neq%s_%s_%s_%s_%s"%(d,o,s,coef,case,type,mark)
+   key="%sDo%s"%(d,o)
+   if coef=="d_contact": key+="_contact"
+   t_prog[key]+=intend+"#"+80*"+"+"\n"+intend+"def %s(self):\n"%name
+   if body=="":
+       t_prog[key]+=2*intend+"pass\n"
+   else:
+       t_prog[key]+=body
+
+for s in [1,2,3,4]:
+  for d in [2,3]:
+    for type in ["strong","weak"]:
+      for o in [1,2]:
+         for case in ["const","vario"]:
+            # coefficient A:
+            if s==1:
+                for i in range(d):
+                  for j in range(d):
+                    makeTitle(d,o,s,"A",case,type,body="",mark="%s%s"%(i,j))
+            else:
+                for p in range(s):
+                  for i in range(d):
+                    for q in range(s):
+                      for j in range(d):
+                         makeTitle(d,o,s,"A",case,type,body="",mark="%s%s%s%s"%(p,i,q,j))
+            # coefficient B:
+            if s==1:
+                for i in range(d):
+                  makeTitle(d,o,s,"B",case,type,body="",mark="%s"%(i))
+            else:
+                for p in range(s):
+                  for i in range(d):
+                    for q in range(s):
+                      makeTitle(d,o,s,"B",case,type,body="",mark="%s%s%s"%(p,i,q))
+            if type=="strong":
+               # coefficient C:
+               if s==1:
+                     for j in range(d):
+                       makeTitle(d,o,s,"C",case,type,body="",mark="%s"%(j))
+               else:
+                   for p in range(s):
+                       for q in range(s):
+                         for j in range(d):
+                            makeTitle(d,o,s,"C",case,type,body="",mark="%s%s%s"%(p,q,j))
+               # coefficient D:
+               if s==1:
+                   makeTitle(d,o,s,"D",case,type,body="",mark="")
+               else:
+                   for p in range(s):
+                     for q in range(s):
+                          makeTitle(d,o,s,"D",case,type,body="",mark="%s%s"%(p,q))
+            # coefficient d:
+            if s==1:
+                 makeTitle(d,o,s,"d",case,type,body="",mark="")
+            else:
+                for p in range(s):
+                  for q in range(s):
+                       makeTitle(d,o,s,"d_contact",case,type,body="",mark="%s%s"%(p,q))
+            # coefficient d_contact:
+            if s==1:
+                makeTitle(d,o,s,"d_contact",case,type,body="",mark="")
+            else:
+                for p in range(s):
+                  for q in range(s):
+                      makeTitle(d,o,s,"d_contact",case,type,body="",mark="%s%s"%(p,q))
+            #================================
+print "import unittest"
+print "import numarray"
+print "from esys.escript import *"
+print "from esys.finley import Rectangle,Brick"
+print "class Test_assemblage_2Do1(unittest.TestCase):"
+print t_prog["2Do1"]
+print "class Test_assemblage_2Do2(unittest.TestCase):"
+print t_prog["2Do2"]
+print "class Test_assemblage_3Do1(unittest.TestCase):"
+print t_prog["3Do1"]
+print "class Test_assemblage_3Do2(unittest.TestCase):"
+print t_prog["3Do2"]
+print "class Test_assemblage_2Do1Contact(unittest.TestCase):"
+print t_prog["2Do1_contact"]
+print "class Test_assemblage_2Do2Contact(unittest.TestCase):"
+print t_prog["2Do2_contact"]
+print "class Test_assemblage_3Do1Contact(unittest.TestCase):"
+print t_prog["3Do1_contact"]
+print "class Test_assemblage_3Do2Contact(unittest.TestCase):"
+print t_prog["3Do2_contact"]
+
+print "class Test_Finley_assemblage_2Do1(Test_assemblage_2Do1):"
+print "   RES_TOL=1.e-7"
+print "   def setUp(self):"
+print "       self.domain =Rectangle(2,2,1)"
+print "class Test_Finley_assemblage_2Do2(Test_assemblage_2Do2):"
+print "   RES_TOL=1.e-7"
+print "   def setUp(self):"
+print "       self.domain =Rectangle(2,2,2)"
+print "class Test_Finley_assemblage_3Do1(Test_assemblage_3Do1):"
+print "   RES_TOL=1.e-7"
+print "   def setUp(self):"
+print "       self.domain =Brick(2,2,2,1)"
+print "class Test_Finley_assemblage_3Do2(Test_assemblage_3Do2):"
+print "   RES_TOL=1.e-7"
+print "   def setUp(self):"
+print "       self.domain =Brick(2,2,2,2)"
+print "suite = unittest.TestSuite()"
+print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_2Do1))"
+print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_2Do2))"
+print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_3Do1))"
+print "suite.addTest(unittest.makeSuite(Test_Finley_assemblage_3Do2))"
+print "unittest.TextTestRunner(verbosity=2).run(suite)"

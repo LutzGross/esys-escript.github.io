@@ -1,0 +1,3408 @@
+#!/usr/bin/python
+# $Id$
+
+"""
+program generates parts of the util.py and the test_util.py script
+"""
+test_header=""
+test_header+="import unittest\n"
+test_header+="import numarray\n"
+test_header+="from esys.escript import *\n"
+test_header+="from esys.finley import Rectangle\n"
+test_header+="class Test_util2(unittest.TestCase):\n"
+test_header+="   RES_TOL=1.e-7\n"
+test_header+="   def setUp(self):\n"
+test_header+="       self.__dom =Rectangle(11,11,2)\n"
+test_header+="       self.functionspace = FunctionOnBoundary(self.__dom)\n"
+test_tail=""
+test_tail+="suite = unittest.TestSuite()\n"
+test_tail+="suite.addTest(unittest.makeSuite(Test_util2))\n"
+test_tail+="unittest.TextTestRunner(verbosity=2).run(suite)\n"
+
+case_set=["float","array","constData","taggedData","expandedData","Symbol"] 
+shape_set=[ (),(2,), (4,5), (6,2,2),(3,2,3,4)]
+
+t_prog=""
+t_prog_with_tags=""
+t_prog_failing=""
+u_prog=""
+
+def wherepos(arg):
+   if arg>0.:
+      return 1.
+   else: 
+      return 0.
+
+
+class OPERATOR:
+	def __init__(self,nickname,rng=[-1000.,1000],test_expr="",math_expr=None,
+				numarray_expr="",symbol_expr=None,diff=None,name=""):
+			self.nickname=nickname
+			self.rng=rng
+			self.test_expr=test_expr
+			if math_expr==None:
+  			   self.math_expr=test_expr.replace("%a1%","arg")
+			else:
+			   self.math_expr=math_expr
+			self.numarray_expr=numarray_expr
+			self.symbol_expr=symbol_expr
+			self.diff=diff
+			self.name=name
+
+import random 
+import numarray
+import math
+finc=1.e-6
+
+def getResultCaseForBin(case0,case1): 
+	if case0=="float":
+		if case1=="float":
+			case="float"
+		elif case1=="array":
+			case="array"
+		elif case1=="constData":
+			case="constData"
+		elif case1=="taggedData":
+			case="taggedData"
+		elif case1=="expandedData":
+			case="expandedData"
+		elif case1=="Symbol":
+			case="Symbol"	
+		else:
+    			raise ValueError,"unknown case1=%s"%case1
+	elif case0=="array":
+		if case1=="float":
+			case="array"
+		elif case1=="array":
+			case="array"
+		elif case1=="constData":
+			case="constData"
+		elif case1=="taggedData":
+			case="taggedData"
+		elif case1=="expandedData":
+			case="expandedData"
+		elif case1=="Symbol":
+			case="Symbol"	
+		else:
+    			raise ValueError,"unknown case1=%s"%case1
+	elif case0=="constData":
+		if case1=="float":
+			case="constData"
+		elif case1=="array":
+			case="constData"
+		elif case1=="constData":
+			case="constData"
+		elif case1=="taggedData":
+			case="taggedData"
+		elif case1=="expandedData":
+			case="expandedData"
+		elif case1=="Symbol":
+			case="Symbol"	
+		else:
+    			raise ValueError,"unknown case1=%s"%case1
+	elif case0=="taggedData":
+		if case1=="float":
+			case="taggedData"
+		elif case1=="array":
+			case="taggedData"
+		elif case1=="constData":
+			case="taggedData"
+		elif case1=="taggedData":
+			case="taggedData"
+		elif case1=="expandedData":
+			case="expandedData"
+		elif case1=="Symbol":
+			case="Symbol"	
+		else:
+    			raise ValueError,"unknown case1=%s"%case1
+	elif case0=="expandedData":
+		if case1=="float":
+			case="expandedData"
+		elif case1=="array":
+			case="expandedData"
+		elif case1=="constData":
+			case="expandedData"
+		elif case1=="taggedData":
+			case="expandedData"
+		elif case1=="expandedData":
+			case="expandedData"
+		elif case1=="Symbol":
+			case="Symbol"	
+		else:
+    			raise ValueError,"unknown case1=%s"%case1	
+	elif case0=="Symbol":
+		if case1=="float":
+			case="Symbol"
+		elif case1=="array":
+			case="Symbol"
+		elif case1=="constData":
+			case="Symbol"
+		elif case1=="taggedData":
+			case="Symbol"
+		elif case1=="expandedData":
+			case="Symbol"
+		elif case1=="Symbol":
+			case="Symbol"
+		else:
+    			raise ValueError,"unknown case1=%s"%case1
+	else:
+    		raise ValueError,"unknown case0=%s"%case0
+	return case
+
+
+def makeArray(shape,rng):
+   l=rng[1]-rng[0]
+   out=numarray.zeros(shape,numarray.Float64)
+   if len(shape)==0:
+       out=l*random.random()+rng[0]
+   elif len(shape)==1:
+       for i0 in range(shape[0]):
+                   out[i0]=l*random.random()+rng[0]
+   elif len(shape)==2:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+                   out[i0,i1]=l*random.random()+rng[0]
+   elif len(shape)==3:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+             for i2 in range(shape[2]):
+                   out[i0,i1,i2]=l*random.random()+rng[0]
+   elif len(shape)==4:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+             for i2 in range(shape[2]):
+                for i3 in range(shape[3]):
+                   out[i0,i1,i2,i3]=l*random.random()+rng[0]
+   elif len(shape)==5:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+             for i2 in range(shape[2]):
+                for i3 in range(shape[3]):
+                  for i4 in range(shape[4]):
+                   out[i0,i1,i2,i3,i4]=l*ranm.random()+rng[0]
+   else:
+       raise SystemError,"rank is restricted to 5"
+   return out         
+
+def makeNumberedArray(shape,s=1.):
+   out=numarray.zeros(shape,numarray.Float64)
+   if len(shape)==0:
+       out=s*1.
+   elif len(shape)==1:
+       for i0 in range(shape[0]):
+                   out[i0]=s*int(8*random.random()+1)
+   elif len(shape)==2:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+                   out[i0,i1]=s*int(8*random.random()+1)
+   elif len(shape)==3:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+             for i2 in range(shape[2]):
+                   out[i0,i1,i2]=s*int(8*random.random()+1)
+   elif len(shape)==4:
+       for i0 in range(shape[0]):
+          for i1 in range(shape[1]):
+             for i2 in range(shape[2]):
+                for i3 in range(shape[3]):
+                   out[i0,i1,i2,i3]=s*int(8*random.random()+1)
+   else:
+       raise SystemError,"rank is restricted to 4"
+   return out         
+
+def makeResult(val,test_expr):
+   if isinstance(val,float):
+       out=eval(test_expr.replace("%a1%","val"))
+   elif len(val.shape)==0:
+       out=eval(test_expr.replace("%a1%","val"))
+   elif len(val.shape)==1:
+       out=numarray.zeros(val.shape,numarray.Float64)
+       for i0 in range(val.shape[0]):
+                   out[i0]=eval(test_expr.replace("%a1%","val[i0]"))
+   elif len(val.shape)==2:
+       out=numarray.zeros(val.shape,numarray.Float64)
+       for i0 in range(val.shape[0]):
+          for i1 in range(val.shape[1]):
+                   out[i0,i1]=eval(test_expr.replace("%a1%","val[i0,i1]"))
+   elif len(val.shape)==3:
+       out=numarray.zeros(val.shape,numarray.Float64)
+       for i0 in range(val.shape[0]):
+          for i1 in range(val.shape[1]):
+             for i2 in range(val.shape[2]):
+                   out[i0,i1,i2]=eval(test_expr.replace("%a1%","val[i0,i1,i2]"))
+   elif len(val.shape)==4:
+       out=numarray.zeros(val.shape,numarray.Float64)
+       for i0 in range(val.shape[0]):
+          for i1 in range(val.shape[1]):
+             for i2 in range(val.shape[2]):
+                for i3 in range(val.shape[3]):
+                   out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val[i0,i1,i2,i3]"))
+   else:
+       raise SystemError,"rank is restricted to 4"
+   return out         
+
+def makeResult2(val0,val1,test_expr):
+   if isinstance(val0,float):
+      if isinstance(val1,float):
+          out=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1"))
+      elif len(val1.shape)==0:
+          out=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1"))
+      elif len(val1.shape)==1:
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+                     out[i0]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0]"))
+      elif len(val1.shape)==2:    
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+             for i1 in range(val1.shape[1]):
+                   out[i0,i1]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0,i1]"))
+      elif len(val1.shape)==3:
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+             for i1 in range(val1.shape[1]):
+                for i2 in range(val1.shape[2]):
+                     out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0,i1,i2]"))
+      elif len(val1.shape)==4:  
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+             for i1 in range(val1.shape[1]):
+                for i2 in range(val1.shape[2]):
+                   for i3 in range(val1.shape[3]):
+                      out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0,i1,i2,i3]"))
+      else:
+          raise SystemError,"rank of val1 is restricted to 4"
+   elif len(val0.shape)==0:
+      if isinstance(val1,float):
+          out=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1"))
+      elif len(val1.shape)==0:
+          out=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1"))
+      elif len(val1.shape)==1:
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+                     out[i0]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0]"))
+      elif len(val1.shape)==2:    
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+             for i1 in range(val1.shape[1]):
+                   out[i0,i1]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0,i1]"))
+      elif len(val1.shape)==3:
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+             for i1 in range(val1.shape[1]):
+                for i2 in range(val1.shape[2]):
+                     out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0,i1,i2]"))
+      elif len(val1.shape)==4:  
+          out=numarray.zeros(val1.shape,numarray.Float64)
+          for i0 in range(val1.shape[0]):
+             for i1 in range(val1.shape[1]):
+                for i2 in range(val1.shape[2]):
+                   for i3 in range(val1.shape[3]):
+                      out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0").replace("%a2%","val1[i0,i1,i2,i3]"))
+      else:
+          raise SystemError,"rank of val1 is restricted to 4"
+   elif len(val0.shape)==1:
+      if isinstance(val1,float):
+           out=numarray.zeros(val0.shape,numarray.Float64)  
+           for i0 in range(val0.shape[0]):
+              out[i0]=eval(test_expr.replace("%a1%","val0[i0]").replace("%a2%","val1"))
+      elif len(val1.shape)==0:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              out[i0]=eval(test_expr.replace("%a1%","val0[i0]").replace("%a2%","val1"))
+      elif len(val1.shape)==1:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              out[i0]=eval(test_expr.replace("%a1%","val0[i0]").replace("%a2%","val1[i0]"))
+      elif len(val1.shape)==2:
+          out=numarray.zeros(val0.shape+val1.shape[1:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for j1 in range(val1.shape[1]):
+                 out[i0,j1]=eval(test_expr.replace("%a1%","val0[i0]").replace("%a2%","val1[i0,j1]"))
+      elif len(val1.shape)==3:
+          out=numarray.zeros(val0.shape+val1.shape[1:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for j1 in range(val1.shape[1]):
+                 for j2 in range(val1.shape[2]):
+                    out[i0,j1,j2]=eval(test_expr.replace("%a1%","val0[i0]").replace("%a2%","val1[i0,j1,j2]"))
+      elif len(val1.shape)==4:
+          out=numarray.zeros(val0.shape+val1.shape[1:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for j1 in range(val1.shape[1]):
+                 for j2 in range(val1.shape[2]):
+                    for j3 in range(val1.shape[3]):
+                       out[i0,j1,j2,j3]=eval(test_expr.replace("%a1%","val0[i0]").replace("%a2%","val1[i0,j1,j2,j3]"))
+      else:
+         raise SystemError,"rank of val1 is restricted to 4"
+   elif len(val0.shape)==2:
+      if isinstance(val1,float):
+           out=numarray.zeros(val0.shape,numarray.Float64)  
+           for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                   out[i0,i1]=eval(test_expr.replace("%a1%","val0[i0,i1]").replace("%a2%","val1"))
+      elif len(val1.shape)==0:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                   out[i0,i1]=eval(test_expr.replace("%a1%","val0[i0,i1]").replace("%a2%","val1"))
+      elif len(val1.shape)==1:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                   out[i0,i1]=eval(test_expr.replace("%a1%","val0[i0,i1]").replace("%a2%","val1[i0]"))
+      elif len(val1.shape)==2:
+          out=numarray.zeros(val0.shape+val1.shape[2:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 out[i0,i1]=eval(test_expr.replace("%a1%","val0[i0,i1]").replace("%a2%","val1[i0,i1]"))
+      elif len(val1.shape)==3:
+          out=numarray.zeros(val0.shape+val1.shape[2:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 for j2 in range(val1.shape[2]):
+                    out[i0,i1,j2]=eval(test_expr.replace("%a1%","val0[i0,i1]").replace("%a2%","val1[i0,i1,j2]"))
+      elif len(val1.shape)==4:
+          out=numarray.zeros(val0.shape+val1.shape[2:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 for j2 in range(val1.shape[2]):
+                    for j3 in range(val1.shape[3]):
+                       out[i0,i1,j2,j3]=eval(test_expr.replace("%a1%","val0[i0,i1]").replace("%a2%","val1[i0,i1,j2,j3]"))
+      else:
+         raise SystemError,"rank of val1 is restricted to 4"
+   elif len(val0.shape)==3:
+      if isinstance(val1,float):
+           out=numarray.zeros(val0.shape,numarray.Float64)  
+           for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                      out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0[i0,i1,i2]").replace("%a2%","val1"))
+      elif len(val1.shape)==0:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                      out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0[i0,i1,i2]").replace("%a2%","val1"))
+      elif len(val1.shape)==1:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                      out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0[i0,i1,i2]").replace("%a2%","val1[i0]"))
+      elif len(val1.shape)==2:
+          out=numarray.zeros(val0.shape+val1.shape[2:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                      out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0[i0,i1,i2]").replace("%a2%","val1[i0,i1]"))
+      elif len(val1.shape)==3:
+          out=numarray.zeros(val0.shape,numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 for i2 in range(val0.shape[2]):
+                      out[i0,i1,i2]=eval(test_expr.replace("%a1%","val0[i0,i1,i2]").replace("%a2%","val1[i0,i1,i2]"))
+      elif len(val1.shape)==4:
+          out=numarray.zeros(val0.shape+val1.shape[3:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 for i2 in range(val0.shape[2]):
+                    for j3 in range(val1.shape[3]):
+                       out[i0,i1,i2,j3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2]").replace("%a2%","val1[i0,i1,i2,j3]"))
+      else:
+         raise SystemError,"rank of val1 is rargs[1]estricted to 4"
+   elif len(val0.shape)==4:
+      if isinstance(val1,float):
+           out=numarray.zeros(val0.shape,numarray.Float64)  
+           for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                     for i3 in range(val0.shape[3]):
+                         out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2,i3]").replace("%a2%","val1"))
+      elif len(val1.shape)==0:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                     for i3 in range(val0.shape[3]):
+                         out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2,i3]").replace("%a2%","val1"))
+      elif len(val1.shape)==1:
+          out=numarray.zeros(val0.shape,numarray.Float64)  
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                     for i3 in range(val0.shape[3]):
+                         out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2,i3]").replace("%a2%","val1[i0]"))
+      elif len(val1.shape)==2:
+          out=numarray.zeros(val0.shape+val1.shape[2:],numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                  for i2 in range(val0.shape[2]):
+                     for i3 in range(val0.shape[3]):
+                         out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2,i3]").replace("%a2%","val1[i0,i1]"))
+      elif len(val1.shape)==3:
+          out=numarray.zeros(val0.shape,numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 for i2 in range(val0.shape[2]):
+                     for i3 in range(val0.shape[3]):
+                         out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2,i3]").replace("%a2%","val1[i0,i1,i2]"))
+      elif len(val1.shape)==4:
+          out=numarray.zeros(val0.shape,numarray.Float64)
+          for i0 in range(val0.shape[0]):
+              for i1 in range(val0.shape[1]):
+                 for i2 in range(val0.shape[2]):
+                    for i3 in range(val0.shape[3]):
+                       out[i0,i1,i2,i3]=eval(test_expr.replace("%a1%","val0[i0,i1,i2,i3]").replace("%a2%","val1[i0,i1,i2,i3]"))
+      else:
+         raise SystemError,"rank of val1 is restricted to 4"
+   else:
+       raise SystemError,"rank is restricted to 4"
+   return out         
+
+
+def mkText(case,name,a,a1=None,use_tagging_for_expanded_data=False):
+         t_out=""
+         if case=="float":
+           if isinstance(a,float):
+                t_out+="      %s=%s\n"%(name,a)
+           elif a.rank==0:
+                t_out+="      %s=%s\n"%(name,a)
+           else:
+                t_out+="      %s=numarray.array(%s)\n"%(name,a.tolist())
+         elif case=="array":
+           if isinstance(a,float):
+                t_out+="      %s=numarray.array(%s)\n"%(name,a)
+           elif a.rank==0:
+                t_out+="      %s=numarray.array(%s)\n"%(name,a)
+           else:
+                t_out+="      %s=numarray.array(%s)\n"%(name,a.tolist())
+         elif case=="constData":
+           if isinstance(a,float):
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+           elif a.rank==0:
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+           else:
+              t_out+="      %s=Data(numarray.array(%s),self.functionspace)\n"%(name,a.tolist())
+         elif case=="taggedData":
+           if isinstance(a,float):
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+              t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1)
+           elif a.rank==0:
+              t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+              t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1)
+           else:
+              t_out+="      %s=Data(numarray.array(%s),self.functionspace)\n"%(name,a.tolist())
+              t_out+="      %s.setTaggedValue(1,numarray.array(%s))\n"%(name,a1.tolist())
+         elif case=="expandedData":
+           if use_tagging_for_expanded_data:
+              if isinstance(a,float):
+                 t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+                 t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1)
+              elif a.rank==0:
+                 t_out+="      %s=Data(%s,self.functionspace)\n"%(name,a)
+                 t_out+="      %s.setTaggedValue(1,%s)\n"%(name,a1)
+              else:
+                 t_out+="      %s=Data(numarray.array(%s),self.functionspace)\n"%(name,a.tolist())
+                 t_out+="      %s.setTaggedValue(1,numarray.array(%s))\n"%(name,a1.tolist())
+              t_out+="      %s.expand()\n"%name           
+           else: 
+              t_out+="      msk_%s=whereZero(self.functionspace.getX()[0],1.e-8)\n"%name
+              if isinstance(a,float):
+                   t_out+="      %s=(1.-msk_%s)*(%s)+msk_%s*(%s)\n"%(name,name,a,name,a1)
+              elif a.rank==0:
+                   t_out+="      %s=msk_%s*numarray.array(%s)+(1.-msk_%s)*numarray.array(%s)\n"%(name,name,a,name,a1)
+              else:
+                   t_out+="      %s=msk_%s*numarray.array(%s)+(1.-msk_%s)*numarray.array(%s)\n"%(name,name,a.tolist(),name,a1.tolist())
+         elif case=="Symbol":
+           if isinstance(a,float):
+              t_out+="      %s=Symbol(shape=())\n"%(name)
+           elif a.rank==0:
+              t_out+="      %s=Symbol(shape=())\n"%(name)
+           else:
+              t_out+="      %s=Symbol(shape=%s)\n"%(name,str(a.shape))
+
+         return t_out
+
+def mkTypeAndShapeTest(case,sh,argstr,name=""):
+    text=""
+    if case=="float":
+         text+="      self.failUnless(isinstance(%s,float),\"wrong type of result%s.\")\n"%(argstr,name)
+    elif case=="array":
+         text+="      self.failUnless(isinstance(%s,numarray.NumArray),\"wrong type of result%s.\")\n"%(argstr,name)
+         text+="      self.failUnlessEqual(%s.shape,%s,\"wrong shape of result%s.\")\n"%(argstr,str(sh),name)
+    elif case in ["constData","taggedData","expandedData"]:    
+         text+="      self.failUnless(isinstance(%s,Data),\"wrong type of result%s.\")\n"%(argstr,name)
+         text+="      self.failUnlessEqual(%s.getShape(),%s,\"wrong shape of result%s.\")\n"%(argstr,str(sh),name)
+    elif case=="Symbol":
+         text+="      self.failUnless(isinstance(%s,Symbol),\"wrong type of result%s.\")\n"%(argstr,name)
+         text+="      self.failUnlessEqual(%s.getShape(),%s,\"wrong shape of result%s.\")\n"%(argstr,str(sh),name)
+    return text
+
+def mkCode(txt,args=[],intend=""):
+    s=txt.split("\n")
+    if len(s)>1:
+       out=""
+       for l in s: 
+        out+=intend+l+"\n"
+    else:
+        out="%sreturn %s\n"%(intend,txt)
+    c=1
+    for r in args:
+      out=out.replace("%%a%s%%"%c,r)
+    return out   
+
+
+#=======================================================================================================
+# eigenvalues and eigen vectors 2D:
+#=======================================================================================================
+alltests= \
+  [ ("case0",[[0.0, 0.0], [0.0, 0.0]],[0.0, 0.0]) \
+   , ("case3",[[-1.0, 0.0], [0.0, -1.0]],[-1.0, -1.0]) \
+   , ("case5",[[-0.99999999999999967, -6.4606252205695602e-16], [-6.4606252205695602e-16, -0.99999999999999967]],[-1.0, -1.0]) \
+   , ("case6",[[0.0, 0.0], [0.0, 0.0001]],[0.0, 0.0001]) \
+   , ("case7",[[0.0001, 0.0], [0.0, 0.0]],[0.0, 0.0001]) \
+   , ("case8",[[6.0598371831785722e-06, 2.3859213977648625e-05], [2.3859213977648629e-05, 9.3940162816821425e-05]],[0.0, 0.0001]) \
+   , ("case9",[[1.0, 0.0], [0.0, 2.0]],[1.0, 2.0]) \
+   , ("case10",[[2.0, 0.0], [0.0, 1.0]],[1.0, 2.0]) \
+   , ("case11",[[1.0605983718317855, 0.23859213977648688], [0.23859213977648688, 1.9394016281682138]],[1.0, 2.0]) \
+   , ("case12",[[1.0, 0.0], [0.0, 1000000.0]],[1.0, 1000000.0]) \
+   , ("case13",[[1000000.0, 0.0], [0.0, 1.0]],[1.0, 1000000.0]) \
+   , ("case14",[[60599.311233413886, 238591.90118434647], [238591.90118434647, 939401.68876658613]],[1.0, 1000000.0]) \
+   ]
+dim=2
+
+
+alltests= \
+[ ("case0",[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],[0.0, 0.0, 0.0]) \
+, ("case5",[[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]],[10.0, 10.0, 10.0]) \
+, ("case10",[[0.9, 0.0, 0.0], [0.0, 0.9, 0.0], [0.0, 0.0, 1.0]],[0.9, 0.9, 1.0]) \
+, ("case11",[[0.9, 0.0, 0.0], [0.0, 0.97060899725040983, -0.045555123008643325], [0.0, -0.045555123008643339, 0.92939100274959041]],[0.9, 0.9, 1.0]) \
+, ("case12",[[0.92694799760252555, 0.0, 0.044368966468320177], [0.0, 0.9, 0.0], [0.044368966468320184, 0.0, 0.97305200239747425]],[0.9, 0.9, 1.0]) \
+, ("case13",[[1.0, 0.0, 0.0], [0.0, 0.9, 0.], [0.0, 0., 0.9]],[0.9, 0.9, 1.0]) \
+, ("case14",[[0.92379770619813639, 0.041031106298491521, -0.011396846732439278], [0.041031106298491535, 0.97074428392640366, -0.019650012730342326], [-0.011396846732439236, -0.019650012730342337, 0.90545800987545966]],[0.9, 0.9, 1.0]) \
+, ("case15",[[1.0, 0.0, 0.0], [0.0, 1.1, 0.0], [0.0, 0.0, 1.1]],[1.0, 1.1, 1.1]) \
+, ("case17",[[1.0269479976025255, 0.0, 0.044368966468320309], [0.0, 1.1, 0.0], [0.044368966468320295, 0.0, 1.0730520023974743]],[1.0, 1.1, 1.1]) \
+, ("case18",[[1.1, 0.0, 0.0], [0.0, 1.0153410887977139, -0.036038311201720394], [0.0, -0.036038311201720373, 1.084658911202286]],[1.0, 1.1, 1.1]) \
+, ("case19",[[1.035487967756175, 0.026317079185831614, -0.039960133424212368], [0.026317079185831618, 1.0892641940924184, 0.016301362071911414], [-0.039960133424212355, 0.016301362071911431, 1.0752478381514063]],[1.0, 1.1, 1.1]) \
+, ("case20",[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],[1.0, 2.0, 3.0]) \
+, ("case21",[[1.0, 0.0, 0.0], [0.0, 2.7060899725040968, -0.45555123008643206], [0.0, -0.45555123008643228, 2.2939100274959037]],[1.0, 2.0, 3.0]) \
+, ("case22",[[1.5389599520505153, 0.0, 0.88737932936638753], [0.0, 2.0, 0.0], [0.88737932936638753, 0.0, 2.4610400479494858]],[1.0, 2.0, 3.0]) \
+, ("case23",[[3.0, 0.0, 0.0], [0.0, 1.153410887977139, -0.36038311201720391], [0.0, -0.36038311201720391, 1.8465891120228608]],[1.0, 2.0, 3.0]) \
+, ("case24",[[1.5928567395431172, 0.67348185484323142, -0.51356980156651744], [0.67348185484323153, 2.6000847801882254, -0.033486506584313548], [-0.51356980156651744, -0.033486506584313541, 1.8070584802686565]],[1.0, 2.0, 3.0]) \
+, ("case25",[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 30000.0]],[1.0, 2.0, 30000.0]) \
+, ("case26",[[1.0, 0.0, 0.0], [0.0, 21183.286995177881, -13665.625800132779], [0.0, -13665.625800132779, 8818.7130048221279]],[1.0, 2.0, 30000.0]) \
+, ("case27",[[8085.1298007817086, 0.0, 13310.246250831115], [0.0, 2.0, 0.0], [13310.246250831115, 0.0, 21915.870199218316]],[1.0, 2.0, 30000.0]) \
+, ("case28",[[30000.0, 0.0, 0.0], [0.0, 1.153410887977139, -0.36038311201720391], [0.0, -0.36038311201720391, 1.8465891120228608]],[1.0, 2.0, 30000.0]) \
+, ("case29",[[7140.1907849945546, 12308.774438213351, -3419.2256841313947], [12308.774438213351, 21223.762934183575, -5894.4478052274408], [-3419.2256841313947, -5894.4478052274408, 1639.0462808218595]],[1.0, 2.0, 30000.0]) \
+]
+
+dim=3
+
+alltests= \
+[ ("case0",[[0.0]],[0.0]) \
+, ("case1",[[1.0]],[1.0]) \
+]
+dim=1
+
+for case in ["constData","taggedData","expandedData"]: 
+   n=0
+   while n<len(alltests):
+      text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+      tname="test_eigenvalues_and_eigenvectors_%s_dim%s_%s"%(case,dim,alltests[n][0])
+      text+="   def %s(self):\n"%tname
+      a_0=numarray.array(alltests[n][1],numarray.Float64)
+      ev_0=numarray.array(alltests[n][2],numarray.Float64)
+      if case in ["taggedData", "expandedData"]:
+         if n+1<len(alltests):
+           a1_0=numarray.array(alltests[n+1][1],numarray.Float64)
+           ev1_0=numarray.array(alltests[n+1][2],numarray.Float64)
+         else:
+           a1_0=numarray.array(alltests[0][1],numarray.Float64)
+           ev1_0=numarray.array(alltests[0][2],numarray.Float64)
+         n+=2
+      else:
+         a1_0=a_0                  
+         ev1_0=ev_0
+         n+=1
+      text+=mkText(case,"arg",a_0,a1_0)
+      text+="      res=eigenvalues_and_eigenvectors(arg)\n"
+      text+=mkText(case,"ref_ev",ev_0,ev1_0)
+      text+=mkTypeAndShapeTest(case,(dim,),"res[0]"," for eigenvalues")
+      text+=mkTypeAndShapeTest(case,(dim,dim),"res[1]"," for eigenvectors")
+      text+="      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),\"wrong eigenvalues\")\n"
+      for i in range(dim):
+          text+="      self.failUnless(Lsup(matrixmult(arg,res[1][:,%s])-res[0][%s]*res[1][:,%s])<=self.RES_TOL*Lsup(res[0]),\"wrong eigenvector %s\")\n"%(i,i,i,i)
+      text+="      self.failUnless(Lsup(matrixmult(transpose(res[1]),res[1])-kronecker(%s))<=self.RES_TOL,\"eigenvectors are not orthonormal\")\n"%dim
+      if case == "taggedData" :
+           t_prog_with_tags+=text
+      else:              
+           t_prog+=text
+print test_header
+print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+#=======================================================================================================
+# get slices
+#=======================================================================================================
+from esys.escript import *
+for case0 in ["constData","taggedData","expandedData"]: 
+   for sh0 in [ (3,), (3,4), (3,4,3) ,(4,3,3,3)]:
+    # get perm:
+    if len(sh0)==2:
+        check=[[1,0]]
+    elif len(sh0)==3:
+        check=[[1,0,2],
+               [1,2,0],
+               [2,1,0],
+               [2,0,2],
+               [0,2,1]]
+    elif len(sh0)==4:
+        check=[[0,1,3,2],
+               [0,2,1,3],
+               [0,2,3,1],
+               [0,3,2,1],
+               [0,3,1,2] ,          
+               [1,0,2,3],
+               [1,0,3,2],
+               [1,2,0,3],
+               [1,2,3,0],
+               [1,3,2,0],
+               [1,3,0,2],
+               [2,0,1,3],
+               [2,0,3,1],
+               [2,1,0,3],
+               [2,1,3,0],
+               [2,3,1,0],
+               [2,3,0,1],
+               [3,0,1,2],
+               [3,0,2,1],
+               [3,1,0,2],
+               [3,1,2,0],
+               [3,2,1,0],
+               [3,2,0,1]]
+    else:
+         check=[]
+    
+    # create the test cases:
+    processed=[]
+    l=["R","U","L","P","C","N"]
+    c=[""]
+    for i in range(len(sh0)):
+       tmp=[]
+       for ci in c:
+          tmp+=[ci+li for li in l]
+       c=tmp
+    # SHUFFLE
+    c2=[]
+    while len(c)>0:
+        i=int(random.random()*len(c))
+        c2.append(c[i])
+        del c[i]
+    c=c2
+    for ci in c:
+      t=""
+      sh=()
+      sl=()
+      for i in range(len(ci)):
+          if ci[i]=="R":
+             s="%s:%s"%(1,sh0[i]-1)
+             sl=sl+(slice(1,sh0[i]-1),)
+             sh=sh+(sh0[i]-2,)             
+          if ci[i]=="U":
+              s=":%s"%(sh0[i]-1)
+              sh=sh+(sh0[i]-1,)
+              sl=sl+(slice(0,sh0[i]-1),)             
+          if ci[i]=="L":
+              s="2:"
+              sh=sh+(sh0[i]-2,)             
+              sl=sl+(slice(2,sh0[i]),)             
+          if ci[i]=="P":
+              s="%s"%(int(sh0[i]/2))
+              sl=sl+(int(sh0[i]/2),)             
+          if ci[i]=="C":
+              s=":"
+              sh=sh+(sh0[i],)             
+              sl=sl+(slice(0,sh0[i]),)             
+          if ci[i]=="N":
+              s=""
+              sh=sh+(sh0[i],)
+          if len(s)>0:
+             if not t=="": t+=","
+             t+=s
+      if len(sl)==1: sl=sl[0]
+      N_found=False
+      noN_found=False
+      process=len(t)>0
+      for i in ci:
+         if i=="N":
+            if not noN_found and N_found: process=False
+            N_found=True
+         else:
+           if N_found: process=False
+           noNfound=True
+      # is there a similar one processed allready
+      if process and ci.find("N")==-1:
+         for ci2 in processed:
+           for chi in check:
+               is_perm=True
+               for i in range(len(chi)): 
+                   if not ci[i]==ci2[chi[i]]: is_perm=False
+               if is_perm: process=False
+      # if not process: print ci," rejected" 
+      if process:
+       processed.append(ci)
+       for case1 in ["array","constData","taggedData","expandedData"]: 
+          text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+          tname="test_setslice_%s_rank%s_%s_%s"%(case0,len(sh0),case1,ci)
+          text+="   def %s(self):\n"%tname
+          a_0=makeNumberedArray(sh0)
+          if case0 in ["taggedData", "expandedData"]:
+              a1_0=makeNumberedArray(sh0)
+          else:
+              a1_0=a_0*1.
+
+          a_1=makeNumberedArray(sh)
+          if case1 in ["taggedData", "expandedData"]:
+              a1_1=makeNumberedArray(sh)
+          else:
+              a1_1=a_1*1.
+
+          text+=mkText(case0,"arg",a_0,a1_0)                                  
+          text+=mkText(case1,"val",a_1,a1_1)                                  
+          text+="      arg[%s]=val\n"%t
+          a_0.__setitem__(sl,a_1)
+          a1_0.__setitem__(sl,a1_1)
+          if Lsup(a_0-a1_0)==0.:
+             text+=mkText("constData","ref",a_0,a1_0)
+          else:
+             text+=mkText("expandedData","ref",a_0,a1_0)
+          text+="      self.failUnless(Lsup(arg-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"
+              
+          if case0 == "taggedData" or case1 == "taggedData":
+            t_prog_with_tags+=text
+          else:              
+            t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# (non)symmetric part
+#=======================================================================================================
+from esys.escript import *
+for name in ["symmetric", "nonsymmetric"]:
+ f=1.
+ if name=="nonsymmetric": f=-1
+ for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (3,3), (2,3,2,3)]:
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s"%(name,case0,len(sh0))
+              text+="   def %s(self):\n"%tname
+              a_0=makeNumberedArray(sh0,s=1.)
+              r_0=(a_0+f*transpose(a_0))/2.
+              if case0 in ["taggedData", "expandedData"]:
+                 a1_0=makeNumberedArray(sh0,s=-1.)
+                 r1_0=(a1_0+f*transpose(a1_0))/2.
+              else:
+                  a1_0=a_0                  
+                  r1_0=r_0
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg)\n"%name
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r_0,r1_0)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r_0,r1_0)   
+              text+=mkTypeAndShapeTest(case0,sh0,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+print t_prog
+# print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# eigenvalues
+#=======================================================================================================
+import numarray.linear_algebra
+name="eigenvalues"
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (1,1), (2,2), (3,3)]:
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_dim%s"%(name,case0,sh0[0])
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              a_0=(a_0+numarray.transpose(a_0))/2.
+              ev=numarray.linear_algebra.eigenvalues(a_0)
+              ev.sort()
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+                  a1_0=(a1_0+numarray.transpose(a1_0))/2.
+                  ev1=numarray.linear_algebra.eigenvalues(a1_0)
+                  ev1.sort()
+              else:
+                  a1_0=a_0                  
+                  ev1=ev
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg)\n"%name
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",ev,ev1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",ev,ev1)   
+              text+=mkTypeAndShapeTest(case0,(sh0[0],),"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# get slices
+#=======================================================================================================
+for case0 in ["constData","taggedData","expandedData","Symbol"]: 
+  for sh0 in [ (3,), (3,4), (3,4,3) ,(4,3,5,3)]:
+    # get perm:
+    if len(sh0)==2:
+        check=[[1,0]]
+    elif len(sh0)==3:
+        check=[[1,0,2],
+               [1,2,0],
+               [2,1,0],
+               [2,0,2],
+               [0,2,1]]
+    elif len(sh0)==4:
+        check=[[0,1,3,2],
+               [0,2,1,3],
+               [0,2,3,1],
+               [0,3,2,1],
+               [0,3,1,2] ,          
+               [1,0,2,3],
+               [1,0,3,2],
+               [1,2,0,3],
+               [1,2,3,0],
+               [1,3,2,0],
+               [1,3,0,2],
+               [2,0,1,3],
+               [2,0,3,1],
+               [2,1,0,3],
+               [2,1,3,0],
+               [2,3,1,0],
+               [2,3,0,1],
+               [3,0,1,2],
+               [3,0,2,1],
+               [3,1,0,2],
+               [3,1,2,0],
+               [3,2,1,0],
+               [3,2,0,1]]
+    else:
+         check=[]
+    
+    # create the test cases:
+    processed=[]
+    l=["R","U","L","P","C","N"]
+    c=[""]
+    for i in range(len(sh0)):
+       tmp=[]
+       for ci in c:
+          tmp+=[ci+li for li in l]
+       c=tmp
+    # SHUFFLE
+    c2=[]
+    while len(c)>0:
+        i=int(random.random()*len(c))
+        c2.append(c[i])
+        del c[i]
+    c=c2
+    for ci in c:
+      t=""
+      sh=()
+      for i in range(len(ci)):
+          if ci[i]=="R":
+             s="%s:%s"%(1,sh0[i]-1)
+             sh=sh+(sh0[i]-2,)             
+          if ci[i]=="U":
+              s=":%s"%(sh0[i]-1)
+              sh=sh+(sh0[i]-1,)             
+          if ci[i]=="L":
+              s="2:"
+              sh=sh+(sh0[i]-2,)             
+          if ci[i]=="P":
+              s="%s"%(int(sh0[i]/2))
+          if ci[i]=="C":
+              s=":"
+              sh=sh+(sh0[i],)             
+          if ci[i]=="N":
+              s=""
+              sh=sh+(sh0[i],)
+          if len(s)>0:
+             if not t=="": t+=","
+             t+=s
+      N_found=False
+      noN_found=False
+      process=len(t)>0
+      for i in ci:
+         if i=="N":
+            if not noN_found and N_found: process=False
+            N_found=True
+         else:
+           if N_found: process=False
+           noNfound=True
+      # is there a similar one processed allready
+      if process and ci.find("N")==-1:
+         for ci2 in processed:
+           for chi in check:
+               is_perm=True
+               for i in range(len(chi)): 
+                   if not ci[i]==ci2[chi[i]]: is_perm=False
+               if is_perm: process=False
+      # if not process: print ci," rejected" 
+      if process:
+       processed.append(ci)
+       text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+       tname="test_getslice_%s_rank%s_%s"%(case0,len(sh0),ci)
+       text+="   def %s(self):\n"%tname
+       a_0=makeNumberedArray(sh0,s=1)
+       if case0 in ["taggedData", "expandedData"]:
+            a1_0=makeNumberedArray(sh0,s=-1.)
+       else:
+            a1_0=a_0
+       r=eval("a_0[%s]"%t)
+       r1=eval("a1_0[%s]"%t)
+       text+=mkText(case0,"arg",a_0,a1_0)
+       text+="      res=arg[%s]\n"%t
+       if case0=="Symbol":
+           text+=mkText("array","s",a_0,a1_0)
+           text+="      sub=res.substitute({arg:s})\n"
+           res="sub"
+           text+=mkText("array","ref",r,r1)
+       else:
+           res="res"
+           text+=mkText(case0,"ref",r,r1)
+       text+=mkTypeAndShapeTest(case0,sh,"res")
+       text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+       if case0 == "taggedData" :
+            t_prog_with_tags+=text
+       else:              
+            t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+#============================================================================================
+def innerTEST(arg0,arg1):
+    if isinstance(arg0,float):
+       out=numarray.array(arg0*arg1)
+    else:
+       out=(arg0*arg1).sum()
+    return out
+
+def outerTEST(arg0,arg1):
+    if isinstance(arg0,float):
+       out=numarray.array(arg0*arg1)
+    elif isinstance(arg1,float):
+       out=numarray.array(arg0*arg1)
+    else:       
+       out=numarray.outerproduct(arg0,arg1).resize(arg0.shape+arg1.shape)
+    return out
+
+def tensorProductTest(arg0,arg1,sh_s):
+    if isinstance(arg0,float):
+       out=numarray.array(arg0*arg1)
+    elif isinstance(arg1,float):
+       out=numarray.array(arg0*arg1)
+    elif len(sh_s)==0:
+       out=numarray.outerproduct(arg0,arg1).resize(arg0.shape+arg1.shape)
+    else:
+       l=len(sh_s)
+       sh0=arg0.shape[:arg0.rank-l]
+       sh1=arg1.shape[l:]
+       ls,l0,l1=1,1,1
+       for i in sh_s: ls*=i
+       for i in sh0: l0*=i
+       for i in sh1: l1*=i
+       out1=numarray.outerproduct(arg0,arg1).resize((l0,ls,ls,l1))
+       out2=numarray.zeros((l0,l1),numarray.Float)
+       for i0 in range(l0):
+          for i1 in range(l1):
+              for i in range(ls): out2[i0,i1]+=out1[i0,i,i,i1]
+       out=out2.resize(sh0+sh1)
+    return out
+      
+def testMatrixMult(arg0,arg1,sh_s):
+     return numarray.matrixmultiply(arg0,arg1)
+
+
+def testTensorMult(arg0,arg1,sh_s):
+     if len(arg0)==2:
+        return numarray.matrixmultiply(arg0,arg1)
+     else:
+        if arg1.rank==4:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1],arg1.shape[2],arg1.shape[3]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              for j2 in range(arg1.shape[2]):
+               for j3 in range(arg1.shape[3]):
+                     out[i0,i1,j2,j3]+=arg0[i0,i1,i2,i3]*arg1[i2,i3,j2,j3]
+        elif arg1.rank==3:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1],arg1.shape[2]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              for j2 in range(arg1.shape[2]):
+                     out[i0,i1,j2]+=arg0[i0,i1,i2,i3]*arg1[i2,i3,j2]
+        elif arg1.rank==2:
+          out=numarray.zeros((arg0.shape[0],arg0.shape[1]),numarray.Float)
+          for i0 in range(arg0.shape[0]):
+           for i1 in range(arg0.shape[1]):
+            for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+                     out[i0,i1]+=arg0[i0,i1,i2,i3]*arg1[i2,i3]
+        return out
+
+def testReduce(arg0,init_val,test_expr,post_expr):
+     out=init_val
+     if isinstance(arg0,float):
+          out=eval(test_expr.replace("%a1%","arg0"))
+     elif arg0.rank==0:
+          out=eval(test_expr.replace("%a1%","arg0"))
+     elif arg0.rank==1:
+        for i0 in range(arg0.shape[0]):
+               out=eval(test_expr.replace("%a1%","arg0[i0]"))
+     elif arg0.rank==2:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+               out=eval(test_expr.replace("%a1%","arg0[i0,i1]"))
+     elif arg0.rank==3:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+               out=eval(test_expr.replace("%a1%","arg0[i0,i1,i2]"))
+     elif arg0.rank==4:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+               out=eval(test_expr.replace("%a1%","arg0[i0,i1,i2,i3]"))          
+     return eval(post_expr)
+     
+def clipTEST(arg0,mn,mx):
+     if isinstance(arg0,float):
+          return max(min(arg0,mx),mn)
+     out=numarray.zeros(arg0.shape,numarray.Float64)
+     if arg0.rank==1:
+        for i0 in range(arg0.shape[0]):
+            out[i0]=max(min(arg0[i0],mx),mn)
+     elif arg0.rank==2:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+            out[i0,i1]=max(min(arg0[i0,i1],mx),mn)
+     elif arg0.rank==3:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+              out[i0,i1,i2]=max(min(arg0[i0,i1,i2],mx),mn)
+     elif arg0.rank==4:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+                out[i0,i1,i2,i3]=max(min(arg0[i0,i1,i2,i3],mx),mn)
+     return out
+def minimumTEST(arg0,arg1):
+     if isinstance(arg0,float):
+       if isinstance(arg1,float):
+          if arg0>arg1:
+              return arg1
+          else:
+              return arg0
+       else:
+          arg0=numarray.ones(arg1.shape)*arg0
+     else:
+       if isinstance(arg1,float):
+          arg1=numarray.ones(arg0.shape)*arg1
+     out=numarray.zeros(arg0.shape,numarray.Float64)
+     if arg0.rank==0:
+          if arg0>arg1:
+              out=arg1
+          else:
+              out=arg0
+     elif arg0.rank==1:
+        for i0 in range(arg0.shape[0]):
+          if arg0[i0]>arg1[i0]:
+              out[i0]=arg1[i0]
+          else:
+              out[i0]=arg0[i0]
+     elif arg0.rank==2:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+          if arg0[i0,i1]>arg1[i0,i1]:
+              out[i0,i1]=arg1[i0,i1]
+          else:
+              out[i0,i1]=arg0[i0,i1]
+     elif arg0.rank==3:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             if arg0[i0,i1,i2]>arg1[i0,i1,i2]:
+              out[i0,i1,i2]=arg1[i0,i1,i2]
+             else:
+              out[i0,i1,i2]=arg0[i0,i1,i2]
+     elif arg0.rank==4:
+        for i0 in range(arg0.shape[0]):
+         for i1 in range(arg0.shape[1]):
+           for i2 in range(arg0.shape[2]):
+             for i3 in range(arg0.shape[3]):
+              if arg0[i0,i1,i2,i3]>arg1[i0,i1,i2,i3]:
+               out[i0,i1,i2,i3]=arg1[i0,i1,i2,i3]
+              else:
+               out[i0,i1,i2,i3]=arg0[i0,i1,i2,i3]
+     return out
+     
+def unrollLoops(a,b,o,arg,tap="",x="x"):
+    out=""
+    if a.rank==1:
+             z=""
+             for i99 in range(a.shape[0]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*%s[%s]"%(a[i99]+b[i99],x,i99)
+               else:
+                  z+="(%s)*%s[%s]**o+(%s)*%s[%s]"%(a[i99],x,i99,b[i99],x,i99)
+
+             out+=tap+"%s=%s\n"%(arg,z)
+
+    elif a.rank==2:
+        for i0 in range(a.shape[0]):
+             z=""
+             for i99 in range(a.shape[1]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*x[%s]"%(a[i0,i99]+b[i0,i99],i99)
+               else:
+                  z+="(%s)*%s[%s]**o+(%s)*%s[%s]"%(a[i0,i99],x,i99,b[i0,i99],x,i99)
+
+             out+=tap+"%s[%s]=%s\n"%(arg,i0,z)
+    elif a.rank==3:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+             z=""
+             for i99 in range(a.shape[2]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*%s[%s]"%(a[i0,i1,i99]+b[i0,i1,i99],x,i99)
+               else:
+                  z+="(%s)*%s[%s]**o+(%s)*%s[%s]"%(a[i0,i1,i99],x,i99,b[i0,i1,i99],x,i99)
+
+             out+=tap+"%s[%s,%s]=%s\n"%(arg,i0,i1,z)
+    elif a.rank==4:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+             z=""
+             for i99 in range(a.shape[3]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*%s[%s]"%(a[i0,i1,i2,i99]+b[i0,i1,i2,i99],x,i99)
+               else:
+                  z+="(%s)*%s[%s]**o+(%s)*%s[%s]"%(a[i0,i1,i2,i99],x,i99,b[i0,i1,i2,i99],x,i99)
+
+             out+=tap+"%s[%s,%s,%s]=%s\n"%(arg,i0,i1,i2,z)
+    elif a.rank==5:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+            for i3 in range(a.shape[3]):
+             z=""
+             for i99 in range(a.shape[4]):
+               if not z=="": z+="+"
+               if o=="1":
+                  z+="(%s)*%s[%s]"%(a[i0,i1,i2,i3,i99]+b[i0,i1,i2,i3,i99],x,i99)
+               else:
+                  z+="(%s)*%s[%s]**o+(%s)*%s[%s]"%(a[i0,i1,i2,i3,i99],x,i99,b[i0,i1,i2,i3,i99],x,i99)
+
+             out+=tap+"%s[%s,%s,%s,%s]=%s\n"%(arg,i0,i1,i2,i3,z)
+    return out
+
+def unrollLoopsOfGrad(a,b,o,arg,tap=""):
+    out=""
+    if a.rank==1:
+             for i99 in range(a.shape[0]):
+               if o=="1": 
+                  out+=tap+"%s[%s]=(%s)\n"%(arg,i99,a[i99]+b[i99])
+               else:
+                  out+=tap+"%s[%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i99,a[i99],i99,b[i99])
+
+    elif a.rank==2:
+        for i0 in range(a.shape[0]):
+             for i99 in range(a.shape[1]):
+               if o=="1":
+                  out+=tap+"%s[%s,%s]=(%s)\n"%(arg,i0,i99,a[i0,i99]+b[i0,i99])
+               else:
+                  out+=tap+"%s[%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i99,a[i0,i99],i99,b[i0,i99])
+
+    elif a.rank==3:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+             for i99 in range(a.shape[2]):
+               if o=="1":
+                  out+=tap+"%s[%s,%s,%s]=(%s)\n"%(arg,i0,i1,i99,a[i0,i1,i99]+b[i0,i1,i99])
+               else:
+                  out+=tap+"%s[%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i99,a[i0,i1,i99],i99,b[i0,i1,i99])
+
+    elif a.rank==4:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+             for i99 in range(a.shape[3]):
+               if o=="1":
+                 out+=tap+"%s[%s,%s,%s,%s]=(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99]+b[i0,i1,i2,i99])
+               else:
+                 out+=tap+"%s[%s,%s,%s,%s]=o*(%s)*x_ref[%s]**(o-1)+(%s)\n"%(arg,i0,i1,i2,i99,a[i0,i1,i2,i99],i99,b[i0,i1,i2,i99])
+    return out
+def unrollLoopsOfDiv(a,b,o,arg,tap=""):
+    out=tap+arg+"="
+    if o=="1":
+       z=0.
+       for i99 in range(a.shape[0]):
+            z+=b[i99,i99]+a[i99,i99]
+       out+="(%s)"%z     
+    else:
+       z=0.
+       for i99 in range(a.shape[0]):
+            z+=b[i99,i99]
+            if i99>0: out+="+"
+            out+="o*(%s)*x_ref[%s]**(o-1)"%(a[i99,i99],i99)
+       out+="+(%s)"%z     
+    return out
+
+def unrollLoopsOfInteriorIntegral(a,b,where,arg,tap=""):
+    if where=="Function":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac=1./2.
+       z_fac_s=""
+       zo_fac_s="/(o+1.)"
+    elif where=="FunctionOnBoundary":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac=1.
+       z_fac_s="*dim"
+       zo_fac_s="*(1+2.*(dim-1.)/(o+1.))"
+    elif where in ["FunctionOnContactZero","FunctionOnContactOne"]:
+       xfac_o=0.
+       xfac_op=1.
+       z_fac=1./2.
+       z_fac_s=""
+       zo_fac_s="/(o+1.)"
+    out=""
+    if a.rank==1:
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[0]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i99]
+                    zop+=       xfac_op*a[i99]
+                  else:
+                    zo+=a[i99]
+                  z+=b[i99]
+
+             out+=tap+"%s=(%s)%s+(%s)%s"%(arg,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+    elif a.rank==2:
+        for i0 in range(a.shape[0]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[1]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i99]
+                    zop+=       xfac_op*a[i0,i99]
+                  else:
+                    zo+=a[i0,i99]
+                  z+=b[i0,i99]
+
+             out+=tap+"%s[%s]=(%s)%s+(%s)%s"%(arg,i0,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+    elif a.rank==3:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[2]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i1,i99]
+                    zop+=       xfac_op*a[i0,i1,i99]
+                  else:
+                    zo+=a[i0,i1,i99]
+                  z+=b[i0,i1,i99]
+
+             out+=tap+"%s[%s,%s]=(%s)%s+(%s)%s"%(arg,i0,i1,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+    elif a.rank==4:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[3]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i1,i2,i99]
+                    zop+=       xfac_op*a[i0,i1,i2,i99]
+
+                  else:
+                    zo+=a[i0,i1,i2,i99]
+                  z+=b[i0,i1,i2,i99]
+
+             out+=tap+"%s[%s,%s,%s]=(%s)%s+(%s)%s"%(arg,i0,i1,i2,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+
+    elif a.rank==5:
+        for i0 in range(a.shape[0]):
+         for i1 in range(a.shape[1]):
+           for i2 in range(a.shape[2]):
+            for i3 in range(a.shape[3]):
+             zo=0.
+             zop=0.
+             z=0.
+             for i99 in range(a.shape[4]):
+                  if i99==0:
+                    zo+=       xfac_o*a[i0,i1,i2,i3,i99]
+                    zop+=       xfac_op*a[i0,i1,i2,i3,i99]
+
+                  else:
+                    zo+=a[i0,i1,i2,i3,i99]
+                  z+=b[i0,i1,i2,i3,i99]
+             out+=tap+"%s[%s,%s,%s,%s]=(%s)%s+(%s)%s"%(arg,i0,i1,i2,i3,zo,zo_fac_s,z*z_fac,z_fac_s)
+             if zop==0.:
+               out+="\n"
+             else:
+               out+="+(%s)*0.5**o\n"%zop
+
+    return out
+def unrollLoopsSimplified(b,arg,tap=""):
+    out=""
+    if isinstance(b,float) or b.rank==0:
+             out+=tap+"%s=(%s)*x[0]\n"%(arg,str(b))
+
+    elif b.rank==1:
+        for i0 in range(b.shape[0]):
+             out+=tap+"%s[%s]=(%s)*x[%s]\n"%(arg,i0,b[i0],i0)
+    elif b.rank==2:
+        for i0 in range(b.shape[0]):
+         for i1 in range(b.shape[1]):
+             out+=tap+"%s[%s,%s]=(%s)*x[%s]\n"%(arg,i0,i1,b[i0,i1],i1)
+    elif b.rank==3:
+        for i0 in range(b.shape[0]):
+         for i1 in range(b.shape[1]):
+           for i2 in range(b.shape[2]):
+             out+=tap+"%s[%s,%s,%s]=(%s)*x[%s]\n"%(arg,i0,i1,i2,b[i0,i1,i2],i2)
+    elif b.rank==4:
+        for i0 in range(b.shape[0]):
+         for i1 in range(b.shape[1]):
+           for i2 in range(b.shape[2]):
+            for i3 in range(b.shape[3]):
+             out+=tap+"%s[%s,%s,%s,%s]=(%s)*x[%s]\n"%(arg,i0,i1,i2,i3,b[i0,i1,i2,i3],i3)
+    return out
+
+def unrollLoopsOfL2(b,where,arg,tap=""):
+    out=""
+    z=[]
+    if isinstance(b,float) or b.rank==0:
+       z.append(b**2)
+    elif b.rank==1:
+        for i0 in range(b.shape[0]):
+             z.append(b[i0]**2)
+    elif b.rank==2:
+        for i1 in range(b.shape[1]):
+           s=0 
+           for i0 in range(b.shape[0]):
+              s+=b[i0,i1]**2
+           z.append(s)
+    elif b.rank==3:
+        for i2 in range(b.shape[2]):
+          s=0
+          for i0 in range(b.shape[0]):
+             for i1 in range(b.shape[1]):
+                s+=b[i0,i1,i2]**2
+          z.append(s)
+
+    elif b.rank==4:
+      for i3 in range(b.shape[3]):
+         s=0
+         for i0 in range(b.shape[0]):
+           for i1 in range(b.shape[1]):
+              for i2 in range(b.shape[2]):
+                 s+=b[i0,i1,i2,i3]**2
+         z.append(s)        
+    if where=="Function":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac_s=""
+       zo_fac_s=""
+       zo_fac=1./3.
+    elif where=="FunctionOnBoundary":
+       xfac_o=1.
+       xfac_op=0.
+       z_fac_s="*dim"
+       zo_fac_s="*(2.*dim+1.)/3."
+       zo_fac=1.
+    elif where in ["FunctionOnContactZero","FunctionOnContactOne"]:
+       xfac_o=0.
+       xfac_op=1.
+       z_fac_s=""
+       zo_fac_s=""    
+       zo_fac=1./3.    
+    zo=0.
+    zop=0.
+    for i99 in range(len(z)):
+           if i99==0:
+               zo+=xfac_o*z[i99]
+               zop+=xfac_op*z[i99]
+           else:
+               zo+=z[i99]
+    out+=tap+"%s=sqrt((%s)%s"%(arg,zo*zo_fac,zo_fac_s)
+    if zop==0.:
+       out+=")\n"
+    else:
+       out+="+(%s))\n"%(zop*0.5**2)
+    return out
+#=======================================================================================================
+# transpose
+#=======================================================================================================
+def transposeTest(r,offset):
+    if isinstance(r,float): return r
+    s=r.shape
+    s1=1
+    for i in s[:offset]: s1*=i
+    s2=1
+    for i in s[offset:]: s2*=i
+    out=numarray.reshape(r,(s1,s2))
+    out.transpose()
+    return numarray.resize(out,s[offset:]+s[:offset])
+
+name,tt="transpose",transposeTest
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (), (3,), (4,5), (6,2,2),(3,2,3,4)]:
+    for offset in range(len(sh0)+1):
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_offset%s"%(name,case0,len(sh0),offset)
+              text+="   def %s(self):\n"%tname
+              sh_t=sh0[offset:]+sh0[:offset]
+
+#              sh_t=list(sh0)
+#              sh_t[offset+1]=sh_t[offset]
+#              sh_t=tuple(sh_t)
+#              sh_r=[]
+#              for i in range(offset): sh_r.append(sh0[i])
+#              for i in range(offset+2,len(sh0)): sh_r.append(sh0[i])              
+#              sh_r=tuple(sh_r)
+
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+              r=tt(a_0,offset)
+              r1=tt(a1_0,offset)
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg,%s)\n"%(name,offset)
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case0,sh_t,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+#=======================================================================================================
+# L2
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+    for sh in [ (),(2,), (4,5), (6,2,2),(4,5,3,2)]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_L2_on%s_from%s_rank%s"%(where,data,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests L2-norm of %s on the %s\n\n"%(data,where)
+         text+="      assumptions: self.domain supports integration on %s\n"%where
+         text+="      \"\"\"\n"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w=%s(self.domain)\n"%where
+         text+="      x=w.getX()\n"
+         o="1"
+         if len(sh)>0:
+            sh_2=sh[:len(sh)-1]+(2,)
+            sh_3=sh[:len(sh)-1]+(3,)            
+            b_2=makeArray(sh[:len(sh)-1]+(2,),[-1.,1])
+            b_3=makeArray(sh[:len(sh)-1]+(3,),[-1.,1])
+         else:
+            sh_2=()
+            sh_3=()
+            b_2=makeArray(sh,[-1.,1])
+            b_3=makeArray(sh,[-1.,1])
+
+         if data=="Symbol":
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      if dim==2:\n"
+         if data=="Symbol":
+               text+="        arg=Symbol(shape=%s,dim=dim)\n"%str(sh_2)
+
+         text+="        %s=Data(0,%s,w)\n"%(val,sh_2)
+         text+=unrollLoopsSimplified(b_2,val,tap="        ")
+         text+=unrollLoopsOfL2(b_2,where,"ref",tap="        ")
+         text+="\n      else:\n"
+         if data=="Symbol":
+               text+="        arg=Symbol(shape=%s,dim=dim)\n"%str(sh_3)
+         text+="        %s=Data(0,%s,w)\n"%(val,sh_3)         
+         text+=unrollLoopsSimplified(b_3,val,tap="        ")
+         text+=unrollLoopsOfL2(b_3,where,"ref",tap="        ")
+         text+="\n      res=L2(arg)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+            text+="      self.failUnless(isinstance(res,Symbol),\"wrong type of result.\")\n"
+            text+="      self.failUnlessEqual(res.getShape(),(),\"wrong shape of result.\")\n"
+         else:
+            text+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+         text+="      self.failUnlessAlmostEqual(%s,ref,int(-log10(self.RES_TOL)),\"wrong result\")\n"%res
+         t_prog+=text
+print t_prog
+1/0
+
+#=======================================================================================================
+# div
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+     for case in ["ContinuousFunction","Solution","ReducedSolution"]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_div_on%s_from%s_%s"%(where,data,case)
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests divergence of %s on the %s\n\n"%(data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%case
+         text+="                   self.domain supports div on %s\n"%where
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      x_ref=w_ref.getX()\n"
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray((2,2),[-1.,1])
+         b_2=makeArray((2,2),[-1.,1])
+         a_3=makeArray((3,3),[-1.,1])
+         b_3=makeArray((3,3),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=(dim,),dim=dim)\n"
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      %s=Vector(0,w)\n"%val
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfDiv(a_2,b_2,o,"ref",tap="        ")
+         text+="\n      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfDiv(a_3,b_3,o,"ref",tap="        ")
+         text+="\n      res=div(arg,where=w_ref)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
+         text+="      self.failUnlessEqual(res.getShape(),(),\"wrong shape of result.\")\n"
+         text+="      self.failUnlessEqual(%s.getFunctionSpace(),w_ref,\"wrong function space of result.\")\n"%res
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print t_prog
+1/0
+
+#=======================================================================================================
+# interpolation
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne","Solution","ReducedSolution"]: 
+  for data in ["Data","Symbol"]: 
+     for case in ["ContinuousFunction","Solution","ReducedSolution","Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]:
+      for sh in [ (),(2,), (4,5), (6,2,2),(4,5,3,2)]:
+        if  where==case or \
+            ( case in ["ContinuousFunction","Solution","ReducedSolution"] and where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"] ) or \
+            ( case in ["FunctionOnContactZero","FunctionOnContactOne"] and where in ["FunctionOnContactZero","FunctionOnContactOne"] ) or \
+            (case=="ContinuousFunction" and  where in ["Solution","ReducedSolution"]) or \
+            (case=="Solution" and  where=="ReducedSolution") :
+            
+ 
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_interpolation_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests interpolation for rank %s %s onto the %s\n\n"%(len(sh),data,where)
+         text+="      assumptions: self.domain supports inpterpolation from %s onto %s\n"%(case,where)
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution" or where=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      x_ref=w_ref.getX()\n"
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray(sh+(2,),[-1.,1])
+         b_2=makeArray(sh+(2,),[-1.,1])
+         a_3=makeArray(sh+(3,),[-1.,1])
+         b_3=makeArray(sh+(3,),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=%s,dim=dim)\n"%str(sh)
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
+         text+="      ref=Data(0,%s,w_ref)\n"%str(sh)
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoops(a_2,b_2,o,"ref",tap="        ",x="x_ref")
+         text+="      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoops(a_3,b_3,o,"ref",tap="        ",x="x_ref")
+         text+="      res=interpolate(arg,where=w_ref)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
+         text+="      self.failUnlessEqual(%s.getFunctionSpace(),w_ref,\"wrong functionspace of result.\")\n"%res
+         text+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of result.\")\n"%str(sh)
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+         t_prog+=text
+print test_header
+print t_prog
+print test_tail           
+1/0
+
+#=======================================================================================================
+# grad
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+     for case in ["ContinuousFunction","Solution","ReducedSolution"]:
+       for sh in [ (),(2,), (4,5), (6,2,2)]:
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_grad_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests gradient for rank %s %s on the %s\n\n"%(len(sh),data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%case
+         text+="                   self.domain supports gardient on %s\n"%where
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      x_ref=w_ref.getX()\n"
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray(sh+(2,),[-1.,1])
+         b_2=makeArray(sh+(2,),[-1.,1])
+         a_3=makeArray(sh+(3,),[-1.,1])
+         b_3=makeArray(sh+(3,),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=%s,dim=dim)\n"%str(sh)
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
+         text+="      ref=Data(0,%s+(dim,),w_ref)\n"%str(sh)
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfGrad(a_2,b_2,o,"ref",tap="        ")
+         text+="      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfGrad(a_3,b_3,o,"ref",tap="        ")
+         text+="      res=grad(arg,where=w_ref)\n"
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         text+="      self.failUnless(isinstance(res,%s),\"wrong type of result.\")\n"%data
+         text+="      self.failUnlessEqual(res.getShape(),%s+(dim,),\"wrong shape of result.\")\n"%str(sh)
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print test_header
+print t_prog
+print test_tail           
+1/0
+
+
+#=======================================================================================================
+# integrate
+#=======================================================================================================
+for where in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]: 
+  for data in ["Data","Symbol"]: 
+    for case in ["ContinuousFunction","Solution","ReducedSolution","Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]:
+      for sh in [ (),(2,), (4,5), (6,2,2),(4,5,3,2)]:
+        if (not case in ["Function","FunctionOnBoundary","FunctionOnContactZero","FunctionOnContactOne"]) or where==case:   
+         text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="test_integrate_on%s_from%s_%s_rank%s"%(where,data,case,len(sh))
+         text+="   def %s(self):\n"%tname
+         text+="      \"\"\"\n"
+         text+="      tests integral of rank %s %s on the %s\n\n"%(len(sh),data,where)
+         text+="      assumptions: %s(self.domain) exists\n"%case
+         text+="                   self.domain supports integral on %s\n"%where
+
+         text+="      \"\"\"\n"
+         if case=="ReducedSolution":
+            text+="      o=1\n"
+            o="1"
+         else: 
+            text+="      o=self.order\n"
+            o="o"
+         text+="      dim=self.domain.getDim()\n"
+         text+="      w_ref=%s(self.domain)\n"%where
+         text+="      w=%s(self.domain)\n"%case
+         text+="      x=w.getX()\n"
+         a_2=makeArray(sh+(2,),[-1.,1])
+         b_2=makeArray(sh+(2,),[-1.,1])
+         a_3=makeArray(sh+(3,),[-1.,1])
+         b_3=makeArray(sh+(3,),[-1.,1])
+         if data=="Symbol":
+            text+="      arg=Symbol(shape=%s)\n"%str(sh)
+            val="s"
+            res="sub"
+         else:
+            val="arg"
+            res="res"
+            
+         text+="      %s=Data(0,%s,w)\n"%(val,str(sh))
+         if not len(sh)==0:
+            text+="      ref=numarray.zeros(%s,numarray.Float)\n"%str(sh)
+         text+="      if dim==2:\n"
+         text+=unrollLoops(a_2,b_2,o,val,tap="        ")
+         text+=unrollLoopsOfInteriorIntegral(a_2,b_2,where,"ref",tap="        ")
+         text+="      else:\n"
+         
+         text+=unrollLoops(a_3,b_3,o,val,tap="        ")
+         text+=unrollLoopsOfInteriorIntegral(a_3,b_3,where,"ref",tap="        ")
+         if case in ["ContinuousFunction","Solution","ReducedSolution"]:
+             text+="      res=integrate(arg,where=w_ref)\n"
+         else:
+             text+="      res=integrate(arg)\n"
+
+         if data=="Symbol":
+            text+="      sub=res.substitute({arg:s})\n"
+         if len(sh)==0 and data=="Data":
+            text+="      self.failUnless(isinstance(%s,float),\"wrong type of result.\")\n"%res
+         else:
+            if data=="Symbol":
+               text+="      self.failUnless(isinstance(res,Symbol),\"wrong type of result.\")\n"
+               text+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of result.\")\n"%str(sh)
+            else:
+               text+="      self.failUnless(isinstance(res,numarray.NumArray),\"wrong type of result.\")\n"
+               text+="      self.failUnlessEqual(res.shape,%s,\"wrong shape of result.\")\n"%str(sh)
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+
+
+         t_prog+=text
+print test_header
+print t_prog
+print test_tail           
+1/0
+#=======================================================================================================
+# inverse
+#=======================================================================================================
+name="inverse"
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (1,1), (2,2), (3,3)]:
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_dim%s"%(name,case0,sh0[0])
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              for i in range(sh0[0]): a_0[i,i]+=2
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+                  for i in range(sh0[0]): a1_0[i,i]+=3
+              else:
+                  a1_0=a_0
+                  
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg)\n"%name
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 ref="s"
+              else:
+                 ref="arg"
+                 res="res"
+              text+=mkTypeAndShapeTest(case0,sh0,"res")
+              text+="      self.failUnless(Lsup(matrixmult(%s,%s)-kronecker(%s))<=self.RES_TOL,\"wrong result\")\n"%(res,ref,sh0[0])
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# trace
+#=======================================================================================================
+def traceTest(r,offset):
+    sh=r.shape
+    r1=1
+    for i in range(offset): r1*=sh[i]
+    r2=1
+    for i in range(offset+2,len(sh)): r2*=sh[i]
+    r_s=numarray.reshape(r,(r1,sh[offset],sh[offset],r2))
+    s=numarray.zeros([r1,r2],numarray.Float)
+    for i1 in range(r1):
+        for i2 in range(r2):
+            for j in range(sh[offset]): s[i1,i2]+=r_s[i1,j,j,i2]
+    return s.resize(sh[:offset]+sh[offset+2:])
+name,tt="trace",traceTest
+for case0 in ["array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (4,5), (6,2,2),(3,2,3,4)]:
+    for offset in range(len(sh0)-1):
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_offset%s"%(name,case0,len(sh0),offset)
+              text+="   def %s(self):\n"%tname
+              sh_t=list(sh0)
+              sh_t[offset+1]=sh_t[offset]
+              sh_t=tuple(sh_t)
+              sh_r=[]
+              for i in range(offset): sh_r.append(sh0[i])
+              for i in range(offset+2,len(sh0)): sh_r.append(sh0[i])              
+              sh_r=tuple(sh_r)
+              a_0=makeArray(sh_t,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh_t,[-1.,1])
+              else:
+                  a1_0=a_0
+              r=tt(a_0,offset)
+              r1=tt(a1_0,offset)
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg,%s)\n"%(name,offset)
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case0,sh_r,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# clip
+#=======================================================================================================
+oper_L=[["clip",clipTEST]]
+for oper in oper_L:
+ for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        if len(sh0)==0 or not case0=="float":
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s"%(oper[0],case0,len(sh0))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              r=oper[1](a_0,-0.3,0.5)
+              r1=oper[1](a1_0,-0.3,0.5)
+              text+=mkText(case0,"arg",a_0,a1_0)
+              text+="      res=%s(arg,-0.3,0.5)\n"%oper[0]
+              if case0=="Symbol":
+                 text+=mkText("array","s",a_0,a1_0)
+                 text+="      sub=res.substitute({arg:s})\n"
+                 res="sub"
+                 text+=mkText("array","ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case0,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case0,sh0,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" :
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# maximum, minimum, clipping
+#=======================================================================================================
+oper_L=[ ["maximum",maximumTEST],
+         ["minimum",minimumTEST]]
+for oper in oper_L:
+ for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        if (len(sh0)==0 or not case0=="float") and (len(sh1)==0 or not case1=="float") \
+           and (sh0==sh1 or len(sh0)==0 or len(sh1)==0) :
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,[-1.,1])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,[-1.,1])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1)
+              r1=oper[1](a1_0,a1_1)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+="      res=%s(arg0,arg1)\n"%oper[0]
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              if len(sh0)>len(sh1):
+                  text+=mkTypeAndShapeTest(case,sh0,"res")
+              else:
+                  text+=mkTypeAndShapeTest(case,sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+
+#=======================================================================================================
+# outer inner
+#=======================================================================================================
+oper=["outer",outerTEST]
+# oper=["inner",innerTEST]
+for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+        if (len(sh0)==0 or not case0=="float") and (len(sh1)==0 or not case1=="float") \
+           and len(sh0+sh1)<5:  
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,[-1.,1])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,[-1.,1])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1)
+              r1=oper[1](a1_0,a1_1)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+="      res=%s(arg0,arg1)\n"%oper[0]
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case,sh0+sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+
+#=======================================================================================================
+# local reduction
+#=======================================================================================================
+for oper in [["length",0.,"out+%a1%**2","math.sqrt(out)"],
+             ["maxval",-1.e99,"max(out,%a1%)","out"],
+             ["minval",1.e99,"min(out,%a1%)","out"] ]:
+  for case in case_set: 
+     for sh in shape_set:
+       if not case=="float" or len(sh)==0:
+         text=""
+         text+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_%s_%s_rank%s"%(oper[0],case,len(sh))
+         text+="   %s(self):\n"%tname
+         a=makeArray(sh,[-1.,1.])             
+         a1=makeArray(sh,[-1.,1.])
+         r1=testReduce(a1,oper[1],oper[2],oper[3])
+         r=testReduce(a,oper[1],oper[2],oper[3])
+         
+         text+=mkText(case,"arg",a,a1)
+         text+="      res=%s(arg)\n"%oper[0]
+         if case=="Symbol":         
+             text+=mkText("array","s",a,a1)
+             text+="      sub=res.substitute({arg:s})\n"         
+             text+=mkText("array","ref",r,r1)
+             res="sub"
+         else:
+             text+=mkText(case,"ref",r,r1)
+             res="res"
+         if oper[0]=="length":              
+               text+=mkTypeAndShapeTest(case,(),"res")
+         else:             
+            if case=="float" or case=="array":         
+               text+=mkTypeAndShapeTest("float",(),"res")
+            else:          
+               text+=mkTypeAndShapeTest(case,(),"res")
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+         if case == "taggedData":
+           t_prog_with_tags+=text
+         else:
+           t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+          
+#=======================================================================================================
+# tensor multiply
+#=======================================================================================================
+# oper=["generalTensorProduct",tensorProductTest]
+# oper=["matrixmult",testMatrixMult]
+oper=["tensormult",testTensorMult]
+
+for case0 in ["float","array","Symbol","constData","taggedData","expandedData"]: 
+  for sh0 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+   for case1 in ["float","array","Symbol","constData","taggedData","expandedData"]:
+     for sh1 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+       for sh_s in [ (),(3,), (2,3), (2,4,3),(4,2,3,2)]:
+          if (len(sh0+sh_s)==0 or not case0=="float") and (len(sh1+sh_s)==0 or not case1=="float") \
+               and len(sh0+sh1)<5 and len(sh0+sh_s)<5 and len(sh1+sh_s)<5:
+            # if len(sh_s)==1 and len(sh0+sh_s)==2 and (len(sh_s+sh1)==1 or len(sh_s+sh1)==2)): # test for matrixmult
+            if ( len(sh_s)==1 and len(sh0+sh_s)==2 and ( len(sh1+sh_s)==2 or len(sh1+sh_s)==1 )) or (len(sh_s)==2 and len(sh0+sh_s)==4 and (len(sh1+sh_s)==2 or len(sh1+sh_s)==3 or len(sh1+sh_s)==4)):  # test for tensormult
+              case=getResultCaseForBin(case0,case1)  
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              # tname="test_generalTensorProduct_%s_rank%s_%s_rank%s_offset%s"%(case0,len(sh0+sh_s),case1,len(sh_s+sh1),len(sh_s))
+              #tname="test_matrixmult_%s_rank%s_%s_rank%s"%(case0,len(sh0+sh_s),case1,len(sh_s+sh1))
+              tname="test_tensormult_%s_rank%s_%s_rank%s"%(case0,len(sh0+sh_s),case1,len(sh_s+sh1))
+              # if tname=="test_generalTensorProduct_array_rank1_array_rank2_offset1":
+              # print tnametest_generalTensorProduct_Symbol_rank1_Symbol_rank3_offset1
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0+sh_s,[-1.,1])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0+sh_s,[-1.,1])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh_s+sh1,[-1.,1])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh_s+sh1,[-1.,1])
+              else:
+                  a1_1=a_1
+              r=oper[1](a_0,a_1,sh_s)
+              r1=oper[1](a1_0,a1_1,sh_s)
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              #text+="      res=matrixmult(arg0,arg1)\n"
+              text+="      res=tensormult(arg0,arg1)\n"
+              #text+="      res=generalTensorProduct(arg0,arg1,offset=%s)\n"%(len(sh_s))
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              text+=mkTypeAndShapeTest(case,sh0+sh1,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail           
+1/0
+#=======================================================================================================
+# basic binary operation overloading (tests only!)
+#=======================================================================================================
+oper_range=[-5.,5.]
+for oper in [["add" ,"+",[-5.,5.]],
+             ["sub" ,"-",[-5.,5.]],
+             ["mult","*",[-5.,5.]],
+             ["div" ,"/",[-5.,5.]],
+             ["pow" ,"**",[0.01,5.]]]:  
+   for case0 in case_set: 
+     for sh0 in shape_set:
+       for case1 in case_set: 
+         for sh1 in shape_set:
+           if not case0=="array" and \
+               (not case0=="float" or len(sh0)==0) and (not case1=="float" or len(sh1)==0) and \
+               (sh0==() or sh1==() or sh1==sh0) and \
+               not (case0 in ["float","array"] and  case1 in ["float","array"]):
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_overloaded_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,oper[2])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,oper[2])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,oper[2])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,oper[2])
+              else:
+                  a1_1=a_1
+              r1=makeResult2(a1_0,a1_1,"%a1%"+oper[1]+"%a2%")
+              r=makeResult2(a_0,a_1,"%a1%"+oper[1]+"%a2%")
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+="      res=arg0%sarg1\n"%oper[1]
+              
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              if isinstance(r,float):              
+                 text+=mkTypeAndShapeTest(case,(),"res")
+              else: 
+                 text+=mkTypeAndShapeTest(case,r.shape,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 in [ "constData","taggedData","expandedData"] and case1 == "Symbol":
+                 t_prog_failing+=text
+              else:
+                 if case0 == "taggedData" or case1 == "taggedData":
+                    t_prog_with_tags+=text
+                 else:              
+                    t_prog+=text
+
+    
+print test_header
+# print t_prog
+# print t_prog_with_tags
+print t_prog_failing
+print test_tail           
+1/0
+#=======================================================================================================
+# basic binary operations (tests only!)
+#=======================================================================================================
+oper_range=[-5.,5.]
+for oper in [["add" ,"+",[-5.,5.]],
+             ["mult","*",[-5.,5.]],
+             ["quotient" ,"/",[-5.,5.]],
+             ["power" ,"**",[0.01,5.]]]: 
+   for case0 in case_set: 
+     for case1 in case_set: 
+       for sh in shape_set:
+         for sh_p in shape_set:
+           if len(sh_p)>0:
+              resource=[-1,1]
+           else:
+              resource=[1]
+           for sh_d in resource:
+            if sh_d>0:
+               sh0=sh
+               sh1=sh+sh_p
+            else:
+               sh1=sh
+               sh0=sh+sh_p
+             
+            if (not case0=="float" or len(sh0)==0) and (not case1=="float" or len(sh1)==0) and \
+               len(sh0)<5 and len(sh1)<5:
+              use_tagging_for_expanded_data= case0=="taggedData" or case1=="taggedData"
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,oper[2])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,oper[2])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,oper[2])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,oper[2])
+              else:
+                  a1_1=a_1
+              r1=makeResult2(a1_0,a1_1,"%a1%"+oper[1]+"%a2%")
+              r=makeResult2(a_0,a_1,"%a1%"+oper[1]+"%a2%")
+              text+=mkText(case0,"arg0",a_0,a1_0,use_tagging_for_expanded_data)
+              text+=mkText(case1,"arg1",a_1,a1_1,use_tagging_for_expanded_data)
+              text+="      res=%s(arg0,arg1)\n"%oper[0]
+              
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              if isinstance(r,float):              
+                 text+=mkTypeAndShapeTest(case,(),"res")
+              else: 
+                 text+=mkTypeAndShapeTest(case,r.shape,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 == "taggedData" or case1 == "taggedData":
+                  t_prog_with_tags+=text
+              else:              
+                  t_prog+=text
+print test_header
+# print t_prog
+print t_prog_with_tags
+print test_tail
+1/0
+
+# print t_prog_with_tagsoper_range=[-5.,5.]
+for oper in [["add" ,"+",[-5.,5.]],
+             ["sub" ,"-",[-5.,5.]],
+             ["mult","*",[-5.,5.]],
+             ["div" ,"/",[-5.,5.]],
+             ["pow" ,"**",[0.01,5.]]]:  
+   for case0 in case_set: 
+     for sh0 in shape_set:
+       for case1 in case_set: 
+         for sh1 in shape_set:
+           if (not case0=="float" or len(sh0)==0) and (not case1=="float" or len(sh1)==0) and \
+               (sh0==() or sh1==() or sh1==sh0) and \
+               not (case0 in ["float","array"] and  case1 in ["float","array"]):
+              text="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+              tname="test_%s_%s_rank%s_%s_rank%s"%(oper[0],case0,len(sh0),case1,len(sh1))
+              text+="   def %s(self):\n"%tname
+              a_0=makeArray(sh0,oper[2])
+              if case0 in ["taggedData", "expandedData"]:
+                  a1_0=makeArray(sh0,oper[2])
+              else:
+                  a1_0=a_0
+
+              a_1=makeArray(sh1,oper[2])
+              if case1 in ["taggedData", "expandedData"]:
+                  a1_1=makeArray(sh1,oper[2])
+              else:
+                  a1_1=a_1
+              r1=makeResult2(a1_0,a1_1,"%a1%"+oper[1]+"%a2%")
+              r=makeResult2(a_0,a_1,"%a1%"+oper[1]+"%a2%")
+              text+=mkText(case0,"arg0",a_0,a1_0)
+              text+=mkText(case1,"arg1",a_1,a1_1)
+              text+="      res=arg0%sarg1\n"%oper[1]
+              
+              case=getResultCaseForBin(case0,case1)              
+              if case=="Symbol":
+                 c0_res,c1_res=case0,case1
+                 subs="{"
+                 if case0=="Symbol":         
+                    text+=mkText("array","s0",a_0,a1_0)
+                    subs+="arg0:s0"
+                    c0_res="array"
+                 if case1=="Symbol":         
+                    text+=mkText("array","s1",a_1,a1_1)
+                    if not subs.endswith("{"): subs+="," 
+                    subs+="arg1:s1"
+                    c1_res="array"
+                 subs+="}"  
+                 text+="      sub=res.substitute(%s)\n"%subs
+                 res="sub"
+                 text+=mkText(getResultCaseForBin(c0_res,c1_res),"ref",r,r1)
+              else:
+                 res="res"
+                 text+=mkText(case,"ref",r,r1)
+              if isinstance(r,float):              
+                 text+=mkTypeAndShapeTest(case,(),"res")
+              else: 
+                 text+=mkTypeAndShapeTest(case,r.shape,"res")
+              text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+              
+              if case0 in [ "constData","taggedData","expandedData"] and case1 == "Symbol":
+                 t_prog_failing+=text
+              else:
+                 if case0 == "taggedData" or case1 == "taggedData":
+                    t_prog_with_tags+=text
+                 else:              
+                    t_prog+=text
+
+    
+# print u_prog
+# 1/0
+print test_header
+print t_prog
+# print t_prog_with_tags
+# print t_prog_failing
+print test_tail
+# print t_prog_failing
+print test_tail
+
+#=======================================================================================================
+# unary operations:
+#=======================================================================================================
+func= [ 
+OPERATOR(nickname="log10",\
+         rng=[1.e-3,100.],\
+         test_expr="math.log10(%a1%)",\
+         math_expr="math.log10(%a1%)",\
+         numarray_expr="numarray.log10(%a1%)",\
+         symbol_expr="log(%a1%)/log(10.)",\
+         name="base-10 logarithm"),	      
+OPERATOR(nickname="wherePositive",\
+         rng=[-100.,100.],\
+         test_expr="wherepos(%a1%)",\
+         math_expr="if arg>0:\n  return 1.\nelse:\n  return 0.",
+         numarray_expr="numarray.greater(arg,numarray.zeros(arg.shape,numarray.Float))",\
+         name="mask of positive values"),
+OPERATOR(nickname="whereNegative",\
+         rng=[-100.,100.],\
+         test_expr="wherepos(-%a1%)",\
+         math_expr="if arg<0:\n  return 1.\nelse:\n  return 0.",
+         numarray_expr="numarray.less(arg,numarray.zeros(arg.shape,numarray.Float))",\
+         name="mask of positive values"),
+OPERATOR(nickname="whereNonNegative",\
+         rng=[-100.,100.],\
+         test_expr="1-wherepos(-%a1%)",	\
+         math_expr="if arg<0:\n  return 0.\nelse:\n  return 1.",
+         numarray_expr="numarray.greater_equal(arg,numarray.zeros(arg.shape,numarray.Float))",\
+         symbol_expr="1-wherePositive(%a1%)",\
+         name="mask of non-negative values"),
+OPERATOR(nickname="whereNonPositive",\
+         rng=[-100.,100.],\
+         test_expr="1-wherepos(%a1%)",\
+         math_expr="if arg>0:\n  return 0.\nelse:\n  return 1.",
+         numarray_expr="numarray.less_equal(arg,numarray.zeros(arg.shape,numarray.Float))",\
+         symbol_expr="1-whereNegative(%a1%)",\
+         name="mask of non-positive values"),
+OPERATOR(nickname="whereZero",\
+         rng=[-100.,100.],\
+         test_expr="1-wherepos(%a1%)-wherepos(-%a1%)",\
+         math_expr="if abs(%a1%)<=tol:\n  return 1.\nelse:\n  return 0.",
+         numarray_expr="numarray.less_equal(abs(%a1%)-tol,numarray.zeros(arg.shape,numarray.Float))",\
+         name="mask of zero entries"),
+OPERATOR(nickname="whereNonZero",\
+         rng=[-100.,100.],\
+         test_expr="wherepos(%a1%)+wherepos(-%a1%)",\
+         math_expr="if abs(%a1%)>tol:\n  return 1.\nelse:\n  return 0.",\
+         numarray_expr="numarray.greater(abs(%a1%)-tol,numarray.zeros(arg.shape,numarray.Float))",\
+         symbol_expr="1-whereZero(arg,tol)",\
+         name="mask of values different from zero"),
+OPERATOR(nickname="sin",\
+         rng=[-100.,100.],\
+         test_expr="math.sin(%a1%)",
+         numarray_expr="numarray.sin(%a1%)",\
+         diff="cos(%a1%)",\
+         name="sine"),
+OPERATOR(nickname="cos",\
+         rng=[-100.,100.],\
+         test_expr="math.cos(%a1%)",
+         numarray_expr="numarray.cos(%a1%)",\
+         diff="-sin(%a1%)",
+         name="cosine"),
+OPERATOR(nickname="tan",\
+         rng=[-100.,100.],\
+         test_expr="math.tan(%a1%)",
+         numarray_expr="numarray.tan(%a1%)",\
+         diff="1./cos(%a1%)**2",
+         name="tangent"),
+OPERATOR(nickname="asin",\
+         rng=[-0.99,0.99],\
+         test_expr="math.asin(%a1%)",
+         numarray_expr="numarray.arcsin(%a1%)",
+         diff="1./sqrt(1.-%a1%**2)",
+         name="inverse sine"),
+OPERATOR(nickname="acos",\
+         rng=[-0.99,0.99],\
+         test_expr="math.acos(%a1%)",
+         numarray_expr="numarray.arccos(%a1%)",
+         diff="-1./sqrt(1.-%a1%**2)",
+         name="inverse cosine"),
+OPERATOR(nickname="atan",\
+         rng=[-100.,100.],\
+         test_expr="math.atan(%a1%)",
+         numarray_expr="numarray.arctan(%a1%)",
+         diff="1./(1+%a1%**2)",
+         name="inverse tangent"),
+OPERATOR(nickname="sinh",\
+         rng=[-5,5],\
+         test_expr="math.sinh(%a1%)",
+         numarray_expr="numarray.sinh(%a1%)",
+         diff="cosh(%a1%)",
+         name="hyperbolic sine"),
+OPERATOR(nickname="cosh",\
+         rng=[-5.,5.],
+         test_expr="math.cosh(%a1%)",
+         numarray_expr="numarray.cosh(%a1%)",
+         diff="sinh(%a1%)",
+         name="hyperbolic cosine"),
+OPERATOR(nickname="tanh",\
+         rng=[-5.,5.],
+         test_expr="math.tanh(%a1%)",
+         numarray_expr="numarray.tanh(%a1%)",
+         diff="1./cosh(%a1%)**2",
+         name="hyperbolic tangent"),
+OPERATOR(nickname="asinh",\
+         rng=[-100.,100.], \
+         test_expr="numarray.arcsinh(%a1%)",
+         math_expr="numarray.arcsinh(%a1%)",
+         numarray_expr="numarray.arcsinh(%a1%)",
+         diff="1./sqrt(%a1%**2+1)",
+         name="inverse hyperbolic sine"), 
+OPERATOR(nickname="acosh",\
+         rng=[1.001,100.],\
+         test_expr="numarray.arccosh(%a1%)",
+         math_expr="numarray.arccosh(%a1%)",
+         numarray_expr="numarray.arccosh(%a1%)",
+         diff="1./sqrt(%a1%**2-1)",
+         name="inverse hyperolic cosine"),
+OPERATOR(nickname="atanh",\
+         rng=[-0.99,0.99], \
+         test_expr="numarray.arctanh(%a1%)",
+         math_expr="numarray.arctanh(%a1%)",
+         numarray_expr="numarray.arctanh(%a1%)",
+         diff="1./(1.-%a1%**2)",
+         name="inverse hyperbolic tangent"),
+OPERATOR(nickname="exp",\
+         rng=[-5.,5.],
+         test_expr="math.exp(%a1%)",
+         numarray_expr="numarray.exp(%a1%)",
+         diff="self",
+         name="exponential"),
+OPERATOR(nickname="sqrt",\
+         rng=[1.e-3,100.],\
+         test_expr="math.sqrt(%a1%)",
+         numarray_expr="numarray.sqrt(%a1%)",
+         diff="0.5/self",
+         name="square root"), 
+OPERATOR(nickname="log",	\
+         rng=[1.e-3,100.],\
+         test_expr="math.log(%a1%)",
+         numarray_expr="numarray.log(%a1%)",
+         diff="1./arg",
+         name="natural logarithm"),
+OPERATOR(nickname="sign",\
+         rng=[-100.,100.], \
+         math_expr="if %a1%>0:\n  return 1.\nelif %a1%<0:\n  return -1.\nelse:\n  return 0.",
+         test_expr="wherepos(%a1%)-wherepos(-%a1%)",
+         numarray_expr="numarray.sign(%a1%)",
+         symbol_expr="wherePositive(%a1%)-whereNegative(%a1%)",\
+         name="sign"),
+OPERATOR(nickname="abs",\
+         rng=[-100.,100.], \
+         math_expr="if %a1%>0:\n  return %a1% \nelif %a1%<0:\n  return -(%a1%)\nelse:\n  return 0.",
+         test_expr="wherepos(%a1%)*(%a1%)-wherepos(-%a1%)*(%a1%)",
+         numarray_expr="abs(%a1%)",
+         diff="sign(%a1%)",
+         name="absolute value")
+         
+              ]        
+for f in func:
+   symbol_name=f.nickname[0].upper()+f.nickname[1:]
+   if f.nickname!="abs":
+      u_prog+="def %s(arg):\n"%f.nickname
+      u_prog+="   \"\"\"\n"
+      u_prog+="   returns %s of argument arg\n\n"%f.name
+      u_prog+="   @param arg: argument\n"
+      u_prog+="   @type arg: C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray}.\n"
+      u_prog+="   @rtype:C{float}, L{escript.Data}, L{Symbol}, L{numarray.NumArray} depending on the type of arg.\n"
+      u_prog+="   @raises TypeError: if the type of the argument is not expected.\n"
+      u_prog+="   \"\"\"\n"
+      u_prog+="   if isinstance(arg,numarray.NumArray):\n"
+      u_prog+=mkCode(f.numarray_expr,["arg"],2*"   ")
+      u_prog+="   elif isinstance(arg,escript.Data):\n"
+      u_prog+=mkCode("arg._%s()"%f.nickname,[],2*"   ")
+      u_prog+="   elif isinstance(arg,float):\n"
+      u_prog+=mkCode(f.math_expr,["arg"],2*"   ")
+      u_prog+="   elif isinstance(arg,int):\n"
+      u_prog+=mkCode(f.math_expr,["float(arg)"],2*"   ")
+      u_prog+="   elif isinstance(arg,Symbol):\n"
+      if f.symbol_expr==None:
+         u_prog+=mkCode("%s_Symbol(arg)"%symbol_name,[],2*"   ")
+      else:
+         u_prog+=mkCode(f.symbol_expr,["arg"],2*"   ")
+      u_prog+="   else:\n"
+      u_prog+="      raise TypeError,\"%s: Unknown argument type.\"\n\n"%f.nickname
+   if f.symbol_expr==None:
+      u_prog+="class %s_Symbol(DependendSymbol):\n"%symbol_name
+      u_prog+="   \"\"\"\n"
+      u_prog+="   L{Symbol} representing the result of the %s function\n"%f.name
+      u_prog+="   \"\"\"\n"
+      u_prog+="   def __init__(self,arg):\n"
+      u_prog+="      \"\"\"\n"
+      u_prog+="      initialization of %s L{Symbol} with argument arg\n"%f.nickname
+      u_prog+="      @param arg: argument of function\n"
+      u_prog+="      @type arg: typically L{Symbol}.\n"
+      u_prog+="      \"\"\"\n"
+      u_prog+="      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())\n"
+      u_prog+="\n"  
+   
+      u_prog+="   def getMyCode(self,argstrs,format=\"escript\"):\n"
+      u_prog+="      \"\"\"\n"
+      u_prog+="      returns a program code that can be used to evaluate the symbol.\n\n"
+
+      u_prog+="      @param argstrs: gives for each argument a string representing the argument for the evaluation.\n"
+      u_prog+="      @type argstrs: C{str} or a C{list} of length 1 of C{str}.\n"
+      u_prog+="      @param format: specifies the format to be used. At the moment only \"escript\" ,\"text\" and \"str\" are supported.\n"
+      u_prog+="      @type format: C{str}\n"
+      u_prog+="      @return: a piece of program code which can be used to evaluate the expression assuming the values for the arguments are available.\n"
+      u_prog+="      @rtype: C{str}\n"
+      u_prog+="      @raise: NotImplementedError: if the requested format is not available\n"
+      u_prog+="      \"\"\"\n"
+      u_prog+="      if isinstance(argstrs,list):\n"
+      u_prog+="          argstrs=argstrs[0]\n"
+      u_prog+="      if format==\"escript\" or format==\"str\"  or format==\"text\":\n"
+      u_prog+="         return \"%s(%%s)\"%%argstrs\n"%f.nickname
+      u_prog+="      else:\n"
+      u_prog+="         raise NotImplementedError,\"%s_Symbol does not provide program code for format %%s.\"%%format\n"%symbol_name
+      u_prog+="\n"       
+
+      u_prog+="   def substitute(self,argvals):\n"
+      u_prog+="      \"\"\"\n"
+      u_prog+="      assigns new values to symbols in the definition of the symbol.\n"
+      u_prog+="      The method replaces the L{Symbol} u by argvals[u] in the expression defining this object.\n"
+      u_prog+="\n"
+      u_prog+="      @param argvals: new values assigned to symbols\n"
+      u_prog+="      @type argvals: C{dict} with keywords of type L{Symbol}.\n"
+      u_prog+="      @return: result of the substitution process. Operations are executed as much as possible.\n"
+      u_prog+="      @rtype: L{escript.Symbol}, C{float}, L{escript.Data}, L{numarray.NumArray} depending on the degree of substitution\n"
+      u_prog+="      @raise TypeError: if a value for a L{Symbol} cannot be substituted.\n"
+      u_prog+="      \"\"\"\n"
+      u_prog+="      if argvals.has_key(self):\n"
+      u_prog+="         arg=argvals[self]\n"
+      u_prog+="         if self.isAppropriateValue(arg):\n"
+      u_prog+="            return arg\n"
+      u_prog+="         else:\n"
+      u_prog+="            raise TypeError,\"%s: new value is not appropriate.\"%str(self)\n"
+      u_prog+="      else:\n"
+      u_prog+="         arg=self.getSubstitutedArguments(argvals)[0]\n"
+      u_prog+="         return %s(arg)\n\n"%f.nickname
+      if not f.diff==None:
+         u_prog+="   def diff(self,arg):\n"
+         u_prog+="      \"\"\"\n"
+         u_prog+="      differential of this object\n"
+         u_prog+="\n"
+         u_prog+="      @param arg: the derivative is calculated with respect to arg\n"
+         u_prog+="      @type arg: L{escript.Symbol}\n"
+         u_prog+="      @return: derivative with respect to C{arg}\n"
+         u_prog+="      @rtype: typically L{Symbol} but other types such as C{float}, L{escript.Data}, L{numarray.NumArray}  are possible.\n"
+         u_prog+="      \"\"\"\n"
+         u_prog+="      if arg==self:\n"
+         u_prog+="         return identity(self.getShape())\n"
+         u_prog+="      else:\n"
+         u_prog+="         myarg=self.getArgument()[0]\n"
+         u_prog+="         val=matchShape(%s,self.getDifferentiatedArguments(arg)[0])\n"%f.diff.replace("%a1%","myarg")
+         u_prog+="         return val[0]*val[1]\n\n"
+
+   for case in case_set: 
+     for sh in shape_set:
+       if not case=="float" or len(sh)==0:
+         text=""
+         text+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_%s_%s_rank%s"%(f.nickname,case,len(sh))
+         text+="   %s(self):\n"%tname
+         a=makeArray(sh,f.rng)             
+         a1=makeArray(sh,f.rng)
+         r1=makeResult(a1,f.test_expr)
+         r=makeResult(a,f.test_expr)
+         
+         text+=mkText(case,"arg",a,a1)
+         text+="      res=%s(arg)\n"%f.nickname
+         if case=="Symbol":         
+             text+=mkText("array","s",a,a1)
+             text+="      sub=res.substitute({arg:s})\n"         
+             text+=mkText("array","ref",r,r1)
+             res="sub"
+         else:
+             text+=mkText(case,"ref",r,r1)
+             res="res"
+         text+=mkTypeAndShapeTest(case,sh,"res")
+         text+="      self.failUnless(Lsup(%s-ref)<=self.RES_TOL*Lsup(ref),\"wrong result\")\n"%res
+         if case == "taggedData":
+           t_prog_with_tags+=text
+         else:
+           t_prog+=text
+           
+#=========== END OF GOOD CODE +++++++++++++++++++++++++++      
+
+1/0
+
+def X():
+         if args=="float":
+           a=makeArray(sh,f[RANGE])
+           r=makeResult(a,f)
+           t_prog+="      arg=%s\n"%a[0]
+           t_prog+="      ref=%s\n"%r[0]
+           t_prog+="      res=%s(%a1%)\n"%f.nickname
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(Lsup(res-ref)<=self.tol*Lsup(ref),\"wrong result\")\n"
+         elif args == "array":
+           a=makeArray(sh,f[RANGE])
+           r=makeResult(a,f)
+           if len(sh)==0:
+              t_prog+="      arg=numarray.array(%s)\n"%a[0]
+              t_prog+="      ref=numarray.array(%s)\n"%r[0]
+           else:
+              t_prog+="      arg=numarray.array(%s)\n"%a.tolist()
+              t_prog+="      ref=numarray.array(%s)\n"%r.tolist()
+           t_prog+="      res=%s(%a1%)\n"%f.nickname
+           t_prog+="      self.failUnlessEqual(res.shape,%s,\"wrong shape of result.\")\n"%str(sh)
+           t_prog+="      self.failUnless(Lsup(res-ref)<=self.tol*Lsup(ref),\"wrong result\")\n"           
+         elif args== "constData":
+           a=makeArray(sh,f[RANGE])
+           r=makeResult(a,f)
+           if len(sh)==0:
+              t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+              t_prog+="      ref=%s\n"%r
+           else:
+              t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+              t_prog+="      ref=numarray.array(%s)\n"%r.tolist()
+           t_prog+="      res=%s(%a1%)\n"%f.nickname
+           t_prog+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of result.\")\n"%str(sh)
+           t_prog+="      self.failUnless(Lsup(res-ref)<=self.tol*Lsup(ref),\"wrong result\")\n"
+         elif args in [ "taggedData","expandedData"]:
+           a=makeArray(sh,f[RANGE])
+           r=makeResult(a,f)
+           a1=makeArray(sh,f[RANGE])
+           r1=makeResult(a1,f)
+           if len(sh)==0:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(%s,self.functionspace,True)\n"%(a)
+                 t_prog+="      ref=Data(%s,self.functionspace,True)\n"%(r)
+              else:
+                 t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+                 t_prog+="      ref=Data(%s,self.functionspace)\n"%(r)
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a
+              t_prog+="      ref.setTaggedValue(1,%s)\n"%r1
+           else:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace,True)\n"%(a.tolist())
+                 t_prog+="      ref=Data(numarray.array(%s),self.functionspace,True)\n"%(r.tolist())
+              else:
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+                 t_prog+="      ref=Data(numarray.array(%s),self.functionspace)\n"%(r.tolist())
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a1.tolist()
+              t_prog+="      ref.setTaggedValue(1,%s)\n"%r1.tolist()
+           t_prog+="      res=%s(%a1%)\n"%f.nickname
+           t_prog+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of result.\")\n"%str(sh)
+           t_prog+="      self.failUnless(Lsup(res-ref)<=self.tol*Lsup(ref),\"wrong result\")\n"
+         elif args=="Symbol":
+           t_prog+="      arg=Symbol(shape=%s)\n"%str(sh)
+           t_prog+="      v=%s(%a1%)\n"%f.nickname
+           t_prog+="      self.failUnlessRaises(ValueError,v.substitute,Symbol(shape=(1,1)),\"illegal shape of substitute not identified.\")\n"
+           a=makeArray(sh,f[RANGE])
+           r=makeResult(a,f)
+           if len(sh)==0:
+              t_prog+="      res=v.substitute({arg : %s})\n"%a
+              t_prog+="      ref=%s\n"%r
+              t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           else:
+              t_prog+="      res=v.substitute({arg : numarray.array(%s)})\n"%a.tolist()
+              t_prog+="      ref=numarray.array(%s)\n"%r.tolist()
+              t_prog+="      self.failUnlessEqual(res.getShape(),%s,\"wrong shape of substitution result.\")\n"%str(sh)
+           t_prog+="      self.failUnless(Lsup(res-ref)<=self.tol*Lsup(ref),\"wrong result\")\n"
+ 
+           if len(sh)==0:
+               t_prog+="      # test derivative with respect to itself:\n"
+               t_prog+="      dvdv=v.diff(v)\n"
+               t_prog+="      self.failUnlessEqual(dvdv,1.,\"derivative with respect to self is not 1.\")\n"
+           elif len(sh)==1:
+               t_prog+="      # test derivative with respect to itself:\n"
+               t_prog+="      dvdv=v.diff(v)\n"
+               t_prog+="      self.failUnlessEqual(dvdv.shape,%s,\"shape of derivative with respect is wrong\")\n"%str(sh+sh)
+               for i0_l in range(sh[0]):
+                 for i0_r in range(sh[0]):
+                     if i0_l == i0_r:
+                         v=1.
+                     else:
+                         v=0.
+                     t_prog+="      self.failUnlessEqual(dvdv[%s,%s],%s,\"derivative with respect to self: [%s,%s] is not %s\")\n"%(i0_l,i0_r,v,i0_l,i0_r,v)
+           elif len(sh)==2:
+               t_prog+="      # test derivative with respect to itself:\n"
+               t_prog+="      dvdv=v.diff(v)\n"
+               t_prog+="      self.failUnlessEqual(dvdv.shape,%s,\"shape of derivative with respect is wrong\")\n"%str(sh+sh)
+               for i0_l in range(sh[0]):
+                 for i0_r in range(sh[0]):
+                    for i1_l in range(sh[1]):
+                       for i1_r in range(sh[1]):
+                         if i0_l == i0_r and i1_l == i1_r:
+                            v=1.
+                         else:
+                            v=0.
+                         t_prog+="      self.failUnlessEqual(dvdv[%s,%s,%s,%s],%s,\"derivative with respect to self: [%s,%s,%s,%s] is not %s\")\n"%(i0_l,i1_l,i0_r,i1_r,v,i0_l,i1_l,i0_r,i1_r,v)
+ 
+           for sh_in in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+             if len(sh_in)+len(sh)<=4:
+
+               t_prog+="      # test derivative with shape %s as argument\n"%str(sh_in)
+               trafo=makeArray(sh+sh_in,[0,1.])
+               a_in=makeArray(sh_in,f[RANGE])
+               t_prog+="      arg_in=Symbol(shape=%s)\n"%str(sh_in)
+               t_prog+="      arg2=Symbol(shape=%s)\n"%str(sh)
+
+               if len(sh)==0:
+                  t_prog+="      arg2="
+                  if len(sh_in)==0:
+                     t_prog+="%s*arg_in\n"%trafo
+                  elif len(sh_in)==1:
+                     for i0 in range(sh_in[0]):
+                        if i0>0: t_prog+="+"
+                        t_prog+="%s*arg_in[%s]"%(trafo[i0],i0)
+                     t_prog+="\n"
+                  elif len(sh_in)==2:
+                     for i0 in range(sh_in[0]):
+                        for i1 in range(sh_in[1]):
+                           if i0+i1>0: t_prog+="+"
+                           t_prog+="%s*arg_in[%s,%s]"%(trafo[i0,i1],i0,i1)
+
+                  elif len(sh_in)==3:
+                     for i0 in range(sh_in[0]):
+                        for i1 in range(sh_in[1]):
+                           for i2 in range(sh_in[2]):
+                                 if i0+i1+i2>0: t_prog+="+"
+                                 t_prog+="%s*arg_in[%s,%s,%s]"%(trafo[i0,i1,i2],i0,i1,i2)
+                  elif len(sh_in)==4:
+                     for i0 in range(sh_in[0]):
+                        for i1 in range(sh_in[1]):
+                           for i2 in range(sh_in[2]):
+                              for i3 in range(sh_in[3]):
+                                 if i0+i1+i2+i3>0: t_prog+="+"
+                                 t_prog+="%s*arg_in[%s,%s,%s,%s]"%(trafo[i0,i1,i2,i3],i0,i1,i2,i3)
+                     t_prog+="\n"
+               elif len(sh)==1:
+                  for j0 in range(sh[0]):
+                     t_prog+="      arg2[%s]="%j0
+                     if len(sh_in)==0:
+                        t_prog+="%s*arg_in"%trafo[j0]
+                     elif len(sh_in)==1:
+                        for i0 in range(sh_in[0]):
+                           if i0>0: t_prog+="+"
+                           t_prog+="%s*arg_in[%s]"%(trafo[j0,i0],i0)
+                     elif len(sh_in)==2:
+                        for i0 in range(sh_in[0]):
+                           for i1 in range(sh_in[1]):
+                              if i0+i1>0: t_prog+="+"
+                              t_prog+="%s*arg_in[%s,%s]"%(trafo[j0,i0,i1],i0,i1)
+                     elif len(sh_in)==3:
+                        for i0 in range(sh_in[0]):
+                           for i1 in range(sh_in[1]):
+                              for i2 in range(sh_in[2]):
+                                    if i0+i1+i2>0: t_prog+="+"
+                                    t_prog+="%s*arg_in[%s,%s,%s]"%(trafo[j0,i0,i1,i2],i0,i1,i2)
+                     t_prog+="\n"
+               elif len(sh)==2:
+                  for j0 in range(sh[0]):
+                    for j1 in range(sh[1]):
+                        t_prog+="      arg2[%s,%s]="%(j0,j1)
+                        if len(sh_in)==0:
+                           t_prog+="%s*arg_in"%trafo[j0,j1]
+                        elif len(sh_in)==1:
+                           for i0 in range(sh_in[0]):
+                              if i0>0: t_prog+="+"
+                              t_prog+="%s*arg_in[%s]"%(trafo[j0,j1,i0],i0)
+                        elif len(sh_in)==2:
+                           for i0 in range(sh_in[0]):
+                              for i1 in range(sh_in[1]):
+                                  if i0+i1>0: t_prog+="+"
+                                  t_prog+="%s*arg_in[%s,%s]"%(trafo[j0,j1,i0,i1],i0,i1)
+                        t_prog+="\n"
+               elif len(sh)==3:
+                  for j0 in range(sh[0]):
+                    for j1 in range(sh[1]):
+                       for j2 in range(sh[2]):
+                           t_prog+="      arg2[%s,%s,%s]="%(j0,j1,j2)
+                           if len(sh_in)==0:
+                              t_prog+="%s*arg_in"%trafo[j0,j1,j2]
+                           elif len(sh_in)==1:
+                              for i0 in range(sh_in[0]):
+                                 if i0>0: t_prog+="+"
+                                 t_prog+="%s*arg_in[%s]"%(trafo[j0,j1,j2,i0],i0)
+                           t_prog+="\n"
+               elif len(sh)==4:
+                  for j0 in range(sh[0]):
+                    for j1 in range(sh[1]):
+                       for j2 in range(sh[2]):
+                         for j3 in range(sh[3]):
+                           t_prog+="      arg2[%s,%s,%s,%s]="%(j0,j1,j2,j3)
+                           if len(sh_in)==0:
+                              t_prog+="%s*arg_in"%trafo[j0,j1,j2,j3]
+                           t_prog+="\n"
+               t_prog+="      dvdin=v.substitute({arg : arg2}).diff(arg_in)\n"
+               if len(sh_in)==0:
+                  t_prog+="      res_in=dvdin.substitute({arg_in : %s})\n"%a_in
+               else:
+                  t_prog+="      res_in=dvdin.substitute({arg : numarray.array(%s)})\n"%a_in.tolist()
+
+               if len(sh)==0:
+                  if len(sh_in)==0:
+                     ref_diff=(makeResult(trafo*a_in+finc,f)-makeResult(trafo*a_in,f))/finc
+                     t_prog+="      self.failUnlessAlmostEqual(dvdin,%s,self.places,\"%s-derivative: wrong derivative\")\n"%(ref_diff,str(sh_in))
+                  elif len(sh_in)==1:
+                     s=0
+                     for k0 in range(sh_in[0]):
+                         s+=trafo[k0]*a_in[k0]
+                     for i0 in range(sh_in[0]):
+                        ref_diff=(makeResult(s+trafo[i0]*finc,f)-makeResult(s,f))/finc
+                        t_prog+="      self.failUnlessAlmostEqual(dvdin[%s],%s,self.places,\"%s-derivative: wrong derivative with respect of %s\")\n"%(i0,ref_diff,str(sh_in),str(i0))
+                  elif len(sh_in)==2:
+                     s=0
+                     for k0 in range(sh_in[0]):
+                       for k1 in range(sh_in[1]):
+                           s+=trafo[k0,k1]*a_in[k0,k1]
+                     for i0 in range(sh_in[0]):
+                        for i1 in range(sh_in[1]):
+                           ref_diff=(makeResult(s+trafo[i0,i1]*finc,f)-makeResult(s,f))/finc
+                           t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s],%s,self.places,\"%s-derivative: wrong derivative with respect of %s\")\n"%(i0,i1,ref_diff,str(sh_in),str((i0,i1)))
+
+                  elif len(sh_in)==3:
+                     s=0
+                     for k0 in range(sh_in[0]):
+                       for k1 in range(sh_in[1]):
+                          for k2 in range(sh_in[2]):
+                             s+=trafo[k0,k1,k2]*a_in[k0,k1,k2]
+                     for i0 in range(sh_in[0]):
+                        for i1 in range(sh_in[1]):
+                           for i2 in range(sh_in[2]):
+                                 ref_diff=(makeResult(s+trafo[i0,i1,i2]*finc,f)-makeResult(s,f))/finc
+                                 t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative with respect of %s\")\n"%(i0,i1,i2,ref_diff,str(sh_in),str((i0,i1,i2)))
+                  elif len(sh_in)==4:
+                     s=0
+                     for k0 in range(sh_in[0]):
+                       for k1 in range(sh_in[1]):
+                          for k2 in range(sh_in[2]):
+                             for k3 in range(sh_in[3]):
+                                s+=trafo[k0,k1,k2,k3]*a_in[k0,k1,k2,k3]
+                     for i0 in range(sh_in[0]):
+                        for i1 in range(sh_in[1]):
+                           for i2 in range(sh_in[2]):
+                              for i3 in range(sh_in[3]):
+                                 ref_diff=(makeResult(s+trafo[i0,i1,i2,i3]*finc,f)-makeResult(s,f))/finc
+                                 t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative with respect of %s\")\n"%(i0,i1,i2,i3,ref_diff,str(sh_in),str((i0,i1,i2,i3)))
+               elif len(sh)==1:
+                  for j0 in range(sh[0]):
+                     if len(sh_in)==0:
+                        ref_diff=(makeResult(trafo[j0]*a_in+finc,f)-makeResult(trafo[j0]*a_in,f))/finc
+                        t_prog+="      self.failUnlessAlmostEqual(dvdin[%s],%s,self.places,\"%s-derivative: wrong derivative of %s\")\n"%(j0,ref_diff,str(sh_in),j0)
+                     elif len(sh_in)==1:
+                        s=0
+                        for k0 in range(sh_in[0]):
+                            s+=trafo[j0,k0]*a_in[k0]
+                        for i0 in range(sh_in[0]):
+                           ref_diff=(makeResult(s+trafo[j0,i0]*finc,f)-makeResult(s,f))/finc
+                           t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s with respect of %s\")\n"%(j0,i0,ref_diff,str(sh_in),str(j0),str(i0))
+                     elif len(sh_in)==2:
+                        s=0
+                        for k0 in range(sh_in[0]):
+                           for k1 in range(sh_in[1]):
+                               s+=trafo[j0,k0,k1]*a_in[k0,k1]
+                        for i0 in range(sh_in[0]):
+                           for i1 in range(sh_in[1]):
+                              ref_diff=(makeResult(s+trafo[j0,i0,i1]*finc,f)-makeResult(s,f))/finc
+                              t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s with respect of %s\")\n"%(j0,i0,i1,ref_diff,str(sh_in),str(j0),str((i0,i1)))
+
+                     elif len(sh_in)==3:
+
+                        s=0
+                        for k0 in range(sh_in[0]):
+                          for k1 in range(sh_in[1]):
+                             for k2 in range(sh_in[2]):
+                                s+=trafo[j0,k0,k1,k2]*a_in[k0,k1,k2]
+
+                        for i0 in range(sh_in[0]):
+                           for i1 in range(sh_in[1]):
+                              for i2 in range(sh_in[2]):
+                                    ref_diff=(makeResult(s+trafo[j0,i0,i1,i2]*finc,f)-makeResult(s,f))/finc
+                                    t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s with respect of %s\")\n"%(j0,i0,i1,i2,ref_diff,str(sh_in),str(j0),str((i0,i1,i2)))
+               elif len(sh)==2:
+                  for j0 in range(sh[0]):
+                    for j1 in range(sh[1]):
+                        if len(sh_in)==0:
+                           ref_diff=(makeResult(trafo[j0,j1]*a_in+finc,f)-makeResult(trafo[j0,j1]*a_in,f))/finc
+                           t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s\")\n"%(j0,j1,ref_diff,str(sh_in),str((j0,j1)))
+                        elif len(sh_in)==1:
+                           s=0
+                           for k0 in range(sh_in[0]):
+                               s+=trafo[j0,j1,k0]*a_in[k0]
+                           for i0 in range(sh_in[0]):
+                              ref_diff=(makeResult(s+trafo[j0,j1,i0]*finc,f)-makeResult(s,f))/finc
+                              t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s with respect of %s\")\n"%(j0,j1,i0,ref_diff,str(sh_in),str((j0,j1)),str(i0))
+
+                        elif len(sh_in)==2:
+                           s=0
+                           for k0 in range(sh_in[0]):
+                              for k1 in range(sh_in[1]):
+                                  s+=trafo[j0,j1,k0,k1]*a_in[k0,k1]
+                           for i0 in range(sh_in[0]):
+                              for i1 in range(sh_in[1]):
+                                  ref_diff=(makeResult(s+trafo[j0,j1,i0,i1]*finc,f)-makeResult(s,f))/finc
+                                  t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s with respect of %s\")\n"%(j0,j1,i0,i1,ref_diff,str(sh_in),str((j0,j1)),str((i0,i1)))
+               elif len(sh)==3:
+                  for j0 in range(sh[0]):
+                    for j1 in range(sh[1]):
+                       for j2 in range(sh[2]):
+                           if len(sh_in)==0:
+                              ref_diff=(makeResult(trafo[j0,j1,j2]*a_in+finc,f)-makeResult(trafo[j0,j1,j2]*a_in,f))/finc
+                              t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s\")\n"%(j0,j1,j2,ref_diff,str(sh_in),str((j0,j1,j2)))
+                           elif len(sh_in)==1:
+                              s=0
+                              for k0 in range(sh_in[0]):
+                                  s+=trafo[j0,j1,j2,k0]*a_in[k0]
+                              for i0 in range(sh_in[0]):
+                                 ref_diff=(makeResult(s+trafo[j0,j1,j2,i0]*finc,f)-makeResult(s,f))/finc
+                                 t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s with respect of %s\")\n"%(j0,j1,j2,i0,ref_diff,str(sh_in),str((j0,j1,j2)),i0)
+               elif len(sh)==4:
+                  for j0 in range(sh[0]):
+                    for j1 in range(sh[1]):
+                       for j2 in range(sh[2]):
+                         for j3 in range(sh[3]):
+                           if len(sh_in)==0:
+                              ref_diff=(makeResult(trafo[j0,j1,j2,j3]*a_in+finc,f)-makeResult(trafo[j0,j1,j2,j3]*a_in,f))/finc
+                              t_prog+="      self.failUnlessAlmostEqual(dvdin[%s,%s,%s,%s],%s,self.places,\"%s-derivative: wrong derivative of %s\")\n"%(j0,j1,j2,j3,ref_diff,str(sh_in),str((j0,j1,j2,j3)))
+
+#
+
+#==================
+cases=["Scalar","Vector","Tensor", "Tensor3","Tensor4"]
+
+for case in range(len(cases)):
+  for d in [ None , "d", 1, 2 , 3]:
+         if not d==None or cases[case]=="Scalar":
+            t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+            tname="test_Symbol_%s_d%s"%(cases[case],d)
+            t_prog+="   def %s(self):\n"%tname
+            if d=="d":
+               t_prog+="      s=%sSymbol(dim=self.functionspace)\n"%(cases[case])
+               t_prog+="      d=self.functionspace.getDim()\n"
+               sh="("
+               for i in range(case): 
+                 if i==0:
+                  sh+=d
+                 else: 
+                  sh+=","+d               
+               sh+=")"
+            else:
+               t_prog+="      s=%sSymbol(dim=%s)\n"%(cases[case],d)
+               sh=()
+               for i in range(case): sh=sh+(d,)
+            t_prog+="      self.failUnlessEqual(s.getRank(),%s,\"wrong rank.\")\n"%case
+            t_prog+="      self.failUnlessEqual(s.getShape(),%s,\"wrong shape.\")\n"%str(sh)
+            t_prog+="      self.failUnlessEqual(s.getDim(),%s,\"wrong spatial dimension.\")\n"%d
+            t_prog+="      self.failUnlessEqual(s.getArgument(),[],\"wrong arguments.\")\n"
+         
+print t_prog             
+1/0
+for sh in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+  for d in [ None , "domain", 1, 2 , 3]:
+    for args in [ [], ["s2"], [1,-1.] ]:
+         t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_Symbol_rank%s_d%s_nargs%s"%(len(sh),d,len(args))
+         t_prog+="   %s(self):\n"%tname
+         t_prog+="      s2=ScalarSymbol()\n"
+         if args==["s2"]:
+            a="[s2]"
+         else:
+            a=str(args)
+         if d=="domain":
+            t_prog+="      s=Symbol(shape=%s,dim=self.functionspace.getDim(),args=%s)\n"%(str(sh),a)
+            d2="self.functionspace.getDim()"
+         else:
+            t_prog+="      s=Symbol(shape=%s,dim=%s,args=%s)\n"%(sh,d,a)
+            d2=str(d)
+       
+         t_prog+="      self.failUnlessEqual(s.getRank(),%s,\"wrong rank.\")\n"%len(sh)
+         t_prog+="      self.failUnlessEqual(s.getShape(),%s,\"wrong shape.\")\n"%str(sh)
+         t_prog+="      self.failUnlessEqual(s.getDim(),%s,\"wrong spatial dimension.\")\n"%d2
+         t_prog+="      self.failUnlessEqual(s.getArgument(),%s,\"wrong arguments.\")\n\n"%a
+         t_prog+="      ss=s.substitute({s:numarray.zeros(%s)})\n"%str(sh)
+         t_prog+="      self.failUnless(isinstance(ss,numarray.NumArray),\"value after substitution is not numarray.\")\n"
+         t_prog+="      self.failUnlessEqual(ss.shape,%s,\"value after substitution has not expected shape\")\n"%str(sh)
+
+         t_prog+="      try:\n        s.substitute({s:numarray.zeros((5,))})\n        fail(\"illegal substition was successful\")\n"
+         t_prog+="      except TypeError:\n        pass\n\n"
+         
+         ###
+         for sh2 in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+             if len(sh+sh2)<5:
+                 t_prog+="      dsdarg=s.diff(Symbol(shape=%s))\n"%str(sh2)
+                 if  len(sh+sh2)==0:
+                    t_prog+="      self.failUnless(isinstance(dsdarg,float),\"ds/ds() has wrong type.\")\n"
+                 else:        
+                    t_prog+="      self.failUnless(isinstance(dsdarg,numarray.NumArray),\"ds/ds%s has wrong type.\")\n"%str(sh2)
+                   
+                    t_prog+="      self.failUnlessEqual(dsdarg.shape,%s,\"ds/ds%s has wrong shape.\")\n"%(str(sh+sh2),str(sh2))
+                 t_prog+="      self.failIf(Lsup(dsdarg)>0.,\"ds/ds%s has wrong value.\")\n"%str(sh2)
+         if len(sh)<3:
+            t_prog+="\n      dsds=s.diff(s)\n"
+            if  len(sh)==0:
+               t_prog+="      self.failUnless(isinstance(dsds,float),\"ds/ds has wrong type.\")\n"
+               t_prog+="      self.failUnlessEqual(dsds,1.,\"ds/ds has wrong value.\")\n"
+            else:        
+               t_prog+="      self.failUnless(isinstance(dsds,numarray.NumArray),\"ds/ds has wrong type.\")\n" 
+               t_prog+="      self.failUnlessEqual(dsds.shape,%s,\"ds/ds has wrong shape.\")\n"%str(sh+sh)
+               if len(sh)==1:
+                   for i0 in range(sh[0]):
+                         for i2 in range(sh[0]):
+                               if i0==i2:
+                                    v=1.
+                               else:
+                                    v=0.
+                               t_prog+="      self.failUnlessEqual(dsds[%s,%s],%s,\"ds/ds has wrong value at (%s,%s).\")\n"%(i0,i2,v,i0,i2)
+               else:
+                   for i0 in range(sh[0]):
+                      for i1 in range(sh[1]):
+                         for i2 in range(sh[0]):
+                            for i3 in range(sh[1]):
+                               if i0==i2 and i1==i3:
+                                    v=1.
+                               else:
+                                    v=0.
+                               t_prog+="      self.failUnlessEqual(dsds[%s,%s,%s,%s],%s,\"ds/ds has wrong value at (%s,%s,%s,%s).\")\n"%(i0,i1,i2,i3,v,i0,i1,i2,i3)
+             
+         ###    
+         t_prog+="\n"     
+         for i in range(len(args)):
+             t_prog+="      self.failUnlessEqual(s.getArgument(%s),%s,\"wrong argument %s.\")\n"%(i,str(args[i]),i)
+         t_prog+="      sa=s.getSubstitutedArguments({s2:-10})\n"
+         t_prog+="      self.failUnlessEqual(len(sa),%s,\"wrong number of substituted arguments\")\n"%len(args)
+         if args==["s2"]:
+                t_prog+="      self.failUnlessEqual(sa[0],-10,\"wrongly substituted argument 0.\")\n"
+         else:
+             for i in range(len(args)):
+                t_prog+="      self.failUnlessEqual(sa[%s],%s,\"wrongly substituted argument %s.\")\n"%(i,str(args[i]),i)
+         
+         t_prog+="\n"
+         for arg in ["10.", "10", "SymbolMatch", "SymbolMisMatch", \
+                                       "DataMatch","DataMisMatch", "NumArrayMatch", "NumArrayMisMatch"]:
+             if arg in ["10.", "10"]:
+                a=str(arg)
+                if len(sh)==0:
+                   t_prog+="      self.failUnless(s.isAppropriateValue(%s),\"%s is appropriate substitute\")\n"%(a,arg)
+                else:
+                   t_prog+="      self.failIf(s.isAppropriateValue(%s),\" %s is not appropriate substitute\")\n"%(a,arg)
+             elif arg in ["SymbolMatch", "SymbolMisMatch"]:
+                  if arg=="SymbolMatch":
+                   t_prog+="      self.failUnless(s.isAppropriateValue(Symbol(shape=%s,dim=%s)),\"Symbol is appropriate substitute\")\n"%(str(sh),d)
+                  else:
+                   if isinstance(d,int):
+                      t_prog+="      self.failIf(s.isAppropriateValue(Symbol(shape=%s,dim=%s)),\"Symbol is not appropriate substitute (dim)\")\n"%(str(sh),d+1)
+                   else:
+                      t_prog+="      self.failIf(s.isAppropriateValue(Symbol(shape=%s)),\"Symbol is not appropriate substitute (shape)\")\n"%((5,))
+
+             elif arg in ["DataMatch","DataMisMatch"]:
+                  if arg=="DataMatch" and d=="domain":
+                   t_prog+="      self.failUnless(s.isAppropriateValue(escript.Data(0.,%s,self.functionspace)),\"Data is appropriate substitute\")\n"%str(sh)
+                  elif arg=="DataMisMatch":
+                      t_prog+="      self.failIf(s.isAppropriateValue(escript.Data(0.,%s,self.functionspace)),\"Data is not appropriate substitute (shape)\")\n"%(str((5,)))
+             else:
+                  if arg=="NumArrayMatch":
+                   t_prog+="      self.failUnless(s.isAppropriateValue(numarray.zeros(%s)),\"NumArray is appropriate substitute\")\n"%str(sh)
+                  else:
+                      t_prog+="      self.failIf(s.isAppropriateValue(numarray.zeros(%s)),\"NumArray is not appropriate substitute (shape)\")\n"%(str((5,)))
+print t_prog
+1/0
+
+
+for case in ["Lsup", "sup", "inf"]:
+   for args in ["float","array","constData","taggedData","expandedData"]: 
+     for sh in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+       if not args=="float" or len(sh)==0:
+         t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_%s_%s_rank%s"%(case,args,len(sh))
+         t_prog+="   %s(self):\n"%tname
+         if args in ["float","array" ]:
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           if len(sh)==0:
+              t_prog+="      arg=%s\n"%a
+           else:
+              t_prog+="      arg=numarray.array(%s)\n"%a.tolist()
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      res=%s(%a1%)\n"%case
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+         elif args== "constData":
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           if len(sh)==0:
+              t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+           else:
+              t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      res=%s(%a1%)\n"%case
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+         elif args in [ "taggedData","expandedData"]:
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           a1=makeArray(sh,[-1,1])
+           r1=makeResult2(a1,case)
+           if case in ["Lsup","sup"]:
+               r=max(r,r1)
+           else:
+               r=min(r,r1)
+           if len(sh)==0:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(%s,self.functionspace,True)\n"%(a)
+              else:
+                 t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a
+           else:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace,True)\n"%(a.tolist())
+              else:
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a1.tolist()
+           t_prog+="      res=%s(%a1%)\n"%case
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+
+print t_prog
+
+1/0
+
+    	
+for case in ["Lsup", "sup", "inf"]:
+   for args in ["float","array","constData","taggedData","expandedData"]: 
+     for sh in [ (),(2,), (4,5), (6,2,2),(3,2,3,4)]:
+       if not args=="float" or len(sh)==0:
+         t_prog+="   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+         tname="def test_%s_%s_rank%s"%(case,args,len(sh))
+         t_prog+="   %s(self):\n"%tname
+         if args in ["float","array" ]:
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           if len(sh)==0:
+              t_prog+="      arg=%s\n"%a
+           else:
+              t_prog+="      arg=numarray.array(%s)\n"%a.tolist()
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      res=%s(%a1%)\n"%case
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+         elif args== "constData":
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           if len(sh)==0:
+              t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+           else:
+              t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      res=%s(%a1%)\n"%case
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+         elif args in [ "taggedData","expandedData"]:
+           a=makeArray(sh,[-1,1])
+           r=makeResult2(a,case)
+           a1=makeArray(sh,[-1,1])
+           r1=makeResult2(a1,case)
+           if case in ["Lsup","sup"]:
+               r=max(r,r1)
+           else:
+               r=min(r,r1)
+           if len(sh)==0:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(%s,self.functionspace,True)\n"%(a)
+              else:
+                 t_prog+="      arg=Data(%s,self.functionspace)\n"%(a)
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a
+           else:
+              if args=="expandedData":
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace,True)\n"%(a.tolist())
+              else:
+                 t_prog+="      arg=Data(numarray.array(%s),self.functionspace)\n"%(a.tolist())
+              t_prog+="      arg.setTaggedValue(1,%s)\n"%a1.tolist()
+           t_prog+="      res=%s(%a1%)\n"%case
+           t_prog+="      ref=%s\n"%r
+           t_prog+="      self.failUnless(isinstance(res,float),\"wrong type of result.\")\n"
+           t_prog+="      self.failUnless(abs(res-ref)<=self.tol*abs(ref),\"wrong result\")\n"
+
+print t_prog
+
+1/0

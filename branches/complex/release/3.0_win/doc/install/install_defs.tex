@@ -1,0 +1,72 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Please do not use .ps only packages.
+% As a minimum this document should build under pdflatex
+
+\usepackage{color}
+\usepackage{xspace}
+
+%Ensures that latex doesn't have an error if we don't specify the version
+\providecommand{\RepVersion}{Unknown\xspace}
+% to set this value use:
+% (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{install.tex}'
+% as your command-line
+
+\usepackage{listings}        % add the listings package to pretty print the code output
+
+
+% hyperref is incompatible with python.sty which defines \ispdf and \url
+%\usepackage[colorlinks=true, pdftitle={Escript/Finley Installation Guide}, pdfauthor={Escript development team}, pdfdisplaydoctitle=true]{hyperref}
+%pdfpagelayout=TwoColumnRight
+
+\newcommand{\escript}{\module{esys.escript}\xspace}
+\newcommand{\finley}{\module{esys.finley}\xspace}
+\newcommand{\esys}{\module{esys}\xspace}
+
+\newcommand{\esfinley}{Escript/Finley\xspace}
+\newcommand{\linux}{Linux\xspace}
+\newcommand{\macosx}{MacOS~X\xspace}
+\newcommand{\winxp}{Windows~XP\xspace}
+\newcommand{\openmp}{OpenMP\xspace}
+\newcommand{\mpi}{MPI\xspace}
+
+% hyref is defined in python.sty as an alternative to hyperref which we can't
+% use
+\newcommand{\Sec}[1] {\hyref{#1}{Section~\ref{#1}}}
+\newcommand{\Chap}[1] {\hyref{#1}{Chapter~\ref{#1}}}
+\newcommand*{\filename}[1]{\texttt{#1}\xspace}
+
+% defines the colour for the background of code examples
+\definecolor{LightGrey}{gray}{0.9}
+
+
+\lstdefinestyle{myShell}{%
+%\lstset{%
+language=ksh,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{black}\ttfamily,
+keywordstyle=\color{black}\ttfamily,
+%identifierstyle=\color[named]{Blue}\ttfamily,
+%functionstyle=\color[named]{Blue}\ttfamily,
+%typestyle=\color[named]{ForestGreen}\ttfamily,
+stringstyle=\color{black}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+% this implements nicely formatted shell code
+\lstnewenvironment{shellCode}[1][]{\lstset{style=myShell}\lstset{#1}}{}
+
+\newcommand{\todo}[1]{\emph{TODO:}{\em #1}}
+

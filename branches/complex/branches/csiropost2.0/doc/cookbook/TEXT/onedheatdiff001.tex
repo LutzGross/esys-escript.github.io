@@ -1,0 +1,127 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{One Dimensional Heat Diffusion in an Iron Rod}
+%\label{Sec:1DHDv0}
+We will start by examining a simple one dimensional heat diffusion example. While this exact problem is not strictly relevant to earth sciences; it will provide a good launch pad to build our knowledge of Escript and how to solve simple PDEs.
+
+Start by imagining we have a simple cold iron bar at a constant temperature of zero. The bar is perfectly insulated on all sides and at one end we will apply a heating element of some description. Intuition tells us that as heat is applied, that energy will disperse through the bar with time until the bar reaches the same temperature as the heat source. At this point the temperature in the bar will be constant and the same as the heat source.
+
+We can model this problem using the one dimensional heat diffusion equation. It is defined as:
+\begin{equation}
+\rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2} T}{\partial x^{2}} = q\hackscore H 
+\label{eqn:hd}
+\end{equation}
+where $\rho$ is the material density, $c\hackscore p$ is the specific heat and $\kappa$ is the temperature diffusion constant. All of these values are readily available for most materials or can be established through pre-defined experimentation techniques. The heatsource is on the RHS of \eqref{eqn:hd} as $q_{H}$, this could be a constant or defined by an expression. There are also two partial derivatives in \eqref{eqn:hd}, $\frac{\partial T}{\partial t}$ describes the change in temperature with time while $\frac{\partial T}{\partial x}$ describes the spatial change to temperature. Ther is only a single spatial dimension to our problem, and so our Temperature solution $T$ is only dependent on the time $t$ and our position along the iron bar $x$ .
+
+To solve this equation we will write a simple python script. The first step is to import the necessary libraries.
+\begin{verbatim}
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.finley import Rectangle
+import os
+\end{verbatim}
+It is generally a good idea to import all of \verb escript , although if you know the packages you need you can specify them individually. The function \verb|LinearPDE| has been imported individually for ease of use later in the script. \verb|Rectangle| is going to be our type of domain and the \verb|os| package is needed to handle file outputs once our PDE has been solved.
+
+Once our libraries dependancies have been established, defining the problem specific variables is the next step. In general the number of variables needed will vary between problems. These variables belong to two categories. They are either directly related to the PDE and can be used as inputs into the escript solver, or they are script variables used to control internal functions and iterations in our problem. For this PDE there are a number of constants which will need values. Firstly, the domain upon which we wish to solve our problem needs to be defined. There are many different types of domains in escript. We will demonstrate a few in later tutorials but for our iron rod we will simply use a rectangular domain. 
+
+Using a rectangular domain simplifies a \textit{3D} object into a single dimension. The iron rod will have a lengthways cross section that looks like a rectangle.  As a result we do not need to model the volume of the rod because a cylinder is symmetrical about its center. There are four arguments we must consider when we decide to create a rectangular domain, the model length, width and step size in each direction. When defining the size of our problem it will help us determine appropriate values for our domain arguments. If we make our dimensions large but our step sizes very small we will to a point, increase the accuracy of our solution. Unfortunately we also increase the number of calculations that must be solved per time step. This means more computational time is required to produce a solution. In our \textit{1D} problem we will define our bar as being 1 metre long. An appropriate \verb|ndx| would be 1 to 10\% of the length. Our \verb|ndy| need only be 1, uhis is because our problem stipulates no partial derivatives in the $y$ direction. This means the temperature does not vary with $y$. Thus the domain perameters can be defined as follows:
+\begin{verbatim}
+#Domain related.
+mx = 1 #meters - model lenght
+my = .1 #meters - model width
+ndx = 100 # steps in x direction 
+ndy = 1 # steps in y direction
+\end{verbatim}
+The material constants and the temperature variables must also be defined. For the iron rod in the model they are defined as:
+\begin{verbatim}
+#PDE related
+q=473. #Kelvin - our heat source temperature
+Tref = 273. # Kelvin - starting temp of iron bar
+rho = 7874. #kg/m^{3} density of iron
+cp = 449. #j/Kg.K
+rhocp = rho*cp
+eta = 0 #radiation condition
+kappa = 68. #temperature diffusion constant
+\end{verbatim}
+Finally, to control our script we will have to specify our timing controls and where we would like to save the output from the solver. This is simple enough:
+\begin{verbatim}
+#Script/Iteration Related
+t=0 #our start time, usually zero
+tend=5.*60. #seconds - time to end simulation
+outputs = 200 # number of time steps required.
+h=(tend-t)/outputs #size of time step
+i=0 #loop counter 
+#the folder to put our outputs in, leave blank "" for script path
+#note this folder path must exist to work
+save_path = "data/onedheatdiff001" 
+\end{verbatim}
+Now that we know our inputs we will build a domain using the \verb Rectangle() function from \verb Finley . The four arguments allow us to define our domain \verb rod as:
+\begin{verbatim}
+ rod = Rectangle(l0=mx,l1=my,n0=ndx,n1=ndy)
+\end{verbatim}
+In this form \verb rod does not represent any discrete points, but rather an area of \verb ndx*ndy  cells that fit into a rectangular space with opposing vertices at the origin and the point \verb [mx,my] . The reason for this is so that the discrete points used in the solution can be specified by the user. That is, are discrete points used at the corners of each cell, the middle point of a cell or halfway along each side of the cell etc. Fortunately \verb escript offers an easy way to extract finite points from the domain \verb|rod| using the domain property function \verb|getX()| . This function uses the vertices of each cell as finite points to solve in the solution. If we let \verb|x| be these finite points, then:
+\begin{verbatim}
+ x = rod.getX()
+\end{verbatim}
+With a domain and all our required variables established, it is now possible to set up our PDE so that it can be solved by escript. The first step is to define the type of PDE that we are trying to solve. In this example it is a Linear PDE and we can define it by:
+\begin{verbatim}
+ mypde=LinearPDE(rod)
+\end{verbatim}
+Because we have a symmetrical problem we will also need to set the symmetry on by:
+\begin{verbatim}
+ myPDE.setSymmetryOn()
+\end{verbatim}
+To input the PDE into \esc it must be compared with the general form\footnote{Available in section ?? of the users guide to \esc }. For most simple PDEs however, the general form is over complicated and confusing. Thus for this example, we will use a simplified version that suits our heat diffusion problem. This simpler form is described by;
+\begin{equation}\label{eqn:simpfrm}
+-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =+Y
+\end{equation}
+This can be written in the form;
+\begin{equation}	
+-\nabla.(A.\nabla u) + Du = f
+\end{equation}
+or;
+\begin{equation}\label{eqn:commonform}
+-A\frac{\partial^{2}u}{\partial x^{2}\hackscore{i}} + Du = f
+\end{equation}
+When comparing equations \eqref{eqn:hd} and \eqref{eqn:commonform} we see that;
+\begin{equation}
+A = \kappa . \delta; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H}
+\end{equation}
+Additionally we must also consider the boundary conditions of our PDE. They take the form:
+\begin{equation}
+\eta \hackscore{j} A\hackscore{jl} u\hackscore{,l} + du = y
+\end{equation}
+
+
+NEED TO WORK ON THIS SECTION
+
+We now need to specify Our boundary conditions and initial values. The initial values required to solve this PDE are temperatures for each discrete point in our domain that we wish to solve for. We will set our bar to:
+\begin{verbatim}
+ T = Tref
+\end{verbatim}
+Boundary conditions are a little more difficult. Fortunately the escript solver will handle our insulated boundary conditions. However, we will need to apply our heat source $q_{H}$ to the end of the bar at $x=0$ . escript makes this easy by letting us define areas in our domain. To retrieve all the finite points in our domain we will use 
+
+END WORK ON THIS SECTION
+
+The final stage to our problem is exporting the data we have generated and turn our data and visualisation. It is best to export the calculated solutions at each time increment. escript has the inbuilt function \verb|saveVTK()| which makes this step very easy. saveVTK takes two arguments, the path and the filename. We are goind to use the \verb|os.path.join| command to join a subdirectory which must already exist with a file name. The string opperator \verb|%| allows us to increment our file names with the value \verb|i|. In substring \verb %03d  does a number of things; 
+\begin{itemize}
+ \item \verb 0  becomes the padding number;
+ \item \verb 3  tells us the number of padding numbers that are required; and
+ \item \verb d  indicates the end of the \verb %  operator.
+\end{itemize}
+To increment a \verb %i is required directly after the operation the string is involed in. The second arugment of the \verb saveVTK function is the \verb sol=T where \verb T is the solution of our PDE for a given time steo. Thus the export command becomes:
+\begin{verbatim}
+ saveVTK(os.path.join(save_path,"data%03d.xml") %i,sol=T)
+\end{verbatim}
+Visualisation is then implemented through \verb mayavi  which provides a command line of gui interface to develop plots to suit our output data. For this example a surface plot is appropriate.

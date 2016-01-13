@@ -1,0 +1,31 @@
+DatasetHeader Begin
+	LastUpdated	=	Fri Mar  1 13:39:44 2013
+	Version	=	"5.0"
+	DataSetType	=	ERStorage
+	DataType	=	Raster
+	HeaderOffset	=	0
+	CoordinateSpace Begin
+		Projection	=	"GEODETIC"
+		CoordinateType	=	LL
+		Datum	=	"GDA94"
+		Rotation	=	0:0:0
+	CoordinateSpace End
+	ByteOrder	=	LSBFirst
+	RasterInfo Begin
+		CellType	=	IEEE4ByteReal
+		NrOfLines	=	13
+		NrOfCellsPerLine	=	13
+		NrOfBands	=	1
+		NullCellValue	=	0.0
+		CellInfo Begin
+			Xdimension	=	0.07692
+			Ydimension	=	0.07692
+		CellInfo End
+		RegistrationCellX	=	0
+		RegistrationCellY	=	0
+		RegistrationCoord Begin
+			Longitude	=	139.9958985
+			Latitude	=	-20.0003525
+		RegistrationCoord End
+	RasterInfo End
+DatasetHeader End

@@ -1,0 +1,97 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2010 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{manual}
+%%% Table of contents to list down to subsections and no further
+\setcounter{tocdepth}{3}
+%%% Number down to subsubsections only
+\setcounter{secnumdepth}{3}
+% grab the handy definitions and \usepackage statements etc
+\input{cookbook_defs}
+
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+
+% title, author, etc stuff
+\title{The \textit{escript} COOKBOOK}
+
+
+
+\author{Antony Hallam, Lutz Gross, et. al.}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+School of Earth Sciences \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}                                                                                         
+\date{\today}      
+\release{3.1}
+\setreleaseinfo{\\(r\RepVersion)} 
+\setshortversion{}
+
+\makeindex
+
+\begin{document}
+
+\maketitle
+
+% This must come after maketitle or you'll get latex in the pdf title
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\input{../user/copyrights}
+
+\begin{abstract}
+\esc is a \pyt based environment that has been developed to solve complex mathematical models, particularly coupled, non-linear and time-dependent partial differential equations. The intention of this cookbook is to introduce new users to \esc and provide a set of examples which demonstrate the major concepts and can be adapted to new problems. Although most of the examples in this cookbook are focused on the disciplines of geophysics and geology, they provide a solid introduction to \esc and its capabilities.
+\end{abstract}
+\tableofcontents
+
+\newpage
+
+\chapter{Introduction}
+\label{CHAP INTRO}
+\input{intro}
+
+\chapter{Getting Started with Heat Diffusion}
+\label{CHAP HEAT DIFF}
+We start by examining a simple one dimensional heat diffusion equation. This problem provides a good starting example to build our knowledge of \esc and demonstrate how to solve simple partial differential equations (PDEs)\footnote{Wikipedia provides an excellent and comprehensive introduction to \textit{Partial Differential Equations} \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however their relevance to \esc and implementation should become much clearer as we develop our understanding further into the cookbook.}
+\input{example01}
+\input{example02}
+
+\chapter{Heat Diffusion in Two Dimensions}
+\label{CHAP HEAT 2a}
+\input{example03}
+
+\chapter{Complex Geometries}
+\label{CHAP HEAT 2}
+\input{steadystateheatdiff}
+
+% Moving into 2D and 3D wave propagations in next chapters.
+% not part of release 3.1
+% \chapter{Seismic Wave Propagation}
+% \input{twodswp001}
+\appendix
+%\include{einsteinETA}
+\end{document}

@@ -1,0 +1,161 @@
+\chapter{Execution of an {\it escript} Script}
+\label{EXECUTION}
+
+\section{Overview}
+A typical way of starting your {\it escript} script \file{myscript.py} is with the \program{escript} command\footnote{The \program{escript} launcher is not supported under \WINDOWS yet.}:
+\begin{verbatim}
+escript myscript.py
+\end{verbatim}
+as already shown in section~\ref{FirstSteps}\footnote{For this discussion, it is assumed that \program{escript} is included in your \env{PATH} environment. See installation guide for details.}
+. In some cases 
+it can be useful to work interactively e.g. when debugging a script, with the command 
+\begin{verbatim}
+escript -i myscript.py
+\end{verbatim}
+This will execute \var{myscript.py} and when it completes (or an error occurs), a \PYTHON prompt will be provided.
+To leave the prompt press \kbd{Control-d}.
+
+To start 
+\program{escript} using four threads (eg. if you use a multi-core processor) you can use
+\begin{verbatim}
+escript -t 4 myscript.py
+\end{verbatim}
+This will require {\it escript} to be compiled for \OPENMP\cite{OPENMP}. 
+
+To start \program{escript} using \MPI\cite{MPI} with $8$ processes you use
+\begin{verbatim}
+escript -p 8 myscript.py
+\end{verbatim}
+If the processors which are used are multi--core processors or multi--processor shared memory architectures you can use threading in addition to \MPI. For instance to run $8$ \MPI processes with using $4$ threads each, you use the command
+\begin{verbatim}
+escript -p 8 -t 4 myscript.py
+\end{verbatim}
+In the case of a super computer or a cluster, you may wish to distribute the workload over a number of nodes\footnote{For simplicity, we will use the term node to refer to either a node in a super computer or an individual machine in a cluster}.
+For example, to use $8$ nodes, with $4$ \MPI processes per node, write
+\begin{verbatim}
+escript -n 8 -p 4 myscript.py
+\end{verbatim}
+Since threading has some performance advantages over processes, you may specify a number of threads as well.
+\begin{verbatim}
+escript -n 8 -p 4 -t 2 myscript.py
+\end{verbatim}
+This runs the script on $8$ nodes, with $4$ processes per node and $2$ threads per process.
+
+\section{Options}
+The general form of the \program{escript} launcher is as follows:
+
+%%%%
+% If you are thinking about changing this please remember to update the man page as well
+%%%%
+
+\program{escript} 
+\optional{\programopt{-n \var{nn}}} 
+\optional{\programopt{-p \var{np}}}
+\optional{\programopt{-t \var{nt}}}
+\optional{\programopt{-f \var{hostfile}}}
+\optional{\programopt{-x}}
+\optional{\programopt{-V}}
+\optional{\programopt{-e}}
+\optional{\programopt{-h}}
+\optional{\programopt{-v}}
+\optional{\programopt{-o}}
+\optional{\programopt{-c}}
+\optional{\programopt{-i}}
+\optional{\programopt{-b}}
+\optional{\var{file}}
+\optional{\var{ARGS}}
+
+where \var{file} is the name of a script, \var{ARGS} are arguments for the script.
+The \program{escript} program will import your current environment variables. 
+If no \var{file} is given, then you will be given a \PYTHON prompt (see \programopt{-i} for restrictions).
+
+The options are used as follows:
+\begin{itemize}
+
+ \item[\programopt{-n} \var{nn}] the number of compute nodes \var{nn} to be used. The total number of process being used is 
+$\var{nn} \cdot \var{ns}$. This option overwrites the value of the \env{ESCRIPT_NUM_NODES} environment variable. 
+If a hostfile is given, the number of nodes needs to match the number hosts given in the host file.
+If $\var{nn}>1$ but {\it escript}  is not compiled for \MPI a warning is printed but execution is continued with $\var{nn}=1$. If \programopt{-n} is not set the
+number of hosts in the host file is used. The default value is 1.
+ 
+\item[\programopt{-p} \var{np}] the number of MPI processes per node.  The total number of processes to be used is 
+$\var{nn} \cdot \var{np}$. This option overwrites the value of the \env{ESCRIPT_NUM_PROCS} environment variable. If $\var{np}>1$ but {\it escript}  is not compiled for \MPI a warning is printed but execution is continued with $\var{np}=1$. The default value is 1.
+
+ \item[\programopt{-t} \var{nt}] the number of threads used per processes.
+The option overwrites the value of the \env{ESCRIPT_NUM_THREADS} environment variable.
+If $\var{nt}>1$ but {\it escript} is not compiled for \OPENMP a warning is printed but execution is continued with $\var{nt}=1$. The default value is 1.
+
+ \item[\programopt{-f} \var{hostfile}] the name of a file with a list of host names. Some systems require to specify the addresses or names of the compute nodes where \MPI process should be spawned. The list of addresses or names of the compute nodes is listed in the file with the name \var{hostfile}. If \programopt{-n} is set the 
+the number of different
+hosts defined in \var{hostfile} must be equal to the number of requested compute nodes \var{nn}. The option overwrites the value of the \env{ESCRIPT_HOSTFILE} environment variable. By default value no host file is used.
+ \item[\programopt{-c}] prints the information about the settings used to compile {\it escript} and stops execution..
+ \item[\programopt{-V}] prints the version of {\it escript} and stops execution.
+ \item[\programopt{-h}] prints a help message and stops execution.
+ \item[\programopt{-i}] executes the script \var{file} and switches to interactive mode after the execution is finished or an exception has occurred. This option is useful for debugging a script. The option cannot be used if more then one process ($\var{nn} \cdot \var{np}>1$) is used.
+\item[\programopt{-b}] do not invoke python. This is used to run non-python programs.
+
+ \item[\programopt{-e}] shows additional environment variables and commands used during \program{escript} execution. This option is useful if users wish to execute scripts without using the \program{escript} command.
+
+ \item[\programopt{-o}] switches on the redirection of output of processors with \MPI rank greater than zero to the files \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} where \var{r} is the rank of the processor. The option overwrites the value of the \env{ESCRIPT_STDFILES} environment variable 
+
+%  \item[\programopt{-x}] interpret \var{file} as an \esysxml \footnote{{\it esysxml} has not been released yet.} task.
+% This option is still experimental.
+
+ \item[\programopt{-v}] prints some diagnostic information.
+\end{itemize}
+\subsection{Notes}
+\begin{itemize}
+ \item Make sure that \program{mpiexec} is in your \env{PATH}. 
+ \item For MPICH and INTELMPI and for the case a hostfile is present 
+\program{escript} will start the \program{mpd} demon before execution.
+\end{itemize}
+
+\section{Input and Output}
+When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) no input from the standard input is accepted. Standard output on any process other the the master process (\var{rank}=0) will not be available.
+Error output from any processor will be redirected to the node where \program{escript} has been invoked.
+If the \programopt{-o} or \env{ESCRIPT_STDFILES} is set\footnote{That is, it has a non-empty value.}, then the standard and error output from any process other than the master process will be written to files of the names \file{stdout_\var{r}.out} and \file{stderr_\var{r}.out} (where 
+\var{r} is the rank of the process).
+
+If files are created or read by individual \MPI processes with information local to the process (e.g in the \function{dump} function)  and more than one process is used ($\var{nn} \cdot \var{np} >1$), the \MPI process rank is appended to the file names.
+This will avoid problems if processes are using a shared file system.
+Files which collect data which are global for all \MPI processors will created by the process with \MPI rank 0 only.
+Users should keep in mind that if the file system is not shared, then a file containing global information
+which is read by all processors needs to be copied to the local file system before \program{escript} is invoked.
+ 
+
+\section{Hints for MPI Programming}
+In general a script based on the \escript module does not require modifications when running under \MPI. However, one needs to be careful if other modules are used. 
+
+When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) the user needs to keep in mind that several copies of his script are executed at the same time 
+\footnote{In case of OpenMP only one copy is running but \escript temporarily spawns threads.} while data exchange is performed through the \escript module. At any time, 
+\escript assumes that an argument of the type \var{int}, \var{float}, \var{str} 
+and \numarray has an identical value across all processors. All 
+values of these types returned by \escript have the same value on all processors.
+If values produced by other modules are used as arguments the user has to make sure that the argument values are identical on all processors. For instance, the usage of a random number generator to create argument values bears the risk that the value may depend on the processor. 
+
+Special attention is required when using files on more then one processor as 
+several processors access the file at the same time. Open a file for
+reading is safe, however the user has to make sure that the variables which are 
+set from reading data from files are identical on all processors.
+
+When writing data to a file it is important that only one processor is writing to
+the file at any time. As all values in \escript are global it is sufficient
+to write values on the processor with \MPI rank $0$ only. 
+The \class{FileWriter} class provides a convenient way to write global data
+to a simple file.  The following script writes to the file 
+\var{'test.txt'} on the processor with id $0$ only:
+\begin{python}
+from esys.escript import *
+f = FileWriter('test.txt')
+f.write('test message')
+f.close()
+\end{python}
+It is highly recommendable to use this class rather than the build \function{open}
+function as it will guarantee a script which will run in single processor mode as well as under \MPI.
+
+If there is the situation that on one of the processors is throwing an exception, 
+for instance as opening a file for writing fails, the other processors 
+are not automatically made aware of this as \MPI
+is not handling exceptions. However, \MPI will terminate the other processes but 
+may not inform the user of the reason in an obvious way. The user needs to inspect the
+error output files to identify the exception.

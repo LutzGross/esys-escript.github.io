@@ -1,0 +1,143 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Models}
+
+The following sections give a breif overview of the model classes and their corresponding methods.
+
+\section{Stokes Cartesian (Saddle Point Problem)}
+
+\subsection{Description}
+
+Saddle point type problems emerge in a number of applications throughout physics and engineering. Finite element discretisation of the Navier-Stokes (momentum) equations for incompressible flow leads to equations of a saddle point type, which can be formulated as a solution of the following operator problem for $u \in V$ and $p \in Q$ with suitable Hilbert spaces $V$ and $Q$:
+
+\begin{equation}
+\left[ \begin{array}{cc}
+A     & B \\
+b^{*} & 0 \\
+\end{array} \right]
+\left[ \begin{array}{c}
+u \\
+p \\
+\end{array} \right]
+=\left[ \begin{array}{c}
+f \\
+g \\
+\end{array} \right]
+\label{SADDLEPOINT}
+\end{equation}
+
+where $A$ is coercive, self-adjoint linear operator in $V$, $B$ is a linear operator from $Q$ into $V$ and $B^{*}$ is the adjoint operator of $B$. $f$ and $g$ are given elements from $V$ and $Q$ respectivitly. For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}.
+
+The Uzawa scheme scheme is used to solve the momentum equation with the secondary condition of incompressibility \cite{GROSS2006,AAMIRBERKYAN2008}.
+
+\begin{classdesc}{StokesProblemCartesian}{domain,debug}
+opens the stokes equations on the \Domain domain. Setting debug=True switches the debug mode to on.
+\end{classdesc}
+
+example usage:
+
+solution=StokesProblemCartesian(mesh) \\
+solution.setTolerance(TOL) \\
+solution.initialize(fixed\_u\_mask=b\_c,eta=eta,f=Y) \\
+velocity,pressure=solution.solve(velocity,pressure,max\_iter=max\_iter,solver=solver) \\
+
+\subsection{Benchmark Problem}
+
+Convection problem
+
+
+\section{Temperature Cartesian}
+
+\begin{equation}
+\rho c\hackscore{p} \left (\frac{\partial T}{\partial t} + \vec{v} \cdot \nabla T \right ) = k \nabla^{2}T
+\label{HEAT EQUATION}
+\end{equation}
+
+where $\vec{v}$ is the velocity vector, $T$ is the temperature, $\rho$ is the density, $\eta$ is the viscosity, $c\hackscore{p}$ is the specific heat at constant pressure and $k$ is the thermal conductivity.
+
+\subsection{Description}
+
+\subsection{Method}
+
+\begin{classdesc}{TemperatureCartesian}{dom,theta=THETA,useSUPG=SUPG}
+\end{classdesc}
+
+\subsection{Benchmark Problem}
+
+
+\section{Level Set Method}
+
+\subsection{Description}
+
+\subsection{Method}
+
+Advection and Reinitialisation
+
+\begin{classdesc}{LevelSet}{mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth}
+\end{classdesc}
+
+%example usage:
+
+%levelset = LevelSet(mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth)
+
+\begin{methoddesc}[LevelSet]{update\_parameter}{parameter}
+Update the parameter.
+\end{methoddesc}
+
+\begin{methoddesc}[LevelSet]{update\_phi}{paramter}{velocity}{dt}{t\_step}
+Update level set function; advection and reinitialization
+\end{methoddesc}
+
+\subsection{Benchmark Problem}
+
+Rayleigh-Taylor instability problem
+
+
+\section{Drucker Prager Model}
+
+\section{Isotropic Kelvin Material \label{IKM}}
+
+
+
+\begin{equation}\label{IKM-EQU-2}
+D_{ij}=D_{ij}^{el}+D_{ij}^{vp}
+\end{equation}
+with the elastic stretching
+\begin{equation}\label{IKM-EQU-3}
+D_{ij}^{el}=\frac{2 \mu} \sigma'_{ij}
+\end{equation}
+\begin{equation}\label{IKM-EQU-4}
+D_{ij}^{vp}=\sum_{q} D_{ij}^{q}
+\end{equation}
+\begin{equation}\label{IKM-EQU-5}
+D_{ij}^{q}=\frac{1}{2 \eta^{q}} \sigma'_{ij} \mbox{ with } \eta^{q}=\eta^{q}_N \left(\frac{\tau}{\tau_t^q}\right){\frac{1}{n^{q}}-1}
+\end{equation}
+After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
+\begin{equation}\label{IKM-EQU-4}
+D_{ij}^{vp}=\frac{1}{2 \eta^{vp}} \sigma'_{ij}
+\end{equation}
+
+
+\begin{equation}\label{IKM-EQU-1}
+-\sigma'_{ij,j}+p_j=F_j
+\end{equation}
+
+\begin{equation}\label{IKM-EQU-2}
+-v_{i,i}=0
+\end{equation}
+
+\begin{equation}\label{IKM-EQU-3}
+\sigma_{ij}=\sigma'_{ij,j}-\frac{1}{d} p \delta_{ij}
+\end{equation}

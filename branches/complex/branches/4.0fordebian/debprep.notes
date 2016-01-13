@@ -1,0 +1,36 @@
+Separate packages for py3/p2/mpi/non-mpi
+virtual packages for escriptMPI  escript-nonMPI
+
+ -- still to do
+
+lintian --- already installed
+  Lots of things are broken. 
+  - man page was not compressed  -- should be fixed
+  - python files should not be precompiled  --- need to look at policy for how that should be done
+    * Not certain if all deps (especially optional ones) are at py3 yet.  On that basis:
+      https://www.debian.org/doc/packaging-manuals/python-policy/ch-python3.html
+      we should package both py2 and py3
+    * from https://www.debian.org/doc/packaging-manuals/python-policy/ch-python.html
+      2.5 talks about the module path and "Public Python modules".   
+      I'm leaning towards our modules not being public because you should be using the launcher (or know enough to do it yourself.   Does this holdup?)
+    3.1 from the above, we are looking at Private extensions.
+
+Need to look at dh_python2 and dh_python3
+-- byte compiled modules must be generated in post-inst and removed in prerm
+
+Add 
+   X-Python-Version: >=2.7
+to the control section    --- done and added Python3 version as well
+
+According to https://www.debian.org/doc/packaging-manuals/python-policy/ch-embed.html,
+dpkg-shlibdeps will generate dependencies for things linking against the shared python library.
+-- Need to look at that.
+
+
+https://www.debian.org/doc/packaging-manuals/python-policy/ap-build_dependencies.html
+Seems to suggest that we should have a Build-Depends on:
+  python-all-dev    --- done
+
+
+
+

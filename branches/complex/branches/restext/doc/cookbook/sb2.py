@@ -1,0 +1,97 @@
+
+########################################################
+#
+# Copyright (c) 2003-2009 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+__copyright__="""Copyright (c) 2003-2009 by University of Queensland
+Earth Systems Science Computational Center (ESSCC)
+http://www.uq.edu.au/esscc
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="https://launchpad.net/escript-finley"
+
+"""
+Author: Lutz Gross, l.gross@uq.edu.au
+Author: John Ngui, john.ngui@uq.edu.au
+"""
+
+# Import the necessary modules.
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.finley import Rectangle
+from esys.pyvisi import Scene, DataCollector, Map, Camera
+from esys.pyvisi.constant import *
+import os
+
+PYVISI_EXAMPLE_IMAGES_PATH = "data_sample_images"
+X_SIZE = 400
+Y_SIZE = 400
+JPG_RENDERER = Renderer.ONLINE_JPG
+
+#... set some parameters ...
+qc=50.e6
+Tref=0.
+rhocp=2.6e6
+eta=75.
+kappa=240.
+tend=5.
+# ... time, time step size and counter ...
+t=0
+h=0.1
+i=0
+
+#... generate domain ...
+mydomain = Rectangle(l0=0.05,l1=0.01,n0=250, n1=50)
+#... open PDE ...
+mypde=LinearPDE(mydomain)
+mypde.setSymmetryOn()
+mypde.setValue(A=kappa*kronecker(mydomain),D=rhocp/h,d=eta,y=eta*Tref)
+# ... set heat source: ....
+x=mydomain.getX()
+
+# ... set initial temperature ....
+T=0.1*whereNonNegative(x[0]-0.025)
+T=-0.1*whereNonPositive(x[0]-0.025)
+qH=0*qc*whereZero(x[0]-0.001)
+# Create a Scene.
+s = Scene(renderer = JPG_RENDERER, x_size = X_SIZE, y_size = Y_SIZE)
+
+# Create a DataCollector reading directly from escript objects.
+dc = DataCollector(source = Source.ESCRIPT)
+
+# Create a Map.
+m = Map(scene = s, data_collector = dc, \
+        viewport = Viewport.SOUTH_WEST, lut = Lut.COLOR, \
+        cell_to_point = False, outline = True)
+
+# Create a Camera.
+c = Camera(scene = s, viewport = Viewport.SOUTH_WEST)
+
+dc.setData(temp = T)
+      
+# Render the object.
+s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, \
+              "diffusion%02d.jpg") % i)
+
+# ... start iteration:
+while t<1.0:
+      i+=1
+      t+=h
+      mypde.setValue(Y=qH+rhocp/h*T)
+      T=mypde.getSolution()
+
+      dc.setData(temp = T)
+      
+      # Render the object.
+      s.render(image_name = os.path.join(PYVISI_EXAMPLE_IMAGES_PATH, \
+              "diffusion%02d.jpg") % i)
+

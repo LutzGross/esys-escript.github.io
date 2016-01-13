@@ -1,0 +1,143 @@
+# $Id$
+
+# Phony Targets
+# Define phony target rules which actually enact building and cleaning
+
+# These targets are phony and should always be built when requested
+.PHONY: all default clean pyc force
+
+# Make the default target if no otherwise suitable rules can be found
+.DEFAULT: default
+
+# #############################################################################
+# If no target is specified, "all" is the first target to be found and made
+# #############################################################################
+all: default
+
+install: all
+	@echo ----------------------------------------------------------------------------
+	@if test -n "${INSTALL_PYTH}";\
+	then \
+	  install -v ${INSTALL_PYTH} ${L_PYTH_DIR};\
+	fi
+	@echo Installed ${INSTALL_PYTH} to ${L_PYTH_DIR}.
+	@if test -n "${INSTALL_LIB}";\
+	then \
+	  install -v ${INSTALL_LIB} ${L_INSTLIB_DIR};\
+	fi
+	@echo Installed ${INSTALL_LIB} to ${L_INSTLIB_DIR}.
+	@echo ----------------------------------------------------------------------------
+
+uninstall:
+	@echo ----------------------------------------------------------------------------
+	@rm -rf ${L_PYTH_DIR}/*.py
+	@rm -rf ${L_PYTH_DIR}/*.pyc
+	@rm -rf ${L_PYTH_DIR}/*.pyo
+	@echo Uninstalled ${L_PYTH_DIR}.
+	@rm -rf ${L_INSTLIB_DIR}/*.so
+	@echo Uninstalled ${L_INSTLIB_DIR}.
+	@echo ----------------------------------------------------------------------------
+
+# Make default target and print source files that were found
+default: ${DEFAULT_TARGET}
+	@if test -n "${CPP_SRC}";\
+	then\
+	   echo "C++ source files: ${CPP_SRC}";\
+	fi
+	@if test -n "${CC_SRC}";\
+	then\
+	   echo "C source files: ${CC_SRC}";\
+	fi
+
+# Clean: remove dependency, library, object, swig and target files
+clean:
+	@echo ----------------------------------------------------------------------------
+	@rm -rf ${filter-out %CVS, ${wildcard ${L_DEP_DIR}/src}}
+	@rm -rf ${filter-out %CVS, ${wildcard ${L_DEP_DIR}/*.d}}
+	@rm -rf ${filter-out %CVS, ${wildcard ${L_LIB_DIR}/lib*}}
+	@rm -rf ${filter-out %CVS, ${wildcard ${L_LIB_DIR}/py_src/*.pyc}}
+	@rm -rf ${filter-out %CVS, ${wildcard ${L_OBJ_DIR}/src}}
+	@rm -rf ${filter-out %CVS, ${wildcard ${L_OBJ_DIR}/*.o}}
+	@rm -rf ${addprefix ${L_SRC_DIR}/, ${SWIG_CPP_SRC}}
+	@rm -rf ${addprefix ${L_SRC_DIR}/, ${SWIG_PY_SRC}}
+	@rm -rf ${DEFAULT_TARGET}
+	@echo Cleaned.
+
+# Phony force target for targets of which remake must always happen
+force:
+
+# Python byte-code target
+pyc: ${PYTHON_BYTE}
+
+# Always remake the default target
+${DEFAULT_TARGET}:
+
+# $Log$
+# Revision 1.7  2005/06/09 05:38:03  jgs
+# Merge of development branch back to main trunk on 2005-06-09
+#
+# Revision 1.1.1.1.2.10  2005/05/20 04:31:17  jgs
+# fix cleanup of lib/py_src directory
+#
+# Revision 1.1.1.1.2.9  2005/05/18 07:02:39  jgs
+# all python code now compiled to .pyc files with "-O -O" options
+#
+# Revision 1.1.1.1.2.8  2005/05/17 10:43:59  jgs
+# fixed uninstall target
+#
+# Revision 1.1.1.1.2.7  2005/05/17 01:31:15  jgs
+# set L_INSTLIB_DIR and L_PYTH_DIR defaults relative to ESYS_ROOT
+#
+# Revision 1.1.1.1.2.6  2005/05/12 11:47:44  gross
+# some minor changes in output
+#
+# Revision 1.1.1.1.2.5  2005/04/04 06:52:11  jgs
+# Minor change to display installation target directory.
+#
+# Revision 1.1.1.1.2.4  2004/12/08 03:59:13  jgs
+# reimplemented make install target:
+#   - python modules now installed to $L_PYTH_DIR which defaults to $ESYS_ROOT/esys
+#   - .so libraries now installed to $L_INSTLIB_DIR which defaults to $ESYS_ROOT/lib
+# need to make symlinks from $L_PYTH_DIR to .so files in $L_INSTLIB_DIR
+# also implemented uninstall make target, which cleans out $L_PYTH_DIR
+# and $L_INSTLIB_DIR
+#
+# Revision 1.1.1.1.2.3  2004/12/07 05:03:06  jgs
+# Fixed install target to handle modules with empty install lists.
+#
+# Revision 1.1.1.1.2.2  2004/12/07 01:01:44  jgs
+# expand message printed out by install target
+#
+# Revision 1.1.1.1.2.1  2004/12/06 06:06:26  jgs
+# setup an "install" target which installs libraries specified by ${INSTALL_TARGET}
+# into the directory ${L_INST_DIR} which defaults to $(L_LIB_DIR)/esys. "esys" is
+# the python package under which the other esys libraries are python modules.
+#
+# Revision 1.1.1.1  2004/10/26 06:53:58  jgs
+# initial import of project esys2
+#
+# Revision 1.2.2.2  2004/09/28 07:03:13  jgs
+# *** empty log message ***
+#
+# Revision 1.2.2.1  2004/09/27 06:44:58  jgs
+# refined clean target actions
+#
+# Revision 1.2  2004/09/23 01:48:46  jgs
+# make: augmented Makefiles with comments throughout
+#
+#         Makefile.default - changed order of includes for clarity
+#         Makfile.phony    - reordered phony targets
+#                          - added target "all" - now first target to be encountered
+#
+# Revision 1.1.1.1  2004/06/24 04:00:39  johng
+# Initial version of eys using boost-python.
+#
+# Revision 1.3  2003/08/25 02:14:10  davies
+# Force builds of linked objects.
+#
+# Revision 1.2  2003/08/21 07:12:16  davies
+# Fixed accidental deletion of CVS directory during "make clean".
+#
+# Revision 1.1.1.1  2003/08/21 00:58:20  davies
+# Imported sources from Lutz Gross.
+#

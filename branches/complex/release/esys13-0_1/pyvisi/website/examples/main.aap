@@ -1,0 +1,61 @@
+# main html files
+# $Id: main.aap,v 1.8 2005/06/28 04:08:30 paultcochrane Exp $
+
+Files = 
+    arrowPlot.html
+    arrowPlot2D.html
+    arrowPlot3D.html
+    ballPlot.html
+    contourPlot.html
+    contourPlotMovie.html
+    isosurfacePlot.html
+    meshPlot.html
+    multiCurveLinePlot.html
+    offsetLinePlot.html
+    offsetPlot.html
+    seismicOffsetPlot1.html
+    seismicOffsetPlot2.html
+    seismicOffsetPlot3.html
+    simpleLinePlot.html
+    simpleLinePlotMovie.html
+    singleArrayLinePlot.html
+    surfaceAndContourPlot.html
+    surfacePlot.html
+    scatterPlot.html
+    scatterPlot3D.html
+
+examplesDir = ../../examples/
+
+PyFiles =
+    $(examplesDir)arrowPlot.py
+    $(examplesDir)arrowPlot2D.py
+    $(examplesDir)arrowPlot3D.py
+    $(examplesDir)ballPlot.py
+    $(examplesDir)contourPlot.py
+    $(examplesDir)contourPlotMovie.py
+    $(examplesDir)isosurfacePlot.py
+    $(examplesDir)multiCurveLinePlot.py
+    $(examplesDir)meshPlot.py
+    $(examplesDir)offsetLinePlot.py
+    $(examplesDir)offsetPlot.py
+    $(examplesDir)seismicOffsetPlot1.py
+    $(examplesDir)seismicOffsetPlot2.py
+    $(examplesDir)seismicOffsetPlot3.py
+    $(examplesDir)simpleLinePlot.py
+    $(examplesDir)simpleLinePlotMovie.py
+    $(examplesDir)singleArrayLinePlot.py
+    $(examplesDir)surfaceAndContourPlot.py
+    $(examplesDir)surfacePlot.py
+    $(examplesDir)scatterPlot.py
+    $(examplesDir)scatterPlot3D.py
+
+# generating the source
+:print Executing the examples aap file
+
+all: copy $PyFiles $Files
+
+copy: $PyFiles
+    :sys cp $PyFiles .
+
+:rule %.html : %.py
+    :sys enscript -Epython --lang=html --color -o $target --title=$source $source

@@ -1,0 +1,375 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\usepackage{subfigure}
+\usepackage{epsfig}
+\usepackage{graphicx,color}
+\usepackage{makeidx}  % handle the index properly
+\usepackage{xspace}   % handle spaces after commands more nicely
+% use the ams math stuff, as it makes the maths easier to code, and
+% nicer output than the standard LaTeX stuff
+\usepackage{amsmath,amsfonts,amssymb} % this is handy for mathematicians and physicists
+			              % see http://www.ams.org/tex/amslatex.html
+\usepackage{alltt}   % handy verbatim stuff
+
+
+% define some handy commands for escript stuff
+\newcommand{\LINUX}{{\it Linux}\xspace}
+\newcommand{\WINDOWS}{{\it MS Windows}\xspace}
+\newcommand{\PYTHON}{{\it python}\xspace}
+% \newcommand{\netCDF}{{\it netCDF}\cite{NETCDF}\index{netCDF} \xspace}
+\newcommand{\netCDF}{{\it netCDF}\index{netCDF}\xspace}
+\newcommand{\escript}{\module{esys.escript}\xspace}
+\newcommand{\finley}{\module{esys.finley}\xspace}
+\newcommand{\esys}{\module{esys}\xspace}
+\newcommand{\pyvisi}{\module{esys.pyvisi}\xspace}
+\newcommand{\pycad}{\module{esys.pycad}\xspace}
+\newcommand{\gmsh}{\module{esys.pycad.gmsh}\xspace}
+\newcommand{\gmshextern}{{\it Gmsh}\cite{GMSH}\index{Gmsh} \xspace}
+\newcommand{\env}[1]{\textbf{\mbox{#1}}\index{Environment!#1}}
+% \newcommand{\MPI}{{\it MPI}\xspace\index{Message Passing Interface!MPI}\cite{MPI}\xspace}
+% \newcommand{\OPENMP}{{\it OpenMP}\xspace\index{OpenMP!threading}\cite{OPENMP}\xspace}
+\newcommand{\MPI}{{\it MPI}\xspace\index{Message Passing Interface!MPI}\xspace}
+\newcommand{\OPENMP}{{\it OpenMP}\xspace\index{OpenMP!threading}\xspace}
+\newcommand{\linearPDEs}{\module{esys.escript.linearPDEs}\xspace}
+\newcommand{\LinearPDE}{\class{LinearPDE}\xspace}
+\newcommand{\timeseries}{\module{esys.timeseries}\xspace}
+\newcommand{\modelframe}{\module{esys.modelframe}\xspace}
+\newcommand{\pdetools}{\module{esys.pdetools}\xspace}
+\newcommand{\esysxml}{{\it esysxml}}
+
+\newcommand{\AdvectivePDE}{\class{AdvectivePDE}\xspace}
+\newcommand{\Poisson}{\class{Poisson}\xspace}
+\newcommand{\Helmholtz}{\class{Helmholtz}\xspace}
+\newcommand{\Lame}{\class{Lame}\xspace}
+\newcommand{\Data}{\class{Data}\xspace}
+\newcommand{\EmptyData}{empty \class{Data}\index{empty Data}\xspace}
+\newcommand{\Domain}{\class{Domain}\xspace}
+%\newcommand{\VTK}{{\it vtk} \cite{VTK}\index{visualization!vtk} \xspace}
+\newcommand{\GnuPlot}{{\it gnuplot} \cite{GNUPLOT}\index{visualization!gnuplot}\index{gnuplot}}
+\newcommand{\mayavi}{{\it mayavi}\index{visualization!mayavi}\index{mayavi}}
+\newcommand{\OpenDX}{{\it OpenDX} \cite{OPENDX}\xspace}
+\newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
+\newcommand{\False}{\constant{False}\xspace}
+\newcommand{\True}{\constant{True}\xspace}
+\newcommand{\PCG}{\constant{LinearPDE.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
+\newcommand{\BiCGStab}{\constant{LinearPDE.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
+\newcommand{\Direct}{\constant{LinearPDE.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
+\newcommand{\GMRES}{\constant{LinearPDE.GMRES}\xspace\index{linear solver!GMRES}\index{GMRES}}
+\newcommand{\PRESTWENTY}{\constant{LinearPDE.PRES20}\xspace\index{linear solver!PRES20}\index{PRES20}}
+\newcommand{\JACOBI}{\constant{LinearPDE.JACOBI}\xspace\index{preconditioner!Jacobi}\index{Jacobi}}
+\newcommand{\ILU}{\constant{LinearPDE.ILU0}\xspace\index{preconditioner!ILU0}\index{ILU0}}
+\newcommand{\ILUT}{\constant{LinearPDE.ILUT}\xspace\index{preconditioner!ILUT}\index{ILUT}}
+\newcommand{\LUMPING}{\constant{LinearPDE.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
+\newcommand{\NOREORDERING}{\constant{LinearPDE.NO\hackscore REORDERING}\xspace}
+\newcommand{\MINIMUMFILLIN}{\constant{LinearPDE.MINIMUM\hackscore FILL\hackscore IN}\xspace\index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
+\newcommand{\NESTEDDESCTION}{\constant{LinearPDE.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
+
+\newcommand{\FunctionSpace}{\class{FunctionSpace}\xspace}
+\newcommand{\Operator}{\class{Operator}\xspace}
+\newcommand{\SolutionFS}{solution \class{FunctionSpace}\index{solution}\xspace}
+\newcommand{\ReducedSolutionFS}{reduced solution \class{FunctionSpace}\index{solution!reduced}\xspace}
+\newcommand{\FunctionOnBoundary}{boundary \class{FunctionSpace}\xspace}
+\newcommand{\Function}{general \class{FunctionSpace}\xspace}
+\newcommand{\FunctionOnContactZero}{contact \class{FunctionSpace} on side 0\xspace}
+\newcommand{\FunctionOnContactOne}{contact \class{FunctionSpace} on side 1\xspace}
+\newcommand{\ContinuousFunction}{continuous \class{FunctionSpace}\xspace}
+\newcommand{\RankOne}{{rank-1 \Data object}\xspace}
+\newcommand{\RankTwo}{{rank-2 \Data object}\xspace}
+\newcommand{\RankThree}{{rank-3 \Data object}\xspace}
+\newcommand{\RankFour}{{rank-4 \Data object}\xspace}
+\newcommand{\Tensor}{{tensor \Data object}\xspace}
+\newcommand{\Vector}{{vector \Data object}\xspace}
+\newcommand{\Scalar}{{scalar \Data object}\xspace}
+\newcommand{\DataSample}{{data sample}\index{data sample}\xspace}
+\newcommand{\DataSamplePoints}{{data sample points}\index{data sample!points}\xspace}
+\newcommand{\numarray}{\module{numarray}\xspace}
+\newcommand{\numarrayNA}{\module{numarray}.\class{NumArray}\xspace}
+\newcommand{\Shape}{shape\xspace\index{shape}}
+\newcommand{\Rank}{rank\xspace\index{shape}}
+\newcommand{\ExampleDirectory}{example directory\xspace}
+\newcommand{\ReferenceGuide}{\url{http://esys.esscc.uq.edu.au/docs.html}\xspace}
+\newcommand{\Point}{\class{Point} \xspace}
+\newcommand{\PropertySet}{\class{PropertySet} \xspace}
+\newcommand{\Design}{\class{Design} \xspace}
+\newcommand{\TagMap}{\class{TagMap} \xspace}
+\newcommand{\ManifoldOneD}{\class{Manifold1D} \xspace}
+\newcommand{\ManifoldTwoD}{\class{Manifold2D} \xspace}
+\newcommand{\ManifoldThreeD}{\class{Manifold3D} \xspace}
+
+% handy commands for pyvisi
+\newcommand{\VTK}{{\it VTK} \xspace}
+\newcommand{\VTKUrl}{\url{http://www.vtk.org/}\xspace}
+\newcommand{\Scene}{\class{Scene}\xspace}
+\newcommand{\Camera}{\class{Camera}\xspace}
+\newcommand{\Light}{\class{Light}\xspace}
+\newcommand{\DataCollector}{\class{DataCollector}\xspace}
+\newcommand{\ImageReader}{\class{ImageReader}\xspace}
+\newcommand{\TextTwoD}{\class{Text2D}\xspace}
+\newcommand{\ActorTwoD}{\class{Actor2D}\xspace}
+\newcommand{\ActorThreeD}{\class{Actor3D}\xspace}
+\newcommand{\Transform}{\class{Transform}\xspace}
+\newcommand{\Clipper}{\class{Clipper}\xspace}
+\newcommand{\Map}{\class{Map}\xspace}
+\newcommand{\MapOnPlaneCut}{\class{MapOnPlaneCut}\xspace}
+\newcommand{\MapOnPlaneClip}{\class{MapOnPlaneClip}\xspace}
+\newcommand{\MapOnScalarClip}{\class{MapOnScalarClip}\xspace}
+\newcommand{\MapOnScalarClipWithRotation}{\class{MapOnScalarClipWithRotation}\xspace}
+\newcommand{\GlyphThreeD}{\class{Glyph3D}\xspace}
+\newcommand{\MaskPoints}{\class{MaskPoints}\xspace}
+\newcommand{\Velocity}{\class{Velocity}\xspace}
+\newcommand{\VelocityOnPlaneCut}{\class{VelocityOnPlaneCut}\xspace}
+\newcommand{\VelocityOnPlaneClip}{\class{VelocityOnPlaneClip}\xspace}
+\newcommand{\Sphere}{\class{Sphere}\xspace}
+\newcommand{\TensorGlyph}{\class{TensorGlyph}\xspace}
+\newcommand{\Ellipsoid}{\class{Ellipsoid}\xspace}
+\newcommand{\EllipsoidOnPlaneCut}{\class{EllipsoidOnPlaneCut}\xspace}
+\newcommand{\EllipsoidOnPlaneClip}{\class{EllipsoidOnPlaneClip}\xspace}
+\newcommand{\ContourModule}{\class{ContourModule}\xspace}
+\newcommand{\Contour}{\class{Contour}\xspace}
+\newcommand{\ContourOnPlaneCut}{\class{ContourOnPlaneCut}\xspace}
+\newcommand{\ContourOnPlaneClip}{\class{ContourOnPlaneClip}\xspace}
+\newcommand{\PointSource}{\class{PointSource}\xspace}
+\newcommand{\StreamLineModule}{\class{StreamLineModule}\xspace}
+\newcommand{\Tube}{\class{Tube}\xspace}
+\newcommand{\StreamLine}{\class{StreamLine}\xspace}
+\newcommand{\Warp}{\class{Warp}\xspace}
+\newcommand{\Carpet}{\class{Carpet}\xspace}
+\newcommand{\PlaneSource}{\class{PlaneSource}\xspace}
+\newcommand{\Image}{\class{Image}\xspace}
+\newcommand{\Logo}{\class{Logo}\xspace}
+\newcommand{\ImageReslice}{\class{ImageReslice}\xspace}
+\newcommand{\Position}{\class{Position}\xspace}
+\newcommand{\DataSetMapper}{\class{DataSetMapper}\xspace}
+\newcommand{\Legend}{\class{Legend}\xspace}
+\newcommand{\ScalarBar}{\class{ScalarBar}\xspace}
+\newcommand{\Movie}{\class{Movie}\xspace}
+\newcommand{\CubeSource}{\class{CubeSource}\xspace}
+\newcommand{\Rectangle}{\class{Rectangle}\xspace}
+\newcommand{\LocalPosition}{\class{LocalPosition}\xspace}
+\newcommand{\GlobalPosition}{\class{GlobalPosition}\xspace}
+\newcommand{\Rotation}{\class{Rotation}\xspace}
+\newcommand{\thumbnailwidth}{50mm}
+
+% default width for figures
+\newcommand{\figwidth}{100mm}
+% commands useful in cross-referencing
+\newcommand {\Ref}[1] {Reference~\cite{#1}}
+\newcommand {\Sec}[1] {Section~\ref{#1}}
+\newcommand {\App}[1] {Appendix~\ref{#1}}
+\newcommand {\Chap}[1] {Chapter~\ref{#1}}
+\newcommand {\etal} {\emph{~et~al.}}
+\newcommand {\fig}[1] {Figure~\ref{#1}}
+\newcommand {\eqn}[1] {Equation~(\ref{#1})} 
+\newcommand {\tab}[1] {Table~\ref{#1}}
+
+% this stops one figure taking up a whole page and lets more text onto
+% the one page when a figure exists
+\renewcommand{\floatpagefraction}{0.8} %   Default = 0.5
+
+% improved version of caption handling
+\usepackage{ccaption}
+\captionnamefont{\scshape}
+\captionstyle{}
+\makeatletter
+\renewcommand{\fnum@figure}[1]{\quad\small\textsc{\figurename~\thefigure}:}
+\renewcommand{\@makecaption}[2]{%
+\vskip\abovecaptionskip
+\sbox\@tempboxa{#1: #2}%
+\ifdim \wd\@tempboxa >\hsize
+  \def\baselinestretch{1}\@normalsize
+  #1: #2\par
+  \def\baselinestretch{1.5}\@normalsize
+\else
+  \global \@minipagefalse
+  \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+\fi
+\vskip\belowcaptionskip}
+\makeatother
+
+% \usepackage{fancyvrb}  % fancy verbatim stuff.  Needed so code below goes
+%%% this code grabbed from the PyScript docs
+%%% pyscript.sourceforge.net
+
+% --------------------------------------------------------------
+% Code format within \Verb
+% --------------------------------------------------------------
+
+% \definecolor{pycolor}{rgb}{0,0.4,0}
+
+%% \DefineVerbatimEnvironment{python}{Verbatim}
+%% {frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
+%% formatcom=\color{pycolor}\small,fontshape=rm}
+
+%\DefineShortVerb[formatcom=\color{dgreen}\small,fontshape=sl]{\|}
+
+% \RecustomVerbatimCommand{\Verb}{Verb}{formatcom=\color{pycolor}\small,fontshape=rm}
+
+%%% end of grabbed code
+
+% this is for when one uses pdflatex and therefore needs to load pdf
+% figures into \includegraphics
+\ifpdf
+	\DeclareGraphicsExtensions{.pdf}  % this command defined in graphicx
+	\pdfcompresslevel=9  % 0: no compression, 9: highest compression
+			     % or, set compress_level 9 in file pdftex.cfg
+\else
+	\DeclareGraphicsExtensions{.eps}
+\fi
+
+% defines the colour for the background of code examples
+\definecolor{LightGrey}{gray}{0.9}
+
+% add the listings package to pretty print the code output
+\usepackage{listings}
+
+
+%Some colour definitions added to keep pdflatex happy
+%I make no claim that these values are particularly good
+\definecolor{Purple}{rgb}{0.7, 0, 0.6}
+\definecolor{Tan}{rgb}{0.5,0.5,0.5}
+\definecolor{BrickRed}{rgb}{0.7, 0.2, 0.2}
+
+% All the \color{x} used to be \color[named]{x}
+%end color defs
+
+\lstdefinestyle{myC++}{%
+%\lstset{%
+language=C++,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
+morekeywords={,complex,}%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myMatlab}{%
+%\lstset{%
+language=Matlab,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myScilab}{%
+%\lstset{%
+language=Scilab,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myShell}{%
+%\lstset{%
+language=ksh,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{Black}\ttfamily,
+keywordstyle=\color{Black}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Black}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myPython}{%
+%\lstset{%
+language=python,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,%
+frame=none,%
+%backgroundcolor=\color{LightGrey}%
+}
+
+\lstdefinestyle{myhtml}{%
+%\lstset{%
+language=xml,
+showstringspaces=false,
+basicstyle=\small\ttfamily,
+commentstyle=\color{BrickRed}\ttfamily,
+keywordstyle=\color{Purple}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Tan}\ttfamily,
+morekeywords={,simulation,prop_dim,error_check,stochastic,%
+  globals,field,dimensions,lattice,domains,samples,vector,%
+  components,fourier_space,sequence,integrate,algorithm,%
+  interval,k_operators,constant,operator_names,vectors,%
+  output,filename,group,sampling,moments,benchmark,use_double,%
+  use_wisdom,use_prefs,binary_output,cycles,filter,post_propagation,%
+  default_value,argv,arg,iterations,cross_propagation,%
+  use_mpi,paths,seed,noises,author,description,name,type,%
+}
+frame=none,%
+%framerule=2pt,%
+backgroundcolor=\color{LightGrey}%
+}
+
+% this implements producing nice code blocks
+% it also saves time, typing and
+% *should* reduce errors in the text by removing doubling up of code
+\lstnewenvironment{xmdsCode}[1][]{\lstset{style=myhtml}\lstset{#1}}{}
+
+% this implements nicely formatted shell code
+\lstnewenvironment{shellCode}[1][]{\lstset{style=myShell}\lstset{#1}}{}
+
+% this implements nicely formatted Perl code
+\lstnewenvironment{perlCode}[1][]{\lstset{style=myPerl}\lstset{#1}}{}
+
+% this implements nicely formatted Python code
+\lstnewenvironment{python}[1][]{\lstset{style=myPython}\lstset{#1}}{}
+
+% this implements nicely formatted C++ code
+\lstnewenvironment{CCode}{\lstset{style=myC++}}{}
+
+% this implements nicely formatted matlab code
+\lstnewenvironment{matlabCode}{\lstset{style=myMatlab}}{}
+
+% this implements nicely formatted scilab code
+\lstnewenvironment{scilabCode}{\lstset{style=myScilab}}{}
+
+%Ensures that latex doesn't have an error if we don't specify the version
+\providecommand{\RepVersion}{Unknown\xspace}
+% to set this value use:
+% (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{guide.tex}'
+% as your command-line

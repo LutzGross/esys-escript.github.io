@@ -1,0 +1,44 @@
+\chapter{Misc}
+
+
+\section{Building gcc}\label{sec:gccbuilding}
+This section explains how to build gcc from source.
+These instructions have been tested on MacOS\footnote{Lion specifically} (where they are most needed).
+
+Create a directory and put the following files in it (change version numbers as required).
+\begin{itemize}
+ \item gmp-4.3.2.tar.bz2 (eg \url{ftp://gcc.gnu.org/pub/gcc/infrastructure})
+ \item mpfr-2.4.2.tar.bz2 (eg \url{http://www.mpfr.org/})
+ \item mpc-0.8.1.tar.gz (eg \url{mpc-0.8.1.tar.gz})
+ \item gcc source (eg \url{http://gcc.gnu.org/gcc-4.7/}
+\end{itemize}
+
+Change into the directory you created and
+\begin{shellCode}
+tar -xjf gmp-4.3.2.tar.bz2
+tar -xjf mpfr-2.4.2.tar.bz2
+tar -xzf mpc-0.8.1.tar.gz
+tar -xjf gcc-4.7.1.tar.bz2
+mv gmp-4.3.2 gcc-4.7.1/gmp
+mv mpc-0.8.1 gcc-4.7.1/mpc
+mv mpfr-2.4.2 gcc-4.7.1/mpfr
+
+cd gcc-4.7.1
+\end{shellCode}
+
+\noindent Note that in the next step we specify the architecture explicitly.
+This is because (on our test platform at least) some of the parts default to different architectures.
+
+\begin{shellCode}
+./configure --build=amd64-apple-darwin11.4.0
+make 
+\end{shellCode}
+
+\noindent Now go have several coffees, watch a movie or cook a roast.
+
+\noindent Once the build has completed:
+\begin{shellCode}
+sudo make install 
+\end{shellCode}
+
+\noindent Once this is done you can remove the directory you created at the beginning of this section.

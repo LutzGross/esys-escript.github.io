@@ -1,0 +1,38 @@
+<!-- $Id: index_body.part,v 1.10 2005/04/29 00:50:31 paultcochrane Exp $ -->
+
+<h1>Pyvisi - The Python Visualisation Interface</h1>
+  
+<hr class="top" />
+
+<h2>Introduction</h2>
+
+<p> 
+Pyvisi is intended to be a generic, 
+<a href="http://www.python.org">Python</a>-language-based generic
+interface to many packages used in scientific visualisation. The idea is
+that the user writes one set of code to plot a set of data (say), and then
+can choose to use one of many "backends" or 
+<a href="renderers.html">"renderer modules"</a> to actually 
+perform the task of visualising the data.  For instance, one could use 
+<a href="http://www.vtk.org">vtk</a> to visualise certain
+kinds of three-dimensional data, but then for very high quality output, one
+might wish to use <a href="http://www.povray.org">PovRay</a>, 
+or <a href="http://www.renderman.org">Renderman</a> for the same data. 
+With pyvisi, one
+would have to change one line of code (that specifying the underlying
+renderer for the visualisation) in order to use the relevant package. The
+interface then goes off and handles all of the messy internal details about
+dealing with that particular engine, leaving a consistent interface for the
+user. It is intended that the software will have a good overall structure,
+and API, in order that developers can reasonably easily add new backends to
+the interface, and these can just be imported as modules in the usual way in
+Python. The code is written in Python, and is therefore platform
+independent, however, it is likely that it will run better on
+Unix/Linux-based operating systems.  
+</p>
+<p>
+The current version of pyvisi is: 0.1-pre-alpha-3, so it's still in its
+infancy, however, the gnuplot renderer module has several features and is
+quite usable.
+</p>
+

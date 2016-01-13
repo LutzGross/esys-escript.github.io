@@ -1,0 +1,52 @@
+
+########################################################
+#
+# Copyright (c) 2003-2011 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+import os
+Import('*')
+local_env = env.Clone()
+
+sources = """
+    TestCase.cpp
+    TestFailure.cpp
+    TestResult.cpp
+    TestRunner.cpp
+    TestSuite.cpp
+    TextTestResult.cpp
+""".split()
+
+headers = """
+    CppUnitException.h
+    CppUnitTestNamespace.h
+    Guards.h
+    Test.h
+    TestCaller.h
+    TestCase.h
+    TestFailure.h
+    TestResult.h
+    TestRunner.h
+    TestSuite.h
+    TextTestResult.h
+    estring.h
+""".split()
+
+lib = local_env.StaticLibrary('CppUnitTest', sources)
+env.Alias('build_cppunittest_lib', lib)
+
+include_path = Dir('tools/CppUnitTest', local_env['incinstall'])
+
+hdr_inst = local_env.Install(include_path, headers)
+env.Alias('install_cppunittest_headers', hdr_inst)
+
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+env.Alias('install_cppunittest_lib', lib_inst)
+

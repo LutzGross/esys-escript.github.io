@@ -1,0 +1,72 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2013 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Notes about compilers
+
+\chapter{Compilers}\label{chap:compiler}
+
+If you compiling escript yourself, you should be aware of the capabilities of the compiler you use.
+In particular, whether or not it supports \openmp.
+Escript is primarily tested on recent versions of the GNU or Intel suites (``gcc, g++'' / ``icc, icpc'').
+However, it also passes our tests when compiled using ``clang, clang++''.
+[This section does not discuss the Microsoft compiler].
+
+One of the benefits of compiling \escript rather than using the binary packages, is that your build of escript
+can make use of mutiple cpu-cores on your system.
+\escript can make use of two mechanisms for parallelism.
+\openmp uses multi-threading and is the more efficient approach on a single computer.
+\mpi executes a number of sub-programs and can be used when \openmp is not available (or in more 
+advanced settings, where mutiple computers are in use).
+The table below shows which types of parallelism are available under which compilers.
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|}\hline
+ & Serial & OpenMP & MPI \\\hline
+ $\leq$ gcc-4.2.1 & \checkmark & \raisebox{-0.1cm}{\footnotemark}& \checkmark \\\hline
+ gcc (recent $geq 4.3.2$)  & \checkmark& \checkmark& \checkmark \\\hline
+ icc(10) & \checkmark& \checkmark& \checkmark \\\hline
+ icc(11) & \checkmark& \raisebox{-0.1cm}{\footnotemark}  &\checkmark \\\hline
+ icc(12) & \checkmark& \checkmark&\checkmark \\\hline
+ clang & \checkmark& & \checkmark\\\hline
+\end{tabular}
+\end{center}
+\addtocounter{footnote}{-1}
+\footnotetext{The \openmp support in gcc-4.2.1 is buggy. In particular, the version of gcc-4.2.1 
+distributed by Apple, requires extra compile options to build escript. 
+Even when built, escript crashes in tests.}
+\addtocounter{footnote}{1}
+\footnotetext{There is a subtle bug in icc-11 when \openmp and c++ exception handling 
+are combined.}
+
+\noindent Where both \openmp and \mpi are marked, \escript can be compiled with either or both.
+A \checkmark mark means that combination passes our tests.
+We use OpenMPI or IntelMPI depending on what is available on the system.
+
+
+
+\section{Compiling on OSX}
+Older versions of OSX (eg ``Leopard'') come with an optional ``developer tools'' package on their install media.
+Newer versions (eg ``Lion'') require users to have an iTunes account to be able to download XCode.
+Alternatively, there is at least one project\footnote{\url{http://hpc.sourceforge.net/} --- 
+the escript development team has no connection with this project} which offers builds of gcc for OSX for download.
+
+At this time,  the best (although not simplest) option seems to be to use either of the compilers 
+provided by Apple to build a more up to date version of gcc ($4.7$ at time of writing).
+If you already use a package management system such as MacPorts you may be able to get updated compilers using them.
+If you do not already use a package manager then it may be simpler just to build it yourself from source.
+This actually turns out to be pretty easy, see Section~\ref{sec:gccbuilding} for instructions.
+
+
+
+
+

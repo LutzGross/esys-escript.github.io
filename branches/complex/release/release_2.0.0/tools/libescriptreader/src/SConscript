@@ -1,0 +1,58 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+sources = """
+    escriptreader/DataVar.cpp
+    escriptreader/ElementData.cpp
+    escriptreader/Mesh.cpp
+    escriptreader/MeshWithElements.cpp
+    escriptreader/MPDataSet.cpp
+""".split()
+
+headers = """
+    escriptreader/DataVar.h
+    escriptreader/ElementData.h
+    escriptreader/Mesh.h
+    escriptreader/MeshWithElements.h
+    escriptreader/MPDataSet.h
+    escriptreader/common.h
+""".split()
+
+local_env = clone_env(env)
+local_env.AppendUnique(LIBS = [env["silo_libs"]])
+lib = local_env.SharedLibrary("escriptreader", sources)
+env.Alias("target_escriptreader_so", lib)
+
+include_path = Dir("escriptreader", env["incinstall"])
+local_env.Install(include_path, headers)
+inst_lib = local_env.Install(env["libinstall"], lib)
+
+# need new environment for escript2silo to avoid dependency cycle
+local_env = clone_env(env)
+local_env.AppendUnique(LIBS = [env["silo_libs"], "escriptreader"])
+prog = local_env.Program("escript2silo", ["escript2silo.cpp"])
+env.Alias("target_escript2silo", prog)
+inst_e2s = local_env.Install(local_env["bininstall"], prog)
+env.Alias("target_install_escript2silo", inst_e2s)
+
+# esdcreate has no other dependencies
+local_env = clone_env(env)
+prog = local_env.Program("esdcreate", "esdcreate.cpp")
+env.Alias("target_esdcreate", prog)
+inst_esdcreate = local_env.Install(local_env["bininstall"], prog)
+env.Alias("target_install_esdcreate", inst_esdcreate)
+

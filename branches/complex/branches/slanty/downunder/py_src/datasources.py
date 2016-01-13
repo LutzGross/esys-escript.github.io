@@ -1,0 +1,979 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2013 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development since 2012 by School of Earth Sciences
+#
+##############################################################################
+
+"""Data readers/providers for inversions"""
+
+__copyright__="""Copyright (c) 2003-2013 by University of Queensland
+http://www.uq.edu.au
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="https://launchpad.net/escript-finley"
+
+__all__ = ['simpleGeoMagneticFluxDensity', 'DataSource', 'ErMapperData', \
+        'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
+        'SmoothAnomaly']
+
+import logging
+import numpy as np
+from esys.escript import ReducedFunction
+from esys.escript import unitsSI as U
+from esys.escript.linearPDEs import LinearSinglePDE
+from esys.escript.util import *
+from esys.ripley import ripleycpp
+
+try:
+    from scipy.io.netcdf import netcdf_file
+    __all__ += ['NetCdfData']
+except:
+    pass
+
+def LatLonToUTM(lon, lat, wkt_string=None):
+    """
+    Converts one or more longitude,latitude pairs to the corresponding x,y
+    coordinates in the Universal Transverse Mercator projection.
+
+    :note: The ``pyproj`` module is required for this method. If it is not
+           found an exception is raised.
+    :note: If `wkt_string` is not given or invalid or the ``gdal`` module is
+           not available to convert the string, then the input values are
+           assumed to be using the Clarke 1866 ellipsoid.
+
+    :param lon: longitude value(s)
+    :type lon: ``float``, ``list``, ``tuple``, or ``numpy.array``
+    :param lat: latitude value(s)
+    :type lat: ``float``, ``list``, ``tuple``, or ``numpy.array``
+    :param wkt_string: Well-known text (WKT) string describing the coordinate
+                       system used. The ``gdal`` module is used to convert
+                       the string to the corresponding Proj4 string.
+    :type wkt_string: ``str``
+    :rtype: ``tuple``
+    """
+
+    try:
+        import pyproj
+    except:
+        raise ImportError("In order to perform coordinate transformations on "
+        "the data you are using the 'pyproj' Python module is required but "
+        "was not found. Please install the module and try again.")
+
+    # determine UTM zone from the input data
+    zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
+    try:
+        import osgeo.osr
+        srs = osgeo.osr.SpatialReference()
+        srs.ImportFromWkt(wkt_string)
+        p_src = pyproj.Proj(srs.ExportToProj4())
+    except:
+        p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
+
+    # check for hemisphere
+    if np.median(np.array(lat)) < 0.:
+        south='+south '
+    else:
+        south=''
+    p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m'%(zone,south))
+    x,y=pyproj.transform(p_src, p_dest, lon, lat)
+    return x,y,zone
+
+def simpleGeoMagneticFluxDensity(latitude, longitude=0.):
+    """
+    Returns an approximation of the geomagnetic flux density B at the given
+    `latitude`. The parameter `longitude` is currently ignored.
+
+    :rtype: ``tuple``
+    """
+    theta = (90-latitude)/180.*np.pi
+    B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
+    B_theta= B_0 * sin(theta)
+    B_r= 2 * B_0 * cos(theta)
+    return B_r, B_theta, 0.
+
+class DataSource(object):
+    """
+    A class that provides survey data for the inversion process.
+    This is an abstract base class that implements common functionality.
+    Methods to be overwritten by subclasses are marked as such.
+    This class assumes 2D data which is mapped to a slice of a 3D domain.
+    For other setups override the methods as required.
+    """
+
+    GRAVITY, MAGNETIC = list(range(2))
+
+    def __init__(self):
+        """
+        Constructor. Sets some defaults and initializes logger.
+        """
+        self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
+        self.__subsampling_factor=1
+
+    def getDataExtents(self):
+        """
+        returns a tuple of tuples ``( (x0, y0), (nx, ny), (dx, dy) )``, where
+
+        - ``x0``, ``y0`` = coordinates of data origin
+        - ``nx``, ``ny`` = number of data points in x and y
+        - ``dx``, ``dy`` = spacing of data points in x and y
+
+        This method must be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def getDataType(self):
+        """
+        Returns the type of survey data managed by this source.
+        Subclasses must return `GRAVITY` or `MAGNETIC` as appropriate.
+        """
+        raise NotImplementedError
+
+    def getSurveyData(self, domain, origin, NE, spacing):
+        """
+        This method is called by the `DomainBuilder` to retrieve the survey
+        data as `Data` objects on the given domain.
+
+        Subclasses should return one or more `Data` objects with survey data
+        interpolated on the given `escript` domain. The exact return type
+        depends on the type of data.
+
+        :param domain: the escript domain to use
+        :type domain: `esys.escript.Domain`
+        :param origin: the origin coordinates of the domain
+        :type origin: ``tuple`` or ``list``
+        :param NE: the number of domain elements in each dimension
+        :type NE: ``tuple`` or ``list``
+        :param spacing: the cell sizes (node spacing) in the domain
+        :type spacing: ``tuple`` or ``list``
+        """
+        raise NotImplementedError
+
+    def getUtmZone(self):
+        """
+        All data source coordinates are converted to UTM (Universal Transverse
+        Mercator) in order to have useful domain extents. Subclasses should
+        implement this method and return the UTM zone number of the projected
+        coordinates.
+        """
+        raise NotImplementedError
+
+    def setSubsamplingFactor(self, f):
+        """
+        Sets the data subsampling factor (default=1).
+
+        The factor is applied in all dimensions. For example a 2D dataset
+        with 300 x 150 data points will be reduced to 150 x 75 when a
+        subsampling factor of 2 is used.
+        This becomes important when adding data of varying resolution to
+        a `DomainBuilder`.
+        """
+        self.__subsampling_factor=f
+
+    def getSubsamplingFactor(self):
+        """
+        Returns the subsampling factor that was set via `setSubsamplingFactor`
+        (see there).
+        """
+        return self.__subsampling_factor
+
+
+##############################################################################
+class ErMapperData(DataSource):
+    """
+    Data Source for ER Mapper raster data.
+    Note that this class only accepts a very specific type of ER Mapper data
+    input and will raise an exception if other data is found.
+    """
+    def __init__(self, data_type, headerfile, datafile=None, altitude=0.,
+                 error=None, scale_factor=None, null_value=None):
+        """
+        :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
+        :type data_type: ``int``
+        :param headerfile: ER Mapper header file (usually ends in .ers)
+        :type headerfile: ``str``
+        :param datafile: ER Mapper binary data file name. If not supplied the
+                         name of the header file without '.ers' is assumed
+        :type datafile: ``str``
+        :param altitude: altitude of measurements above ground in meters
+        :type altitude: ``float``
+        :param error: constant value to use for the data uncertainties.
+                      If a value is supplied, it is scaled by the same factor
+                      as the measurements. If not provided the error is
+                      assumed to be 2 units for all measurements (i.e. 0.2
+                      mGal and 2 nT for gravity and magnetic, respectively)
+        :type error: ``float``
+        :param scale_factor: the measurements and error values are scaled by
+                             this factor. By default, gravity data is assumed
+                             to be given in 1e-6 m/s^2 (0.1 mGal), while
+                             magnetic data is assumed to be in 1e-9 T (1 nT).
+        :type scale_factor: ``float``
+        :param null_value: value that is used in the file to mark undefined
+                           areas. This information is usually included in the
+                           file.
+        :type null_value: ``float``
+        """
+        super(ErMapperData, self).__init__()
+        self.__headerfile=headerfile
+        if datafile is None:
+            self.__datafile=headerfile[:-4]
+        else:
+            self.__datafile=datafile
+        self.__altitude=altitude
+        self.__data_type=data_type
+        self.__utm_zone = None
+        self.__scale_factor = scale_factor
+        self.__null_value = null_value
+        self.__error_value = error
+        self.__readHeader()
+
+    def __readHeader(self):
+        self.logger.debug("Checking Data Source: %s (header: %s)"%(self.__datafile, self.__headerfile))
+        metadata=open(self.__headerfile, 'r').readlines()
+        start=-1
+        for i in range(len(metadata)):
+            if metadata[i].strip() == 'DatasetHeader Begin':
+                start=i+1
+        if start==-1:
+            raise RuntimeError('Invalid ER Mapper header file ("DatasetHeader" not found)')
+
+        # parse header file filling dictionary of found values
+        md_dict={}
+        section=[]
+        for i in range(start, len(metadata)):
+            line=metadata[i].strip()
+            if line[-6:].strip() == 'Begin':
+                section.append(line[:-6].strip())
+            elif line[-4:].strip() == 'End':
+                if len(section)>0:
+                    section.pop()
+            else:
+                vals=line.split('=')
+                if len(vals)==2:
+                    key = vals[0].strip()
+                    value = vals[1].strip()
+                    fullkey='.'.join(section+[key])
+                    md_dict[fullkey]=value
+
+        # check that that the data format/type is supported
+        try:
+            if md_dict['ByteOrder'] != 'LSBFirst':
+                raise RuntimeError('Unsupported byte order '+md_dict['ByteOrder'])
+        except KeyError:
+            self.logger.warn("Byte order not specified. Assuming LSB first.")
+
+        try:
+            if md_dict['DataType'] != 'Raster':
+                raise RuntimeError('Unsupported data type '+md_dict['DataType'])
+        except KeyError:
+            self.logger.warn("Data type not specified. Assuming raster data.")
+
+        try:
+            if md_dict['RasterInfo.CellType'] != 'IEEE4ByteReal':
+                raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
+        except KeyError:
+            self.logger.warn("Cell type not specified. Assuming IEEE4ByteReal.")
+
+        try:
+            fileOffset = int(md_dict['HeaderOffset'])
+        except:
+            fileOffset = 0
+        if fileOffset > 0:
+            raise RuntimeError("ER Mapper data with header offset >0 not supported.")
+
+        # now extract required information
+        try:
+            NX = int(md_dict['RasterInfo.NrOfCellsPerLine'])
+            NY = int(md_dict['RasterInfo.NrOfLines'])
+        except:
+            raise RuntimeError("Could not determine extents of data")
+
+        ### mask/null value
+        # note that NaN is always filtered out in ripley
+        if self.__null_value is None:
+            try:
+                self.__null_value = float(md_dict['RasterInfo.NullCellValue'])
+            except:
+                self.logger.debug("Could not determine null value, using default.")
+                self.__null_value = 99999
+        elif not isinstance(self.__null_value,float) and not isinstance(self.__null_value,int):
+            raise TypeError("Invalid type of null_value parameter")
+
+        try:
+            spacingX = float(md_dict['RasterInfo.CellInfo.Xdimension'])
+            spacingY = float(md_dict['RasterInfo.CellInfo.Ydimension'])
+        except:
+            raise RuntimeError("Could not determine cell dimensions")
+
+        try:
+            if md_dict['CoordinateSpace.CoordinateType']=='EN':
+                originX = float(md_dict['RasterInfo.RegistrationCoord.Eastings'])
+                originY = float(md_dict['RasterInfo.RegistrationCoord.Northings'])
+            elif md_dict['CoordinateSpace.CoordinateType']=='LL':
+                originX = float(md_dict['RasterInfo.RegistrationCoord.Longitude'])
+                originY = float(md_dict['RasterInfo.RegistrationCoord.Latitude'])
+            else:
+                raise RuntimeError("Unknown CoordinateType")
+        except:
+            self.logger.warn("Could not determine coordinate origin. Setting to (0.0, 0.0)")
+            originX,originY = 0.0, 0.0
+
+        # data sets have origin in top-left corner so y runs top-down and
+        # we need to flip accordingly
+        originY-=NY*spacingY
+
+        if 'GEODETIC' in md_dict['CoordinateSpace.Projection']:
+            # it appears we have lat/lon coordinates so need to convert
+            # origin and spacing. Try using gdal to get the wkt if available:
+            try:
+                from osgeo import gdal
+                ds=gdal.Open(self.__headerfile)
+                wkt=ds.GetProjection()
+            except:
+                wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
+                self.logger.warn('GDAL not available or file read error, assuming GDA94 data')
+            originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
+            op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+            self.__utm_zone = zone
+            # we are rounding to avoid interpolation issues
+            spacingX=np.round(op1X-originX_UTM)
+            spacingY=np.round(op1Y-originY_UTM)
+            originX=np.round(originX_UTM)
+            originY=np.round(originY_UTM)
+
+        self.__dataorigin=[originX, originY]
+        self.__delta = [spacingX, spacingY]
+        self.__nPts = [NX, NY]
+        self.__origin = [originX, originY]
+        ### scale factor
+        if self.__scale_factor is None:
+            if self.__data_type == self.GRAVITY:
+                self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
+                self.__scale_factor = 1e-6
+            else:
+                self.logger.info("Assuming magnetic data units are 'nT'.")
+                self.__scale_factor = 1e-9
+
+        ### error value
+        if self.__error_value is None:
+            self.__error_value = 2.
+        elif not isinstance(self.__error_value,float) and not isinstance(self.__error_value,int):
+            raise TypeError("Invalid type of error parameter")
+
+
+    def getDataExtents(self):
+        """
+        returns ( (x0, y0), (nx, ny), (dx, dy) )
+        """
+        return (list(self.__origin), list(self.__nPts), list(self.__delta))
+
+    def getDataType(self):
+        return self.__data_type
+
+    def getSurveyData(self, domain, origin, NE, spacing):
+        nValues=self.__nPts
+        # determine base location of this dataset within the domain
+        first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
+        if domain.getDim()==3:
+            first.append(int((self.__altitude-origin[2])/spacing[2]))
+            nValues=nValues+[1]
+
+        data=ripleycpp._readBinaryGrid(self.__datafile,
+                ReducedFunction(domain),
+                first, nValues, (), self.__null_value)
+        sigma = self.__error_value * whereNonZero(data-self.__null_value)
+
+        data = data * self.__scale_factor
+        sigma = sigma * self.__scale_factor
+        return data, sigma
+
+    def getUtmZone(self):
+        return self.__utm_zone
+
+
+##############################################################################
+class NetCdfData(DataSource):
+    """
+    Data Source for gridded netCDF data that use CF/COARDS conventions.
+    """
+    def __init__(self, data_type, filename, altitude=0., data_variable=None,
+                       error=None, scale_factor=None, null_value=None):
+        """
+        :param filename: file name for survey data in netCDF format
+        :type filename: ``str``
+        :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
+        :type data_type: ``int``
+        :param altitude: altitude of measurements in meters
+        :type altitude: ``float``
+        :param data_variable: name of the netCDF variable that holds the data.
+                              If not provided an attempt is made to determine
+                              the variable and an exception thrown on failure.
+        :type data_variable: ``str``
+        :param error: either the name of the netCDF variable that holds the
+                      uncertainties of the measurements or a constant value
+                      to use for the uncertainties. If a constant value is
+                      supplied, it is scaled by the same factor as the
+                      measurements. If not provided the error is assumed to
+                      be 2 units for all measurements (i.e. 0.2 mGal and 2 nT
+                      for gravity and magnetic, respectively)
+        :type error: ``str`` or ``float``
+        :param scale_factor: the measurements and error values are scaled by
+                             this factor. By default, gravity data is assumed
+                             to be given in 1e-6 m/s^2 (0.1 mGal), while
+                             magnetic data is assumed to be in 1e-9 T (1 nT).
+        :type scale_factor: ``float``
+        :param null_value: value that is used in the file to mark undefined
+                           areas. This information is usually included in the
+                           file.
+        :type null_value: ``float``
+        """
+        super(NetCdfData,self).__init__()
+        self.__filename=filename
+        if not data_type in [self.GRAVITY,self.MAGNETIC]:
+            raise ValueError("Invalid value for data_type parameter")
+        self.__data_type = data_type
+        self.__altitude = altitude
+        self.__data_name = data_variable
+        self.__scale_factor = scale_factor
+        self.__null_value = null_value
+        self.__readMetadata(error)
+
+    def __readMetadata(self, error):
+        self.logger.debug("Checking Data Source: %s"%self.__filename)
+        f=netcdf_file(self.__filename, 'r')
+
+        ### longitude- / X-dimension and variable
+        NX=0
+        for n in ['lon','longitude','x']:
+            if n in f.dimensions:
+                NX=f.dimensions[n]
+                lon_name=n
+                break
+        if NX==0:
+            raise RuntimeError("Could not determine extents of data")
+
+        # CF/COARDS states that coordinate variables have the same name as
+        # the dimensions
+        if not lon_name in f.variables:
+            raise RuntimeError("Could not determine longitude variable")
+        longitude=f.variables.pop(lon_name)
+
+        ### latitude- / Y-dimension and variable
+        NY=0
+        for n in ['lat','latitude','y']:
+            if n in f.dimensions:
+                NY=f.dimensions[n]
+                lat_name=n
+                break
+        if NY==0:
+            raise RuntimeError("Could not determine extents of data")
+        if not lat_name in f.variables:
+            raise RuntimeError("Could not determine latitude variable")
+        latitude=f.variables.pop(lat_name)
+
+        ### data variable
+        if self.__data_name is not None:
+            try:
+                dims = f.variables[self.__data_name].dimensions
+                if not ((lat_name in dims) and (lon_name in dims)):
+                    raise ValueError("Invalid data variable name supplied")
+            except KeyError:
+                raise ValueError("Invalid data variable name supplied")
+        else:
+            for n in f.variables.keys():
+                dims=f.variables[n].dimensions
+                if (lat_name in dims) and (lon_name in dims):
+                    self.__data_name=n
+                    break
+        if self.__data_name is None:
+            raise RuntimeError("Could not determine data variable")
+
+        datavar = f.variables[self.__data_name]
+
+        ### error value/variable
+        self.__error_name = None
+        if isinstance(error,str):
+            try:
+                dims = f.variables[error].dimensions
+                if not ((lat_name in dims) and (lon_name in dims)):
+                    raise ValueError("Invalid error variable name supplied")
+            except KeyError:
+                raise ValueError("Invalid error variable name supplied")
+            self.__error_name = error
+        elif isinstance(error,float) or isinstance(error,int):
+            self.__error_value = float(error)
+        elif error is None:
+            self.__error_value = 2.
+        else:
+            raise TypeError("Invalid type of error parameter")
+
+        ### mask/null value
+        # note that NaN is always filtered out in ripley
+        if self.__null_value is None:
+            if hasattr(datavar, 'missing_value'):
+                self.__null_value = float(datavar.missing_value)
+            elif hasattr(datavar, '_FillValue'):
+                self.__null_value = float(datavar._FillValue)
+            else:
+                self.logger.debug("Could not determine null value, using default.")
+                self.__null_value = 99999
+        elif not isinstance(self.__null_value,float) and not isinstance(self.__null_value,int):
+            raise TypeError("Invalid type of null_value parameter")
+
+        # try to determine units of data - this is disabled until we obtain a
+        # file with valid information
+        #if hasattr(f.variables[data_name], 'units'):
+        #   units=f.variables[data_name].units
+
+        ### scale factor
+        if self.__scale_factor is None:
+            if self.__data_type == self.GRAVITY:
+                self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
+                self.__scale_factor = 1e-6
+            else:
+                self.logger.info("Assuming magnetic data units are 'nT'.")
+                self.__scale_factor = 1e-9
+
+        # see if there is a WKT string to convert coordinates
+        try:
+            wkt_string=datavar.esri_pe_string
+        except:
+            wkt_string=None
+
+        # actual_range & geospatial_lon_min/max do not always contain correct
+        # values so we have to obtain the min/max in a less efficient way:
+        lon_range=longitude.data.min(),longitude.data.max()
+        lat_range=latitude.data.min(),latitude.data.max()
+        lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+        self.__utm_zone = zone
+        lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
+        f.close()
+
+        self.__nPts=[NX, NY]
+        self.__origin=[lon_range[0],lat_range[0]]
+        # we are rounding to avoid interpolation issues
+        self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in range(2)]
+
+    def getDataExtents(self):
+        """
+        returns ( (x0, y0), (nx, ny), (dx, dy) )
+        """
+        return (list(self.__origin), list(self.__nPts), list(self.__delta))
+
+    def getDataType(self):
+        return self.__data_type
+
+    def getSurveyData(self, domain, origin, NE, spacing):
+        FS=ReducedFunction(domain)
+        nValues=self.__nPts
+        # determine base location of this dataset within the domain
+        first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
+        if domain.getDim()==3:
+            first.append(int((self.__altitude-origin[2])/spacing[2]))
+            nValues=nValues+[1]
+
+        data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
+                                     first, nValues, (), self.__null_value)
+        if self.__error_name is not None:
+            sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
+                                          FS, first, nValues, (), 0.)
+        else:
+            sigma = self.__error_value * whereNonZero(data-self.__null_value)
+
+        data = data * self.__scale_factor
+        sigma = sigma * self.__scale_factor
+        return data, sigma
+
+    def getUtmZone(self):
+        return self.__utm_zone
+
+
+##############################################################################
+class SourceFeature(object):
+    """
+    A feature adds a density/susceptibility distribution to (parts of) a
+    domain of a synthetic data source, for example a layer of a specific
+    rock type or a simulated ore body.
+    """
+    def getValue(self):
+        """
+        Returns the value for the area covered by mask. It can be constant
+        or a `Data` object with spatial dependency.
+        """
+        raise NotImplementedError
+
+    def getMask(self, x):
+        """
+        Returns the mask of the area of interest for this feature. That is,
+        mask is non-zero where the value returned by `getValue()` should be
+        applied, zero elsewhere.
+        """
+        raise NotImplementedError
+
+class SmoothAnomaly(SourceFeature):
+    """
+    A source feature in the form of a blob (roughly gaussian).
+    """
+    def __init__(self, lx, ly, lz, x, y, depth, v_inner=None, v_outer=None):
+        """
+        Intializes the smooth anomaly data.
+
+        :param lx: size of blob in x-dimension
+        :param ly: size of blob in y-dimension
+        :param lz: size of blob in z-dimension
+        :param x: location of blob in x-dimension
+        :param y: location of blob in y-dimension
+        :param depth: depth of blob
+        :param v_inner: value in the centre of the blob
+        :param v_outer: value in the periphery of the blob
+        """
+        self.x=x
+        self.y=y
+        self.lx=lx
+        self.ly=ly
+        self.lz=lz
+        self.depth=depth
+        self.v_inner=v_inner
+        self.v_outer=v_outer
+        self.value=None
+        self.mask=None
+
+    def getValue(self,x):
+        if self.value is None:
+            if self.v_outer is None or self.v_inner is None:
+                self.value=0
+            else:
+                DIM=x.getDomain().getDim()
+                alpha=-log(abs(self.v_outer/self.v_inner))*4
+                value=exp(-alpha*((x[0]-self.x)/self.lx)**2)
+                value=value*exp(-alpha*((x[DIM-1]+self.depth)/self.lz)**2)
+                self.value=maximum(abs(self.v_outer), abs(self.v_inner*value))
+                if self.v_inner<0: self.value=-self.value
+
+        return self.value
+
+    def getMask(self, x):
+        DIM=x.getDomain().getDim()
+        m=whereNonNegative(x[DIM-1]+self.depth+self.lz/2) * whereNonPositive(x[DIM-1]+self.depth-self.lz/2) \
+            *whereNonNegative(x[0]-(self.x-self.lx/2)) * whereNonPositive(x[0]-(self.x+self.lx/2))
+        if DIM>2:
+            m*=whereNonNegative(x[1]-(self.y-self.ly/2)) * whereNonPositive(x[1]-(self.y+self.ly/2))
+        self.mask = m
+        return m
+
+##############################################################################
+class SyntheticDataBase(DataSource):
+    """
+    Base class to define reference data based on a given property distribution
+    (density or susceptibility). Data are collected from a square region of
+    vertical extent `length` on a grid with `number_of_elements` cells in each
+    direction.
+
+    The synthetic data are constructed by solving the appropriate forward
+    problem. Data can be sampled with an offset from the surface at z=0 or
+    using the entire subsurface region.
+    """
+    def __init__(self, data_type,
+                 DIM=2,
+                 number_of_elements=10,
+                 length=1*U.km,
+                 B_b=None,
+                 data_offset=0,
+                 full_knowledge=False,
+                 spherical=False):
+        """
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param DIM: number of spatial dimensions
+        :type DIM: ``int`` (2 or 3)
+        :param number_of_elements: lateral number of elements in the region
+                                   where data are collected
+        :type number_of_elements: ``int``
+        :param length: lateral extent of the region where data are collected
+        :type length: ``float``
+        :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude]. Only used for magnetic data.
+        :type B_b: ``list`` of ``Scalar``
+        :param data_offset: offset of the data collection region from the surface
+        :type data_offset: ``float``
+        :param full_knowledge: if ``True`` data are collected from the entire
+                               subsurface region. This is mainly for testing.
+        :type full_knowledge: ``Bool``
+        :param spherical: if ``True`` spherical coordinates are used. This is
+                          not supported yet and should be set to ``False``.
+        :type spherical: ``Bool``
+        """
+        super(SyntheticDataBase, self).__init__()
+        if not data_type in [self.GRAVITY, self.MAGNETIC]:
+            raise ValueError("Invalid value for data_type parameter")
+        self.DIM=DIM
+        self.number_of_elements=number_of_elements
+        self.length=length
+        self.__data_type = data_type
+
+        if spherical:
+            raise ValueError("Spherical coordinates are not supported yet")
+        self.__spherical = spherical
+        self.__full_knowledge= full_knowledge
+        self.__data_offset=data_offset
+        self.__B_b =None
+        # this is for Cartesian (FIXME ?)
+        if data_type  ==  self.MAGNETIC:
+            if self.DIM < 3:
+                self.__B_b = np.array([-B_b[2], -B_b[0]])
+            else:
+                self.__B_b = ([-B_b[1], -B_b[2], -B_b[0]])
+        self.__origin = [0]*(DIM-1)
+        self.__delta = [float(length)/number_of_elements]*(DIM-1)
+        self.__nPts = [number_of_elements]*(DIM-1)
+        self._reference_data=None
+
+    def getUtmZone(self):
+        """
+        returns a dummy UTM zone since this class does not use real coordinate
+        values.
+        """
+        return 0
+
+    def getDataExtents(self):
+        """
+        returns the lateral data extend of the data set
+        """
+        return (list(self.__origin), list(self.__nPts), list(self.__delta))
+
+    def getDataType(self):
+        """
+        returns the data type
+        """
+        return self.__data_type
+
+    def getSurveyData(self, domain, origin, number_of_elements, spacing):
+        """
+        returns the survey data placed on a given domain.
+
+        :param domain: domain on which the data are to be placed
+        :type domain: ``Domain``
+        :param origin: origin of the domain
+        :type origin: ``list`` of ``float``
+        :param number_of_elements: number of elements (or cells) in each
+                                   spatial direction used to span the domain
+        :type number_of_elements: ``list`` of ``int``
+        :param spacing: cell size in each spatial direction
+        :type spacing: ``list`` of ``float``
+        :return: observed gravity field or magnetic flux density for each cell
+                 in the domain and for each cell an indicator 1/0 if the data
+                 are valid or not.
+        :rtype: pair of ``Scalar``
+        """
+        pde=LinearSinglePDE(domain)
+        DIM=domain.getDim()
+        x=domain.getX()
+        # set the reference data
+        k=self.getReferenceProperty(domain)
+        # calculate the corresponding potential
+        z=x[DIM-1]
+        m_psi_ref=whereZero(z-sup(z))
+        if self.getDataType()==DataSource.GRAVITY:
+            pde.setValue(A=kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
+        else:
+            pde.setValue(A=kronecker(domain), X=self._reference_data*self.__B_b, q=m_psi_ref)
+        pde.setSymmetryOn()
+        #pde.getSolverOptions().setTolerance(1e-13)
+        psi_ref=pde.getSolution()
+        del pde
+        if self.getDataType()==DataSource.GRAVITY:
+            data = -grad(psi_ref, ReducedFunction(domain))
+        else:
+            data = self._reference_data*self.__B_b-grad(psi_ref, ReducedFunction(domain))
+
+        x=ReducedFunction(domain).getX()
+        if self.__full_knowledge:
+            sigma = whereNegative(x[DIM-1])
+        else:
+            sigma=1.
+            # limit mask to non-padding in horizontal area
+            for i in range(DIM-1):
+                x_i=x[i]
+                sigma=sigma * wherePositive(x_i) * whereNegative(x_i-(sup(x_i)+inf(x_i)))
+            # limit mask to one cell thickness at z=0
+            z=x[DIM-1]
+            oo=int(self.__data_offset/spacing[DIM-1]+0.5)*spacing[DIM-1]
+            sigma = sigma * whereNonNegative(z-oo) * whereNonPositive(z-oo-spacing[DIM-1])
+        return data,sigma
+
+    def getReferenceProperty(self, domain=None):
+        """
+        Returns the reference `Data` object that was used to generate
+        the gravity/susceptibility anomaly data.
+
+        :return: the density or susceptibility anomaly used to create the
+                 survey data
+        :note: it can be assumed that in the first call the ``domain``
+               argument is present so the actual anomaly data can be created.
+               In subsequent calls this may not be true.
+        :note: method needs to be overwritten
+        """
+        raise NotImplementedError()
+
+class SyntheticFeatureData(SyntheticDataBase):
+    """
+    Uses a list of `SourceFeature` objects to define synthetic anomaly data.
+    """
+    def __init__(self, data_type,
+                       features,
+                       DIM=2,
+                       number_of_elements=10,
+                       length=1*U.km,
+                       B_b=None,
+                       data_offset=0,
+                       full_knowledge=False,
+                       spherical=False):
+        """
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param features: list of features. It is recommended that the features
+                         are located entirely below the surface.
+        :type features: ``list`` of `SourceFeature`
+        :param DIM: spatial dimensionality
+        :type DIM: ``int`` (2 or 3)
+        :param number_of_elements: lateral number of elements in the region
+                                   where data are collected
+        :type number_of_elements: ``int``
+        :param length: lateral extent of the region where data are collected
+        :type length: ``float``
+        :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude]. Only used for magnetic data.
+        :type B_b: ``list`` of ``Scalar``
+        :param data_offset: offset of the data collection region from the surface
+        :type data_offset: ``float``
+        :param full_knowledge: if ``True`` data are collected from the entire subsurface region. This is mainly for testing.
+        :type full_knowledge: ``Bool``
+        :param spherical: if ``True`` spherical coordinates are used.
+        :type spherical: ``Bool``
+        """
+        super(SyntheticFeatureData,self).__init__(
+                                 data_type=data_type, DIM=DIM,
+                                 number_of_elements=number_of_elements,
+                                 length=length, B_b=B_b,
+                                 data_offset=data_offset,
+                                 full_knowledge=full_knowledge,
+                                 spherical=spherical)
+        self._features = features
+
+
+    def getReferenceProperty(self, domain=None):
+        """
+        Returns the reference `Data` object that was used to generate
+        the gravity/susceptibility anomaly data.
+        """
+        if self._reference_data == None:
+            DIM=domain.getDim()
+            x=domain.getX()
+            k=0.
+            for f in self._features:
+                m=f.getMask(x)
+                k = k * (1-m) + f.getValue(x) * m
+            self._reference_data= k
+        return self._reference_data
+
+class SyntheticData(SyntheticDataBase):
+    """
+    Defines synthetic gravity/magnetic data based on harmonic property anomaly
+
+        rho = amplitude * sin(n_depth * pi /depth * (z+depth_offset)) * sin(n_length * pi /length * (x - shift) )
+
+    for all x and z<=0. For z>0 rho = 0.
+    """
+    def __init__(self, data_type,
+                       n_length=1,
+                       n_depth=1,
+                       depth_offset=0.,
+                       depth=None,
+                       amplitude=None,
+                       DIM=2,
+                       number_of_elements=10,
+                       length=1*U.km,
+                       B_b=None,
+                       data_offset=0,
+                       full_knowledge=False,
+                       spherical=False):
+        """
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param n_length: number of oscillations in the anomaly data within the
+                         observation region
+        :type n_length: ``int``
+        :param n_depth: number of oscillations in the anomaly data below surface
+        :type n_depth: ``int``
+        :param depth_offset: vertical offset of the data
+        :type depth_offset: ``float``
+        :param depth: vertical extent in the anomaly data. If not present the
+                      depth of the domain is used.
+        :type depth: ``float``
+        :param amplitude: data amplitude. Default value is 200 U.kg/U.m**3 for
+                          gravity and 0.1 for magnetic data.
+        :param DIM: spatial dimensionality
+        :type DIM: ``int`` (2 or 3)
+        :param number_of_elements: lateral number of elements in the region
+                                   where data are collected
+        :type number_of_elements: ``int``
+        :param length: lateral extent of the region where data are collected
+        :type length: ``float``
+        :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude].
+                    Only used for magnetic data.
+        :type B_b: ``list`` of ``Scalar``
+        :param data_offset: offset of the data collection region from the surface
+        :type data_offset: ``float``
+        :param full_knowledge: if ``True`` data are collected from the entire
+                               subsurface region. This is mainly for testing.
+        :type full_knowledge: ``Bool``
+        :param spherical: if ``True`` spherical coordinates are used
+        :type spherical: ``Bool``
+        """
+        super(SyntheticData,self).__init__(
+                                 data_type=data_type, DIM=DIM,
+                                 number_of_elements=number_of_elements,
+                                 length=length, B_b=B_b,
+                                 data_offset=data_offset,
+                                 full_knowledge=full_knowledge,
+                                 spherical=spherical)
+        self.__n_length = n_length
+        self.__n_depth = n_depth
+        self.depth = depth
+        self.depth_offset=depth_offset
+        if amplitude == None:
+            if data_type == DataSource.GRAVITY:
+                amplitude = 200 *U.kg/U.m**3
+            else:
+                amplitude = 0.1
+        self.__amplitude = amplitude
+
+    def getReferenceProperty(self, domain=None):
+        """
+        Returns the reference `Data` object that was used to generate
+        the gravity/susceptibility anomaly data.
+        """
+        if self._reference_data is None:
+            DIM=domain.getDim()
+            x=domain.getX()
+            # set the reference data
+            z=x[DIM-1]
+            dd=self.depth
+            if dd is None: dd=inf(z)
+            z2=(z+self.depth_offset)/(self.depth_offset-dd)
+            k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude
+            for i in range(DIM-1):
+               x_i=x[i]
+               min_x=inf(x_i)
+               max_x=sup(x_i)
+               k*= sin(self.__n_length*np.pi*(x_i-min_x)/(max_x-min_x))
+            self._reference_data= k
+        return self._reference_data
+

@@ -1,0 +1,31 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2013 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development since 2012 by School of Earth Sciences
+#
+##############################################################################
+
+Import('*')
+local_env = env.Clone()
+
+# get the source file names
+sources = Glob('*.py')
+
+# compile
+pyc = local_env.PyCompile(sources)
+
+# install
+py_inst = local_env.Install(local_env['pyinstall']+'/downunder', pyc)
+env.Alias('install_downunder_py', py_inst)
+
+# configure unit tests
+local_env.SConscript(dirs = ['#/downunder/test/python'], variant_dir='$BUILD_DIR/$PLATFORM/downunder/test/python', duplicate=0)
+

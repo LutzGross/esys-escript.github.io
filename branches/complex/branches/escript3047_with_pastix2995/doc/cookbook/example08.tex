@@ -1,0 +1,95 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2010 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Seismic Wave Propagation in Two Dimensions}
+\editor{This chapter aims to expand the readers understanding of escript by
+modelling the wave equations.
+Challenges will include a second order differential (multiple initial
+conditions). A new PDE to fit to the general form. Movement to a 3D problem
+(maybe)??? }
+
+\sslist{example08a.py}
+
+We will now expand upon the previous chapter by introducing a vector form of
+the wave equation. This means that the waves will have both a scalar magnitude,
+but also a direction. This type of scenario is apparent in wave forms that
+exhibit compressional and transverse particle motion. A common type of wave
+that obeys this principle are seismic waves.
+
+Wave propagation in the earth can be described by the elastic wave equation:
+\begin{equation} \label{eqn:wav} \index{wave equation}
+\rho \frac{\partial^{2}u\hackscore{i}}{\partial t^2} - \frac{\partial
+\sigma\hackscore{ij}}{\partial x\hackscore{j}} = 0
+\end{equation}
+where $\sigma$ is the stress given by:
+\begin{equation} \label{eqn:sigw}
+ \sigma \hackscore{ij} = \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu (
+u\hackscore{i,j} + u\hackscore{j,i})
+\end{equation}
+where $\lambda$ and $\mu$ are the Lame Coefficients. Specifically $\mu$ is the
+bulk modulus. The \refEq{eqn:wav} can be written with the Einstein summation
+convention as:
+\begin{equation}
+\rho u\hackscore{i,tt} = \sigma\hackscore{ij,j}
+\end{equation}
+
+In a similar process to the previous chapter, we will use the acceleration
+solution to solve this PDE. By substituting $a$ directly for
+$\frac{\partial^{2}u\hackscore{i}}{\partial t^2}$ we can derive the
+displacement solution. Using $a$ \refEq{eqn:wav} becomes;
+\begin{equation} \label{eqn:wava} 
+\rho a\hackscore{i} - \frac{\partial
+\sigma\hackscore{ij}}{\partial x\hackscore{j}} = 0
+\end{equation}
+
+\section{Vector source on the boundary}
+For this particular example, we will introduce the source by applying a
+displacment to the boundary during the initial time steps. The source will again
+be
+a radially propagating wave but due to the vector nature of the PDE used, a
+direction will need to be applied to the source.
+
+The first step is to choose an amplitude and create the source as in the
+previous chapter. 
+\begin{python}
+ src_length = 20; print "src_length = ",src_length
+# set initial values for first two time steps with source terms
+y=U0*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_leng
+th)
+\end{python}
+where \verb xc  is the source point on the boundary of the model. The source
+direction is then defined as an $(x,y)$ array and multiplied by the source
+function. The directional array must have a magnitude of $1$ otherwise the
+amplitude of the source will become modified. For this example, the source is
+directed in the $-y$ direction.
+\begin{python}
+src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
+y=y*src_dir
+\end{python}
+The function can then be applied as a boundary condition by setting it equal to
+$y$ in the general form.
+\begin{python}
+mypde.setValue(y=y) #set the source as a function on the boundary
+\end{python}
+Because we are no longer using the source to define our initial condition to
+the model, we must set the model state to zero for the first two time steps.
+\begin{python}
+# initial value of displacement at point source is constant (U0=0.01)
+# for first two time steps
+u=[0.0,0.0]*whereNegative(x)
+u_m1=u
+\end{python}
+
+If the source will introduce energy to the system over a period longer than one
+or two time steps (ie the initial conditions), $y$ can be updated during the
+iteration stage. 

@@ -1,0 +1,26 @@
+pyinstall = None
+
+Import('*')
+
+import os
+import sys
+
+extensions_dir = str(esysroot) + '/scons'
+sys.path.append(extensions_dir)
+
+import scons_extensions
+
+brucepy_env = Environment(ENV = os.environ)
+
+py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+brucepy_env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+python_src = ['__init__.py',
+              'bruce.py']
+
+pyc = brucepy_env.PyCompile(python_src)
+
+Default(brucepy_env.Install(pydir, pyc))
+Default(brucepy_env.Install(pydir2, pyc))
+if pyinstall != None:
+  Default(brucepy_env.Install(pyinstall, pyc))

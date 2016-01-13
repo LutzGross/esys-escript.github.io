@@ -1,0 +1,98 @@
+\chapter{Mapping}\label{Chp:ref:mapping}
+
+Mapping classes map a level set function $m$ as described in Chapter~\ref{Chp:ref:regularization}
+onto a physical parameter such as density and susceptibility. 
+
+\section{Density Map}\label{Chp:ref:mapping density}
+For density we use the form 
+\begin{equation}\label{EQU:MAP:1}
+\rho =  \rho_{0} + \Delta \rho \cdot \left( \frac{z_0-x_2}{l_z} \right)^{\frac{\beta}{2}}  \cdot m 
+\end{equation}  
+where $\rho_{0}$ is the reference density, $\Delta \rho$ is the density scaling, $z_0$ an offset, $l_z$ vertical expansion
+of the domain and $\beta$ is a suitable exponent. 
+
+\begin{classdesc}{DensityMapping}{domain
+        \optional{, z0=None}
+        \optional{, rho0=0}
+        \optional{, drho=$2750 \cdot kg \cdot m^{-3}$}
+        \optional{, beta=2.}}
+a linear density mapping including depth weighting. \member{domain} is the
+domain of the inversion, \member{z0} reference depth in the depth weighting
+factor, \member{drho} is the density scaling factor (by default the density of
+granite is used) and \member{beta} is the exponent in the depth weighting factor.
+If no reference depth \member{z0} is given no depth weighting is applied.
+\member{rho0} is the reference density which may be a function of its location
+in the domain. 
+\end{classdesc}
+
+\begin{methoddesc}[DensityMapping]{getValue}{m}
+returns the density for level set function $m$
+\end{methoddesc}
+
+\begin{methoddesc}[DensityMapping]{getDerivative}{m}
+return the derivative of density  with respect to the level set function.
+\end{methoddesc}  
+
+\begin{methoddesc}[DensityMapping]{getInverse}{p}
+returns the value level set function $m$ for given density value $p$.
+\end{methoddesc}
+
+
+\section{Susceptibility Map}\label{Chp:ref:mapping susceptibility}
+For the magnetic susceptibility $k$ the following mapping is used:
+\begin{equation}\label{EQU:MAP:2}
+k=  k_{0} + \Delta k \cdot \left( \frac{z_0-x_2}{l_z} \right)^{\frac{\beta}{2}}  \cdot m 
+\end{equation}  
+where $k_{0}$ is the reference density and $\Delta k$ is the density scaling.
+
+\begin{classdesc}{SusceptibilityMapping}{domain
+        \optional{, z0=None}
+        \optional{, k0=0}
+        \optional{, dk=1}
+        \optional{, beta=2.}}
+a linear susceptibility mapping including depth weighting.
+\member{domain} is the domain of the inversion, \member{z0} reference depth in
+the depth weighting factor, \member{dk} is the susceptibility scaling factor
+(by default one is used) and \member{beta} is the exponent in the depth
+weighting factor. If no reference depth \member{z0} is given no depth
+weighting is applied.
+\member{k0} is the reference susceptibility which may be a function of its
+location in the domain. 
+\end{classdesc}
+
+\begin{methoddesc}[SusceptibilityMapping]{getValue}{m}
+returns the susceptibility for level set function $m$
+\end{methoddesc}
+
+\begin{methoddesc}[SusceptibilityMapping]{getDerivative}{m}
+return the derivative of susceptibility  with respect to the level set function.
+\end{methoddesc}  
+
+\begin{methoddesc}[SusceptibilityMapping]{getInverse}{p}
+returns the value level set function $m$ for given susceptibility value $p$.
+\end{methoddesc}
+
+
+\section{General Mapping Class}
+Users can define their own mapping $p=\Psi(m)$.
+The following interface needs to be served
+
+\begin{classdesc}{Mapping}{}
+mapping of a level set function onto a physical parameter to be used by a
+forward model.
+\end{classdesc} 
+
+\begin{methoddesc}[Mapping]{getValue}{m}
+returns the result $\Psi(m)$ of the mapping for level set function $m$
+\end{methoddesc}
+
+\begin{methoddesc}[Mapping]{getDerivative}{m}
+return the derivative $\frac{\partial \Psi}{\partial m}$ of the mapping with respect to the level set function for 
+the level set function $m$.
+\end{methoddesc}  
+
+\begin{methoddesc}[Mapping]{getInverse}{p}
+returns the value level set function $m$ for given value $p$ of the physical parameter, ie $p=\Psi(m)$.  
+\end{methoddesc}
+
+

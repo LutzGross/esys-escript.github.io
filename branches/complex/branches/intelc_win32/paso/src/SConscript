@@ -1,0 +1,39 @@
+import os
+Import('*')
+
+local_env=env.Copy()
+
+
+# get the relevant file names:
+src_dir = local_env.Dir('.').srcnode().abspath
+filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
+
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+
+if mkl_libs:
+   local_env.Append(CPPDEFINES=['MKL',])
+   local_env.Append(LIBS = mkl_libs)
+if scsl_libs:
+   local_env.Append(CPPDEFINES=['SCSL',])
+   local_env.Append(LIBS = scsl_libs)
+if umf_libs:
+   local_env.Append(CPPDEFINES=['UMFPACK',])
+   local_env.Append(LIBS = umf_libs)
+if papi_libs:
+   local_env.Append(CPPDEFINES=['PAPI',])
+   local_env.Append(LIBS = papi_libs)
+
+lib_name = 'paso'
+
+lib = local_env.StaticLibrary(lib_name, sources)
+
+include_path = Dir(lib_name, incinstall)
+solvers_include_path = Dir('Solvers', include_path)
+
+local_env.Install(include_path, headers )
+local_env.Install(libinstall, lib)
+ 
+release_srcfiles = [ env.File(x) for x in filenames ]  + [env.File("SConscript"), ]
+env.Zip(src_zipfile, release_srcfiles)
+env.Tar(src_tarfile, release_srcfiles)

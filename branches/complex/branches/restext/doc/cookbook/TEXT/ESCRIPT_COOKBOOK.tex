@@ -1,0 +1,73 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{manual}
+%%% Table of contents to list down to subsections and no further
+\setcounter{tocdepth}{3}
+%%% Number down to subsubsections only
+\setcounter{secnumdepth}{3}
+% grab the handy definitions and \usepackage statements etc
+\input{cookbook_defs}
+% title, author, etc stuff
+\title{The Escript COOKBOOK}
+
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\author{Antony Hallam, Lutz Gross}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+School of Earth Sciences \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}                                                                                         
+\date{\today}      
+\release{Alpha}
+\setshortversion{}
+
+\makeindex
+
+\begin{document}
+
+\maketitle
+
+\input{../../user/copyrights}
+
+\begin{abstract}
+\esc is a python-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations. The intention of this cookbook is to give new \esc users a comprehensive introduction to the usage of \esc. Particular focus is put to application from the 
+area of geophysics and geology but the introduction is suitable for users from other areas.  
+\end{abstract}
+\tableofcontents
+
+\newpage
+
+\input{intro}
+
+
+\chapter{Getting Started with Heat Diffusion}
+\input{onedheatdiff001}
+\input{onedheatdiff002}
+\input{twodheatdiff001}
+\input{steadystateheatdiff}
+
+% Moving into 2D and 3D wave propagations in next chapters.
+\chapter{Seismic Wave Propagation}
+\input{twodswp001}
+
+\end{document}

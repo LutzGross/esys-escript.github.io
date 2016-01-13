@@ -1,0 +1,51 @@
+<!-- $Id: docs_body.part,v 1.6 2005/03/07 04:54:43 paultcochrane Exp $ -->
+  <h1>Documentation</h1>
+  
+  <hr class="top" />
+
+  <h2>Reference Manual</h2>
+
+  <p>
+  The PyVisi reference manual is available in these forms:
+  </p>
+  <blockquote>
+  <table>
+      <tr>
+	  <td>
+	      PDF: 
+	      <a href="docs/manual/pyvisi_doc.pdf">pyvisi_doc.pdf</a>
+	  </td>
+      </tr>
+      <tr>
+	  <td>
+	      Gzipped Postscript: 
+	      <a href="docs/manual/pyvisi_doc.ps.gz">pyvisi_doc.ps.gz</a>
+	  </td>
+      </tr>
+      <tr>
+	  <td>
+	      HTML:
+	      <a href="docs/manual/pyvisi_doc/index.html">pyvisi docs online</a>
+	  </td>
+      </tr>
+      <tr>
+	  <td>
+	      Gzipped tarball:
+	      <a href="docs/manual/pyvisi_doc.tar.gz">pyvisi_doc.tar.gz</a>
+	  </td>
+      </tr>
+  </table>
+  </blockquote>
+
+  <h2>API</h2>
+
+  <p>
+  The <a href="docs/api_epydoc/index.html">API for pyvisi</a> is automatically 
+  generated using <a href="http://epydoc.sourceforge.net">epydoc</a>.
+  </p>
+
+  <p>
+  The command used was:<br />
+  <code>epydoc --html -o doc/api_epydoc -n pyvisi pyvisi</code>
+  </p>
+  

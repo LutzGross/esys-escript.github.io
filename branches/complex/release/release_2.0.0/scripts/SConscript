@@ -1,0 +1,36 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = clone_env(env)
+
+script_dir = Dir('#.').abspath + '/scripts/'
+
+wrapper = local_env.Command('finleypython', 'finley_wrapper_template', [
+	'/bin/sh ' + script_dir + 'finley_wrapper_writer.sh < $SOURCE > $TARGET',
+	Chmod('$TARGET', 0755),
+])
+
+wrapper2 = local_env.Command('escript', 'finley_wrapper_template', [
+	'/bin/sh ' + script_dir + 'finley_wrapper_writer.sh < $SOURCE > $TARGET',
+	Chmod('$TARGET', 0755),
+])
+
+local_env.Alias('target_escript_wrapper', [wrapper, wrapper2])
+
+tmp1 = local_env.Install(local_env['bininstall'], [wrapper, wrapper2])
+local_env.Alias('target_install_escript_wrapper', tmp1)
+

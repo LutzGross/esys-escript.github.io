@@ -1,0 +1,48 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+import os
+Import('*')
+
+local_env = env.Clone()
+
+# 
+#  files defining test runs (passing in a release)
+# 
+testruns = Glob('run_*.py', strings=True)
+
+#Add Unit Test to target alias
+local_env.PrependENVPath('PYTHONPATH', Dir('#/speckley/test/python/').abspath)
+local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escriptcore/test/python').abspath)
+local_env['ENV']['SPECKLEY_TEST_DATA']=Dir('.').srcnode().abspath
+local_env['ENV']['SPECKLEY_WORKDIR']=Dir('.').abspath
+# needed for a test from the util base class in escript
+local_env['ENV']['ESCRIPT_WORKDIR']=Dir('.').abspath
+env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in testruns])
+env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns])
+
+# run all tests
+program = local_env.RunPyUnitTest(testruns)
+Depends(program, py_wrapper_lib)
+Depends(program, 'build_py_tests')
+
+# Add a group of tests
+from grouptest import *
+tgroup=GroupTest("$PYTHONRUNNER ",(("SPECKLEY_TEST_DATA","$BATCH_ROOT/speckley/test/python"),('SPECKLEY_WORKDIR','$BUILD_DIR/speckley/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/speckley/test/python","$BATCH_ROOT/speckley/test/python",testruns)
+tgroup.makeDir("$BUILD_DIR/speckley/test/python")
+TestGroups.append(tgroup)
+

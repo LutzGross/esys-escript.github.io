@@ -1,0 +1,103 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass{manual}
+
+% grab the handy definitions and \usepackage statements etc
+\input{guide_defs}
+
+% title, author, etc stuff
+\title{\module{esys} User's Guide:\\ Solving Partial Differential Equations\\ with Escript and Finley}
+
+\ifpdf
+\pdfinfo {
+/Author (Lutz Gross et al (Editor))
+/Title (escript User's Guide)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\author{Lutz Gross\etal~(Editor)}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+School of Earth Sciences \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}                                                                                         
+\date{\today}      
+\release{- nightly}
+\setreleaseinfo{\\(r\RepVersion)} 
+\setshortversion{}
+
+\makeindex
+
+% the actual start of the document
+\begin{document}
+
+\maketitle
+
+\input{copyrights}
+
+\begin{abstract}
+\escript is a python-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations.
+
+It consists of four major components
+\begin{itemize}
+\item \escript core library
+\item finite element solver \finley (which uses fast vendor-supplied solvers or our paso linear solver library)
+\item the meshing interface \pycad
+% \item VTK visualization interface \pyvisi
+\item a model library.
+\end{itemize}
+The current version supports parallelization through both MPI for distributed memory and OpenMP for distributed shared memory. 
+The \pyvisi module from previous releases has been deprecated.
+For more info on this and other changes from previous releases see Appendix~\ref{app:changes}.
+
+If you use this software in your research, then we would appreciate (but do not require) a citation.
+Some relevant references can be found in Appendix~\ref{app:ourrefs}.
+\end{abstract}
+
+\tableofcontents
+
+\include{TutorialPDE}
+\include{execute}
+
+\include{escript}
+\include{linearPDE}
+
+\include{pycad}
+
+
+
+\include{Models}
+
+\include{finley}
+\appendix
+
+%\input{modelframe}
+
+\include{appendix}
+
+\include{pyvisi}
+
+\makemodindex
+
+\printindex
+%\input{guide.ind}
+
+\bibliographystyle{plain}
+\bibliography{esys}
+
+\end{document}

@@ -1,0 +1,449 @@
+#!/bin/bash
+
+# Escript/Finley wrapper for python
+# Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
+
+#Extra paths can be configured about a page further down
+#Search for EXTRA_PATH=""
+
+#set to 1 if performing this is a standalone build and /packages contains the relevant tools
+STANDALONE=0
+
+#set to 1 if this is part of a packaged build (.deb) and files will be installed in standard locations
+#rather than everything in a single directory
+#Do not use this together with $STANDALONE
+STDLOCATION=0
+
+#Now we find the location of this script
+#Note that this location should be absolute but does not need to be unique
+scriptdir=""
+CURDIR=`pwd`
+
+#Environment vars which control operations:
+# ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
+
+HOSTFILE=/tmp/escript.$$
+HOSTFILE2=/tmp/escript2.$$
+
+#Begin finding ESCRIPT_ROOT
+if [ $STDLOCATION != 0 ]
+then
+    ESCRIPT_ROOT=/usr/lib/escript
+else
+  #We don't know the escript root so we need to work it out from the invocation
+  #Need to match if the name contains /
+  if [[ $0 =~ / ]]
+  then
+      # We are not using the PATH to find the script
+      cd `dirname $0`
+      scriptdir=`pwd`
+      cd $CURDIR
+  else
+      # name does not contain / therefore we are using 
+      tscriptdir=`which $0`
+      if [ $? != 0 ]
+      then
+          echo "Error unable to determine script directory. Exiting."
+	  exit 1
+      fi
+      scriptdir=`dirname $tscriptdir`
+  fi
+
+  cd $scriptdir/..
+  ESCRIPT_ROOT=`pwd`
+  cd ..
+  ESCRIPT_PARENT=`pwd`
+  cd $CURDIR
+
+fi
+##### End finding ESCRIPT_ROOT  ########
+
+PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
+PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
+PYTHON_CMD=python
+
+# if possible please express paths relative to $ESCRIPT_ROOT unless
+# they are in an unrelated location
+
+EXTRA_DYLD_LIBRARY_PATH=""
+EXTRA_PATH=$ESCRIPT_ROOT/bin
+EXTRA_PYTHONPATH=$ESCRIPT_ROOT
+EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
+
+if [ $STANDALONE == 1 ]
+then
+    EXTRA_PATH=$ESCRIPT_PARENT/packages/python/bin:$EXTRA_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/boost/lib:$ESCRIPT_PARENT/packages/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/vtk/lib/vtk-5.2:$ESCRIPT_PARENT/packages/mesa/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/packages/python/lib:$EXTRA_LD_LIBRARY_PATH
+    EXTRA_PYTHONPATH=$ESCRIPT_PARENT/packages/numarray/lib:$ESCRIPT_PARENT/packages/vtk/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
+fi
+
+
+
+HELP_TEXT="
+Usage: escript [options] script.py [arguments...]
+	-n nn		number of nodes to use
+	-p np		number of MPI processes to spawn
+	-t nt		number of OpenMP threads to use
+	-f file		name of MPI hostfile
+	-c 		print compile information for escript and exit
+	-V		print escript version and exit
+	-i		interactive mode 
+	-b		do not invoke python (run non-python programs)
+	-e		print export statements for environment and exit
+	-o		redirect output from MPI to files
+	-v		print diagnostics
+	-x		..reserved for future use ..
+	script.py	Your python script
+	arguments...	The optional command-line arguments to your script
+"
+
+if [ "$1" = "--help" ]; then
+  echo "$HELP_TEXT"
+  exit 0
+fi
+#=======================================================================================
+
+# Avoid bug in hybrid runs with MPT MPI
+
+
+# Parse the command-line options
+# option e should not be followed by a :
+while getopts 'bn:p:t:f:h:ecVviox' option
+do
+	case "$option" in
+	  "b")  DOBINARY=yes
+		;;
+	  "n")	ESCRIPT_NUM_NODES=$OPTARG
+		;;
+	  "p")	ESCRIPT_NUM_PROCS=$OPTARG
+		;;
+	  "t")	ESCRIPT_NUM_THREADS=$OPTARG
+		;;
+	  "f")	ESCRIPT_HOSTFILE=$OPTARG
+		;;
+	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
+		exit 0
+		;;
+	  "V")	echo "escript-pre2.0(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
+		exit 0
+		;;
+	  "h")  echo "$HELPTEXT"
+		exit 0
+		;;
+	  "i")  DOINTERACTIVE=yes
+		;;
+	  "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+		echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+		echo "export PATH=$EXTRA_PATH:\$PATH"
+		if [ `uname` == Darwin ]
+		then
+		    echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+		fi
+		exit 0
+		;;
+	  "o")  ESCRIPT_CREATESTDFILES="yes"
+		;;
+	  "v")  ESCRIPT_VERBOSE="yes"
+		;;
+	  "x")  echo "-x not implemented yet"
+		exit 1
+		;;
+	  ?)	echo "$HELP_TEXT"
+		exit 1
+		;;
+	esac
+done
+shift `expr $OPTIND - 1`
+#==============================================
+#
+#   Read the MPI_FLAVOUR from the buildvars
+#
+MPI_FLAVOUR=`grep mpi_flavour $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
+WITH_OPENMP=`grep useopenmp $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
+
+if [ ! -z $ESCRIPT_VERBOSE  ]; then echo "MPI flavor is $MPI_FLAVOUR."; fi
+if [ ! -z $ESCRIPT_VERBOSE ] && [  $WITH_OPENMP == "y"  ]; then echo "OpenMP enabled."; fi
+#
+#  extend path variables
+#
+export PATH=$EXTRA_PATH:$PATH
+export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
+export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
+EXPORT_ENV="PATH,LD_LIBRARY_PATH,PYTHONPATH"
+if [ `uname` == Darwin ]
+then
+    export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
+    EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
+fi
+if [ ! -z $ESCRIPT_VERBOSE  ] 
+then 
+    echo "PATH = $PATH "
+    echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH "
+    echo "PYTHONPATH = $PYTHONPATH "
+    if [ ! -z $DYLD_LIBRARY_PATH ]; then echo "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH "; fi
+fi
+#==============================================
+#
+#  Ensure the variables have sensible values
+#
+if [ $MPI_FLAVOUR  == "none" ] 
+then
+    if [ ! -z $ESCRIPT_NUM_NODES ]
+    then
+        echo "Warning: MPI disabled but number of nodes set. Option ignored."
+    fi
+    if [ ! -z $ESCRIPT_NUM_PROCS ]
+    then
+        echo "Warning: MPI disabled but number of processors per node set. Option ignored."
+    fi
+    if [ ! -z $ESCRIPT_HOSTFILE ]
+    then
+        echo "Warning: MPI disabled but host file is given. Option ignored."
+    fi
+    ESCRIPT_NUM_NODES=1
+    ESCRIPT_NUM_PROCS=1
+else
+    if [ ! -z $ESCRIPT_HOSTFILE ] 
+    then
+        if [ -f $ESCRIPT_HOSTFILE ]
+        then
+            cat $ESCRIPT_HOSTFILE | sort -u > $HOSTFILE
+            NUM_HOSTS=`cat $HOSTFILE | wc -l`
+            if [ ! -z $ESCRIPT_NUM_NODES ] 
+            then
+                if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
+                then
+                    echo "number of hosts selected in the host file $ESCRIPT_HOSTFILE needs to match the requested number of nodes $ESCRIPT_NUM_NODES."
+                    exit 1
+                fi
+             else
+                ESCRIPT_NUM_NODES=$NUM_HOSTS
+             fi
+        else
+           echo "cannot find hostfile $ESCRIPT_HOSTFILE."
+           exit 1
+        fi
+    else
+        HOSTFILE=''
+    fi
+
+    if [ -z $ESCRIPT_NUM_NODES ]
+    then
+      ESCRIPT_NUM_NODES=1
+    fi
+
+    if [ -z $ESCRIPT_NUM_PROCS ]
+    then
+      ESCRIPT_NUM_PROCS=1
+    fi
+
+    if [ ! -z $ESCRIPT_VERBOSE  ]
+    then 
+          echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
+          echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
+    fi
+fi
+
+if [  $WITH_OPENMP == "y"  ]
+then
+   if [ -z $ESCRIPT_NUM_THREADS ]
+   then
+        ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
+        if [ -z $ESCRIPT_NUM_THREADS ]
+        then
+           ESCRIPT_NUM_THREADS=1
+        fi
+   fi
+   if [ ! -z $ESCRIPT_VERBOSE ]
+   then
+        echo "ESCRIPT_NUM_THREADS is $ESCRIPT_NUM_THREADS."
+   fi
+else
+   if [[ ( ! -z $ESCRIPT_NUM_THREADS ) && ( $ESCRIPT_NUM_THREADS != 1 ) ]]
+   then
+       echo "Warning: OpenMP is disabled but number of threads requested is $ESCRIPT_NUM_THREADS!=1. Running without threads."
+   fi
+   ESCRIPT_NUM_THREADS=1
+fi
+#
+# Now we compute total number of Processes
+#
+(( TOTPROC=$ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS))
+if [ $? -ne 0 ]		#Some compute error 
+then			#This could happen if the args were not a number
+  echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
+  exit 1
+fi
+
+#
+# Test to ensure people aren't trying to combine interactive and multi-process
+#
+if [[ ( ( ! -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
+then
+  echo "Interactive mode cannot be used with more than one process"
+  exit 1
+fi
+
+if [ $TOTPROC -gt 1 ] 
+then
+   if [ "$ESCRIPT_CREATESTDFILES" == "yes" ]
+   then
+       PYTHON_MPI=$PYTHON_MPI_REDIRECT
+   else
+       PYTHON_MPI=$PYTHON_MPI_NULL
+   fi
+else
+    PYTHON_MPI=$PYTHON_MPI_NULL
+fi
+#=========================================================================================================
+# Must have at least one command-line arg: the python script
+if [ $# -eq 0 ]
+then
+  if [ ! -z $DOBINARY ]
+  then
+    echo "No program to run was specified. Exiting."
+    exit 1
+  fi
+fi
+
+#=========================================================================================================
+if [ ! -z $DOBINARY ]
+then
+    EXEC_CMD="$@"
+else
+    if [ $MPI_FLAVOUR  == "none" ]
+    then
+        # Check to see if the python version we were compiled with matches the one of EXEC_CMD
+        # We should only do this check if they are running a python script
+        if [ -f $ESCRIPT_ROOT/lib/pyversion ]
+        then
+           compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
+           intversion=`$PYTHON_CMD -V 2>&1`
+           if [ "$compversion" != "$intversion" ]
+           then
+              echo "Python versions do not match. Escript was compiled for "$compversion"."
+              echo "Current version of Python appears to be "$intversion"."
+              exit 1
+           fi
+        fi
+	if [ ! -z $DOINTERACTIVE ]
+        then
+           EXEC_CMD="$PYTHON_CMD -i $@"
+        else
+           EXEC_CMD="$PYTHON_CMD $@"
+        fi
+    else
+        EXEC_CMD="$PYTHON_MPI $@"
+    fi
+fi
+if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"."; fi
+#===============================================================================================
+#
+#   now we start to spwan things:
+#
+if [  $WITH_OPENMP == "y"  ]
+then
+   export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
+   EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
+fi
+EXIT_CODE=1
+#=============== no MPI ===================================
+if [ $MPI_FLAVOUR  == "none" ] 
+then
+   $EXEC_CMD 
+   EXIT_CODE=$?
+#=============== OpenMPI ===================================
+elif [ $MPI_FLAVOUR == "OPENMPI" ] 
+then 
+   if [ ! -z $HOSTFILE ] 
+   then
+      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
+      CMD="mpirun  --bynode -np $TOTPROC --host $HOST_LIST $EXEC_CMD"
+   else
+      CMD="mpirun -np $TOTPROC $EXEC_CMD"
+   fi 
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
+
+#=============== Intel MPI ===================================
+elif [ $MPI_FLAVOUR == "INTELMPI" ]
+then
+   if [ ! -z $HOSTFILE ] 
+   then
+      mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
+      if [ $? -ne 0 ] 
+      then
+         echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
+         exit 1
+      else 
+          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
+      fi
+   fi
+   CMD="mpiexec -perhost $ESCRIPT_NUM_PROCS -envall -n $TOTPROC $EXEC_CMD"
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
+   if [ ! -z $HOSTFILE ]
+   then
+       mpdallexit
+       if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
+   fi 
+#=============== SGI's MPIMPT ===================================
+elif [ $MPI_FLAVOUR == "MPT" ]
+then
+   export MPI_NUM_MEMORY_REGIONS=0
+   EXPORT_ENV="$EXPORT_ENV,MPI_NUM_MEMORY_REGIONS"
+   if [ ! -z $HOSTFILE ] 
+   then
+      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
+      CMD="mpirun $HOST_LIST $ESCRIPT_NUM_PROCS $EXEC_CMD"
+   else
+      CMD="mpirun -np $TOTPROC $EXEC_CMD"
+   fi 
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
+#=============== MPICH ===================================
+elif [ $MPI_FLAVOUR == "MPICH" ]
+then
+   if [ ! -z $HOSTFILE ] 
+   then
+      touch $HOSTFILE2
+      for (( i=1;i<=$ESCRIPT_NUM_PROCS;i+=1 )) ; do cat $HOSTFILE >> $HOSTFILE2  ; done
+      CMD="mpirun -machinefile $HOSTFILE2  -np $TOTPROC $EXEC_CMD"
+   else
+      CMD="mpirun -np $TOTPROC $EXEC_CMD"
+   fi 
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
+#=============== MPICH2 ===================================
+elif [ $MPI_FLAVOUR == "MPICH2" ]
+then
+   if [ ! -z $HOSTFILE ] 
+   then
+         mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
+         if [ $? -ne 0 ] 
+         then
+            echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
+            exit 1
+         else 
+             if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
+         fi
+   fi
+   CMD="mpiexec -genvlist $EXPORT_ENV -np $TOTPROC $EXEC_CMD"
+   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
+   $CMD
+   EXIT_CODE=$?
+   if [ ! -z $HOSTFILE ]
+   then
+       mpdallexit
+       if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
+   fi 
+else
+   echo "unknown MPI falvour $MPI_FLAVOUR."
+fi
+exit $EXIT_CODE

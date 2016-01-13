@@ -1,0 +1,28 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2010 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% material common to all binary distributions.
+
+\chapter{Binary releases}\label{chap:bin}
+
+Binary distributions (no compilation required) are available for the following operating systems:
+\begin{itemize}
+ \item \linux~-- Section~\ref{sec:binlinux}
+ \item \macosx~-- Section~\ref{sec:binmac}
+ \item Windows~-- Section~\ref{sec:binwin}.
+\end{itemize}
+
+Note that the binary packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for \mpi requires knowing something about your computer's configuration.}.
+If you need these features you will need to compile \esfinley from source (see Section~\ref{sec:compilesrc} and Section~\ref{sec:compileescriptlinux}.)
+
+
+\input{binlinux}

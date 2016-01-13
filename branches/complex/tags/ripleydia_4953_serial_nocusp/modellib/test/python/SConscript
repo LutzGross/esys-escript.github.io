@@ -1,0 +1,60 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+from os.path import splitext
+Import('*')
+
+local_env = env.Clone()
+
+# files defining test runs (passing in a release)
+testruns = ['run_convection.py']
+testruns += ['run_flow.py']
+testruns += ['run_temp.py']
+if env['gmsh']:
+    testruns += ['run_domainreaders.py']
+else:
+    env['warnings'].append("gmsh not available! Skipping domainreaders test.")
+
+# files defining tests run locally (not as part of a release)
+localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
+
+# all tests
+alltestruns = testruns + localtestruns
+
+# test files are just compiled - none of those in modellib yet
+#sources = Glob('test_*.py')
+#test_pyc = env.PyCompile(sources)
+#env.Alias('build_py_tests', test_pyc)
+
+# add unit test to target alias
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
+local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
+local_env['ENV']['MODELLIB_TEST_DATA_ROOT']=Dir('.').srcnode().abspath
+local_env['ENV']['MODELLIB_WORKDIR']=Dir('.').abspath
+env.Alias('local_py_tests',[splitext(x)[0]+'.passed' for x in alltestruns])
+env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
+
+# run all tests
+program = local_env.RunPyUnitTest(alltestruns)
+Depends(program, 'build_py_tests')
+
+# add a group of tests
+from grouptest import *
+tgroup=GroupTest("$PYTHONRUNNER ",(("MODELLIB_TEST_DATA_ROOT","$BATCH_ROOT/modellib/test/python"),('MODELLIB_WORKDIR','$BUILD_DIR/modellib/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/modellib/test/python","$BATCH_ROOT/modellib/test/python",testruns)
+tgroup.makeDir("$BUILD_DIR/modellib/test")
+tgroup.makeDir("$BUILD_DIR/modellib/test/python")
+TestGroups.append(tgroup)
+

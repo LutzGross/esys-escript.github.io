@@ -1,0 +1,111 @@
+# *****************************************************************************
+# *                                                                           *
+# *       COPYRIGHT  ACcESS 2004  -  All Rights Reserved                      *
+# *                                                                           *
+# * This software is the property of ACcESS. No part of this code             *
+# * may be copied in any form or by any means without the expressed written   *
+# * consent of ACcESS.  Copying, use or modification of this software         *
+# * by any unauthorised person is illegal unless that person has a software   *
+# * license agreement with ACcESS.                                            *
+# *                                                                           *
+# *****************************************************************************
+#
+#
+# Skeleton for EsysException
+#
+BeginMessage
+Processing EsysException generation skeleton
+EndMessage
+
+BeginUsage 2
+EsysException skeleton expects two arguments <Type> and <Namespace>
+
+   <Type> is the type of the exception
+   <Namespace> is the namespace containing the generated exception class
+
+   Generated header file name is based on type name
+
+EndUsage
+
+BeginReplacements
+<Type> arg:0
+<Namespace> arg:1
+<YYYYMMDD> date:yyyymmdd
+EndReplacements
+
+BeginMessage
+   Type            : <Type>
+   Class Namespace : <Namespace>
+EndMessage
+
+BeginFileCheck
+<Type>.h
+EndFileCheck
+
+BeginFile <Type>.h
+/* 
+ *****************************************************************************
+ *                                                                           *
+ *       COPYRIGHT  ACcESS  -  All Rights Reserved                           *
+ *                                                                           *
+ * This software is the property of ACcESS. No part of this code             *
+ * may be copied in any form or by any means without the expressed written   *
+ * consent of ACcESS.  Copying, use or modification of this software         *
+ * by any unauthorised person is illegal unless that person has a software   *
+ * license agreement with ACcESS.                                            *
+ *                                                                           *
+ *****************************************************************************
+*/
+                                                                           
+#if !defined  <Namespace>_<Type>_<YYYYMMDD>_H
+#define <Namespace>_<Type>_<YYYYMMDD>_H
+
+#include "esysUtils/EsysException.h"
+#include <string>
+
+namespace <Namespace> {
+
+/**
+   \brief
+   <Type> exception class.
+
+   Description:
+   <Type> exception class.
+   The class provides a public function returning the exception name
+*/
+class <Type>:public esysUtils::EsysException {
+
+ public:
+  /**
+     \brief
+     Default constructor for the exception.
+  */
+  <Type>() : EsysException() {}
+  /**
+     \brief
+     Constructor for the exception.
+  */
+  <Type>(const char *cstr) : EsysException(cstr) {}
+  /**
+     \brief
+     Constructor for the exception.
+  */
+  <Type>(const std::string &str) : EsysException(str) {}
+  /**
+     \brief
+     Returns the name of the exception.
+  */
+  virtual std::string exceptionName() const {return "<Type>";}
+};
+
+} // end of namespace
+#endif
+EndFile
+
+BeginMessage
+Completed generating EsysException files
+EndMessage
+
+
+
+

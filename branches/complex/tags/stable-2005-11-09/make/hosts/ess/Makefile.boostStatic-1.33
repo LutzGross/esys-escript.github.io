@@ -1,0 +1,11 @@
+# boostStatic - include directories plus library to link with
+
+# need to also add /data/raid2/toolspp4/boost/1.33.0/python-2.4.1/icc-80.058/lib to LD_LIBRARY_PATH
+
+PKG_CC_INC_DIRS  += /data/raid2/toolspp4/boost/1.33.0/python-2.4.1/icc-80.058/include
+PKG_CPP_INC_DIRS += /data/raid2/toolspp4/boost/1.33.0/python-2.4.1/icc-80.058/include
+
+PKG_LD_LIB_DIRS += /data/raid2/toolspp4/boost/1.33.0/python-2.4.1/icc-80.058/lib
+
+PKG_LD_LIBS += boost_python
+
