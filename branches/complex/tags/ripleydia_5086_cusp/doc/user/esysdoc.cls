@@ -1,1 +1,0 @@
-../esysdoc.cls

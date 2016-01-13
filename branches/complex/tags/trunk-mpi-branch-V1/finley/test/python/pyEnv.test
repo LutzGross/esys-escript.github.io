@@ -1,3 +1,0 @@
-print 'Start of Env test'
-import sys
-print sys.path

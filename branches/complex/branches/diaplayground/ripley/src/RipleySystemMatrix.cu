@@ -1,1 +1,0 @@
-RipleySystemMatrix.cpp
