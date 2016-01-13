@@ -193,7 +193,7 @@ algorithm(const DataExpanded& data,
   double global_current_value=initial_value;
   double local_current_value;
 //  DataArrayView dataView=data.getPointDataView();
-  const DataTypes::ValueType& vec=data.getVectorRO();
+  const DataTypes::FloatVectorType& vec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
   // calculate the reduction operation value for each data point
   // reducing the result for each data-point into the current_value variables
@@ -224,7 +224,7 @@ algorithm(DataTagged& data,
 {
   double current_value=initial_value;
 
-  const DataTypes::ValueType& vec=data.getVectorRO();
+  const DataTypes::FloatVectorType& vec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
@@ -281,9 +281,9 @@ dp_algorithm(const DataExpanded& data,
   int numDPPSample=data.getNumDPPSample();
 //  DataArrayView dataView=data.getPointDataView();
 //  DataArrayView resultView=result.getPointDataView();
-  const DataTypes::ValueType& dataVec=data.getVectorRO();
+  const DataTypes::FloatVectorType& dataVec=data.getVectorRO();
   const DataTypes::ShapeType& shape=data.getShape();
-  DataTypes::ValueType& resultVec=result.getVectorRW();
+  DataTypes::FloatVectorType& resultVec=result.getVectorRW();
   // perform the operation on each data-point and assign
   // this to the corresponding element in result
   #pragma omp parallel for private(i,j) schedule(static)
@@ -309,7 +309,7 @@ dp_algorithm(const DataTagged& data,
   // perform the operation on each tagged value in data
   // and assign this to the corresponding element in result
   const DataTypes::ShapeType& shape=data.getShape();
-  const DataTypes::ValueType& vec=data.getVectorRO();
+  const DataTypes::FloatVectorType& vec=data.getVectorRO();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
     result.getDataByTagRW(i->first,0) =

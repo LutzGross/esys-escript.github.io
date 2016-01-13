@@ -78,8 +78,8 @@ DataExpanded::DataExpanded(const DataTagged& other)
     initialise(other.getNumSamples(),other.getNumDPPSample());
     // for each data point in this object, extract and copy the corresponding
     // data value from the given DataTagged object
-    DataTypes::ValueType::size_type numRows=m_data.getNumRows();
-    DataTypes::ValueType::size_type numCols=m_data.getNumCols();
+    DataTypes::FloatVectorType::size_type numRows=m_data.getNumRows();
+    DataTypes::FloatVectorType::size_type numCols=m_data.getNumCols();
 #pragma omp parallel for
     for (int i=0; i<numRows; i++) {
         for (int j=0; j<numCols; j++) {
@@ -103,8 +103,8 @@ DataExpanded::DataExpanded(const DataExpanded& other,
     // copy the data
     DataTypes::RegionLoopRangeType region_loop_range =
                                     DataTypes::getSliceRegionLoopRange(region);
-    DataTypes::ValueType::size_type numRows=m_data.getNumRows();
-    DataTypes::ValueType::size_type numCols=m_data.getNumCols();
+    DataTypes::FloatVectorType::size_type numRows=m_data.getNumRows();
+    DataTypes::FloatVectorType::size_type numCols=m_data.getNumCols();
 #pragma omp parallel for
     for (int i=0; i<numRows; i++) {
         for (int j=0; j<numCols; j++) {
@@ -123,7 +123,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const DataTypes::ValueType &data)
+                           const DataTypes::FloatVectorType &data)
   : parent(what,shape)
 {
     EsysAssert(data.size()%getNoValues()==0,
@@ -198,8 +198,8 @@ void DataExpanded::setSlice(const DataAbstract* value,
                 shape, value->getShape()));
 
     // copy the data from the slice into this object
-    DataTypes::ValueType::size_type numRows = m_data.getNumRows();
-    DataTypes::ValueType::size_type numCols = m_data.getNumCols();
+    DataTypes::FloatVectorType::size_type numRows = m_data.getNumRows();
+    DataTypes::FloatVectorType::size_type numCols = m_data.getNumCols();
     ValueType& vec=getVectorRW();
     const ShapeType& mshape=getShape();
     const ValueType& tVec=tempDataExp->getVectorRO();
@@ -302,19 +302,19 @@ string DataExpanded::toString() const
     return result;
 }
 
-DataTypes::ValueType::size_type DataExpanded::getPointOffset(int sampleNo,
+DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
     return m_data.index(sampleNo,dataPointNo);
 }
 
-DataTypes::ValueType::size_type DataExpanded::getPointOffset(int sampleNo,
+DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                              int dataPointNo)
 {
     return m_data.index(sampleNo,dataPointNo);
 }
 
-DataTypes::ValueType::size_type DataExpanded::getLength() const
+DataTypes::FloatVectorType::size_type DataExpanded::getLength() const
 {
     return m_data.size();
 }
@@ -578,7 +578,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
         for (int sampleNo = 0; sampleNo < numSamples; sampleNo++)
         {
             // not sure I like all those virtual calls to getPointOffset
-            DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
+            DataTypes::FloatVectorType::size_type offset=getPointOffset(sampleNo,0);
             int res=DataMaths::matrix_inverse(vec, getShape(), offset,
                     temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
             if (res > errorcode) {
@@ -603,7 +603,7 @@ void DataExpanded::setToZero()
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::ValueType::size_type n = getNoValues();
+    const DataTypes::FloatVectorType::size_type n = getNoValues();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
@@ -688,13 +688,13 @@ void DataExpanded::dump(const std::string fileName) const
 
 void DataExpanded::setTaggedValue(int tagKey,
                                   const DataTypes::ShapeType& pointshape,
-                                  const DataTypes::ValueType& value,
+                                  const DataTypes::FloatVectorType& value,
                                   int dataOffset)
 {
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::ValueType::size_type n = getNoValues();
+    const DataTypes::FloatVectorType::size_type n = getNoValues();
     const double* in = &value[0+dataOffset];
 
     if (value.size() != n)
@@ -717,7 +717,7 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
 {
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
-    const DataTypes::ValueType::size_type n = getNoValues() * getNumDPPSample();
+    const DataTypes::FloatVectorType::size_type n = getNoValues() * getNumDPPSample();
     FunctionSpace fs=getFunctionSpace();
 
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -746,13 +746,13 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
     }
 }
 
-DataTypes::ValueType& DataExpanded::getVectorRW()
+DataTypes::FloatVectorType& DataExpanded::getVectorRW()
 {
     CHECK_FOR_EX_WRITE;
     return m_data.getData();
 }
 
-const DataTypes::ValueType& DataExpanded::getVectorRO() const
+const DataTypes::FloatVectorType& DataExpanded::getVectorRO() const
 {
     return m_data.getData();
 }

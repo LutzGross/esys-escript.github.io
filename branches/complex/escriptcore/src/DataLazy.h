@@ -103,7 +103,7 @@ class DataLazy : public DataAbstract
 {
 
 typedef DataAbstract parent;
-typedef DataTypes::ValueType ValueType;
+typedef DataTypes::FloatVectorType ValueType;
 typedef DataTypes::ShapeType ShapeType;
 
 public:
@@ -226,11 +226,11 @@ public:
   getSlice(const DataTypes::RegionType& region) const;
 
 
-  DataTypes::ValueType::size_type 
+  DataTypes::FloatVectorType::size_type 
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  DataTypes::ValueType::size_type 
+  DataTypes::FloatVectorType::size_type 
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -302,32 +302,32 @@ private:
   void LazyNodeSetup();
 
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const;
 
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const;  
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeSample(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeBinary(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::ValueType*
+  const DataTypes::FloatVectorType*
   resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const;
 
   /**

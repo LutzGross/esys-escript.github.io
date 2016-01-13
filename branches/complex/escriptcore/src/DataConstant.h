@@ -87,7 +87,7 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const DataTypes::ValueType &data);
+               const DataTypes::FloatVectorType &data);
 
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
@@ -162,13 +162,13 @@ typedef DataReady parent;
    */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -178,7 +178,7 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getLength() const;
 
   /**
@@ -305,12 +305,12 @@ typedef DataReady parent;
      Return a reference to the underlying DataVector.
   */
   ESCRIPT_DLL_API
-  DataTypes::ValueType&
+  DataTypes::FloatVectorType&
   getVectorRW();
 
 
   ESCRIPT_DLL_API
-  const DataTypes::ValueType&
+  const DataTypes::FloatVectorType&
   getVectorRO() const;
 
  protected:
@@ -318,7 +318,7 @@ typedef DataReady parent;
  private:
   //
   // the actual data
-  DataTypes::ValueType m_data;
+  DataTypes::FloatVectorType m_data;
 
 };
 

@@ -179,7 +179,7 @@ DataAbstract::getTagCount() const
 void  
 DataAbstract::setTaggedValue(int tagKey,
            const DataTypes::ShapeType& pointshape,
-               const DataTypes::ValueType& value,
+               const DataTypes::FloatVectorType& value,
            int dataOffset)
 {
     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");

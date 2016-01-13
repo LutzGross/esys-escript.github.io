@@ -34,7 +34,7 @@ namespace DataTypes {
 */
   //
   // Some basic types which define the data values and view shapes.
-  typedef escript::DataVector               ValueType;//!< Vector to store underlying data.
+  typedef escript::DataVector               FloatVectorType;//!< Vector to store underlying data.
   typedef std::vector<int>                  ShapeType;//!< The shape of a single datapoint.
   typedef std::vector<std::pair<int, int> > RegionType;
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
@@ -179,8 +179,8 @@ namespace DataTypes {
   */
   ESCRIPT_DLL_API
   inline
-  DataTypes::ValueType::size_type
-  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i)
+  DataTypes::FloatVectorType::size_type
+  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::FloatVectorType::size_type i)
   {
   	EsysAssert((getRank(shape)==1),"Incorrect number of indices for the rank of this object.");
 	EsysAssert((i < DataTypes::noValues(shape)), "Error - Invalid index.");
@@ -197,13 +197,13 @@ namespace DataTypes {
   */
   ESCRIPT_DLL_API
   inline
-  DataTypes::ValueType::size_type
-  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
-	   DataTypes::ValueType::size_type j)
+  DataTypes::FloatVectorType::size_type
+  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::FloatVectorType::size_type i,
+	   DataTypes::FloatVectorType::size_type j)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
   	EsysAssert((getRank(shape)==2),"Incorrect number of indices for the rank of this object.");
-  	DataTypes::ValueType::size_type temp=i+j*shape[0];
+  	DataTypes::FloatVectorType::size_type temp=i+j*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
 	return temp;
   }
@@ -217,13 +217,13 @@ namespace DataTypes {
   */
   ESCRIPT_DLL_API
   inline
-  DataTypes::ValueType::size_type
-  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
-	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k)
+  DataTypes::FloatVectorType::size_type
+  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::FloatVectorType::size_type i,
+	   DataTypes::FloatVectorType::size_type j, DataTypes::FloatVectorType::size_type k)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
   	EsysAssert((getRank(shape)==3),"Incorrect number of indices for the rank of this object.");
-  	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
+  	DataTypes::FloatVectorType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
   	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
   	return temp;
   }
@@ -237,14 +237,14 @@ namespace DataTypes {
   */
   ESCRIPT_DLL_API
   inline
-  DataTypes::ValueType::size_type
-  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::ValueType::size_type i,
-	   DataTypes::ValueType::size_type j, DataTypes::ValueType::size_type k,
-	   DataTypes::ValueType::size_type m)
+  DataTypes::FloatVectorType::size_type
+  getRelIndex(const DataTypes::ShapeType& shape, DataTypes::FloatVectorType::size_type i,
+	   DataTypes::FloatVectorType::size_type j, DataTypes::FloatVectorType::size_type k,
+	   DataTypes::FloatVectorType::size_type m)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
 	EsysAssert((getRank(shape)==4),"Incorrect number of indices for the rank of this object.");
-	DataTypes::ValueType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
+	DataTypes::FloatVectorType::size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
 	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
 	return temp;
   }
@@ -290,12 +290,12 @@ namespace DataTypes {
   */
    ESCRIPT_DLL_API
    void
-   copySlice(ValueType& left,
+   copySlice(FloatVectorType& left,
 			    const ShapeType& leftShape,
-			    ValueType::size_type leftOffset,
-                            const ValueType& other,
+			    FloatVectorType::size_type leftOffset,
+                            const FloatVectorType& other,
 			    const ShapeType& otherShape,
-                            ValueType::size_type otherOffset,
+                            FloatVectorType::size_type otherOffset,
                             const RegionLoopRangeType& region);
 
   /**
@@ -314,12 +314,12 @@ namespace DataTypes {
   */
    ESCRIPT_DLL_API
    void
-   copySliceFrom(ValueType& left,
+   copySliceFrom(FloatVectorType& left,
 				const ShapeType& leftShape,
-				ValueType::size_type leftOffset,
-                                const ValueType& other,
+				FloatVectorType::size_type leftOffset,
+                                const FloatVectorType& other,
 				const ShapeType& otherShape,
-                                ValueType::size_type otherOffset,
+                                FloatVectorType::size_type otherOffset,
                                 const RegionLoopRangeType& region);
 
 
@@ -339,7 +339,7 @@ namespace DataTypes {
      \param sep - separator string to print between components
    */
    void
-   pointToStream(std::ostream& os, const ValueType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+   pointToStream(std::ostream& os, const FloatVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
 
    /**
       \brief Display a single value (with the specified shape) from the data.
@@ -350,7 +350,7 @@ namespace DataTypes {
      \param prefix - string to prepend to the output
    */
    std::string
-   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& prefix);
+   pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
 
 
    /**
@@ -362,7 +362,7 @@ namespace DataTypes {
    \param src - vector to copy from
    \param soffset - beginning of the datapoint in src
    */
-   void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset);
+   void copyPoint(FloatVectorType& dest, FloatVectorType::size_type doffset, FloatVectorType::size_type nvals, const FloatVectorType& src, FloatVectorType::size_type soffset);
 
  }   // End of namespace DataTypes
 

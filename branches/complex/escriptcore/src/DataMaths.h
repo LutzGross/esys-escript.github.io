@@ -62,8 +62,8 @@ Note that vector in this context refers to a data vector storing datapoints not 
   */
   template <class UnaryFunction>
   void
-  unaryOp(DataTypes::ValueType& data, const DataTypes::ShapeType& shape,
-          DataTypes::ValueType::size_type offset,
+  unaryOp(DataTypes::FloatVectorType& data, const DataTypes::ShapeType& shape,
+          DataTypes::FloatVectorType::size_type offset,
           UnaryFunction operation);
 
   /**
@@ -82,12 +82,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   */
   template <class BinaryFunction>
   void
-  binaryOp(DataTypes::ValueType& left, 
+  binaryOp(DataTypes::FloatVectorType& left, 
 	   const DataTypes::ShapeType& leftShape, 
-           DataTypes::ValueType::size_type leftOffset,
-           const DataTypes::ValueType& right, 
+           DataTypes::FloatVectorType::size_type leftOffset,
+           const DataTypes::FloatVectorType& right, 
            const DataTypes::ShapeType& rightShape,
-           DataTypes::ValueType::size_type rightOffset,
+           DataTypes::FloatVectorType::size_type rightOffset,
            BinaryFunction operation);
 
   /**
@@ -108,9 +108,9 @@ Note that vector in this context refers to a data vector storing datapoints not 
   */
   template <class BinaryFunction>
   void
-  binaryOp(DataTypes::ValueType& left, 
+  binaryOp(DataTypes::FloatVectorType& left, 
            const DataTypes::ShapeType& shape,
- 	   DataTypes::ValueType::size_type offset,
+ 	   DataTypes::FloatVectorType::size_type offset,
            double right,
            BinaryFunction operation);
 
@@ -132,9 +132,9 @@ Note that vector in this context refers to a data vector storing datapoints not 
   */
   template <class BinaryFunction>
   double
-  reductionOp(const DataTypes::ValueType& left, 
+  reductionOp(const DataTypes::FloatVectorType& left, 
 	      const DataTypes::ShapeType& shape,
- 	      DataTypes::ValueType::size_type offset,
+ 	      DataTypes::FloatVectorType::size_type offset,
               BinaryFunction operation,
               double initial_value);
 
@@ -154,13 +154,13 @@ Note that vector in this context refers to a data vector storing datapoints not 
   */
   ESCRIPT_DLL_API
   void
-  matMult(const DataTypes::ValueType& left, 
+  matMult(const DataTypes::FloatVectorType& left, 
 	  const DataTypes::ShapeType& leftShape,
-	  DataTypes::ValueType::size_type leftOffset,
-          const DataTypes::ValueType& right,
+	  DataTypes::FloatVectorType::size_type leftOffset,
+          const DataTypes::FloatVectorType& right,
 	  const DataTypes::ShapeType& rightShape,
-	  DataTypes::ValueType::size_type rightOffset,
-          DataTypes::ValueType& result,
+	  DataTypes::FloatVectorType::size_type rightOffset,
+          DataTypes::FloatVectorType& result,
 	  const DataTypes::ShapeType& resultShape);
 // Hmmmm why is there no offset for the result??
 
@@ -194,12 +194,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  symmetric(const DataTypes::ValueType& in, 
+  symmetric(const DataTypes::FloatVectorType& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev, 
+            DataTypes::FloatVectorType::size_type inOffset,
+            DataTypes::FloatVectorType& ev, 
 	    const DataTypes::ShapeType& evShape,
-            DataTypes::ValueType::size_type evOffset)
+            DataTypes::FloatVectorType::size_type evOffset)
   {
    if (DataTypes::getRank(inShape) == 2) {
      int i0, i1;
@@ -243,12 +243,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  nonsymmetric(const DataTypes::ValueType& in, 
+  nonsymmetric(const DataTypes::FloatVectorType& in, 
 	       const DataTypes::ShapeType& inShape,
-               DataTypes::ValueType::size_type inOffset,
-               DataTypes::ValueType& ev, 
+               DataTypes::FloatVectorType::size_type inOffset,
+               DataTypes::FloatVectorType& ev, 
 	       const DataTypes::ShapeType& evShape,
-               DataTypes::ValueType::size_type evOffset)
+               DataTypes::FloatVectorType::size_type evOffset)
   {
    if (DataTypes::getRank(inShape) == 2) {
      int i0, i1;
@@ -292,12 +292,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   */
   inline
   void
-  trace(const DataTypes::ValueType& in, 
+  trace(const DataTypes::FloatVectorType& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev,
+            DataTypes::FloatVectorType::size_type inOffset,
+            DataTypes::FloatVectorType& ev,
 	    const DataTypes::ShapeType& evShape,
-            DataTypes::ValueType::size_type evOffset,
+            DataTypes::FloatVectorType::size_type evOffset,
 	    int axis_offset)
   {
    for (int j=0;j<DataTypes::noValues(evShape);++j)
@@ -391,12 +391,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  transpose(const DataTypes::ValueType& in, 
+  transpose(const DataTypes::FloatVectorType& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& ev,
+            DataTypes::FloatVectorType::size_type inOffset,
+            DataTypes::FloatVectorType& ev,
             const DataTypes::ShapeType& evShape,
-            DataTypes::ValueType::size_type evOffset,
+            DataTypes::FloatVectorType::size_type evOffset,
 	    int axis_offset)
   {
    int inRank=DataTypes::getRank(inShape);
@@ -535,12 +535,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  swapaxes(const DataTypes::ValueType& in, 
+  swapaxes(const DataTypes::FloatVectorType& in, 
 	   const DataTypes::ShapeType& inShape,
-           DataTypes::ValueType::size_type inOffset,
-           DataTypes::ValueType& ev,
+           DataTypes::FloatVectorType::size_type inOffset,
+           DataTypes::FloatVectorType& ev,
 	   const DataTypes::ShapeType& evShape,
-           DataTypes::ValueType::size_type evOffset,
+           DataTypes::FloatVectorType::size_type evOffset,
            int axis0, 
 	   int axis1)
   {
@@ -686,12 +686,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  eigenvalues(const DataTypes::ValueType& in, 
+  eigenvalues(const DataTypes::FloatVectorType& in, 
 	      const DataTypes::ShapeType& inShape,
-              DataTypes::ValueType::size_type inOffset,
-              DataTypes::ValueType& ev,
+              DataTypes::FloatVectorType::size_type inOffset,
+              DataTypes::FloatVectorType& ev,
 	      const DataTypes::ShapeType& evShape,
-              DataTypes::ValueType::size_type evOffset)
+              DataTypes::FloatVectorType::size_type evOffset)
   {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
    double ev0,ev1,ev2;
@@ -747,12 +747,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
   ESCRIPT_DLL_API
   inline
   void
-  eigenvalues_and_eigenvectors(const DataTypes::ValueType& in, const DataTypes::ShapeType& inShape,
-                               DataTypes::ValueType::size_type inOffset,
-                               DataTypes::ValueType& ev, const DataTypes::ShapeType& evShape, 
-                               DataTypes::ValueType::size_type evOffset,
-                               DataTypes::ValueType& V, const DataTypes::ShapeType& VShape,
-                               DataTypes::ValueType::size_type VOffset,
+  eigenvalues_and_eigenvectors(const DataTypes::FloatVectorType& in, const DataTypes::ShapeType& inShape,
+                               DataTypes::FloatVectorType::size_type inOffset,
+                               DataTypes::FloatVectorType& ev, const DataTypes::ShapeType& evShape, 
+                               DataTypes::FloatVectorType::size_type evOffset,
+                               DataTypes::FloatVectorType& V, const DataTypes::ShapeType& VShape,
+                               DataTypes::FloatVectorType::size_type VOffset,
                                const double tol=1.e-13)
   {
    double in00,in10,in20,in01,in11,in21,in02,in12,in22;
@@ -813,9 +813,9 @@ Note that vector in this context refers to a data vector storing datapoints not 
 
 inline
 bool
-checkOffset(const DataTypes::ValueType& data,
+checkOffset(const DataTypes::FloatVectorType& data,
 	    const DataTypes::ShapeType& shape,
-	    DataTypes::ValueType::size_type offset)
+	    DataTypes::FloatVectorType::size_type offset)
 {
 	return (data.size() >= (offset+DataTypes::noValues(shape))); 
 }
@@ -823,14 +823,14 @@ checkOffset(const DataTypes::ValueType& data,
 template <class UnaryFunction>
 inline
 void
-unaryOp(DataTypes::ValueType& data, const DataTypes::ShapeType& shape,
-          DataTypes::ValueType::size_type offset,
+unaryOp(DataTypes::FloatVectorType& data, const DataTypes::ShapeType& shape,
+          DataTypes::FloatVectorType::size_type offset,
           UnaryFunction operation)
 {
   EsysAssert((data.size()>0)&&checkOffset(data,shape,offset),
                "Error - Couldn't perform unaryOp due to insufficient storage.");
-  DataTypes::ValueType::size_type nVals=DataTypes::noValues(shape);
-  for (DataTypes::ValueType::size_type i=0;i<nVals;i++) {
+  DataTypes::FloatVectorType::size_type nVals=DataTypes::noValues(shape);
+  for (DataTypes::FloatVectorType::size_type i=0;i<nVals;i++) {
     data[offset+i]=operation(data[offset+i]);
   }
 }
@@ -839,12 +839,12 @@ unaryOp(DataTypes::ValueType& data, const DataTypes::ShapeType& shape,
 template <class BinaryFunction>
 inline
 void
-binaryOp(DataTypes::ValueType& left, 
+binaryOp(DataTypes::FloatVectorType& left, 
 			const DataTypes::ShapeType& leftShape,
-			DataTypes::ValueType::size_type leftOffset,
-                        const DataTypes::ValueType& right,
+			DataTypes::FloatVectorType::size_type leftOffset,
+                        const DataTypes::FloatVectorType& right,
 			const DataTypes::ShapeType& rightShape,
-                        DataTypes::ValueType::size_type rightOffset,
+                        DataTypes::FloatVectorType::size_type rightOffset,
                         BinaryFunction operation)
 {
   EsysAssert(leftShape==rightShape,
@@ -853,7 +853,7 @@ binaryOp(DataTypes::ValueType& left,
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
   EsysAssert(((right.size()>0)&&checkOffset(right,rightShape,rightOffset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
-  for (DataTypes::ValueType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     left[leftOffset+i]=operation(left[leftOffset+i],right[rightOffset+i]);
   }
 }
@@ -861,15 +861,15 @@ binaryOp(DataTypes::ValueType& left,
 template <class BinaryFunction>
 inline
 void
-binaryOp(DataTypes::ValueType& left, 
+binaryOp(DataTypes::FloatVectorType& left, 
 			const DataTypes::ShapeType& leftShape,
-			DataTypes::ValueType::size_type offset,
+			DataTypes::FloatVectorType::size_type offset,
                         double right,
                         BinaryFunction operation)
 {
   EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
-  for (DataTypes::ValueType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     left[offset+i]=operation(left[offset+i],right);
   }
 }
@@ -877,16 +877,16 @@ binaryOp(DataTypes::ValueType& left,
 template <class BinaryFunction>
 inline
 double
-reductionOp(const DataTypes::ValueType& left, 
+reductionOp(const DataTypes::FloatVectorType& left, 
 			   const DataTypes::ShapeType& leftShape,
-			   DataTypes::ValueType::size_type offset,
+			   DataTypes::FloatVectorType::size_type offset,
                            BinaryFunction operation,
                            double initial_value)
 {
   EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
                "Error - Couldn't perform reductionOp due to insufficient storage.");
   double current_value=initial_value;
-  for (DataTypes::ValueType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     current_value=operation(current_value,left[offset+i]);
   }
   return current_value;
@@ -909,12 +909,12 @@ reductionOp(const DataTypes::ValueType& left,
      \return 0 on success, on failure the return value should be passed to matrixInverseError(int err).
 */
 int
-matrix_inverse(const DataTypes::ValueType& in, 
+matrix_inverse(const DataTypes::FloatVectorType& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& out,
+            DataTypes::FloatVectorType::size_type inOffset,
+            DataTypes::FloatVectorType& out,
 	    const DataTypes::ShapeType& outShape,
-            DataTypes::ValueType::size_type outOffset,
+            DataTypes::FloatVectorType::size_type outOffset,
 	    int count,
 	    LapackInverseHelper& helper);
 
@@ -934,7 +934,7 @@ matrixInverseError(int err);
 */
 inline 
 bool
-vectorHasNaN(const DataTypes::ValueType& in, DataTypes::ValueType::size_type inOffset, size_t count)
+vectorHasNaN(const DataTypes::FloatVectorType& in, DataTypes::FloatVectorType::size_type inOffset, size_t count)
 {
 	for (size_t z=inOffset;z<inOffset+count;++z)
 	{

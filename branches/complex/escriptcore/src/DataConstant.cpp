@@ -72,7 +72,7 @@ DataConstant::DataConstant(const DataConstant& other,
 
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const DataTypes::ValueType &data)
+                           const DataTypes::FloatVectorType &data)
   : parent(what,shape)
 {
   //
@@ -133,7 +133,7 @@ DataConstant::deepCopy()
 }
 
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo) const
 {
@@ -147,7 +147,7 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo)
 {
@@ -163,7 +163,7 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataConstant::getLength() const
 {
   return m_data.size();
@@ -300,7 +300,7 @@ void
 DataConstant::setToZero()
 {
     CHECK_FOR_EX_WRITE
-    DataTypes::ValueType::size_type n=m_data.size();
+    DataTypes::FloatVectorType::size_type n=m_data.size();
     for (int i=0; i<n ;++i) m_data[i]=0.;
 }
 
@@ -384,14 +384,14 @@ DataConstant::dump(const std::string fileName) const
 
 // These used to be marked as inline in DataConstant.
 // But they are marked virtual in DataReady
-DataTypes::ValueType&
+DataTypes::FloatVectorType&
 DataConstant::getVectorRW()
 {
   CHECK_FOR_EX_WRITE
   return m_data;
 }
 
-const DataTypes::ValueType&
+const DataTypes::FloatVectorType&
 DataConstant::getVectorRO() const
 {
   return m_data;

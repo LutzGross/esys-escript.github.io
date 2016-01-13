@@ -49,7 +49,7 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
   //
   // Types for the lists of tags and values.
   typedef std::vector<int> TagListType;
-  typedef DataTypes::ValueType ValueType;
+  typedef DataTypes::FloatVectorType ValueType;
   typedef std::vector<ValueType::ElementType> ValueBatchType;
 
   //
@@ -131,7 +131,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   */
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
-             const DataTypes::ValueType& defaultvalue,
+             const DataTypes::FloatVectorType& defaultvalue,
              const DataTagged* tagsource=0);
 
   /**
@@ -355,11 +355,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param i - position in the underlying datastructure
   */
 
-  DataTypes::ValueType::reference
-  getDataByTagRW(int tag, DataTypes::ValueType::size_type i);
+  DataTypes::FloatVectorType::reference
+  getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i);
 
-  DataTypes::ValueType::const_reference
-  getDataByTagRO(int tag, DataTypes::ValueType::size_type i) const;
+  DataTypes::FloatVectorType::const_reference
+  getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i) const;
 
 
 
@@ -372,7 +372,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
       Note: If the tag is not valid, the offset of the default value is returned instead.
   */
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getOffsetForTag(int tag) const;
 
 
@@ -381,10 +381,10 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return a reference to the underlying DataVector.
   */
 
-  DataTypes::ValueType&
+  DataTypes::FloatVectorType&
   getVectorRW();
 
-  const DataTypes::ValueType&
+  const DataTypes::FloatVectorType&
   getVectorRO() const;
 
 
@@ -423,11 +423,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      is not explicitly recorded in this DataTagged object's tag map.
      \param i - position in the underlying datastructure
   */
-  DataTypes::ValueType::reference
-  getDefaultValueRW(DataTypes::ValueType::size_type i);
+  DataTypes::FloatVectorType::reference
+  getDefaultValueRW(DataTypes::FloatVectorType::size_type i);
 
-  DataTypes::ValueType::const_reference
-  getDefaultValueRO(DataTypes::ValueType::size_type i) const;
+  DataTypes::FloatVectorType::const_reference
+  getDefaultValueRO(DataTypes::FloatVectorType::size_type i) const;
 
 
 
@@ -568,7 +568,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   /**
      \brief  Returns the offset in the structure which stores the default value
   */
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getDefaultOffset() const;
   
   /**
@@ -604,22 +604,22 @@ DataTagged::isCurrentTag(int tag) const
 }
 
 inline 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataTagged::getDefaultOffset() const
 {
   return m_defaultValueOffset;  
 }
 
 inline
-DataTypes::ValueType::reference
-DataTagged::getDefaultValueRW(DataTypes::ValueType::size_type i)
+DataTypes::FloatVectorType::reference
+DataTagged::getDefaultValueRW(DataTypes::FloatVectorType::size_type i)
 {       
         return getVectorRW()[i];                // getVectorRW has exclusive write checks
 }
 
 inline
-DataTypes::ValueType::const_reference
-DataTagged::getDefaultValueRO(DataTypes::ValueType::size_type i) const
+DataTypes::FloatVectorType::const_reference
+DataTagged::getDefaultValueRO(DataTypes::FloatVectorType::size_type i) const
 {
         return getVectorRO()[i];
 }
@@ -632,7 +632,7 @@ DataTagged::getTagLookup() const
 }
 
 inline
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataTagged::getLength() const
 {
   return m_data.size();
