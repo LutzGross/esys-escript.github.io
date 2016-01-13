@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2015 by The University of Queensland
+# Copyright (c) 2003-2016 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -16,13 +16,15 @@
 
 from templates.jessie_options import *
 
-debug = True
+debug = False
 
 boost_libs = ['boost_python-py27']
 
 #lapack = 'clapack'
 
-#silo = True
+silo = True
 
 #cxx_extra = '-Wextra -Wno-unused-parameter -DEXWRITECHK'
 cxx_extra = '-Wextra -Wno-unused-parameter'
+
+mpi='OPENMPI'
