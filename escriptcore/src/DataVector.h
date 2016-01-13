@@ -52,10 +52,11 @@ class ESCRIPT_DLL_API DataVectorTaipan {
   //
   // The underlying type used to implement the vector.
   typedef ElementType *  VectorStorageType;
-  typedef const ElementType * ConstValueType;
+
 
   //
   // Various types exported to clients of this class.
+  typedef const ElementType *  const_pointer;  
   typedef ElementType          value_type;
   typedef long                 size_type;
   typedef ElementType &        reference;
@@ -214,7 +215,7 @@ class ESCRIPT_DLL_API DataVectorAlt {
   //
   // Various types exported to clients of this class.
   
-  typedef const ElementType * ConstValueType;
+  typedef const ElementType * const_pointer;
   typedef ElementType          value_type;
   typedef long                 size_type;
   typedef ElementType &        reference;

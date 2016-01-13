@@ -4359,7 +4359,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
         const DataTagged* tdat=dynamic_cast<const DataTagged*>(trueval.getReady());
         const DataTagged* fdat=dynamic_cast<const DataTagged*>(falseval.getReady());
         const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
-        DataVector::ConstValueType srcptr;
+        DataVector::const_pointer srcptr;
 
         // default value first
         if (mdat->getDefaultValueRO(0)>0)
