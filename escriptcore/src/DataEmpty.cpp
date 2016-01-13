@@ -32,7 +32,7 @@ namespace {
   }
 
 
-  escript::DataTypes::ValueType dummy;	
+  escript::DataTypes::FloatVectorType dummy;	
 
 }
 
@@ -61,7 +61,7 @@ DataEmpty::deepCopy()
   return new DataEmpty();
 }
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
 {
@@ -69,7 +69,7 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo)
 {
@@ -77,7 +77,7 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 DataEmpty::getLength() const
 {
   return 0;
@@ -105,14 +105,14 @@ DataEmpty::matrixInverse(DataAbstract* out) const
 }
 
 
-DataTypes::ValueType&
+DataTypes::FloatVectorType&
 DataEmpty::getVectorRW()
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
 }
 
-const DataTypes::ValueType&
+const DataTypes::FloatVectorType&
 DataEmpty::getVectorRO() const
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.

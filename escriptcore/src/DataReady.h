@@ -58,12 +58,12 @@ public:
   */
 
   ESCRIPT_DLL_API
-  virtual DataTypes::ValueType&
+  virtual DataTypes::FloatVectorType&
   getVectorRW()=0;
 
 
   ESCRIPT_DLL_API
-  virtual const DataTypes::ValueType&
+  virtual const DataTypes::FloatVectorType&
   getVectorRO() const=0;
 
   /**
@@ -100,13 +100,13 @@ public:
      \brief get a reference to the beginning of a data point
  */
   ESCRIPT_DLL_API
-  DataTypes::ValueType::const_reference
-  getDataAtOffsetRO(DataTypes::ValueType::size_type i) const;
+  DataTypes::FloatVectorType::const_reference
+  getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i) const;
 
 
   ESCRIPT_DLL_API
-  DataTypes::ValueType::reference
-  getDataAtOffsetRW(DataTypes::ValueType::size_type i);
+  DataTypes::FloatVectorType::reference
+  getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i);
 
   ESCRIPT_DLL_API
   DataReady_ptr 
@@ -130,15 +130,15 @@ DataReady::getSampleDataRO(ValueType::size_type sampleNo) const
 
 
 inline
-DataTypes::ValueType::const_reference
-DataReady::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
+DataTypes::FloatVectorType::const_reference
+DataReady::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i) const
 {
    return getVectorRO()[i];
 }
 
 inline
-DataTypes::ValueType::reference
-DataReady::getDataAtOffsetRW(DataTypes::ValueType::size_type i)	// exclusive write checks will be done in getVectorRW()
+DataTypes::FloatVectorType::reference
+DataReady::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i)	// exclusive write checks will be done in getVectorRW()
 {
    return getVectorRW()[i];
 }

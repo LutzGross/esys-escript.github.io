@@ -233,9 +233,9 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 bool MPIDataReducer::reduceRemoteValues(MPI_Comm& comm)
 {
 #ifdef ESYS_MPI
-    DataTypes::ValueType& vr=value.getExpandedVectorReference();
+    DataTypes::FloatVectorType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
-    DataTypes::ValueType& rr=result.getExpandedVectorReference();
+    DataTypes::FloatVectorType& rr=result.getExpandedVectorReference();
     if (reduceop==MPI_OP_NULL)
     {
 	reset();	// we can't be sure what the value should be

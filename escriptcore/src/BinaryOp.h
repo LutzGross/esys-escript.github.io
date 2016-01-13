@@ -51,11 +51,11 @@ inline void binaryOp(DataTagged& left, const DataConstant& right,
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataTypes::ValueType& leftVec=left.getVectorRW();
+  DataTypes::FloatVectorType& leftVec=left.getVectorRW();
   const DataTypes::ShapeType& leftShape=left.getShape();
   const DataTypes::ShapeType& rightShape=right.getShape();
   double rvalue=right.getVectorRO()[0];		// for rank==0
-  const DataTypes::ValueType& rightVec=right.getVectorRO();   // for rank>0
+  const DataTypes::FloatVectorType& rightVec=right.getVectorRO();   // for rank>0
   if (right.getRank()==0) {
     for (i=lookup.begin();i!=lookupEnd;i++) {
       DataMaths::binaryOp(leftVec,leftShape,i->second,rvalue,operation);
@@ -80,7 +80,7 @@ inline void binaryOp(DataTagged& left, const DataConstant& right,
    The value in right will be assumed to begin at offset 0
 */
 template <class BinaryFunction>
-inline void binaryOp(DataTagged& left, const DataTypes::ValueType& right, 
+inline void binaryOp(DataTagged& left, const DataTypes::FloatVectorType& right, 
 		     const DataTypes::ShapeType& shape,
 		     BinaryFunction operation)
 {
@@ -89,7 +89,7 @@ inline void binaryOp(DataTagged& left, const DataTypes::ValueType& right,
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataTypes::ValueType& lvec=left.getVectorRW();
+  DataTypes::FloatVectorType& lvec=left.getVectorRW();
   const DataTypes::ShapeType& lshape=left.getShape();
   if (DataTypes::getRank(shape)==0) {
     for (i=lookup.begin();i!=lookupEnd;i++) {
@@ -133,7 +133,7 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
       left.addTag(i->first);
     }
   }
-  DataTypes::ValueType& leftVec=left.getVectorRW();
+  DataTypes::FloatVectorType& leftVec=left.getVectorRW();
   const DataTypes::ShapeType& leftShape=left.getShape();
   //
   // Perform the operation.
@@ -176,12 +176,12 @@ inline void binaryOp(DataExpanded& left, const DataReady& right,
 		     BinaryFunction operation)
 {
   int i,j;
-  DataTypes::ValueType::size_type numDPPSample=left.getNumDPPSample();
-  DataTypes::ValueType::size_type numSamples=left.getNumSamples();
+  DataTypes::FloatVectorType::size_type numDPPSample=left.getNumDPPSample();
+  DataTypes::FloatVectorType::size_type numSamples=left.getNumSamples();
   if (right.getRank()==0) {
 
     const DataTypes::ShapeType& leftShape=left.getShape();
-    DataTypes::ValueType& leftVec=left.getVectorRW();
+    DataTypes::FloatVectorType& leftVec=left.getVectorRW();
     //
     // This will call the double version of binaryOp
     #pragma omp parallel for private(i,j) schedule(static)

@@ -92,7 +92,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const DataTypes::ValueType &data);
+               const DataTypes::FloatVectorType &data);
 
 	       
   ESCRIPT_DLL_API
@@ -217,13 +217,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -233,11 +233,11 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
 
   ESCRIPT_DLL_API
-  DataTypes::ValueType&
+  DataTypes::FloatVectorType&
   getVectorRW();
 
   ESCRIPT_DLL_API
-  const DataTypes::ValueType&
+  const DataTypes::FloatVectorType&
   getVectorRO() const;
 
 
@@ -291,7 +291,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   void  
   setTaggedValue(int tagKey,
  	         const DataTypes::ShapeType& pointshape,
-                 const DataTypes::ValueType& value,
+                 const DataTypes::FloatVectorType& value,
 		 int dataOffset=0);
 
 

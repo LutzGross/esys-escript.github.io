@@ -183,7 +183,7 @@ DataVector::operator!=(const DataVector& other) const
 void 
 DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies)
 {
-  using DataTypes::ValueType;
+  using DataTypes::FloatVectorType;
   const DataTypes::ShapeType& tempShape=value.getShape();
   size_type len=DataTypes::noValues(tempShape);
   if (offset+len*copies>size())
@@ -193,7 +193,7 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
      ss << "offset=" << offset << " + " << " len=" << len << " >= " << size();
      throw DataException(ss.str());
   }
-  size_t si=0,sj=0,sk=0,sl=0;
+  size_type si=0,sj=0,sk=0,sl=0;
   switch (value.getRank())
   {
   case 0:	
@@ -217,9 +217,9 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
 	sj=tempShape[1];
 	for (size_type z=0;z<copies;++z)
 	{
-           for (ValueType::size_type i=0;i<si;i++)
+           for (size_type i=0;i<si;i++)
 	   {
-              for (ValueType::size_type j=0;j<sj;j++)
+              for (size_type j=0;j<sj;j++)
 	      {
                  m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
               }
@@ -233,11 +233,11 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
 	sk=tempShape[2];
 	for (size_type z=0;z<copies;++z) 
 	{
-          for (ValueType::size_type i=0;i<si;i++)
+          for (size_type i=0;i<si;i++)
 	  {
-            for (ValueType::size_type j=0;j<sj;j++)
+            for (size_type j=0;j<sj;j++)
 	    {
-              for (ValueType::size_type k=0;k<sk;k++)
+              for (size_type k=0;k<sk;k++)
 	      {
                  m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
               }
@@ -253,13 +253,13 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
 	sl=tempShape[3];
 	for (size_type z=0;z<copies;++z)
 	{
-          for (ValueType::size_type i=0;i<si;i++)
+          for (size_type i=0;i<si;i++)
 	  {
-            for (ValueType::size_type j=0;j<sj;j++)
+            for (size_type j=0;j<sj;j++)
 	    {
-              for (ValueType::size_type k=0;k<sk;k++)
+              for (size_type k=0;k<sk;k++)
 	      {
-                 for (ValueType::size_type l=0;l<sl;l++)
+                 for (size_type l=0;l<sl;l++)
 		 {
                     m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
                  }
@@ -280,7 +280,7 @@ DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, s
 void
 DataVector::copyFromArray(const WrappedArray& value, size_type copies)
 {
-  using DataTypes::ValueType;
+  using DataTypes::FloatVectorType;
   if (m_array_data!=0) {
     arrayManager.delete_array(m_array_data);
   }

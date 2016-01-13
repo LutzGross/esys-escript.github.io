@@ -43,9 +43,9 @@ unaryOp(DataExpanded& data,
         UnaryFunction operation)
 {
   int i,j;
-  DataTypes::ValueType::size_type numDPPSample=data.getNumDPPSample();
-  DataTypes::ValueType::size_type numSamples=data.getNumSamples();
-  DataTypes::ValueType& left=data.getVectorRW();
+  DataTypes::FloatVectorType::size_type numDPPSample=data.getNumDPPSample();
+  DataTypes::FloatVectorType::size_type numSamples=data.getNumSamples();
+  DataTypes::FloatVectorType& left=data.getVectorRW();
   const DataTypes::ShapeType& shape=data.getShape();
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
@@ -65,7 +65,7 @@ unaryOp(DataTagged& data,
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataTypes::ValueType& left=data.getVectorRW();
+  DataTypes::FloatVectorType& left=data.getVectorRW();
   const DataTypes::ShapeType& shape=data.getShape();
   for (i=lookup.begin();i!=lookupEnd;i++) {
     DataMaths::unaryOp(left,shape,i->second,operation);

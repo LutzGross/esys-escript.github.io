@@ -360,7 +360,7 @@ Data::Data(DataAbstract_ptr underlyingdata)
     m_protected=false;
 }
 
-Data::Data(const DataTypes::ValueType& value,
+Data::Data(const DataTypes::FloatVectorType& value,
            const DataTypes::ShapeType& shape,
            const FunctionSpace& what,
            bool expanded)
@@ -465,7 +465,7 @@ void Data::initialise(const WrappedArray& value,
 
 
 void
-Data::initialise(const DataTypes::ValueType& value,
+Data::initialise(const DataTypes::FloatVectorType& value,
                  const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
@@ -585,7 +585,7 @@ Data::setToZero()
     }
     if (isLazy())
     {
-        DataTypes::ValueType v(getNoValues(),0);
+        DataTypes::FloatVectorType v(getNoValues(),0);
         DataConstant* dc=new DataConstant(getFunctionSpace(),getDataPointShape(),v);
         DataLazy* dl=new DataLazy(dc->getPtr());
         set_m_data(dl->getPtr());
@@ -730,9 +730,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::FloatVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::FloatVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::FloatVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
@@ -755,9 +755,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::FloatVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::FloatVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::FloatVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
@@ -1057,7 +1057,7 @@ Data::getDataPointSize() const
 }
 
 
-DataTypes::ValueType::size_type
+DataTypes::FloatVectorType::size_type
 Data::getLength() const
 {
     return m_data->getLength();
@@ -1080,7 +1080,7 @@ Data::toListOfTuples(bool scalarastuple)
 
     int npoints=getNumDataPoints();
     expand();                   // This will also resolve if required
-    const DataTypes::ValueType& vec=getReady()->getVectorRO();
+    const DataTypes::FloatVectorType& vec=getReady()->getVectorRO();
     bp::list temp;
     temp.append(bp::object());
     bp::list res(temp*npoints);// pre-size the list by the "[None] * npoints"  trick
@@ -1164,7 +1164,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
             throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid dataPointNoInSample.");
         }
         // TODO: global error handling
-        DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+        DataTypes::FloatVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
         return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset)));
     }
     else
@@ -1321,7 +1321,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
                 throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid dataPointNoInSample.");
             }
             // TODO: global error handling
-            DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+            DataTypes::FloatVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
             memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(double));
         }
@@ -1788,7 +1788,7 @@ Data::lazyAlgWorker(double init)
         for (i=0;i<numsamples;++i)
         {
             size_t roffset=0;
-            const DataTypes::ValueType* v=dl->resolveSample(i, roffset);
+            const DataTypes::FloatVectorType* v=dl->resolveSample(i, roffset);
             // Now we have the sample, run operation on all points
             for (size_t j=0;j<samplesize;++j)
             {
@@ -2829,7 +2829,7 @@ Data::setTaggedValue(int tagKey,
 void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataTypes::ShapeType& pointshape,
-                            const DataTypes::ValueType& value,
+                            const DataTypes::FloatVectorType& value,
                             int dataOffset)
 {
     if (isProtected()) {
@@ -3273,24 +3273,24 @@ Data::toString() const
 
 
 // This method is not thread-safe
-DataTypes::ValueType::reference
-Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
+DataTypes::FloatVectorType::reference
+Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i)
 {
     checkExclusiveWrite();
     return getReady()->getDataAtOffsetRW(i);
 }
 
 // This method is not thread-safe
-DataTypes::ValueType::const_reference
-Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
+DataTypes::FloatVectorType::const_reference
+Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i)
 {
     forceResolve();
     return getReady()->getDataAtOffsetRO(i);
 }
 
 
-// DataTypes::ValueType::const_reference
-// Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
+// DataTypes::FloatVectorType::const_reference
+// Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i) const
 // {
 //     if (isLazy())
 //     {
@@ -3300,7 +3300,7 @@ Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
 // }
 
 
-DataTypes::ValueType::const_reference
+DataTypes::FloatVectorType::const_reference
 Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
     forceResolve();
@@ -3316,7 +3316,7 @@ Data::getDataPointRO(int sampleNo, int dataPointNo)
 }
 
 
-DataTypes::ValueType::reference
+DataTypes::FloatVectorType::reference
 Data::getDataPointRW(int sampleNo, int dataPointNo)
 {
     checkExclusiveWrite();
@@ -4455,7 +4455,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     }
 }
 
-DataTypes::ValueType& Data::getExpandedVectorReference()
+DataTypes::FloatVectorType& Data::getExpandedVectorReference()
 {
     if (!isExpanded())
     {

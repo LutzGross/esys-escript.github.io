@@ -222,19 +222,19 @@ namespace DataTypes
 
    inline
    bool
-   checkOffset(ValueType::size_type offset, int size, int noval)
+   checkOffset(FloatVectorType::size_type offset, int size, int noval)
    {
       return (size >= (offset+noval));
    }
 
 
    void
-   copySlice(ValueType& left,
+   copySlice(FloatVectorType& left,
 			    const ShapeType& leftShape,
-			    ValueType::size_type thisOffset,
-                            const ValueType& other,
+			    FloatVectorType::size_type thisOffset,
+                            const FloatVectorType& other,
 			    const ShapeType& otherShape,
-                            ValueType::size_type otherOffset,
+                            FloatVectorType::size_type otherOffset,
                             const RegionLoopRangeType& region)
    {
       //
@@ -323,12 +323,12 @@ namespace DataTypes
 
 
    void
-   copySliceFrom(ValueType& left,
+   copySliceFrom(FloatVectorType& left,
 				const ShapeType& leftShape,
-				ValueType::size_type thisOffset,
-                                const ValueType& other,
+				FloatVectorType::size_type thisOffset,
+                                const FloatVectorType& other,
 				const ShapeType& otherShape,
-                                ValueType::size_type otherOffset,
+                                FloatVectorType::size_type otherOffset,
                                 const RegionLoopRangeType& region)
    {
       //
@@ -476,7 +476,7 @@ namespace DataTypes
 
 
    void
-   pointToStream(std::ostream& os, const ValueType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
+   pointToStream(std::ostream& os, const FloatVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
    {
       using namespace std;
       EsysAssert(data!=0, "Error - data is null");
@@ -566,7 +566,7 @@ namespace DataTypes
 
 
    std::string
-   pointToString(const ValueType& data,const ShapeType& shape, int offset, const std::string& prefix)
+   pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {
       using namespace std;
       EsysAssert(data.size()>0,"Error - Data object is empty.");
@@ -632,7 +632,7 @@ namespace DataTypes
    }
 
 
-   void copyPoint(ValueType& dest, ValueType::size_type doffset, ValueType::size_type nvals, const ValueType& src, ValueType::size_type soffset)
+   void copyPoint(FloatVectorType& dest, FloatVectorType::size_type doffset, FloatVectorType::size_type nvals, const FloatVectorType& src, FloatVectorType::size_type soffset)
    {
       EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
                  "Error - Couldn't copy due to insufficient storage.");
