@@ -20,6 +20,7 @@
 #include "system_dep.h"
 
 #include "DataTypes.h"
+#include "DataVector.h"
 #include "FunctionSpace.h"
 
 #include <boost/scoped_ptr.hpp>
