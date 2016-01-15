@@ -25,6 +25,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "DataTypes.h"
+
 namespace escript {
 
 class WrappedArray;
@@ -217,7 +219,7 @@ class ESCRIPT_DLL_API DataVectorAlt {
   
   typedef const ElementType * const_pointer;
   typedef ElementType          value_type;
-  typedef long                 size_type;
+  typedef DataTypes::vec_size_type size_type;
   typedef ElementType &        reference;
   typedef const ElementType &  const_reference;
 
@@ -428,6 +430,117 @@ DataVectorAlt::operator[](const DataVectorAlt::size_type i) const
 }
 
 
+namespace DataTypes
+{
+  typedef escript::DataVector               FloatVectorType;//!< Vector to store underlying data.
+  
+  
+  
+  
+
+  /**
+     \brief
+     Copy a data slice specified by the given region and offset from the
+     "other" view into the "left" view at the given offset.
+     
+     \param left - vector to copy into
+     \param leftShape - shape of datapoints for the left vector
+     \param leftOffset - location within left to start copying to
+     \param other - vector to copy from
+     \param otherShape - shape of datapoints for the other vector
+     \param otherOffset - location within other vector to start copying from
+     \param region - Input -
+                      Region in other view to copy data from.
+  */
+   ESCRIPT_DLL_API
+   void
+   copySlice(FloatVectorType& left,
+			    const ShapeType& leftShape,
+			    vec_size_type leftOffset,
+                            const FloatVectorType& other,
+			    const ShapeType& otherShape,
+                            vec_size_type otherOffset,
+                            const RegionLoopRangeType& region);
+
+  /**
+     \brief
+     Copy data into a slice specified by the given region and offset in
+     the left vector from the other vector at the given offset.
+
+     \param left - vector to copy into
+     \param leftShape - shape of datapoints for the left vector
+     \param leftOffset - location within left to start copying to
+     \param other - vector to copy from
+     \param otherShape - shape of datapoints for the other vector
+     \param otherOffset - location within other vector to start copying from
+     \param region - Input -
+                      Region in the left vector to copy data to.
+  */
+   ESCRIPT_DLL_API
+   void
+   copySliceFrom(FloatVectorType& left,
+				const ShapeType& leftShape,
+				vec_size_type leftOffset,
+                                const FloatVectorType& other,
+				const ShapeType& otherShape,
+                                vec_size_type otherOffset,
+                                const RegionLoopRangeType& region);
+
+
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
+     Despite its similar name this function behaves differently to pointToString.
+     There are no prefixes or (i,j,k) identifiers on each field. each datapoint is printed without
+     new lines.
+     It also works with double* rather than vectors so be careful what you pass it.
+
+     \param os - stream to write to
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param needsep - Does this output need to start with a separator
+     \param sep - separator string to print between components
+   */
+   void
+   pointToStream(std::ostream& os, const FloatVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param prefix - string to prepend to the output
+   */
+   std::string
+   pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
+
+
+   /**
+      \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
+
+   \param dest - vector to copy to
+   \param doffset - beginning of the target datapoint in dest
+   \param nvals - the number of values comprising the datapoint
+   \param src - vector to copy from
+   \param soffset - beginning of the datapoint in src
+   */
+   void copyPoint(FloatVectorType& dest, vec_size_type doffset, vec_size_type nvals, const FloatVectorType& src, vec_size_type soffset);  
+  
+  
+  
+  
+}
+
+
+
+
+
+
+
+
+  
 } // end of namespace
 
 #endif
