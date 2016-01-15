@@ -173,7 +173,7 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
         }
 
         const float* srcPtr = tempData;
-        for (int i=0; i < dimSize; i++, srcPtr++) {
+        for (size_t i=0; i < dimSize; i++, srcPtr++) {
             float* c = averageData(srcPtr, dimSize);
             dataArray.push_back(c);
         }
@@ -310,7 +310,7 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
         var->get(tempData, &counts[0]);
 
         const float* srcPtr = tempData;
-        for (int i=0; i < dimSize; i++, srcPtr++) {
+        for (size_t i=0; i < dimSize; i++, srcPtr++) {
             float* c = averageData(srcPtr, dimSize);
             dataArray.push_back(c);
         }
@@ -554,7 +554,7 @@ void DataVar::writeToVTK(ostream& os, int ownIndex)
         int firstId = nodeDist[ownIndex];
         int lastId = nodeDist[ownIndex+1];
         IndexMap sampleID2idx = buildIndexMap();
-        for (int i=0; i<nodeGNI.size(); i++) {
+        for (size_t i=0; i<nodeGNI.size(); i++) {
             if (firstId <= nodeGNI[i] && nodeGNI[i] < lastId) {
                 IndexMap::const_iterator it = sampleID2idx.find(requiredIDs[i]);
                 int idx = (it==sampleID2idx.end() ? -1 : (int)it->second);
