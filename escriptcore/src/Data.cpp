@@ -49,6 +49,7 @@
 
 namespace bp = boost::python;
 using namespace escript;
+using namespace escript::DataTypes;
 using namespace std;
 
 // ensure the current object is not a DataLazy

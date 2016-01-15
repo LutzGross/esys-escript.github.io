@@ -36,6 +36,8 @@
 
 #include <iomanip>		// for some fancy formatting in debug
 
+using namespace escript::DataTypes;
+
 // #define LAZYDEBUG(X) if (privdebug){X;} 
 #define LAZYDEBUG(X)
 namespace

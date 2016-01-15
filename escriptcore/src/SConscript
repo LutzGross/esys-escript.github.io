@@ -45,6 +45,7 @@ sources = """
     DataTagged.cpp
     DataTypes.cpp
     DataVector.cpp
+    DataVectorTaipan.cpp    
     DomainException.cpp
     EscriptParams.cpp
     FunctionSpace.cpp
@@ -91,6 +92,8 @@ headers = """
     DataTagged.h
     DataTypes.h
     DataVector.h
+    DataVectorAlt.h
+    DataVectorTaipan.h    
     Dodgy.h
     DomainException.h
     EscriptParams.h
