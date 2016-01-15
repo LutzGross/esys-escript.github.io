@@ -29,6 +29,7 @@
 using namespace std;
 using namespace CppUnit;
 using namespace escript;
+using namespace escript::DataTypes;
 using namespace esysUtils;
 
 

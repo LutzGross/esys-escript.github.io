@@ -43,7 +43,7 @@ class DataBlocks2D {
   // The type of the underlying data array under management.
   // The multi-dimensional data points are flattened and stored
   // serially as a vector of doubles.
-  typedef DataVector ValueType;
+  typedef DataTypes::DataVector ValueType;
 
   /**
      \brief

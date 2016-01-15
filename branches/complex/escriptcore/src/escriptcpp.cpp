@@ -165,7 +165,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
-  def("releaseUnusedMemory",escript::releaseUnusedMemory);
+  def("releaseUnusedMemory",escript::DataTypes::releaseUnusedMemory);
   def("blocktimer_initialize",blocktimer_initialize);
   def("blocktimer_reportSortByName",blocktimer_reportSortByName);
   def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
