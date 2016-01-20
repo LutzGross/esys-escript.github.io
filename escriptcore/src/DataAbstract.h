@@ -454,6 +454,11 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
 
+  /**
+   \brief true if the components of datapoints are complex
+  */
+  bool isComplex() const;
+
 
   /**
   	\warning should only be used in single threaded code (or inside a single/critical section)
@@ -535,6 +540,10 @@ private:
   //
   // Is this an instance of DataEmpty?
   bool m_isempty;
+
+  //
+  // is the data made of complex components
+  bool m_iscompl;
 };
 
 inline

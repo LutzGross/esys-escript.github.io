@@ -91,6 +91,11 @@ DataAbstract::isLazy() const
     return (dynamic_cast<const DataLazy*>(this)!=0);
 }
 
+bool
+DataAbstract::isComplex() const
+{
+    return m_iscompl;
+}
 
 
 DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
@@ -100,8 +105,8 @@ DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bo
     m_functionSpace(what),
     m_shape(shape),
     m_novalues(DataTypes::noValues(shape)),
-    m_rank(DataTypes::getRank(shape))
-
+    m_rank(DataTypes::getRank(shape)),
+    m_iscompl(false)
 {
 #ifdef EXWRITECHK
     exclusivewritecalled=false;

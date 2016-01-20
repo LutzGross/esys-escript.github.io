@@ -446,6 +446,14 @@ contains datapoints.
   isEmpty() const;
 
   /**
+    \brief
+    True if components of this data are stored as complex
+  */
+  ESCRIPT_DLL_API
+  bool
+  isComplex() const;
+
+  /**
      \brief
      Return the function space.
   */
@@ -1136,6 +1144,16 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   Data
   erf() const;
+
+
+  /**
+     \brief
+     For complex values return the conjugate values.
+     For non-complex data return a copy
+  */
+  ESCRIPT_DLL_API
+  Data
+  conjugate() const;
 
   /**
      \brief
