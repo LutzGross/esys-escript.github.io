@@ -190,9 +190,7 @@ class ESCRIPT_DLL_API DataVectorAlt {
   size_type m_dim;
   size_type m_N;
 
-  //
-  // The container for the elements contained in this DataVectorTaipan.
-  std::vector<ElementType> m_array_data;
+  ElementType* m_array_data;
 };
 
 template <class T>
@@ -239,8 +237,7 @@ DataTypes::DataVectorAlt<T>::DataVectorAlt(const DataVectorAlt& other) :
   m_N(other.m_N),
   m_array_data(0)
 {
-  
-  m_array_data.reserve(other.m_size);
+  m_array_data=reinterpret_cast<T*>(malloc(sizeof(T)*m_size));  
   int i;
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<m_size; i++) {
@@ -266,6 +263,11 @@ DataTypes::DataVectorAlt<T>::~DataVectorAlt()
   m_size = -1;
   m_dim = -1;
   m_N = -1;
+  if (m_array_data!=0)
+  {
+      free(m_array_data);
+  }
+  m_array_data=0;
 }
 
 template <class T>
@@ -297,8 +299,12 @@ DataVectorAlt<T>::resize(const DataVectorAlt<T>::size_type newSize,
   m_size = newSize;
   m_dim = newBlockSize;
   m_N = newSize / newBlockSize;
-  m_array_data.reserve(newSize);	// unlike the taipan version resize does not allocate a new array
-					// I'm hoping this won't lead to different first touch properties
+
+  if (m_array_data!=0)
+  {
+     free(m_array_data);
+  } 
+  m_array_data=reinterpret_cast<T*>(malloc(sizeof(T)*m_size));  
   int i;
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<m_size; i++) {
@@ -317,7 +323,11 @@ DataVectorAlt<T>::operator=(const DataVectorAlt& other)
   m_dim = other.m_dim;
   m_N = other.m_N;
 
-  m_array_data.reserve(m_size);
+  if (m_array_data!=0)
+  {
+      free(m_array_data);
+  }
+  m_array_data=reinterpret_cast<T*>(malloc(sizeof(T)*m_size));
   int i;
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<m_size; i++) {
@@ -459,7 +469,11 @@ DataVectorAlt<T>::copyFromArray(const WrappedArray& value, size_type copies)
 {
   DataTypes::ShapeType tempShape=value.getShape();
   DataVectorAlt<T>::size_type nelements=DataTypes::noValues(tempShape)*copies;
-  m_array_data.reserve(nelements);
+  if (m_array_data!=0)
+  {
+    free(m_array_data);
+  }
+  m_array_data=reinterpret_cast<T*>(malloc(sizeof(T)*nelements));
   m_size=nelements;	// total amount of elements
   m_dim=m_size;		// elements per sample
   m_N=1;			// number of samples
