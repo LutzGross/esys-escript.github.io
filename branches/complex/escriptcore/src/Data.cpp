@@ -878,6 +878,12 @@ Data::isReady() const
 }
 
 
+bool
+Data::isComplex() const
+{
+    return m_data->isComplex();
+}
+
 void
 Data::setProtection()
 {
@@ -1498,6 +1504,25 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
   }
 
   return res;
+}
+
+Data
+Data::conjugate() const
+{
+    if (isLazy())
+    {
+	Data temp(*this);
+        temp.resolve();
+	return temp.conjugate();
+    }
+    if (isComplex())
+    {
+	throw DataException("Conjugate of complex value not supported yet.");
+    }
+    else
+    {
+	return copySelf();
+    }
 }
 
 Data
