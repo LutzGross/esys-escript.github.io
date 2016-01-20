@@ -194,7 +194,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
 }
 
 DataAbstract*
-DataTagged::deepCopy()
+DataTagged::deepCopy() const
 {
   return new DataTagged(*this);
 }

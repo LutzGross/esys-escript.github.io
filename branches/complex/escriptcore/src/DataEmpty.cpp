@@ -56,7 +56,7 @@ DataEmpty::toString() const
 
 
 DataAbstract*
-DataEmpty::deepCopy()
+DataEmpty::deepCopy() const
 {
   return new DataEmpty();
 }

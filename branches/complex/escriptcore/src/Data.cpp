@@ -533,7 +533,7 @@ Data::getShapeTuple() const
 // There are ways to fix this involving creating function pointer variables for each form
 // but there doesn't seem to be a need given that the methods have the same name from the python point of view
 Data
-Data::copySelf()
+Data::copySelf() const
 {
     DataAbstract* temp=m_data->deepCopy();
     return Data(temp);

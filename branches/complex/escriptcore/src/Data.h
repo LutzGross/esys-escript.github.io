@@ -228,7 +228,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   Data
-  copySelf();
+  copySelf() const;
 
 
   /**

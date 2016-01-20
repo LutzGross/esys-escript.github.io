@@ -164,7 +164,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   */
   virtual
   DataAbstract*
-  deepCopy();
+  deepCopy() const;
 
 
   /**

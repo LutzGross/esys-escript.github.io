@@ -127,7 +127,7 @@ DataConstant::toString() const
 
 
 DataAbstract*
-DataConstant::deepCopy()
+DataConstant::deepCopy() const
 {
   return new DataConstant(*this);
 }

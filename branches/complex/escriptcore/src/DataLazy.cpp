@@ -1991,7 +1991,7 @@ DataLazy::intoTreeString(ostringstream& oss, string indent) const
 
 
 DataAbstract* 
-DataLazy::deepCopy()
+DataLazy::deepCopy() const
 {
   switch (getOpgroup(m_op))
   {

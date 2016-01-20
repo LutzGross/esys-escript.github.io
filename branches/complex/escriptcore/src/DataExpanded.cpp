@@ -165,7 +165,7 @@ DataExpanded::~DataExpanded()
 {
 }
 
-DataAbstract* DataExpanded::deepCopy()
+DataAbstract* DataExpanded::deepCopy() const
 {
     return new DataExpanded(*this);
 }
