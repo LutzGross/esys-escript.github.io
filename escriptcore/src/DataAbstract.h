@@ -116,7 +116,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   virtual
   DataAbstract*
-  deepCopy()=0;
+  deepCopy() const =0 ;
 
   /**
      \brief Return a data object with all points resolved.

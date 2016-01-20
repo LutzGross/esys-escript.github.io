@@ -209,7 +209,7 @@ public:
 
   ESCRIPT_DLL_API
   DataAbstract* 
-  deepCopy();
+  deepCopy() const;
 
 
   /**

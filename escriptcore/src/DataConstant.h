@@ -130,7 +130,7 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  deepCopy();
+  deepCopy() const;
 
 
  /**
