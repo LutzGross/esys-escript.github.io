@@ -102,7 +102,7 @@ void randomFillArray(long seed, double* array, size_t n)
     
     boost::mt19937::result_type RMAX=base.max();
     seedGens(seed);
-    long i;
+    size_t i;
     
     #pragma omp parallel private(i)
     {
@@ -130,14 +130,14 @@ void patternFillArray2D(size_t x, size_t y, double* array, size_t spacing, size_
       memset(array, 0, x*y*sizeof(double)*numpoints);
       size_t xoff=basex%spacing;
       size_t yoff=basey%spacing;
-      for (int r=0;r<y;++r)
+      for (size_t r=0;r<y;++r)
       {
 	  size_t step=((r+yoff)%spacing)?spacing:1; 
-	  for (int c=0;c<x;++c)
+	  for (size_t c=0;c<x;++c)
 	  {
 	      if ((c+xoff)%step==0)
 	      {
-		  for (int p=0;p<numpoints;++p)
+		  for (size_t p=0;p<numpoints;++p)
 		  {
 		      array[(c+r*x)*numpoints+p]=1+p;
 		  }		
@@ -159,21 +159,21 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	memset(array, 0, x*y*sizeof(double)*numpoints);
 	size_t xoff=basex%spacing;
 	size_t yoff=basey%spacing;
-	for (int r=0;r<y;++r)
+	for (size_t r=0;r<y;++r)
 	{
 	    size_t step=((r+yoff)%spacing)?spacing:1;
-	    for (int c=0;c<x;++c)
+	    for (size_t c=0;c<x;++c)
 	    {
 		if ((c+xoff)%step==0)
 		{
-		    for (int p=0;p<numpoints;++p)
+		    for (size_t p=0;p<numpoints;++p)
 		    {
 			array[(c+r*x)*numpoints+p]=p+1;
 		    }
 		}
 	    }
 	}
-	for (int l=1;l<z;++l)
+	for (size_t l=1;l<z;++l)
 	{
 	    memcpy(array+(x*y*l*numpoints), array, x*y*sizeof(double)*numpoints);
 	}
@@ -197,11 +197,11 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	for (size_t r=0;r<y;++r)
 	{
 	    size_t step=((r+yoff)%spacing)?spacing:1;
-	    for (int c=0;c<x;++c)
+	    for (size_t c=0;c<x;++c)
 	    {
 		if ((c+xoff)%step==0)
 		{
-		    for (int p=0;p<numpoints;++p)
+		    for (size_t p=0;p<numpoints;++p)
 		    {
 			buff1[(c+r*x)*numpoints+p]=p+1;
 		    }
@@ -213,7 +213,7 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	{
 	    for (size_t c=(spacing-xoff)%spacing;c<x;c+=spacing)
 	    {
-		for (int p=0;p<numpoints;++p)
+		for (size_t p=0;p<numpoints;++p)
 		{
 		    buff2[(c+r*x)*numpoints+p]=p+1;
 		}
