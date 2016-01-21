@@ -45,13 +45,13 @@ DataConstant::DataConstant(const WrappedArray& value,
                            const FunctionSpace& what)
   : parent(what,value.getShape())
 {
-  m_data.copyFromArray(value,1);
+  m_data_r.copyFromArray(value,1);
 }
 
 DataConstant::DataConstant(const DataConstant& other)
   : parent(other.getFunctionSpace(),other.getShape())
 { 
-  m_data=other.m_data;
+  m_data_r=other.m_data_r;
 }
 
 DataConstant::DataConstant(const DataConstant& other,
@@ -61,13 +61,13 @@ DataConstant::DataConstant(const DataConstant& other,
   //
   // allocate space for this new DataConstant's data
   int len = getNoValues();
-  m_data.resize(len,0.,len);
+  m_data_r.resize(len,0.,len);
   //
   // create a view of the data with the correct shape
   DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
   //
   // load the view with the data from the slice
-  DataTypes::copySlice(m_data,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+  DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
@@ -77,13 +77,13 @@ DataConstant::DataConstant(const FunctionSpace& what,
 {
   //
   // copy the data in the correct format
-  m_data=data;
+  m_data_r=data;
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const double v)
-  : parent(what,shape), m_data(DataTypes::noValues(shape),v)
+  : parent(what,shape), m_data_r(DataTypes::noValues(shape),v)
 {
 }
 
@@ -93,9 +93,9 @@ DataConstant::hasNaN() const
 {
   bool haveNaN=false;
   #pragma omp parallel for
-	for (ValueType::size_type i=0;i<m_data.size();++i)
+	for (ValueType::size_type i=0;i<m_data_r.size();++i)
 	{
-		if (nancheck(m_data[i]))	
+		if (nancheck(m_data_r[i]))	
 		{
 		    #pragma omp critical 
         {
@@ -110,11 +110,11 @@ void
 DataConstant::replaceNaN(double value)
 {
   #pragma omp parallel for
-  for (ValueType::size_type i=0;i<m_data.size();++i)
+  for (ValueType::size_type i=0;i<m_data_r.size();++i)
   {
-    if (nancheck(m_data[i]))  
+    if (nancheck(m_data_r[i]))  
     {
-      m_data[i] = value;
+      m_data_r[i] = value;
     } 
   }
 }
@@ -122,7 +122,7 @@ DataConstant::replaceNaN(double value)
 string
 DataConstant::toString() const
 {
-  return DataTypes::pointToString(m_data,getShape(),0,"");
+  return DataTypes::pointToString(m_data_r,getShape(),0,"");
 }
 
 
@@ -166,7 +166,7 @@ DataConstant::getPointOffset(int sampleNo,
 DataTypes::FloatVectorType::size_type
 DataConstant::getLength() const
 {
-  return m_data.size();
+  return m_data_r.size();
 }
 
 DataAbstract*
@@ -197,7 +197,7 @@ DataConstant::setSlice(const DataAbstract* value,
                 "Error - Couldn't copy slice due to shape mismatch.",shape,value->getShape()));
   }
   //   getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region_loop_range);
-  DataTypes::copySliceFrom(m_data,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
+  DataTypes::copySliceFrom(m_data_r,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
 }
 
 
@@ -209,7 +209,7 @@ DataConstant::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::symmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  DataMaths::symmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -219,7 +219,7 @@ DataConstant::nonsymmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::nonsymmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  DataMaths::nonsymmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -231,7 +231,7 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
   }
   ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  DataMaths::trace(m_data,getShape(),0,evVec,evShape,0,axis_offset);
+  DataMaths::trace(m_data_r,getShape(),0,evVec,evShape,0,axis_offset);
 }
 
 void
@@ -241,7 +241,7 @@ DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::swapaxes(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
+  DataMaths::swapaxes(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
 }
 
 void
@@ -251,7 +251,7 @@ DataConstant::transpose(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::transpose(m_data, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
+  DataMaths::transpose(m_data_r, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
 }
 
 void
@@ -261,7 +261,7 @@ DataConstant::eigenvalues(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::eigenvalues(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  DataMaths::eigenvalues(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 void
 DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
@@ -274,7 +274,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   if (temp_V==0) {
     throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
+  DataMaths::eigenvalues_and_eigenvectors(m_data_r, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
 }
 
 
@@ -292,7 +292,7 @@ DataConstant::matrixInverse(DataAbstract* out) const
 	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
   }
   LapackInverseHelper h(getShape()[0]);
-  int res=DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
+  int res=DataMaths::matrix_inverse(m_data_r, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
   return res;
 }
 
@@ -300,8 +300,8 @@ void
 DataConstant::setToZero()
 {
     CHECK_FOR_EX_WRITE
-    DataTypes::FloatVectorType::size_type n=m_data.size();
-    for (int i=0; i<n ;++i) m_data[i]=0.;
+    DataTypes::FloatVectorType::size_type n=m_data_r.size();
+    for (int i=0; i<n ;++i) m_data_r[i]=0.;
 }
 
 void
@@ -314,7 +314,7 @@ DataConstant::dump(const std::string fileName) const
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
    long dims[DataTypes::maxRank];
-   const double* d_ptr=&(m_data[0]);
+   const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
    int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
    int mpi_num=getFunctionSpace().getDomain()->getMPISize();
@@ -388,13 +388,13 @@ DataTypes::FloatVectorType&
 DataConstant::getVectorRW()
 {
   CHECK_FOR_EX_WRITE
-  return m_data;
+  return m_data_r;
 }
 
 const DataTypes::FloatVectorType&
 DataConstant::getVectorRO() const
 {
-  return m_data;
+  return m_data_r;
 }
 
 }  // end of namespace

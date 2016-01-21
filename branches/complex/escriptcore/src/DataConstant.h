@@ -318,7 +318,8 @@ typedef DataReady parent;
  private:
   //
   // the actual data
-  DataTypes::FloatVectorType m_data;
+  DataTypes::FloatVectorType m_data_r;
+  DataTypes::CmplxVectorType m_data_c;
 
 };
 
