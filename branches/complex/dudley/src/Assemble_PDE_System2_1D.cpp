@@ -55,8 +55,8 @@ void Dudley_Assemble_PDE_System2_1D(Dudley_Assemble_Parameters p, Dudley_Element
     __const double *A_p, *B_p, *C_p, *D_p, *X_p, *Y_p, *A_q, *B_q, *C_q, *D_q, *X_q, *Y_q;
     double *EM_S, *EM_F, *DSDX;
     index_t *row_index;
-    register dim_t q, s, r, k, m;
-    register double rtmp;
+    dim_t q, s, r, k, m;
+    double rtmp;
     bool add_EM_F, add_EM_S;
 
     bool extendedA = isExpanded(A);

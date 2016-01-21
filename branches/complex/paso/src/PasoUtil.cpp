@@ -39,7 +39,7 @@ int comparIndex(const void* index1, const void* index2)
 bool isAny(dim_t N, index_t* array, index_t value)
 {
     bool out=false;
-    register bool out2;
+    bool out2;
     dim_t i;
 
     #pragma omp parallel private(i, out2)
@@ -63,7 +63,7 @@ bool isAny(dim_t N, index_t* array, index_t value)
 dim_t numPositives(dim_t N, const double *x)
 {
     dim_t out=0;
-    register dim_t out2;
+    dim_t out2;
     dim_t i;
 
     #pragma omp parallel private(i, out2)

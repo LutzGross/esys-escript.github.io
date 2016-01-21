@@ -64,7 +64,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                  double* tolerance, Performance* pp)
 {
     dim_t maxit,num_iter_global, len,rest, np, ipp;
-    register double ss,ss1;
+    double ss,ss1;
     dim_t i0, istart, iend;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
     err_t status = SOLVER_NO_ERROR;
@@ -75,7 +75,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     double loc_sum[2], sum[2];
 #endif
     double norm_of_residual=0,norm_of_residual_global;
-    register double d;
+    double d;
 
 #ifdef USE_DYNAMIC_SCHEDULING
     dim_t chunk_size=-1;

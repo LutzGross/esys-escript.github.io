@@ -35,7 +35,7 @@ err_t Function::derivative(double* J0w, const double* w, const double* f0,
 {
     err_t err = SOLVER_NO_ERROR;
     dim_t i;
-    register double aw;
+    double aw;
     const double epsnew = sqrt(EPSILON);
     double ttt, s=epsnew, local_s, norm_w=0.;
     const dim_t n = getLen();

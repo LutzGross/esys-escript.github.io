@@ -401,11 +401,11 @@ void Preconditioner_LocalAMG_setStrongConnections(SparseMatrix_ptr A,
 #pragma omp parallel for private(i,iptr) schedule(static)
     for (i=0;i<n;++i) {
         double max_offdiagonal = 0.;
-        register double sum_row=0;
-        register double main_row=0;
+        double sum_row=0;
+        double main_row=0;
         #pragma ivdep
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-            register index_t j=A->pattern->index[iptr];
+            index_t j=A->pattern->index[iptr];
             const double fnorm=std::abs(A->val[iptr]);
 
             if(j != i) {
@@ -417,11 +417,11 @@ void Preconditioner_LocalAMG_setStrongConnections(SparseMatrix_ptr A,
         }
         {
             const double threshold = theta*max_offdiagonal;
-            register dim_t kdeg=0;
+            dim_t kdeg=0;
             if (tau*main_row < sum_row) { /* no diagonal dominance */
                 #pragma ivdep
                 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-                    register index_t j=A->pattern->index[iptr];
+                    index_t j=A->pattern->index[iptr];
                     if (std::abs(A->val[iptr])>threshold && i!=j) {
                         S[A->pattern->ptr[i]+kdeg] = j;
                         kdeg++;
@@ -463,11 +463,11 @@ void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A,
          for (i=0;i<n;++i) {
 
             double max_offdiagonal = 0.;
-            register double sum_row=0;
-            register double main_row=0;
+            double sum_row=0;
+            double main_row=0;
 
             for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-               register index_t j=A->pattern->index[iptr];
+               index_t j=A->pattern->index[iptr];
                double fnorm=0;
                #pragma ivdep
                for(bi=0;bi<n_block*n_block;++bi) {
@@ -486,11 +486,11 @@ void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A,
             }
             {
                const double threshold = theta*max_offdiagonal;
-               register dim_t kdeg=0;
+               dim_t kdeg=0;
                if (tau*main_row < sum_row) { /* no diagonal dominance */
                   #pragma ivdep
                   for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-                     register index_t j=A->pattern->index[iptr];
+                     index_t j=A->pattern->index[iptr];
                      if(rtmp[iptr-A->pattern->ptr[i]] > threshold && i!=j) {
                         S[A->pattern->ptr[i]+kdeg] = j;
                         kdeg++;
@@ -512,7 +512,7 @@ void Preconditioner_LocalAMG_RungeStuebenSearch(dim_t n,
     bool* notInPanel=NULL;
     index_t *lambda=NULL, *ST=NULL, *panel=NULL, lambda_max, lambda_k;
     dim_t i,k, p, q, *degree_ST=NULL, len_panel, len_panel_new;
-    register index_t j, itmp;
+    index_t j, itmp;
 
     // make sure that the return of util::arg_max is not pointing to nirvana
     if (n<=0)
@@ -730,15 +730,15 @@ void Preconditioner_LocalAMG_enforceFFConnectivity(dim_t n,
     for (i=0; i<n; ++i) {
         if (split_marker[i]==PASO_AMG_IN_F && degree_S[i]>0) {
             for (p=0; p<degree_S[i]; ++p) {
-                register index_t j=S[offset_S[i]+p];
+                index_t j=S[offset_S[i]+p];
                 if ( (split_marker[j]==PASO_AMG_IN_F)  && (degree_S[j]>0) )  {
                     // i and j are now two F nodes which are strongly connected
                     // is there a C node they share ?
-                    register index_t sharing=-1;
+                    index_t sharing=-1;
                     for (q=0; q<degree_S[i]; ++q) {
                         index_t k=S[offset_S[i]+q];
                         if (split_marker[k]==PASO_AMG_IN_C) {
-                            register index_t* where_k = (index_t*)bsearch(
+                            index_t* where_k = (index_t*)bsearch(
                                     &k, &(S[offset_S[j]]), degree_S[j],
                                     sizeof(index_t), util::comparIndex);
                             if (where_k != NULL) {

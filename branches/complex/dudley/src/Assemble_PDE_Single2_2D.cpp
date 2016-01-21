@@ -60,8 +60,8 @@ void Dudley_Assemble_PDE_Single2_2D(Dudley_Assemble_Parameters p, Dudley_Element
     __const double *A_p, *B_p, *C_p, *D_p, *X_p, *Y_p, *A_q, *B_q, *C_q, *D_q, *X_q, *Y_q;
     double *EM_S, *EM_F, *DSDX;
     index_t *row_index;
-    register dim_t q, s, r;
-    register double rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1;
+    dim_t q, s, r;
+    double rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1;
     bool add_EM_F, add_EM_S;
 
     bool extendedA = isExpanded(A);
