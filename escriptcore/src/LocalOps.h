@@ -93,10 +93,10 @@ void eigenvalues1(const double A00,double* ev0) {
 inline
 void eigenvalues2(const double A00,const double A01,const double A11,
                  double* ev0, double* ev1) {
-      const register double trA=(A00+A11)/2.;
-      const register double A_00=A00-trA;
-      const register double A_11=A11-trA;
-      const register double s=sqrt(A01*A01-A_00*A_11);
+      const double trA=(A00+A11)/2.;
+      const double A_00=A00-trA;
+      const double A_11=A11-trA;
+      const double s=sqrt(A01*A01-A_00*A_11);
       *ev0=trA-s;
       *ev1=trA+s;
 }
@@ -120,29 +120,29 @@ void eigenvalues3(const double A00, const double A01, const double A02,
                                                      const double A22,
                  double* ev0, double* ev1,double* ev2) {
 
-      const register double trA=(A00+A11+A22)/3.;
-      const register double A_00=A00-trA;
-      const register double A_11=A11-trA;
-      const register double A_22=A22-trA;
-      const register double A01_2=A01*A01;
-      const register double A02_2=A02*A02;
-      const register double A12_2=A12*A12;
-      const register double p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
+      const double trA=(A00+A11+A22)/3.;
+      const double A_00=A00-trA;
+      const double A_11=A11-trA;
+      const double A_22=A22-trA;
+      const double A01_2=A01*A01;
+      const double A02_2=A02*A02;
+      const double A12_2=A12*A12;
+      const double p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
       if (p<=0.) {
          *ev2=trA;
          *ev1=trA;
          *ev0=trA;
 
       } else {
-         const register double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
-         const register double sq_p=sqrt(p/3.);
-         register double z=-q/(2*pow(sq_p,3));
+         const double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
+         const double sq_p=sqrt(p/3.);
+         double z=-q/(2*pow(sq_p,3));
          if (z<-1.) {
             z=-1.;
          } else if (z>1.) {
             z=1.;
          }
-         const register double alpha_3=acos(z)/3.;
+         const double alpha_3=acos(z)/3.;
          *ev2=trA+2.*sq_p*cos(alpha_3);
          *ev1=trA-2.*sq_p*cos(alpha_3+M_PI/3.);
          *ev0=trA-2.*sq_p*cos(alpha_3-M_PI/3.);
@@ -179,11 +179,11 @@ inline
 void  vectorInKernel2(const double A00,const double A10,const double A01,const double A11,
                       double* V0, double*V1)
 {
-      register double absA00=fabs(A00);
-      register double absA10=fabs(A10);
-      register double absA01=fabs(A01);
-      register double absA11=fabs(A11);
-      register double m=absA11>absA10 ? absA11 : absA10;
+      double absA00=fabs(A00);
+      double absA10=fabs(A10);
+      double absA01=fabs(A01);
+      double absA11=fabs(A11);
+      double m=absA11>absA10 ? absA11 : absA10;
       if (absA00>m || absA01>m) {
          *V0=-A01;
          *V1=A00;
@@ -222,9 +222,9 @@ void  vectorInKernel3__nonZeroA00(const double A00,const double A10,const double
                                 double* V0,double* V1,double* V2)
 {
     double TEMP0,TEMP1;
-    register const double I00=1./A00;
-    register const double IA10=I00*A10;
-    register const double IA20=I00*A20;
+    const double I00=1./A00;
+    const double IA10=I00*A10;
+    const double IA20=I00*A20;
     vectorInKernel2(A11-IA10*A01,A12-IA10*A02,
                     A21-IA20*A01,A22-IA20*A02,&TEMP0,&TEMP1);
     *V0=-(A10*TEMP0+A20*TEMP1);
@@ -257,9 +257,9 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
 {
      double TEMP0,TEMP1;
      eigenvalues2(A00,A01,A11,ev0,ev1);
-     const register double absev0=fabs(*ev0);
-     const register double absev1=fabs(*ev1);
-     register double max_ev=absev0>absev1 ? absev0 : absev1;
+     const double absev0=fabs(*ev0);
+     const double absev1=fabs(*ev1);
+     double max_ev=absev0>absev1 ? absev0 : absev1;
      if (fabs((*ev0)-(*ev1))<tol*max_ev) {
         *V00=1.;
         *V10=0.;
@@ -267,7 +267,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
         *V11=1.;
      } else {
         vectorInKernel2(A00-(*ev0),A01,A01,A11-(*ev0),&TEMP0,&TEMP1);
-        const register double scale=1./sqrt(TEMP0*TEMP0+TEMP1*TEMP1);
+        const double scale=1./sqrt(TEMP0*TEMP0+TEMP1*TEMP1);
         if (TEMP0<0.) {
             *V00=-TEMP0*scale;
             *V10=-TEMP1*scale;
@@ -307,7 +307,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
 inline
 void  normalizeVector3(double* V0,double* V1,double* V2)
 {
-    register double s;
+    double s;
     if (*V0>0) {
         s=1./sqrt((*V0)*(*V0)+(*V1)*(*V1)+(*V2)*(*V2));
         *V0*=s;
@@ -367,9 +367,9 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
                                     double* V02, double* V12, double* V22,
                                     const double tol)
 {
-      register const double absA01=fabs(A01);
-      register const double absA02=fabs(A02);
-      register const double m=absA01>absA02 ? absA01 : absA02;
+      const double absA01=fabs(A01);
+      const double absA02=fabs(A02);
+      const double m=absA01>absA02 ? absA01 : absA02;
       if (m<=0) {
         double TEMP_V00,TEMP_V10,TEMP_V01,TEMP_V11,TEMP_EV0,TEMP_EV1;
         eigenvalues_and_eigenvectors2(A11,A12,A22,
