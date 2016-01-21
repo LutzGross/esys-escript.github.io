@@ -975,28 +975,28 @@ Data
 Data::wherePositive() const
 {
     MAKELAZYOP(GZ);
-    return C_TensorUnaryOperation(*this, bind2nd(greater<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(greater_func<double>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
     MAKELAZYOP(LZ);
-    return C_TensorUnaryOperation(*this, bind2nd(less<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(less_func<double>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
     MAKELAZYOP(GEZ);
-    return C_TensorUnaryOperation(*this, bind2nd(greater_equal<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(greater_equal_func<double>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
     MAKELAZYOP(LEZ);
-    return C_TensorUnaryOperation(*this, bind2nd(less_equal<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(less_equal_func<double>(),0.0));
 }
 
 Data
@@ -1529,35 +1529,35 @@ Data
 Data::sin() const
 {
     MAKELAZYOP(SIN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sin);
+    return C_TensorUnaryOperation(*this, sin_func<double>());
 }
 
 Data
 Data::cos() const
 {
     MAKELAZYOP(COS);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cos);
+    return C_TensorUnaryOperation(*this, cos_func<double>());
 }
 
 Data
 Data::tan() const
 {
     MAKELAZYOP(TAN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tan);
+    return C_TensorUnaryOperation(*this, tan_func<double>());
 }
 
 Data
 Data::asin() const
 {
     MAKELAZYOP(ASIN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::asin);
+    return C_TensorUnaryOperation(*this, asin_func<double>());
 }
 
 Data
 Data::acos() const
 {
     MAKELAZYOP(ACOS);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::acos);
+    return C_TensorUnaryOperation(*this, acos_func<double>());
 }
 
 
@@ -1565,28 +1565,28 @@ Data
 Data::atan() const
 {
     MAKELAZYOP(ATAN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::atan);
+    return C_TensorUnaryOperation(*this, atan_func<double>());
 }
 
 Data
 Data::sinh() const
 {
     MAKELAZYOP(SINH);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
+    return C_TensorUnaryOperation(*this, sinh_func<double>());
 }
 
 Data
 Data::cosh() const
 {
     MAKELAZYOP(COSH);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
+    return C_TensorUnaryOperation(*this, cosh_func<double>());
 }
 
 Data
 Data::tanh() const
 {
     MAKELAZYOP(TANH);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
+    return C_TensorUnaryOperation(*this, tanh_func<double>());
 }
 
 
@@ -1597,7 +1597,7 @@ Data::erf() const
     throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
     MAKELAZYOP(ERF);
-    return C_TensorUnaryOperation(*this, ::erf);
+    return C_TensorUnaryOperation(*this, erf_func<double>());
 #endif
 }
 
@@ -1605,61 +1605,49 @@ Data
 Data::asinh() const
 {
     MAKELAZYOP(ASINH);
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    return C_TensorUnaryOperation(*this, escript::asinh_substitute);
-#else
-    return C_TensorUnaryOperation(*this, ::asinh);
-#endif
+    return C_TensorUnaryOperation(*this, asinh_func<double>());
 }
 
 Data
 Data::acosh() const
 {
     MAKELAZYOP(ACOSH);
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    return C_TensorUnaryOperation(*this, escript::acosh_substitute);
-#else
-    return C_TensorUnaryOperation(*this, ::acosh);
-#endif
+    return C_TensorUnaryOperation(*this, acosh_func<double>());    
 }
 
 Data
 Data::atanh() const
 {
     MAKELAZYOP(ATANH);
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    return C_TensorUnaryOperation(*this, escript::atanh_substitute);
-#else
-    return C_TensorUnaryOperation(*this, ::atanh);
-#endif
+    return C_TensorUnaryOperation(*this, atanh_func<double>()); 
 }
 
 Data
 Data::log10() const
 {
     MAKELAZYOP(LOG10);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::log10);
+    return C_TensorUnaryOperation(*this, log10_func<double>());
 }
 
 Data
 Data::log() const
 {
     MAKELAZYOP(LOG);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::log);
+    return C_TensorUnaryOperation(*this, log_func<double>());
 }
 
 Data
 Data::sign() const
 {
     MAKELAZYOP(SIGN);
-    return C_TensorUnaryOperation(*this, escript::fsign);
+    return C_TensorUnaryOperation(*this, sign_func<double>());
 }
 
 Data
 Data::abs() const
 {
     MAKELAZYOP(ABS);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::fabs);
+    return C_TensorUnaryOperation(*this, abs_func<double>());
 }
 
 Data
@@ -1684,14 +1672,14 @@ Data
 Data::exp() const
 {
     MAKELAZYOP(EXP);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::exp);
+    return C_TensorUnaryOperation(*this, exp_func<double>());
 }
 
 Data
 Data::sqrt() const
 {
     MAKELAZYOP(SQRT);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sqrt);
+    return C_TensorUnaryOperation(*this, sqrt_func<double>());
 }
 
 double
@@ -2590,7 +2578,8 @@ Data
 Data::powD(const Data& right) const
 {
     MAKELAZYBIN(right,POW);
-    return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
+    //return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
+    return C_TensorBinaryOperation(*this, right, pow_func<double>());
 }
 
 

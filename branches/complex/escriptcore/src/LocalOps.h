@@ -18,6 +18,7 @@
 #if !defined escript_LocalOps_H
 #define escript_LocalOps_H
 #include <cmath>
+#include "UnaryFuncs.h"
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif
@@ -553,6 +554,232 @@ inline void tensor_binary_operation(const int size,
   }
   return;
 }
+
+// following the form of negate from <functional>
+template <typename T>
+struct sin_func
+{
+    T operator() (const T& x) const {return ::sin(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct cos_func
+{
+    T operator() (const T& x) const {return ::cos(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct tan_func
+{
+    T operator() (const T& x) const {return ::tan(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct asin_func
+{
+    T operator() (const T& x) const {return ::asin(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct acos_func
+{
+    T operator() (const T& x) const {return ::acos(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct atan_func
+{
+    T operator() (const T& x) const {return ::atan(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct sinh_func
+{
+    T operator() (const T& x) const {return ::sinh(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct cosh_func
+{
+    T operator() (const T& x) const {return ::cosh(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+
+template <typename T>
+struct tanh_func
+{
+    T operator() (const T& x) const {return ::tanh(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+#else
+template <typename T>
+struct erf_func
+{
+    T operator() (const T& x) const {return ::erf(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+#endif
+    
+template <typename T>
+struct asinh_func
+{
+    T operator() (const T& x) const
+    {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    return escript::asinh_substitute(x);
+#else
+    return ::asinh(x);
+#endif      
+    }
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct acosh_func
+{
+    T operator() (const T& x) const
+    {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    return escript::acosh_substitute(x);
+#else
+    return ::acosh(x);
+#endif
+    }
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct atanh_func
+{
+    T operator() (const T& x) const
+    {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    return escript::atanh_substitute(x);
+#else
+    return ::atanh(x);
+#endif
+    }    
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct log10_func
+{
+    T operator() (const T& x) const {return ::log10(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct log_func
+{
+    T operator() (const T& x) const {return ::log(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct sign_func
+{
+    T operator() (const T& x) const {return escript::fsign(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct abs_func
+{
+    T operator() (const T& x) const {return ::fabs(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct exp_func
+{
+    T operator() (const T& x) const {return ::exp(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct sqrt_func
+{
+    T operator() (const T& x) const {return ::sqrt(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+    
+// following the form of plus from <functional>
+template <typename T>
+struct pow_func
+{
+    T operator() (const T& x, const T& y) const {return ::pow(x,y);}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+// using this instead of ::less because that returns bool and we need a result type of T
+template <typename T>
+struct less_func
+{
+    T operator() (const T& x, const T& y) const {return x<y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+// using this instead of ::less because that returns bool and we need a result type of T
+template <typename T>
+struct greater_func
+{
+    T operator() (const T& x, const T& y) const {return x>y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct greater_equal_func
+{
+    T operator() (const T& x, const T& y) const {return x>=y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct less_equal_func
+{
+    T operator() (const T& x, const T& y) const {return x<=y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
 
 } // end of namespace
 #endif
