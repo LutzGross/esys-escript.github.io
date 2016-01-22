@@ -596,6 +596,7 @@ void DataTaggedTestCase::testOperations() {
 
     CPPUNIT_ASSERT(myData.getTagLookup().size()==2);
 
+    
     CPPUNIT_ASSERT(myData.getLength()==3);
 
     CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
@@ -933,7 +934,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     myData.addTaggedValues(keys,values,DataTypes::scalarShape);
 
@@ -985,7 +986,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 /*    DataTypes::FloatVectorType viewData(1);
@@ -1045,7 +1046,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 /*    DataTypes::FloatVectorType viewData(1);
@@ -1121,7 +1122,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 /*    DataTypes::FloatVectorType viewData1(1);
@@ -1200,7 +1201,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -1269,7 +1270,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -1346,7 +1347,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -1444,7 +1445,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -1563,7 +1564,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -1655,7 +1656,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -1756,7 +1757,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -1878,7 +1879,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -2022,7 +2023,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -2178,7 +2179,7 @@ void DataTaggedTestCase::testAll() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -2255,7 +2256,7 @@ void DataTaggedTestCase::testAll() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -2361,7 +2362,7 @@ void DataTaggedTestCase::testAll() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -2512,7 +2513,7 @@ void DataTaggedTestCase::testCopyConstructors() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -2752,7 +2753,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
@@ -2833,7 +2834,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::FloatVectorType viewData(27);
     for (int i=0;i<viewData.size();i++) {
@@ -2943,7 +2944,7 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 
@@ -3003,7 +3004,7 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     // default value
     DataTypes::FloatVectorType viewData(3*2);
@@ -3107,7 +3108,7 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     // default value
     DataTypes::FloatVectorType viewData(27*2);
@@ -3243,7 +3244,7 @@ void DataTaggedTestCase::testGetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 
@@ -3330,7 +3331,7 @@ void DataTaggedTestCase::testGetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     // default value
     DataTypes::FloatVectorType viewData(3*4);
@@ -3481,7 +3482,7 @@ void DataTaggedTestCase::testGetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     int nvals=27;
     // default value
@@ -3697,7 +3698,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -3810,7 +3811,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     DataTagged::TagListType keys;
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -3931,7 +3932,7 @@ void DataTaggedTestCase::testSetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 
@@ -3994,7 +3995,7 @@ void DataTaggedTestCase::testSetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -4166,7 +4167,7 @@ void DataTaggedTestCase::testSetSlice() {
     DataTagged::TagListType keys;
     keys.push_back(1);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -4357,7 +4358,7 @@ void DataTaggedTestCase::testSetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 
@@ -4460,7 +4461,7 @@ void DataTaggedTestCase::testSetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -4740,7 +4741,7 @@ void DataTaggedTestCase::testSetSlice() {
     keys.push_back(2);
     keys.push_back(3);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
@@ -5027,7 +5028,7 @@ void DataTaggedTestCase::testSetSlice() {
     keys2.push_back(4);
     keys2.push_back(5);
 
-    DataTagged::ValueBatchType values;
+    DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
 
