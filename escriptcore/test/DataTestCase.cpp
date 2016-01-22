@@ -589,6 +589,12 @@ void DataTestCase::testDataTagged()
     CPPUNIT_ASSERT(myData.isTagged());
     CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
     CPPUNIT_ASSERT(myData.getDataPointRank()==1);
+    
+
+    cerr << "\n\n\n\n" << myData.getLength() << endl;
+    cout << "\n\n\n\n" << myData.getLength() << endl;
+    cout.flush();
+    
     CPPUNIT_ASSERT(myData.getLength()==3);
     
     CPPUNIT_ASSERT(myData.getNoValues()==3);

@@ -49,8 +49,8 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
   //
   // Types for the lists of tags and values.
   typedef std::vector<int> TagListType;
-  typedef DataTypes::FloatVectorType ValueType;
-  typedef std::vector<ValueType::ElementType> ValueBatchType;
+  typedef std::vector<DataTypes::FloatVectorType::ElementType> FloatBatchType;
+  typedef std::vector<DataTypes::CmplxVectorType::ElementType> CmplxBatchType;
 
   //
   // Map from a tag to an offset into the data array. 
@@ -83,7 +83,7 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const int tags[],
-             const ValueType& data);
+             const DataTypes::FloatVectorType& data);
 
  /**
      \brief
@@ -100,7 +100,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const TagListType& tags,
-             const ValueType& data);
+             const DataTypes::FloatVectorType& data);
 
   /**
      \brief
@@ -240,12 +240,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     T
   */
   virtual
-  ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   virtual
-  ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -268,7 +268,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
  */
   void
   addTaggedValues(const TagListType& tagKeys,
-                            const ValueBatchType& values,
+                            const FloatBatchType& values,
                             const ShapeType& vShape);
 
 
@@ -290,7 +290,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   */
   void
   addTaggedValues(const TagListType& tagKeys,
-                            const ValueType& values,
+                            const DataTypes::FloatVectorType& values,
                             const ShapeType& vShape);
 
 
@@ -311,7 +311,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   addTaggedValue(int tagKey,
                  const DataTypes::ShapeType& pointshape,
-                 const ValueType& value,
+                 const DataTypes::FloatVectorType& value,
                  int dataOffset=0);
 
   /**
@@ -342,7 +342,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   setTaggedValue(int tagKey,
                  const DataTypes::ShapeType& pointshape,
-                 const ValueType& value,
+                 const DataTypes::FloatVectorType& value,
                  int dataOffset=0);
 
   /**
@@ -442,7 +442,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     T
   */
   virtual
-  ValueType::size_type
+  DataTypes::FloatVectorType::size_type
   getLength() const;
 
   /**
@@ -588,10 +588,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   //
   // the offset to the default value
   static const int m_defaultValueOffset = 0;
-
-  //
-  // The actual data
-  ValueType m_data;
+  
+  // the actual data
+  DataTypes::FloatVectorType m_data_r;
+  DataTypes::CmplxVectorType m_data_c;  
+  
 
 };
 
@@ -635,7 +636,7 @@ inline
 DataTypes::FloatVectorType::size_type
 DataTagged::getLength() const
 {
-  return m_data.size();
+  return std::max(m_data_c.size(), m_data_r.size());
 }
 
 } // end of namespace
