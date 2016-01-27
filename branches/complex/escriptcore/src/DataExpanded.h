@@ -20,7 +20,6 @@
 #include "system_dep.h"
 
 #include "DataReady.h"
-#include "DataBlocks2D.h"
 
 namespace escript {
 

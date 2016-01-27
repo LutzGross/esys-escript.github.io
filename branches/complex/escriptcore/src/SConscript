@@ -32,7 +32,6 @@ sources = """
     AbstractTransportProblem.cpp
     Data.cpp
     DataAbstract.cpp
-    DataBlocks2D.cpp
     DataC.cpp
     DataConstant.cpp
     DataEmpty.cpp
@@ -79,7 +78,6 @@ headers = """
     Data.h
     DataAbstract.h
     DataAlgorithm.h
-    DataBlocks2D.h
     DataC.h
     DataConstant.h
     DataEmpty.h
