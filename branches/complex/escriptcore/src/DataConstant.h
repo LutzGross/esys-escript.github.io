@@ -319,7 +319,7 @@ typedef DataReady parent;
   //
   // the actual data
   DataTypes::FloatVectorType m_data_r;
-  DataTypes::CmplxVectorType m_data_c;
+  DataTypes::CplxVectorType m_data_c;
 
 };
 

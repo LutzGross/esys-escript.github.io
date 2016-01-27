@@ -40,14 +40,14 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCreate and check an empty DataVector object." << endl;
 
-    DataVector vec;
+    FloatVectorType vec;
     CPPUNIT_ASSERT(vec.size() == 0);
   }
  
   {
     cout << "\tCheck DataVector resize operation." << endl;
 
-    DataVector vec;
+    FloatVectorType vec;
     CPPUNIT_ASSERT(vec.size() == 0);
 
     vec.resize(1,0,1);
@@ -63,20 +63,20 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCreate and check DataVector objects of various sizes." << endl;
 
-    DataVector vec1(0,0,1);
+    FloatVectorType vec1(0,0,1);
     CPPUNIT_ASSERT(vec1.size() == 0);
 
-    DataVector vec2(1,0,1);
+    FloatVectorType vec2(1,0,1);
     CPPUNIT_ASSERT(vec2.size() == 1);
 
-    DataVector vec3(1000,0,1);
+    FloatVectorType vec3(1000,0,1);
     CPPUNIT_ASSERT(vec3.size() == 1000);
   }
 
   {
     cout << "\tAssign and check various elements to a DataVector." << endl;
 
-    DataVector vec(1000,0,1);
+    FloatVectorType vec(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec[i] = i;
@@ -98,13 +98,13 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCheck DataVector copy constructor." << endl;
 
-    DataVector vec1(1000,0,1);
+    FloatVectorType vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
     }
 
-    DataVector vec2(vec1);
+    FloatVectorType vec2(vec1);
 
     CPPUNIT_ASSERT(vec1.size() == vec2.size());
 
@@ -116,13 +116,13 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCheck DataVector = operator." << endl;
 
-    DataVector vec1(1000,0,1);
+    FloatVectorType vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
     }
 
-    DataVector vec2;
+    FloatVectorType vec2;
 
     vec2 = vec1;
 
@@ -136,13 +136,13 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCheck DataVector == operator." << endl;
 
-    DataVector vec1(1000,0,1);
+    FloatVectorType vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
     }
 
-    DataVector vec2;
+    FloatVectorType vec2;
 
     vec2 = vec1;
 
@@ -152,13 +152,13 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCheck DataVector != operator." << endl;
 
-    DataVector vec1(1000,0,1);
+    FloatVectorType vec1(1000,0,1);
 
     for (int i=0; i < 1000; i++) {
       vec1[i] = i;
     }
 
-    DataVector vec2;
+    FloatVectorType vec2;
 
     CPPUNIT_ASSERT(vec1 != vec2);
   }
@@ -166,7 +166,7 @@ void DataVectorTestCase::testAll()
   {
     cout << "\tCheck DataVector index exception." << endl;
 
-    DataVector vec(1000,0,1);
+    FloatVectorType vec(1000,0,1);
 
     CPPUNIT_ASSERT_THROW( (void) vec[1001],  EsysException);
   }

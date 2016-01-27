@@ -467,8 +467,8 @@ TODO Note that this constructor will also copy data to all points if it only con
   //
   // The main data storage array, a 2D array of data blocks.
   // noSamples * noDataPointsPerSample
-  DataTypes::DataVector m_data;
-
+  DataTypes::FloatVectorType m_data_r;
+  DataTypes::CplxVectorType m_data_c;
 };
 
 } // end of namespace

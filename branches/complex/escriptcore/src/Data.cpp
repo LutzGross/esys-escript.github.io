@@ -261,7 +261,7 @@ Data::Data(double value,
     }
 
     int len = DataTypes::noValues(dataPointShape);
-    DataVector temp_data(len,value,len);
+    FloatVectorType temp_data(len,value,len);
     initialise(temp_data, dataPointShape, what, expanded);
     m_protected=false;
 }
@@ -404,12 +404,12 @@ Data::Data(const boost::python::object& value,
 
         // get the space for the data vector
         int len1 = DataTypes::noValues(tempShape);
-        DataVector temp_data(len1, 0.0, len1);
+        FloatVectorType temp_data(len1, 0.0, len1);
         temp_data.copyFromArray(w,1);
 
         int len = DataTypes::noValues(other.getDataPointShape());
 
-        DataVector temp2_data(len, temp_data[0], len);
+        FloatVectorType temp2_data(len, temp_data[0], len);
         DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
         set_m_data(DataAbstract_ptr(t));
 
@@ -673,9 +673,9 @@ Data::copyWithMask(const Data& other,
     }
     exclusiveWrite();
     // Now we iterate over the elements
-    DataVector& self=getReady()->getVectorRW();;
-    const DataVector& ovec=other2.getReadyPtr()->getVectorRO();
-    const DataVector& mvec=mask2.getReadyPtr()->getVectorRO();
+    FloatVectorType& self=getReady()->getVectorRW();;
+    const FloatVectorType& ovec=other2.getReadyPtr()->getVectorRO();
+    const FloatVectorType& mvec=mask2.getReadyPtr()->getVectorRO();
 
     if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
     {
@@ -2834,7 +2834,7 @@ Data::setTaggedValue(int tagKey,
     if (isConstant()) tag();
     WrappedArray w(value);
 
-    DataVector temp_data2;
+    FloatVectorType temp_data2;
     temp_data2.copyFromArray(w,1);
 
     m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
@@ -3393,8 +3393,8 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
     int numpts=getNumDataPoints();
     int twidth=table.getShape()[0]-1;       
     bool haserror=false;
-    const DataVector* adat=0;
-    DataVector* rdat=0;
+    const FloatVectorType* adat=0;
+    FloatVectorType* rdat=0;
     try
     {
         adat=&(getReady()->getVectorRO());
@@ -3533,9 +3533,9 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
 
     int numpts=getNumDataPoints();
-    const DataVector* adat=0;
-    const DataVector* bdat=0;
-    DataVector* rdat=0;
+    const FloatVectorType* adat=0;
+    const FloatVectorType* bdat=0;
+    FloatVectorType* rdat=0;
     const DataTypes::ShapeType& ts=table.getShape();
     try
     {
@@ -3703,10 +3703,10 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
 
     int numpts=getNumDataPoints();
-    const DataVector* adat=0;
-    const DataVector* bdat=0;
-    const DataVector* cdat=0;
-    DataVector* rdat=0;
+    const FloatVectorType* adat=0;
+    const FloatVectorType* bdat=0;
+    const FloatVectorType* cdat=0;
+    FloatVectorType* rdat=0;
     const DataTypes::ShapeType& ts=table.getShape();
     try
     {
@@ -3921,8 +3921,8 @@ Data Data::nonuniforminterp(boost::python::object in, boost::python::object out,
     expand();
     Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
     int numpts=getNumDataPoints();
-    const DataVector& sdat=getReady()->getVectorRO();
-    DataVector& rdat=result.getReady()->getVectorRW();
+    const FloatVectorType& sdat=getReady()->getVectorRO();
+    FloatVectorType& rdat=result.getReady()->getVectorRW();
     double maxlimit=win.getElt(win.getShape()[0]-1);
     double maxout=wout.getElt(wout.getShape()[0]-1);
     int ipoints=win.getShape()[0];
@@ -3997,8 +3997,8 @@ Data Data::nonuniformslope(boost::python::object in, boost::python::object out, 
     expand();
     Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
     int numpts=getNumDataPoints();
-    const DataVector& sdat=getReady()->getVectorRO();
-    DataVector& rdat=result.getReady()->getVectorRW();
+    const FloatVectorType& sdat=getReady()->getVectorRO();
+    FloatVectorType& rdat=result.getReady()->getVectorRW();
     double maxlimit=win.getElt(win.getShape()[0]-1);
     int ipoints=win.getShape()[0];
     int l=0;
@@ -4374,7 +4374,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
         const DataTagged* tdat=dynamic_cast<const DataTagged*>(trueval.getReady());
         const DataTagged* fdat=dynamic_cast<const DataTagged*>(falseval.getReady());
         const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
-        DataVector::const_pointer srcptr;
+        FloatVectorType::const_pointer srcptr;
 
         // default value first
         if (mdat->getDefaultValueRO(0)>0)
@@ -4433,7 +4433,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 #else
             size_t i;
 #endif
-            DataVector& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
+            FloatVectorType& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
             unsigned int psize=result.getDataPointSize();
                 
             size_t numsamples=result.getNumSamples();

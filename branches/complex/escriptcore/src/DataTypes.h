@@ -42,6 +42,9 @@ namespace DataTypes {
   static const ShapeType scalarShape;//!< Use this instead of creating empty shape objects for scalars.
   typedef long vec_size_type; 
 
+  typedef double real_t;
+  typedef std::complex<double> cplx_t;
+
   /**
      \brief
      Calculate the number of values in a datapoint with the given shape.

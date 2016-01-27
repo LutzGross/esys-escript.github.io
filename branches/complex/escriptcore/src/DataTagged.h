@@ -50,7 +50,7 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
   // Types for the lists of tags and values.
   typedef std::vector<int> TagListType;
   typedef std::vector<DataTypes::FloatVectorType::ElementType> FloatBatchType;
-  typedef std::vector<DataTypes::CmplxVectorType::ElementType> CmplxBatchType;
+  typedef std::vector<DataTypes::CplxVectorType::ElementType> CplxBatchType;
 
   //
   // Map from a tag to an offset into the data array. 
@@ -591,7 +591,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   
   // the actual data
   DataTypes::FloatVectorType m_data_r;
-  DataTypes::CmplxVectorType m_data_c;  
+  DataTypes::CplxVectorType m_data_c;  
   
 
 };
