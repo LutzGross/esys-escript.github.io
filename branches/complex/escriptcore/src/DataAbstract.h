@@ -509,7 +509,6 @@ protected:
     std::vector<Data*> m_owners;
     bool m_lazyshared;
 
-private:
   //
   // The number of samples in this Data object.
   // This is derived directly from the FunctionSpace.
@@ -519,6 +518,8 @@ private:
   // The number of data points per sample in this Data object.
   // This is derived directly from the FunctionSpace.
   int m_noDataPointsPerSample;
+
+private:
 
   //
   // A FunctionSpace which provides a description of the data associated
