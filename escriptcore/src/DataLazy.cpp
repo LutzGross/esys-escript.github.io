@@ -1763,8 +1763,8 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
 #else
     		    res=work[j]->resolveNodeSample(0,sample,roffset);
 #endif
-    		    DataVector::size_type outoffset=dep[j]->getPointOffset(sample,0);
-    		    memcpy(&((*vecs[j])[outoffset]),&((*res)[roffset]),work[j]->m_samplesize*sizeof(DataVector::ElementType));
+    		    FloatVectorType::size_type outoffset=dep[j]->getPointOffset(sample,0);
+    		    memcpy(&((*vecs[j])[outoffset]),&((*res)[roffset]),work[j]->m_samplesize*sizeof(FloatVectorType::ElementType));
 		}
 	    }
 	}
@@ -1824,8 +1824,8 @@ LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
 #endif
 LAZYDEBUG(cout << "Sample #" << sample << endl;)
 LAZYDEBUG(cout << "Final res[" << roffset<< "]=" << (*res)[roffset] << (*res)[roffset]<< endl; )
-    		DataVector::size_type outoffset=result->getPointOffset(sample,0);
-    		memcpy(&(resvec[outoffset]),&((*res)[roffset]),m_samplesize*sizeof(DataVector::ElementType));
+    		FloatVectorType::size_type outoffset=result->getPointOffset(sample,0);
+    		memcpy(&(resvec[outoffset]),&((*res)[roffset]),m_samplesize*sizeof(FloatVectorType::ElementType));
   	}
   }
 #ifdef LAZY_STACK_PROF

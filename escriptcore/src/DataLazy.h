@@ -294,7 +294,7 @@ private:
   size_t m_height;
 
   int* m_sampleids;		// may be NULL
-  mutable DataTypes::DataVector m_samples;  
+  mutable DataTypes::FloatVectorType m_samples;  
 
   /**
   Allocates sample storage at each node

@@ -338,7 +338,7 @@ load(const std::string fileName,
 	// E) create a new Data based on dt
 
       NcVar* var1;
-      DataTypes::DataVector data1(len_data_point * ntags, 0., len_data_point * ntags);
+      DataTypes::FloatVectorType data1(len_data_point * ntags, 0., len_data_point * ntags);
       if (!(var1 = dataFile.get_var("data")))
       {
          throw DataException("Error - load:: unable to find data in netCDF file.");

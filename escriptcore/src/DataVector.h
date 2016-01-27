@@ -38,9 +38,8 @@ namespace DataTypes
   
   // This is the main version we had
   //typedef DataVectorTaipan DataVector;
-  typedef escript::DataTypes::DataVectorAlt<double> DataVector;
-  typedef escript::DataTypes::DataVectorAlt<double> FloatVectorType;//!< Vector to store underlying data.
-  typedef escript::DataTypes::DataVectorAlt<std::complex<double> > CmplxVectorType;
+  typedef escript::DataTypes::DataVectorAlt<real_t> FloatVectorType;//!< Vector to store underlying data.
+  typedef escript::DataTypes::DataVectorAlt<cplx_t> CplxVectorType;
 
   /**
      \brief

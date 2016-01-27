@@ -247,7 +247,7 @@ void DataTaggedTestCase::testOperations() {
     DataTagged myData;
     DataTagged right;
 
-    DataVector vOneData(1, 1.0 ,1);
+    FloatVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
@@ -322,11 +322,11 @@ void DataTaggedTestCase::testOperations() {
     myData.getVectorRW()[myData.getDefaultOffset()]=1.0;
     right.getVectorRW()[right.getDefaultOffset()]=2.0;
 
-    DataVector vOneData(1, 3.0 ,1);
+    FloatVectorType vOneData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    DataVector vTwoData(1, 4.0 ,1);
+    FloatVectorType vTwoData(1, 4.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
@@ -411,7 +411,7 @@ void DataTaggedTestCase::testOperations() {
     right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
 
-    DataVector vOneData(1, 1.0 ,1);
+    FloatVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
@@ -556,18 +556,18 @@ void DataTaggedTestCase::testOperations() {
 
     DataTagged myData;
 
-    DataVector vOneData(1, 1.0 ,1);
+    FloatVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    DataVector vTwoData(1, 2.0 ,1);
+    FloatVectorType vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
     myData.addTaggedValue(2,DataTypes::scalarShape,vTwoData);
 
-    DataVector vThreeData(1, 3.0 ,1);
+    FloatVectorType vThreeData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vThreeView(vThreeData,DataTypes::ShapeType());
 
@@ -650,11 +650,11 @@ void DataTaggedTestCase::testOperations() {
     myData.getVectorRW()[myData.getDefaultOffset()]=2.0;
     right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
-    DataVector vOneData(1, 1.0 ,1);
+    FloatVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    DataVector vTwoData(1, 2.0 ,1);
+    FloatVectorType vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
@@ -855,11 +855,11 @@ void DataTaggedTestCase::testOperations() {
 
     DataTagged myData;
 
-    DataVector vOneData(1, 1.0 ,1);
+    FloatVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    DataVector vTwoData(1, 2.0 ,1);
+    FloatVectorType vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 

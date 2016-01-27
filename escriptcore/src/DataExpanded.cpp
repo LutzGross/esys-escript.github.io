@@ -58,7 +58,7 @@ DataExpanded::DataExpanded(const WrappedArray& value,
 
 DataExpanded::DataExpanded(const DataExpanded& other)
   : parent(other.getFunctionSpace(), other.getShape()),
-    m_data(other.m_data)
+    m_data_r(other.m_data_r)
 {
 }
 
@@ -126,7 +126,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
-        ValueType& vec=m_data;
+        ValueType& vec=m_data_r;
         // create the view of the data
         initialise(what.getNumSamples(),what.getNumDPPSample());
         // now we copy this value to all elements
@@ -137,7 +137,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
         }
     } else {
         // copy the data in the correct format
-        m_data = data;
+        m_data_r = data;
     }
 }
 
@@ -146,7 +146,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const double v)
   : parent(what,shape)
 {
-    ValueType& vec=m_data;
+    ValueType& vec=m_data_r;
     // create the view of the data
     initialise(what.getNumSamples(),what.getNumDPPSample());
     // now we copy this value to all elements
@@ -239,13 +239,13 @@ void DataExpanded::initialise(int noSamples, int noDataPointsPerSample)
         return;
 
     // resize data array to the required size
-    m_data.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());
+    m_data_r.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());
 }
 
 bool DataExpanded::hasNaN() const
 {
     bool haveNaN = false;
-    const ValueType& v = m_data;
+    const ValueType& v = m_data_r;
 #pragma omp parallel for
     for (ValueType::size_type i=0; i<v.size(); ++i) {
         if (nancheck(v[i])) {
@@ -261,9 +261,9 @@ bool DataExpanded::hasNaN() const
 void DataExpanded::replaceNaN(double value)
 {
 #pragma omp parallel for
-    for (ValueType::size_type i=0; i<m_data.size(); ++i) {
-        if (nancheck(m_data[i])) {
-            m_data[i] = value;
+    for (ValueType::size_type i=0; i<m_data_r.size(); ++i) {
+        if (nancheck(m_data_r[i])) {
+            m_data_r[i] = value;
         }
     }
 }
@@ -298,9 +298,9 @@ DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
     DataTypes::FloatVectorType::size_type blockSize=getNoValues();
-    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data.size() > 0)), "(DataBlocks2D) Index value out of range.");
+    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0)), "(DataBlocks2D) Index value out of range.");
     ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    EsysAssert((temp <= (m_data.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
+    EsysAssert((temp <= (m_data_r.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
 
     return temp;
 }
@@ -309,15 +309,15 @@ DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                              int dataPointNo)
 {
     DataTypes::FloatVectorType::size_type blockSize=getNoValues();
-    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data.size() > 0)), "(DataBlocks2D) Index value out of range.");
+    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0)), "(DataBlocks2D) Index value out of range.");
     ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    EsysAssert((temp <= (m_data.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
+    EsysAssert((temp <= (m_data_r.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
     return temp;
 }
 
 DataTypes::FloatVectorType::size_type DataExpanded::getLength() const
 {
-    return m_data.size();
+    return m_data_r.size();
 }
 
 void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, double value)
@@ -569,7 +569,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
 
     const int numdpps=getNumDPPSample();
     const int numSamples = getNumSamples();
-    const ValueType& vec=m_data;
+    const ValueType& vec=m_data_r;
     int errcode=0;
 #pragma omp parallel
     {
@@ -608,7 +608,7 @@ void DataExpanded::setToZero()
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            double* p = &m_data[getPointOffset(sampleNo,dataPointNo)];
+            double* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
             for (int i=0; i<n; ++i)
                 p[i] = 0.;
         }
@@ -625,7 +625,7 @@ void DataExpanded::dump(const std::string fileName) const
     int type=  getFunctionSpace().getTypeCode();
     int ndims =0;
     long dims[ldims];
-    const double* d_ptr=&(m_data[0]);
+    const double* d_ptr=&(m_data_r[0]);
     const DataTypes::ShapeType& shape = getShape();
     int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
     int mpi_num=getFunctionSpace().getDomain()->getMPISize();
@@ -705,7 +705,7 @@ void DataExpanded::setTaggedValue(int tagKey,
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey) {
             for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-                double* p = &m_data[getPointOffset(sampleNo,dataPointNo)];
+                double* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
                 for (int i=0; i<n; ++i)
                     p[i] = in[i];
             }
@@ -728,8 +728,8 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
             bool matched=false;
             for (int sampleNo2 = sampleNo+1; sampleNo2 < numSamples; sampleNo2++) {
                 if (id == reference_ids[sampleNo2]) {
-                    double* p = &m_data[getPointOffset(sampleNo,0)];
-                    double* p2 = &m_data[getPointOffset(sampleNo2,0)];
+                    double* p = &m_data_r[getPointOffset(sampleNo,0)];
+                    double* p2 = &m_data_r[getPointOffset(sampleNo2,0)];
                     for (int i=0; i<n; i++) {
                         const double rtmp=p[i];
                         p[i] = p2[i];
@@ -750,12 +750,12 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
 DataTypes::FloatVectorType& DataExpanded::getVectorRW()
 {
     CHECK_FOR_EX_WRITE;
-    return m_data;
+    return m_data_r;
 }
 
 const DataTypes::FloatVectorType& DataExpanded::getVectorRO() const
 {
-    return m_data;
+    return m_data_r;
 }
 
 //void DataExpanded::randomFill(long seed)
