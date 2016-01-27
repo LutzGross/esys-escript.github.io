@@ -375,6 +375,72 @@ namespace escript {
 
 
    std::string
+   DataTypes::pointToString(const CplxVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
+   {
+      using namespace std;
+      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      stringstream temp;
+      string finalPrefix=prefix;
+      if (prefix.length() > 0) {
+         finalPrefix+=" ";
+      }
+      switch (getRank(shape)) {
+      case 0:
+         temp << finalPrefix << data[offset];
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+            temp << finalPrefix << "(" << i <<  ") " << data[i+offset];
+            if (i!=(shape[0]-1)) {
+               temp << endl;
+            }
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               temp << finalPrefix << "(" << i << "," << j << ") " << data[offset+getRelIndex(shape,i,j)];
+               if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
+                  temp << endl;
+               }
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  temp << finalPrefix << "(" << i << "," << j << "," << k << ") " << data[offset+getRelIndex(shape,i,j,k)];
+                  if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
+                     temp << endl;
+                  }
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+                     temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") " << data[offset+getRelIndex(shape,i,j,k,l)];
+                     if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
+                        temp << endl;
+                     }
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (toString) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+      return temp.str();
+   }
+
+   std::string
    DataTypes::pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {
       using namespace std;
