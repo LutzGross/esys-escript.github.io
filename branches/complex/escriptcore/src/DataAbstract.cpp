@@ -98,15 +98,15 @@ DataAbstract::isComplex() const
 }
 
 
-DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
+DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty, bool isCplx):
     m_lazyshared(false),
     m_noSamples(what.getNumSamples()),
     m_noDataPointsPerSample(what.getNumDPPSample()),
+    m_iscompl(isCplx),
     m_functionSpace(what),
     m_shape(shape),
     m_novalues(DataTypes::noValues(shape)),
-    m_rank(DataTypes::getRank(shape)),
-    m_iscompl(false)
+    m_rank(DataTypes::getRank(shape))
 {
 #ifdef EXWRITECHK
     exclusivewritecalled=false;
@@ -167,10 +167,17 @@ DataAbstract::dump(const std::string fileName) const
 
 
 
-DataAbstract::ValueType::value_type*
+DataTypes::real_t*
 DataAbstract::getSampleDataByTag(int tag)
 {
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
+}
+
+
+DataTypes::cplx_t*
+DataAbstract::getSampleDataByTag_C(int tag)
+{
+    throw DataException("Error - DataAbstract::getSampleDataByTag_C: Data type does not have complex tag values.");
 }
 
 size_t

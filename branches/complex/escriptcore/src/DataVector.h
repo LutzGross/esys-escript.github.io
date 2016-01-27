@@ -120,6 +120,9 @@ namespace DataTypes
    pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
 
 
+   std::string
+   pointToString(const CplxVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
+
    /**
       \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
 

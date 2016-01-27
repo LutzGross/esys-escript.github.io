@@ -45,13 +45,29 @@ DataConstant::DataConstant(const WrappedArray& value,
                            const FunctionSpace& what)
   : parent(what,value.getShape())
 {
-  m_data_r.copyFromArray(value,1);
+  if (value.isComplex())
+  {
+      m_data_c.copyFromArray(value,1);
+      this->m_iscompl=true;
+  }
+  else
+  {
+      m_data_r.copyFromArray(value,1);
+  }
 }
 
 DataConstant::DataConstant(const DataConstant& other)
   : parent(other.getFunctionSpace(),other.getShape())
-{ 
-  m_data_r=other.m_data_r;
+{
+  this->m_iscompl=other.m_iscompl;
+  if (other.isComplex()) 
+  {
+      m_data_c=other.m_data_c;
+  }
+  else
+  {
+      m_data_r=other.m_data_r;
+  }
 }
 
 DataConstant::DataConstant(const DataConstant& other,
@@ -59,15 +75,30 @@ DataConstant::DataConstant(const DataConstant& other,
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   //
-  // allocate space for this new DataConstant's data
-  int len = getNoValues();
-  m_data_r.resize(len,0.,len);
-  //
   // create a view of the data with the correct shape
   DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
-  //
-  // load the view with the data from the slice
-  DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+  int len = getNoValues();
+  if (other.isComplex())
+  {
+throw DataException("Complex not supported for this op");
+/*
+      //
+      // allocate space for this new DataConstant's data
+      m_data_c.resize(len,0.,len);
+      //
+      // load the view with the data from the slice
+      DataTypes::copySlice(m_data_c,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+*/
+  }
+  else
+  {
+      //
+      // allocate space for this new DataConstant's data
+      m_data_r.resize(len,0.,len);
+      //
+      // load the view with the data from the slice
+      DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+  }
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
@@ -122,7 +153,14 @@ DataConstant::replaceNaN(double value)
 string
 DataConstant::toString() const
 {
-  return DataTypes::pointToString(m_data_r,getShape(),0,"");
+  if (isComplex())
+  {
+      return DataTypes::pointToString(m_data_c,getShape(),0,"");
+  }
+  else
+  {
+      return DataTypes::pointToString(m_data_r,getShape(),0,"");
+  }
 }
 
 

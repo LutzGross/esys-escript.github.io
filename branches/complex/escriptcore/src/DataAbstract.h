@@ -46,7 +46,7 @@ namespace escript {
    array of data points where one dimension corresponds to the number of samples
    and the other to the number of data points per sample as defined by the function
    space associated with each Data object. The data points themselves are arrays of
-   doubles of rank 0-4.
+   reals or complexes of rank 0-4.
 */
 
 class DataAbstract;
@@ -94,7 +94,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param shape - Input - Shape of each data value.
      \param isDataEmpty - Input - Is this an instance of DataEmpty (for internal use only)
   */
-  DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false);
+  DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false,bool isCplx=false);
 
   /**
     \brief
@@ -194,13 +194,21 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   /**
      \brief
-     Return the sample data for the given tag key.
+     Return the real sample data for the given tag key.
      NB: If the data isn't tagged an exception will be thrown.
   */
   virtual
-  double*
+  DataTypes::real_t*
   getSampleDataByTag(int tag);
 
+  /**
+     \brief
+     Return the complex sample data for the given tag key.
+     NB: If the data isn't tagged an exception will be thrown.
+  */
+  virtual
+  DataTypes::cplx_t*
+  getSampleDataByTag_C(int tag);
 
   /**
      \brief Return number of tagged values stored in the data object
@@ -294,7 +302,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param value Input - new values for the data point
   */
   virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const double value);
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::real_t value);
 
   /**
      \brief
@@ -519,6 +527,9 @@ protected:
   // This is derived directly from the FunctionSpace.
   int m_noDataPointsPerSample;
 
+  //
+  // is the data made of complex components
+  bool m_iscompl;
 private:
 
   //
@@ -541,10 +552,6 @@ private:
   //
   // Is this an instance of DataEmpty?
   bool m_isempty;
-
-  //
-  // is the data made of complex components
-  bool m_iscompl;
 };
 
 inline
