@@ -78,11 +78,9 @@ DataExpanded::DataExpanded(const DataTagged& other)
     initialise(other.getNumSamples(),other.getNumDPPSample());
     // for each data point in this object, extract and copy the corresponding
     // data value from the given DataTagged object
-    DataTypes::FloatVectorType::size_type numRows=m_data.getNumRows();
-    DataTypes::FloatVectorType::size_type numCols=m_data.getNumCols();
 #pragma omp parallel for
-    for (int i=0; i<numRows; i++) {
-        for (int j=0; j<numCols; j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             try {
                 DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j),
                                      getNoValues(), other.getVectorRO(),
@@ -103,11 +101,9 @@ DataExpanded::DataExpanded(const DataExpanded& other,
     // copy the data
     DataTypes::RegionLoopRangeType region_loop_range =
                                     DataTypes::getSliceRegionLoopRange(region);
-    DataTypes::FloatVectorType::size_type numRows=m_data.getNumRows();
-    DataTypes::FloatVectorType::size_type numCols=m_data.getNumCols();
 #pragma omp parallel for
-    for (int i=0; i<numRows; i++) {
-        for (int j=0; j<numCols; j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             try {
                 DataTypes::copySlice(getVectorRW(), getShape(),
                                      getPointOffset(i,j), other.getVectorRO(),
@@ -130,7 +126,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
-        ValueType& vec=m_data.getData();
+        ValueType& vec=m_data;
         // create the view of the data
         initialise(what.getNumSamples(),what.getNumDPPSample());
         // now we copy this value to all elements
@@ -141,7 +137,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
         }
     } else {
         // copy the data in the correct format
-        m_data.getData() = data;
+        m_data = data;
     }
 }
 
@@ -150,7 +146,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const double v)
   : parent(what,shape)
 {
-    ValueType& vec=m_data.getData();
+    ValueType& vec=m_data;
     // create the view of the data
     initialise(what.getNumSamples(),what.getNumDPPSample());
     // now we copy this value to all elements
@@ -198,15 +194,13 @@ void DataExpanded::setSlice(const DataAbstract* value,
                 shape, value->getShape()));
 
     // copy the data from the slice into this object
-    DataTypes::FloatVectorType::size_type numRows = m_data.getNumRows();
-    DataTypes::FloatVectorType::size_type numCols = m_data.getNumCols();
     ValueType& vec=getVectorRW();
     const ShapeType& mshape=getShape();
     const ValueType& tVec=tempDataExp->getVectorRO();
     const ShapeType& tShape=tempDataExp->getShape();
 #pragma omp parallel for
-    for (int i=0; i<numRows; i++) {
-        for (int j=0; j<numCols; j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             DataTypes::copySliceFrom(vec, mshape, getPointOffset(i,j), tVec,
                                      tShape, tempDataExp->getPointOffset(i,j),
                                      region_loop_range);
@@ -220,11 +214,9 @@ void DataExpanded::copy(const DataConstant& value)
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
 
     // copy a single value to every data point in this object
-    int nRows=m_data.getNumRows();
-    int nCols=m_data.getNumCols();
 #pragma omp parallel for
-    for (int i=0; i<nRows; i++) {
-        for (int j=0; j<nCols; j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j),
                                  getNoValues(), value.getVectorRO(), 0);
         }
@@ -247,13 +239,13 @@ void DataExpanded::initialise(int noSamples, int noDataPointsPerSample)
         return;
 
     // resize data array to the required size
-    m_data.resize(noSamples, noDataPointsPerSample, getNoValues());
+    m_data.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());
 }
 
 bool DataExpanded::hasNaN() const
 {
     bool haveNaN = false;
-    const ValueType& v = m_data.getData();
+    const ValueType& v = m_data;
 #pragma omp parallel for
     for (ValueType::size_type i=0; i<v.size(); ++i) {
         if (nancheck(v[i])) {
@@ -282,15 +274,15 @@ string DataExpanded::toString() const
     FunctionSpace fs=getFunctionSpace();
 
     int offset=0;
-    for (int i=0; i<m_data.getNumRows(); i++) {
-        for (int j=0; j<m_data.getNumCols(); j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             offset = getPointOffset(i,j);
             stringstream suffix;
             suffix << "( id: " << i << ", ref: "
                    << fs.getReferenceIDOfSample(i) << ", pnt: " << j << ")";
             ss << DataTypes::pointToString(getVectorRO(), getShape(), offset,
                                            suffix.str());
-            if (!(i==(m_data.getNumRows()-1) && j==(m_data.getNumCols()-1))) {
+            if (!(i==(m_noSamples-1) && j==(m_noDataPointsPerSample-1))) {
                 ss << endl;
             }
         }
@@ -305,13 +297,22 @@ string DataExpanded::toString() const
 DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
-    return m_data.index(sampleNo,dataPointNo);
+    DataTypes::FloatVectorType::size_type blockSize=getNoValues();
+    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data.size() > 0)), "(DataBlocks2D) Index value out of range.");
+    ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
+    EsysAssert((temp <= (m_data.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
+
+    return temp;
 }
 
 DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                              int dataPointNo)
 {
-    return m_data.index(sampleNo,dataPointNo);
+    DataTypes::FloatVectorType::size_type blockSize=getNoValues();
+    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data.size() > 0)), "(DataBlocks2D) Index value out of range.");
+    ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
+    EsysAssert((temp <= (m_data.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
+    return temp;
 }
 
 DataTypes::FloatVectorType::size_type DataExpanded::getLength() const
@@ -568,7 +569,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
 
     const int numdpps=getNumDPPSample();
     const int numSamples = getNumSamples();
-    const ValueType& vec=m_data.getData();
+    const ValueType& vec=m_data;
     int errcode=0;
 #pragma omp parallel
     {
@@ -749,12 +750,12 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
 DataTypes::FloatVectorType& DataExpanded::getVectorRW()
 {
     CHECK_FOR_EX_WRITE;
-    return m_data.getData();
+    return m_data;
 }
 
 const DataTypes::FloatVectorType& DataExpanded::getVectorRO() const
 {
-    return m_data.getData();
+    return m_data;
 }
 
 //void DataExpanded::randomFill(long seed)
