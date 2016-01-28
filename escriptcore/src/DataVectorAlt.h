@@ -30,6 +30,7 @@
 
 
 #include "DataTypes.h"
+#include "WrappedArray.h"
 
 namespace escript
 {
@@ -127,8 +128,11 @@ class ESCRIPT_DLL_API DataVectorAlt {
     \warning This function does not attempt to perform shape checking.
   */
   void
-  copyFromArray(const escript::WrappedArray& value, size_type copies);
+  copyFromArray(const WrappedArray& value, size_type copies);
 
+  
+  // Please make sure that any implementation changes here are reflected in the specialised 
+  // version in the .cpp file
   void 
   copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies);
 
@@ -192,6 +196,7 @@ class ESCRIPT_DLL_API DataVectorAlt {
 
   ElementType* m_array_data;
 };
+
 
 template <class T>
 inline
