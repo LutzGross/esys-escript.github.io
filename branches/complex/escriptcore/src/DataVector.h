@@ -138,9 +138,12 @@ namespace DataTypes
    */
    void copyPoint(FloatVectorType& dest, vec_size_type doffset, vec_size_type nvals, const FloatVectorType& src, vec_size_type soffset);  
   
-  
-  
-  
+   /**
+    * \brief copy data from a real vector to a complex vector
+    * The complex vector will be resized as needed and any previous
+    * values will be replaced.
+   */
+   void fillComplexFromReal(FloatVectorType& r, CplxVectorType& c);
 }
 
  

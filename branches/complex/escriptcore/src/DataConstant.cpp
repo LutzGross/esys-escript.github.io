@@ -435,4 +435,15 @@ DataConstant::getVectorRO() const
   return m_data_r;
 }
 
+void DataConstant::complicate()
+{
+    if (!isComplex())
+    {
+        fillComplexFromReal(m_data_r, m_data_c);
+        this->m_iscompl=true;
+        m_data_r.resize(0,0,1);
+    }
+}
+
+
 }  // end of namespace

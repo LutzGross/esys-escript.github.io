@@ -313,6 +313,13 @@ typedef DataReady parent;
   const DataTypes::FloatVectorType&
   getVectorRO() const;
 
+  
+  /**
+   * \brief Convert from real data to complex data.
+  */ 
+  ESCRIPT_DLL_API
+  void complicate();
+
  protected:
 
  private:

@@ -497,6 +497,11 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 				// sharing has not occurred since that call
 				// This flag is for internal use only may be removed without warning
 #endif
+
+/*
+ * Make the object complex
+*/
+ virtual void complicate();
   
 protected:
     /**
