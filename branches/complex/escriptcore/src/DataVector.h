@@ -30,6 +30,10 @@
 #include "DataVectorTaipan.h"
 #include "DataVectorAlt.h"
 
+// ensure that nobody else tries to instantiate the complex version
+extern template class escript::DataTypes::DataVectorAlt<escript::DataTypes::cplx_t>;
+
+
 namespace escript {
 
 // Functions in DataTypes:: which manipulate DataVectors

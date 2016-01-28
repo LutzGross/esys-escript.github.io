@@ -87,7 +87,11 @@ WrappedArray::getShape() const
 inline double
 WrappedArray::getElt() const
 {
-	return scalar_r;
+    if (iscomplex)
+    {
+      return nan("");
+    }  
+    return scalar_r;
 }
 
 
@@ -141,7 +145,11 @@ WrappedArray::getElt(unsigned int i, unsigned int j, unsigned int k, unsigned in
 inline WrappedArray::complextype
 WrappedArray::getEltC() const
 {
-	return scalar_c;
+    if (!iscomplex)
+    {
+      return nan("");
+    }  
+    return scalar_c;
 }
 
 
