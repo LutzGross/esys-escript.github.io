@@ -1677,6 +1677,12 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   size_t
   getNumberOfTaggedValues() const;
+
+  /*
+  * \brief make the data complex
+  */
+  ESCRIPT_DLL_API
+  void complicate();
  
  protected:
 
