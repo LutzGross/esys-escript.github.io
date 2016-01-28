@@ -24,7 +24,7 @@ except:
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 202
+escript_opts_version = 203
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -53,7 +53,7 @@ escript_opts_version = 202
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-ipo -sox -I/sw/pymodules/2.7/scipy-0.15.1-haswell/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-std=c++11 -ipo -sox -I/sw/pymodules/2.7/scipy-0.15.1-haswell/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)

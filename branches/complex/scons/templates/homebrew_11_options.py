@@ -32,7 +32,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 202
+escript_opts_version = 203
 
 # Do we need to modify shared libraries to list dependencies with
 # absolute paths (For OSX.11)
@@ -58,7 +58,7 @@ osx_dependency_fix = True
 # what you are doing - use cc_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 #cc_flags = ''
-cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
+cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
 
 # Additional compiler (optimization) flags for non-debug builds
 # DEFAULT: compiler-dependent
