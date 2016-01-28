@@ -325,5 +325,10 @@ void DataAbstract::makeLazyShared()
     }
 }   
 
+void DataAbstract::complicate()
+{
+    throw DataException("This type does not support converting to complex.");
+}
+
 
 }  // end of namespace

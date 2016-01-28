@@ -517,5 +517,24 @@ namespace escript {
          throw DataException("Error - invalid offset specified.");
       }
    } 
+   
+   /**
+    * \brief copy data from a real vector to a complex vector
+    * The complex vector will be resized as needed and any previous
+    * values will be replaced.
+   */
+   void DataTypes::fillComplexFromReal(FloatVectorType& r, CplxVectorType& c)
+   {
+       if (c.size()!=r.size())
+       {
+	   c.resize(r.size(), 0, 1);
+       }
+       size_t limit=r.size();
+       #pragma omp parallel for schedule(static)
+       for (size_t i=0;i<limit;++i)
+       {
+	   c[i]=r[i];
+       }
+   }
 
 } // end of namespace
