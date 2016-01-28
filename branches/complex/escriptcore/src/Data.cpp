@@ -52,6 +52,10 @@ using namespace escript;
 using namespace escript::DataTypes;
 using namespace std;
 
+
+#define THROWONCOMPLEX if (m_data->isComplex()){throw DataException("Operation does not support complex objects");}
+#define THROWONCOMPLEXA(Z) if (Z.isComplex()){throw DataException("Operation does not support complex objects");}
+
 // ensure the current object is not a DataLazy
 // The idea was that we could add an optional warning whenever a resolve is forced
 // #define forceResolve() if (isLazy()) {#resolve();}
@@ -901,6 +905,7 @@ Data::isProtected() const
 void
 Data::expand()
 {
+    THROWONCOMPLEX
     if (isConstant()) {
         DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
         DataAbstract* temp=new DataExpanded(*tempDataConst);
@@ -925,6 +930,7 @@ Data::expand()
 void
 Data::tag()
 {
+    THROWONCOMPLEX
     if (isConstant()) {
         DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
         DataAbstract* temp=new DataTagged(*tempDataConst);
@@ -967,6 +973,7 @@ Data::requireWrite()
 Data
 Data::oneOver() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(RECIP);
     return C_TensorUnaryOperation(*this, bind1st(divides<double>(),1.));
 }
@@ -974,6 +981,7 @@ Data::oneOver() const
 Data
 Data::wherePositive() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(GZ);
     return C_TensorUnaryOperation(*this, bind2nd(greater_func<double>(),0.0));
 }
@@ -981,6 +989,7 @@ Data::wherePositive() const
 Data
 Data::whereNegative() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(LZ);
     return C_TensorUnaryOperation(*this, bind2nd(less_func<double>(),0.0));
 }
@@ -988,6 +997,7 @@ Data::whereNegative() const
 Data
 Data::whereNonNegative() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(GEZ);
     return C_TensorUnaryOperation(*this, bind2nd(greater_equal_func<double>(),0.0));
 }
@@ -995,6 +1005,7 @@ Data::whereNonNegative() const
 Data
 Data::whereNonPositive() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(LEZ);
     return C_TensorUnaryOperation(*this, bind2nd(less_equal_func<double>(),0.0));
 }
@@ -1002,6 +1013,7 @@ Data::whereNonPositive() const
 Data
 Data::whereZero(double tol) const
 {
+    THROWONCOMPLEX
 //   Data dataAbs=abs();
 //   return C_TensorUnaryOperation(dataAbs, bind2nd(less_equal<double>(),tol));
     MAKELAZYOPOFF(EZ,tol);
@@ -1011,6 +1023,7 @@ Data::whereZero(double tol) const
 Data
 Data::whereNonZero(double tol) const
 {
+    THROWONCOMPLEX
 //   Data dataAbs=abs();
 //   return C_TensorUnaryOperation(dataAbs, bind2nd(greater<double>(),tol));
     MAKELAZYOPOFF(NEZ,tol);
@@ -1032,6 +1045,7 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
+    THROWONCOMPLEX
     if (isEmpty())
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
@@ -1050,6 +1064,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
 Data
 Data::grad() const
 {
+    THROWONCOMPLEX
     if (isEmpty())
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
@@ -1078,6 +1093,7 @@ Data::getLength() const
 const bp::object
 Data::toListOfTuples(bool scalarastuple)
 {
+    THROWONCOMPLEX
     if (get_MPISize()>1)
     {
         throw DataException("::toListOfTuples is not available for MPI with more than one process.");
@@ -1155,6 +1171,7 @@ Data::toListOfTuples(bool scalarastuple)
 const bp::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
 {
+    THROWONCOMPLEX
     forceResolve();
     if (getNumDataPointsPerSample()>0) {
         int sampleNo = dataPointNo/getNumDataPointsPerSample();
@@ -1186,6 +1203,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const bp::object& py_object)
 {
+    THROWONCOMPLEX
     // this will throw if the value cannot be represented
     setValueOfDataPointToArray(dataPointNo,py_object);
 }
@@ -1194,6 +1212,7 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const bp::object& py_object
 void
 Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 {
+    THROWONCOMPLEX
 #ifdef ESYS_MPI 
     int error=0;
 #endif
@@ -1238,6 +1257,7 @@ Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 void
 Data::setValueOfDataPointToArray(int dataPointNo, const bp::object& obj)
 {
+    THROWONCOMPLEX
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
@@ -1275,6 +1295,7 @@ Data::setValueOfDataPointToArray(int dataPointNo, const bp::object& obj)
 void
 Data::setValueOfDataPoint(int dataPointNo, const double value)
 {
+    THROWONCOMPLEX
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
@@ -1297,6 +1318,7 @@ const
 bp::object
 Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 {
+    THROWONCOMPLEX
     // This could be lazier than it is now
     forceResolve();
 
@@ -1349,6 +1371,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 bp::object
 Data::integrateToTuple_const() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot integrate for constant lazy data.");
@@ -1407,18 +1430,21 @@ Data::integrateWorker() const
 Data
 Data::besselFirstKind(int order)
 {
+    THROWONCOMPLEX
     return bessel(order,boost::math::cyl_bessel_j);
 }
 
 Data
 Data::besselSecondKind(int order)
 {
+    THROWONCOMPLEX
     return bessel(order,boost::math::cyl_neumann);
 }
 
 Data
 Data::bessel(int order, double (*besselfunc) (int,double) )
 {
+    THROWONCOMPLEX
     if (isEmpty())  // do this before we attempt to interpolate
     {
      throw DataException("Error - Operations (bessel) not permitted on instances of DataEmpty.");
@@ -1509,6 +1535,7 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
 Data
 Data::conjugate() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
 	Data temp(*this);
@@ -1528,6 +1555,7 @@ Data::conjugate() const
 Data
 Data::sin() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(SIN);
     return C_TensorUnaryOperation(*this, sin_func<double>());
 }
@@ -1535,6 +1563,7 @@ Data::sin() const
 Data
 Data::cos() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(COS);
     return C_TensorUnaryOperation(*this, cos_func<double>());
 }
@@ -1542,6 +1571,7 @@ Data::cos() const
 Data
 Data::tan() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(TAN);
     return C_TensorUnaryOperation(*this, tan_func<double>());
 }
@@ -1549,6 +1579,7 @@ Data::tan() const
 Data
 Data::asin() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ASIN);
     return C_TensorUnaryOperation(*this, asin_func<double>());
 }
@@ -1556,6 +1587,7 @@ Data::asin() const
 Data
 Data::acos() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ACOS);
     return C_TensorUnaryOperation(*this, acos_func<double>());
 }
@@ -1564,6 +1596,7 @@ Data::acos() const
 Data
 Data::atan() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ATAN);
     return C_TensorUnaryOperation(*this, atan_func<double>());
 }
@@ -1571,6 +1604,7 @@ Data::atan() const
 Data
 Data::sinh() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(SINH);
     return C_TensorUnaryOperation(*this, sinh_func<double>());
 }
@@ -1578,6 +1612,7 @@ Data::sinh() const
 Data
 Data::cosh() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(COSH);
     return C_TensorUnaryOperation(*this, cosh_func<double>());
 }
@@ -1585,6 +1620,7 @@ Data::cosh() const
 Data
 Data::tanh() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(TANH);
     return C_TensorUnaryOperation(*this, tanh_func<double>());
 }
@@ -1593,6 +1629,7 @@ Data::tanh() const
 Data
 Data::erf() const
 {
+    THROWONCOMPLEX
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
     throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
@@ -1604,6 +1641,7 @@ Data::erf() const
 Data
 Data::asinh() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ASINH);
     return C_TensorUnaryOperation(*this, asinh_func<double>());
 }
@@ -1611,6 +1649,7 @@ Data::asinh() const
 Data
 Data::acosh() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ACOSH);
     return C_TensorUnaryOperation(*this, acosh_func<double>());    
 }
@@ -1618,6 +1657,7 @@ Data::acosh() const
 Data
 Data::atanh() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ATANH);
     return C_TensorUnaryOperation(*this, atanh_func<double>()); 
 }
@@ -1625,6 +1665,7 @@ Data::atanh() const
 Data
 Data::log10() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(LOG10);
     return C_TensorUnaryOperation(*this, log10_func<double>());
 }
@@ -1632,6 +1673,7 @@ Data::log10() const
 Data
 Data::log() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(LOG);
     return C_TensorUnaryOperation(*this, log_func<double>());
 }
@@ -1639,6 +1681,7 @@ Data::log() const
 Data
 Data::sign() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(SIGN);
     return C_TensorUnaryOperation(*this, sign_func<double>());
 }
@@ -1646,6 +1689,7 @@ Data::sign() const
 Data
 Data::abs() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ABS);
     return C_TensorUnaryOperation(*this, abs_func<double>());
 }
@@ -1653,6 +1697,7 @@ Data::abs() const
 Data
 Data::neg() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(NEG);
     return C_TensorUnaryOperation(*this, negate<double>());
 }
@@ -1660,6 +1705,7 @@ Data::neg() const
 Data
 Data::pos() const
 {
+    THROWONCOMPLEX
     // not doing lazy check here is deliberate.
     // since a deep copy of lazy data should be cheap, I'll just let it happen now
     Data result;
@@ -1671,6 +1717,7 @@ Data::pos() const
 Data
 Data::exp() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(EXP);
     return C_TensorUnaryOperation(*this, exp_func<double>());
 }
@@ -1678,6 +1725,7 @@ Data::exp() const
 Data
 Data::sqrt() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(SQRT);
     return C_TensorUnaryOperation(*this, sqrt_func<double>());
 }
@@ -1685,6 +1733,7 @@ Data::sqrt() const
 double
 Data::Lsup_const() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot compute Lsup for constant lazy data.");
@@ -1695,6 +1744,7 @@ Data::Lsup_const() const
 double
 Data::Lsup() 
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1716,6 +1766,7 @@ Data::Lsup()
 double
 Data::sup_const() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot compute sup for constant lazy data.");
@@ -1726,6 +1777,7 @@ Data::sup_const() const
 double
 Data::sup() 
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1747,6 +1799,7 @@ Data::sup()
 double
 Data::inf_const() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot compute inf for constant lazy data.");
@@ -1757,6 +1810,7 @@ Data::inf_const() const
 double
 Data::inf() 
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1839,6 +1893,7 @@ Data::lazyAlgWorker(double init)
 bool
 Data::hasNaN()
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -1850,6 +1905,7 @@ Data::hasNaN()
 void
 Data::replaceNaN(double value)
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -1976,6 +2032,7 @@ Data::infWorker() const
 inline Data
 Data::minval_nonlazy() const
 {
+    THROWONCOMPLEX
     //
     // set the initial minimum value to max possible double
     FMin fmin_func;
@@ -1986,6 +2043,7 @@ Data::minval_nonlazy() const
 inline Data
 Data::maxval_nonlazy() const
 {
+    THROWONCOMPLEX
     //
     // set the initial maximum value to min possible double
     FMax fmax_func;
@@ -1996,6 +2054,7 @@ Data::maxval_nonlazy() const
 Data
 Data::maxval() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(MAXVAL);
     return maxval_nonlazy();
 }
@@ -2004,6 +2063,7 @@ Data::maxval() const
 Data
 Data::minval() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(MINVAL);
     return minval_nonlazy();
 }
@@ -2012,6 +2072,7 @@ Data::minval() const
 Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
+    THROWONCOMPLEX
     int axis0_tmp,axis1_tmp;
     DataTypes::ShapeType s=getDataPointShape();
     DataTypes::ShapeType ev_shape;
@@ -2069,6 +2130,7 @@ Data::swapaxes(const int axis0, const int axis1) const
 Data
 Data::symmetric() const
 {
+    THROWONCOMPLEX
     // check input
     DataTypes::ShapeType s=getDataPointShape();
     if (getDataPointRank()==2) {
@@ -2092,6 +2154,7 @@ Data::symmetric() const
 Data
 Data::nonsymmetric() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(NSYM);
     // check input
     DataTypes::ShapeType s=getDataPointShape();
@@ -2126,7 +2189,8 @@ Data::nonsymmetric() const
 
 Data
 Data::trace(int axis_offset) const
-{     
+{
+    THROWONCOMPLEX     
     MAKELAZYOPOFF(TRACE,axis_offset);
     if ((axis_offset<0) || (axis_offset>getDataPointRank()))
     {
@@ -2181,7 +2245,8 @@ Data::trace(int axis_offset) const
 
 Data
 Data::transpose(int axis_offset) const
-{     
+{
+    THROWONCOMPLEX     
     MAKELAZYOPOFF(TRANS,axis_offset);
     DataTypes::ShapeType s=getDataPointShape();
     DataTypes::ShapeType ev_shape;
@@ -2206,6 +2271,7 @@ Data::transpose(int axis_offset) const
 Data
 Data::eigenvalues() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);       // to get around the fact that you can't resolve a const Data
@@ -2229,6 +2295,7 @@ Data::eigenvalues() const
 const bp::tuple
 Data::eigenvalues_and_eigenvectors(const double tol) const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);       // to get around the fact that you can't resolve a const Data
@@ -2258,6 +2325,7 @@ Data::minGlobalDataPoint() const
     // abort (for unknown reasons) if there are openmp directives with it in the
     // surrounding function
 
+    THROWONCOMPLEX
     int DataPointNo;
     int ProcNo;
     calc_minGlobalDataPoint(ProcNo,DataPointNo);
@@ -2268,6 +2336,7 @@ void
 Data::calc_minGlobalDataPoint(int& ProcNo,
                         int& DataPointNo) const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);   // to get around the fact that you can't resolve a const Data
@@ -2344,6 +2413,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 const bp::tuple
 Data::maxGlobalDataPoint() const
 {
+    THROWONCOMPLEX
     int DataPointNo;
     int ProcNo;
     calc_maxGlobalDataPoint(ProcNo,DataPointNo);
@@ -2360,6 +2430,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
         temp.resolve();
         return temp.calc_maxGlobalDataPoint(ProcNo,DataPointNo);
     }
+    THROWONCOMPLEX
     int i,j;
     int highi=0,highj=0;
     //-------------
@@ -2435,6 +2506,8 @@ Data::operator+=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
+    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,ADD);    // for lazy + is equivalent to +=
     exclusiveWrite();                     // Since Lazy data does not modify its leaves we only need to worry here
     binaryOp(right,plus<double>());
@@ -2447,7 +2520,9 @@ Data::operator+=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
     (*this)+=tmp;
     return *this;
 }
@@ -2467,6 +2542,8 @@ Data::operator-=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
+    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,SUB);
     exclusiveWrite();
     binaryOp(right,minus<double>());
@@ -2479,7 +2556,9 @@ Data::operator-=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
     (*this)-=tmp;
     return (*this);
 }
@@ -2490,6 +2569,8 @@ Data::operator*=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
+    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,MUL);
     exclusiveWrite();
     binaryOp(right,multiplies<double>());
@@ -2502,7 +2583,9 @@ Data::operator*=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
     (*this)*=tmp;
     return (*this);
 }
@@ -2513,6 +2596,8 @@ Data::operator/=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
+    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,DIV);
     exclusiveWrite();
     binaryOp(right,divides<double>());
@@ -2525,7 +2610,9 @@ Data::operator/=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
+    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
     (*this)/=tmp;
     return (*this);
 }
@@ -2543,7 +2630,7 @@ Data::matrixInverse() const
         d.resolve();
         return d.matrixInverse();
     }
-
+    THROWONCOMPLEX
     Data out(0.,getDataPointShape(),getFunctionSpace());
     out.typeMatchRight(*this);
     int errcode=m_data->matrixInverse(out.getReadyPtr().get());
@@ -2563,20 +2650,25 @@ Data::matrixInverse() const
 Data
 Data::rpowO(const bp::object& left) const
 {
+    THROWONCOMPLEX
     Data left_d(left,*this);
+    THROWONCOMPLEXA(left_d)
     return left_d.powD(*this);
 }
 
 Data
 Data::powO(const bp::object& right) const
 {
+    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
     return powD(tmp);
 }
 
 Data
 Data::powD(const Data& right) const
 {
+    THROWONCOMPLEX
     MAKELAZYBIN(right,POW);
     //return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
     return C_TensorBinaryOperation(*this, right, pow_func<double>());
@@ -2588,6 +2680,8 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
+    THROWONCOMPLEXA(left)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,ADD);
     return C_TensorBinaryOperation(left, right, plus<double>());
 }
@@ -2597,6 +2691,8 @@ escript::operator+(const Data& left, const Data& right)
 Data
 escript::operator-(const Data& left, const Data& right)
 {
+    THROWONCOMPLEXA(left)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,SUB);
     return C_TensorBinaryOperation(left, right, minus<double>());
 }
@@ -2606,6 +2702,8 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
+    THROWONCOMPLEXA(left)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,MUL);
     return C_TensorBinaryOperation(left, right, multiplies<double>());
 }
@@ -2615,6 +2713,8 @@ escript::operator*(const Data& left, const Data& right)
 Data
 escript::operator/(const Data& left, const Data& right)
 {
+    THROWONCOMPLEXA(left)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,DIV);
     return C_TensorBinaryOperation(left, right, divides<double>());
 }
@@ -2625,6 +2725,8 @@ Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(left)
     MAKELAZYBIN2(left,tmp,ADD);
     return left+tmp;
 }
@@ -2635,6 +2737,8 @@ Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(left)
     MAKELAZYBIN2(left,tmp,SUB);
     return left-tmp;
 }
@@ -2645,6 +2749,8 @@ Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(left)
     MAKELAZYBIN2(left,tmp,MUL);
     return left*tmp;
 }
@@ -2654,7 +2760,9 @@ escript::operator*(const Data& left, const boost::python::object& right)
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
+    THROWONCOMPLEXA(left)
     Data tmp(right,left.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
     MAKELAZYBIN2(left,tmp,DIV);
     return left/tmp;
 }
@@ -2665,6 +2773,8 @@ Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,ADD);
     return tmp+right;
 }
@@ -2675,6 +2785,8 @@ Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,SUB);
     return tmp-right;
 }
@@ -2685,6 +2797,8 @@ Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,MUL);
     return tmp*right;
 }
@@ -2695,6 +2809,8 @@ Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
+    THROWONCOMPLEXA(tmp)
+    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,DIV);
     return tmp/right;
 }
@@ -4691,5 +4807,10 @@ bp::object Data::__rdiv__(const bp::object& right)
         }
         return getNotImplemented();
     }         
+}
+
+void Data::complicate()
+{
+    m_data->complicate();
 }
 
