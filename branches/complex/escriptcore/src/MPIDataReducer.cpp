@@ -336,7 +336,7 @@ bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysU
 	// are the same number of tags
 	value.tag();
 	
-	DataVector dv(DataTypes::noValues(s), 0, 1);
+	DataTypes::FloatVectorType dv(DataTypes::noValues(s), 0, 1);
 	for (unsigned i=0;i<params[2];++i)
 	{
 	    value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
@@ -473,7 +473,7 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
 	      // are the same number of tags
 	      value.tag();
 	      
-	      DataVector dv(DataTypes::noValues(s), 0, 1);
+	      DataTypes::FloatVectorType dv(DataTypes::noValues(s), 0, 1);
 	      for (unsigned i=0;i<params[2];++i)
 	      {
 		  value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
