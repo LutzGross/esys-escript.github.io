@@ -33,6 +33,22 @@ using namespace escript;
 using namespace boost::python;
 using namespace DataTypes;
 
+namespace 
+{
+inline  
+void cplxout(std::ostream& os, const DataTypes::cplx_t& c)
+{
+    os << c.real();
+    if (c.imag()>=0)
+    {
+        os << '+';      
+    }
+    os << c.imag() << 'j';
+}
+  
+}
+
+
 namespace escript {
 
 // Additional slice operations
@@ -386,11 +402,13 @@ namespace escript {
       }
       switch (getRank(shape)) {
       case 0:
-         temp << finalPrefix << data[offset];
+         temp << finalPrefix;
+	 cplxout(temp,data[offset]);
          break;
       case 1:
          for (int i=0;i<shape[0];i++) {
-            temp << finalPrefix << "(" << i <<  ") " << data[i+offset];
+            temp << finalPrefix << "(" << i <<  ") ";
+	    cplxout(temp,data[i+offset]);
             if (i!=(shape[0]-1)) {
                temp << endl;
             }
@@ -399,7 +417,8 @@ namespace escript {
       case 2:
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
-               temp << finalPrefix << "(" << i << "," << j << ") " << data[offset+getRelIndex(shape,i,j)];
+               temp << finalPrefix << "(" << i << "," << j << ") ";
+	       	 cplxout(temp,data[offset+getRelIndex(shape,i,j)]);
                if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
                   temp << endl;
                }
@@ -410,7 +429,8 @@ namespace escript {
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
-                  temp << finalPrefix << "(" << i << "," << j << "," << k << ") " << data[offset+getRelIndex(shape,i,j,k)];
+                  temp << finalPrefix << "(" << i << "," << j << "," << k << ") ";
+		  cplxout(temp,data[offset+getRelIndex(shape,i,j,k)]);
                   if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
                      temp << endl;
                   }
@@ -423,7 +443,8 @@ namespace escript {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
-                     temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") " << data[offset+getRelIndex(shape,i,j,k,l)];
+                     temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") ";
+		     cplxout(temp,data[offset+getRelIndex(shape,i,j,k,l)]);
                      if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
                         temp << endl;
                      }
