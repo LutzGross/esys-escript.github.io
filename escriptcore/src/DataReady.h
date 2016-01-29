@@ -66,6 +66,15 @@ public:
   virtual const DataTypes::FloatVectorType&
   getVectorRO() const=0;
 
+  ESCRIPT_DLL_API
+  virtual DataTypes::CplxVectorType&
+  getVectorRWC()=0;
+
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::CplxVectorType&
+  getVectorROC() const=0;
+  
   /**
   \brief return true if data contains NaN.
   \warning This is dependent on the ability to reliably detect NaNs on your compiler.
@@ -107,7 +116,20 @@ public:
   ESCRIPT_DLL_API
   DataTypes::FloatVectorType::reference
   getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i);
+  
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType::const_reference
+  getDataAtOffsetROC(DataTypes::CplxVectorType::size_type i) const;
 
+
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType::reference
+  getDataAtOffsetRWC(DataTypes::CplxVectorType::size_type i);  
+  
+  
+  
+  
+  
   ESCRIPT_DLL_API
   DataReady_ptr 
   resolve();
@@ -141,6 +163,21 @@ DataTypes::FloatVectorType::reference
 DataReady::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i)	// exclusive write checks will be done in getVectorRW()
 {
    return getVectorRW()[i];
+}
+
+
+inline
+DataTypes::CplxVectorType::const_reference
+DataReady::getDataAtOffsetROC(DataTypes::CplxVectorType::size_type i) const
+{
+   return getVectorROC()[i];
+}
+
+inline
+DataTypes::CplxVectorType::reference
+DataReady::getDataAtOffsetRWC(DataTypes::CplxVectorType::size_type i)	// exclusive write checks will be done in getVectorRW()
+{
+   return getVectorRWC()[i];
 }
 
 

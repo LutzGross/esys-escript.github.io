@@ -435,6 +435,22 @@ DataConstant::getVectorRO() const
   return m_data_r;
 }
 
+DataTypes::CplxVectorType&
+DataConstant::getVectorRWC()
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_c;
+}
+
+const DataTypes::CplxVectorType&
+DataConstant::getVectorROC() const
+{
+  return m_data_c;
+}
+
+
+
+
 void DataConstant::complicate()
 {
     if (!isComplex())

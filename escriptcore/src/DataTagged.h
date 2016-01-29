@@ -356,12 +356,17 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   */
 
   DataTypes::FloatVectorType::reference
-  getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i);
+  getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0);
 
   DataTypes::FloatVectorType::const_reference
-  getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i) const;
+  getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0) const;
 
 
+  DataTypes::CplxVectorType::reference
+  getDataByTagRW(int tag, DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
+
+  DataTypes::CplxVectorType::const_reference
+  getDataByTagRO(int tag, DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy) const;
 
   /**
       \brief 
@@ -387,6 +392,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   const DataTypes::FloatVectorType&
   getVectorRO() const;
 
+
+  DataTypes::CplxVectorType&
+  getVectorRWC();
+
+  const DataTypes::CplxVectorType&
+  getVectorROC() const;
 
 
   /**
@@ -424,11 +435,16 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param i - position in the underlying datastructure
   */
   DataTypes::FloatVectorType::reference
-  getDefaultValueRW(DataTypes::FloatVectorType::size_type i);
+  getDefaultValueRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0);
 
   DataTypes::FloatVectorType::const_reference
-  getDefaultValueRO(DataTypes::FloatVectorType::size_type i) const;
+  getDefaultValueRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0) const;
 
+  DataTypes::CplxVectorType::reference
+  getDefaultValueRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
+
+  DataTypes::CplxVectorType::const_reference
+  getDefaultValueRO(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy) const;
 
 
 
@@ -613,17 +629,34 @@ DataTagged::getDefaultOffset() const
 
 inline
 DataTypes::FloatVectorType::reference
-DataTagged::getDefaultValueRW(DataTypes::FloatVectorType::size_type i)
+DataTagged::getDefaultValueRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
 {       
         return getVectorRW()[i];                // getVectorRW has exclusive write checks
 }
 
 inline
 DataTypes::FloatVectorType::const_reference
-DataTagged::getDefaultValueRO(DataTypes::FloatVectorType::size_type i) const
+DataTagged::getDefaultValueRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy) const
 {
         return getVectorRO()[i];
 }
+
+inline
+DataTypes::CplxVectorType::reference
+DataTagged::getDefaultValueRW(DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+{       
+        return getVectorRWC()[i];                // getVectorRW has exclusive write checks
+}
+
+inline
+DataTypes::CplxVectorType::const_reference
+DataTagged::getDefaultValueRO(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy) const
+{
+        return getVectorROC()[i];
+}
+
+
+
 
 inline
 const DataTagged::DataMapType&

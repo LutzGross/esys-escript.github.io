@@ -544,7 +544,7 @@ DataTagged::getOffsetForTag(int tag) const
 }
 
 DataTypes::FloatVectorType::const_reference
-DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i) const
+DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy) const
 {
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
   DataTypes::FloatVectorType::size_type offset=m_defaultValueOffset;
@@ -555,7 +555,7 @@ DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i) con
 }
 
 DataTypes::FloatVectorType::reference
-DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i)
+DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
 {
   CHECK_FOR_EX_WRITE
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
@@ -564,6 +564,29 @@ DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i)
     offset=pos->second;
   }
   return m_data_r[offset+i];
+}
+
+DataTypes::CplxVectorType::const_reference
+DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy) const
+{
+  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
+  DataTypes::CplxVectorType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  return m_data_c[offset+i];
+}
+
+DataTypes::CplxVectorType::reference
+DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  DataMapType::const_iterator pos(m_offsetLookup.find(tag));
+  DataTypes::CplxVectorType::size_type offset=m_defaultValueOffset;
+  if (pos!=m_offsetLookup.end()) {
+    offset=pos->second;
+  }
+  return m_data_c[offset+i];
 }
 
 void
@@ -881,6 +904,19 @@ const DataTypes::FloatVectorType&
 DataTagged::getVectorRO() const
 {
 	return m_data_r;
+}
+
+DataTypes::CplxVectorType&
+DataTagged::getVectorRWC()
+{
+    CHECK_FOR_EX_WRITE
+    return m_data_c;
+}
+
+const DataTypes::CplxVectorType&
+DataTagged::getVectorROC() const
+{
+	return m_data_c;
 }
 
 size_t

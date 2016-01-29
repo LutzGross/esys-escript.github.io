@@ -516,11 +516,11 @@ inline void tensor_unary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction>
+template <typename BinaryFunction, typename T>
 inline void tensor_binary_operation(const int size,
-			     const double *arg1,
-			     const double *arg2,
-			     double * argRes,
+			     const T *arg1,
+			     const T *arg2,
+			     T * argRes,
 			     BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
@@ -529,11 +529,11 @@ inline void tensor_binary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction>
+template <typename BinaryFunction, typename T>
 inline void tensor_binary_operation(const int size,
-			     double arg1,
-			     const double *arg2,
-			     double *argRes,
+			     T arg1,
+			     const T *arg2,
+			     T *argRes,
 			     BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
@@ -542,11 +542,11 @@ inline void tensor_binary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction>
+template <typename BinaryFunction, typename T>
 inline void tensor_binary_operation(const int size,
-			     const double *arg1,
-			     double arg2,
-			     double *argRes,
+			     const T *arg1,
+			     T arg2,
+			     T *argRes,
 			     BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {

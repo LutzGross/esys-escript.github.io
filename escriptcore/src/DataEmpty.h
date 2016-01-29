@@ -169,7 +169,16 @@ typedef DataReady parent;
   virtual const DataTypes::FloatVectorType&
   getVectorRO() const;
 
+  ESCRIPT_DLL_API
+  virtual DataTypes::CplxVectorType&
+  getVectorRWC();
 
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::CplxVectorType&
+  getVectorROC() const;
+  
+  
  private:
 
 //  /**

@@ -239,7 +239,15 @@ TODO Note that this constructor will also copy data to all points if it only con
   const DataTypes::FloatVectorType&
   getVectorRO() const;
 
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType&
+  getVectorRWC();
 
+  ESCRIPT_DLL_API
+  const DataTypes::CplxVectorType&
+  getVectorROC() const;
+  
+  
 
   /**
      \brief

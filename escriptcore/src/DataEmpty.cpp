@@ -33,7 +33,7 @@ namespace {
 
 
   escript::DataTypes::FloatVectorType dummy;	
-
+  escript::DataTypes::CplxVectorType dummyc;	
 }
 
 namespace escript {
@@ -117,6 +117,21 @@ DataEmpty::getVectorRO() const
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
+}
+
+
+DataTypes::CplxVectorType&
+DataEmpty::getVectorRWC()
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
+const DataTypes::CplxVectorType&
+DataEmpty::getVectorROC() const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
 }
 
 

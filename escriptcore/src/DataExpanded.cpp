@@ -758,6 +758,18 @@ const DataTypes::FloatVectorType& DataExpanded::getVectorRO() const
     return m_data_r;
 }
 
+DataTypes::CplxVectorType& DataExpanded::getVectorRWC()
+{
+    CHECK_FOR_EX_WRITE;
+    return m_data_c;
+}
+
+const DataTypes::CplxVectorType& DataExpanded::getVectorROC() const
+{
+    return m_data_c;
+}
+
+
 //void DataExpanded::randomFill(long seed)
 //{
 //    CHECK_FOR_EX_WRITE;
