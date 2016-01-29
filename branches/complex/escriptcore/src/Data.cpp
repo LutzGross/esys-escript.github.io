@@ -106,6 +106,10 @@ using namespace std;
 #define MAKELAZYBIN2(L,R,X) do {\
   if (L.isLazy() || R.isLazy() || (AUTOLAZYON && (L.isExpanded() || R.isExpanded()))) \
   {\
+  if (L.isComplex() || R.isComplex()) \
+  {\
+      throw DataException("Lazy operations on complex not supported yet");\
+  }\
         DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
         return Data(c);\
   }\
@@ -2680,10 +2684,19 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
-    THROWONCOMPLEXA(left)
-    THROWONCOMPLEXA(right)
+    if (left.isComplex()!=right.isComplex())
+    {
+	throw DataException("Mixed complex and reals not permitted in this operation.");
+    }
     MAKELAZYBIN2(left,right,ADD);
-    return C_TensorBinaryOperation(left, right, plus<double>());
+    if (!left.isComplex() && !right.isComplex())
+    {
+        return C_TensorBinaryOperation(left, right, plus<DataTypes::real_t>());
+    }
+    else
+    {
+        return C_TensorBinaryOperation(left, right, plus<DataTypes::cplx_t>());      
+    }
 }
 
 //
@@ -3405,7 +3418,7 @@ Data::toString() const
 
 // This method is not thread-safe
 DataTypes::FloatVectorType::reference
-Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i)
+Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
 {
     checkExclusiveWrite();
     return getReady()->getDataAtOffsetRW(i);
@@ -3413,11 +3426,29 @@ Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i)
 
 // This method is not thread-safe
 DataTypes::FloatVectorType::const_reference
-Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i)
+Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
 {
     forceResolve();
     return getReady()->getDataAtOffsetRO(i);
 }
+
+// This method is not thread-safe
+DataTypes::CplxVectorType::reference
+Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+{
+    checkExclusiveWrite();
+    return getReady()->getDataAtOffsetRWC(i);
+}
+
+// This method is not thread-safe
+DataTypes::CplxVectorType::const_reference
+Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+{
+    forceResolve();
+    return getReady()->getDataAtOffsetROC(i);
+}
+
+
 
 
 // DataTypes::FloatVectorType::const_reference
