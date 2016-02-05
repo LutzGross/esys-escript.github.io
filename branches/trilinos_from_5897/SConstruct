@@ -117,6 +117,9 @@ vars.AddVariables(
   BoolVariable('silo', 'Enable the Silo file format in weipa', False),
   ('silo_prefix', 'Prefix/Paths to Silo installation', default_prefix),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
+  BoolVariable('trilinos', 'Enable the Trilinos solvers', False),
+  ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
+  ('trilinos_libs', 'Trilinos libraries to link with', []),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
@@ -777,7 +780,7 @@ def print_summary():
         print("            CUDA:  NO")
     d_list=[]
     e_list=[]
-    for i in 'debug','openmp','boomeramg','cppunit','gdal','mkl','netcdf','papi','pyproj','scipy','silo','sympy','umfpack','visit':
+    for i in 'debug','openmp','boomeramg','cppunit','gdal','mkl','netcdf','papi','pyproj','scipy','silo','sympy','trilinos','umfpack','visit':
         if env[i]: e_list.append(i)
         else: d_list.append(i)
     for i in e_list:
