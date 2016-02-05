@@ -28,7 +28,7 @@ from SCons.Defaults import Chmod, Copy
 from grouptest import *
 from extractdebbuild import *
 
-def findLibWithHeader(env, libs, header, paths, lang='c++'):
+def findLibWithHeader(env, libs, header, paths, lang='c++', try_link=True):
     from SCons.Script.SConscript import Configure
     inc_path=''
     lib_path=''
@@ -61,20 +61,22 @@ def findLibWithHeader(env, libs, header, paths, lang='c++'):
         else:
             raise RuntimeError('%s is not a valid path.'%paths[1])
 
-    # now try the library
-    conf=Configure(env.Clone())
-    conf.env.AppendUnique(CPPPATH = [inc_path])
-    conf.env.AppendUnique(LIBPATH = [lib_path])
-    if type(libs)==str: libs=[libs]
-    if len(libs)==0: libs=['']
-    # we can't check for each library by itself since they may depend on each
-    # other, so we add all libraries to the link line and check only for one
-    conf.env.AppendUnique(LIBS = libs)
-    if not conf.CheckLibWithHeader(libs[0], header, lang):
-        conf.Finish()
-        raise RuntimeError('Unable to link against %s (paths: %s, %s)'%(libs,inc_path,lib_path))
+    if try_link:
+        # now try the library
+        conf=Configure(env.Clone())
+        conf.env.AppendUnique(CPPPATH = [inc_path])
+        conf.env.AppendUnique(LIBPATH = [lib_path])
+        if type(libs)==str: libs=[libs]
+        if len(libs)==0: libs=['']
+        # we can't check for each library by itself since they may depend on
+        # each other, so we add all libraries to the link line and check only
+        # for one
+        conf.env.AppendUnique(LIBS = libs)
+        if not conf.CheckLibWithHeader(libs[0], header, lang):
+            conf.Finish()
+            raise RuntimeError('Unable to link against %s (paths: %s, %s)'%(libs,inc_path,lib_path))
 
-    conf.Finish()
+        conf.Finish()
     return inc_path, lib_path
 
 def detectModule(env, module):
