@@ -54,6 +54,55 @@ void checkFeatures(const boost::python::object& obj)
 	}
 }
 
+
+// This should not be called on anything which does
+// not have a __len__
+bool checkForComplex(const boost::python::object& obj)
+{
+    try
+    {
+	int len=extract<int>(obj.attr("__len__")());
+	for (int i=0;i<len;++i)
+	{
+	    const boost::python::object t=obj[i];
+	    bool haslen=false;
+	    try
+            {
+	        extract<int>(t.attr("__len__")());
+	        haslen=true;
+	    }
+	    catch(...)
+	    {
+		PyErr_Clear();
+	    }
+	    	// If it has a length, we dig down
+		// if not, we test for complex
+	    if (haslen)
+	    {
+                if (checkForComplex(t))
+		{
+		    return true;
+		}
+	    }
+	    else
+	    {
+		extract<DataTypes::real_t> er(t);
+		if (!er.check())
+		{
+		    return true;
+		}
+	    }
+	}
+	return false;
+    }
+    catch(...)
+    {
+        PyErr_Clear();
+	return false;
+    }
+    return false;
+}
+
 void getObjShape(const boost::python::object& obj, DataTypes::ShapeType& s)
 {
 	int len=0;
@@ -137,6 +186,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	checkFeatures(obj_in);
 	getObjShape(obj,shape);
 	rank=shape.size();
+	iscomplex=checkForComplex(obj_in);
 
 #if HAVE_NUMPY_H
 	// if obj is a numpy array it is much faster to copy the array through the
