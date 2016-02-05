@@ -1,0 +1,1000 @@
+<?xml version="1.0" ?>
+<ESys>
+        <Simulation id="100">
+                <Component rank="0">
+                        <Model id="101" module="esys.modellib.input" type="Sequencer">
+                                <Parameter type="float">
+                                        <Name>
+                                                t_end
+                                        </Name>
+                                        <Value>
+                                                0.8
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                dt_max
+                                        </Name>
+                                        <Value>
+                                                100.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="int">
+                                        <Name>
+                                                t
+                                        </Name>
+                                        <Value>
+                                                0
+                                        </Value>
+                                </Parameter>
+                        </Model>
+                </Component>
+                <Component rank="1">
+                        <Model id="102" module="esys.modellib.geometry" type="VectorConstrainerOverBox">
+                                <Parameter type="Link">
+                                        <Name>
+                                                domain
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                103
+                                                        </Target>
+                                                        <Attribute>
+                                                                domain
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="ndarray">
+                                        <Name>
+                                                right
+                                        </Name>
+                                        <Value>
+                                                <ndarray>
+                                                        <ArrayType>
+                                                                bool_
+                                                        </ArrayType>
+                                                        <Shape>
+                                                                3
+                                                        </Shape>
+                                                        <Data>
+                                                                True True True
+                                                        </Data>
+                                                </ndarray>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="ndarray">
+                                        <Name>
+                                                bottom
+                                        </Name>
+                                        <Value>
+                                                <ndarray>
+                                                        <ArrayType>
+                                                                bool_
+                                                        </ArrayType>
+                                                        <Shape>
+                                                                3
+                                                        </Shape>
+                                                        <Data>
+                                                                False False False
+                                                        </Data>
+                                                </ndarray>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="ndarray">
+                                        <Name>
+                                                top
+                                        </Name>
+                                        <Value>
+                                                <ndarray>
+                                                        <ArrayType>
+                                                                bool_
+                                                        </ArrayType>
+                                                        <Shape>
+                                                                3
+                                                        </Shape>
+                                                        <Data>
+                                                                False False False
+                                                        </Data>
+                                                </ndarray>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="ndarray">
+                                        <Name>
+                                                back
+                                        </Name>
+                                        <Value>
+                                                <ndarray>
+                                                        <ArrayType>
+                                                                bool_
+                                                        </ArrayType>
+                                                        <Shape>
+                                                                3
+                                                        </Shape>
+                                                        <Data>
+                                                                False False False
+                                                        </Data>
+                                                </ndarray>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                value
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                104
+                                                        </Target>
+                                                        <Attribute>
+                                                                out
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                tol
+                                        </Name>
+                                        <Value>
+                                                1e-08
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="ndarray">
+                                        <Name>
+                                                front
+                                        </Name>
+                                        <Value>
+                                                <ndarray>
+                                                        <ArrayType>
+                                                                bool_
+                                                        </ArrayType>
+                                                        <Shape>
+                                                                3
+                                                        </Shape>
+                                                        <Data>
+                                                                False False False
+                                                        </Data>
+                                                </ndarray>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="ndarray">
+                                        <Name>
+                                                left
+                                        </Name>
+                                        <Value>
+                                                <ndarray>
+                                                        <ArrayType>
+                                                                bool_
+                                                        </ArrayType>
+                                                        <Shape>
+                                                                3
+                                                        </Shape>
+                                                        <Data>
+                                                                True False False
+                                                        </Data>
+                                                </ndarray>
+                                        </Value>
+                                </Parameter>
+                        </Model>
+                </Component>
+                <Component rank="2">
+                        <Model id="105" module="esys.modellib.mechanics" type="DruckerPrager">
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                stress
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                hardening
+                                        </Name>
+                                        <Value>
+                                                0.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                internal_force
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                abs_tol
+                                        </Name>
+                                        <Value>
+                                                1e-15
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                shear_modulus
+                                        </Name>
+                                        <Value>
+                                                1.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                external_force
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="int">
+                                        <Name>
+                                                max_iter
+                                        </Name>
+                                        <Value>
+                                                10
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                expansion_coefficient
+                                        </Name>
+                                        <Value>
+                                                0.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                domain
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                103
+                                                        </Target>
+                                                        <Attribute>
+                                                                domain
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                bulk_modulus
+                                        </Name>
+                                        <Value>
+                                                1000.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                displacement
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                friction_parameter
+                                        </Name>
+                                        <Value>
+                                                0.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                dilatancy_parameter
+                                        </Name>
+                                        <Value>
+                                                0.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                rel_tol
+                                        </Name>
+                                        <Value>
+                                                0.01
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                shear_length
+                                        </Name>
+                                        <Value>
+                                                0.9
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                plastic_stress
+                                        </Name>
+                                        <Value>
+                                                0.0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                prescribed_velocity
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                102
+                                                        </Target>
+                                                        <Attribute>
+                                                                value_of_constraint
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                velocity
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                104
+                                                        </Target>
+                                                        <Attribute>
+                                                                out
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                location_prescribed_velocity
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                102
+                                                        </Target>
+                                                        <Attribute>
+                                                                location_of_constraint
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                temperature
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                        </Model>
+                </Component>
+                <Component rank="3">
+                        <Model id="106" module="esys.modellib.visualization" type="WriteVTK">
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data17
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="str">
+                                        <Name>
+                                                filename
+                                        </Name>
+                                        <Value>
+                                                ./temp.xml
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data9
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data8
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data5
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data4
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data7
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data6
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                data1
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                105
+                                                        </Target>
+                                                        <Attribute>
+                                                                velocity
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                data0
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                105
+                                                        </Target>
+                                                        <Attribute>
+                                                                plastic_stress
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data3
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                data2
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                105
+                                                        </Target>
+                                                        <Attribute>
+                                                                stress
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name10
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name11
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name12
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name13
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name14
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name15
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name16
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name17
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name18
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name19
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name6
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name7
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name4
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name5
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name2
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name3
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name0
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name1
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data15
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data14
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="float">
+                                        <Name>
+                                                dt
+                                        </Name>
+                                        <Value>
+                                                0.01
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data16
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data11
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data10
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name8
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data12
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data13
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="int">
+                                        <Name>
+                                                n
+                                        </Name>
+                                        <Value>
+                                                0
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                name9
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="Link">
+                                        <Name>
+                                                t
+                                        </Name>
+                                        <Value>
+                                                <Link>
+                                                        <Target>
+                                                                101
+                                                        </Target>
+                                                        <Attribute>
+                                                                t
+                                                        </Attribute>
+                                                </Link>
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data19
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                                <Parameter type="NoneType">
+                                        <Name>
+                                                data18
+                                        </Name>
+                                        <Value>
+                                                None
+                                        </Value>
+                                </Parameter>
+                        </Model>
+                </Component>
+        </Simulation>
+        <ParameterSet id="103" module="esys.modellib.geometry" type="RectangularDomain">
+                <Parameter type="int">
+                        <Name>
+                                dim
+                        </Name>
+                        <Value>
+                                3
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                l
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                0.5 1.0 1.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="int">
+                        <Name>
+                                integrationOrder
+                        </Name>
+                        <Value>
+                                -1
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                n
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                int_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                30 6 6
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                periodic
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                bool_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                False False False
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="int">
+                        <Name>
+                                order
+                        </Name>
+                        <Value>
+                                1
+                        </Value>
+                </Parameter>
+        </ParameterSet>
+        <ParameterSet id="104" module="esys.modellib.input" type="InterpolateOverBox">
+                <Parameter type="Link">
+                        <Name>
+                                domain
+                        </Name>
+                        <Value>
+                                <Link>
+                                        <Target>
+                                                103
+                                        </Target>
+                                        <Attribute>
+                                                domain
+                                        </Attribute>
+                                </Link>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_left_top_back
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                -1.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_right_top_front
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                0.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_left_bottom_front
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                -1.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_right_bottom_back
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                0.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_left_top_front
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                -1.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_right_top_back
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                0.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_right_bottom_front
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                0.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+                <Parameter type="ndarray">
+                        <Name>
+                                value_left_bottom_back
+                        </Name>
+                        <Value>
+                                <ndarray>
+                                        <ArrayType>
+                                                float_
+                                        </ArrayType>
+                                        <Shape>
+                                                3
+                                        </Shape>
+                                        <Data>
+                                                -1.0 0.0 0.0
+                                        </Data>
+                                </ndarray>
+                        </Value>
+                </Parameter>
+        </ParameterSet>
+</ESys>

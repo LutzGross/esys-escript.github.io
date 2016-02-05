@@ -1,0 +1,36 @@
+Description: Fixed some grammar errors.
+Author: Joel Fenwick <joelfenwick@uq.edu.au>
+Forwarded: yes
+Applied-Upstream: yes
+
+--- a/escriptcore/py_src/rheologies.py
++++ b/escriptcore/py_src/rheologies.py
+@@ -60,7 +60,7 @@ class PowerLaw(object):
+    
+          :param numMaterials: number of materials
+          :type numMaterials: ``int``
+-         :param verbose: if ``True`` some informations are printed.
++         :param verbose: if ``True`` some information is printed.
+          :type verbose: ``bool``
+          """
+          if numMaterials<1:
+@@ -623,7 +623,7 @@ class IncompressibleIsotropicFlowCartesi
+          :type t: ``float``
+          :param numMaterials: number of materials
+          :type numMaterials: ``int``
+-         :param verbose: if ``True`` some informations are printed.
++         :param verbose: if ``True`` some information is printed.
+          :type verbose: ``bool``         
+          """
+          PowerLaw. __init__(self, numMaterials,verbose=verbose)
+--- a/escriptcore/src/escriptcpp.cpp
++++ b/escriptcore/src/escriptcpp.cpp
+@@ -1017,7 +1017,7 @@ args("source", "q", "r","factor"),
+         "'residual_norm', 'converged'.\n"
+         ":param value: new value of the diagnostic information\n"
+         ":note: this function is used by a solver to report diagnostics\n"
+-        "informations.")
++        "information.")
+     .def("getDiagnostics", &escript::SolverBuddy::getDiagnostics, args("name"),"Returns the diagnostic information ``name``. Possible values are:\n\n"
+         "- 'num_iter': the number of iteration steps\n"
+         "- 'cum_num_iter': the cumulative number of iteration steps\n"
