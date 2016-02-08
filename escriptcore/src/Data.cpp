@@ -2684,18 +2684,29 @@ Data::powD(const Data& right) const
 Data
 escript::operator+(const Data& left, const Data& right)
 {
-    if (left.isComplex()!=right.isComplex())
-    {
-	throw DataException("Mixed complex and reals not permitted in this operation.");
-    }
     MAKELAZYBIN2(left,right,ADD);
-    if (!left.isComplex() && !right.isComplex())
+    
+    if (!left.isComplex())
     {
-        return C_TensorBinaryOperation(left, right, plus<DataTypes::real_t>());
+	if (!right.isComplex())	// both are real
+	{
+	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>());
+	}
+	else
+	{
+	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>());
+	}
     }
-    else
+    else	// left isComplex
     {
-        return C_TensorBinaryOperation(left, right, plus<DataTypes::cplx_t>());      
+	if (!right.isComplex())	
+	{
+	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>());
+	}
+	else
+	{
+	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>());
+	}
     }
 }
 

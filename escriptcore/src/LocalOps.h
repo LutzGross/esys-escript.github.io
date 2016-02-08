@@ -516,11 +516,11 @@ inline void tensor_unary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction, typename T>
+template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
 			     const T *arg1,
-			     const T *arg2,
-			     T * argRes,
+			     const U *arg2,
+			     V * argRes,
 			     BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
@@ -529,11 +529,11 @@ inline void tensor_binary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction, typename T>
+template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
 			     T arg1,
-			     const T *arg2,
-			     T *argRes,
+			     const U *arg2,
+			     V *argRes,
 			     BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
@@ -542,11 +542,11 @@ inline void tensor_binary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction, typename T>
+template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
 			     const T *arg1,
-			     T arg2,
-			     T *argRes,
+			     U arg2,
+			     V *argRes,
 			     BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
@@ -741,6 +741,16 @@ struct pow_func
     typedef T first_argument_type;
     typedef T second_argument_type;
     typedef T result_type;
+};
+
+// following the form of plus from <functional>
+template <typename T, typename U, typename V>
+struct plus_func
+{
+    V operator() (const T& x, const U& y) const {return x+y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
 };
 
 // using this instead of ::less because that returns bool and we need a result type of T
