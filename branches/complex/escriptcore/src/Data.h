@@ -2473,12 +2473,6 @@ C_TensorBinaryOperation(Data const &arg_0,
   int size0 = arg_0_Z.getDataPointSize();
   int size1 = arg_1_Z.getDataPointSize();
   
-  // We will require that the functions all take the same type
-  if ((typeid(typename BinaryFunction::first_argument_type)!=typeid(typename BinaryFunction::second_argument_type)) 
-       || (typeid(typename BinaryFunction::first_argument_type)!=typeid(typename BinaryFunction::result_type)))
-  {
-      throw DataException("Error - Functional used by C_TensorBinaryOperation must use consistent types.");
-  }
   
   
   // Declare output Data object
@@ -2493,8 +2487,8 @@ C_TensorBinaryOperation(Data const &arg_0,
 	  res.complicate();	// It would be much better to create the Data object as complex to start with
       }				// But that would require more work so let's just get this case working first
       const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy));
-      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
 
       tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
     }
