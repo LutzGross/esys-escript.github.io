@@ -110,7 +110,7 @@ visit_handle VisItData::getSimMetaData()
 
     // add all meshes
     int mpiSize=1;
-#ifdef HAVE_MPI
+#ifdef WEIPA_HAVE_MPI
     MPI_Comm comm = dataset->getMPIComm();
     MPI_Comm_size(comm, &mpiSize);
 #endif
@@ -132,7 +132,7 @@ visit_handle VisItData::getDomainList()
     visit_handle domainList = VISIT_INVALID_HANDLE;
     if (VisIt_DomainList_alloc(&domainList) == VISIT_OKAY) {
         int mpiRank=0, mpiSize=1;
-#ifdef HAVE_MPI
+#ifdef WEIPA_HAVE_MPI
         MPI_Comm comm = dataset->getMPIComm();
         MPI_Comm_rank(comm, &mpiRank);
         MPI_Comm_size(comm, &mpiSize);
