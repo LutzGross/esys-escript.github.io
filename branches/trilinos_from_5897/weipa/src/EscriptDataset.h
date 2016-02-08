@@ -65,7 +65,7 @@ public:
     /// \brief Default constructor.
     EscriptDataset();
 
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
     /// \brief Constructor with communicator.
     EscriptDataset(MPI_Comm comm);
 #endif
@@ -147,7 +147,7 @@ public:
     /// \brief Returns a vector with the mesh variables.
     const VarVector& getMeshVariables() const { return meshVariables; }
 
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
     MPI_Comm
 #else
     void*
@@ -178,7 +178,7 @@ private:
     DomainChunks domainChunks;
     VarVector variables, meshVariables;
     int mpiRank, mpiSize;
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
     MPI_Comm mpiComm;
 #else
     void* mpiComm;
