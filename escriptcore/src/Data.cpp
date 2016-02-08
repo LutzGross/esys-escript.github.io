@@ -117,6 +117,37 @@ using namespace std;
 
 #define CHECK_DO_CRES escriptParams.getRESOLVE_COLLECTIVE()
 
+
+
+#define BINOPTENSOR(L,T) \
+    if (!(L).isComplex()) \
+    { \
+	if (!right.isComplex())	/* both are real */ \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>()); \
+	} \
+	else \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
+	} \
+    } \
+    else	/* L isComplex */\
+    { \
+	if (!right.isComplex())	 \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>()); \
+	} \
+	else \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
+	} \
+    } 
+
+
+    
+    
+    
+
 namespace
 {
 
@@ -2654,28 +2685,22 @@ Data::matrixInverse() const
 Data
 Data::rpowO(const bp::object& left) const
 {
-    THROWONCOMPLEX
     Data left_d(left,*this);
-    THROWONCOMPLEXA(left_d)
     return left_d.powD(*this);
 }
 
 Data
 Data::powO(const bp::object& right) const
 {
-    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
     return powD(tmp);
 }
 
 Data
 Data::powD(const Data& right) const
 {
-    THROWONCOMPLEX
     MAKELAZYBIN(right,POW);
-    //return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
-    return C_TensorBinaryOperation(*this, right, pow_func<double>());
+    BINOPTENSOR(*this, pow_func);
 }
 
 
@@ -2685,29 +2710,7 @@ Data
 escript::operator+(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,ADD);
-    
-    if (!left.isComplex())
-    {
-	if (!right.isComplex())	// both are real
-	{
-	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>());
-	}
-	else
-	{
-	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>());
-	}
-    }
-    else	// left isComplex
-    {
-	if (!right.isComplex())	
-	{
-	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>());
-	}
-	else
-	{
-	    return C_TensorBinaryOperation(left, right, plus_func<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>());
-	}
-    }
+    BINOPTENSOR(left,plus_func)
 }
 
 //
@@ -2715,10 +2718,8 @@ escript::operator+(const Data& left, const Data& right)
 Data
 escript::operator-(const Data& left, const Data& right)
 {
-    THROWONCOMPLEXA(left)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,SUB);
-    return C_TensorBinaryOperation(left, right, minus<double>());
+    BINOPTENSOR(left,minus_func)
 }
 
 //
@@ -2726,10 +2727,8 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
-    THROWONCOMPLEXA(left)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,MUL);
-    return C_TensorBinaryOperation(left, right, multiplies<double>());
+    BINOPTENSOR(left,multiplies_func);
 }
 
 //
@@ -2737,10 +2736,8 @@ escript::operator*(const Data& left, const Data& right)
 Data
 escript::operator/(const Data& left, const Data& right)
 {
-    THROWONCOMPLEXA(left)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(left,right,DIV);
-    return C_TensorBinaryOperation(left, right, divides<double>());
+    BINOPTENSOR(left,divides_func);
 }
 
 //
@@ -2749,8 +2746,6 @@ Data
 escript::operator+(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(left)
     MAKELAZYBIN2(left,tmp,ADD);
     return left+tmp;
 }
@@ -2761,8 +2756,6 @@ Data
 escript::operator-(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(left)
     MAKELAZYBIN2(left,tmp,SUB);
     return left-tmp;
 }
@@ -2773,8 +2766,6 @@ Data
 escript::operator*(const Data& left, const boost::python::object& right)
 {
     Data tmp(right,left.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(left)
     MAKELAZYBIN2(left,tmp,MUL);
     return left*tmp;
 }
@@ -2784,9 +2775,7 @@ escript::operator*(const Data& left, const boost::python::object& right)
 Data
 escript::operator/(const Data& left, const boost::python::object& right)
 {
-    THROWONCOMPLEXA(left)
     Data tmp(right,left.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
     MAKELAZYBIN2(left,tmp,DIV);
     return left/tmp;
 }
@@ -2797,8 +2786,6 @@ Data
 escript::operator+(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,ADD);
     return tmp+right;
 }
@@ -2809,8 +2796,6 @@ Data
 escript::operator-(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,SUB);
     return tmp-right;
 }
@@ -2821,8 +2806,6 @@ Data
 escript::operator*(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,MUL);
     return tmp*right;
 }
@@ -2833,8 +2816,6 @@ Data
 escript::operator/(const boost::python::object& left, const Data& right)
 {
     Data tmp(left,right.getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
-    THROWONCOMPLEXA(right)
     MAKELAZYBIN2(tmp,right,DIV);
     return tmp/right;
 }

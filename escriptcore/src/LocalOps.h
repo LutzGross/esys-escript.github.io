@@ -18,6 +18,7 @@
 #if !defined escript_LocalOps_H
 #define escript_LocalOps_H
 #include <cmath>
+#include <complex>
 #include "UnaryFuncs.h"
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
@@ -734,13 +735,13 @@ struct sqrt_func
 };
     
 // following the form of plus from <functional>
-template <typename T>
+template <typename T, typename U, typename V>
 struct pow_func
 {
-    T operator() (const T& x, const T& y) const {return ::pow(x,y);}
+    V operator() (const T& x, const U& y) const {return pow(static_cast<V>(x),static_cast<V>(y));}
     typedef T first_argument_type;
-    typedef T second_argument_type;
-    typedef T result_type;
+    typedef U second_argument_type;
+    typedef V result_type;
 };
 
 // following the form of plus from <functional>
@@ -752,6 +753,34 @@ struct plus_func
     typedef U second_argument_type;
     typedef V result_type;
 };
+
+template <typename T, typename U, typename V>
+struct minus_func
+{
+    V operator() (const T& x, const U& y) const {return x-y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+template <typename T, typename U, typename V>
+struct multiplies_func
+{
+    V operator() (const T& x, const U& y) const {return x*y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+template <typename T, typename U, typename V>
+struct divides_func
+{
+    V operator() (const T& x, const U& y) const {return x/y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
 
 // using this instead of ::less because that returns bool and we need a result type of T
 template <typename T>
