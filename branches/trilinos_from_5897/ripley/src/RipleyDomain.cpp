@@ -24,6 +24,9 @@
 #ifdef USE_CUDA
 #include <ripley/RipleySystemMatrix.h>
 #endif
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#endif
 
 #include <iomanip>
 
@@ -31,6 +34,11 @@ namespace bp = boost::python;
 
 using namespace std;
 using paso::TransportProblemAdapter;
+
+#ifdef USE_TRILINOS
+using esys_trilinos::TrilinosMatrixAdapter;
+using esys_trilinos::const_TrilinosGraph_ptr;
+#endif
 
 namespace ripley {
 
@@ -827,6 +835,8 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         if (sb.isSymmetric())
             type |= (int)SMT_SYMMETRIC;
         return type;
+    } else if (package == escript::SO_PACKAGE_TRILINOS) {
+        return (int)SMT_TRILINOS;
     }
 
     // in all other cases we use PASO
@@ -884,7 +894,18 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
                     getDiagonalIndices(symmetric), symmetric));
         return sm;
 #else
-        throw RipleyException("newSystemMatrix: ripley was compiled without CUDA support so CUSP solvers & matrices are not available.");
+        throw RipleyException("newSystemMatrix: ripley was not compiled with "
+               "CUDA support so CUSP solvers & matrices are not available.");
+#endif
+    } else if (type & (int)SMT_TRILINOS) {
+#ifdef USE_TRILINOS
+        const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo, row_blocksize,
+                    row_functionspace, graph));
+        return sm;
+#else
+        throw RipleyException("newSystemMatrix: ripley was not compiled with "
+               "Trilinos support so the Trilinos solver stack cannot be used.");
 #endif
     } else if (type & (int)SMT_PASO) {
         paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
@@ -1188,18 +1209,23 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
     if (sma) {
         paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
         addToSystemMatrix(S, nodes, numEq, array);
-    } else {
-#ifdef USE_CUDA
-        SystemMatrix* sm = dynamic_cast<SystemMatrix*>(mat);
-        if (sm) {
-            sm->add(nodes, array);
-        } else {
-            throw RipleyException("addToSystemMatrix: unknown system matrix type");
-        }
-#else
-        throw RipleyException("addToSystemMatrix: unknown system matrix type");
-#endif
+        return;
     }
+#ifdef USE_CUDA
+    SystemMatrix* sm = dynamic_cast<SystemMatrix*>(mat);
+    if (sm) {
+        sm->add(nodes, array);
+        return;
+    }
+#endif
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->add(nodes, array);
+        return;
+    }
+#endif
+    throw RipleyException("addToSystemMatrix: unknown system matrix type");
 }
 
 //private
@@ -1375,7 +1401,12 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     if (numEq != numComp)
         throw RipleyException("assemblePDE: number of equations and number of solutions don't match");
 
-    //TODO: check shape and num samples of coeffs
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->resumeFill();
+    }
+#endif
 
     if (numEq==1) {
         if (fs==ReducedElements) {
@@ -1390,6 +1421,12 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
             assembler->assemblePDESystem(mat, rhs, coefs);
         }
     }
+
+#ifdef USE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
 //private
@@ -1433,7 +1470,12 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
     if (numEq != numComp)
         throw RipleyException("assemblePDEBoundary: number of equations and number of solutions don't match");
 
-    //TODO: check shape and num samples of coeffs
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->resumeFill();
+    }
+#endif
 
     if (numEq==1) {
         if (fs==ReducedFaceElements)
@@ -1446,6 +1488,12 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
         else
             assembler->assemblePDEBoundarySystem(mat, rhs, coefs);
     }
+
+#ifdef USE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
 void RipleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,

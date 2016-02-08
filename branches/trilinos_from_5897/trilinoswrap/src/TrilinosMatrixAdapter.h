@@ -20,6 +20,7 @@
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/FunctionSpace.h>
 
+#include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_CrsMatrix.hpp>
 
 namespace escript {
@@ -28,26 +29,43 @@ class SolverBuddy;
 
 namespace esys_trilinos {
 
+/// Scalar Type
+typedef double  ST;
+/// Global Ordinal Type
+typedef index_t GO;
+/// Local Ordinal Type
+typedef index_t LO;
+
+typedef std::vector<GO> IndexVector;
+typedef Tpetra::CrsGraph<LO,GO> GraphType;
+typedef Tpetra::CrsMatrix<ST,LO,GO> MatrixType;
+typedef MatrixType::map_type MapType;
+typedef Tpetra::MultiVector<ST,LO,GO> VectorType;
+typedef Tpetra::Import<LO,GO> ImportType;
+
+typedef Teuchos::RCP<MapType> TrilinosMap_ptr;
+typedef Teuchos::RCP<const MapType> const_TrilinosMap_ptr;
+
+typedef Teuchos::RCP<GraphType> TrilinosGraph_ptr;
+typedef Teuchos::RCP<const GraphType> const_TrilinosGraph_ptr;
+
+inline
+Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
+{
+    return Teuchos::rcp(new Teuchos::MpiComm<int>(comm));
+}
+
 class TrilinosMatrixAdapter : public escript::AbstractSystemMatrix
 {
-    typedef std::vector<index_t> IndexVector;
-    /// Scalar Type
-    typedef double  ST;
-    /// Global Ordinal Type
-    typedef index_t GO;
-    /// Local Ordinal Type
-    typedef index_t LO;
-    typedef Tpetra::CrsMatrix<ST,LO,GO> MatrixType;
-    typedef MatrixType::map_type MapType;
-    typedef Tpetra::MultiVector<ST,LO,GO> VectorType;
-    typedef Tpetra::Import<LO,GO> ImportType;
-
 public:
+    /**
+       \brief
+       Creates a new Trilinos CRS matrix adapter using a compatible
+       fill-complete Trilinos matrix graph.
+    */
     TrilinosMatrixAdapter(esysUtils::JMPI mpiInfo, int blocksize,
-                          const escript::FunctionSpace& fs, dim_t nRows,
-                          const IndexVector& myRows,
-                          const std::vector<IndexVector>& connections,
-                          dim_t maxColumns);
+                          const escript::FunctionSpace& fs,
+                          const_TrilinosGraph_ptr graph);
 
     virtual ~TrilinosMatrixAdapter() {}
 
@@ -58,6 +76,12 @@ public:
     virtual void saveMM(const std::string& filename) const;
     virtual void saveHB(const std::string& filename) const;
     virtual void resetValues();
+
+    /// notifies the matrix that changes are about to happen.
+    void resumeFill() { mat->resumeFill(); }
+
+    /// notifies the matrix that a set of changes has occured.
+    void fillComplete(bool localOnly = true);
 
     void add(const IndexVector& rowIndex, const std::vector<double>& array);
 

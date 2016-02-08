@@ -82,6 +82,9 @@ if local_env['cuda']:
     local_env.Append(CPPDEFINES = ['CUSP_USE_TEXTURE_MEMORY'])
     local_env.Append(LIBS = ['cudart'])
 
+if local_env['trilinos']:
+    local_env.AppendUnique(LIBS = ['trilinoswrap'])
+
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])
 
