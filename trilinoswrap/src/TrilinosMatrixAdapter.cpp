@@ -26,7 +26,6 @@
 #include <BelosTpetraAdapter.hpp>
 #include <Kokkos_DefaultNode.hpp>
 #include <MatrixMarket_Tpetra.hpp>
-#include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_DefaultPlatform.hpp>
 #include <Tpetra_Vector.hpp>
 
@@ -34,28 +33,26 @@ namespace bp = boost::python;
 using Teuchos::RCP;
 using Teuchos::rcp;
 using Teuchos::rcpFromRef;
-using Tpetra::CrsGraph;
 
 namespace esys_trilinos {
 
 TrilinosMatrixAdapter::TrilinosMatrixAdapter(esysUtils::JMPI mpiInfo,
-        int blocksize, const escript::FunctionSpace& fs, dim_t nRows,
-        const IndexVector& myRows, const std::vector<IndexVector>& connections,
-        dim_t maxColumns) :
+        int blocksize, const escript::FunctionSpace& fs,
+        const_TrilinosGraph_ptr graph) :
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),
     m_mpiInfo(mpiInfo)
 {
-    typedef Tpetra::DefaultPlatform::DefaultPlatformType Platform;
-    typedef MatrixType::node_type NT;
+    //typedef Tpetra::DefaultPlatform::DefaultPlatformType Platform;
+    //Platform &platform = Tpetra::DefaultPlatform::getDefaultPlatform();
+    //typedef MatrixType::node_type NT;
+    //RCP<NT> node = platform.getNode();
 
+    /*
     RCP<const Teuchos::Comm<int> > comm(new Teuchos::MpiComm<int>(mpiInfo->comm));
-    Platform &platform = Tpetra::DefaultPlatform::getDefaultPlatform();
-    RCP<NT> node = platform.getNode();
-
     const Tpetra::global_size_t numGblIndices = nRows*blocksize;
-    RCP<const MapType> rowMap(new MapType(numGblIndices, myRows, (GO)0, comm, node));
+    RCP<const MapType> rowMap(new MapType(numGblIndices, myRows, (GO)0, comm));
 
-    RCP<CrsGraph<LO,GO,NT> > graph = rcp(new CrsGraph<LO,GO,NT>(rowMap, maxColumns));
+    TrilinosGraph_ptr graph = rcp(new GraphType(rowMap, maxColumns));
     for (size_t i=0; i<myRows.size(); i++) {
         graph->insertGlobalIndices(myRows[i], connections[i]);
     }
@@ -63,14 +60,21 @@ TrilinosMatrixAdapter::TrilinosMatrixAdapter(esysUtils::JMPI mpiInfo,
     RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("Optimize Storage", true);
     graph->fillComplete(rowMap, rowMap, params);
+*/
     mat = rcp(new MatrixType(graph));
     importer = rcp(new ImportType(mat->getRowMap(), mat->getColMap()));
+}
+
+void TrilinosMatrixAdapter::fillComplete(bool localOnly)
+{
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("No Nonlocal Changes", localOnly);
+    mat->fillComplete(mat->getDomainMap(), mat->getRangeMap(), params);
 }
 
 void TrilinosMatrixAdapter::add(const IndexVector& rowIdx,
                                 const std::vector<double>& array)
 {
-    mat->resumeFill();
     const int blockSize = getBlockSize();
     const size_t emSize = rowIdx.size();
     RCP<const MapType> rowMap(mat->getRowMap());
@@ -102,9 +106,6 @@ void TrilinosMatrixAdapter::add(const IndexVector& rowIdx,
             }
         }
     }
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("No Nonlocal Changes", true);
-    mat->fillComplete(mat->getDomainMap(), mat->getRangeMap(), params);
 }
 
 void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
@@ -253,12 +254,12 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
             const LO lclcol = indices[c];
             const GO col = mat->getColMap()->getGlobalElement(lclcol);
             if (rowMask[lclrow] > 0. || colMask[lclcol] > 0.) {
-                cols.push_back(col);
+                cols.push_back(lclcol);
                 vals.push_back(row==col ? (ST)mdv : (ST)0);
             }
         }
         if (cols.size() > 0)
-            mat->replaceGlobalValues(row, cols, vals);
+            mat->replaceLocalValues(lclrow, cols, vals);
     }
     mat->fillComplete(mat->getDomainMap(), mat->getRangeMap());
 }

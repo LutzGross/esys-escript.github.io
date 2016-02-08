@@ -31,6 +31,11 @@
 
 #include <paso/SystemMatrix.h>
 
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#endif
+
+
 namespace ripley {
 
 enum assembler_t {
@@ -40,9 +45,10 @@ enum assembler_t {
 };
 
 enum SystemMatrixType {
-    SMT_PASO = 1024,
-    SMT_CUSP = 2048,
-    SMT_SYMMETRIC = 4096
+    SMT_PASO = 1<<8,
+    SMT_CUSP = 1<<9,
+    SMT_TRILINOS = 1<<10,
+    SMT_SYMMETRIC = 1<<15
 };
 
 /**
@@ -787,6 +793,11 @@ protected:
 
     /// copies the integrals of the function defined by 'arg' into 'integrals'
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
+
+#ifdef USE_TRILINOS
+    /// returns the Trilinos matrix graph
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
+#endif
 
     /// returns the Paso system matrix pattern
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(

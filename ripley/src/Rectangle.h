@@ -233,6 +233,13 @@ protected:
                                   const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
+
+#ifdef USE_TRILINOS
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+
+    void createTrilinosGraph() const;
+#endif
+
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                              bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
@@ -321,6 +328,11 @@ protected:
 
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
+
+#ifdef USE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
+#endif
 };
 
 ////////////////////////////// inline methods ////////////////////////////////

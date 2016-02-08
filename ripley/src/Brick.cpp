@@ -2275,6 +2275,14 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
+#ifdef USE_TRILINOS
+//protected
+esys_trilinos::const_TrilinosGraph_ptr Brick::getTrilinosGraph() const
+{
+    throw RipleyException("Brick::getTrilinosGraph: NOT IMPLEMENTED");
+}
+#endif
+
 //protected
 paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
                                                     bool reducedRowOrder,

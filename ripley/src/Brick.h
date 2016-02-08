@@ -220,6 +220,10 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
+#ifdef USE_TRILINOS
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+#endif
+
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                              bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,

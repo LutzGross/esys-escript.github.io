@@ -1585,6 +1585,17 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
+#ifdef USE_TRILINOS
+//protected
+esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
+{
+    if (m_graph.is_null()) {
+        createTrilinosGraph();
+    }
+    return m_graph;
+}
+#endif
+
 //protected
 paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
@@ -1798,6 +1809,52 @@ void Rectangle::populateSampleIds()
     populateDofMap();
 }
 
+#ifdef USE_TRILINOS
+//private
+void Rectangle::createTrilinosGraph() const
+{
+    using namespace esys_trilinos;
+
+    //WARNING: this does not take into account matrix block size!
+    // returns a vector v of size numNodes where v[i] is a vector with indices
+    // of nodes connected to i (up to 9 in 2D)
+    const index_t left = getFirstInDim(0);
+    const index_t bottom = getFirstInDim(1);
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t numMatrixRows = getNumDOF();
+
+    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), m_dofId,
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+
+    TrilinosGraph_ptr graph(new GraphType(rowMap, 9));
+
+#pragma omp parallel for
+    for (index_t i=0; i < numMatrixRows; i++) {
+        const index_t x = left + i % nDOF0;
+        const index_t y = bottom + i / nDOF0;
+        // loop through potential neighbours and add to index if positions are
+        // within bounds
+        IndexVector connections;
+        for (dim_t i1=y-1; i1<y+2; i1++) {
+            for (dim_t i0=x-1; i0<x+2; i0++) {
+                if (i0>=0 && i1>=0 && i0<NN0 && i1<NN1) {
+                    connections.push_back(m_nodeId[i1*NN0 + i0]);
+                }
+            }
+        }
+#pragma omp critical
+        graph->insertGlobalIndices(m_dofId[i], connections);
+    }
+
+    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("Optimize Storage", true);
+    graph->fillComplete(rowMap, rowMap, params);
+    m_graph = graph;
+}
+#endif
+
 //private
 vector<IndexVector> Rectangle::getConnections() const
 {
@@ -1999,6 +2056,14 @@ void Rectangle::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
         }
     }
     if (addS) {
+#ifdef USE_TRILINOS
+        if (dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(S)) {
+            rowIndex[0] = m_nodeId[firstNode];
+            rowIndex[1] = m_nodeId[firstNode+1];
+            rowIndex[2] = m_nodeId[firstNode+m_NN[0]];
+            rowIndex[3] = m_nodeId[firstNode+m_NN[0]+1];
+        }
+#endif
         addToSystemMatrix(S, rowIndex, nEq, EM_S);
     }
 }
