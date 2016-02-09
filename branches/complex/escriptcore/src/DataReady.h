@@ -76,6 +76,29 @@ public:
   getVectorROC() const=0;
   
   /**
+     \brief These versions use the type system rather than method name to determine return type
+  */
+  ESCRIPT_DLL_API
+  virtual DataTypes::FloatVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy)=0;  
+  
+  ESCRIPT_DLL_API
+  virtual const DataTypes::FloatVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const=0;
+
+  ESCRIPT_DLL_API
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy)=0;
+  
+  ESCRIPT_DLL_API
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const=0;  
+  
+
+  
+  
+  
+  /**
   \brief return true if data contains NaN.
   \warning This is dependent on the ability to reliably detect NaNs on your compiler.
    See the nancheck function in LocalOps for details.

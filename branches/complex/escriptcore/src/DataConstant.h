@@ -321,6 +321,27 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   const DataTypes::CplxVectorType&
   getVectorROC() const;  
+
+
+
+  ESCRIPT_DLL_API
+  virtual DataTypes::FloatVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy);  
+  
+  ESCRIPT_DLL_API
+  virtual const DataTypes::FloatVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const;
+
+  ESCRIPT_DLL_API
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy);
+  
+  ESCRIPT_DLL_API
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const;  
+
+
+
   
   /**
    * \brief Convert from real data to complex data.

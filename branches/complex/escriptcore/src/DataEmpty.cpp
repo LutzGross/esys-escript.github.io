@@ -135,6 +135,37 @@ DataEmpty::getVectorROC() const
 }
 
 
+DataTypes::FloatVectorType&
+DataEmpty::getTypedVectorRW(DataTypes::real_t dummypar)
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
+}
+
+const DataTypes::FloatVectorType&
+DataEmpty::getTypedVectorRO(DataTypes::real_t dummypar) const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
+}
+
+
+DataTypes::CplxVectorType&
+DataEmpty::getTypedVectorRW(DataTypes::cplx_t dummypar)
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
+const DataTypes::CplxVectorType&
+DataEmpty::getTypedVectorRO(DataTypes::cplx_t dummypar) const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
+
+
 void
 DataEmpty::dump(const std::string fileName) const
 {

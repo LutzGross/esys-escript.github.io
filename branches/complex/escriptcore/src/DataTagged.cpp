@@ -919,6 +919,34 @@ DataTagged::getVectorROC() const
 	return m_data_c;
 }
 
+DataTypes::FloatVectorType&
+DataTagged::getTypedVectorRW(DataTypes::real_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_r;
+}
+
+const DataTypes::FloatVectorType&
+DataTagged::getTypedVectorRO(DataTypes::real_t dummy) const
+{
+  return m_data_r;
+}
+
+DataTypes::CplxVectorType&
+DataTagged::getTypedVectorRW(DataTypes::cplx_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_c;
+}
+
+const DataTypes::CplxVectorType&
+DataTagged::getTypedVectorRO(DataTypes::cplx_t dummy) const
+{
+  return m_data_c;
+}
+
+
+
 size_t
 DataTagged::getTagCount() const
 {
