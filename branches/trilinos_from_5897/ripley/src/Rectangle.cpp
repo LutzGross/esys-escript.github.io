@@ -1818,36 +1818,35 @@ void Rectangle::createTrilinosGraph() const
     //WARNING: this does not take into account matrix block size!
     // returns a vector v of size numNodes where v[i] is a vector with indices
     // of nodes connected to i (up to 9 in 2D)
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
-    const dim_t NN0 = m_NN[0];
-    const dim_t NN1 = m_NN[1];
-    const dim_t nDOF0 = getNumDOFInAxis(0);
     const dim_t numMatrixRows = getNumDOF();
 
     TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), m_dofId,
                 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
-    TrilinosGraph_ptr graph(new GraphType(rowMap, 9));
+    IndexVector columns(m_dofMap.size());
+    // order is important - our columns (=m_dofId) come first, followed by
+    // shared ones (=m_nodeId for non-DOF)
+#pragma omp parallel for
+    for (size_t i=0; i<columns.size(); i++) {
+        columns[m_dofMap[i]] = m_nodeId[i];
+    }
+    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), columns,
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+
+    const vector<IndexVector>& conns(getConnections(true));
+    Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
+    for (size_t i=0; i < numMatrixRows; i++) {
+        rowPtr[i+1] = rowPtr[i] + conns[i].size();
+    }
+
+    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
 
 #pragma omp parallel for
     for (index_t i=0; i < numMatrixRows; i++) {
-        const index_t x = left + i % nDOF0;
-        const index_t y = bottom + i / nDOF0;
-        // loop through potential neighbours and add to index if positions are
-        // within bounds
-        IndexVector connections;
-        for (dim_t i1=y-1; i1<y+2; i1++) {
-            for (dim_t i0=x-1; i0<x+2; i0++) {
-                if (i0>=0 && i1>=0 && i0<NN0 && i1<NN1) {
-                    connections.push_back(m_nodeId[i1*NN0 + i0]);
-                }
-            }
-        }
-#pragma omp critical
-        graph->insertGlobalIndices(m_dofId[i], connections);
+        copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("Optimize Storage", true);
     graph->fillComplete(rowMap, rowMap, params);
@@ -1856,25 +1855,47 @@ void Rectangle::createTrilinosGraph() const
 #endif
 
 //private
-vector<IndexVector> Rectangle::getConnections() const
+vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices
     // of DOFs connected to i (up to 9 in 2D)
     const dim_t nDOF0 = getNumDOFInAxis(0);
     const dim_t nDOF1 = getNumDOFInAxis(1);
-    const dim_t M = nDOF0*nDOF1;
-    vector<IndexVector> indices(M);
+    const dim_t numMatrixRows = nDOF0*nDOF1;
+    vector<IndexVector> indices(numMatrixRows);
 
+    if (includeShared) {
+        const index_t left = getFirstInDim(0);
+        const index_t bottom = getFirstInDim(1);
+        const dim_t NN0 = m_NN[0];
+        const dim_t NN1 = m_NN[1];
 #pragma omp parallel for
-    for (index_t i=0; i < M; i++) {
-        const index_t x = i % nDOF0;
-        const index_t y = i / nDOF0;
-        // loop through potential neighbours and add to index if positions are
-        // within bounds
-        for (dim_t i1=y-1; i1<y+2; i1++) {
-            for (dim_t i0=x-1; i0<x+2; i0++) {
-                if (i0>=0 && i1>=0 && i0<nDOF0 && i1<nDOF1) {
-                    indices[i].push_back(i1*nDOF0 + i0);
+        for (index_t i=0; i < numMatrixRows; i++) {
+            const index_t x = left + i % nDOF0;
+            const index_t y = bottom + i / nDOF0;
+            // loop through potential neighbours and add to index if positions
+            // are within bounds
+            for (dim_t i1=y-1; i1<y+2; i1++) {
+                for (dim_t i0=x-1; i0<x+2; i0++) {
+                    if (i0>=0 && i1>=0 && i0<NN0 && i1<NN1) {
+                        indices[i].push_back(m_dofMap[i1*NN0 + i0]);
+                    }
+                }
+            }
+            sort(indices[i].begin(), indices[i].end());
+        }
+    } else {
+#pragma omp parallel for
+        for (index_t i=0; i < numMatrixRows; i++) {
+            const index_t x = i % nDOF0;
+            const index_t y = i / nDOF0;
+            // loop through potential neighbours and add to index if positions
+            // are within bounds
+            for (dim_t i1=y-1; i1<y+2; i1++) {
+                for (dim_t i0=x-1; i0<x+2; i0++) {
+                    if (i0>=0 && i1>=0 && i0<nDOF0 && i1<nDOF1) {
+                        indices[i].push_back(i1*nDOF0 + i0);
+                    }
                 }
             }
         }
@@ -2056,14 +2077,6 @@ void Rectangle::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
         }
     }
     if (addS) {
-#ifdef USE_TRILINOS
-        if (dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(S)) {
-            rowIndex[0] = m_nodeId[firstNode];
-            rowIndex[1] = m_nodeId[firstNode+1];
-            rowIndex[2] = m_nodeId[firstNode+m_NN[0]];
-            rowIndex[3] = m_nodeId[firstNode+m_NN[0]+1];
-        }
-#endif
         addToSystemMatrix(S, rowIndex, nEq, EM_S);
     }
 }

@@ -42,25 +42,6 @@ TrilinosMatrixAdapter::TrilinosMatrixAdapter(esysUtils::JMPI mpiInfo,
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),
     m_mpiInfo(mpiInfo)
 {
-    //typedef Tpetra::DefaultPlatform::DefaultPlatformType Platform;
-    //Platform &platform = Tpetra::DefaultPlatform::getDefaultPlatform();
-    //typedef MatrixType::node_type NT;
-    //RCP<NT> node = platform.getNode();
-
-    /*
-    RCP<const Teuchos::Comm<int> > comm(new Teuchos::MpiComm<int>(mpiInfo->comm));
-    const Tpetra::global_size_t numGblIndices = nRows*blocksize;
-    RCP<const MapType> rowMap(new MapType(numGblIndices, myRows, (GO)0, comm));
-
-    TrilinosGraph_ptr graph = rcp(new GraphType(rowMap, maxColumns));
-    for (size_t i=0; i<myRows.size(); i++) {
-        graph->insertGlobalIndices(myRows[i], connections[i]);
-    }
-
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("Optimize Storage", true);
-    graph->fillComplete(rowMap, rowMap, params);
-*/
     mat = rcp(new MatrixType(graph));
     importer = rcp(new ImportType(mat->getRowMap(), mat->getColMap()));
 }
@@ -78,22 +59,19 @@ void TrilinosMatrixAdapter::add(const IndexVector& rowIdx,
     const int blockSize = getBlockSize();
     const size_t emSize = rowIdx.size();
     RCP<const MapType> rowMap(mat->getRowMap());
-    RCP<const MapType> colMap(mat->getColMap());
-    const GO myFirst =rowMap->getMinGlobalIndex();
-    const GO myLast = rowMap->getMaxGlobalIndex();
-    std::vector<GO> cols(emSize*blockSize);
+    const LO myLast = rowMap->getMaxLocalIndex();
+    std::vector<LO> cols(emSize*blockSize);
     std::vector<ST> vals(emSize*blockSize);
     for (size_t i=0; i<emSize; i++) {
         for (int k=0; k<blockSize; k++) {
-            const GO row = rowIdx[i]*blockSize + k;
-            if (row >= myFirst && row <= myLast) {
+            const LO row = rowIdx[i]*blockSize + k;
+            if (row <= myLast) {
                 cols.clear();
                 vals.clear();
                 for (int j=0; j<emSize; j++) {
                     for (int m=0; m<blockSize; m++) {
-                        const GO col = rowIdx[j]*blockSize + m;
-                        const LO lclcol = colMap->getLocalElement(col);
-                        cols.push_back(lclcol);
+                        const LO col = rowIdx[j]*blockSize + m;
+                        cols.push_back(col);
                         const index_t srcIdx =
                             INDEX4(k, m, i, j, blockSize, blockSize, emSize);
                         vals.push_back(array[srcIdx]);
@@ -101,8 +79,7 @@ void TrilinosMatrixAdapter::add(const IndexVector& rowIdx,
                         //    <<"]+="<<array[srcIdx]<<std::endl;
                     }
                 }
-                LO lclrow = rowMap->getLocalElement(row);
-                mat->sumIntoLocalValues(lclrow, cols, vals);
+                mat->sumIntoLocalValues(row, cols, vals);
             }
         }
     }
@@ -242,7 +219,8 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
     Teuchos::ArrayRCP<const ST> colMask(gblCol->getData(0));
 
     mat->resumeFill();
-#pragma omp parallel for
+// OpenMP here will interact with OpenMP in Trilinos
+//#pragma omp parallel for
     for (LO lclrow=0; lclrow < mat->getNodeNumRows(); lclrow++) {
         Teuchos::ArrayView<const LO> indices;
         Teuchos::ArrayView<const ST> values;
