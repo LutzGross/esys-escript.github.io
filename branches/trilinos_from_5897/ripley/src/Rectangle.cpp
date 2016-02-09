@@ -1590,7 +1590,7 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
 esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
 {
     if (m_graph.is_null()) {
-        createTrilinosGraph();
+        m_graph = createTrilinosGraph(m_dofId, m_nodeId);
     }
     return m_graph;
 }
@@ -1809,56 +1809,15 @@ void Rectangle::populateSampleIds()
     populateDofMap();
 }
 
-#ifdef USE_TRILINOS
-//private
-void Rectangle::createTrilinosGraph() const
-{
-    using namespace esys_trilinos;
-
-    //WARNING: this does not take into account matrix block size!
-    // returns a vector v of size numNodes where v[i] is a vector with indices
-    // of nodes connected to i (up to 9 in 2D)
-    const dim_t numMatrixRows = getNumDOF();
-
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), m_dofId,
-                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-
-    IndexVector columns(m_dofMap.size());
-    // order is important - our columns (=m_dofId) come first, followed by
-    // shared ones (=m_nodeId for non-DOF)
-#pragma omp parallel for
-    for (size_t i=0; i<columns.size(); i++) {
-        columns[m_dofMap[i]] = m_nodeId[i];
-    }
-    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), columns,
-                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-
-    const vector<IndexVector>& conns(getConnections(true));
-    Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
-    for (size_t i=0; i < numMatrixRows; i++) {
-        rowPtr[i+1] = rowPtr[i] + conns[i].size();
-    }
-
-    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
-
-#pragma omp parallel for
-    for (index_t i=0; i < numMatrixRows; i++) {
-        copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
-    }
-
-    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
-    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("Optimize Storage", true);
-    graph->fillComplete(rowMap, rowMap, params);
-    m_graph = graph;
-}
-#endif
-
 //private
 vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices
-    // of DOFs connected to i (up to 9 in 2D)
+    // of DOFs connected to i (up to 9 in 2D).
+    // In other words this method returns the occupied (local) matrix columns
+    // for all (local) matrix rows.
+    // If includeShared==true then connections to non-owned DOFs are also
+    // returned (i.e. indices of the column couplings)
     const dim_t nDOF0 = getNumDOFInAxis(0);
     const dim_t nDOF1 = getNumDOFInAxis(1);
     const dim_t numMatrixRows = nDOF0*nDOF1;

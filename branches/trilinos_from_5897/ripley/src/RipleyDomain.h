@@ -761,6 +761,13 @@ protected:
     paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
                                         dim_t N) const;
 
+#ifdef USE_TRILINOS
+    /// creates and returns a Trilinos CRS graph suitable to build a sparse
+    /// matrix
+    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
+            const IndexVector& myRows, const IndexVector& myColumns) const;
+#endif
+
     void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                            const IndexVector& nodes, dim_t numEq,
                            const DoubleVector& array) const;
@@ -798,6 +805,9 @@ protected:
     /// returns the Trilinos matrix graph
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
 #endif
+
+    /// returns occupied matrix column indices for all matrix rows
+    virtual std::vector<IndexVector> getConnections(bool includeShared) const = 0;
 
     /// returns the Paso system matrix pattern
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
