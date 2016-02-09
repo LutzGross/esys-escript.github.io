@@ -178,6 +178,18 @@ typedef DataReady parent;
   virtual const DataTypes::CplxVectorType&
   getVectorROC() const;
   
+  virtual DataTypes::FloatVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy);  
+  
+  virtual const DataTypes::FloatVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const;
+
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy);
+  
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const;      
+  
   
  private:
 

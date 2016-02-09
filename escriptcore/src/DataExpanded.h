@@ -247,7 +247,17 @@ TODO Note that this constructor will also copy data to all points if it only con
   const DataTypes::CplxVectorType&
   getVectorROC() const;
   
+  virtual DataTypes::FloatVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy);  
   
+  virtual const DataTypes::FloatVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const;
+
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy);
+  
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const;    
 
   /**
      \brief

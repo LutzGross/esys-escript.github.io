@@ -448,8 +448,31 @@ DataConstant::getVectorROC() const
   return m_data_c;
 }
 
+DataTypes::FloatVectorType&
+DataConstant::getTypedVectorRW(DataTypes::real_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_r;
+}
 
+const DataTypes::FloatVectorType&
+DataConstant::getTypedVectorRO(DataTypes::real_t dummy) const
+{
+  return m_data_r;
+}
 
+DataTypes::CplxVectorType&
+DataConstant::getTypedVectorRW(DataTypes::cplx_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_c;
+}
+
+const DataTypes::CplxVectorType&
+DataConstant::getTypedVectorRO(DataTypes::cplx_t dummy) const
+{
+  return m_data_c;
+}
 
 void DataConstant::complicate()
 {
