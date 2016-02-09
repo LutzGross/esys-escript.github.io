@@ -253,7 +253,7 @@ protected:
 
     virtual void populateSampleIds();
     virtual void populateDofMap();
-    virtual std::vector<IndexVector> getConnections() const;
+    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
     virtual void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
