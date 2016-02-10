@@ -87,7 +87,7 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const DataTypes::FloatVectorType &data);
+               const DataTypes::RealVectorType &data);
 
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
@@ -162,13 +162,13 @@ typedef DataReady parent;
    */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -178,7 +178,7 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -305,12 +305,12 @@ typedef DataReady parent;
      Return a reference to the underlying DataVector.
   */
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType&
+  DataTypes::RealVectorType&
   getVectorRW();
 
 
   ESCRIPT_DLL_API
-  const DataTypes::FloatVectorType&
+  const DataTypes::RealVectorType&
   getVectorRO() const;
 
   ESCRIPT_DLL_API
@@ -325,11 +325,11 @@ typedef DataReady parent;
 
 
   ESCRIPT_DLL_API
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getTypedVectorRW(DataTypes::real_t dummy);  
   
   ESCRIPT_DLL_API
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getTypedVectorRO(DataTypes::real_t dummy) const;
 
   ESCRIPT_DLL_API
@@ -354,7 +354,7 @@ typedef DataReady parent;
  private:
   //
   // the actual data
-  DataTypes::FloatVectorType m_data_r;
+  DataTypes::RealVectorType m_data_r;
   DataTypes::CplxVectorType m_data_c;
 
 };

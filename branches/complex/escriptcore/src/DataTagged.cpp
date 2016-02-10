@@ -48,7 +48,7 @@ DataTagged::DataTagged()
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
                        const int tags[],
-                       const DataTypes::FloatVectorType& data)
+                       const DataTypes::RealVectorType& data)
   : parent(what,shape)
 {
   // alternative constructor
@@ -78,7 +78,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
                        const TagListType& tags,
-                       const DataTypes::FloatVectorType& data)
+                       const DataTypes::RealVectorType& data)
   : parent(what,shape)
 {
   // alternative constructor
@@ -141,7 +141,7 @@ DataTagged::DataTagged(const DataConstant& other)
 // Create a new object by copying tags
 DataTagged::DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
-	     const DataTypes::FloatVectorType& defaultvalue,
+	     const DataTypes::RealVectorType& defaultvalue,
              const DataTagged* tagsource)
  : parent(what,shape)
 {
@@ -206,12 +206,12 @@ DataTagged::DataTagged(const DataTagged& other,
 
   // copy the default value from other to this
   const DataTypes::ShapeType& otherShape=other.getShape();
-  const DataTypes::FloatVectorType& otherData=other.getVectorRO();
+  const DataTypes::RealVectorType& otherData=other.getVectorRO();
   DataTypes::copySlice(getVectorRW(),getShape(),getDefaultOffset(),otherData,otherShape,other.getDefaultOffset(), regionLoopRange);
 
   // loop through the tag values copying these
   DataMapType::const_iterator pos;
-  DataTypes::FloatVectorType::size_type tagOffset=getNoValues();
+  DataTypes::RealVectorType::size_type tagOffset=getNoValues();
   for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
     DataTypes::copySlice(m_data_r,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
     m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
@@ -248,7 +248,7 @@ DataTagged::setSlice(const DataAbstract* other,
                          "Error - Couldn't copy slice due to shape mismatch.",regionShape,other->getShape()));
   }
 
-  const DataTypes::FloatVectorType& otherData=otherTemp->getVectorRO();
+  const DataTypes::RealVectorType& otherData=otherTemp->getVectorRO();
   const DataTypes::ShapeType& otherShape=otherTemp->getShape();
   // copy slice from other default value to this default value
   DataTypes::copySliceFrom(m_data_r,getShape(),getDefaultOffset(),otherData,otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
@@ -329,7 +329,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
                             const FloatBatchType& values,
                             const ShapeType& vShape)
 {
-  DataTypes::FloatVectorType t(values.size(),0);
+  DataTypes::RealVectorType t(values.size(),0);
   for (size_t i=0;i<values.size();++i)
   {
 	t[i]=values[i];
@@ -506,60 +506,60 @@ DataTagged::toString() const
   return temp.str();
 }
 
-DataTypes::FloatVectorType::size_type 
+DataTypes::RealVectorType::size_type 
 DataTagged::getPointOffset(int sampleNo,
                            int dataPointNo) const
 {
   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
   DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
-  DataTypes::FloatVectorType::size_type offset=m_defaultValueOffset;
+  DataTypes::RealVectorType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
   return offset;
 }
 
-DataTypes::FloatVectorType::size_type 
+DataTypes::RealVectorType::size_type 
 DataTagged::getPointOffset(int sampleNo,
                            int dataPointNo)
 {
   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
   DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
-  DataTypes::FloatVectorType::size_type offset=m_defaultValueOffset;
+  DataTypes::RealVectorType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
   return offset;
 }
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataTagged::getOffsetForTag(int tag) const
 {
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
-  DataTypes::FloatVectorType::size_type offset=m_defaultValueOffset;
+  DataTypes::RealVectorType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
   return offset;
 }
 
-DataTypes::FloatVectorType::const_reference
-DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy) const
+DataTypes::RealVectorType::const_reference
+DataTagged::getDataByTagRO(int tag, DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy) const
 {
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
-  DataTypes::FloatVectorType::size_type offset=m_defaultValueOffset;
+  DataTypes::RealVectorType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
   return m_data_r[offset+i];
 }
 
-DataTypes::FloatVectorType::reference
-DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
+DataTypes::RealVectorType::reference
+DataTagged::getDataByTagRW(int tag, DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy)
 {
   CHECK_FOR_EX_WRITE
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
-  DataTypes::FloatVectorType::size_type offset=m_defaultValueOffset;
+  DataTypes::RealVectorType::size_type offset=m_defaultValueOffset;
   if (pos!=m_offsetLookup.end()) {
     offset=pos->second;
   }
@@ -567,7 +567,7 @@ DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, Dat
 }
 
 DataTypes::CplxVectorType::const_reference
-DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy) const
+DataTagged::getDataByTagRO(int tag, DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy) const
 {
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
   DataTypes::CplxVectorType::size_type offset=m_defaultValueOffset;
@@ -578,7 +578,7 @@ DataTagged::getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, Dat
 }
 
 DataTypes::CplxVectorType::reference
-DataTagged::getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+DataTagged::getDataByTagRW(int tag, DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy)
 {
   CHECK_FOR_EX_WRITE
   DataMapType::const_iterator pos(m_offsetLookup.find(tag));
@@ -603,8 +603,8 @@ DataTagged::symmetric(DataAbstract* ev)
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::symmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
   }
   DataMaths::symmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
@@ -625,8 +625,8 @@ DataTagged::nonsymmetric(DataAbstract* ev)
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::nonsymmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
   }
   DataMaths::nonsymmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
@@ -647,8 +647,8 @@ DataTagged::trace(DataAbstract* ev, int axis_offset)
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::trace(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
   }
   DataMaths::trace(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
@@ -668,8 +668,8 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::transpose(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
   }
   DataMaths::transpose(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
@@ -689,8 +689,8 @@ DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::swapaxes(m_data_r,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
   }
   DataMaths::swapaxes(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis0,axis1);
@@ -712,8 +712,8 @@ DataTagged::eigenvalues(DataAbstract* ev)
       temp_ev->addTag(i->first);
 //       DataArrayView thisView=getDataPointByTag(i->first);
 //       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataMaths::eigenvalues(m_data_r,getShape(),offset,evVec, evShape, evoffset);
   }
   DataMaths::eigenvalues(m_data_r,getShape(),getDefaultOffset(),evVec, evShape, temp_ev->getDefaultOffset());
@@ -742,9 +742,9 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 /*      DataArrayView thisView=getDataPointByTag(i->first);
       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataArrayView VView=temp_V->getDataPointByTag(i->first);*/
-      DataTypes::FloatVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type Voffset=temp_V->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type Voffset=temp_V->getOffsetForTag(i->first);
 /*      DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,0,tol);*/
       DataMaths::eigenvalues_and_eigenvectors(m_data_r,getShape(),offset,evVec, evShape, evoffset,VVec,VShape,Voffset,tol);
 
@@ -777,8 +777,8 @@ DataTagged::matrixInverse(DataAbstract* out) const
   int err=0;
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp->addTag(i->first);
-      DataTypes::FloatVectorType::size_type inoffset=getOffsetForTag(i->first);
-      DataTypes::FloatVectorType::size_type outoffset=temp->getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type inoffset=getOffsetForTag(i->first);
+      DataTypes::RealVectorType::size_type outoffset=temp->getOffsetForTag(i->first);
 
       err=DataMaths::matrix_inverse(m_data_r, getShape(), inoffset, outVec, outShape, outoffset, 1, h);
       if (!err) break;
@@ -793,7 +793,7 @@ DataTagged::matrixInverse(DataAbstract* out) const
 void
 DataTagged::setToZero(){
     CHECK_FOR_EX_WRITE
-    DataTypes::FloatVectorType::size_type n=m_data_r.size();
+    DataTypes::RealVectorType::size_type n=m_data_r.size();
     for (int i=0; i<n ;++i) m_data_r[i]=0.;
 }
 
@@ -893,14 +893,14 @@ DataTagged::dump(const std::string fileName) const
    #endif
 }
 
-DataTypes::FloatVectorType&
+DataTypes::RealVectorType&
 DataTagged::getVectorRW()
 {
     CHECK_FOR_EX_WRITE
     return m_data_r;
 }
 
-const DataTypes::FloatVectorType&
+const DataTypes::RealVectorType&
 DataTagged::getVectorRO() const
 {
 	return m_data_r;
@@ -919,14 +919,14 @@ DataTagged::getVectorROC() const
 	return m_data_c;
 }
 
-DataTypes::FloatVectorType&
+DataTypes::RealVectorType&
 DataTagged::getTypedVectorRW(DataTypes::real_t dummy)
 {
   CHECK_FOR_EX_WRITE
   return m_data_r;
 }
 
-const DataTypes::FloatVectorType&
+const DataTypes::RealVectorType&
 DataTagged::getTypedVectorRO(DataTypes::real_t dummy) const
 {
   return m_data_r;

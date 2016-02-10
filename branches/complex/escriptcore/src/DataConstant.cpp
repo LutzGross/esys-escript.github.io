@@ -103,7 +103,7 @@ throw DataException("Complex not supported for this op");
 
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const DataTypes::FloatVectorType &data)
+                           const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
   //
@@ -171,7 +171,7 @@ DataConstant::deepCopy() const
 }
 
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo) const
 {
@@ -185,7 +185,7 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo)
 {
@@ -201,7 +201,7 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataConstant::getLength() const
 {
   return m_data_r.size();
@@ -338,7 +338,7 @@ void
 DataConstant::setToZero()
 {
     CHECK_FOR_EX_WRITE
-    DataTypes::FloatVectorType::size_type n=m_data_r.size();
+    DataTypes::RealVectorType::size_type n=m_data_r.size();
     for (int i=0; i<n ;++i) m_data_r[i]=0.;
 }
 
@@ -422,14 +422,14 @@ DataConstant::dump(const std::string fileName) const
 
 // These used to be marked as inline in DataConstant.
 // But they are marked virtual in DataReady
-DataTypes::FloatVectorType&
+DataTypes::RealVectorType&
 DataConstant::getVectorRW()
 {
   CHECK_FOR_EX_WRITE
   return m_data_r;
 }
 
-const DataTypes::FloatVectorType&
+const DataTypes::RealVectorType&
 DataConstant::getVectorRO() const
 {
   return m_data_r;
@@ -448,14 +448,14 @@ DataConstant::getVectorROC() const
   return m_data_c;
 }
 
-DataTypes::FloatVectorType&
+DataTypes::RealVectorType&
 DataConstant::getTypedVectorRW(DataTypes::real_t dummy)
 {
   CHECK_FOR_EX_WRITE
   return m_data_r;
 }
 
-const DataTypes::FloatVectorType&
+const DataTypes::RealVectorType&
 DataConstant::getTypedVectorRO(DataTypes::real_t dummy) const
 {
   return m_data_r;

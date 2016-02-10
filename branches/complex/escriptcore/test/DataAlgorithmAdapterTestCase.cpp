@@ -38,7 +38,7 @@ using namespace escript::DataTypes;
 namespace
 {
 
-FloatVectorType::const_reference
+RealVectorType::const_reference
 getSRefRO(DataReady& data,int sample, int point)
 {
    return data.getVectorRO()[data.getPointOffset(sample,point)];
@@ -160,7 +160,7 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
-    DataTypes::FloatVectorType dataArray(DataTypes::noValues(shape),0);
+    DataTypes::RealVectorType dataArray(DataTypes::noValues(shape),0);
 
     // construct DataArrayView
 //     DataArrayView dataView(dataArray,shape);
@@ -210,8 +210,8 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     DataTypes::ShapeType shape2;
 
     // allocate the data for the DataArrayViews
-    DataTypes::FloatVectorType dataArray(DataTypes::noValues(shape),0);
-    DataTypes::FloatVectorType dataArray2(DataTypes::noValues(shape2),0);
+    DataTypes::RealVectorType dataArray(DataTypes::noValues(shape),0);
+    DataTypes::RealVectorType dataArray2(DataTypes::noValues(shape2),0);
 
     // construct DataArrayViews
 //     DataArrayView dataView(dataArray,shape);

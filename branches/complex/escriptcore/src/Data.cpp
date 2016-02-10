@@ -300,7 +300,7 @@ Data::Data(double value,
     }
 
     int len = DataTypes::noValues(dataPointShape);
-    FloatVectorType temp_data(len,value,len);
+    RealVectorType temp_data(len,value,len);
     initialise(temp_data, dataPointShape, what, expanded);
     m_protected=false;
 }
@@ -400,7 +400,7 @@ Data::Data(DataAbstract_ptr underlyingdata)
     m_protected=false;
 }
 
-Data::Data(const DataTypes::FloatVectorType& value,
+Data::Data(const DataTypes::RealVectorType& value,
            const DataTypes::ShapeType& shape,
            const FunctionSpace& what,
            bool expanded)
@@ -443,12 +443,12 @@ Data::Data(const boost::python::object& value,
 
         // get the space for the data vector
         int len1 = DataTypes::noValues(tempShape);
-        FloatVectorType temp_data(len1, 0.0, len1);
+        RealVectorType temp_data(len1, 0.0, len1);
         temp_data.copyFromArray(w,1);
 
         int len = DataTypes::noValues(other.getDataPointShape());
 
-        FloatVectorType temp2_data(len, temp_data[0], len);
+        RealVectorType temp2_data(len, temp_data[0], len);
         DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
         set_m_data(DataAbstract_ptr(t));
 
@@ -505,7 +505,7 @@ void Data::initialise(const WrappedArray& value,
 
 
 void
-Data::initialise(const DataTypes::FloatVectorType& value,
+Data::initialise(const DataTypes::RealVectorType& value,
                  const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
@@ -625,7 +625,7 @@ Data::setToZero()
     }
     if (isLazy())
     {
-        DataTypes::FloatVectorType v(getNoValues(),0);
+        DataTypes::RealVectorType v(getNoValues(),0);
         DataConstant* dc=new DataConstant(getFunctionSpace(),getDataPointShape(),v);
         DataLazy* dl=new DataLazy(dc->getPtr());
         set_m_data(dl->getPtr());
@@ -712,9 +712,9 @@ Data::copyWithMask(const Data& other,
     }
     exclusiveWrite();
     // Now we iterate over the elements
-    FloatVectorType& self=getReady()->getVectorRW();;
-    const FloatVectorType& ovec=other2.getReadyPtr()->getVectorRO();
-    const FloatVectorType& mvec=mask2.getReadyPtr()->getVectorRO();
+    RealVectorType& self=getReady()->getVectorRW();;
+    const RealVectorType& ovec=other2.getReadyPtr()->getVectorRO();
+    const RealVectorType& mvec=mask2.getReadyPtr()->getVectorRO();
 
     if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
     {
@@ -770,9 +770,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::FloatVectorType::size_type toff=tptr->getOffsetForTag(i->first);
-                DataTypes::FloatVectorType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::FloatVectorType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
@@ -795,9 +795,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::FloatVectorType::size_type toff=tptr->getOffsetForTag(i->first);
-                DataTypes::FloatVectorType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::FloatVectorType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
@@ -1114,7 +1114,7 @@ Data::getDataPointSize() const
 }
 
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 Data::getLength() const
 {
     return m_data->getLength();
@@ -1138,7 +1138,7 @@ Data::toListOfTuples(bool scalarastuple)
 
     int npoints=getNumDataPoints();
     expand();                   // This will also resolve if required
-    const DataTypes::FloatVectorType& vec=getReady()->getVectorRO();
+    const DataTypes::RealVectorType& vec=getReady()->getVectorRO();
     bp::list temp;
     temp.append(bp::object());
     bp::list res(temp*npoints);// pre-size the list by the "[None] * npoints"  trick
@@ -1223,7 +1223,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
             throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid dataPointNoInSample.");
         }
         // TODO: global error handling
-        DataTypes::FloatVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+        DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
         return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset)));
     }
     else
@@ -1385,7 +1385,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
                 throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid dataPointNoInSample.");
             }
             // TODO: global error handling
-            DataTypes::FloatVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+            DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
             memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(double));
         }
@@ -1891,7 +1891,7 @@ Data::lazyAlgWorker(double init)
         for (i=0;i<numsamples;++i)
         {
             size_t roffset=0;
-            const DataTypes::FloatVectorType* v=dl->resolveSample(i, roffset);
+            const DataTypes::RealVectorType* v=dl->resolveSample(i, roffset);
             // Now we have the sample, run operation on all points
             for (size_t j=0;j<samplesize;++j)
             {
@@ -2957,7 +2957,7 @@ Data::setTaggedValue(int tagKey,
     if (isConstant()) tag();
     WrappedArray w(value);
 
-    FloatVectorType temp_data2;
+    RealVectorType temp_data2;
     temp_data2.copyFromArray(w,1);
 
     m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
@@ -2967,7 +2967,7 @@ Data::setTaggedValue(int tagKey,
 void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataTypes::ShapeType& pointshape,
-                            const DataTypes::FloatVectorType& value,
+                            const DataTypes::RealVectorType& value,
                             int dataOffset)
 {
     if (isProtected()) {
@@ -3411,16 +3411,16 @@ Data::toString() const
 
 
 // This method is not thread-safe
-DataTypes::FloatVectorType::reference
-Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
+DataTypes::RealVectorType::reference
+Data::getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy)
 {
     checkExclusiveWrite();
     return getReady()->getDataAtOffsetRW(i);
 }
 
 // This method is not thread-safe
-DataTypes::FloatVectorType::const_reference
-Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
+DataTypes::RealVectorType::const_reference
+Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy)
 {
     forceResolve();
     return getReady()->getDataAtOffsetRO(i);
@@ -3428,7 +3428,7 @@ Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::real
 
 // This method is not thread-safe
 DataTypes::CplxVectorType::reference
-Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+Data::getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy)
 {
     checkExclusiveWrite();
     return getReady()->getDataAtOffsetRWC(i);
@@ -3436,7 +3436,7 @@ Data::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i, DataTypes::cplx
 
 // This method is not thread-safe
 DataTypes::CplxVectorType::const_reference
-Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy)
 {
     forceResolve();
     return getReady()->getDataAtOffsetROC(i);
@@ -3445,8 +3445,8 @@ Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::cplx
 
 
 
-// DataTypes::FloatVectorType::const_reference
-// Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i) const
+// DataTypes::RealVectorType::const_reference
+// Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i) const
 // {
 //     if (isLazy())
 //     {
@@ -3456,7 +3456,7 @@ Data::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::cplx
 // }
 
 
-DataTypes::FloatVectorType::const_reference
+DataTypes::RealVectorType::const_reference
 Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
     forceResolve();
@@ -3472,7 +3472,7 @@ Data::getDataPointRO(int sampleNo, int dataPointNo)
 }
 
 
-DataTypes::FloatVectorType::reference
+DataTypes::RealVectorType::reference
 Data::getDataPointRW(int sampleNo, int dataPointNo)
 {
     checkExclusiveWrite();
@@ -3534,8 +3534,8 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
     int numpts=getNumDataPoints();
     int twidth=table.getShape()[0]-1;       
     bool haserror=false;
-    const FloatVectorType* adat=0;
-    FloatVectorType* rdat=0;
+    const RealVectorType* adat=0;
+    RealVectorType* rdat=0;
     try
     {
         adat=&(getReady()->getVectorRO());
@@ -3674,9 +3674,9 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
 
     int numpts=getNumDataPoints();
-    const FloatVectorType* adat=0;
-    const FloatVectorType* bdat=0;
-    FloatVectorType* rdat=0;
+    const RealVectorType* adat=0;
+    const RealVectorType* bdat=0;
+    RealVectorType* rdat=0;
     const DataTypes::ShapeType& ts=table.getShape();
     try
     {
@@ -3844,10 +3844,10 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
 
     int numpts=getNumDataPoints();
-    const FloatVectorType* adat=0;
-    const FloatVectorType* bdat=0;
-    const FloatVectorType* cdat=0;
-    FloatVectorType* rdat=0;
+    const RealVectorType* adat=0;
+    const RealVectorType* bdat=0;
+    const RealVectorType* cdat=0;
+    RealVectorType* rdat=0;
     const DataTypes::ShapeType& ts=table.getShape();
     try
     {
@@ -4062,8 +4062,8 @@ Data Data::nonuniforminterp(boost::python::object in, boost::python::object out,
     expand();
     Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
     int numpts=getNumDataPoints();
-    const FloatVectorType& sdat=getReady()->getVectorRO();
-    FloatVectorType& rdat=result.getReady()->getVectorRW();
+    const RealVectorType& sdat=getReady()->getVectorRO();
+    RealVectorType& rdat=result.getReady()->getVectorRW();
     double maxlimit=win.getElt(win.getShape()[0]-1);
     double maxout=wout.getElt(wout.getShape()[0]-1);
     int ipoints=win.getShape()[0];
@@ -4138,8 +4138,8 @@ Data Data::nonuniformslope(boost::python::object in, boost::python::object out, 
     expand();
     Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
     int numpts=getNumDataPoints();
-    const FloatVectorType& sdat=getReady()->getVectorRO();
-    FloatVectorType& rdat=result.getReady()->getVectorRW();
+    const RealVectorType& sdat=getReady()->getVectorRO();
+    RealVectorType& rdat=result.getReady()->getVectorRW();
     double maxlimit=win.getElt(win.getShape()[0]-1);
     int ipoints=win.getShape()[0];
     int l=0;
@@ -4515,7 +4515,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
         const DataTagged* tdat=dynamic_cast<const DataTagged*>(trueval.getReady());
         const DataTagged* fdat=dynamic_cast<const DataTagged*>(falseval.getReady());
         const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
-        FloatVectorType::const_pointer srcptr;
+        RealVectorType::const_pointer srcptr;
 
         // default value first
         if (mdat->getDefaultValueRO(0)>0)
@@ -4574,7 +4574,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 #else
             size_t i;
 #endif
-            FloatVectorType& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
+            RealVectorType& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
             unsigned int psize=result.getDataPointSize();
                 
             size_t numsamples=result.getNumSamples();
@@ -4611,7 +4611,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     }
 }
 
-DataTypes::FloatVectorType& Data::getExpandedVectorReference()
+DataTypes::RealVectorType& Data::getExpandedVectorReference()
 {
     if (!isExpanded())
     {

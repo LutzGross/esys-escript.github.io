@@ -90,7 +90,7 @@ inline void binaryOpDataReady(DataTagged& left, const DataConstant& right,
       }
       else
       {
-	  binaryOpDataReadyHelperTC<DataTypes::CplxVectorType, DataTypes::FloatVectorType>(left, right, operation);	
+	  binaryOpDataReadyHelperTC<DataTypes::CplxVectorType, DataTypes::RealVectorType>(left, right, operation);	
       }    
   }
   else	// left is real
@@ -101,7 +101,7 @@ inline void binaryOpDataReady(DataTagged& left, const DataConstant& right,
       }
       else	// right is real
       {
-	  binaryOpDataReadyHelperTC<DataTypes::FloatVectorType, DataTypes::FloatVectorType>(left, right, operation);	
+	  binaryOpDataReadyHelperTC<DataTypes::RealVectorType, DataTypes::RealVectorType>(left, right, operation);	
       }        
   }
 }
@@ -151,17 +151,17 @@ inline void binaryOpDataReadyHelperTV(DataTagged& left, const RVEC& right,
 
    The value in right will be assumed to begin at offset 0
 */
-inline void binaryOpDataReady(DataTagged& left, const DataTypes::FloatVectorType& right, 
+inline void binaryOpDataReady(DataTagged& left, const DataTypes::RealVectorType& right, 
 		     const DataTypes::ShapeType& shape,
 		     escript::ESFunction operation)
 {
   if (left.isComplex())
   {
-      binaryOpDataReadyHelperTV<DataTypes::CplxVectorType, DataTypes::FloatVectorType>(left, right, shape, operation);	
+      binaryOpDataReadyHelperTV<DataTypes::CplxVectorType, DataTypes::RealVectorType>(left, right, shape, operation);	
   }
   else	// left is real
   {
-      binaryOpDataReadyHelperTV<DataTypes::FloatVectorType, DataTypes::FloatVectorType>(left, right, shape,  operation);	        
+      binaryOpDataReadyHelperTV<DataTypes::RealVectorType, DataTypes::RealVectorType>(left, right, shape,  operation);	        
   }
 }
 
@@ -240,7 +240,7 @@ inline void binaryOpDataReady(DataTagged& left, const DataTagged& right,
       }
       else
       {
-	  binaryOpDataReadyHelperTT<DataTypes::CplxVectorType, DataTypes::FloatVectorType>(left, right, operation);	
+	  binaryOpDataReadyHelperTT<DataTypes::CplxVectorType, DataTypes::RealVectorType>(left, right, operation);	
       }    
   }
   else	// left is real
@@ -251,7 +251,7 @@ inline void binaryOpDataReady(DataTagged& left, const DataTagged& right,
       }
       else	// right is real
       {
-	  binaryOpDataReadyHelperTT<DataTypes::FloatVectorType, DataTypes::FloatVectorType>(left, right, operation);	
+	  binaryOpDataReadyHelperTT<DataTypes::RealVectorType, DataTypes::RealVectorType>(left, right, operation);	
       }        
   }
 }
@@ -340,7 +340,7 @@ inline void binaryOpDataReady(DataExpanded& left, const DataReady& right,
       }
       else
       {
-	  binaryOpDataReadyHelperER<DataTypes::CplxVectorType, DataTypes::FloatVectorType>(left, right, operation);	
+	  binaryOpDataReadyHelperER<DataTypes::CplxVectorType, DataTypes::RealVectorType>(left, right, operation);	
       }    
   }
   else	// left is real
@@ -351,7 +351,7 @@ inline void binaryOpDataReady(DataExpanded& left, const DataReady& right,
       }
       else	// right is real
       {
-	  binaryOpDataReadyHelperER<DataTypes::FloatVectorType, DataTypes::FloatVectorType>(left, right, operation);	
+	  binaryOpDataReadyHelperER<DataTypes::RealVectorType, DataTypes::RealVectorType>(left, right, operation);	
       }        
   }    
 }  
@@ -377,11 +377,11 @@ inline void binaryOp(DataTagged& left, const DataConstant& right,
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataTypes::FloatVectorType& leftVec=left.getVectorRW();
+  DataTypes::RealVectorType& leftVec=left.getVectorRW();
   const DataTypes::ShapeType& leftShape=left.getShape();
   const DataTypes::ShapeType& rightShape=right.getShape();
   double rvalue=right.getVectorRO()[0];		// for rank==0
-  const DataTypes::FloatVectorType& rightVec=right.getVectorRO();   // for rank>0
+  const DataTypes::RealVectorType& rightVec=right.getVectorRO();   // for rank>0
   if (right.getRank()==0) {
     for (i=lookup.begin();i!=lookupEnd;i++) {
       DataMaths::binaryOp(leftVec,leftShape,i->second,rvalue,operation);
@@ -406,7 +406,7 @@ inline void binaryOp(DataTagged& left, const DataConstant& right,
    The value in right will be assumed to begin at offset 0
 */
 template <class BinaryFunction>
-inline void binaryOp(DataTagged& left, const DataTypes::FloatVectorType& right, 
+inline void binaryOp(DataTagged& left, const DataTypes::RealVectorType& right, 
 		     const DataTypes::ShapeType& shape,
 		     BinaryFunction operation)
 {
@@ -415,7 +415,7 @@ inline void binaryOp(DataTagged& left, const DataTypes::FloatVectorType& right,
   const DataTagged::DataMapType& lookup=left.getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator lookupEnd=lookup.end();
-  DataTypes::FloatVectorType& lvec=left.getVectorRW();
+  DataTypes::RealVectorType& lvec=left.getVectorRW();
   const DataTypes::ShapeType& lshape=left.getShape();
   if (DataTypes::getRank(shape)==0) {
     for (i=lookup.begin();i!=lookupEnd;i++) {
@@ -459,7 +459,7 @@ inline void binaryOp(DataTagged& left, const DataTagged& right,
       left.addTag(i->first);
     }
   }
-  DataTypes::FloatVectorType& leftVec=left.getVectorRW();
+  DataTypes::RealVectorType& leftVec=left.getVectorRW();
   const DataTypes::ShapeType& leftShape=left.getShape();
   //
   // Perform the operation.
@@ -502,12 +502,12 @@ inline void binaryOp(DataExpanded& left, const DataReady& right,
 		     BinaryFunction operation)
 {
   int i,j;
-  DataTypes::FloatVectorType::size_type numDPPSample=left.getNumDPPSample();
-  DataTypes::FloatVectorType::size_type numSamples=left.getNumSamples();
+  DataTypes::RealVectorType::size_type numDPPSample=left.getNumDPPSample();
+  DataTypes::RealVectorType::size_type numSamples=left.getNumSamples();
   if (right.getRank()==0) {
 
     const DataTypes::ShapeType& leftShape=left.getShape();
-    DataTypes::FloatVectorType& leftVec=left.getVectorRW();
+    DataTypes::RealVectorType& leftVec=left.getVectorRW();
     //
     // This will call the double version of binaryOp
     #pragma omp parallel for private(i,j) schedule(static)

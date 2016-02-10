@@ -58,12 +58,12 @@ public:
   */
 
   ESCRIPT_DLL_API
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getVectorRW()=0;
 
 
   ESCRIPT_DLL_API
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getVectorRO() const=0;
 
   ESCRIPT_DLL_API
@@ -79,11 +79,11 @@ public:
      \brief These versions use the type system rather than method name to determine return type
   */
   ESCRIPT_DLL_API
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getTypedVectorRW(DataTypes::real_t dummy)=0;  
   
   ESCRIPT_DLL_API
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getTypedVectorRO(DataTypes::real_t dummy) const=0;
 
   ESCRIPT_DLL_API
@@ -132,13 +132,13 @@ public:
      \brief get a reference to the beginning of a data point
  */
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType::const_reference
-  getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i) const;
+  DataTypes::RealVectorType::const_reference
+  getDataAtOffsetRO(DataTypes::RealVectorType::size_type i) const;
 
 
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType::reference
-  getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i);
+  DataTypes::RealVectorType::reference
+  getDataAtOffsetRW(DataTypes::RealVectorType::size_type i);
   
   ESCRIPT_DLL_API
   DataTypes::CplxVectorType::const_reference
@@ -175,15 +175,15 @@ DataReady::getSampleDataRO(ValueType::size_type sampleNo) const
 
 
 inline
-DataTypes::FloatVectorType::const_reference
-DataReady::getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i) const
+DataTypes::RealVectorType::const_reference
+DataReady::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i) const
 {
    return getVectorRO()[i];
 }
 
 inline
-DataTypes::FloatVectorType::reference
-DataReady::getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i)	// exclusive write checks will be done in getVectorRW()
+DataTypes::RealVectorType::reference
+DataReady::getDataAtOffsetRW(DataTypes::RealVectorType::size_type i)	// exclusive write checks will be done in getVectorRW()
 {
    return getVectorRW()[i];
 }

@@ -32,7 +32,7 @@ namespace {
   }
 
 
-  escript::DataTypes::FloatVectorType dummy;	
+  escript::DataTypes::RealVectorType dummy;	
   escript::DataTypes::CplxVectorType dummyc;	
 }
 
@@ -61,7 +61,7 @@ DataEmpty::deepCopy() const
   return new DataEmpty();
 }
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
 {
@@ -69,7 +69,7 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo)
 {
@@ -77,7 +77,7 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataEmpty::getLength() const
 {
   return 0;
@@ -105,14 +105,14 @@ DataEmpty::matrixInverse(DataAbstract* out) const
 }
 
 
-DataTypes::FloatVectorType&
+DataTypes::RealVectorType&
 DataEmpty::getVectorRW()
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
 }
 
-const DataTypes::FloatVectorType&
+const DataTypes::RealVectorType&
 DataEmpty::getVectorRO() const
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
@@ -135,14 +135,14 @@ DataEmpty::getVectorROC() const
 }
 
 
-DataTypes::FloatVectorType&
+DataTypes::RealVectorType&
 DataEmpty::getTypedVectorRW(DataTypes::real_t dummypar)
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
 }
 
-const DataTypes::FloatVectorType&
+const DataTypes::RealVectorType&
 DataEmpty::getTypedVectorRO(DataTypes::real_t dummypar) const
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.

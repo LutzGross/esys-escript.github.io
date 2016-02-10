@@ -110,7 +110,7 @@ class Data {
   */ 
 
   ESCRIPT_DLL_API
-  Data(const DataTypes::FloatVectorType& value,
+  Data(const DataTypes::RealVectorType& value,
 		 const DataTypes::ShapeType& shape,
                  const FunctionSpace& what=FunctionSpace(),
                  bool expanded=false);
@@ -656,7 +656,7 @@ If false, the result is a list of scalars [1, 2, ...]
      \param dataPointNo - Input -
   */
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType::const_reference
+  DataTypes::RealVectorType::const_reference
   getDataPointRO(int sampleNo, int dataPointNo);
 
   /**
@@ -666,7 +666,7 @@ If false, the result is a list of scalars [1, 2, ...]
      \param dataPointNo - Input -
   */
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType::reference
+  DataTypes::RealVectorType::reference
   getDataPointRW(int sampleNo, int dataPointNo);
 
 
@@ -677,7 +677,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   inline
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getDataOffset(int sampleNo,
                int dataPointNo)
   {
@@ -718,7 +718,7 @@ If false, the result is a list of scalars [1, 2, ...]
      Return the number of doubles stored for this Data.
   */
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -773,7 +773,7 @@ If false, the result is a list of scalars [1, 2, ...]
   void
   setTaggedValueFromCPP(int tagKey,
 			const DataTypes::ShapeType& pointshape,
-                        const DataTypes::FloatVectorType& value,
+                        const DataTypes::RealVectorType& value,
 			int dataOffset=0);
 
 
@@ -1648,13 +1648,13 @@ instead of manually manipulating process and point IDs.
   */
 
   ESCRIPT_DLL_API
-        DataTypes::FloatVectorType::const_reference
-        getDataAtOffsetRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0);
+        DataTypes::RealVectorType::const_reference
+        getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
 
 
   ESCRIPT_DLL_API
-        DataTypes::FloatVectorType::reference
-        getDataAtOffsetRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0);
+        DataTypes::RealVectorType::reference
+        getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
 	
   ESCRIPT_DLL_API
         DataTypes::CplxVectorType::const_reference
@@ -1676,7 +1676,7 @@ instead of manually manipulating process and point IDs.
     escript's other mechanisms.
   */
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType&
+  DataTypes::RealVectorType&
   getExpandedVectorReference();
   
   
@@ -1812,7 +1812,7 @@ template <class BinaryOp>
   */
 
   void
-  initialise(const DataTypes::FloatVectorType& value,
+  initialise(const DataTypes::RealVectorType& value,
 	     const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
@@ -2061,7 +2061,7 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const
    if (l!=0)
    {
 	size_t offset=0;
-	const DataTypes::FloatVectorType* res=l->resolveSample(sampleNo,offset);
+	const DataTypes::RealVectorType* res=l->resolveSample(sampleNo,offset);
 	return &((*res)[offset]);
    }
    return getReady()->getSampleDataRO(sampleNo);
@@ -2473,7 +2473,7 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
   else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
-    DataTypes::FloatVectorType defval(1);
+    DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
     escript::dp_algorithm(*dataT,*resultT,operation,initial_value);

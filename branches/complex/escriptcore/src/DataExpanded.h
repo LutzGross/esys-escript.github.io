@@ -91,7 +91,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const DataTypes::FloatVectorType &data);
+               const DataTypes::RealVectorType &data);
 
 	       
   ESCRIPT_DLL_API
@@ -216,13 +216,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -232,11 +232,11 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
 
   ESCRIPT_DLL_API
-  DataTypes::FloatVectorType&
+  DataTypes::RealVectorType&
   getVectorRW();
 
   ESCRIPT_DLL_API
-  const DataTypes::FloatVectorType&
+  const DataTypes::RealVectorType&
   getVectorRO() const;
 
   ESCRIPT_DLL_API
@@ -247,10 +247,10 @@ TODO Note that this constructor will also copy data to all points if it only con
   const DataTypes::CplxVectorType&
   getVectorROC() const;
   
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getTypedVectorRW(DataTypes::real_t dummy);  
   
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getTypedVectorRO(DataTypes::real_t dummy) const;
 
   virtual DataTypes::CplxVectorType&
@@ -308,7 +308,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   void  
   setTaggedValue(int tagKey,
  	         const DataTypes::ShapeType& pointshape,
-                 const DataTypes::FloatVectorType& value,
+                 const DataTypes::RealVectorType& value,
 		 int dataOffset=0);
 
 
@@ -485,7 +485,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   //
   // The main data storage array, a 2D array of data blocks.
   // noSamples * noDataPointsPerSample
-  DataTypes::FloatVectorType m_data_r;
+  DataTypes::RealVectorType m_data_r;
   DataTypes::CplxVectorType m_data_c;
 };
 

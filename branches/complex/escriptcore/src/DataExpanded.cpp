@@ -119,7 +119,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const DataTypes::FloatVectorType &data)
+                           const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
     EsysAssert(data.size()%getNoValues()==0,
@@ -294,10 +294,10 @@ string DataExpanded::toString() const
     return result;
 }
 
-DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
+DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
-    DataTypes::FloatVectorType::size_type blockSize=getNoValues();
+    DataTypes::RealVectorType::size_type blockSize=getNoValues();
     EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0)), "(DataBlocks2D) Index value out of range.");
     ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
     EsysAssert((temp <= (m_data_r.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
@@ -305,17 +305,17 @@ DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
     return temp;
 }
 
-DataTypes::FloatVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
+DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                              int dataPointNo)
 {
-    DataTypes::FloatVectorType::size_type blockSize=getNoValues();
+    DataTypes::RealVectorType::size_type blockSize=getNoValues();
     EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0)), "(DataBlocks2D) Index value out of range.");
     ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
     EsysAssert((temp <= (m_data_r.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
     return temp;
 }
 
-DataTypes::FloatVectorType::size_type DataExpanded::getLength() const
+DataTypes::RealVectorType::size_type DataExpanded::getLength() const
 {
     return m_data_r.size();
 }
@@ -579,7 +579,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
         for (int sampleNo = 0; sampleNo < numSamples; sampleNo++)
         {
             // not sure I like all those virtual calls to getPointOffset
-            DataTypes::FloatVectorType::size_type offset=getPointOffset(sampleNo,0);
+            DataTypes::RealVectorType::size_type offset=getPointOffset(sampleNo,0);
             int res=DataMaths::matrix_inverse(vec, getShape(), offset,
                     temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
             if (res > errorcode) {
@@ -604,7 +604,7 @@ void DataExpanded::setToZero()
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::FloatVectorType::size_type n = getNoValues();
+    const DataTypes::RealVectorType::size_type n = getNoValues();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
@@ -689,13 +689,13 @@ void DataExpanded::dump(const std::string fileName) const
 
 void DataExpanded::setTaggedValue(int tagKey,
                                   const DataTypes::ShapeType& pointshape,
-                                  const DataTypes::FloatVectorType& value,
+                                  const DataTypes::RealVectorType& value,
                                   int dataOffset)
 {
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::FloatVectorType::size_type n = getNoValues();
+    const DataTypes::RealVectorType::size_type n = getNoValues();
     const double* in = &value[0+dataOffset];
 
     if (value.size() != n)
@@ -718,7 +718,7 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
 {
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
-    const DataTypes::FloatVectorType::size_type n = getNoValues() * getNumDPPSample();
+    const DataTypes::RealVectorType::size_type n = getNoValues() * getNumDPPSample();
     FunctionSpace fs=getFunctionSpace();
 
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -747,13 +747,13 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
     }
 }
 
-DataTypes::FloatVectorType& DataExpanded::getVectorRW()
+DataTypes::RealVectorType& DataExpanded::getVectorRW()
 {
     CHECK_FOR_EX_WRITE;
     return m_data_r;
 }
 
-const DataTypes::FloatVectorType& DataExpanded::getVectorRO() const
+const DataTypes::RealVectorType& DataExpanded::getVectorRO() const
 {
     return m_data_r;
 }
@@ -769,13 +769,13 @@ const DataTypes::CplxVectorType& DataExpanded::getVectorROC() const
     return m_data_c;
 }
 
-DataTypes::FloatVectorType& DataExpanded::getTypedVectorRW(DataTypes::real_t dummypar)
+DataTypes::RealVectorType& DataExpanded::getTypedVectorRW(DataTypes::real_t dummypar)
 {
     CHECK_FOR_EX_WRITE;
     return m_data_r;
 }
 
-const DataTypes::FloatVectorType& DataExpanded::getTypedVectorRO(DataTypes::real_t dummypar) const
+const DataTypes::RealVectorType& DataExpanded::getTypedVectorRO(DataTypes::real_t dummypar) const
 {
     return m_data_r;
 }

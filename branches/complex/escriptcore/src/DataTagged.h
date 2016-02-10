@@ -49,7 +49,7 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
   //
   // Types for the lists of tags and values.
   typedef std::vector<int> TagListType;
-  typedef std::vector<DataTypes::FloatVectorType::ElementType> FloatBatchType;
+  typedef std::vector<DataTypes::RealVectorType::ElementType> FloatBatchType;
   typedef std::vector<DataTypes::CplxVectorType::ElementType> CplxBatchType;
 
   //
@@ -83,7 +83,7 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const int tags[],
-             const DataTypes::FloatVectorType& data);
+             const DataTypes::RealVectorType& data);
 
  /**
      \brief
@@ -100,7 +100,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const TagListType& tags,
-             const DataTypes::FloatVectorType& data);
+             const DataTypes::RealVectorType& data);
 
   /**
      \brief
@@ -131,7 +131,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   */
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
-             const DataTypes::FloatVectorType& defaultvalue,
+             const DataTypes::RealVectorType& defaultvalue,
              const DataTagged* tagsource=0);
 
   /**
@@ -240,12 +240,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     T
   */
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -290,7 +290,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   */
   void
   addTaggedValues(const TagListType& tagKeys,
-                            const DataTypes::FloatVectorType& values,
+                            const DataTypes::RealVectorType& values,
                             const ShapeType& vShape);
 
 
@@ -311,7 +311,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   addTaggedValue(int tagKey,
                  const DataTypes::ShapeType& pointshape,
-                 const DataTypes::FloatVectorType& value,
+                 const DataTypes::RealVectorType& value,
                  int dataOffset=0);
 
   /**
@@ -342,7 +342,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   setTaggedValue(int tagKey,
                  const DataTypes::ShapeType& pointshape,
-                 const DataTypes::FloatVectorType& value,
+                 const DataTypes::RealVectorType& value,
                  int dataOffset=0);
 
   /**
@@ -355,11 +355,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param i - position in the underlying datastructure
   */
 
-  DataTypes::FloatVectorType::reference
-  getDataByTagRW(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0);
+  DataTypes::RealVectorType::reference
+  getDataByTagRW(int tag, DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
 
-  DataTypes::FloatVectorType::const_reference
-  getDataByTagRO(int tag, DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0) const;
+  DataTypes::RealVectorType::const_reference
+  getDataByTagRO(int tag, DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0) const;
 
 
   DataTypes::CplxVectorType::reference
@@ -377,7 +377,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
       Note: If the tag is not valid, the offset of the default value is returned instead.
   */
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getOffsetForTag(int tag) const;
 
 
@@ -386,10 +386,10 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return a reference to the underlying DataVector.
   */
 
-  DataTypes::FloatVectorType&
+  DataTypes::RealVectorType&
   getVectorRW();
 
-  const DataTypes::FloatVectorType&
+  const DataTypes::RealVectorType&
   getVectorRO() const;
 
 
@@ -400,10 +400,10 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   getVectorROC() const;
   
 
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getTypedVectorRW(DataTypes::real_t dummy);  
   
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getTypedVectorRO(DataTypes::real_t dummy) const;
 
   virtual DataTypes::CplxVectorType&
@@ -450,11 +450,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      is not explicitly recorded in this DataTagged object's tag map.
      \param i - position in the underlying datastructure
   */
-  DataTypes::FloatVectorType::reference
-  getDefaultValueRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0);
+  DataTypes::RealVectorType::reference
+  getDefaultValueRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
 
-  DataTypes::FloatVectorType::const_reference
-  getDefaultValueRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy=0) const;
+  DataTypes::RealVectorType::const_reference
+  getDefaultValueRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0) const;
 
   DataTypes::CplxVectorType::reference
   getDefaultValueRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
@@ -474,7 +474,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     T
   */
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -600,7 +600,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   /**
      \brief  Returns the offset in the structure which stores the default value
   */
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getDefaultOffset() const;
   
   /**
@@ -622,7 +622,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   static const int m_defaultValueOffset = 0;
   
   // the actual data
-  DataTypes::FloatVectorType m_data_r;
+  DataTypes::RealVectorType m_data_r;
   DataTypes::CplxVectorType m_data_c;  
   
 
@@ -637,29 +637,29 @@ DataTagged::isCurrentTag(int tag) const
 }
 
 inline 
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataTagged::getDefaultOffset() const
 {
   return m_defaultValueOffset;  
 }
 
 inline
-DataTypes::FloatVectorType::reference
-DataTagged::getDefaultValueRW(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy)
+DataTypes::RealVectorType::reference
+DataTagged::getDefaultValueRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy)
 {       
         return getVectorRW()[i];                // getVectorRW has exclusive write checks
 }
 
 inline
-DataTypes::FloatVectorType::const_reference
-DataTagged::getDefaultValueRO(DataTypes::FloatVectorType::size_type i, DataTypes::real_t dummy) const
+DataTypes::RealVectorType::const_reference
+DataTagged::getDefaultValueRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy) const
 {
         return getVectorRO()[i];
 }
 
 inline
 DataTypes::CplxVectorType::reference
-DataTagged::getDefaultValueRW(DataTypes::FloatVectorType::size_type i, DataTypes::cplx_t dummy)
+DataTagged::getDefaultValueRW(DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy)
 {       
         return getVectorRWC()[i];                // getVectorRW has exclusive write checks
 }
@@ -682,7 +682,7 @@ DataTagged::getTagLookup() const
 }
 
 inline
-DataTypes::FloatVectorType::size_type
+DataTypes::RealVectorType::size_type
 DataTagged::getLength() const
 {
   return std::max(m_data_c.size(), m_data_r.size());

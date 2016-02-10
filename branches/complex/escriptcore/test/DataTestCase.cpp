@@ -48,14 +48,14 @@ namespace
 {
 
 inline
-DataTypes::FloatVectorType::const_reference
+DataTypes::RealVectorType::const_reference
 getRef(Data& d,int s1, int p1, int x, int y)
 {
 	return d.getDataAtOffsetRO(d.getDataOffset(s1,p1)+getRelIndex(d.getDataPointShape(),x,y));
 }
 
 inline
-DataTypes::FloatVectorType::const_reference
+DataTypes::RealVectorType::const_reference
 getRef(Data& d, int x, int y)
 {
 	return d.getDataAtOffsetRO(getRelIndex(d.getDataPointShape(),x,y));
@@ -73,7 +73,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
   DataTypes::ShapeType shape;
   shape.push_back(2);
   shape.push_back(3);
-  DataTypes::FloatVectorType data(DataTypes::noValues(shape),1);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),1);
   const int NUMDATS=3;
   Data* dats[NUMDATS];
   const char* strs[]={"DataConstant", "DataTagged", "DataExpanded"};
@@ -220,7 +220,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
    //
    // add a value for tag "1"
 
-   DataTypes::FloatVectorType viewData(6);
+   DataTypes::RealVectorType viewData(6);
    for (int i=0;i<viewData.size();i++) {
     viewData[i]=i;
    }
@@ -300,7 +300,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
   //
   // add a value for tag "1" to target
 
-  DataTypes::FloatVectorType viewData(6);
+  DataTypes::RealVectorType viewData(6);
   for (int i=0;i<viewData.size();i++) {
 	viewData[i]=i;
   }
@@ -333,7 +333,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
   // add a value for tag "2" to source
 
   DataTypes::ShapeType viewShape2;
-  DataTypes::FloatVectorType viewData2(1);
+  DataTypes::RealVectorType viewData2(1);
   viewData2[0]=6;
   src[1]->setTaggedValueFromCPP(2, viewShape2, viewData2);
 
@@ -413,7 +413,7 @@ void DataTestCase::testSomeDriver(bool autolazy)
 
   DataTypes::ShapeType viewShape;
   viewShape.push_back(3);
-  DataTypes::FloatVectorType viewData(3);
+  DataTypes::RealVectorType viewData(3);
   for (int i=0;i<viewShape[0];++i) {
     viewData[i]=i;
   }
@@ -467,7 +467,7 @@ void DataTestCase::testResolveType()
   viewShape.push_back(2);
   viewShape.push_back(3);
   viewShape.push_back(4);
-  DataTypes::FloatVectorType viewData(2*3*4);
+  DataTypes::RealVectorType viewData(2*3*4);
   for (int i=0;i<DataTypes::noValues(viewShape);++i) {
     viewData[i]=i;
   }
@@ -538,7 +538,7 @@ void DataTestCase::testDataConstant()
   viewShape.push_back(2);
   viewShape.push_back(3);
   viewShape.push_back(4);
-  DataTypes::FloatVectorType viewData(2*3*4);
+  DataTypes::RealVectorType viewData(2*3*4);
   for (int i=0;i<DataTypes::noValues(viewShape);++i) {
     viewData[i]=i;
   }
@@ -577,7 +577,7 @@ void DataTestCase::testDataTagged()
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -619,7 +619,7 @@ void DataTestCase::testDataTagged()
     cout << "\tTest setting of a tag and associated value." << endl;
 
     // value for tag "1"
-    DataTypes::FloatVectorType eTwoData(viewData);
+    DataTypes::RealVectorType eTwoData(viewData);
  //   DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       eTwoData[i]=i+2.0;
@@ -699,7 +699,7 @@ void DataTestCase::testDataTaggedExceptions()
   Data myData;
 
   CPPUNIT_ASSERT_THROW(myData.getSampleDataByTag(0), EsysException);
-  CPPUNIT_ASSERT_THROW(myData.setTaggedValueFromCPP(0,DataTypes::ShapeType(), DataTypes::FloatVectorType()), EsysException);
+  CPPUNIT_ASSERT_THROW(myData.setTaggedValueFromCPP(0,DataTypes::ShapeType(), DataTypes::RealVectorType()), EsysException);
 }
 
 void DataTestCase::testConstructors()
@@ -727,7 +727,7 @@ void DataTestCase::testMoreOperations()
    shape.push_back(3);
 
   // allocate the data 
-  DataTypes::FloatVectorType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 
   // assign values to the data
   for (int i=0;i<shape[0];i++) {
@@ -794,7 +794,7 @@ void DataTestCase::testOperations()
   shape.push_back(3);
 
   // allocate the data 
-  DataTypes::FloatVectorType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 
   // assign values to the data
   for (int i=0;i<shape[0];i++) {
@@ -837,7 +837,7 @@ void DataTestCase::testOperations()
 
   // create 0 <= smalldata <= 1 for testing trig functions
 
-  DataTypes::FloatVectorType smalldata(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType smalldata(DataTypes::noValues(shape),0);
 
   // assign values to the data
   for (int i=0;i<shape[0];i++) {
@@ -1426,7 +1426,7 @@ void DataTestCase::testBinary()
   shape.push_back(3);
 
   // allocate the data 
-  DataTypes::FloatVectorType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 
   // assign values to the data
   for (int i=0;i<shape[0];i++) {

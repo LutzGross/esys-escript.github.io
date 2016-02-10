@@ -64,7 +64,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
  public:
 
-  typedef DataTypes::FloatVectorType ValueType;
+  typedef DataTypes::RealVectorType ValueType;
   typedef DataTypes::ShapeType ShapeType;
 
    /**
@@ -286,7 +286,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   void
   setTaggedValue(int tagKey,
 		 const DataTypes::ShapeType& pointshape,
-                 const DataTypes::FloatVectorType& value,
+                 const DataTypes::RealVectorType& value,
 		 int dataOffset=0);
 
 

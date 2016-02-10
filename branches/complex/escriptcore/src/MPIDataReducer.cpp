@@ -233,9 +233,9 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 bool MPIDataReducer::reduceRemoteValues(MPI_Comm& comm)
 {
 #ifdef ESYS_MPI
-    DataTypes::FloatVectorType& vr=value.getExpandedVectorReference();
+    DataTypes::RealVectorType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
-    DataTypes::FloatVectorType& rr=result.getExpandedVectorReference();
+    DataTypes::RealVectorType& rr=result.getExpandedVectorReference();
     if (reduceop==MPI_OP_NULL)
     {
 	reset();	// we can't be sure what the value should be
@@ -336,7 +336,7 @@ bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysU
 	// are the same number of tags
 	value.tag();
 	
-	DataTypes::FloatVectorType dv(DataTypes::noValues(s), 0, 1);
+	DataTypes::RealVectorType dv(DataTypes::noValues(s), 0, 1);
 	for (unsigned i=0;i<params[2];++i)
 	{
 	    value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
@@ -473,7 +473,7 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
 	      // are the same number of tags
 	      value.tag();
 	      
-	      DataTypes::FloatVectorType dv(DataTypes::noValues(s), 0, 1);
+	      DataTypes::RealVectorType dv(DataTypes::noValues(s), 0, 1);
 	      for (unsigned i=0;i<params[2];++i)
 	      {
 		  value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
