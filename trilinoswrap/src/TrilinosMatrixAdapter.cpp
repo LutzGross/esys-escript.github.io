@@ -24,10 +24,12 @@
 
 #include <BelosSolverFactory.hpp>
 #include <BelosTpetraAdapter.hpp>
+#include <Ifpack2_Factory.hpp>
 #include <Kokkos_DefaultNode.hpp>
 #include <MatrixMarket_Tpetra.hpp>
 #include <Tpetra_DefaultPlatform.hpp>
 #include <Tpetra_Vector.hpp>
+#include <MueLu_CreateTpetraPreconditioner.hpp>
 
 namespace bp = boost::python;
 using Teuchos::RCP;
@@ -53,7 +55,7 @@ void TrilinosMatrixAdapter::fillComplete(bool localOnly)
     mat->fillComplete(mat->getDomainMap(), mat->getRangeMap(), params);
 }
 
-void TrilinosMatrixAdapter::add(const IndexVector& rowIdx,
+void TrilinosMatrixAdapter::add(const std::vector<LO>& rowIdx,
                                 const std::vector<double>& array)
 {
     const int blockSize = getBlockSize();
@@ -120,6 +122,96 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     Y->get1dCopy(yView, yView.size());
 }
 
+RCP<SolverType> TrilinosMatrixAdapter::createSolver(
+                                         const escript::SolverBuddy& sb) const
+{
+    Belos::SolverFactory<ST, VectorType, OpType> factory;
+    RCP<SolverType> solver;
+    RCP<Teuchos::ParameterList> solverParams = Teuchos::parameterList();
+
+    solverParams->set("Convergence Tolerance", sb.getTolerance());
+    solverParams->set("Maximum Iterations", sb.getIterMax());
+    if (sb.isVerbose()) {
+        solverParams->set("Verbosity", Belos::Errors + Belos::Warnings +
+                Belos::TimingDetails + Belos::StatusTestDetails);
+    }
+    switch (sb.getSolverMethod()) {
+        case escript::SO_DEFAULT:
+        case escript::SO_METHOD_PCG:
+            solver = factory.create("CG", solverParams);
+            break;
+        case escript::SO_METHOD_GMRES:
+            solver = factory.create("GMRES", solverParams);
+            break;
+        case escript::SO_METHOD_LSQR:
+            solver = factory.create("LSQR", solverParams);
+            break;
+        case escript::SO_METHOD_MINRES:
+            solver = factory.create("MINRES", solverParams);
+            break;
+        case escript::SO_METHOD_TFQMR:
+            solver = factory.create("TFQMR", solverParams);
+            break;
+        default:
+            throw TrilinosAdapterException("Unsupported solver type requested.");
+    }
+    return solver;
+}
+
+RCP<OpType> TrilinosMatrixAdapter::createPreconditioner(
+                                         const escript::SolverBuddy& sb) const
+{
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    Ifpack2::Factory factory;
+    RCP<OpType> prec;
+    RCP<Ifpack2::Preconditioner<ST,LO,GO,NT> > ifprec;
+
+    switch (sb.getPreconditioner()) {
+        case escript::SO_PRECONDITIONER_NONE:
+            break;
+        case escript::SO_PRECONDITIONER_AMG:
+            {
+                params->set("max levels", sb.getLevelMax());
+                params->set("number of equations", getBlockSize());
+                params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
+                params->set("problem: symmetric", sb.isSymmetric());
+                params->set("verbosity", sb.isVerbose()? "high":"low");
+                RCP<OpType> A(mat);
+                prec = MueLu::CreateTpetraPreconditioner(A, *params);
+            }
+            break;
+        case escript::SO_PRECONDITIONER_ILUT:
+            ifprec = factory.create<MatrixType>("ILUT", mat);
+            params->set("fact: drop tolerance", sb.getDropTolerance());
+            break;
+        case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
+            ifprec = factory.create<MatrixType>("RELAXATION", mat);
+            params->set("relaxation: type", "Gauss-Seidel");
+            params->set("relaxation: sweeps", sb.getNumSweeps());
+            params->set("relaxation: damping factor", sb.getRelaxationFactor());
+            break;
+        case escript::SO_PRECONDITIONER_JACOBI:
+            ifprec = factory.create<MatrixType>("RELAXATION", mat);
+            params->set("relaxation: type", "Jacobi");
+            params->set("relaxation: sweeps", sb.getNumSweeps());
+            params->set("relaxation: damping factor", sb.getRelaxationFactor());
+            break;
+        case escript::SO_PRECONDITIONER_RILU:
+            ifprec = factory.create<MatrixType>("RILUK", mat);
+            params->set("fact: relax value", sb.getRelaxationFactor());
+            break;
+        default:
+            throw TrilinosAdapterException("Unsupported preconditioner requested.");
+    }
+    if (!ifprec.is_null()) {
+        ifprec->setParameters(*params);
+        ifprec->initialize();
+        ifprec->compute();
+        prec = ifprec;
+    }
+    return prec;
+}
+
 void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
                                  bp::object& options) const
 {
@@ -147,32 +239,13 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
     RCP<VectorType> X = rcp(new VectorType(mat->getDomainMap(), 1));
 
     //solve...
-    typedef Tpetra::Operator<ST, LO, GO, MatrixType::node_type> OpType;
-    typedef Belos::LinearProblem<ST, VectorType, OpType> problem_type;
-    RCP<Teuchos::ParameterList> solverParams = Teuchos::parameterList();
-    solverParams->set("Convergence Tolerance", sb.getTolerance());
-    solverParams->set("Maximum Iterations", sb.getIterMax());
-    if (sb.isVerbose()) {
-        solverParams->set("Verbosity", Belos::Errors + Belos::Warnings +
-                Belos::TimingDetails + Belos::StatusTestDetails);
-    }
-    Belos::SolverFactory<ST, VectorType, OpType> factory;
-    RCP<Belos::SolverManager<ST, VectorType, OpType> > solver =
-        factory.create("CG", solverParams);
-    RCP<problem_type> problem = rcp(new problem_type(mat, X, B));
+    RCP<SolverType> solver = createSolver(sb);
+    RCP<OpType> prec = createPreconditioner(sb);
+    RCP<ProblemType> problem = rcp(new ProblemType(mat, X, B));
 
-/*
-    if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_NONE) {
-        if (sb.isVerbose())
-            std::cout << "No preconditioner applied" << std::endl;
-    } else if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
-        if (sb.isVerbose())
-            std::cout << "Using Jacobi preconditioner" << std::endl;
-    } else {
-        throw RipleyException("Unsupported preconditioner requested.");
+    if (!prec.is_null()) {
+        problem->setLeftPrec(prec);
     }
-*/
-    //problem->setRightPrec(M);
     problem->setProblem();
     solver->setProblem(problem);
     Belos::ReturnType result = solver->solve();
