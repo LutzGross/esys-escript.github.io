@@ -2579,11 +2579,13 @@ Data::operator-=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
-    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,SUB);
     exclusiveWrite();
-    binaryOp(right,minus<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::MINUSF);
     return (*this);
 }
 
@@ -2593,9 +2595,7 @@ Data::operator-=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
     (*this)-=tmp;
     return (*this);
 }
@@ -2606,11 +2606,13 @@ Data::operator*=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
-    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,MUL);
     exclusiveWrite();
-    binaryOp(right,multiplies<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
     return (*this);
 }
 
@@ -2620,9 +2622,7 @@ Data::operator*=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
     (*this)*=tmp;
     return (*this);
 }
@@ -2633,11 +2633,13 @@ Data::operator/=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
-    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,DIV);
     exclusiveWrite();
-    binaryOp(right,divides<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::DIVIDESF);
     return (*this);
 }
 
@@ -2647,9 +2649,7 @@ Data::operator/=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
     (*this)/=tmp;
     return (*this);
 }
