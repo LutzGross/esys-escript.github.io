@@ -932,6 +932,25 @@ binaryOp(DataTypes::FloatVectorType& left,
 // -------------------
 
 
+
+template <class LVEC, class RVEC, class BinaryFunction>
+inline
+void
+binaryOpVectorHelper(LVEC& left, 
+			const DataTypes::ShapeType& leftShape,
+			typename LVEC::size_type leftOffset,
+                        const RVEC& right,
+			const DataTypes::ShapeType& rightShape,
+                        typename RVEC::size_type rightOffset,
+                        BinaryFunction operation)
+{
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+    left[leftOffset+i]=operation(left[leftOffset+i],right[rightOffset+i]);
+  }
+}
+
+
+
 template <class LVEC, class RVEC>
 inline
 void
@@ -943,17 +962,45 @@ binaryOpVector(LVEC& left,
                         typename RVEC::size_type rightOffset,
                         escript::ESFunction operation)
 {
+  typedef typename LVEC::ElementType ltype;
+  typedef typename RVEC::ElementType rtype;
   EsysAssert(leftShape==rightShape,
 	     "Error - Couldn't perform binaryOp due to shape mismatch,");
   EsysAssert(((left.size()>0)&&checkOffset(left,leftShape, leftOffset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
   EsysAssert(((right.size()>0)&&checkOffset(right,rightShape,rightOffset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
-  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
-    //left[leftOffset+i]=operation(left[leftOffset+i],right[rightOffset+i]);
-    left[leftOffset+i]=left[leftOffset+i]+right[rightOffset+i];
+  switch (operation)
+  {
+//    case POWF: 
+    case PLUSF: binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, plus_func<ltype,rtype,ltype>()); break;
+    case MINUSF:
+    case MULTIPLIESF:
+    case DIVIDESF:
+    case LESSF:
+    case GREATERF:
+    case GREATER_EQUALF:
+    case LESS_EQUALF:
+    default:
+      throw DataException("Unsupported binary operation");    
   }
 }
+
+
+template <class LVEC, typename SCALAR, class BinaryFunction>
+inline
+void
+binaryOpVectorHelper(LVEC& left, 
+			const DataTypes::ShapeType& leftShape,
+			typename LVEC::size_type offset,
+                        SCALAR right,
+                        BinaryFunction operation)
+{
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+    left[offset+i]=operation(left[offset+i],right);
+  }
+}
+
 
 template <class LVEC, typename SCALAR>
 inline
@@ -964,12 +1011,24 @@ binaryOpVector(LVEC& left,
                         SCALAR right,
                         escript::ESFunction operation)
 {
+  typedef typename LVEC::ElementType ltype;
+  typedef SCALAR rtype;  
   EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
-  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
-    //left[offset+i]=operation(left[offset+i],right);
-    left[offset+i]=left[offset+i]+right;
-  }
+  switch (operation)
+  {
+//    case POWF: 
+    case PLUSF: binaryOpVectorHelper(left, leftShape, offset, right, plus_func<ltype,rtype,ltype>()); break;
+    case MINUSF:
+    case MULTIPLIESF:
+    case DIVIDESF:
+    case LESSF:
+    case GREATERF:
+    case GREATER_EQUALF:
+    case LESS_EQUALF:
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
 }
 
 

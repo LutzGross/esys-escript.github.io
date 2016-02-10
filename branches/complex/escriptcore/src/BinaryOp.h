@@ -277,7 +277,7 @@ inline void binaryOpDataReady(DataConstant& left, const DataConstant& right,
   {
       if (right.isComplex())
       {
-	  binaryOpDataReadyHelperCC<DataTypes::cplx_t, DataTypes::real_t>(left, right, operation);
+	  binaryOpDataReadyHelperCC<DataTypes::cplx_t, DataTypes::cplx_t>(left, right, operation);
       }
       else
       {
@@ -354,32 +354,6 @@ inline void binaryOpDataReady(DataExpanded& left, const DataReady& right,
 	  binaryOpDataReadyHelperER<DataTypes::FloatVectorType, DataTypes::FloatVectorType>(left, right, operation);	
       }        
   }    
-  
-  
-  
-  int i,j;
-  DataTypes::FloatVectorType::size_type numDPPSample=left.getNumDPPSample();
-  DataTypes::FloatVectorType::size_type numSamples=left.getNumSamples();
-  if (right.getRank()==0) {
-
-    const DataTypes::ShapeType& leftShape=left.getShape();
-    DataTypes::FloatVectorType& leftVec=left.getVectorRW();
-    //
-    // This will call the double version of binaryOp
-    #pragma omp parallel for private(i,j) schedule(static)
-    for (i=0;i<numSamples;i++) {
-      for (j=0;j<numDPPSample;j++) {
-	DataMaths::binaryOpVector(leftVec,leftShape,left.getPointOffset(i,j), right.getVectorRO()[right.getPointOffset(i,j)]  ,operation);
-      }
-    }
-  } else {
-    #pragma omp parallel for private(i,j) schedule(static)
-    for (i=0;i<numSamples;i++) {
-      for (j=0;j<numDPPSample;j++) {
-	DataMaths::binaryOpVector(left.getVectorRW(),left.getShape(),left.getPointOffset(i,j), right.getVectorRO(), right.getShape(),right.getPointOffset(i,j), operation);
-      }
-    }
-  }
 }  
 
 
