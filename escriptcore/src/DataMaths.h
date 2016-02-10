@@ -114,6 +114,59 @@ Note that vector in this context refers to a data vector storing datapoints not 
            double right,
            BinaryFunction operation);
 
+// ------------------------
+  
+  /**
+     \brief
+     Perform the binary operation on the data points specified by the given
+     offsets in the "left" and "right" vectors. Applies the specified operation
+     to corresponding values in both data points. Operation must be a pointer
+     to a function.
+
+     Called by escript::binaryOp.
+     \param left,right - vectors containing the datapoints
+     \param leftShape,rightShape - shapes of datapoints in the vectors
+     \param leftOffset,rightOffset - beginnings of datapoints in the vectors
+     \param operation - Input -
+                  Operation to apply. Must be a pointer to a function.
+  */
+  template <class LVEC, class RVEC>
+  void
+  binaryOpVector(LVEC& left, 
+	   const DataTypes::ShapeType& leftShape, 
+           typename LVEC::size_type leftOffset,
+           const RVEC& right, 
+           const DataTypes::ShapeType& rightShape,
+           typename RVEC::size_type rightOffset,
+           escript::ESFunction operation);
+
+  /**
+     \brief
+     Perform the binary operation on the data point specified by the given
+     offset in the vector using the scalar value "right". Applies the specified
+     operation to values in the data point. Operation must be a pointer
+     to a function.
+
+     Called by escript::binaryOp.
+
+     \param left - vector containing the datapoints
+     \param shape - shape of datapoint in the vector
+     \param offset - beginning of datapoint in the vector
+     \param right - scalar value for the right hand side of the operation
+     \param operation - Input -
+                  Operation to apply. Must be a pointer to a function.
+  */
+  template <class LVEC, class SCALAR>
+  void
+  binaryOpVector(LVEC& left, 
+           const DataTypes::ShapeType& shape,
+ 	   typename LVEC::size_type offset,
+           SCALAR right,
+           escript::ESFunction operation);
+  
+// ------------------  
+  
+
   /**
      \brief
      Perform the given data point reduction operation on the data point
@@ -811,11 +864,12 @@ Note that vector in this context refers to a data vector storing datapoints not 
    Inline function definitions.
 */
 
+template <class VEC>
 inline
 bool
-checkOffset(const DataTypes::FloatVectorType& data,
+checkOffset(const VEC& data,
 	    const DataTypes::ShapeType& shape,
-	    DataTypes::FloatVectorType::size_type offset)
+	    typename VEC::size_type offset)
 {
 	return (data.size() >= (offset+DataTypes::noValues(shape))); 
 }
@@ -873,6 +927,54 @@ binaryOp(DataTypes::FloatVectorType& left,
     left[offset+i]=operation(left[offset+i],right);
   }
 }
+
+
+// -------------------
+
+
+template <class LVEC, class RVEC>
+inline
+void
+binaryOpVector(LVEC& left, 
+			const DataTypes::ShapeType& leftShape,
+			typename LVEC::size_type leftOffset,
+                        const RVEC& right,
+			const DataTypes::ShapeType& rightShape,
+                        typename RVEC::size_type rightOffset,
+                        escript::ESFunction operation)
+{
+  EsysAssert(leftShape==rightShape,
+	     "Error - Couldn't perform binaryOp due to shape mismatch,");
+  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape, leftOffset)),
+             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
+  EsysAssert(((right.size()>0)&&checkOffset(right,rightShape,rightOffset)),
+             "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+    //left[leftOffset+i]=operation(left[leftOffset+i],right[rightOffset+i]);
+    left[leftOffset+i]=left[leftOffset+i]+right[rightOffset+i];
+  }
+}
+
+template <class LVEC, typename SCALAR>
+inline
+void
+binaryOpVector(LVEC& left, 
+			const DataTypes::ShapeType& leftShape,
+			typename LVEC::size_type offset,
+                        SCALAR right,
+                        escript::ESFunction operation)
+{
+  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
+             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
+  for (DataTypes::FloatVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+    //left[offset+i]=operation(left[offset+i],right);
+    left[offset+i]=left[offset+i]+right;
+  }
+}
+
+
+// -------------------
+
 
 template <class BinaryFunction>
 inline

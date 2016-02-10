@@ -820,5 +820,37 @@ struct less_equal_func
     typedef T result_type;
 };
 
+typedef enum 
+{
+SINF,
+COSF,
+TANF,
+ASINF,
+ACOSF,
+ATANF,
+SINHF,
+COSHF,
+TANHF,
+ERFF,
+ASINHF,
+ACOSHF,
+ATANHF,
+LOG10F,
+LOGF,
+SIGNF,
+ABSF,
+EXPF,
+SQRTF,
+POWF,
+PLUSF,
+MINUSF,
+MULTIPLIESF,
+DIVIDESF,
+LESSF,
+GREATERF,
+GREATER_EQUALF,
+LESS_EQUALF
+} ESFunction;
+
 } // end of namespace
 #endif

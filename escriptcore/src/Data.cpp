@@ -2541,11 +2541,13 @@ Data::operator+=(const Data& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
-    THROWONCOMPLEXA(right)
     MAKELAZYBINSELF(right,ADD);    // for lazy + is equivalent to +=
     exclusiveWrite();                     // Since Lazy data does not modify its leaves we only need to worry here
-    binaryOp(right,plus<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::PLUSF);
     return (*this);
 }
 
