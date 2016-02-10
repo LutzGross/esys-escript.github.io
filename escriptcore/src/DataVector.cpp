@@ -54,10 +54,10 @@ namespace escript {
 // Additional slice operations
 
    void
-   DataTypes::copySlice(DataTypes::FloatVectorType& left,
+   DataTypes::copySlice(DataTypes::RealVectorType& left,
 			    const DataTypes::ShapeType& leftShape,
 			    DataTypes::vec_size_type thisOffset,
-                            const DataTypes::FloatVectorType& other,
+                            const DataTypes::RealVectorType& other,
 			    const DataTypes::ShapeType& otherShape,
                             DataTypes::vec_size_type otherOffset,
                             const DataTypes::RegionLoopRangeType& region)
@@ -148,10 +148,10 @@ namespace escript {
 
 
    void
-   DataTypes::copySliceFrom(DataTypes::FloatVectorType& left,
+   DataTypes::copySliceFrom(DataTypes::RealVectorType& left,
 				const ShapeType& leftShape,
 				DataTypes::vec_size_type thisOffset,
-                                const FloatVectorType& other,
+                                const RealVectorType& other,
 				const DataTypes::ShapeType& otherShape,
                                 DataTypes::vec_size_type otherOffset,
                                 const DataTypes::RegionLoopRangeType& region)
@@ -301,7 +301,7 @@ namespace escript {
 
 
    void
-   DataTypes::pointToStream(std::ostream& os, const FloatVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
+   DataTypes::pointToStream(std::ostream& os, const RealVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
    {
       using namespace std;
       EsysAssert(data!=0, "Error - data is null");
@@ -462,7 +462,7 @@ namespace escript {
    }
 
    std::string
-   DataTypes::pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
+   DataTypes::pointToString(const RealVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {
       using namespace std;
       EsysAssert(data.size()>0,"Error - Data object is empty.");
@@ -528,7 +528,7 @@ namespace escript {
    }
 
 
-   void DataTypes::copyPoint(FloatVectorType& dest, FloatVectorType::size_type doffset, FloatVectorType::size_type nvals, const FloatVectorType& src, FloatVectorType::size_type soffset)
+   void DataTypes::copyPoint(RealVectorType& dest, RealVectorType::size_type doffset, RealVectorType::size_type nvals, const RealVectorType& src, RealVectorType::size_type soffset)
    {
       EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
                  "Error - Couldn't copy due to insufficient storage.");
@@ -544,7 +544,7 @@ namespace escript {
     * The complex vector will be resized as needed and any previous
     * values will be replaced.
    */
-   void DataTypes::fillComplexFromReal(FloatVectorType& r, CplxVectorType& c)
+   void DataTypes::fillComplexFromReal(RealVectorType& r, CplxVectorType& c)
    {
        if (c.size()!=r.size())
        {

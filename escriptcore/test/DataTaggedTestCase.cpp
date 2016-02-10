@@ -51,23 +51,23 @@ using namespace escript::DataTypes;
 //    try
 //    {
 // 	int t[1];
-// 	DataTagged dt(fs,DataTypes::scalarShape,t,DataTypes::FloatVectorType());
+// 	DataTagged dt(fs,DataTypes::scalarShape,t,DataTypes::RealVectorType());
 // 	
 // 	return "DataTagged(const FunctionSpace& what, const DataTypes::ShapeType &shape, const int tags[], const ValueType& data) was supposed to throw.";
 //    } catch (DataException d){}
 //    try
 //    {
-// 	DataTagged t(fs,DataTypes::scalarShape,DataTagged::TagListType(),DataTypes::FloatVectorType());
+// 	DataTagged t(fs,DataTypes::scalarShape,DataTagged::TagListType(),DataTypes::RealVectorType());
 // 	return "DataTagged(const FunctionSpace& what, const DataTypes::ShapeType &shape, const TagListType& tags, const ValueType& data) was supposed to throw.";
 //    } catch (DataException d){}
 //    try
 //    {
-// 	DataTagged t(fs,DataTypes::scalarShape,DataTypes::FloatVectorType());
-// 	return "  DataTagged(const FunctionSpace& what, const DataTypes::ShapeType& shape, const DataTypes::FloatVectorType& defaultvalue, const DataTagged* tagsource=0) was supposed to throw.";
+// 	DataTagged t(fs,DataTypes::scalarShape,DataTypes::RealVectorType());
+// 	return "  DataTagged(const FunctionSpace& what, const DataTypes::ShapeType& shape, const DataTypes::RealVectorType& defaultvalue, const DataTagged* tagsource=0) was supposed to throw.";
 //    } catch (DataException d){}
 //    try
 //    {
-//     	DataTypes::FloatVectorType viewData1(1);
+//     	DataTypes::RealVectorType viewData1(1);
 //     	viewData1[0]=0.0;
 // 	DataConstant c(fs,DataTypes::scalarShape, viewData1);
 // 	DataTagged t(c);
@@ -80,7 +80,7 @@ using namespace escript::DataTypes;
 
 namespace {
 
-FloatVectorType::const_reference
+RealVectorType::const_reference
 getRefRO(DataTagged& data,int offset, int i, int j, int k)
 {
    return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j,k)];
@@ -98,7 +98,7 @@ getRefRO(DataTagged& data,int offset, int i, int j, int k)
 //   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j)];
 //}
 
-FloatVectorType::const_reference
+RealVectorType::const_reference
 getRefRO(const DataTagged& data,int offset, int i)
 {
    return data.getVectorRO()[offset+getRelIndex(data.getShape(),i)];
@@ -186,7 +186,7 @@ void DataTaggedTestCase::testOperations() {
 // 
 //     DataTagged::ValueListType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -247,7 +247,7 @@ void DataTaggedTestCase::testOperations() {
     DataTagged myData;
     DataTagged right;
 
-    FloatVectorType vOneData(1, 1.0 ,1);
+    RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
@@ -322,11 +322,11 @@ void DataTaggedTestCase::testOperations() {
     myData.getVectorRW()[myData.getDefaultOffset()]=1.0;
     right.getVectorRW()[right.getDefaultOffset()]=2.0;
 
-    FloatVectorType vOneData(1, 3.0 ,1);
+    RealVectorType vOneData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    FloatVectorType vTwoData(1, 4.0 ,1);
+    RealVectorType vTwoData(1, 4.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
@@ -411,7 +411,7 @@ void DataTaggedTestCase::testOperations() {
     right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
 
-    FloatVectorType vOneData(1, 1.0 ,1);
+    RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
@@ -497,7 +497,7 @@ void DataTaggedTestCase::testOperations() {
 
 //     DataTagged::ValueListType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -556,18 +556,18 @@ void DataTaggedTestCase::testOperations() {
 
     DataTagged myData;
 
-    FloatVectorType vOneData(1, 1.0 ,1);
+    RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    FloatVectorType vTwoData(1, 2.0 ,1);
+    RealVectorType vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
     myData.addTaggedValue(1,DataTypes::scalarShape,vOneData);
     myData.addTaggedValue(2,DataTypes::scalarShape,vTwoData);
 
-    FloatVectorType vThreeData(1, 3.0 ,1);
+    RealVectorType vThreeData(1, 3.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vThreeView(vThreeData,DataTypes::ShapeType());
 
@@ -650,11 +650,11 @@ void DataTaggedTestCase::testOperations() {
     myData.getVectorRW()[myData.getDefaultOffset()]=2.0;
     right.getVectorRW()[right.getDefaultOffset()]=3.0;
 
-    FloatVectorType vOneData(1, 1.0 ,1);
+    RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    FloatVectorType vTwoData(1, 2.0 ,1);
+    RealVectorType vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
@@ -798,7 +798,7 @@ void DataTaggedTestCase::testOperations() {
 
 //     DataTagged::ValueListType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -855,11 +855,11 @@ void DataTaggedTestCase::testOperations() {
 
     DataTagged myData;
 
-    FloatVectorType vOneData(1, 1.0 ,1);
+    RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vOneView(vOneData,DataTypes::ShapeType());
 
-    FloatVectorType vTwoData(1, 2.0 ,1);
+    RealVectorType vTwoData(1, 2.0 ,1);
     // create a view with an empty shape, a scalar.
 //     DataArrayView vTwoView(vTwoData,DataTypes::ShapeType());
 
@@ -989,7 +989,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
-/*    DataTypes::FloatVectorType viewData(1);
+/*    DataTypes::RealVectorType viewData(1);
     viewData[0]=1.0;*/
 //     DataArrayView myView(viewData,viewShape);
     values.push_back(1.0);
@@ -1049,7 +1049,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
-/*    DataTypes::FloatVectorType viewData(1);
+/*    DataTypes::RealVectorType viewData(1);
     viewData[0]=1.0;
     DataArrayView myView(viewData,viewShape);*/
     values.push_back(1.0);
@@ -1125,11 +1125,11 @@ void DataTaggedTestCase::testAddTaggedValues() {
     DataTagged::FloatBatchType values;
 
     DataTypes::ShapeType viewShape;
-/*    DataTypes::FloatVectorType viewData1(1);
+/*    DataTypes::RealVectorType viewData1(1);
     viewData1[0]=1.0;
-    DataTypes::FloatVectorType viewData2(1);
+    DataTypes::RealVectorType viewData2(1);
     viewData2[0]=2.0;
-    DataTypes::FloatVectorType viewData3(1);
+    DataTypes::RealVectorType viewData3(1);
     viewData3[0]=3.0;
     DataArrayView myView1(viewData1,viewShape);
     DataArrayView myView2(viewData2,viewShape);
@@ -1203,7 +1203,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1272,7 +1272,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1282,7 +1282,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     keys.push_back(1);
 
-//     DataTypes::FloatVectorType viewData1(3);
+//     DataTypes::RealVectorType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
 //       viewData1[i]=i+3;
 	values.push_back(i+3);
@@ -1349,7 +1349,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1361,7 +1361,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-//     DataTypes::FloatVectorType viewData1(3);
+//     DataTypes::RealVectorType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
 //       viewData1[i]=3;
 	values.push_back(3);
@@ -1447,7 +1447,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -1459,7 +1459,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     keys.push_back(2);
     keys.push_back(3);
 
-//     DataTypes::FloatVectorType viewData1(3);
+//     DataTypes::RealVectorType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
 //       viewData1[i]=i+1;
 	values.push_back(i+1);
@@ -1467,7 +1467,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myView1(viewData1,viewShape);
 //     values.push_back(myView1);
 
-//     DataTypes::FloatVectorType viewData2(3);
+//     DataTypes::RealVectorType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
 //       viewData2[i]=i+2;
 	values.push_back(i+2);
@@ -1475,7 +1475,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     DataArrayView myView2(viewData2,viewShape);
 //     values.push_back(myView2);
 
-//     DataTypes::FloatVectorType viewData3(3);
+//     DataTypes::RealVectorType viewData3(3);
     for (int i=0;i<viewShape[0];i++) {
 //       viewData3[i]=i+3;
 	values.push_back(i+3);
@@ -1570,14 +1570,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eOneView(i)=i+1.0;
@@ -1586,7 +1586,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+2.0;
@@ -1595,7 +1595,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eThreeView(i)=i+3.0;
@@ -1662,14 +1662,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eOneView(i)=i+1.0;
@@ -1678,7 +1678,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+2.0;
@@ -1687,7 +1687,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eThreeView(i)=i+3.0;
@@ -1702,7 +1702,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tag "4"
-//     DataTypes::FloatVectorType eFourData(viewData);
+//     DataTypes::RealVectorType eFourData(viewData);
 //     DataArrayView eFourView(eFourData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       values.push_back(i+4.0);
@@ -1763,14 +1763,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       viewData[viewShape[0]+i]=i+1.0;
@@ -1778,7 +1778,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+2.0;
@@ -1787,7 +1787,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eThreeView(i)=i+3.0;
@@ -1804,7 +1804,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     values.clear();
     // value for tags "4", "5" and "6"
-//     DataTypes::FloatVectorType eFourData(viewData);
+//     DataTypes::RealVectorType eFourData(viewData);
 //     DataArrayView eFourView(eFourData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eFourView(i)=i+4.0;
@@ -1885,14 +1885,14 @@ void DataTaggedTestCase::testAddTaggedValues() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       viewData[viewShape[0]+i]=i+1.0;
@@ -1900,7 +1900,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+2.0;
@@ -1909,7 +1909,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       viewData[3*viewShape[0]+i]=i+3.0;
@@ -1926,7 +1926,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
     values.clear();
 
     // value for tag "4"
-//     DataTypes::FloatVectorType eFourData(viewData);
+//     DataTypes::RealVectorType eFourData(viewData);
 //     DataArrayView eFourView(eFourData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       values.push_back(i+4.0);
@@ -1934,7 +1934,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eFourView);
 
     // value for tag "5"
-//     DataTypes::FloatVectorType eFiveData(viewData);
+//     DataTypes::RealVectorType eFiveData(viewData);
 //     DataArrayView eFiveView(eFiveData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       values.push_back(i+5.0);
@@ -1942,7 +1942,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
 //     values.push_back(eFiveView);
 
     // value for tag "6"
-//     DataTypes::FloatVectorType eSixData(viewData);
+//     DataTypes::RealVectorType eSixData(viewData);
 //     DataArrayView eSixView(eSixData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eSixView(i)=i+6.0;
@@ -2029,14 +2029,14 @@ void DataTaggedTestCase::testSetTaggedValue() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       viewData[viewShape[0]+i]=i+1.0;
@@ -2044,7 +2044,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+2.0;
@@ -2053,7 +2053,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eThreeView(i)=i+3.0;
@@ -2064,7 +2064,7 @@ void DataTaggedTestCase::testSetTaggedValue() {
     DataTagged myData(FunctionSpace(),viewShape,keys,viewData);
 
     // new value for tag "2"
-    FloatVectorType tmp(viewShape[0]);
+    RealVectorType tmp(viewShape[0]);
     for (int i=0;i<viewShape[0];i++) {
       tmp[i]=i+5.0;
     }
@@ -2181,7 +2181,7 @@ void DataTaggedTestCase::testAll() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -2262,14 +2262,14 @@ void DataTaggedTestCase::testAll() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*2);
+    DataTypes::RealVectorType viewData(3*2);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eOneView(i)=i+1.0;
@@ -2368,14 +2368,14 @@ void DataTaggedTestCase::testAll() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 /*      eOneView(i)=i+1.0;*/
@@ -2384,7 +2384,7 @@ void DataTaggedTestCase::testAll() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       viewData[2*viewShape[0]+i]=i+2.0;
@@ -2392,7 +2392,7 @@ void DataTaggedTestCase::testAll() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 /*      eThreeView(i)=i+3.0;*/
@@ -2519,14 +2519,14 @@ void DataTaggedTestCase::testCopyConstructors() {
     viewShape.push_back(3);
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
       viewData[viewShape[0]+i]=i+1.0;
@@ -2534,7 +2534,7 @@ void DataTaggedTestCase::testCopyConstructors() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+2.0;
@@ -2543,7 +2543,7 @@ void DataTaggedTestCase::testCopyConstructors() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eThreeView(i)=i+3.0;
@@ -2650,7 +2650,7 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     // Create a DataConstant
     DataTypes::ShapeType shape;
-    DataTypes::FloatVectorType data(DataTypes::noValues(shape),0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //     DataArrayView pointData(data,shape);
     data[0]=1.0;
     DataConstant myConstantData(FunctionSpace(),shape,data);
@@ -2755,7 +2755,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(3);
+    DataTypes::RealVectorType viewData(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
@@ -2836,7 +2836,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     DataTagged::FloatBatchType values;
 
-    DataTypes::FloatVectorType viewData(27);
+    DataTypes::RealVectorType viewData(27);
     for (int i=0;i<viewData.size();i++) {
       viewData[i]=i;
     }
@@ -2949,12 +2949,12 @@ void DataTaggedTestCase::testGetSlice() {
     DataTypes::ShapeType viewShape;
 
     // default value
-    DataTypes::FloatVectorType viewData(1*2);
+    DataTypes::RealVectorType viewData(1*2);
     viewData[0]=0.0;
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     viewData[1]=1.0;
 //     values.push_back(eOneView);
@@ -3007,14 +3007,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::FloatBatchType values;
 
     // default value
-    DataTypes::FloatVectorType viewData(3*2);
+    DataTypes::RealVectorType viewData(3*2);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eOneView(i)=i+3.0;
@@ -3111,14 +3111,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::FloatBatchType values;
 
     // default value
-    DataTypes::FloatVectorType viewData(27*2);
+    DataTypes::RealVectorType viewData(27*2);
     for (int i=0;i<noValues(viewShape);i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType viewData1(27);
+//     DataTypes::RealVectorType viewData1(27);
     for (int i=0;i<noValues(viewShape);i++) {
       viewData[noValues(viewShape)+i]=i+27.0;
     }
@@ -3249,26 +3249,26 @@ void DataTaggedTestCase::testGetSlice() {
     DataTypes::ShapeType viewShape;
 
     // default value
-    DataTypes::FloatVectorType viewData(1*4);
+    DataTypes::RealVectorType viewData(1*4);
     viewData[0]=0.0;
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
 //     eOneView()=1.0;
     viewData[1]=1.0;
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
 //     eTwoView()=2.0;
     viewData[2]=2.0;
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
 //     eThreeView()=3.0;
     viewData[3]=3.0;
@@ -3334,14 +3334,14 @@ void DataTaggedTestCase::testGetSlice() {
     DataTagged::FloatBatchType values;
 
     // default value
-    DataTypes::FloatVectorType viewData(3*4);
+    DataTypes::RealVectorType viewData(3*4);
     for (int i=0;i<viewShape[0];i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType eOneData(viewData);
+//     DataTypes::RealVectorType eOneData(viewData);
 //     DataArrayView eOneView(eOneData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eOneView(i)=i+3.0;
@@ -3350,7 +3350,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     values.push_back(eOneView);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType eTwoData(viewData);
+//     DataTypes::RealVectorType eTwoData(viewData);
 //     DataArrayView eTwoView(eTwoData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eTwoView(i)=i+6.0;
@@ -3359,7 +3359,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     values.push_back(eTwoView);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType eThreeData(viewData);
+//     DataTypes::RealVectorType eThreeData(viewData);
 //     DataArrayView eThreeView(eThreeData, viewShape);
     for (int i=0;i<viewShape[0];i++) {
 //       eThreeView(i)=i+9.0;
@@ -3486,14 +3486,14 @@ void DataTaggedTestCase::testGetSlice() {
 
     int nvals=27;
     // default value
-    DataTypes::FloatVectorType viewData(27*4);
+    DataTypes::RealVectorType viewData(27*4);
     for (int i=0;i<nvals;i++) {
       viewData[i]=i;
     }
 //     DataArrayView myView(viewData,viewShape);
 
     // value for tag "1"
-//     DataTypes::FloatVectorType viewData1(27);
+//     DataTypes::RealVectorType viewData1(27);
     for (int i=0;i<nvals;i++) {
       viewData[nvals+i]=i+27.0;
     }
@@ -3501,7 +3501,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     values.push_back(myView1);
 
     // value for tag "2"
-//     DataTypes::FloatVectorType viewData2(27);
+//     DataTypes::RealVectorType viewData2(27);
     for (int i=0;i<nvals;i++) {
       viewData[2*nvals+i]=i+54.0;
     }
@@ -3509,7 +3509,7 @@ void DataTaggedTestCase::testGetSlice() {
 //     values.push_back(myView2);
 
     // value for tag "3"
-//     DataTypes::FloatVectorType viewData3(27);
+//     DataTypes::RealVectorType viewData3(27);
     for (int i=0;i<nvals;i++) {
       viewData[3*nvals+i]=i+81.0;
     }
@@ -3703,14 +3703,14 @@ void DataTaggedTestCase::testSetSlice() {
     DataTypes::ShapeType viewShape;
     viewShape.push_back(3);
 
-    DataTypes::FloatVectorType viewData1(3);
+    DataTypes::RealVectorType viewData1(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData1[i]=i;
     }
 //     DataArrayView myView1(viewData1,viewShape);
     DataTagged myData1(FunctionSpace(),viewShape,viewData1);
 
-    DataTypes::FloatVectorType viewData2(3);
+    DataTypes::RealVectorType viewData2(3);
     for (int i=0;i<viewShape[0];i++) {
       viewData2[i]=i+3;
     }
@@ -3748,7 +3748,7 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataTypes::FloatVectorType viewData3(1);
+    DataTypes::RealVectorType viewData3(1);
     viewData3[0]=6.0;
 //     DataArrayView myView3(viewData3,viewShape);
     DataTagged myData3(FunctionSpace(),viewShape,viewData3);
@@ -3818,14 +3818,14 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.push_back(3);
     viewShape.push_back(3);
 
-    DataTypes::FloatVectorType viewData1(27);
+    DataTypes::RealVectorType viewData1(27);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=i;
     }
 //     DataArrayView myView1(viewData1,viewShape);
     DataTagged myData1(FunctionSpace(),viewShape,viewData1);
 
-    DataTypes::FloatVectorType viewData2(27);
+    DataTypes::RealVectorType viewData2(27);
     for (int i=0;i<viewData2.size();i++) {
       viewData2[i]=i+27;
     }
@@ -3863,7 +3863,7 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(3);
 
-    DataTypes::FloatVectorType viewData3(3);
+    DataTypes::RealVectorType viewData3(3);
     for (int i=0;i<viewData3.size();i++) {
       viewData3[i]=i+60;
     }
@@ -3937,12 +3937,12 @@ void DataTaggedTestCase::testSetSlice() {
     DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(1*2);
+    DataTypes::RealVectorType viewData1(1*2);
     viewData1[0]=0.0;
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(1);
+//     DataTypes::RealVectorType viewData2(1);
     viewData1[1]=0.0;
 //     DataArrayView myView2(viewData2,viewShape);
 //     values.push_back(myView2);
@@ -3952,12 +3952,12 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData3(1*2);
+    DataTypes::RealVectorType viewData3(1*2);
     viewData3[0]=1.0;
 //     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-//     DataTypes::FloatVectorType viewData4(1);
+//     DataTypes::RealVectorType viewData4(1);
     viewData3[1]=2.0;
 //     DataArrayView myView4(viewData4,viewShape);
 //     values.push_back(myView4);
@@ -4002,14 +4002,14 @@ void DataTaggedTestCase::testSetSlice() {
 
     int nvals=3;
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(3*2);
+    DataTypes::RealVectorType viewData1(3*2);
     for (int i=0;i<nvals;i++) {
       viewData1[i]=0.0;
     }
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(3);
+//     DataTypes::RealVectorType viewData2(3);
     for (int i=0;i<nvals;i++) {
       viewData1[nvals+i]=0.0;
     }
@@ -4020,14 +4020,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData3(3*2);
+    DataTypes::RealVectorType viewData3(3*2);
     for (int i=0;i<nvals;i++) {
       viewData3[i]=1.0;
     }
 //     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-//     DataTypes::FloatVectorType viewData4(3);
+//     DataTypes::RealVectorType viewData4(3);
     for (int i=0;i<nvals;i++) {
       viewData3[nvals+i]=2.0;
     }
@@ -4074,13 +4074,13 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataTypes::FloatVectorType viewData5(1*2);
+    DataTypes::RealVectorType viewData5(1*2);
     viewData5[0]=3.0;
 //     DataArrayView myView5(viewData5,viewShape);
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData6(1);
+//     DataTypes::RealVectorType viewData6(1);
     viewData5[1]=4.0;
 //     DataArrayView myView6(viewData6,viewShape);
 //     values.push_back(myView6);
@@ -4120,13 +4120,13 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::FloatVectorType viewData7(1*2);
+    DataTypes::RealVectorType viewData7(1*2);
     viewData7[0]=5.0;
 //     DataArrayView myView7(viewData7,viewShape);
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData8(1);
+//     DataTypes::RealVectorType viewData8(1);
     viewData7[1]=6.0;
 //     DataArrayView myView8(viewData8,viewShape);
 //     values.push_back(myView8);
@@ -4176,14 +4176,14 @@ void DataTaggedTestCase::testSetSlice() {
 
     int nvals=27;
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(27*2);
+    DataTypes::RealVectorType viewData1(27*2);
     for (int i=0;i<nvals;i++) {
       viewData1[i]=0.0;
     }
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(27);
+//     DataTypes::RealVectorType viewData2(27);
     for (int i=0;i<nvals;i++) {
       viewData1[nvals+i]=0.0;
     }
@@ -4195,14 +4195,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData3(27*2);
+    DataTypes::RealVectorType viewData3(27*2);
     for (int i=0;i<nvals;i++) {
       viewData3[i]=1.0;
     }
 //     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-//     DataTypes::FloatVectorType viewData4(27);
+//     DataTypes::RealVectorType viewData4(27);
     for (int i=0;i<nvals;i++) {
       viewData3[nvals+i]=2.0;
     }
@@ -4255,7 +4255,7 @@ void DataTaggedTestCase::testSetSlice() {
   
     nvals=3;
 
-    DataTypes::FloatVectorType viewData5(3*2);
+    DataTypes::RealVectorType viewData5(3*2);
     for (int i=0;i<nvals;i++) {
       viewData5[i]=3.0;
     }
@@ -4263,7 +4263,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData6(3);
+//     DataTypes::RealVectorType viewData6(3);
     for (int i=0;i<nvals;i++) {
       viewData5[nvals+i]=4.0;
     }
@@ -4309,13 +4309,13 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::FloatVectorType viewData7(1*2);
+    DataTypes::RealVectorType viewData7(1*2);
     viewData7[0]=5.0;
 //     DataArrayView myView7(viewData7,viewShape);
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData8(1);
+//     DataTypes::RealVectorType viewData8(1);
     viewData7[1]=6.0;
 //     DataArrayView myView8(viewData8,viewShape);
 //     values.push_back(myView8);
@@ -4363,24 +4363,24 @@ void DataTaggedTestCase::testSetSlice() {
     DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(1*4);
+    DataTypes::RealVectorType viewData1(1*4);
     viewData1[0]=0.0;
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(1);
+//     DataTypes::RealVectorType viewData2(1);
     viewData1[1]=0.0;
 //     DataArrayView myView2(viewData2,viewShape);
 //     values.push_back(myView2);
 
     // value for tag "2" for Data1
-//     DataTypes::FloatVectorType viewData5(1);
+//     DataTypes::RealVectorType viewData5(1);
     viewData1[2]=0.0;
 //     DataArrayView myView5(viewData5,viewShape);
 //     values.push_back(myView5);
 
     // value for tag "3" for Data1
-//     DataTypes::FloatVectorType viewData6(1);
+//     DataTypes::RealVectorType viewData6(1);
     viewData1[3]=0.0;
 //     DataArrayView myView6(viewData6,viewShape);
 //     values.push_back(myView6);
@@ -4390,24 +4390,24 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData3(1*4);
+    DataTypes::RealVectorType viewData3(1*4);
     viewData3[0]=1.0;
 //     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "1" for Data2
-//     DataTypes::FloatVectorType viewData4(1);
+//     DataTypes::RealVectorType viewData4(1);
     viewData3[1]=2.0;
 //     DataArrayView myView4(viewData4,viewShape);
 //     values.push_back(myView4);
 
     // value for tag "2" for Data2
-//     DataTypes::FloatVectorType viewData7(1);
+//     DataTypes::RealVectorType viewData7(1);
     viewData3[2]=3.0;
 //     DataArrayView myView7(viewData7,viewShape);
 //     values.push_back(myView7);
 
     // value for tag "3" for Data2
-//     DataTypes::FloatVectorType viewData8(1);
+//     DataTypes::RealVectorType viewData8(1);
     viewData3[3]=4.0;
 //     DataArrayView myView8(viewData8,viewShape);
 //     values.push_back(myView8);
@@ -4469,14 +4469,14 @@ void DataTaggedTestCase::testSetSlice() {
     int nvals=3;
 
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(3*4);
+    DataTypes::RealVectorType viewData1(3*4);
     for (int i=0;i<viewData1.size();i++) {
       viewData1[i]=0.0;
     }
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(3);
+//     DataTypes::RealVectorType viewData2(3);
     for (int i=0;i<nvals;i++) {
       viewData1[nvals+i]=0.0;
     }
@@ -4484,7 +4484,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView2);
 
     // value for tag "2" for Data1
-//     DataTypes::FloatVectorType viewData3(3);
+//     DataTypes::RealVectorType viewData3(3);
     for (int i=0;i<nvals;i++) {
       viewData1[2*nvals+i]=0.0;
     }
@@ -4492,7 +4492,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView3);
 
     // value for tag "3" for Data1
-//     DataTypes::FloatVectorType viewData4(3);
+//     DataTypes::RealVectorType viewData4(3);
     for (int i=0;i<nvals;i++) {
       viewData1[3*nvals+i]=0.0;
     }
@@ -4506,14 +4506,14 @@ void DataTaggedTestCase::testSetSlice() {
     nvals=3;
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData5(3*4);
+    DataTypes::RealVectorType viewData5(3*4);
     for (int i=0;i<nvals;i++) {
       viewData5[i]=1.0;
     }
 //     DataArrayView myView5(viewData5,viewShape);
 
     // value for tag "1" for Data2
-//     DataTypes::FloatVectorType viewData6(3);
+//     DataTypes::RealVectorType viewData6(3);
     for (int i=0;i<nvals;i++) {
       viewData5[nvals+i]=2.0;
     }
@@ -4521,7 +4521,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView6);
 
     // value for tag "2" for Data2
-//     DataTypes::FloatVectorType viewData7(3);
+//     DataTypes::RealVectorType viewData7(3);
     for (int i=0;i<nvals;i++) {
       viewData5[2*nvals+i]=3.0;
     }
@@ -4529,7 +4529,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView7);
 
     // value for tag "3" for Data2
-//     DataTypes::FloatVectorType viewData8(3);
+//     DataTypes::RealVectorType viewData8(3);
     for (int i=0;i<nvals;i++) {
       viewData5[3*nvals+i]=4.0;
     }
@@ -4592,23 +4592,23 @@ void DataTaggedTestCase::testSetSlice() {
     viewShape.clear();
     viewShape.push_back(1);
 
-    DataTypes::FloatVectorType viewData9(1*4);
+    DataTypes::RealVectorType viewData9(1*4);
     viewData9[0]=6.0;
 //     DataArrayView myView9(viewData9,viewShape);
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData10(1);
+//     DataTypes::RealVectorType viewData10(1);
     viewData9[1]=7.0;
 //     DataArrayView myView10(viewData10,viewShape);
 //     values.push_back(myView10);
 
-//     DataTypes::FloatVectorType viewData11(1);
+//     DataTypes::RealVectorType viewData11(1);
     viewData9[2]=8.0;
 //     DataArrayView myView11(viewData11,viewShape);
 //     values.push_back(myView11);
 
-//     DataTypes::FloatVectorType viewData12(1);
+//     DataTypes::RealVectorType viewData12(1);
     viewData9[3]=9.0;
 //     DataArrayView myView12(viewData12,viewShape);
 //     values.push_back(myView12);
@@ -4665,23 +4665,23 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::FloatVectorType viewData13(1*4);
+    DataTypes::RealVectorType viewData13(1*4);
     viewData13[0]=10.0;
 //     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData14(1);
+//     DataTypes::RealVectorType viewData14(1);
     viewData13[1]=11.0;
 //     DataArrayView myView14(viewData14,viewShape);
 //     values.push_back(myView14);
 
-//     DataTypes::FloatVectorType viewData15(2);
+//     DataTypes::RealVectorType viewData15(2);
     viewData13[2]=12.0;
 //     DataArrayView myView15(viewData15,viewShape);
 //     values.push_back(myView15);
 
-//     DataTypes::FloatVectorType viewData16(3);
+//     DataTypes::RealVectorType viewData16(3);
     viewData13[3]=13.0;
 //     DataArrayView myView16(viewData16,viewShape);
 //     values.push_back(myView16);
@@ -4750,14 +4750,14 @@ void DataTaggedTestCase::testSetSlice() {
     int nvals=noValues(viewShape);
 
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(27*4);
+    DataTypes::RealVectorType viewData1(27*4);
     for (int i=0;i<nvals;i++) {
       viewData1[i]=0.0;
     }
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(27);
+//     DataTypes::RealVectorType viewData2(27);
     for (int i=0;i<nvals;i++) {
       viewData1[nvals+i]=0.0;
     }
@@ -4765,7 +4765,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView2);
 
     // value for tag "2" for Data1
-//     DataTypes::FloatVectorType viewData3(27);
+//     DataTypes::RealVectorType viewData3(27);
     for (int i=0;i<nvals;i++) {
       viewData1[2*nvals+i]=0.0;
     }
@@ -4773,7 +4773,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView3);
 
     // value for tag "3" for Data1
-//     DataTypes::FloatVectorType viewData4(27);
+//     DataTypes::RealVectorType viewData4(27);
     for (int i=0;i<nvals;i++) {
       viewData1[3*nvals+i]=0.0;
     }
@@ -4785,14 +4785,14 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData5(27*4);
+    DataTypes::RealVectorType viewData5(27*4);
     for (int i=0;i<nvals;i++) {
       viewData5[i]=1.0;
     }
 //     DataArrayView myView5(viewData5,viewShape);
 
     // value for tag "1" for Data2
-//     DataTypes::FloatVectorType viewData6(27);
+//     DataTypes::RealVectorType viewData6(27);
     for (int i=0;i<nvals;i++) {
       viewData5[nvals+i]=2.0;
     }
@@ -4800,7 +4800,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView6);
 
     // value for tag "2" for Data2
-//     DataTypes::FloatVectorType viewData7(27);
+//     DataTypes::RealVectorType viewData7(27);
     for (int i=0;i<nvals;i++) {
       viewData5[2*nvals+i]=3.0;
     }
@@ -4808,7 +4808,7 @@ void DataTaggedTestCase::testSetSlice() {
 //     values.push_back(myView7);
 
     // value for tag "3" for Data2
-    DataTypes::FloatVectorType viewData8(27);
+    DataTypes::RealVectorType viewData8(27);
     for (int i=0;i<nvals;i++) {
       viewData5[3*nvals+i]=4.0;
     }
@@ -4874,7 +4874,7 @@ void DataTaggedTestCase::testSetSlice() {
 
     nvals=3;
 
-    DataTypes::FloatVectorType viewData9(3*4);
+    DataTypes::RealVectorType viewData9(3*4);
     for (int i=0;i<nvals;i++) {
       viewData9[i]=6.0;
     }
@@ -4882,21 +4882,21 @@ void DataTaggedTestCase::testSetSlice() {
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData10(3);
+//     DataTypes::RealVectorType viewData10(3);
     for (int i=0;i<nvals;i++) {
       viewData9[nvals+i]=7.0;
     }
 //     DataArrayView myView10(viewData10,viewShape);
 //     values.push_back(myView10);
 
-//     DataTypes::FloatVectorType viewData11(3);
+//     DataTypes::RealVectorType viewData11(3);
     for (int i=0;i<nvals;i++) {
       viewData9[2*nvals+i]=8.0;
     }
 //     DataArrayView myView11(viewData11,viewShape);
 //     values.push_back(myView11);
 
-//     DataTypes::FloatVectorType viewData12(3);
+//     DataTypes::RealVectorType viewData12(3);
     for (int i=0;i<nvals;i++) {
       viewData9[3*nvals+i]=9.0;
     }
@@ -4959,23 +4959,23 @@ void DataTaggedTestCase::testSetSlice() {
 
     viewShape.clear();
 
-    DataTypes::FloatVectorType viewData13(1*4);
+    DataTypes::RealVectorType viewData13(1*4);
     viewData13[0]=10.0;
 //     DataArrayView myView13(viewData13,viewShape);
 
     values.clear();
 
-//     DataTypes::FloatVectorType viewData14(1);
+//     DataTypes::RealVectorType viewData14(1);
     viewData13[1]=11.0;
 //     DataArrayView myView14(viewData14,viewShape);
 //     values.push_back(myView14);
 
-//     DataTypes::FloatVectorType viewData15(2);
+//     DataTypes::RealVectorType viewData15(2);
     viewData13[2]=12.0;
 //     DataArrayView myView15(viewData15,viewShape);
 //     values.push_back(myView15);
 
-//     DataTypes::FloatVectorType viewData16(3);
+//     DataTypes::RealVectorType viewData16(3);
     viewData13[3]=13.0;
 //     DataArrayView myView16(viewData16,viewShape);
 //     values.push_back(myView16);
@@ -5033,24 +5033,24 @@ void DataTaggedTestCase::testSetSlice() {
     DataTypes::ShapeType viewShape;
 
     // default value for Data1
-    DataTypes::FloatVectorType viewData1(1*4);
+    DataTypes::RealVectorType viewData1(1*4);
     viewData1[0]=0.0;
 //     DataArrayView myView1(viewData1,viewShape);
 
     // value for tag "1" for Data1
-//     DataTypes::FloatVectorType viewData2(1);
+//     DataTypes::RealVectorType viewData2(1);
     viewData1[1]=0.0;
 //     DataArrayView myView2(viewData2,viewShape);
 //     values.push_back(myView2);
 
     // value for tag "2" for Data1
-//     DataTypes::FloatVectorType viewData5(1);
+//     DataTypes::RealVectorType viewData5(1);
     viewData1[2]=0.0;
 //     DataArrayView myView5(viewData5,viewShape);
 //     values.push_back(myView5);
 
     // value for tag "3" for Data1
-//     DataTypes::FloatVectorType viewData6(1);
+//     DataTypes::RealVectorType viewData6(1);
     viewData1[3]=0.0;
 //     DataArrayView myView6(viewData6,viewShape);
 //     values.push_back(myView6);
@@ -5060,24 +5060,24 @@ void DataTaggedTestCase::testSetSlice() {
     values.clear();
 
     // default value for Data2
-    DataTypes::FloatVectorType viewData3(1*4);
+    DataTypes::RealVectorType viewData3(1*4);
     viewData3[0]=1.0;
 //     DataArrayView myView3(viewData3,viewShape);
 
     // value for tag "3" for Data2
-//     DataTypes::FloatVectorType viewData4(1);
+//     DataTypes::RealVectorType viewData4(1);
     viewData3[1]=2.0;
 //     DataArrayView myView4(viewData4,viewShape);
 //     values.push_back(myView4);
 
     // value for tag "4" for Data2
-//     DataTypes::FloatVectorType viewData7(1);
+//     DataTypes::RealVectorType viewData7(1);
     viewData3[2]=3.0;
 //     DataArrayView myView7(viewData7,viewShape);
 //     values.push_back(myView7);
 
     // value for tag "5" for Data2
-//     DataTypes::FloatVectorType viewData8(1);
+//     DataTypes::RealVectorType viewData8(1);
     viewData3[3]=4.0;
 //     DataArrayView myView8(viewData8,viewShape);
 //     values.push_back(myView8);

@@ -82,13 +82,13 @@ typedef DataReady parent;
    */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::FloatVectorType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -161,12 +161,12 @@ typedef DataReady parent;
 	\brief Provide access to underlying storage. Internal use only!
   */
   ESCRIPT_DLL_API
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getVectorRW();
 
 
   ESCRIPT_DLL_API
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getVectorRO() const;
 
   ESCRIPT_DLL_API
@@ -178,10 +178,10 @@ typedef DataReady parent;
   virtual const DataTypes::CplxVectorType&
   getVectorROC() const;
   
-  virtual DataTypes::FloatVectorType&
+  virtual DataTypes::RealVectorType&
   getTypedVectorRW(DataTypes::real_t dummy);  
   
-  virtual const DataTypes::FloatVectorType&
+  virtual const DataTypes::RealVectorType&
   getTypedVectorRO(DataTypes::real_t dummy) const;
 
   virtual DataTypes::CplxVectorType&

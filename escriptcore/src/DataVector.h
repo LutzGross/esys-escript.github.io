@@ -42,7 +42,7 @@ namespace DataTypes
   
   // This is the main version we had
   //typedef DataVectorTaipan DataVector;
-  typedef escript::DataTypes::DataVectorAlt<real_t> FloatVectorType;//!< Vector to store underlying data.
+  typedef escript::DataTypes::DataVectorAlt<real_t> RealVectorType;//!< Vector to store underlying data.
   typedef escript::DataTypes::DataVectorAlt<cplx_t> CplxVectorType;
 
   /**
@@ -61,10 +61,10 @@ namespace DataTypes
   */
    ESCRIPT_DLL_API
    void
-   copySlice(FloatVectorType& left,
+   copySlice(RealVectorType& left,
 			    const ShapeType& leftShape,
 			    vec_size_type leftOffset,
-                            const FloatVectorType& other,
+                            const RealVectorType& other,
 			    const ShapeType& otherShape,
                             vec_size_type otherOffset,
                             const RegionLoopRangeType& region);
@@ -85,10 +85,10 @@ namespace DataTypes
   */
    ESCRIPT_DLL_API
    void
-   copySliceFrom(FloatVectorType& left,
+   copySliceFrom(RealVectorType& left,
 				const ShapeType& leftShape,
 				vec_size_type leftOffset,
-                                const FloatVectorType& other,
+                                const RealVectorType& other,
 				const ShapeType& otherShape,
                                 vec_size_type otherOffset,
                                 const RegionLoopRangeType& region);
@@ -110,7 +110,7 @@ namespace DataTypes
      \param sep - separator string to print between components
    */
    void
-   pointToStream(std::ostream& os, const FloatVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+   pointToStream(std::ostream& os, const RealVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
 
    /**
       \brief Display a single value (with the specified shape) from the data.
@@ -121,7 +121,7 @@ namespace DataTypes
      \param prefix - string to prepend to the output
    */
    std::string
-   pointToString(const FloatVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
+   pointToString(const RealVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
 
 
    std::string
@@ -136,14 +136,14 @@ namespace DataTypes
    \param src - vector to copy from
    \param soffset - beginning of the datapoint in src
    */
-   void copyPoint(FloatVectorType& dest, vec_size_type doffset, vec_size_type nvals, const FloatVectorType& src, vec_size_type soffset);  
+   void copyPoint(RealVectorType& dest, vec_size_type doffset, vec_size_type nvals, const RealVectorType& src, vec_size_type soffset);  
   
    /**
     * \brief copy data from a real vector to a complex vector
     * The complex vector will be resized as needed and any previous
     * values will be replaced.
    */
-   void fillComplexFromReal(FloatVectorType& r, CplxVectorType& c);
+   void fillComplexFromReal(RealVectorType& r, CplxVectorType& c);
 }
 
  

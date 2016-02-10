@@ -103,7 +103,7 @@ class DataLazy : public DataAbstract
 {
 
 typedef DataAbstract parent;
-typedef DataTypes::FloatVectorType ValueType;
+typedef DataTypes::RealVectorType ValueType;
 typedef DataTypes::ShapeType ShapeType;
 
 public:
@@ -226,11 +226,11 @@ public:
   getSlice(const DataTypes::RegionType& region) const;
 
 
-  DataTypes::FloatVectorType::size_type 
+  DataTypes::RealVectorType::size_type 
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  DataTypes::FloatVectorType::size_type 
+  DataTypes::RealVectorType::size_type 
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -294,7 +294,7 @@ private:
   size_t m_height;
 
   int* m_sampleids;		// may be NULL
-  mutable DataTypes::FloatVectorType m_samples;  
+  mutable DataTypes::RealVectorType m_samples;  
 
   /**
   Allocates sample storage at each node
@@ -302,32 +302,32 @@ private:
   void LazyNodeSetup();
 
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const;
 
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const;  
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeSample(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeBinary(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const;
 
-  const DataTypes::FloatVectorType*
+  const DataTypes::RealVectorType*
   resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const;
 
   /**

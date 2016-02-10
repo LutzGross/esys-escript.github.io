@@ -188,7 +188,7 @@ DataVectorTaipan::operator!=(const DataVectorTaipan& other) const
 void 
 DataVectorTaipan::copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies)
 {
-  using DataTypes::FloatVectorType;
+  using DataTypes::RealVectorType;
   const DataTypes::ShapeType& tempShape=value.getShape();
   size_type len=DataTypes::noValues(tempShape);
   if (offset+len*copies>size())
@@ -285,7 +285,7 @@ DataVectorTaipan::copyFromArrayToOffset(const WrappedArray& value, size_type off
 void
 DataVectorTaipan::copyFromArray(const WrappedArray& value, size_type copies)
 {
-  using DataTypes::FloatVectorType;
+  using DataTypes::RealVectorType;
   if (m_array_data!=0) {
     arrayManager.delete_array(m_array_data);
   }
