@@ -972,11 +972,11 @@ binaryOpVector(LVEC& left,
              "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
   switch (operation)
   {
-//    case POWF: 
+    case POWF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, pow_func<ltype,rtype,ltype>()); break; 
     case PLUSF: binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, plus_func<ltype,rtype,ltype>()); break;
-    case MINUSF:
-    case MULTIPLIESF:
-    case DIVIDESF:
+    case MINUSF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, minus_func<ltype,rtype,ltype>()); break;
+    case MULTIPLIESF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, multiplies_func<ltype,rtype,ltype>()); break;
+    case DIVIDESF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, divides_func<ltype,rtype,ltype>()); break;
     case LESSF:
     case GREATERF:
     case GREATER_EQUALF:
@@ -1017,11 +1017,11 @@ binaryOpVector(LVEC& left,
              "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
   switch (operation)
   {
-//    case POWF: 
+    case POWF: binaryOpVectorHelper(left, leftShape, offset, right, pow_func<ltype,rtype,ltype>()); break;
     case PLUSF: binaryOpVectorHelper(left, leftShape, offset, right, plus_func<ltype,rtype,ltype>()); break;
-    case MINUSF:
-    case MULTIPLIESF:
-    case DIVIDESF:
+    case MINUSF:binaryOpVectorHelper(left, leftShape, offset, right, minus_func<ltype,rtype,ltype>()); break;
+    case MULTIPLIESF:binaryOpVectorHelper(left, leftShape, offset, right, multiplies_func<ltype,rtype,ltype>()); break;
+    case DIVIDESF:binaryOpVectorHelper(left, leftShape, offset, right, divides_func<ltype,rtype,ltype>()); break;
     case LESSF:
     case GREATERF:
     case GREATER_EQUALF:
