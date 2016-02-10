@@ -20,34 +20,46 @@
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/FunctionSpace.h>
 
+#include <BelosSolverManager.hpp>
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_CrsMatrix.hpp>
 
 namespace escript {
-class SolverBuddy;
+    class SolverBuddy;
 }
 
 namespace esys_trilinos {
 
-/// Scalar Type
+/// Scalar type
 typedef double  ST;
-/// Global Ordinal Type
+/// Global Ordinal type
 typedef index_t GO;
-/// Local Ordinal Type
+/// Local Ordinal type
 typedef index_t LO;
+/// Kokkos Node type
+#ifdef _OPENMP
+typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
+#elif USE_CUDA
+typedef Kokkos::Compat::KokkosCudaWrapperNode NT;
+#else
+typedef Kokkos::Compat::KokkosSerialWrapperNode NT;
+#endif
 
-typedef std::vector<GO> IndexVector;
-typedef Tpetra::CrsGraph<LO,GO> GraphType;
-typedef Tpetra::CrsMatrix<ST,LO,GO> MatrixType;
-typedef MatrixType::map_type MapType;
-typedef Tpetra::MultiVector<ST,LO,GO> VectorType;
-typedef Tpetra::Import<LO,GO> ImportType;
+typedef Tpetra::CrsGraph<LO,GO,NT>                 GraphType;
+typedef Tpetra::CrsMatrix<ST,LO,GO,NT>             MatrixType;
+typedef Tpetra::MultiVector<ST,LO,GO,NT>           VectorType;
+typedef Tpetra::Operator<ST,LO,GO,NT>              OpType;
+typedef Belos::LinearProblem<ST,VectorType,OpType> ProblemType;
+typedef Belos::SolverManager<ST,VectorType,OpType> SolverType;
+typedef MatrixType::map_type                       MapType;
+typedef Tpetra::Import<LO,GO,NT>                   ImportType;
 
 typedef Teuchos::RCP<MapType> TrilinosMap_ptr;
 typedef Teuchos::RCP<const MapType> const_TrilinosMap_ptr;
 
 typedef Teuchos::RCP<GraphType> TrilinosGraph_ptr;
 typedef Teuchos::RCP<const GraphType> const_TrilinosGraph_ptr;
+
 
 inline
 Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
@@ -83,11 +95,16 @@ public:
     /// notifies the matrix that a set of changes has occured.
     void fillComplete(bool localOnly = true);
 
-    void add(const IndexVector& rowIndex, const std::vector<double>& array);
+    void add(const std::vector<LO>& rowIndex, const std::vector<double>& array);
 
     inline int getBlockSize() const { return getRowBlockSize(); }
 
 private:
+    Teuchos::RCP<OpType> createPreconditioner(
+                                        const escript::SolverBuddy& sb) const;
+
+    Teuchos::RCP<SolverType> createSolver(const escript::SolverBuddy& sb) const;
+
     virtual void setToSolution(escript::Data& out, escript::Data& in,
                                boost::python::object& options) const;
 

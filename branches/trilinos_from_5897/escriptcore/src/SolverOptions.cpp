@@ -89,7 +89,8 @@ std::string SolverBuddy::getSummary() const
         << "Adapt innner tolerance = " << adaptInnerTolerance() << std::endl;
 
     if (getPackage() == SO_DEFAULT || getPackage() == SO_PACKAGE_PASO ||
-            getPackage() == SO_PACKAGE_CUSP) {
+            getPackage() == SO_PACKAGE_CUSP ||
+            getPackage() == SO_PACKAGE_TRILINOS) {
         out << "Solver method = " << getName(getSolverMethod()) << std::endl;
         if (getSolverMethod() == SO_METHOD_GMRES) {
             out << "Truncation  = " << getTruncation() << std::endl
@@ -407,10 +408,12 @@ void SolverBuddy::setPreconditioner(int precon)
     SolverOptions preconditioner = static_cast<SolverOptions>(precon);
     switch(preconditioner) {
         case SO_PRECONDITIONER_AMG:
+/*
 #ifdef ESYS_MPI
             throw SolverOptionsException("AMG preconditioner is not supported in MPI builds");
             break;
 #endif
+*/
         case SO_PRECONDITIONER_AMLI:
         case SO_PRECONDITIONER_BOOMERAMG:
         case SO_PRECONDITIONER_GAUSS_SEIDEL:

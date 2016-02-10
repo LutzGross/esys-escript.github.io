@@ -836,7 +836,11 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
             type |= (int)SMT_SYMMETRIC;
         return type;
     } else if (package == escript::SO_PACKAGE_TRILINOS) {
+#ifdef USE_TRILINOS
         return (int)SMT_TRILINOS;
+#else
+        throw RipleyException("Trilinos requested but not built with Trilinos.");
+#endif
     }
 
     // in all other cases we use PASO
