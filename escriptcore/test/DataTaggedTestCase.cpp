@@ -106,6 +106,18 @@ getRefRO(const DataTagged& data,int offset, int i)
 
 }
 
+namespace
+{
+    DataTagged makeTagged()
+    {
+        int a[1]={0};
+	DataTypes::RealVectorType v;
+	v.resize(1, 0.0,1);
+        return DataTagged(FunctionSpace(), DataTypes::scalarShape, a, v);
+    }
+}
+
+
 void DataTaggedTestCase::testOperations() {
 
   cout << endl;
@@ -113,8 +125,8 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp addition of two default DataTagged objects." << endl;
 
-    DataTagged myData;
-    DataTagged right;
+    DataTagged myData=makeTagged();
+    DataTagged right=makeTagged();
 
     binaryOp(myData,right,plus<double>());
 
@@ -244,8 +256,8 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp addition of two DataTagged objects with one identical tag each." << endl;
 
-    DataTagged myData;
-    DataTagged right;
+    DataTagged myData=makeTagged();
+    DataTagged right=makeTagged();
 
     RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
@@ -306,8 +318,8 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp addition of two DataTagged objects with one different tag each." << endl;
 
-    DataTagged myData;
-    DataTagged right;
+    DataTagged myData=makeTagged();
+    DataTagged right=makeTagged();
 
     // it's important that default values are different, as we need to be able to
     // verify that the tag values in each object are being added to the correct
@@ -395,8 +407,8 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp addition of two DataTagged objects with overlapping tag sets." << endl;
 
-    DataTagged myData;
-    DataTagged right;
+    DataTagged myData=makeTagged();
+    DataTagged right=makeTagged();
 
     // it's important that default values are different, as we need to be able to
     // verify that the tag values in each object are being added to the correct
@@ -554,7 +566,7 @@ void DataTaggedTestCase::testOperations() {
 
     cout << "\tTest binaryOp multiplication of DataTagged object with a scalar." << endl;
 
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
@@ -635,8 +647,8 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest binaryOp multiplication of two DataTagged objects with overlapping tag sets." << endl;
 
-    DataTagged myData;
-    DataTagged right;
+    DataTagged myData=makeTagged();
+    DataTagged right=makeTagged();
 
     // it's important that default values are different, as we need to be able to
     // verify that the tag values in each object are being added to the correct
@@ -733,7 +745,7 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest unaryOp negate on default DataTagged object." << endl;
 
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     unaryOp(myData,negate<double>());
 
@@ -853,7 +865,7 @@ void DataTaggedTestCase::testOperations() {
   {
     cout << "\tTest unnaryOp negate on DataTagged object with two tags." << endl;
 
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     RealVectorType vOneData(1, 1.0 ,1);
     // create a view with an empty shape, a scalar.
@@ -929,7 +941,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
   {
 
     cout << "\tTest adding one key with empty value list to default DataTagged." << endl;
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     DataTagged::TagListType keys;
     keys.push_back(1);
@@ -981,7 +993,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
   {
 
     cout << "\tTest adding one key with one value to default DataTagged." << endl;
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     DataTagged::TagListType keys;
     keys.push_back(1);
@@ -1039,7 +1051,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
   {
 
     cout << "\tTest adding three keys with one value to default DataTagged." << endl;
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     DataTagged::TagListType keys;
     keys.push_back(1);
@@ -1115,7 +1127,7 @@ void DataTaggedTestCase::testAddTaggedValues() {
   {
 
     cout << "\tTest adding three keys with three values to default DataTagged." << endl;
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     DataTagged::TagListType keys;
     keys.push_back(1);
@@ -2113,7 +2125,7 @@ void DataTaggedTestCase::testAll() {
   {
 
     cout << "\tTest default DataTagged." << endl;
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     //cout << myData.toString() << endl;
 
@@ -2132,6 +2144,10 @@ void DataTaggedTestCase::testAll() {
 
     CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
+    int ll=myData.getLength();
+    cout << "\t" << ll << endl;
+    
+    
     CPPUNIT_ASSERT(myData.getLength()==1);
 
     CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
@@ -2719,7 +2735,7 @@ void DataTaggedTestCase::testGetSlice() {
 
     cout << "\tTest slicing default DataTagged." << endl;
 
-    DataTagged myData;
+    DataTagged myData=makeTagged();
 
     DataTypes::RegionType region;
 
@@ -3669,8 +3685,8 @@ void DataTaggedTestCase::testSetSlice() {
 
     cout << "\tTest slicing default DataTagged." << endl;
 
-    DataTagged myData1;
-    DataTagged myData2;
+    DataTagged myData1=makeTagged();
+    DataTagged myData2=makeTagged();
 
     DataTypes::RegionType region;
 
@@ -3781,7 +3797,7 @@ void DataTaggedTestCase::testSetSlice() {
     region_element.second=0;
     region.push_back(region_element);
 
-    DataTagged myData4;
+    DataTagged myData4=makeTagged();
     myData4.getDataAtOffsetRW(myData4.getDefaultOffset())=7.0;
 //     myData4.getDefaultValue()()=7.0;
 
@@ -3903,7 +3919,7 @@ void DataTaggedTestCase::testSetSlice() {
     region.push_back(region_element);
     region.push_back(region_element);
 
-    DataTagged myData4;
+    DataTagged myData4=makeTagged();
     myData4.getDataAtOffsetRW(myData4.getDefaultOffset())=70.0;
 
     myData1.setSlice(&myData4, region);

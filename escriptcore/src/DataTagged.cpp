@@ -17,7 +17,7 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
+#include <complex>
 #include "Data.h"
 #include "DataTagged.h"
 #include "DataConstant.h"
@@ -39,11 +39,12 @@ using namespace std;
 
 namespace escript {
 
-DataTagged::DataTagged()
-  : parent(FunctionSpace(),DataTypes::scalarShape),
-    m_data_r(1,0.,1)
-{
-}
+//   // who calls this????????
+// DataTagged::DataTagged()
+//   : parent(FunctionSpace(),DataTypes::scalarShape),
+//     m_data_r(1,0.,1)
+// {
+// }
 
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
@@ -74,6 +75,40 @@ DataTagged::DataTagged(const FunctionSpace& what,
     m_offsetLookup.insert(DataMapType::value_type(tags[i],i*valsize));
   }
 }
+
+
+DataTagged::DataTagged(const FunctionSpace& what,
+                       const DataTypes::ShapeType &shape,
+                       const int tags[],
+                       const DataTypes::CplxVectorType& data)
+  : parent(what,shape)
+{
+  // alternative constructor
+  // not unit_tested tested yet
+  // It is not explicitly unit tested yet, but it is called from DataFactory
+
+  m_iscompl=true;
+  if (!what.canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
+  // copy the data
+  m_data_c=data;
+
+  // we can't rely on the tag array to give us the number of tags so 
+  // use the data we have been passed
+  int valsize=DataTypes::noValues(shape);
+  int ntags=data.size()/valsize;
+
+  // create the tag lookup map
+  // we assume that the first value and first tag are the default value so we skip
+  for (int i=1;i<ntags;++i)
+  {
+    m_offsetLookup.insert(DataMapType::value_type(tags[i],i*valsize));
+  }
+}
+
+
 
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
@@ -110,20 +145,56 @@ DataTagged::DataTagged(const FunctionSpace& what,
 }
 
 
+DataTagged::DataTagged(const FunctionSpace& what,
+                       const DataTypes::ShapeType &shape,
+                       const TagListType& tags,
+                       const DataTypes::CplxVectorType& data)
+  : parent(what,shape)
+{
+  // alternative constructor
+  m_iscompl=true;
+  if (!what.canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
+
+  // copy the data
+  m_data_c=data;
+
+  // The above code looks like it will create a map the wrong way around
+
+  int valsize=DataTypes::noValues(shape);
+  int npoints=(data.size()/valsize)-1;
+  int ntags=tags.size();
+  if (ntags>npoints)
+  {		// This throw is not unit tested yet
+	throw DataException("Programming error - Too many tags for the supplied values.");
+  }
+
+  // create the tag lookup map
+  // we assume that the first value is the default value so we skip it (hence the i+1 below)
+  for (int i=0;i<ntags;++i)
+  {
+    m_offsetLookup.insert(DataMapType::value_type(tags[i],(i+1)*valsize));
+  }
+}
+
+
+
 DataTagged::DataTagged(const DataTagged& other)
   : parent(other.getFunctionSpace(),other.getShape()),
   m_offsetLookup(other.m_offsetLookup),
-  m_data_r(other.m_data_r)
+  m_data_r(other.m_data_r), m_data_c(other.m_data_c)
 {
   // copy constructor
-
+    m_iscompl=other.m_iscompl;
 }
 
 DataTagged::DataTagged(const DataConstant& other)
   : parent(other.getFunctionSpace(),other.getShape())
 {
   // copy constructor
-
+  m_iscompl=other.isComplex();
   if (!other.getFunctionSpace().canTag())
   {
     throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
@@ -131,9 +202,21 @@ DataTagged::DataTagged(const DataConstant& other)
 
   // fill the default value with the constant value item from "other"
   int len = other.getNoValues();
-  m_data_r.resize(len,0.,len);
-  for (int i=0; i<len; i++) {
-    m_data_r[i]=other.getVectorRO()[i];
+  if (m_iscompl)
+  {
+      DataTypes::cplx_t dummy=0;
+      m_data_c.resize(len,0.,len);
+      for (int i=0; i<len; i++) {
+	m_data_c[i]=other.getTypedVectorRO(dummy)[i];
+      }
+  }
+  else
+  {
+      DataTypes::real_t dummy=0;
+      m_data_r.resize(len,0.,len);
+      for (int i=0; i<len; i++) {
+	m_data_r[i]=other.getTypedVectorRO(dummy)[i];
+      }
   }
 }
 
@@ -177,6 +260,46 @@ DataTagged::DataTagged(const FunctionSpace& what,
   }
 }
 
+// Create a new object by copying tags
+DataTagged::DataTagged(const FunctionSpace& what,
+             const DataTypes::ShapeType& shape,
+	     const DataTypes::CplxVectorType& defaultvalue,
+             const DataTagged* tagsource)
+ : parent(what,shape)
+{
+// This constructor has not been unit tested yet
+  m_iscompl=true;
+  
+  if (defaultvalue.size()!=DataTypes::noValues(shape)) {
+    throw DataException("Programming error - defaultvalue does not match supplied shape.");
+  }
+
+  if (!what.canTag())
+  {
+    throw DataException("Programming error - DataTag created with a non-taggable FunctionSpace.");
+  }
+
+  if (tagsource!=0)
+  {
+       m_data_r.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
+
+       DataTagged::DataMapType::const_iterator i;
+       for (i=tagsource->getTagLookup().begin();i!=tagsource->getTagLookup().end();i++) {
+	  addTag(i->first);
+       }
+  }
+  else
+  {
+	m_data_r.resize(defaultvalue.size());
+  }
+
+  // need to set the default value ....
+  for (int i=0; i<defaultvalue.size(); i++) {
+     m_data_c[i]=defaultvalue[i];
+  }
+}
+
+
 DataAbstract*
 DataTagged::deepCopy() const
 {
@@ -194,7 +317,9 @@ DataTagged::DataTagged(const DataTagged& other,
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   // slice constructor
-
+  m_iscompl=other.isComplex();
+  
+  
   // get the shape of the slice to copy from other
   DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
   DataTypes::RegionLoopRangeType regionLoopRange=DataTypes::getSliceRegionLoopRange(region);
@@ -202,20 +327,41 @@ DataTagged::DataTagged(const DataTagged& other,
   // allocate enough space in this for all values
   // (need to add one to allow for the default value)
   int len = DataTypes::noValues(regionShape)*(other.m_offsetLookup.size()+1);
-  m_data_r.resize(len,0.0,len);
+  if (m_iscompl)
+  {
+      m_data_c.resize(len,0.0,len);
+      // copy the default value from other to this
+      const DataTypes::ShapeType& otherShape=other.getShape();
+      const DataTypes::CplxVectorType& otherData=other.getTypedVectorRO((DataTypes::cplx_t)0);
+      DataTypes::copySlice(getTypedVectorRW((DataTypes::cplx_t)0),getShape(),getDefaultOffset(),otherData,otherShape,other.getDefaultOffset(), regionLoopRange);
 
-  // copy the default value from other to this
-  const DataTypes::ShapeType& otherShape=other.getShape();
-  const DataTypes::RealVectorType& otherData=other.getVectorRO();
-  DataTypes::copySlice(getVectorRW(),getShape(),getDefaultOffset(),otherData,otherShape,other.getDefaultOffset(), regionLoopRange);
+      // loop through the tag values copying these
+      DataMapType::const_iterator pos;
+      DataTypes::CplxVectorType::size_type tagOffset=getNoValues();
+      for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
+	DataTypes::copySlice(m_data_c,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
+	m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
+	tagOffset+=getNoValues();
+      }      
+      
+      
+  }
+  else
+  {
+      m_data_r.resize(len,0.0,len);    
+      // copy the default value from other to this
+      const DataTypes::ShapeType& otherShape=other.getShape();
+      const DataTypes::RealVectorType& otherData=other.getTypedVectorRO((DataTypes::real_t)0);
+      DataTypes::copySlice(getTypedVectorRW((DataTypes::real_t)0),getShape(),getDefaultOffset(),otherData,otherShape,other.getDefaultOffset(), regionLoopRange);
 
-  // loop through the tag values copying these
-  DataMapType::const_iterator pos;
-  DataTypes::RealVectorType::size_type tagOffset=getNoValues();
-  for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
-    DataTypes::copySlice(m_data_r,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
-    m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
-    tagOffset+=getNoValues();
+      // loop through the tag values copying these
+      DataMapType::const_iterator pos;
+      DataTypes::RealVectorType::size_type tagOffset=getNoValues();
+      for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
+	DataTypes::copySlice(m_data_r,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
+	m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
+	tagOffset+=getNoValues();
+      }      
   }
 }
 
@@ -230,8 +376,13 @@ DataTagged::setSlice(const DataAbstract* other,
   if (otherTemp==0) {
     throw DataException("Programming error - casting to DataTagged.");
   }
-
+  if (isComplex()!=other->isComplex())
+  {
+    throw DataException("Error - cannot copy between slices of different complexity.");
+  }
   CHECK_FOR_EX_WRITE
+  
+  
 
   // determine shape of the specified region
   DataTypes::ShapeType regionShape(DataTypes::getResultSliceShape(region));
@@ -248,10 +399,22 @@ DataTagged::setSlice(const DataAbstract* other,
                          "Error - Couldn't copy slice due to shape mismatch.",regionShape,other->getShape()));
   }
 
-  const DataTypes::RealVectorType& otherData=otherTemp->getVectorRO();
+
   const DataTypes::ShapeType& otherShape=otherTemp->getShape();
-  // copy slice from other default value to this default value
-  DataTypes::copySliceFrom(m_data_r,getShape(),getDefaultOffset(),otherData,otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
+  if (isComplex())	// from check earlier, other will have the same complexity
+  {
+      // copy slice from other default value to this default value
+      DataTypes::copySliceFrom(m_data_c,getShape(),getDefaultOffset(),otherTemp->getTypedVectorRO((DataTypes::cplx_t)0),
+			       otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
+  } 
+  else
+  {
+      const DataTypes::RealVectorType& otherData=otherTemp->getVectorRO();    
+    
+      // copy slice from other default value to this default value
+      DataTypes::copySliceFrom(m_data_r,getShape(),getDefaultOffset(),otherTemp->getTypedVectorRO((DataTypes::real_t)0),
+			       otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
+  }
 
   // loop through tag values in other, adding any which aren't in this, using default value
   DataMapType::const_iterator pos;
@@ -260,13 +423,22 @@ DataTagged::setSlice(const DataAbstract* other,
       addTag(pos->first);
     }
   }
-
-  // loop through the tag values copying slices from other to this
-  for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
-    DataTypes::copySliceFrom(m_data_r,getShape(),getOffsetForTag(pos->first),otherData, otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
-
+  if (isComplex())
+  {
+    // loop through the tag values copying slices from other to this
+    for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
+      DataTypes::copySliceFrom(m_data_c,getShape(),getOffsetForTag(pos->first),otherTemp->getTypedVectorRO((DataTypes::cplx_t)0),
+			       otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
+    }
   }
-
+  else
+  {
+    // loop through the tag values copying slices from other to this
+    for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
+      DataTypes::copySliceFrom(m_data_r,getShape(),getOffsetForTag(pos->first),otherTemp->getTypedVectorRO((DataTypes::real_t)0),
+			       otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
+    }
+  }
 }
 
 int
@@ -459,29 +631,82 @@ bool
 DataTagged::hasNaN() const
 {
   bool haveNaN=false;
-  #pragma omp parallel for
-	for (ValueType::size_type i=0;i<m_data_r.size();++i)
-	{
-		if (nancheck(m_data_r[i]))	// can't assume we have new standard NaN checking
-		{
-        #pragma omp critical 
-        {
-            haveNaN=true;
-        }
-		}
-	}
-	return haveNaN;
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_r[i]))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  return haveNaN;
 }
 
 void
 DataTagged::replaceNaN(double value) {
-  #pragma omp parallel for
-  for (ValueType::size_type i=0;i<m_data_r.size();++i)
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
   {
-    if (nancheck(m_data_r[i]))  
-    {
-      m_data_r[i] = value;
-    }
+      #pragma omp parallel for
+      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_r[i]))  
+	{
+	  m_data_r[i] = value;
+	}
+      }    
+  }
+}
+
+void
+DataTagged::replaceNaN(DataTypes::cplx_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      complicate();
+      replaceNaN(value);
   }
 }
 
@@ -494,14 +719,24 @@ DataTagged::toString() const
   stringstream temp;
   DataMapType::const_iterator i;
   temp << "Tag(Default)" << endl;
-  temp << pointToString(m_data_r,getShape(),getDefaultOffset(),empty) << endl;
-  // create a temporary view as the offset will be changed
-//   DataArrayView tempView(getPointDataView().getData(), getPointDataView().getShape());
-  for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
-    temp << "Tag(" << i->first << ")" << endl;
-    temp << pointToString(m_data_r,getShape(),i->second,empty) << endl;
-//     tempView.setOffset(i->second);
-//     temp << tempView.toString() << endl;
+  
+  if (isComplex())
+  {
+  
+      temp << pointToString(m_data_c,getShape(),getDefaultOffset(),empty) << endl;
+      for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
+	temp << "Tag(" << i->first << ")" << endl;
+	temp << pointToString(m_data_c,getShape(),i->second,empty) << endl;
+      }
+  }
+  else
+  {
+  
+      temp << pointToString(m_data_r,getShape(),getDefaultOffset(),empty) << endl;
+      for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
+	temp << "Tag(" << i->first << ")" << endl;
+	temp << pointToString(m_data_r,getShape(),i->second,empty) << endl;
+      }    
   }
   return temp.str();
 }
@@ -509,19 +744,6 @@ DataTagged::toString() const
 DataTypes::RealVectorType::size_type 
 DataTagged::getPointOffset(int sampleNo,
                            int dataPointNo) const
-{
-  int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
-  DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
-  DataTypes::RealVectorType::size_type offset=m_defaultValueOffset;
-  if (pos!=m_offsetLookup.end()) {
-    offset=pos->second;
-  }
-  return offset;
-}
-
-DataTypes::RealVectorType::size_type 
-DataTagged::getPointOffset(int sampleNo,
-                           int dataPointNo)
 {
   int tagKey=getFunctionSpace().getTagFromSampleNo(sampleNo);
   DataMapType::const_iterator pos(m_offsetLookup.find(tagKey));
