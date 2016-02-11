@@ -50,10 +50,6 @@ void cplxout(std::ostream& os, const DataTypes::cplx_t& c)
 
 
 namespace escript {
-// Additional slice operations
-
-
-#endif
 
    void
    DataTypes::pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
