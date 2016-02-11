@@ -22,6 +22,7 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
 
+#include <Amesos2.hpp>
 #include <BelosSolverFactory.hpp>
 #include <BelosTpetraAdapter.hpp>
 #include <Ifpack2_Factory.hpp>
@@ -120,6 +121,23 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     //mat->apply(*X, *Y, Teuchos::NO_TRANS, alpha, beta);
     mat->localMultiply(*gblX, *Y, Teuchos::NO_TRANS, alpha, beta);
     Y->get1dCopy(yView, yView.size());
+}
+
+RCP<DirectSolverType> TrilinosMatrixAdapter::createDirectSolver(
+                                                const escript::SolverBuddy& sb,
+                                                RCP<VectorType> X,
+                                                RCP<const VectorType> B) const
+{
+    RCP<DirectSolverType> solver;
+    solver = Amesos2::create<MatrixType,VectorType>("klu2", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("superlu", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("pardiso_mkl", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("lapack", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("amesos2_cholmod", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("superludist", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("superlumt", mat, X, B);
+    //solver = Amesos2::create<MatrixType,VectorType>("MUMPS", mat, X, B);
+    return solver;
 }
 
 RCP<SolverType> TrilinosMatrixAdapter::createSolver(
@@ -239,26 +257,49 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
     RCP<VectorType> X = rcp(new VectorType(mat->getDomainMap(), 1));
 
     //solve...
-    RCP<SolverType> solver = createSolver(sb);
-    RCP<OpType> prec = createPreconditioner(sb);
-    RCP<ProblemType> problem = rcp(new ProblemType(mat, X, B));
+    if (sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
+        RCP<DirectSolverType> solver = createDirectSolver(sb, X, B);
+        if (sb.isVerbose()) {
+            std::cout << solver->description() << std::endl;
+            std::cout << "Performing symbolic factorization...";
+        }
+        solver->symbolicFactorization();
+        if (sb.isVerbose()) {
+            std::cout << "done\nPerforming numeric factorization...";
+        }
+        solver->numericFactorization();
+        if (sb.isVerbose()) {
+            std::cout << "done\nSolving system...";
+        }
+        solver->solve();
+        if (sb.isVerbose()) {
+            std::cout << "done" << std::endl;
+            RCP<Teuchos::FancyOStream> fos(Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout)));
+            solver->printTiming(*fos, Teuchos::VERB_HIGH);
+        }
 
-    if (!prec.is_null()) {
-        problem->setLeftPrec(prec);
-    }
-    problem->setProblem();
-    solver->setProblem(problem);
-    Belos::ReturnType result = solver->solve();
-    if (sb.isVerbose()) {
-        const int numIters = solver->getNumIters();
-        if (result == Belos::Converged) {
-            std::cout << "The Belos solve took " << numIters
-                << " iteration(s) to reach a relative residual tolerance of "
-                << sb.getTolerance() << "." << std::endl;
-        } else {
-            std::cout << "The Belos solve took " << numIters
-                << " iteration(s), but did not reach a relative residual "
-                "tolerance of " << sb.getTolerance() << "." << std::endl;
+    } else {
+        RCP<SolverType> solver = createSolver(sb);
+        RCP<OpType> prec = createPreconditioner(sb);
+        RCP<ProblemType> problem = rcp(new ProblemType(mat, X, B));
+
+        if (!prec.is_null()) {
+            problem->setLeftPrec(prec);
+        }
+        problem->setProblem();
+        solver->setProblem(problem);
+        Belos::ReturnType result = solver->solve();
+        if (sb.isVerbose()) {
+            const int numIters = solver->getNumIters();
+            if (result == Belos::Converged) {
+                std::cout << "The Belos solve took " << numIters
+                   << " iteration(s) to reach a relative residual tolerance of "
+                   << sb.getTolerance() << "." << std::endl;
+            } else {
+                std::cout << "The Belos solve took " << numIters
+                   << " iteration(s), but did not reach a relative residual "
+                   "tolerance of " << sb.getTolerance() << "." << std::endl;
+            }
         }
     }
 
