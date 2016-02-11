@@ -298,6 +298,11 @@ def checkForTrilinos(env):
                             lst = l.split('=')[1].strip().split()
                             lst = [e.replace('-l','',1) for e in lst]
                             libs.append(lst)
+                        elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
+                            lst = l.split('=')[1].strip().split()
+                            lst = [e.replace('-I','',1) for e in lst]
+                            env.AppendUnique(CPPPATH = lst)
+
                 except Exception as e:
                     raise RuntimeError('Error reading Trilinos export Makefile\n%s'%(e))
             env['trilinos_libs'] = libs

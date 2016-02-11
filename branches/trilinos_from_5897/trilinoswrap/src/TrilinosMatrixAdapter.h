@@ -20,6 +20,7 @@
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/FunctionSpace.h>
 
+#include <Amesos2_Solver_decl.hpp>
 #include <BelosSolverManager.hpp>
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_CrsMatrix.hpp>
@@ -51,6 +52,7 @@ typedef Tpetra::MultiVector<ST,LO,GO,NT>           VectorType;
 typedef Tpetra::Operator<ST,LO,GO,NT>              OpType;
 typedef Belos::LinearProblem<ST,VectorType,OpType> ProblemType;
 typedef Belos::SolverManager<ST,VectorType,OpType> SolverType;
+typedef Amesos2::Solver<MatrixType,VectorType>     DirectSolverType;
 typedef MatrixType::map_type                       MapType;
 typedef Tpetra::Import<LO,GO,NT>                   ImportType;
 
@@ -104,6 +106,11 @@ private:
                                         const escript::SolverBuddy& sb) const;
 
     Teuchos::RCP<SolverType> createSolver(const escript::SolverBuddy& sb) const;
+
+    Teuchos::RCP<DirectSolverType> createDirectSolver(
+                                      const escript::SolverBuddy& sb,
+                                      Teuchos::RCP<VectorType> X,
+                                      Teuchos::RCP<const VectorType> B) const;
 
     virtual void setToSolution(escript::Data& out, escript::Data& in,
                                boost::python::object& options) const;

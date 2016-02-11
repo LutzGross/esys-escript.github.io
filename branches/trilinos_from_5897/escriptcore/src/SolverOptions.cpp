@@ -476,6 +476,9 @@ void SolverBuddy::setSolverMethod(int method)
 #ifdef USE_UMFPACK
             this->method = meth;
             break;
+#elif defined USE_TRILINOS
+            this->method = meth;
+            break;
 #elif defined MKL
             this->method = meth;
             break;
