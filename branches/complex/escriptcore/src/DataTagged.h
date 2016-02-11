@@ -66,7 +66,7 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
      tag values are stored.
     T
   */
-  DataTagged();
+//   DataTagged();
 
   /**
      \brief
@@ -84,6 +84,13 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
              const DataTypes::ShapeType &shape,
              const int tags[],
              const DataTypes::RealVectorType& data);
+  
+  
+  DataTagged(const FunctionSpace& what,
+             const DataTypes::ShapeType &shape,
+             const int tags[],
+             const DataTypes::CplxVectorType& data);  
+  
 
  /**
      \brief
@@ -101,6 +108,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
              const DataTypes::ShapeType &shape,
              const TagListType& tags,
              const DataTypes::RealVectorType& data);
+  
+  DataTagged(const FunctionSpace& what,
+             const DataTypes::ShapeType &shape,
+             const TagListType& tags,
+             const DataTypes::CplxVectorType& data);  
+  
 
   /**
      \brief
@@ -134,6 +147,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
              const DataTypes::RealVectorType& defaultvalue,
              const DataTagged* tagsource=0);
 
+  DataTagged(const FunctionSpace& what,
+             const DataTypes::ShapeType& shape,
+             const DataTypes::CplxVectorType& defaultvalue,
+             const DataTagged* tagsource=0);  
+  
+  
   /**
      \brief
      Destructor
@@ -157,7 +176,15 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   \brief replaces all NaN values with value 
   */
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
+  
+  /**
+  \brief replaces all NaN values with value 
+  */
+  void
+  replaceNaN(DataTypes::cplx_t value);
+  
+  
   
   /**
      \brief Return a deep copy of the current object.
@@ -243,11 +270,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
-
-  virtual
-  DataTypes::RealVectorType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo);
 
  /**
      \brief

@@ -964,7 +964,6 @@ Data::expand()
 void
 Data::tag()
 {
-    THROWONCOMPLEX
     if (isConstant()) {
         DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
         DataAbstract* temp=new DataTagged(*tempDataConst);
