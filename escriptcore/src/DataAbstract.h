@@ -178,10 +178,6 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
 
-  virtual
-  ValueType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo) = 0;
 
 
   /**
