@@ -92,12 +92,25 @@ TODO Note that this constructor will also copy data to all points if it only con
   DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::RealVectorType &data);
+  
+  
+  ESCRIPT_DLL_API
+  DataExpanded(const FunctionSpace& what,
+               const DataTypes::ShapeType &shape,
+               const DataTypes::CplxVectorType &data);
+  
 
 	       
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const double data);	       
+               const DataTypes::real_t data);	       
+  
+  ESCRIPT_DLL_API
+  DataExpanded(const FunctionSpace& what,
+               const DataTypes::ShapeType &shape,
+               const DataTypes::cplx_t data);	       
+  
 	       
   /**
      \brief
@@ -220,11 +233,11 @@ TODO Note that this constructor will also copy data to all points if it only con
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  ESCRIPT_DLL_API
-  virtual
-  DataTypes::RealVectorType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo);
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataTypes::RealVectorType::size_type
+//   getPointOffset(int sampleNo,
+//                  int dataPointNo);
 
   /**
      \brief
@@ -407,6 +420,9 @@ TODO Note that this constructor will also copy data to all points if it only con
   virtual void
   reorderByReferenceIDs(dim_t *reference_ids);
 
+  ESCRIPT_DLL_API
+  void
+  complicate();
  protected:
 
  private:
@@ -424,10 +440,13 @@ TODO Note that this constructor will also copy data to all points if it only con
 
      \param noSamples - Input - number of samples.
      \param noDataPointsPerSample - Input - number of data points per sample.
+     \param cplx - Input - is this data complex?
   */
   void
   initialise(int noSamples,
-             int noDataPointsPerSample);
+             int noDataPointsPerSample,
+	     bool cplx
+	    );
 
   /**
      \brief

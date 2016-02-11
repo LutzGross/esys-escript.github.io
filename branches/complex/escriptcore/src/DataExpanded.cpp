@@ -51,22 +51,23 @@ DataExpanded::DataExpanded(const WrappedArray& value,
   : parent(what,value.getShape())
 {
     // initialise the data array for this object
-    initialise(what.getNumSamples(),what.getNumDPPSample());
+    initialise(what.getNumSamples(),what.getNumDPPSample(), value.isComplex());
     // copy the given value to every data point
     copy(value);
 }
 
 DataExpanded::DataExpanded(const DataExpanded& other)
   : parent(other.getFunctionSpace(), other.getShape()),
-    m_data_r(other.m_data_r)
+    m_data_r(other.m_data_r), m_data_c(other.m_data_c)
 {
+    m_iscompl=other.m_iscompl;
 }
 
 DataExpanded::DataExpanded(const DataConstant& other)
   : parent(other.getFunctionSpace(), other.getShape())
 {
     // initialise the data array for this object
-    initialise(other.getNumSamples(),other.getNumDPPSample());
+    initialise(other.getNumSamples(),other.getNumDPPSample(), other.isComplex());
     // DataConstant only has one value, copy this to every data point
     copy(other);
 }
@@ -75,20 +76,42 @@ DataExpanded::DataExpanded(const DataTagged& other)
   : parent(other.getFunctionSpace(), other.getShape())
 {
     // initialise the data array for this object
-    initialise(other.getNumSamples(),other.getNumDPPSample());
+    initialise(other.getNumSamples(),other.getNumDPPSample(), other.isComplex());
     // for each data point in this object, extract and copy the corresponding
     // data value from the given DataTagged object
-#pragma omp parallel for
-    for (int i=0; i<m_noSamples; i++) {
-        for (int j=0; j<m_noDataPointsPerSample; j++) {
-            try {
-                DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j),
-                                     getNoValues(), other.getVectorRO(),
-                                     other.getPointOffset(i,j));
-            } catch (std::exception& e) {
-                cerr << e.what() << endl;
-            }
-        }
+    if (isComplex())
+    {
+	DataTypes::cplx_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+					getNoValues(), other.getTypedVectorRO(dummy),
+					other.getPointOffset(i,j));
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}      
+      
+      
+    }
+    else
+    {
+	DataTypes::real_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+					getNoValues(), other.getTypedVectorRO(dummy),
+					other.getPointOffset(i,j));
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}
     }
 }
 
@@ -97,23 +120,45 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
     // initialise this Data object to the shape of the slice
-    initialise(other.getNumSamples(),other.getNumDPPSample());
+    initialise(other.getNumSamples(),other.getNumDPPSample(), other.isComplex());
     // copy the data
     DataTypes::RegionLoopRangeType region_loop_range =
                                     DataTypes::getSliceRegionLoopRange(region);
-#pragma omp parallel for
-    for (int i=0; i<m_noSamples; i++) {
-        for (int j=0; j<m_noDataPointsPerSample; j++) {
-            try {
-                DataTypes::copySlice(getVectorRW(), getShape(),
-                                     getPointOffset(i,j), other.getVectorRO(),
-                                     other.getShape(),
-                                     other.getPointOffset(i,j),
-                                     region_loop_range);
-            } catch (std::exception& e) {
-                cerr << e.what() << endl;
-            }
-        }
+    if (isComplex())
+    {
+	DataTypes::cplx_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copySlice(getTypedVectorRW(dummy), getShape(),
+					getPointOffset(i,j), other.getTypedVectorRO(dummy),
+					other.getShape(),
+					other.getPointOffset(i,j),
+					region_loop_range);
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}      
+    }
+    else
+    {
+	DataTypes::real_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copySlice(getTypedVectorRW(dummy), getShape(),
+					getPointOffset(i,j), other.getTypedVectorRO(dummy),
+					other.getShape(),
+					other.getPointOffset(i,j),
+					region_loop_range);
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}
     }
 }
 
@@ -126,9 +171,9 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
-        ValueType& vec=m_data_r;
+        RealVectorType& vec=m_data_r;
         // create the view of the data
-        initialise(what.getNumSamples(),what.getNumDPPSample());
+        initialise(what.getNumSamples(),what.getNumDPPSample(), false);
         // now we copy this value to all elements
         for (int i=0; i<getLength();) {
             for (unsigned int j=0;j<getNoValues();++j,++i) {
@@ -143,12 +188,36 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const double v)
+                           const DataTypes::CplxVectorType &data)
   : parent(what,shape)
 {
-    ValueType& vec=m_data_r;
-    // create the view of the data
-    initialise(what.getNumSamples(),what.getNumDPPSample());
+    EsysAssert(data.size()%getNoValues()==0,
+                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
+
+    if (data.size() == getNoValues()) {
+        CplxVectorType& vec=m_data_c;
+        // create the view of the data
+        initialise(what.getNumSamples(),what.getNumDPPSample(), true);
+        // now we copy this value to all elements
+        for (int i=0; i<getLength();) {
+            for (unsigned int j=0;j<getNoValues();++j,++i) {
+                vec[i]=data[j];
+            }
+        }
+    } else {
+        // copy the data in the correct format
+        m_data_c = data;
+    }
+}
+
+
+DataExpanded::DataExpanded(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::real_t v)
+  : parent(what,shape)
+{
+    initialise(what.getNumSamples(),what.getNumDPPSample(), false);
+    DataTypes::RealVectorType& vec=m_data_r;
     // now we copy this value to all elements
     const int L=getLength();
 #pragma omp parallel for
@@ -156,6 +225,23 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
         vec[i]=v;
     }
 }
+
+DataExpanded::DataExpanded(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::cplx_t v)
+  : parent(what,shape)
+{
+    initialise(what.getNumSamples(),what.getNumDPPSample(), true);
+    DataTypes::CplxVectorType& vec=m_data_c;
+    
+    // now we copy this value to all elements
+    const int L=getLength();
+#pragma omp parallel for
+    for (int i=0; i<L; ++i) {
+        vec[i]=v;
+    }
+}
+
 
 DataExpanded::~DataExpanded()
 {
@@ -212,15 +298,44 @@ void DataExpanded::copy(const DataConstant& value)
 {
     EsysAssert((checkShape(getShape(), value.getShape())),
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
-
-    // copy a single value to every data point in this object
-#pragma omp parallel for
-    for (int i=0; i<m_noSamples; i++) {
-        for (int j=0; j<m_noDataPointsPerSample; j++) {
-            DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j),
-                                 getNoValues(), value.getVectorRO(), 0);
-        }
+    if (isComplex())
+    {
+	if (value.isComplex())
+	{
+	    // copy a single value to every data point in this object
+	    #pragma omp parallel for
+	    for (int i=0; i<m_noSamples; i++) {
+		for (int j=0; j<m_noDataPointsPerSample; j++) {
+		    DataTypes::copyPoint(getTypedVectorRW((cplx_t)(0)), getPointOffset(i,j),
+					getNoValues(), value.getTypedVectorRO((cplx_t)(0)), 0);
+		}
+	    }	    
+	}
+	else	// value is real
+	{
+	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  
+	}
     }
+    else
+    {
+	if (value.isComplex())
+	{
+	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  	  
+	}
+	else
+	{
+	    real_t dummy=0;
+	    // copy a single value to every data point in this object
+	    #pragma omp parallel for
+	    for (int i=0; i<m_noSamples; i++) {
+		for (int j=0; j<m_noDataPointsPerSample; j++) {
+		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+					getNoValues(), value.getTypedVectorRO(dummy), 0);
+		}
+	    }
+	}
+    }
+    
 }
 
 void DataExpanded::copy(const WrappedArray& value)
@@ -233,13 +348,22 @@ void DataExpanded::copy(const WrappedArray& value)
     getVectorRW().copyFromArray(value, getNumDPPSample()*getNumSamples());
 }
 
-void DataExpanded::initialise(int noSamples, int noDataPointsPerSample)
+void DataExpanded::initialise(int noSamples, int noDataPointsPerSample, bool cplx)
 {
+    this->m_iscompl=cplx;
     if (noSamples==0) //retain the default empty object
         return;
 
-    // resize data array to the required size
-    m_data_r.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());
+    if (cplx)
+    {
+	// resize data array to the required size
+	m_data_c.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());      
+    }
+    else
+    {
+	// resize data array to the required size
+	m_data_r.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());
+    }
 }
 
 bool DataExpanded::hasNaN() const
@@ -280,8 +404,10 @@ string DataExpanded::toString() const
             stringstream suffix;
             suffix << "( id: " << i << ", ref: "
                    << fs.getReferenceIDOfSample(i) << ", pnt: " << j << ")";
-            ss << DataTypes::pointToString(getVectorRO(), getShape(), offset,
-                                           suffix.str());
+            ss << (isComplex()?
+		    DataTypes::pointToString(getTypedVectorRO((cplx_t)0), getShape(), offset, suffix.str())
+		   :
+		    DataTypes::pointToString(getTypedVectorRO((real_t)0), getShape(), offset, suffix.str()));
             if (!(i==(m_noSamples-1) && j==(m_noDataPointsPerSample-1))) {
                 ss << endl;
             }
@@ -298,22 +424,31 @@ DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
     DataTypes::RealVectorType::size_type blockSize=getNoValues();
-    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0)), "(DataBlocks2D) Index value out of range.");
+    EsysAssert((isComplex()?
+		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_c.size() > 0))
+		:
+		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
+	       "(DataBlocks2D) Index value out of range.");
     ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    EsysAssert((temp <= (m_data_r.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
+    EsysAssert((isComplex()?
+		  (temp <= (m_data_c.size()-blockSize))
+		:
+		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range.");
 
     return temp;
 }
 
-DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
-                                                             int dataPointNo)
+
+void DataExpanded::complicate()
 {
-    DataTypes::RealVectorType::size_type blockSize=getNoValues();
-    EsysAssert(((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0)), "(DataBlocks2D) Index value out of range.");
-    ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    EsysAssert((temp <= (m_data_r.size()-blockSize)), "(DataBlocks2D) Index value out of range.");
-    return temp;
+    if (!isComplex())
+    {
+        fillComplexFromReal(m_data_r, m_data_c);
+        this->m_iscompl=true;
+        m_data_r.resize(0,0,1);
+    }
 }
+
 
 DataTypes::RealVectorType::size_type DataExpanded::getLength() const
 {

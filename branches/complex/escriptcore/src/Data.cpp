@@ -940,7 +940,6 @@ Data::isProtected() const
 void
 Data::expand()
 {
-    THROWONCOMPLEX
     if (isConstant()) {
         DataConstant* tempDataConst=dynamic_cast<DataConstant*>(m_data.get());
         DataAbstract* temp=new DataExpanded(*tempDataConst);
