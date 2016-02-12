@@ -118,7 +118,6 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     RCP<VectorType> Y = rcp(new VectorType(mat->getRowMap(), yView, yView.size(), 1));
 
     // Y = beta*Y + alpha*A*X
-    //mat->apply(*X, *Y, Teuchos::NO_TRANS, alpha, beta);
     mat->localMultiply(*gblX, *Y, Teuchos::NO_TRANS, alpha, beta);
     Y->get1dCopy(yView, yView.size());
 }
@@ -129,14 +128,40 @@ RCP<DirectSolverType> TrilinosMatrixAdapter::createDirectSolver(
                                                 RCP<const VectorType> B) const
 {
     RCP<DirectSolverType> solver;
-    solver = Amesos2::create<MatrixType,VectorType>("klu2", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("superlu", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("pardiso_mkl", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("lapack", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("amesos2_cholmod", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("superludist", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("superlumt", mat, X, B);
-    //solver = Amesos2::create<MatrixType,VectorType>("MUMPS", mat, X, B);
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+
+    // TODO: options!
+    if (Amesos2::query("MUMPS")) {
+        solver = Amesos2::create<MatrixType,VectorType>("MUMPS", mat, X, B);
+        if (sb.isVerbose()) {
+            params->set("ICNTL(4)", 4);
+        }
+    } else if (Amesos2::query("klu2")) {
+        solver = Amesos2::create<MatrixType,VectorType>("klu2", mat, X, B);
+        params->set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
+        params->set("SymmetricMode", sb.isSymmetric());
+    } else if (Amesos2::query("superludist")) {
+        solver = Amesos2::create<MatrixType,VectorType>("superludist", mat, X, B);
+    } else if (Amesos2::query("superlu")) {
+        solver = Amesos2::create<MatrixType,VectorType>("superlu", mat, X, B);
+        params->set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
+        params->set("ILU_DropTol", sb.getDropTolerance());
+        params->set("SymmetricMode", sb.isSymmetric());
+    } else if (Amesos2::query("pardiso_mkl")) {
+        solver = Amesos2::create<MatrixType,VectorType>("pardiso_mkl", mat, X, B);
+    } else if (Amesos2::query("lapack")) {
+        solver = Amesos2::create<MatrixType,VectorType>("lapack", mat, X, B);
+    } else if (Amesos2::query("amesos2_cholmod")) {
+        solver = Amesos2::create<MatrixType,VectorType>("amesos2_cholmod", mat, X, B);
+    } else if (Amesos2::query("superlumt")) {
+        solver = Amesos2::create<MatrixType,VectorType>("superlumt", mat, X, B);
+        params->set("nprocs", omp_get_max_threads());
+        params->set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
+        params->set("SymmetricMode", sb.isSymmetric());
+    } else {
+        throw TrilinosAdapterException("Could not find an Amesos2 direct solver!");
+    }
+    solver->setParameters(params);
     return solver;
 }
 
@@ -153,7 +178,19 @@ RCP<SolverType> TrilinosMatrixAdapter::createSolver(
         solverParams->set("Verbosity", Belos::Errors + Belos::Warnings +
                 Belos::TimingDetails + Belos::StatusTestDetails);
     }
-    switch (sb.getSolverMethod()) {
+
+    // TODO: options!
+    escript::SolverOptions method = sb.getSolverMethod();
+
+    if (method == escript::SO_DEFAULT) {
+        if (sb.isSymmetric()) {
+            method = escript::SO_METHOD_PCG;
+        } else {
+            method = escript::SO_METHOD_GMRES;
+        }
+    }
+
+    switch (method) {
         case escript::SO_DEFAULT:
         case escript::SO_METHOD_PCG:
             solver = factory.create("CG", solverParams);
@@ -184,6 +221,7 @@ RCP<OpType> TrilinosMatrixAdapter::createPreconditioner(
     RCP<OpType> prec;
     RCP<Ifpack2::Preconditioner<ST,LO,GO,NT> > ifprec;
 
+    // TODO: options!
     switch (sb.getPreconditioner()) {
         case escript::SO_PRECONDITIONER_NONE:
             break;
@@ -261,15 +299,15 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
         RCP<DirectSolverType> solver = createDirectSolver(sb, X, B);
         if (sb.isVerbose()) {
             std::cout << solver->description() << std::endl;
-            std::cout << "Performing symbolic factorization...";
+            std::cout << "Performing symbolic factorization..." << std::flush;
         }
         solver->symbolicFactorization();
         if (sb.isVerbose()) {
-            std::cout << "done\nPerforming numeric factorization...";
+            std::cout << "done\nPerforming numeric factorization..." << std::flush;
         }
         solver->numericFactorization();
         if (sb.isVerbose()) {
-            std::cout << "done\nSolving system...";
+            std::cout << "done\nSolving system..." << std::flush;
         }
         solver->solve();
         if (sb.isVerbose()) {
