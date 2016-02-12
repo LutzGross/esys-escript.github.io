@@ -47,11 +47,11 @@ public:
   */
   ESCRIPT_DLL_API
   double*
-  getSampleDataRW(ValueType::size_type sampleNo);
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
 
   ESCRIPT_DLL_API
   const double*
-  getSampleDataRO(ValueType::size_type sampleNo) const;
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
 
   /**
 	\brief Provide access to underlying storage. Internal use only!
@@ -161,14 +161,14 @@ public:
 
 
 inline
-DataAbstract::ValueType::value_type*
-DataReady::getSampleDataRW(ValueType::size_type sampleNo)
+DataTypes::real_t*
+DataReady::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
 {
   return &(getVectorRW()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVectorRW()
 }
 
-inline const double*
-DataReady::getSampleDataRO(ValueType::size_type sampleNo) const
+inline const DataTypes::real_t*
+DataReady::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
 {
   return &(getVectorRO()[getPointOffset(sampleNo,0)]);		
 }

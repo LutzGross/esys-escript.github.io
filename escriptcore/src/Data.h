@@ -607,8 +607,8 @@ If false, the result is a list of scalars [1, 2, ...]
 */
   ESCRIPT_DLL_API
   inline
-  const DataAbstract::ValueType::value_type*
-  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const;
+  const DataTypes::real_t*
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
 
 
   /**
@@ -620,8 +620,8 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   inline
-  DataAbstract::ValueType::value_type*
-  getSampleDataRW(DataAbstract::ValueType::size_type sampleNo);
+  DataTypes::real_t*
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
 
 
  /**
@@ -632,7 +632,7 @@ If false, the result is a list of scalars [1, 2, ...]
 */
   ESCRIPT_DLL_API
   inline
-  const DataAbstract::ValueType::value_type*
+  const DataTypes::real_t*
   getDataRO() const;  
   
   /**
@@ -643,7 +643,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   inline
-  DataAbstract::ValueType::value_type*
+  DataTypes::real_t*
   getSampleDataByTag(int tag)
   {
     return m_data->getSampleDataByTag(tag);
@@ -2037,8 +2037,8 @@ Data::getReadyPtr() const
 }
 
 inline
-DataAbstract::ValueType::value_type*
-Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
+DataTypes::real_t*
+Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
 {
    if (isLazy())
    {
@@ -2054,8 +2054,8 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 }
 
 inline
-const DataAbstract::ValueType::value_type*
-Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const
+const DataTypes::real_t*
+Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
@@ -2068,7 +2068,7 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const
 }
 
 inline
-const DataAbstract::ValueType::value_type*
+const DataTypes::real_t*
 Data::getDataRO() const
 {
     if (isLazy())

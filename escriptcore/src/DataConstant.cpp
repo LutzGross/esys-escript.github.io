@@ -123,32 +123,86 @@ bool
 DataConstant::hasNaN() const
 {
   bool haveNaN=false;
-  #pragma omp parallel for
-	for (ValueType::size_type i=0;i<m_data_r.size();++i)
-	{
-		if (nancheck(m_data_r[i]))	
-		{
-		    #pragma omp critical 
-        {
-            haveNaN=true;
-        }
-		}
-	}
-	return haveNaN;
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_r[i]))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  return haveNaN;
 }
 
 void
-DataConstant::replaceNaN(double value)
-{
-  #pragma omp parallel for
-  for (ValueType::size_type i=0;i<m_data_r.size();++i)
+DataConstant::replaceNaN(double value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
   {
-    if (nancheck(m_data_r[i]))  
-    {
-      m_data_r[i] = value;
-    } 
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_r[i]))  
+	{
+	  m_data_r[i] = value;
+	}
+      }    
   }
 }
+
+void
+DataConstant::replaceNaN(DataTypes::cplx_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      complicate();
+      replaceNaN(value);
+  }
+}
+
+
 
 string
 DataConstant::toString() const
@@ -267,7 +321,7 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::trace: casting to DataConstant failed (probably a programming error).");
   }
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   DataMaths::trace(m_data_r,getShape(),0,evVec,evShape,0,axis_offset);
 }
@@ -323,11 +377,11 @@ DataConstant::matrixInverse(DataAbstract* out) const
   DataConstant* temp=dynamic_cast<DataConstant*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (probably a programming error).");
+        throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (probably a programming error).");
   }
   if (getRank()!=2)
   {
-	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+        throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
   }
   LapackInverseHelper h(getShape()[0]);
   int res=DataMaths::matrix_inverse(m_data_r, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
@@ -373,43 +427,43 @@ DataConstant::dump(const std::string fileName) const
    NcFile dataFile(newFileName.c_str(), NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
-	throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
+        throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
    if (!dataFile.add_att("type_id",0) )
-	throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
    if (!dataFile.add_att("rank",rank) )
-	throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
    if (!dataFile.add_att("function_space_type",type))
-	throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
 
    if (rank == 0) {
       if( ! (ncdims[0] = dataFile.add_dim("l", 1)) )
-		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
       dims[0]=1,
       ndims=1;
    } else {
        ndims=rank;
        dims[0]=shape[0];
        if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
        if ( rank >1 ) {
            dims[1]=shape[1];
            if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
        }
        if ( rank >2 ) {
            dims[2]=shape[2];
            if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
        }
        if ( rank >3 ) {
            dims[3]=shape[3];
            if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
        }
    }
 
    if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
-	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
    if (! (var->put(d_ptr,dims)) )
          throw DataException("Error - DataConstant:: copy data to netCDF buffer failed.");
 #ifdef ESYS_MPI

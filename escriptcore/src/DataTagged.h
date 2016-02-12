@@ -58,18 +58,6 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
 
   /**
      \brief
-     Default constructor for DataTagged.
-
-     Description:
-     Default constructor for DataTagged. Creates a DataTagged object for which
-     the default data-point is a scalar data-point with value 0.0, and no other
-     tag values are stored.
-    T
-  */
-//   DataTagged();
-
-  /**
-     \brief
      Alternative Constructor for DataTagged.
 
      Description:
