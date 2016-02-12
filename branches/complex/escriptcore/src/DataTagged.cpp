@@ -39,13 +39,6 @@ using namespace std;
 
 namespace escript {
 
-//   // who calls this????????
-// DataTagged::DataTagged()
-//   : parent(FunctionSpace(),DataTypes::scalarShape),
-//     m_data_r(1,0.,1)
-// {
-// }
-
 DataTagged::DataTagged(const FunctionSpace& what,
                        const DataTypes::ShapeType &shape,
                        const int tags[],
@@ -474,7 +467,7 @@ DataTagged::getTagNumber(int dpno)
 void
 DataTagged::setTaggedValue(int tagKey,
 			   const DataTypes::ShapeType& pointshape,
-                           const ValueType& value,
+                           const DataTypes::RealVectorType& value,
 			   int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
@@ -513,7 +506,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
 // Note: The check to see if vShape==our shape is done in the addTaggedValue method
 void
 DataTagged::addTaggedValues(const TagListType& tagKeys,
-                            const ValueType& values,
+                            const DataTypes::RealVectorType& values,
                             const ShapeType& vShape)
 {
   unsigned int n=getNoValues();
@@ -553,7 +546,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
 void
 DataTagged::addTaggedValue(int tagKey,
 			   const DataTypes::ShapeType& pointshape,
-                           const ValueType& value,
+                           const DataTypes::RealVectorType& value,
 			   int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
@@ -571,7 +564,7 @@ DataTagged::addTaggedValue(int tagKey,
     // add the data given in "value" at the end of m_data_r
     // need to make a temp copy of m_data_r, resize m_data_r, then copy
     // all the old values plus the value to be added back into m_data_r
-    ValueType m_data_r_temp(m_data_r);
+    DataTypes::RealVectorType m_data_r_temp(m_data_r);
     int oldSize=m_data_r.size();
     int newSize=m_data_r.size()+getNoValues();
     m_data_r.resize(newSize,0.,newSize);
@@ -598,7 +591,7 @@ DataTagged::addTag(int tagKey)
     // add the data given in "value" at the end of m_data_r
     // need to make a temp copy of m_data_r, resize m_data_r, then copy
     // all the old values plus the value to be added back into m_data_r
-    ValueType m_data_r_temp(m_data_r);
+    DataTypes::RealVectorType m_data_r_temp(m_data_r);
     int oldSize=m_data_r.size();
     int newSize=m_data_r.size()+getNoValues();
     m_data_r.resize(newSize,0.,newSize);
@@ -634,7 +627,7 @@ DataTagged::hasNaN() const
   if (isComplex())
   {
       #pragma omp parallel for
-      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
 	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
 	  {
@@ -648,7 +641,7 @@ DataTagged::hasNaN() const
   else
   {
       #pragma omp parallel for
-      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
       {
 	  if (std::isnan(m_data_r[i]))
 	  {
@@ -668,7 +661,7 @@ DataTagged::replaceNaN(double value) {
   if (isComplex())
   {
       #pragma omp parallel for
-      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
 	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
 	{
@@ -679,7 +672,7 @@ DataTagged::replaceNaN(double value) {
   else
   {
       #pragma omp parallel for
-      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
       {
 	if (std::isnan(m_data_r[i]))  
 	{
@@ -695,7 +688,7 @@ DataTagged::replaceNaN(DataTypes::cplx_t value) {
   if (isComplex())
   {
       #pragma omp parallel for
-      for (ValueType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
 	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
 	{
@@ -821,7 +814,7 @@ DataTagged::symmetric(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -843,7 +836,7 @@ DataTagged::nonsymmetric(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -865,7 +858,7 @@ DataTagged::trace(DataAbstract* ev, int axis_offset)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -886,7 +879,7 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -907,7 +900,7 @@ DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -928,7 +921,7 @@ DataTagged::eigenvalues(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -954,9 +947,9 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  ValueType& VVec=temp_V->getVectorRW();
+  DataTypes::RealVectorType& VVec=temp_V->getVectorRW();
   const ShapeType& VShape=temp_V->getShape();
   for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
       temp_ev->addTag(i->first);
@@ -993,7 +986,7 @@ DataTagged::matrixInverse(DataAbstract* out) const
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  ValueType& outVec=temp->getVectorRW();
+  DataTypes::RealVectorType& outVec=temp->getVectorRW();
   const ShapeType& outShape=temp->getShape();
   LapackInverseHelper h(getShape()[0]);
   int err=0;

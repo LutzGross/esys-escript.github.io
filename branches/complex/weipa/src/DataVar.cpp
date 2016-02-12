@@ -157,7 +157,7 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
         float* tempData = new float[dataSize*numSamples];
         float* destPtr = tempData;
         if (escriptData.isConstant()) {
-            const escript::DataAbstract::ValueType::value_type* values =
+            const escript::DataTypes::real_t* values =
                 escriptData.getDataRO();
             for (int pointNo=0; pointNo<numSamples*ptsPerSample; pointNo++) {
                 copy(values, values+dimSize, destPtr);
@@ -165,7 +165,7 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
             }
         } else {
             for (int sampleNo=0; sampleNo<numSamples; sampleNo++) {
-                const escript::DataAbstract::ValueType::value_type* values =
+                const escript::DataTypes::real_t* values =
                     escriptData.getSampleDataRO(sampleNo);
                 copy(values, values+dataSize, destPtr);
                 destPtr += dataSize;

@@ -170,7 +170,11 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
+
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(DataTypes::cplx_t value);
     
   /**
      \brief
@@ -278,7 +282,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**

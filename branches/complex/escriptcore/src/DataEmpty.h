@@ -99,7 +99,7 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**

@@ -93,8 +93,8 @@ typedef DataReady parent;
   DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const double v);
-	       
-	       
+               
+               
   ESCRIPT_DLL_API
   bool
   isConstant() const 
@@ -114,7 +114,11 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
+
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(DataTypes::cplx_t value);
 
   /**
      \brief

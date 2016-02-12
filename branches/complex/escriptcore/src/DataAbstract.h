@@ -64,7 +64,6 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
  public:
 
-  typedef DataTypes::RealVectorType ValueType;
   typedef DataTypes::ShapeType ShapeType;
 
    /**
@@ -174,7 +173,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
     \param dataPointNo - Input - data point number.
   */
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
 
@@ -185,7 +184,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Return the number of doubles stored for this Data object.
   */
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const = 0;
 
   /**

@@ -348,7 +348,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
     // use a non-existent tag so we get a pointer to the default value
     // i.e.: the first element in the data array
-  DataAbstract::ValueType::value_type* targetData=target.getSampleDataByTag(9);
+  DataTypes::real_t* targetData=target.getSampleDataByTag(9);
   for (int i=0; i<target.getLength(); i++) {
       CPPUNIT_ASSERT(targetData[i]>=0);
   }

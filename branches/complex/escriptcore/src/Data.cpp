@@ -4582,8 +4582,8 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
             {
                 // We are assuming that the first datapoint in the sample determines which side to use
                 // for the whole sample.
-                const DataAbstract::ValueType::value_type* src=0;
-                const DataAbstract::ValueType::value_type* masksample=mask.getSampleDataRO(i);
+                const DataTypes::real_t* src=0;
+                const DataTypes::real_t* masksample=mask.getSampleDataRO(i);
                 if (masksample[0]>0)    // first scalar determines whole sample
                 {
                     src=trueval.getSampleDataRO(i);

@@ -41,7 +41,7 @@ using namespace escript::DataTypes;
         abort();\
         throw DataException(ss.str());\
     }\
-} while(0)
+} while(0);
 
 
 namespace escript {
@@ -280,9 +280,9 @@ void DataExpanded::setSlice(const DataAbstract* value,
                 shape, value->getShape()));
 
     // copy the data from the slice into this object
-    ValueType& vec=getVectorRW();
+    DataTypes::RealVectorType& vec=getVectorRW();
     const ShapeType& mshape=getShape();
-    const ValueType& tVec=tempDataExp->getVectorRO();
+    const DataTypes::RealVectorType& tVec=tempDataExp->getVectorRO();
     const ShapeType& tShape=tempDataExp->getShape();
 #pragma omp parallel for
     for (int i=0; i<m_noSamples; i++) {
@@ -366,30 +366,88 @@ void DataExpanded::initialise(int noSamples, int noDataPointsPerSample, bool cpl
     }
 }
 
-bool DataExpanded::hasNaN() const
+bool
+DataExpanded::hasNaN() const
 {
-    bool haveNaN = false;
-    const ValueType& v = m_data_r;
-#pragma omp parallel for
-    for (ValueType::size_type i=0; i<v.size(); ++i) {
-        if (nancheck(v[i])) {
-#pragma omp critical
-            {
-                haveNaN=true;
-            }
-        }
-    }
-    return haveNaN;
+  bool haveNaN=false;
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_r[i]))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  return haveNaN;
 }
 
-void DataExpanded::replaceNaN(double value)
-{
-#pragma omp parallel for
-    for (ValueType::size_type i=0; i<m_data_r.size(); ++i) {
-        if (nancheck(m_data_r[i])) {
-            m_data_r[i] = value;
-        }
-    }
+
+void
+DataExpanded::replaceNaN(DataTypes::real_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_r[i]))  
+	{
+	  m_data_r[i] = value;
+	}
+      }    
+  }
+}
+
+void
+DataExpanded::replaceNaN(DataTypes::cplx_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      complicate();
+      replaceNaN(value);
+  }
 }
 
 string DataExpanded::toString() const
@@ -429,7 +487,7 @@ DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
 		:
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
 	       "(DataBlocks2D) Index value out of range.");
-    ValueType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
+    DataTypes::RealVectorType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
     EsysAssert((isComplex()?
 		  (temp <= (m_data_c.size()-blockSize))
 		:
@@ -470,8 +528,8 @@ void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, double value)
         if (dataPointNo >= numDataPointsPerSample || dataPointNo < 0)
             throw DataException("DataExpanded::copyDataPoint: invalid dataPointNo.");
 
-        ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-        ValueType& vec = getVectorRW();
+        DataTypes::RealVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+        DataTypes::RealVectorType& vec = getVectorRW();
         if (dataPointRank==0) {
             vec[offset] = value;
         } else if (dataPointRank==1) {
@@ -524,8 +582,8 @@ void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo,
         if (dataPointNo >= numDataPointsPerSample || dataPointNo < 0)
             throw DataException("DataExpanded::copyDataPoint: invalid dataPointNoInSample.");
 
-        ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-        ValueType& vec = getVectorRW();
+        DataTypes::RealVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+        DataTypes::RealVectorType& vec = getVectorRW();
         vec.copyFromArrayToOffset(value, offset, 1);
     }
 }
@@ -538,9 +596,9 @@ void DataExpanded::symmetric(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::symmetric: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -560,9 +618,9 @@ void DataExpanded::nonsymmetric(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::nonsymmetric: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -582,9 +640,9 @@ void DataExpanded::trace(DataAbstract* ev, int axis_offset)
     if (!temp_ev)
         throw DataException("DataExpanded::trace: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec=getVectorRO();
+    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    ValueType& evVec=temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
     const ShapeType& evShape=temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -604,9 +662,9 @@ void DataExpanded::transpose(DataAbstract* ev, int axis_offset)
     if (!temp_ev)
         throw DataException("DataExpanded::transpose: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -626,9 +684,9 @@ void DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
     if (!temp_ev)
         throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec=getVectorRO();
+    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    ValueType& evVec=temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
     const ShapeType& evShape=temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -648,9 +706,9 @@ void DataExpanded::eigenvalues(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::eigenvalues: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec=getVectorRO();
+    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    ValueType& evVec=temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
     const ShapeType& evShape=temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -675,11 +733,11 @@ void DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,
     if (!temp_V)
         throw DataException("DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
-    ValueType& VVec = temp_V->getVectorRW();
+    DataTypes::RealVectorType& VVec = temp_V->getVectorRW();
     const ShapeType& VShape = temp_V->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -704,7 +762,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
 
     const int numdpps=getNumDPPSample();
     const int numSamples = getNumSamples();
-    const ValueType& vec=m_data_r;
+    const DataTypes::RealVectorType& vec=m_data_r;
     int errcode=0;
 #pragma omp parallel
     {
