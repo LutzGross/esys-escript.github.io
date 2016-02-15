@@ -20,54 +20,13 @@
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/FunctionSpace.h>
 
-#include <Amesos2_Solver_decl.hpp>
-#include <BelosSolverManager.hpp>
-#include <Tpetra_CrsGraph.hpp>
-#include <Tpetra_CrsMatrix.hpp>
+#include <trilinoswrap/types.h>
 
 namespace escript {
     class SolverBuddy;
 }
 
 namespace esys_trilinos {
-
-/// Scalar type
-typedef double  ST;
-/// Global Ordinal type
-typedef index_t GO;
-/// Local Ordinal type
-typedef index_t LO;
-/// Kokkos Node type
-#ifdef _OPENMP
-typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
-#elif USE_CUDA
-typedef Kokkos::Compat::KokkosCudaWrapperNode NT;
-#else
-typedef Kokkos::Compat::KokkosSerialWrapperNode NT;
-#endif
-
-typedef Tpetra::CrsGraph<LO,GO,NT>                 GraphType;
-typedef Tpetra::CrsMatrix<ST,LO,GO,NT>             MatrixType;
-typedef Tpetra::MultiVector<ST,LO,GO,NT>           VectorType;
-typedef Tpetra::Operator<ST,LO,GO,NT>              OpType;
-typedef Belos::LinearProblem<ST,VectorType,OpType> ProblemType;
-typedef Belos::SolverManager<ST,VectorType,OpType> SolverType;
-typedef Amesos2::Solver<MatrixType,VectorType>     DirectSolverType;
-typedef MatrixType::map_type                       MapType;
-typedef Tpetra::Import<LO,GO,NT>                   ImportType;
-
-typedef Teuchos::RCP<MapType> TrilinosMap_ptr;
-typedef Teuchos::RCP<const MapType> const_TrilinosMap_ptr;
-
-typedef Teuchos::RCP<GraphType> TrilinosGraph_ptr;
-typedef Teuchos::RCP<const GraphType> const_TrilinosGraph_ptr;
-
-
-inline
-Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
-{
-    return Teuchos::rcp(new Teuchos::MpiComm<int>(comm));
-}
 
 class TrilinosMatrixAdapter : public escript::AbstractSystemMatrix
 {
