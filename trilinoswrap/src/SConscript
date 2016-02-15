@@ -26,6 +26,7 @@ sources = """
 headers = """
   TrilinosAdapterException.h
   TrilinosMatrixAdapter.h
+  types.h
 """.split()
 
 local_env.Prepend(LIBS = ['escript'] + env['trilinos_libs'])
