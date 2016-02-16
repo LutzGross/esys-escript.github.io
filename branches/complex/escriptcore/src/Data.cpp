@@ -1595,127 +1595,112 @@ Data::sin() const
 Data
 Data::cos() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(COS);
-    return C_TensorUnaryOperation(*this, cos_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::COSF);
 }
 
 Data
 Data::tan() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(TAN);
-    return C_TensorUnaryOperation(*this, tan_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::TANF);
 }
 
 Data
 Data::asin() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ASIN);
-    return C_TensorUnaryOperation(*this, asin_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ASINF);
 }
 
 Data
 Data::acos() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ACOS);
-    return C_TensorUnaryOperation(*this, acos_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ACOSF);
 }
 
 
 Data
 Data::atan() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ATAN);
-    return C_TensorUnaryOperation(*this, atan_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ATANF);
 }
 
 Data
 Data::sinh() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(SINH);
-    return C_TensorUnaryOperation(*this, sinh_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SINHF);
 }
 
 Data
 Data::cosh() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(COSH);
-    return C_TensorUnaryOperation(*this, cosh_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::COSHF);
 }
 
 Data
 Data::tanh() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(TANH);
-    return C_TensorUnaryOperation(*this, tanh_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::TANHF);
 }
 
 
 Data
 Data::erf() const
 {
-    THROWONCOMPLEX
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
     throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
     MAKELAZYOP(ERF);
-    return C_TensorUnaryOperation(*this, erf_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ERFF);
 #endif
 }
 
 Data
 Data::asinh() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ASINH);
-    return C_TensorUnaryOperation(*this, asinh_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ASINHF);
 }
 
 Data
 Data::acosh() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ACOSH);
-    return C_TensorUnaryOperation(*this, acosh_func<double>());    
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ACOSHF);    
 }
 
 Data
 Data::atanh() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ATANH);
-    return C_TensorUnaryOperation(*this, atanh_func<double>()); 
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ATANHF); 
 }
 
 Data
 Data::log10() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(LOG10);
-    return C_TensorUnaryOperation(*this, log10_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::LOG10F);
 }
 
 Data
 Data::log() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(LOG);
-    return C_TensorUnaryOperation(*this, log_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::LOGF);
 }
 
 Data
 Data::sign() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(SIGN);
-    return C_TensorUnaryOperation(*this, sign_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SIGNF);
 }
 
 Data
@@ -2554,9 +2539,7 @@ Data::operator+=(const boost::python::object& right)
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
-    THROWONCOMPLEX
     Data tmp(right,getFunctionSpace(),false);
-    THROWONCOMPLEXA(tmp)
     (*this)+=tmp;
     return *this;
 }
@@ -3007,8 +2990,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     // SM is the product of the last axis_offset entries in arg_0.getShape().
 
     // deal with any lazy data
-//   if (arg_0.isLazy()) {arg_0.resolve();}
-//   if (arg_1.isLazy()) {arg_1.resolve();}
     if (arg_0.isLazy() || arg_1.isLazy() || (AUTOLAZYON && (arg_0.isExpanded() || arg_1.isExpanded())))
     {
         DataLazy* c=new DataLazy(arg_0.borrowDataPtr(), arg_1.borrowDataPtr(), PROD, axis_offset,transpose);
@@ -3052,20 +3033,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     DataTypes::ShapeType tmpShape1(rank1); // than using push_back
     for (int i=0; i<rank0; i++)   { tmpShape0[i]=shape0[(i+start0)%rank0]; }
     for (int i=0; i<rank1; i++)   { tmpShape1[i]=shape1[(i+start1)%rank1]; }
-
-#if 0
-    // For debugging: show shape after transpose
-    char tmp[100];
-    std::string shapeStr;
-    shapeStr = "(";
-    for (int i=0; i<rank0; i++)   { sprintf(tmp, "%d,", tmpShape0[i]); shapeStr += tmp; }
-    shapeStr += ")";
-    cout << "C_GeneralTensorProduct: Shape of arg0 is " << shapeStr << endl;
-    shapeStr = "(";
-    for (int i=0; i<rank1; i++)   { sprintf(tmp, "%d,", tmpShape1[i]); shapeStr += tmp; }
-    shapeStr += ")";
-    cout << "C_GeneralTensorProduct: Shape of arg1 is " << shapeStr << endl;
-#endif
 
     // Prepare for the loops of the product
     int SL=1, SM=1, SR=1;
@@ -3439,20 +3406,6 @@ Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::cplx_
     return getReady()->getDataAtOffsetROC(i);
 }
 
-
-
-
-// DataTypes::RealVectorType::const_reference
-// Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i) const
-// {
-//     if (isLazy())
-//     {
-//      throw DataException("Programmer error - getDataAtOffsetRO() not permitted on Lazy Data (object is const which prevents resolving).");
-//     }
-//     return getReady()->getDataAtOffsetRO(i);
-// }
-
-
 DataTypes::RealVectorType::const_reference
 Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
@@ -3740,10 +3693,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
                         double sw=table.getElt(y,x);
                         double nw=usey?table.getElt(ny,x):0; // 0 because if !usey ny does not actually exist
                         double se=usex?table.getElt(y,nx):0;
-                        double ne=(usex&&usey)?table.getElt(ny,nx):0;
-
-// cout << a << "," << b << " -> " << x << "," << y << "   " <<  sw <<  "," << 
-// nw <<  "," <<  se <<  "," <<  ne <<  "\n";                   
+                        double ne=(usex&&usey)?table.getElt(ny,nx):0;                
 
                         double ans=(1-la)*(1-lb)*sw +
                                    (1-la)*(1+lb)*nw +
@@ -3859,10 +3809,6 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
     }
     if (!error)
     {
-//      int twx=ts[0]-1;        // table width x
-//      int twy=ts[1]-1;        // table width y
-//      int twz=ts[2]-1;        // table width z
-
         int twx=ts[2]-1;        // table width x
         int twy=ts[1]-1;        // table width y
         int twz=ts[0]-1;        // table width z
@@ -3916,30 +3862,10 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
                         bool usex=(x!=twx);
                         bool usey=(y!=twy);
                         bool usez=(z!=twz);
-//                      if (usex) {weight/=2;}
-//                      if (usey) {weight/=2;}
-//                      if (usez) {weight/=2;}
 
                         la = 2.0*(a-Amin-(x*Astep))/Astep-1;
                         lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
                         lc = 2.0*(c-Cmin-(z*Cstep))/Cstep-1;
-
-/*
-cerr << "Processing point " << l << " x=";
-cerr <<  x << "," << nx << " ";
-cerr <<  "y=" << y << "," << ny << " ";
-cerr <<  "z=" << z << "," << nz << "\n";
-
-cerr << "  usex=" << usex << "  usey=" << usey << "  usez=" << usez << endl;*/
-
-//                      double swb=table.getElt(x,y,z);
-//                      double swt=usez?table.getElt(x,y,nz):0;
-//                      double nwb=usey?table.getElt(x,ny,z):0;
-//                      double nwt=(usey&&usez)?table.getElt(x,ny,nz):0;
-//                      double seb=usex?table.getElt(nx,y,z):0;
-//                      double set=(usex&&usez)?table.getElt(nx,y,nz):0;
-//                      double neb=(usex&&usey)?table.getElt(nx,ny,z):0;
-//                      double net=(usex&&usey&&usez)?table.getElt(nx,ny,nz):0;
 
                         double swb=table.getElt(z,y,x);
                         double swt=usez?table.getElt(nz,y,x):0;
@@ -3949,42 +3875,6 @@ cerr << "  usex=" << usex << "  usey=" << usey << "  usez=" << usez << endl;*/
                         double set=(usex&&usez)?table.getElt(nz,y,nx):0;
                         double neb=(usex&&usey)?table.getElt(z,ny,nx):0;
                         double net=(usex&&usey&&usez)?table.getElt(nz,ny,nx):0;
-
-// cerr << "     +(0,1,0) " << table.getElt(0,1,0) << endl;
-// cerr << "     +(1,1,0) " << table.getElt(1,1,0) << endl;
-// cerr << "     +(0,0,1) " << table.getElt(0,0,1) << endl;
-// cerr << "     +(0,1,1) " << table.getElt(0,1,1) << endl;
-
-
-// cerr << "    " << swb << ", " << swt << ", ";
-// cerr << nwb << ", " << nwt << ", ";
-// cerr << seb << ", " << set << ", ";
-// cerr << neb << ", " << net << "\n";
-// 
-// cerr << "       la=" << la << " lb=" << lb << " lc="<< lc << endl;
-
-/*                      double la = 2.0*(a-Amin-(x*Astep))/Astep-1;*/
-/*                      double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;*/
-//                      double lc = 2.0*(c-Cmin-(z*Cstep))/Cstep-1;
-
-// cerr << "        swb=" << swb << endl;
-// cerr << "        swt=" << swt << endl;
-// cerr << "        nwb=" <<    nwb << endl;
-// cerr << "        nwt=" <<    nwt << endl;
-// cerr << "        seb=" <<    seb << endl;
-// cerr << "        set=" <<    set << endl;
-// cerr << "        neb=" <<    neb << endl;
-// cerr << "        net=" <<    net << endl;;
-// 
-// cerr << "      swb->" << (1-la)*(1-lb)*(1-lc)*swb << endl;
-// cerr << "      swt->" << (1-la)*(1-lb)*(1+lc)*swt << endl;
-// cerr << "      nwb->" << (1-la)*(1+lb)*(1-lc)*nwb << endl;
-// cerr << "      nwt->" << (1-la)*(1+lb)*(1+lc)*nwt << endl;
-// cerr << "      seb->" << (1+la)*(1-lb)*(1-lc)*seb << endl;
-// cerr << "      set->" << (1+la)*(1-lb)*(1+lc)*set << endl;
-// cerr << "      neb->" << (1+la)*(1+lb)*(1-lc)*neb << endl;
-// cerr << "      net->" << (1+la)*(1+lb)*(1+lc)*net << endl;;
-
 
                         double ans=(1-la)*(1-lb)*(1-lc)*swb +
                                    (1-la)*(1-lb)*(1+lc)*swt +
@@ -4651,22 +4541,6 @@ Data escript::randomData(const boost::python::tuple& shape,
     {
 	throw DataException("The specified domain does not support those filter options.");
     }
-    
-/*     This code below needs to be moved into the other domains' randomFill code */    
-    
-    
-//     }
-//     else
-//     {
-// 	Data towipe(0, shape, what, true);
-// 	DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
-// 	if (de==0) 
-// 	{
-// 	    throw DataException("Programmer Error: Expanded data is not expanded");
-// 	}
-// 	de->randomFill(seed);
-//         return towipe;
-//     }
 }
 
 
@@ -4848,6 +4722,12 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   {
      throw DataException("Error - Operations not permitted on lazy data.");
   }
+  
+  if (arg_0.isComplex() && !supports_cplx(operation))
+  {
+      throw DataException("Error - the requested operation does not support complex values");
+  }
+  
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z = Data(arg_0);
 
