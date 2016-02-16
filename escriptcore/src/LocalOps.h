@@ -35,6 +35,41 @@ For operations on DataVector see DataMaths.h.
 
 namespace escript {
 
+
+typedef enum
+{
+SINF,
+COSF,
+TANF,
+ASINF,
+ACOSF,
+ATANF,
+SINHF,
+COSHF,
+TANHF,
+ERFF,
+ASINHF,
+ACOSHF,
+ATANHF,
+LOG10F,
+LOGF,
+SIGNF,
+ABSF,
+EXPF,
+SQRTF,
+POWF,
+PLUSF,
+MINUSF,
+MULTIPLIESF,
+DIVIDESF,
+LESSF,
+GREATERF,
+GREATER_EQUALF,
+LESS_EQUALF
+} ESFunction;
+
+
+
 /**
 \brief acts as a wrapper to isnan.
 \warning if compiler does not support FP_NAN this function will always return false.
@@ -517,6 +552,11 @@ inline void tensor_unary_operation(const int size,
   return;
 }
 
+// ----------------------
+
+
+// -------------------------------------
+
 template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
 			     const T *arg1,
@@ -560,7 +600,7 @@ inline void tensor_binary_operation(const int size,
 template <typename T>
 struct sin_func
 {
-    T operator() (const T& x) const {return ::sin(x);}
+    T operator() (const T& x) const {return sin(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -568,7 +608,7 @@ struct sin_func
 template <typename T>
 struct cos_func
 {
-    T operator() (const T& x) const {return ::cos(x);}
+    T operator() (const T& x) const {return cos(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -576,7 +616,7 @@ struct cos_func
 template <typename T>
 struct tan_func
 {
-    T operator() (const T& x) const {return ::tan(x);}
+    T operator() (const T& x) const {return tan(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -584,7 +624,7 @@ struct tan_func
 template <typename T>
 struct asin_func
 {
-    T operator() (const T& x) const {return ::asin(x);}
+    T operator() (const T& x) const {return asin(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -592,7 +632,7 @@ struct asin_func
 template <typename T>
 struct acos_func
 {
-    T operator() (const T& x) const {return ::acos(x);}
+    T operator() (const T& x) const {return acos(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -600,7 +640,7 @@ struct acos_func
 template <typename T>
 struct atan_func
 {
-    T operator() (const T& x) const {return ::atan(x);}
+    T operator() (const T& x) const {return atan(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -608,7 +648,7 @@ struct atan_func
 template <typename T>
 struct sinh_func
 {
-    T operator() (const T& x) const {return ::sinh(x);}
+    T operator() (const T& x) const {return sinh(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -616,7 +656,7 @@ struct sinh_func
 template <typename T>
 struct cosh_func
 {
-    T operator() (const T& x) const {return ::cosh(x);}
+    T operator() (const T& x) const {return cosh(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -625,7 +665,7 @@ struct cosh_func
 template <typename T>
 struct tanh_func
 {
-    T operator() (const T& x) const {return ::tanh(x);}
+    T operator() (const T& x) const {return tanh(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -639,6 +679,15 @@ struct erf_func
     typedef T argument_type;
     typedef T result_type;
 };
+
+template <>
+struct erf_func<DataTypes::cplx_t>		// dummy instantiation
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
 #endif
     
 template <typename T>
@@ -649,7 +698,7 @@ struct asinh_func
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
     return escript::asinh_substitute(x);
 #else
-    return ::asinh(x);
+    return asinh(x);
 #endif      
     }
     typedef T argument_type;
@@ -664,7 +713,7 @@ struct acosh_func
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
     return escript::acosh_substitute(x);
 #else
-    return ::acosh(x);
+    return acosh(x);
 #endif
     }
     typedef T argument_type;
@@ -679,7 +728,7 @@ struct atanh_func
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
     return escript::atanh_substitute(x);
 #else
-    return ::atanh(x);
+    return atanh(x);
 #endif
     }    
     typedef T argument_type;
@@ -689,7 +738,7 @@ struct atanh_func
 template <typename T>
 struct log10_func
 {
-    T operator() (const T& x) const {return ::log10(x);}
+    T operator() (const T& x) const {return log10(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -697,7 +746,7 @@ struct log10_func
 template <typename T>
 struct log_func
 {
-    T operator() (const T& x) const {return ::log(x);}
+    T operator() (const T& x) const {return log(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -710,10 +759,20 @@ struct sign_func
     typedef T result_type;
 };
 
+template <>
+struct sign_func<DataTypes::cplx_t>	// dummy instantiation
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+
 template <typename T>
 struct abs_func
 {
-    T operator() (const T& x) const {return ::fabs(x);}
+    T operator() (const T& x) const {return fabs(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -721,7 +780,7 @@ struct abs_func
 template <typename T>
 struct exp_func
 {
-    T operator() (const T& x) const {return ::exp(x);}
+    T operator() (const T& x) const {return exp(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -729,7 +788,7 @@ struct exp_func
 template <typename T>
 struct sqrt_func
 {
-    T operator() (const T& x) const {return ::sqrt(x);}
+    T operator() (const T& x) const {return sqrt(x);}
     typedef T argument_type;
     typedef T result_type;
 };
@@ -820,37 +879,56 @@ struct less_equal_func
     typedef T result_type;
 };
 
-typedef enum 
+
+
+
+template <class IN, typename OUT, class UnaryFunction>
+inline void tensor_unary_operation_helper(const int size,
+                             const IN *arg1,
+                             OUT * argRes,
+                             UnaryFunction operation)
 {
-SINF,
-COSF,
-TANF,
-ASINF,
-ACOSF,
-ATANF,
-SINHF,
-COSHF,
-TANHF,
-ERFF,
-ASINHF,
-ACOSHF,
-ATANHF,
-LOG10F,
-LOGF,
-SIGNF,
-ABSF,
-EXPF,
-SQRTF,
-POWF,
-PLUSF,
-MINUSF,
-MULTIPLIESF,
-DIVIDESF,
-LESSF,
-GREATERF,
-GREATER_EQUALF,
-LESS_EQUALF
-} ESFunction;
+
+  for (int i = 0; i < size; ++i) {
+    argRes[i] = operation(arg1[i]);
+  }
+}
+
+// In most cases, IN and OUT will be the same
+// but not ruling out putting Re() and Im()
+// through this
+template <class IN, typename OUT>
+inline void tensor_unary_array_operation(const int size,
+                             const IN *arg1,
+                             OUT * argRes,
+                             escript::ESFunction operation)
+{
+  switch (operation)
+  {
+    case SINF: tensor_unary_operation_helper(size, arg1, argRes, sin_func<IN>()); break;
+    case COSF: tensor_unary_operation_helper(size, arg1, argRes, cos_func<IN>()); break;
+    case TANF: tensor_unary_operation_helper(size, arg1, argRes, tan_func<IN>()); break;
+    case ASINF: tensor_unary_operation_helper(size, arg1, argRes, asin_func<IN>()); break;
+    case ACOSF: tensor_unary_operation_helper(size, arg1, argRes, acos_func<IN>()); break;
+    case ATANF: tensor_unary_operation_helper(size, arg1, argRes, atan_func<IN>()); break;
+    case SINHF: tensor_unary_operation_helper(size, arg1, argRes, sinh_func<IN>()); break; 
+    case COSHF: tensor_unary_operation_helper(size, arg1, argRes, cosh_func<IN>()); break;
+    case TANHF: tensor_unary_operation_helper(size, arg1, argRes, tanh_func<IN>()); break;
+    case ERFF: tensor_unary_operation_helper(size, arg1, argRes, erf_func<IN>()); break;
+    case ASINHF: tensor_unary_operation_helper(size, arg1, argRes, asinh_func<IN>()); break;
+    case ACOSHF: tensor_unary_operation_helper(size, arg1, argRes, acosh_func<IN>()); break;
+    case ATANHF: tensor_unary_operation_helper(size, arg1, argRes, atanh_func<IN>()); break;
+    case LOG10F: tensor_unary_operation_helper(size, arg1, argRes, log10_func<IN>()); break;
+    case LOGF: tensor_unary_operation_helper(size, arg1, argRes, log_func<IN>()); break;
+    case SIGNF: tensor_unary_operation_helper(size, arg1, argRes, sign_func<IN>()); break;
+    case ABSF: tensor_unary_operation_helper(size, arg1, argRes, abs_func<IN>()); break;
+    case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
+    case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
+    default:
+      throw DataException("Unsupported unary operation");
+  }
+  return;
+}
 
 } // end of namespace
 #endif

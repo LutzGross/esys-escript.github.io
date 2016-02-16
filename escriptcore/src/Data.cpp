@@ -1588,9 +1588,8 @@ Data::conjugate() const
 Data
 Data::sin() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(SIN);
-    return C_TensorUnaryOperation(*this, sin_func<double>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SINF);
 }
 
 Data
@@ -4837,3 +4836,131 @@ void Data::complicate()
     m_data->complicate();
 }
 
+Data
+escript::C_TensorUnaryOperation(Data const &arg_0,
+                       escript::ESFunction operation)
+{
+  if (arg_0.isEmpty())	// do this before we attempt to interpolate
+  {
+     throw DataException("Error - Operations (C_TensorUnaryOperation) not permitted on instances of DataEmpty.");
+  }
+  if (arg_0.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
+  }
+  // Interpolate if necessary and find an appropriate function space
+  Data arg_0_Z = Data(arg_0);
+
+  // Get rank and shape of inputs
+  const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
+  int size0 = arg_0_Z.getDataPointSize();
+  
+  // Declare output Data object
+  Data res;
+
+  if (arg_0_Z.isConstant()) {
+    if (arg_0_Z.isComplex())			// this is not taking into account cplx->real
+    {
+        DataTypes::cplx_t dummy=0;
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        res.complicate();
+        const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
+        DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+    }
+    else
+    {
+        DataTypes::real_t dummy=0;
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
+        DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+    }
+  }
+  else if (arg_0_Z.isTagged()) {
+
+    // Borrow DataTagged input from Data object
+    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+    // Prepare a DataTagged output 2
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
+    res.tag();
+    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+    if (arg_0_Z.isComplex())
+    {
+        DataTypes::cplx_t dummy=0;
+        // Get the pointers to the actual data
+        const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
+        DataTypes::cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,dummy));
+        // Compute a result for the default
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        // Compute a result for each tag
+        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+          tmp_2->addTag(i->first);
+          const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
+          DataTypes::cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummy));
+          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        }
+    }
+    else
+    {
+        // Get the pointers to the actual data
+        const DataTypes::real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+        DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        // Compute a result for the default
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        // Compute a result for each tag
+        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+          tmp_2->addTag(i->first);
+          const DataTypes::real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+          DataTypes::real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        }
+    }
+  }
+  else if (arg_0_Z.isExpanded()) {
+
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
+    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+    DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+    int sampleNo_0,dataPointNo_0;
+    int numSamples_0 = arg_0_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+    if (arg_0_Z.isComplex())
+    {
+	DataTypes::cplx_t dummy=0;
+	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	    dataPointNo_0=0;
+	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	    const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
+	    DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummy));
+	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation);
+	}      
+    }
+    else
+    {
+	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	    dataPointNo_0=0;
+	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	    const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation);
+	}      
+    }
+  }
+  else {
+    throw DataException("Error - C_TensorUnaryOperation: unknown combination of inputs");
+  }
+
+  return res;
+}
