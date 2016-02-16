@@ -52,6 +52,7 @@ sources = """
     FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
+    LocalOps.cpp
     NonReducedVariable.cpp
     NullDomain.cpp
     MPIDataReducer.cpp

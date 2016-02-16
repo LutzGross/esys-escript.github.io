@@ -20,6 +20,8 @@
 #include <cmath>
 #include <complex>
 #include "UnaryFuncs.h"
+#include "DataTypes.h"
+#include "DataException.h"
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif
@@ -681,7 +683,7 @@ struct erf_func
 };
 
 template <>
-struct erf_func<DataTypes::cplx_t>		// dummy instantiation
+struct erf_func<escript::DataTypes::cplx_t>		// dummy instantiation
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t argument_type;
@@ -929,6 +931,9 @@ inline void tensor_unary_array_operation(const int size,
   }
   return;
 }
+
+bool supports_cplx(escript::ESFunction operation);
+
 
 } // end of namespace
 #endif
