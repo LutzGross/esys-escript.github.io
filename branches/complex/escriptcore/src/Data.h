@@ -3407,5 +3407,14 @@ C_TensorUnaryOperation(Data const &arg_0,
   return res;
 }
 
+
+Data
+C_TensorUnaryOperation(Data const &arg_0,
+                       escript::ESFunction operation);
+
+
+
+
+
 }
 #endif
