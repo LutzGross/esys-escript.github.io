@@ -26,13 +26,22 @@
 /****************************************************************************/
 
 #include "SystemMatrix.h"
+#include "Options.h"
+#include "PasoException.h"
 #include "Preconditioner.h"
-#include "Solver.h" // only for destructor
+#include "Solver.h"
+
+#include <escript/Data.h>
 
 #include <cstring> // memcpy
 #include <vector>
 
 namespace paso {
+
+SystemMatrix::SystemMatrix()
+{
+    throw PasoException("SystemMatrix: Illegal to generate default SystemMatrix.");
+}
 
 /// Allocates a SystemMatrix of given type using the given matrix pattern.
 /// Values are initialized with zero.
@@ -41,7 +50,10 @@ namespace paso {
 /// and offsets. Otherwise unrolling and offset adjustment will be performed.
 SystemMatrix::SystemMatrix(SystemMatrixType ntype,
                            SystemMatrixPattern_ptr npattern, dim_t rowBlockSize,
-                           dim_t colBlockSize, bool patternIsUnrolled) :
+                           dim_t colBlockSize, bool patternIsUnrolled,
+                           const escript::FunctionSpace& rowFS,
+                           const escript::FunctionSpace& colFS) :
+    escript::AbstractSystemMatrix(rowBlockSize, rowFS, colBlockSize, colFS),
     type(ntype),
     logical_row_block_size(rowBlockSize),
     logical_col_block_size(colBlockSize),
@@ -49,8 +61,7 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     balance_vector(NULL),
     global_id(NULL),
     solver_package(PASO_PASO),
-    solver_p(NULL),
-    trilinos_data(NULL)
+    solver_p(NULL)
 {
     Esys_resetError();
     if (patternIsUnrolled) {
@@ -123,17 +134,14 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
         }
         col_coupler.reset(new Coupler(pattern->col_connector, col_block_size));
         row_coupler.reset(new Coupler(pattern->row_connector, row_block_size));
-        if (ntype & MATRIX_FORMAT_TRILINOS_CRS) {
-        } else {
-            mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
-            col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
-            row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
-            const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
-            balance_vector = new double[n_norm];
+        mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
+        col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
+        row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
+        const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
+        balance_vector = new double[n_norm];
 #pragma omp parallel for
-            for (dim_t i=0; i<n_norm; ++i)
-                balance_vector[i] = 1.;
-        }
+        for (dim_t i=0; i<n_norm; ++i)
+            balance_vector[i] = 1.;
     }
 }
 
@@ -219,10 +227,8 @@ void SystemMatrix::makeZeroRowSums(double* left_over)
 
 void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
 {
-    if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_TRILINOS_CRS)) {
-        Esys_setError(SYSTEM_ERROR,
-                "SystemMatrix::nullifyRows: Only CSR format is supported.");
-        return;
+    if (type & MATRIX_FORMAT_CSC) {
+        throw PasoException("SystemMatrix::nullifyRows: Only CSR format is supported.");
     }
 
     if (col_block_size==1 && row_block_size==1) {
@@ -240,14 +246,25 @@ void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
     }
 }
 
-void SystemMatrix::nullifyRowsAndCols(double* mask_row, double* mask_col,
+void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
+                                      escript::Data& col_q,
                                       double main_diagonal_value)
 {
-    if (type & MATRIX_FORMAT_TRILINOS_CRS) {
-        Esys_setError(SYSTEM_ERROR,
-               "SystemMatrix::nullifyRowsAndCols: TRILINOS is not supported.");
-        return;
+    if (col_q.getDataPointSize() != getColumnBlockSize()) {
+        throw PasoException("nullifyRowsAndCols: column block size does not match the number of components of column mask.");
+    } else if (row_q.getDataPointSize() != getRowBlockSize()) {
+        throw PasoException("nullifyRowsAndCols: row block size does not match the number of components of row mask.");
+    } else if (col_q.getFunctionSpace() != getColumnFunctionSpace()) {
+        throw PasoException("nullifyRowsAndCols: column function space and function space of column mask don't match.");
+    } else if (row_q.getFunctionSpace() != getRowFunctionSpace()) {
+        throw PasoException("nullifyRowsAndCols: row function space and function space of row mask don't match.");
     }
+    row_q.expand();
+    col_q.expand();
+    row_q.requireWrite();
+    col_q.requireWrite();
+    double* mask_row = row_q.getSampleDataRW(0);
+    double* mask_col = col_q.getSampleDataRW(0);
 
     if (mpi_info->size > 1) {
         if (type & MATRIX_FORMAT_CSC) {
@@ -286,6 +303,56 @@ void SystemMatrix::nullifyRowsAndCols(double* mask_row, double* mask_col,
             }
         }
     }
+}
+
+void SystemMatrix::resetValues()
+{
+    setValues(0.);
+    solve_free(this);
+}
+
+void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
+                                 boost::python::object& options) const
+{
+    options.attr("resetDiagnostics")();
+    Options paso_options(options);
+    if (out.getDataPointSize() != getColumnBlockSize()) {
+        throw PasoException("solve: column block size does not match the number of components of solution.");
+    } else if (in.getDataPointSize() != getRowBlockSize()) {
+        throw PasoException("solve: row block size does not match the number of components of  right hand side.");
+    } else if (out.getFunctionSpace() != getColumnFunctionSpace()) {
+        throw PasoException("solve: column function space and function space of solution don't match.");
+    } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
+        throw PasoException("solve: row function space and function space of right hand side don't match.");
+    }
+    out.expand();
+    in.expand();
+    out.requireWrite();
+    in.requireWrite();
+    double* out_dp = out.getSampleDataRW(0);        
+    double* in_dp = in.getSampleDataRW(0);                
+    solve(out_dp, in_dp, &paso_options);
+    paso_options.updateEscriptDiagnostics(options);
+}
+
+void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const 
+{
+    if (x.getDataPointSize() != getColumnBlockSize()) {
+        throw PasoException("matrix vector product: column block size does not match the number of components in input.");
+    } else if (y.getDataPointSize() != getRowBlockSize()) {
+        throw PasoException("matrix vector product: row block size does not match the number of components in output.");
+    } else if (x.getFunctionSpace() != getColumnFunctionSpace()) {
+        throw PasoException("matrix vector product: column function space and function space of input don't match.");
+    } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
+        throw PasoException("matrix vector product: row function space and function space of output don't match.");
+    }
+    x.expand();
+    y.expand();
+    x.requireWrite();
+    y.requireWrite();
+    double* x_dp = x.getSampleDataRW(0);
+    double* y_dp = y.getSampleDataRW(0);
+    MatrixVector(1., x_dp, 1., y_dp);
 }
 
 void SystemMatrix::copyColCoupleBlock()
@@ -458,14 +525,14 @@ void SystemMatrix::balance()
     }
 }
 
-index_t SystemMatrix::getSystemMatrixTypeId(index_t solver,
-                                            index_t preconditioner,
-                                            index_t package,
-                                            bool symmetry,
-                                            const esysUtils::JMPI& mpi_info)
+int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
+                                        int package, bool symmetry,
+                                        const esysUtils::JMPI& mpi_info)
 {
-    index_t out = -1;
-    index_t true_package = Options::getPackage(solver, package, symmetry, mpi_info);
+    int out = -1;
+    int true_package = Options::getPackage(Options::mapEscriptOption(solver),
+                                           Options::mapEscriptOption(package),
+                                           symmetry, mpi_info);
 
     switch(true_package) {
         case PASO_PASO:
@@ -484,11 +551,6 @@ index_t SystemMatrix::getSystemMatrixTypeId(index_t solver,
             } else {
                 out = MATRIX_FORMAT_CSC | MATRIX_FORMAT_BLK1;
             }
-        break;
-
-        case PASO_TRILINOS:
-            // Distributed CRS
-            out=MATRIX_FORMAT_TRILINOS_CRS | MATRIX_FORMAT_BLK1;
         break;
 
         default:

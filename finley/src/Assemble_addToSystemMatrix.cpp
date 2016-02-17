@@ -62,9 +62,11 @@ void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in, int NN_Equa,
     if (in->type & MATRIX_FORMAT_CSC) {
         Assemble_addToSystemMatrix_CSC(in, NN_Equa, Nodes_Equa,
                                   num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
+    /*
     } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
         Assemble_addToSystemMatrix_Trilinos(in, NN_Equa, Nodes_Equa,
                                   num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
+    */
     } else { // type == CSR
         Assemble_addToSystemMatrix_CSR(in, NN_Equa, Nodes_Equa,
                                   num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);

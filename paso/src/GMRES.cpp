@@ -62,6 +62,7 @@
 #include "Solver.h"
 
 #include <cstring> // memset&memcpy
+
 namespace paso {
 
 err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
@@ -153,7 +154,7 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         /***
          *** apply A to P to get AP
          ***/
-        SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0], PASO_ZERO, &AP[0]);
+        A->MatrixVector_CSR_OFFSET0(PASO_ONE, &P_PRES[0][0], PASO_ZERO, &AP[0]);
         /***
          ***** calculation of the norm of R and the scalar products of
          ***   the residuals and A*P:

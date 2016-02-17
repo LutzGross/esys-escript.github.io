@@ -44,7 +44,9 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
     antidiffusive_fluxes.reset(new SystemMatrix(
                 tp->transport_matrix->type, tp->transport_matrix->pattern,
                 tp->transport_matrix->row_block_size,
-                tp->transport_matrix->col_block_size, true));
+                tp->transport_matrix->col_block_size, true,
+                tp->transport_matrix->getRowFunctionSpace(),
+                tp->transport_matrix->getColumnFunctionSpace()));
     borrowed_lumped_mass_matrix = tp->lumped_mass_matrix;
 }
 

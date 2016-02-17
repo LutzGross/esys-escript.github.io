@@ -24,8 +24,6 @@
 #include "finley/Assemble.h"
 #include "FinleyAdapterException.h"
 
-#include <pasowrap/SystemMatrixAdapter.h>
-#include <pasowrap/TransportProblemAdapter.h>
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"
@@ -37,7 +35,6 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <sstream>
 
 namespace finley {
   
@@ -512,7 +509,7 @@ public:
 
   /**
      \brief
-    creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
+    creates a stiffness matrix and initializes it with zeros:
   */
   escript::ASM_ptr newSystemMatrix(
                       const int row_blocksize,
@@ -523,7 +520,7 @@ public:
 
   /**
    \brief 
-    creates a TransportProblemAdapter 
+    creates a TransportProblem
 
   */
   escript::ATP_ptr newTransportProblem(

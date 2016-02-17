@@ -34,11 +34,21 @@
 
 #include "Assemble.h"
 
+#include <paso/SystemMatrix.h>
+
 /************************************************************************************/
 
-void Dudley_Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in, const dim_t NN_Equa, const index_t * Nodes_Equa, const dim_t num_Equa,
-				       const dim_t NN_Sol, const index_t * Nodes_Sol, const dim_t num_Sol, const double *array)
+void Dudley_Assemble_addToSystemMatrix(escript::ASM_ptr S, dim_t NN_Equa,
+                                const index_t* Nodes_Equa, dim_t num_Equa,
+				                dim_t NN_Sol, const index_t* Nodes_Sol,
+                                dim_t num_Sol, const double *array)
 {
+    paso::SystemMatrix* in = dynamic_cast<paso::SystemMatrix*>(S.get());
+    if (!in) {
+	    Dudley_setError(TYPE_ERROR,
+			"Dudley_Assemble_addToSystemMatrix: unsupported matrix type.");
+        return;
+    }
     index_t index_offset = (in->type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     dim_t k_Equa, j_Equa, j_Sol, k_Sol, i_Equa, i_Sol, l_col, l_row, ic, ir, k, i_row, i_col;
     index_t *mainBlock_ptr, *mainBlock_index, *col_coupleBlock_ptr, *col_coupleBlock_index, *row_coupleBlock_ptr,
@@ -162,35 +172,6 @@ void Dudley_Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in, const dim_t NN
 		}
 	    }
 	}
-    }
-    else if (in->type & MATRIX_FORMAT_TRILINOS_CRS)
-    {
-	/* this needs to be modified */
-#ifdef TRILINOS
-	for (k_Equa = 0; k_Equa < NN_Equa; ++k_Equa)
-	{			/* Down columns of array */
-	    j_Equa = Nodes_Equa[k_Equa];
-	    if (j_Equa < in->mainBlock->pattern->output_node_distribution->numLocal)
-	    {
-		for (k_Sol = 0; k_Sol < NN_Sol; ++k_Sol)
-		{		/* Across rows of array */
-		    j_Sol = Nodes_Sol[k_Sol];
-		    for (l_row = 0; l_row < num_subblocks_Equa; ++l_row)
-		    {
-			irow = j_Equa * row_block_size + l_row;
-			for (l_col = 0; l_col < col_block_size; ++l_col)
-			{
-			    icol = j_Sol * col_block_size + index_offset + l_col;
-			    /* irow is local and icol is global */
-			    Trilinos_SumIntoMyValues(in->trilinos_data, irow, icol,
-						     array[INDEX4
-							   (l_row, l_col, k_Equa, k_Sol, num_Equa, num_Sol, NN_Equa)]);
-			}
-		    }
-		}
-	    }
-	}
-#endif
     }
     else
     {

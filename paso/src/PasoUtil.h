@@ -57,7 +57,7 @@ index_t iMax(dim_t N, const index_t* array);
 
 /// returns the inner product of global arrays x and y
 double innerProduct(dim_t N, const double* x, const double* y,
-                    esysUtils::JMPI& mpiinfo);
+                    const esysUtils::JMPI& mpiinfo);
 
 /// returns true if array contains value
 bool isAny(dim_t N, index_t* array, index_t value);

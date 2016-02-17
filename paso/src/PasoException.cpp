@@ -14,33 +14,31 @@
 *
 *****************************************************************************/
 
+#include "PasoException.h"
+#include <esysUtils/error.h>
 
-/**
-\file pasowrap/src/system_dep.h
-\ingroup Other
- */
-/*
-   @(#) system_dep.h
-*/
+namespace paso
+{
 
-#ifndef pasowrap_system_dep_h
-#define pasowrap_system_dep_h
+const std::string PasoException::exceptionNameValue("PasoException");
 
-#include <cmath>
+const std::string& PasoException::exceptionName() const
+{
+  return exceptionNameValue;
+}
 
-#define PASOWRAP_DLL_API
+void checkPasoError() 
+{
+  if (Esys_noError()) {
+    return;
+  } else {
+    //
+    // reset the error code to no error otherwise the next call to
+    // this function may resurrect a previous error
+    Esys_resetError();
+    throw PasoException(Esys_getErrorMessage());
+  }
+}
 
-#ifdef _WIN32
-
-#   ifndef PASOWRAP_STATIC_LIB
-#      undef PASOWRAP_DLL_API
-#      ifdef PASOWRAP_EXPORTS
-#         define PASOWRAP_DLL_API __declspec(dllexport)
-#      else
-#         define PASOWRAP_DLL_API __declspec(dllimport)
-#      endif
-#   endif
-#endif
-
-#endif
+} // namespace paso
 

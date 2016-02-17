@@ -375,7 +375,8 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
                   output_dist, input_dist, main_block->pattern, couple_pattern,
                   couple_pattern, col_connector, col_connector));
         out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
-                  row_block_size, col_block_size, false));
+                  row_block_size, col_block_size, false,
+                  P->getRowFunctionSpace(), P->getColumnFunctionSpace()));
     }
 
     /* now fill in the matrix */

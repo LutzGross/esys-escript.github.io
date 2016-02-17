@@ -17,25 +17,14 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
-#endif
 #include "../Finley.h"
-
-#include <pasowrap/SystemMatrixAdapter.h>
-#include <pasowrap/TransportProblemAdapter.h>
-
 
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
-// #include "SystemMatrixAdapter.h"
-// #include "TransportProblemAdapter.h"
 
 #include "FinleyAdapterException.h"
-// #include "esysUtils/EsysException.h"
 #include "esysUtils/esysExceptionTranslator.h"
-
 #include "escript/AbstractContinuousDomain.h"
 
 #include <boost/python.hpp>
@@ -205,7 +194,7 @@ args("rhs", "X", "Y", "y", "y_contact"),
 )
       .def("addPDEToTransportProblem",&finley::MeshAdapter::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
-":param tp:\n:type tp: `TransportProblemAdapter`\n"
+":param tp:\n:type tp: `TransportProblem`\n"
 ":param source:\n:type source: `Data`\n"
 ":param M:\n:type M: `Data`\n"
 ":param A:\n:type A: `Data`\n"
@@ -221,7 +210,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 )
       .def("newOperator",&finley::MeshAdapter::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
-"creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
+"creates a stiffness matrix and initializes it with zeros\n\n"
 ":param row_blocksize:\n:type row_blocksize: ``int``\n"
 ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
 ":param column_blocksize:\n:type column_blocksize: ``int``\n"
@@ -230,7 +219,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 )
       .def("newTransportProblem",&finley::MeshAdapter::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
-"creates a TransportProblemAdapter\n\n"
+"creates a TransportProblem\n\n"
 ":param theta:\n:type theta: ``float``\n"
 ":param blocksize:\n:type blocksize: ``int``\n"
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
@@ -290,22 +279,6 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 // 	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
 // 	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
 //       ) 
-;
-
-//   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
-//       ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)
-//       .def("print_matrix_info",&finley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false),"prints information about a system matrix")
-//       .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
-//       .def("resetValues",&finley::SystemMatrixAdapter::resetValues, "resets the matrix entries")
-//       .def("saveMM",&finley::SystemMatrixAdapter::saveMM,args("fileName"), 
-// "writes the matrix to a file using the Matrix Market file format")
-//       .def("saveHB",&finley::SystemMatrixAdapter::saveHB, args("filename"),
-// "writes the matrix to a file using the Harwell-Boeing file format");
-// 
-//   class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
-//       ("TransportProblemAdapter","",no_init)
-//       .def("getSafeTimeStepSize",&finley::TransportProblemAdapter::getSafeTimeStepSize)
-//       .def("getUnlimitedTimeStepSize",&finley::TransportProblemAdapter::getUnlimitedTimeStepSize)
-//       .def("resetTransport",&finley::TransportProblemAdapter::resetTransport,
-// "resets the transport operator typically as they have been updated");
+ ;
 }
+

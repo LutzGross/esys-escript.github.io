@@ -2231,7 +2231,10 @@ Data::binaryOp(const Data& right,
    }
    //
    // initially make the temporary a shallow copy
-   Data tempRight(right);
+   //Data tempRight(right);				// unfortunately, this adds an owner and breaks d+=d
+   
+   DataAbstract_ptr rp=right.m_data;
+   
    FunctionSpace fsl=getFunctionSpace();
    FunctionSpace fsr=right.getFunctionSpace();
    if (fsl!=fsr) {
@@ -2247,7 +2250,7 @@ Data::binaryOp(const Data& right,
      else if (intres==1)
      {
        // an interpolation is required so create a new Data
-       tempRight=Data(right,fsl);
+       rp=Data(right,fsl).m_data;
      }
      else	// reverse interpolation preferred
      {
@@ -2256,10 +2259,13 @@ Data::binaryOp(const Data& right,
        set_m_data(tempLeft.m_data);
      }
    }
-   operandCheck(tempRight);
+   m_data->operandCheck(*rp.get());
+   //operandCheck(tempRight);
    //
    // ensure this has the right type for the RHS
-   typeMatchRight(tempRight);
+   typeMatchRight(right);		// yes we are actually processing rp 
+			      // (which may be pointing at a different object) not right.
+			      // but rp and right will be referring to the same type of data
    //
    // Need to cast to the concrete types so that the correct binaryOp
    // is called.
@@ -2269,7 +2275,8 @@ Data::binaryOp(const Data& right,
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
      EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
-     escript::binaryOp(*leftC,*(tempRight.getReady()),operation);
+     DataReady* dr=dynamic_cast<DataReady*>(rp.get());
+     escript::binaryOp(*leftC,*dr,operation);
    } else if (isTagged()) {
      //
      // Tagged data is operated on serially, the right hand side can be
@@ -2277,17 +2284,17 @@ Data::binaryOp(const Data& right,
      DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
      EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
      if (right.isTagged()) {
-       DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
+       DataTagged* rightC=dynamic_cast<DataTagged*>(rp.get());
        EsysAssert((rightC!=0), "Programming error - casting to DataTagged.");
        escript::binaryOp(*leftC,*rightC,operation);
      } else {
-       DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+       DataConstant* rightC=dynamic_cast<DataConstant*>(rp.get());
        EsysAssert((rightC!=0), "Programming error - casting to DataConstant.");
        escript::binaryOp(*leftC,*rightC,operation);
      }
    } else if (isConstant()) {
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-     DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+     DataConstant* rightC=dynamic_cast<DataConstant*>(rp.get());
      EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
      escript::binaryOp(*leftC,*rightC,operation);
    }

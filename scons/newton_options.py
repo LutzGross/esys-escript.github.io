@@ -24,6 +24,5 @@ lapack = 'clapack'
 lapack_libs = ['lapack']
 silo = True
 silo_libs = ['siloh5', 'hdf5']
-build_shared = False
 launcher = "mpirun --gmca mpi_warn_on_fork 0 ${EE} -np %N %b"
 
