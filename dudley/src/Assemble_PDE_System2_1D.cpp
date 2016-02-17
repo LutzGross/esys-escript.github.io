@@ -44,7 +44,7 @@
 /************************************************************************************/
 
 void Dudley_Assemble_PDE_System2_1D(Dudley_Assemble_Parameters p, Dudley_ElementFile * elements,
-				    paso::SystemMatrix_ptr Mat, escriptDataC * F,
+				    escript::ASM_ptr mat, escriptDataC * F,
 				    escriptDataC * A, escriptDataC * B, escriptDataC * C, escriptDataC * D,
 				    escriptDataC * X, escriptDataC * Y)
 {
@@ -403,7 +403,7 @@ void Dudley_Assemble_PDE_System2_1D(Dudley_Assemble_Parameters p, Dudley_Element
 			    Dudley_Util_AddScatter(p.row_numShapes, row_index, p.numEqu, EM_F, F_p,
 						   p.row_DOF_UpperBound);
 			if (add_EM_S)
-			    Dudley_Assemble_addToSystemMatrix(Mat, p.row_numShapes, row_index, p.numEqu,
+			    Dudley_Assemble_addToSystemMatrix(mat, p.row_numShapes, row_index, p.numEqu,
 							      p.row_numShapes, row_index, p.numComp, EM_S);
 
 		    }		/* end color check */

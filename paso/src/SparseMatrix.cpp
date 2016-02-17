@@ -28,6 +28,7 @@
 #include "SparseMatrix.h"
 #include "BlockOps.h"
 #include "MKL.h"
+#include "Options.h"
 #include "Preconditioner.h"
 #include "UMFPACK.h"
 #include "mmio.h"

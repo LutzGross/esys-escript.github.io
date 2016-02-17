@@ -25,11 +25,60 @@
 /*   author: l.gross@uq.edu.au */
 
 /****************************************************************************/
-#include <iostream>
-#include "Paso.h"
 #include "Options.h"
+#include "Paso.h"
+#include "PasoException.h"
+
+#include <escript/SolverOptions.h>
+
+#include <boost/python/extract.hpp>
+#include <iostream>
+#include <sstream>
+
+namespace bp = boost::python;
 
 namespace paso {
+
+Options::Options(const bp::object& options)
+{
+    escript::SolverBuddy sb = bp::extract<escript::SolverBuddy>(options);
+
+    setDefaults();
+    method = mapEscriptOption(sb.getSolverMethod());
+    package = mapEscriptOption(sb.getPackage());
+    verbose = sb.isVerbose();
+    symmetric = sb.isSymmetric();
+    tolerance = sb.getTolerance();
+    absolute_tolerance = sb.getAbsoluteTolerance();
+    inner_tolerance = sb.getInnerTolerance();
+    adapt_inner_tolerance = sb.adaptInnerTolerance();
+    reordering = mapEscriptOption(sb.getReordering());
+    preconditioner = mapEscriptOption(sb.getPreconditioner());
+    ode_solver = mapEscriptOption(sb.getODESolver());
+    iter_max = sb.getIterMax();
+    inner_iter_max = sb.getInnerIterMax();
+    drop_tolerance = sb.getDropTolerance();
+    drop_storage = sb.getDropStorage();
+    truncation = sb.getTruncation();
+    restart = sb._getRestartForC();
+    sweeps = sb.getNumSweeps();
+    pre_sweeps = sb.getNumPreSweeps();
+    post_sweeps = sb.getNumPostSweeps();
+    level_max = sb.getLevelMax();
+    min_coarse_matrix_size = sb.getMinCoarseMatrixSize();
+    coarsening_threshold = sb.getCoarseningThreshold();
+    accept_failed_convergence = sb.acceptConvergenceFailure();
+    coarsening_method = mapEscriptOption(sb.getCoarsening());
+    smoother = mapEscriptOption(sb.getSmoother());
+    relaxation_factor = sb.getRelaxationFactor();
+    use_local_preconditioner = sb.useLocalPreconditioner();
+    min_coarse_sparsity = sb.getMinCoarseMatrixSparsity();
+    refinements = sb.getNumRefinements();
+    coarse_matrix_refinements = sb.getNumCoarseMatrixRefinements();
+    usePanel = sb.usePanel();
+    interpolation_method = sb.getAMGInterpolation();
+    diagonal_dominance_threshold = sb.getDiagonalDominanceThreshold();
+}
 
 void Options::setDefaults()
 {
@@ -368,6 +417,138 @@ int Options::getPackage(int solver, int pack, bool symmetry,
             Esys_setError(VALUE_ERROR, "Options::getPackage: Unidentified package.");
     }
     return out;
+}
+
+int Options::mapEscriptOption(int escriptOption)
+{
+    switch (escriptOption) {
+        case escript::SO_DEFAULT:
+            return PASO_DEFAULT;
+
+        case escript::SO_PACKAGE_MKL:
+            return PASO_MKL;
+        case escript::SO_PACKAGE_PASO:
+            return PASO_PASO;
+        case escript::SO_PACKAGE_PASTIX:
+            return PASO_PASTIX;
+        case escript::SO_PACKAGE_SUPER_LU:
+            return PASO_SUPER_LU;
+        case escript::SO_PACKAGE_TRILINOS:
+            return PASO_TRILINOS;
+        case escript::SO_PACKAGE_UMFPACK:
+            return PASO_UMFPACK;
+
+        case escript::SO_METHOD_BICGSTAB:
+            return PASO_BICGSTAB;
+        case escript::SO_METHOD_CGS:
+            return PASO_CGS;
+        case escript::SO_METHOD_CHOLEVSKY:
+            return PASO_CHOLEVSKY;
+        case escript::SO_METHOD_CR:
+            return PASO_CR;
+        case escript::SO_METHOD_DIRECT:
+            return PASO_DIRECT;
+        case escript::SO_METHOD_GMRES:
+            return PASO_GMRES;
+        case escript::SO_METHOD_ITERATIVE:
+            return PASO_ITERATIVE;
+        case escript::SO_METHOD_MINRES:
+            return PASO_MINRES;
+        case escript::SO_METHOD_NONLINEAR_GMRES:
+            return PASO_NONLINEAR_GMRES;
+        case escript::SO_METHOD_PCG:
+            return PASO_PCG;
+        case escript::SO_METHOD_PRES20:
+            return PASO_PRES20;
+        case escript::SO_METHOD_TFQMR:
+            return PASO_TFQMR;
+
+        case escript::SO_PRECONDITIONER_AMG:
+            return PASO_AMG;
+        case escript::SO_PRECONDITIONER_AMLI:
+            return PASO_AMLI;
+        case escript::SO_PRECONDITIONER_BOOMERAMG:
+            return PASO_BOOMERAMG;
+        case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
+            return PASO_GAUSS_SEIDEL;
+        case escript::SO_PRECONDITIONER_ILU0:
+            return PASO_ILU0;
+        case escript::SO_PRECONDITIONER_ILUT:
+            return PASO_ILUT;
+        case escript::SO_PRECONDITIONER_JACOBI:
+            return PASO_JACOBI;
+        case escript::SO_PRECONDITIONER_NONE:
+            return PASO_NO_PRECONDITIONER;
+        case escript::SO_PRECONDITIONER_REC_ILU:
+            return PASO_REC_ILU;
+        case escript::SO_PRECONDITIONER_RILU:
+            return PASO_RILU;
+
+        case escript::SO_ODESOLVER_BACKWARD_EULER:         
+            return PASO_BACKWARD_EULER;
+        case escript::SO_ODESOLVER_CRANK_NICOLSON:
+            return PASO_CRANK_NICOLSON;
+        case escript::SO_ODESOLVER_LINEAR_CRANK_NICOLSON:
+            return PASO_LINEAR_CRANK_NICOLSON;
+
+        case escript::SO_INTERPOLATION_CLASSIC:
+            return PASO_CLASSIC_INTERPOLATION;
+        case escript::SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING:
+            return PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING;
+        case escript::SO_INTERPOLATION_DIRECT:
+            return PASO_DIRECT_INTERPOLATION;
+
+        case escript::SO_COARSENING_AGGREGATION:
+            return PASO_AGGREGATION_COARSENING;
+        case escript::SO_COARSENING_CIJP:
+            return PASO_CIJP_COARSENING;
+        case escript::SO_COARSENING_CIJP_FIXED_RANDOM:
+            return PASO_CIJP_FIXED_RANDOM_COARSENING;
+        case escript::SO_COARSENING_FALGOUT:
+            return PASO_FALGOUT_COARSENING;
+        case escript::SO_COARSENING_HMIS:
+            return PASO_HMIS_COARSENING;
+        case escript::SO_COARSENING_PMIS:
+            return PASO_PMIS_COARSENING;
+        case escript::SO_COARSENING_RUGE_STUEBEN:
+            return PASO_RUGE_STUEBEN_COARSENING;
+        case escript::SO_COARSENING_STANDARD:
+            return PASO_STANDARD_COARSENING;   
+        case escript::SO_COARSENING_YAIR_SHAPIRA:
+            return PASO_YAIR_SHAPIRA_COARSENING;
+
+        case escript::SO_REORDERING_DEFAULT:
+            return PASO_DEFAULT_REORDERING;
+        case escript::SO_REORDERING_MINIMUM_FILL_IN:
+            return PASO_MINIMUM_FILL_IN;
+        case escript::SO_REORDERING_NESTED_DISSECTION:
+            return PASO_NESTED_DISSECTION;
+        case escript::SO_REORDERING_NONE:
+            return PASO_NO_REORDERING;
+
+        default:
+            std::stringstream temp;
+            temp << "Error - Cannot map option value "<< escriptOption
+                 << " onto Paso";
+            throw PasoException(temp.str());
+    }
+}
+
+void Options::updateEscriptDiagnostics(bp::object& options) const
+{
+#define SET(__key__,__val__,__type__) options.attr("_updateDiagnostics")(__key__,(__type__)__val__)
+   SET("num_iter", num_iter, int);
+   SET("num_level", num_level, int);
+   SET("num_inner_iter", num_inner_iter, int);
+   SET("time", time, double);
+   SET("set_up_time", set_up_time, double);
+   SET("net_time", net_time, double);
+   SET("residual_norm", residual_norm, double);
+   SET("converged", converged, bool);
+   SET("time_step_backtracking_used", time_step_backtracking_used, bool);
+   SET("coarse_level_sparsity", coarse_level_sparsity, double);
+   SET("num_coarse_unknowns", num_coarse_unknowns, int);
+#undef SET
 }
 
 } // namespace paso

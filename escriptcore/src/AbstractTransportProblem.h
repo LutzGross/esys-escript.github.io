@@ -105,7 +105,7 @@ class AbstractTransportProblem {
      returns the solution u for a time step dt>0 with initial value u0 at time t=0
   */
   ESCRIPT_DLL_API
-  Data solve(Data& u0, Data& source, const double dt, boost::python::object& options) const;
+  Data solve(Data& u0, Data& source, const double dt, boost::python::object& options);
 
 
   /**
@@ -119,7 +119,7 @@ class AbstractTransportProblem {
      inserts constraint u_{,t}=r where q>0  into the problem
   */
   ESCRIPT_DLL_API
-  void insertConstraint(Data& source, Data& q, Data& r) const;
+  void insertConstraint(Data& source, Data& q, Data& r);
   /*
    *      \brief returns a safe time step size.
    */
@@ -141,7 +141,8 @@ class AbstractTransportProblem {
      sets solution out by time step dt.
   */
   ESCRIPT_DLL_API
-  virtual void setToSolution(Data& out, Data& u0, Data& source, const double dt, boost::python::object& options) const;
+  virtual void setToSolution(Data& out, Data& u0, Data& source, double dt,
+                             boost::python::object& options);
 
   /**
      \brief
@@ -150,7 +151,7 @@ class AbstractTransportProblem {
      appropriate shape and function space.
   */
   ESCRIPT_DLL_API
-  virtual void copyConstraint(Data& source, Data& q, Data& r) const;
+  virtual void copyConstraint(Data& source, Data& q, Data& r);
 
   int m_empty;
   int m_blocksize;

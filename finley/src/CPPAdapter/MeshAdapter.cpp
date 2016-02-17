@@ -17,15 +17,16 @@
 #define ESNEEDPYTHON
 #include <esysUtils/first.h>
 
-#include <pasowrap/PasoException.h>
-#include <pasowrap/TransportProblemAdapter.h>
 #include "MeshAdapter.h"
-#include "escript/Data.h"
-#include "escript/DataFactory.h"
 #include "esysUtils/blocktimer.h"
 #include "esysUtils/EsysRandom.h"
+#include "escript/Data.h"
+#include "escript/DataFactory.h"
+#include "escript/SolverOptions.h"
 
-#include <boost/python/import.hpp>
+#include <paso/SystemMatrix.h>
+#include <paso/Transport.h>
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -728,29 +729,29 @@ void MeshAdapter::addPDEToSystem(
         const escript::Data& d_contact, const escript::Data& y_contact,
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-    SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
-    if (!smat)
-        throw FinleyAdapterException("finley only supports Paso system matrices.");
+    paso::SystemMatrix* smat = dynamic_cast<paso::SystemMatrix*>(&mat);
+    if (smat) {
+        paso::SystemMatrix_ptr S(smat->shared_from_this());
+        Mesh* mesh=m_finleyMesh.get();
+        Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
+        checkFinleyError();
 
-    Mesh* mesh=m_finleyMesh.get();
-    paso::SystemMatrix_ptr S(smat->getPaso_SystemMatrix());
-    Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
-    checkFinleyError();
+        Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs,
+                escript::Data(), escript::Data(), escript::Data(), d,
+                escript::Data(), y);
+        checkFinleyError();
 
+        Assemble_PDE(mesh->Nodes, mesh->ContactElements, S, rhs,
+                escript::Data(), escript::Data(), escript::Data(), d_contact,
+                escript::Data(), y_contact);
+        checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs,
-            escript::Data(), escript::Data(), escript::Data(), d,
-            escript::Data(), y);
-    checkFinleyError();
-
-    Assemble_PDE(mesh->Nodes, mesh->ContactElements, S, rhs,
-            escript::Data(), escript::Data(), escript::Data(), d_contact,
-            escript::Data(), y_contact);
-    checkFinleyError();
-
-    Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
-            escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
-    checkFinleyError();
+        Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
+                escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
+        checkFinleyError();
+        return;
+    }
+    throw FinleyAdapterException("finley only supports Paso system matrices.");
 }
 
 void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
@@ -808,38 +809,36 @@ void MeshAdapter::addPDEToTransportProblem(
         const escript::Data& d_contact, const escript::Data& y_contact,
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
-    if (!tpa)
-        throw FinleyAdapterException("finley only supports Paso transport problems.");
-
     source.expand();
 
     Mesh* mesh=m_finleyMesh.get();
-    paso::TransportProblem_ptr _tp(tpa->getPaso_TransportProblem());
+    paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
+    if (!ptp)
+        throw FinleyAdapterException("finley only supports Paso transport problems.");
 
-    Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->mass_matrix, source,
+    Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(), source,
                         escript::Data(), escript::Data(), escript::Data(),
                         M, escript::Data(), escript::Data());
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->transport_matrix,
-                        source, A, B, C, D, X, Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
+                 source, A, B, C, D, X, Y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, _tp->transport_matrix,
-                        source, escript::Data(), escript::Data(),
-                        escript::Data(), d, escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, ptp->borrowTransportMatrix(),
+                 source, escript::Data(), escript::Data(), escript::Data(),
+                 d, escript::Data(), y);
     checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->ContactElements,
-                        _tp->transport_matrix, source, escript::Data(),
-                        escript::Data(), escript::Data(), d_contact,
-                        escript::Data(), y_contact);
+                 ptp->borrowTransportMatrix(), source, escript::Data(),
+                 escript::Data(), escript::Data(), d_contact, escript::Data(),
+                 y_contact);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->Points, _tp->transport_matrix,
-                        source, escript::Data(), escript::Data(),
-                        escript::Data(), d_dirac, escript::Data(), y_dirac);
+    Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
+                 source, escript::Data(), escript::Data(), escript::Data(),
+                 d_dirac, escript::Data(), y_dirac);
     checkFinleyError();
 }
 
@@ -1408,11 +1407,11 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 //
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
 //
-escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
+escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
                             const escript::FunctionSpace& row_functionspace,
-                            const int column_blocksize,
+                            int column_blocksize,
                             const escript::FunctionSpace& column_functionspace,
-                            const int type) const
+                            int type) const
 {
     // is the domain right?
     const MeshAdapter& row_domain=dynamic_cast<const MeshAdapter&>(*(row_functionspace.getDomain()));
@@ -1440,19 +1439,18 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
     paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
             reduceRowOrder, reduceColOrder);
     checkFinleyError();
-    paso::SystemMatrix_ptr fsystemMatrix;
+    paso::SystemMatrix_ptr sm;
     const int trilinos = 0;
     if (trilinos) {
 #ifdef TRILINOS
         // FIXME: Allocation Epetra_VrbMatrix here...
 #endif
     } else {
-        fsystemMatrix.reset(new paso::SystemMatrix(type, pattern,
-                            row_blocksize, column_blocksize, false));
+        sm.reset(new paso::SystemMatrix(type, pattern, row_blocksize,
+                    column_blocksize, false, row_functionspace,
+                    column_functionspace));
     }
-    checkPasoError();
-    SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
-    return escript::ASM_ptr(sma);
+    return sm;
 }
 
 //
@@ -1463,7 +1461,7 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
 {
     // is the domain right?
     const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(functionspace.getDomain()));
-    if (domain!=*this)
+    if (domain != *this)
         throw FinleyAdapterException("Error - domain of function space does not match the domain of transport problem generator.");
 
     // is the function space type right?
@@ -1479,11 +1477,8 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
             reduceOrder, reduceOrder);
     checkFinleyError();
     paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
-                                                pattern, blocksize));
-    checkPasoError();
-    TransportProblemAdapter* tpa=new TransportProblemAdapter(
-            transportProblem, blocksize, functionspace);
-    return escript::ATP_ptr(tpa);
+                                        pattern, blocksize, functionspace));
+    return transportProblem;
 }
 
 //
@@ -1828,16 +1823,17 @@ int MeshAdapter::getSystemMatrixTypeId(const boost::python::object& options) con
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
-    return SystemMatrixAdapter::getSystemMatrixTypeId(sb.getSolverMethod(),
+    return paso::SystemMatrix::getSystemMatrixTypeId(sb.getSolverMethod(),
                 sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(),
                 m_finleyMesh->MPIInfo);
 }
 
-int MeshAdapter::getTransportTypeId(int solver, int preconditioner, int package, bool symmetry) const
+int MeshAdapter::getTransportTypeId(int solver, int preconditioner,
+                                    int package, bool symmetry) const
 {
     Mesh* mesh=m_finleyMesh.get();
-    return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
-                package, symmetry, mesh->MPIInfo);
+    return paso::TransportProblem::getTypeId(solver, preconditioner, package,
+                                             symmetry, mesh->MPIInfo);
 }
 
 escript::Data MeshAdapter::getX() const

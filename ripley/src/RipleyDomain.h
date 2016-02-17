@@ -813,8 +813,8 @@ protected:
 
 private:
     /// paso version of adding element matrices to System Matrix
-    void addToSystemMatrix(paso::SystemMatrix_ptr in, const IndexVector& nodes,
-                           dim_t numEq, const DoubleVector& array) const;
+    void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
+                         dim_t numEq, const DoubleVector& array) const;
 
     /// calls the right PDE assembly routines after performing input checks
     void assemblePDE(escript::AbstractSystemMatrix* mat, escript::Data& rhs,

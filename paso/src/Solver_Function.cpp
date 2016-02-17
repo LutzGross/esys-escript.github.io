@@ -46,7 +46,7 @@ err_t LinearSystem::call(double* value, const double* arg, Performance* pp)
     // tmp = b
     util::copy(n, tmp, b);
     // tmp = (A*arg-tmp)
-    SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, mat, arg, -PASO_ONE, tmp);
+    mat->MatrixVector_CSR_OFFSET0(PASO_ONE, arg, -PASO_ONE, tmp);
     // value = P*tmp
     mat->solvePreconditioner(value, tmp);
     return NO_ERROR;

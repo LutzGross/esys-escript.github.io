@@ -40,6 +40,7 @@ sources = """
     NewtonGMRES.cpp
     Options.cpp
     PCG.cpp
+    PasoException.cpp
     PasoUtil.cpp
     Pattern.cpp
     Pattern_mis.cpp
@@ -92,6 +93,7 @@ headers = """
     mmio.h
     Options.h
     Paso.h
+    PasoException.h
     PasoUtil.h
     Pattern.h
     performance.h
@@ -111,11 +113,7 @@ local_env.Prepend(LIBS = ['esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 
-if local_env['build_shared']:
-    lib = local_env.SharedLibrary(lib_name, sources)
-else:
-    lib = local_env.StaticLibrary(lib_name, sources)
-
+lib = local_env.SharedLibrary(lib_name, sources)
 env.Alias('build_paso_lib', lib)
 
 include_path = Dir('paso', local_env['incinstall'])

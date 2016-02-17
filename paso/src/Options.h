@@ -29,7 +29,9 @@
 #ifndef __PASO_OPTIONS_H__
 #define __PASO_OPTIONS_H__
 
-#include "esysUtils/types.h"
+#include <esysUtils/Esys_MPI.h>
+
+#include <boost/python/object.hpp>
 
 // valid solver options
 #define PASO_DEFAULT 0
@@ -86,10 +88,12 @@
 
 namespace paso {
 
-PASO_DLL_API
 struct Options
 {
     Options() { setDefaults(); }
+
+    /// constructor that fills values from an escript SolverBuddy instance
+    Options(const boost::python::object& options);
 
     /// sets the default values for solver options
     void setDefaults();
@@ -99,6 +103,12 @@ struct Options
 
     /// prints diagnostic data
     void showDiagnostics() const;
+
+    /// updates SolverBuddy diagnostics from this
+    void updateEscriptDiagnostics(boost::python::object& options) const;
+
+    /// returns the corresponding paso option code for an escript option code
+    static int mapEscriptOption(int escriptOption);
 
     static const char* name(int key);
 

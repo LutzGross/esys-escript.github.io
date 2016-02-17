@@ -217,7 +217,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         // v = A*p
         Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
         Performance_startMonitor(pp, PERFORMANCE_MVM);
-        SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, p,PASO_ZERO,v);
+        A->MatrixVector_CSR_OFFSET0(PASO_ONE, p, PASO_ZERO, v);
         Performance_stopMonitor(pp, PERFORMANCE_MVM);
         Performance_startMonitor(pp, PERFORMANCE_SOLVER);
 

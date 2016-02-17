@@ -24,15 +24,18 @@
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /****************************************************************************/
+
+#include "Paso.h"
+#include "Solver.h"
+#include "Options.h"
+#include "SystemMatrix.h"
+#include "esysUtils/blocktimer.h"
+
 #include <boost/math/special_functions/fpclassify.hpp>  // for isnan
 
 #include <iostream>
-#include "Paso.h"
-#include "SystemMatrix.h"
-#include "Solver.h"
-#include "esysUtils/blocktimer.h"
 
-namespace bm=boost::math;
+namespace bm = boost::math;
 
 namespace paso {
 
@@ -202,7 +205,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                         A->applyBalance(r, b, true);
                     }
 
-                    SystemMatrix_MatrixVector_CSR_OFFSET0(-1., A, x, 1., r);
+                    A->MatrixVector_CSR_OFFSET0(-1., x, 1., r);
                     norm2_of_residual = 0;
                     norm_max_of_residual = 0;
                     #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)

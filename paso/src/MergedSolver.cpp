@@ -26,6 +26,7 @@
 /****************************************************************************/
 
 #include "MergedSolver.h"
+#include "Options.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 #include "UMFPACK.h"

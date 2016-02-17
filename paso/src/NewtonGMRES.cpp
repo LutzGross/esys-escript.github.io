@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include "Solver.h"
+#include "Options.h"
 #include "PasoUtil.h"
 
 namespace paso {

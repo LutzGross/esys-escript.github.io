@@ -416,7 +416,7 @@ void linearCombination(dim_t n, double* z, double a, const double* x,
 }
 
 double innerProduct(const dim_t n,const double* x, const double* y,
-                    esysUtils::JMPI& mpiinfo)
+                    const esysUtils::JMPI& mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0, local_out=0., out=0.;

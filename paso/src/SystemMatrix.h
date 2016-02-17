@@ -31,22 +31,30 @@
 
 #include "SparseMatrix.h"
 #include "SystemMatrixPattern.h"
-#include "Options.h"
+
+#include <escript/AbstractSystemMatrix.h>
 
 namespace paso {
 
-struct SystemMatrix;
+class Options;
+class SystemMatrix;
 typedef boost::shared_ptr<SystemMatrix> SystemMatrix_ptr;
 typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
 
 typedef int SystemMatrixType;
 
-//  this struct holds a (distributed) stiffness matrix
-PASO_DLL_API
-struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
+/// this class holds a (distributed) stiffness matrix
+class SystemMatrix : public escript::AbstractSystemMatrix,
+                     public boost::enable_shared_from_this<SystemMatrix>
 {
-    SystemMatrix(SystemMatrixType, SystemMatrixPattern_ptr, dim_t, dim_t,
-                 bool patternIsUnrolled);
+public:
+    /// default constructor - throws exception.
+    SystemMatrix();
+
+    SystemMatrix(SystemMatrixType type, SystemMatrixPattern_ptr pattern,
+                 dim_t rowBlockSize, dim_t columnBlockSize,
+                 bool patternIsUnrolled, const escript::FunctionSpace& rowFS,
+                 const escript::FunctionSpace& colFS);
 
     ~SystemMatrix();
 
@@ -54,8 +62,31 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     /// The rows and columns are marked by positive values in mask_row and
     /// mask_col. Values on the main diagonal which are marked to set to
     /// zero by both mask_row and mask_col are set to main_diagonal_value.
-    void nullifyRowsAndCols(double* mask_row, double* mask_col,
-                            double main_diagonal_value);
+    virtual void nullifyRowsAndCols(escript::Data& mask_row,
+                                    escript::Data& mask_col,
+                                    double main_diagonal_value);
+
+    virtual inline void saveMM(const std::string& filename) const
+    {
+        if (mpi_info->size > 1) {
+            Esys_setError(IO_ERROR, "SystemMatrix::saveMM: Only single rank supported.");
+        } else {
+            mainBlock->saveMM(filename.c_str());
+        }
+    }
+
+    virtual inline void saveHB(const std::string& filename) const
+    {
+        if (mpi_info->size > 1) {
+            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only single rank supported.");
+        } else if (!(type & MATRIX_FORMAT_CSC)) {
+            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only CSC format supported.");
+        } else {
+            mainBlock->saveHB_CSC(filename.c_str());
+        }
+    }
+
+    virtual void resetValues();
 
     /// Nullifies rows in the matrix.
     /// The rows are marked by positive values in mask_row. Values on the
@@ -118,22 +149,22 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
 
     index_t* borrowMainDiagonalPointer() const;
 
-    inline void startCollect(const double* in)
+    inline void startCollect(const double* in) const
     {
         startColCollect(in);
     }
 
-    inline double* finishCollect()
+    inline double* finishCollect() const
     {
         return finishColCollect();
     }
 
-    inline void startColCollect(const double* in)
+    inline void startColCollect(const double* in) const
     {
         col_coupler->startCollect(in);
     }
 
-    inline double* finishColCollect()
+    inline double* finishColCollect() const
     {
         return col_coupler->finishCollect();
     }
@@ -243,26 +274,6 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
         is_balanced = false;
     }
 
-    inline void saveMM(const char* filename) const
-    {
-        if (mpi_info->size > 1) {
-            Esys_setError(IO_ERROR, "SystemMatrix::saveMM: Only single rank supported.");
-        } else {
-            mainBlock->saveMM(filename);
-        }
-    }
-
-    inline void saveHB(const char *filename) const
-    {
-        if (mpi_info->size > 1) {
-            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only single rank supported.");
-        } else if (!(type & MATRIX_FORMAT_CSC)) {
-            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only CSC format supported.");
-        } else {
-            mainBlock->saveHB_CSC(filename);
-        }
-    }
-
     inline void rowSum(double* row_sum) const
     {
         if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_OFFSET1)) {
@@ -279,14 +290,19 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
         }
     }
 
+    void MatrixVector(double alpha, const double* in, double beta,
+                      double* out) const;
+
+    void MatrixVector_CSR_OFFSET0(double alpha, const double* in, double beta,
+                                  double* out) const;
+
     static SystemMatrix_ptr loadMM_toCSR(const char* filename);
 
     static SystemMatrix_ptr loadMM_toCSC(const char* filename);
 
-    static index_t getSystemMatrixTypeId(index_t solver,
-                                         index_t preconditioner,
-                                         index_t package, bool symmetry,
-                                         const esysUtils::JMPI& mpi_info);
+    static int getSystemMatrixTypeId(int solver, int preconditioner,
+                                     int package, bool symmetry,
+                                     const esysUtils::JMPI& mpi_info);
 
     SystemMatrixType type;
     SystemMatrixPattern_ptr pattern;
@@ -327,19 +343,20 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     mutable index_t* global_id;
 
     /// package code controlling the solver pointer
-    index_t solver_package;
+    mutable index_t solver_package;
 
     /// pointer to data needed by a solver
     void* solver_p;
 
-    /// this is only used for a trilinos matrix
-    void* trilinos_data;
+private:
+    virtual void setToSolution(escript::Data& out, escript::Data& in,
+                               boost::python::object& options) const;
+
+    virtual void ypAx(escript::Data& y, escript::Data& x) const;
+
+    void solve(double* out, double* in, Options* options) const;
 };
 
-
-void SystemMatrix_MatrixVector(double alpha, SystemMatrix_ptr A, const double* in, double beta, double* out);
-
-void SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, SystemMatrix_ptr A, const double* in, double beta, double* out);
 
 void RHS_loadMM_toCSR(const char* filename, double* b, dim_t size);
 

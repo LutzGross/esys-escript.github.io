@@ -194,7 +194,8 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
                 MATRIX_FORMAT_DEFAULT, output_dist, input_dist, mainPattern,
                 couplePattern, couplePattern, connector, connector));
-    out.reset(new SystemMatrix(MATRIX_FORMAT_DEFAULT, pattern, 1, 1, true));
+    out.reset(new SystemMatrix(MATRIX_FORMAT_DEFAULT, pattern, 1, 1, true,
+                escript::FunctionSpace(), escript::FunctionSpace()));
 
     // copy values
 #pragma omp parallel for
@@ -299,7 +300,9 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, mainPattern, couplePattern,
                 couplePattern, connector, connector));
-    out.reset(new SystemMatrix(MATRIX_FORMAT_CSC, pattern, 1, 1, true));
+    out.reset(new SystemMatrix(MATRIX_FORMAT_CSC, pattern, 1, 1, true,
+                               escript::FunctionSpace(),
+                               escript::FunctionSpace()));
 
     // copy values
 #pragma omp parallel for
