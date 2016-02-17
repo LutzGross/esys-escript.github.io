@@ -68,13 +68,13 @@ void DataAlgorithmAdapterTestCase::testAll() {
 
   cout << "\tTesting AbsMax." << endl;
 
-  AbsMax absmax;
+  AbsMax<DataTypes::real_t> absmax;
   CPPUNIT_ASSERT(std::abs(absmax(5,6)-6)<=REL_TOL*6);
   CPPUNIT_ASSERT(std::abs(absmax(5,-6)-6)<=REL_TOL*6);
   CPPUNIT_ASSERT(std::abs(absmax(0,0)-0)<=REL_TOL*6);
   CPPUNIT_ASSERT(std::abs(absmax(15,-96)-96)<=REL_TOL*6);
 
-  DataAlgorithmAdapter<AbsMax> Lsup(0);
+  DataAlgorithmAdapter<AbsMax<DataTypes::real_t> > Lsup(0);
   Lsup.resetResult();
   Lsup(-2);
   Lsup(2);

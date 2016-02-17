@@ -3410,7 +3410,9 @@ C_TensorUnaryOperation(Data const &arg_0,
 
 Data
 C_TensorUnaryOperation(Data const &arg_0,
-                       escript::ESFunction operation);
+                       escript::ESFunction operation,
+		       DataTypes::real_t tol=0
+		      );
 
 
 
