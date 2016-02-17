@@ -15,7 +15,9 @@
 ##############################################################################
 
 from templates.jessie_options import *
-cuda = True
+
+# disabled until the boost issue is fixed.
+#cuda = True
 
 nvccflags = "-ccbin=g++-4.8 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
