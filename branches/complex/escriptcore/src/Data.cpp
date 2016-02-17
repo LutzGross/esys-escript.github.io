@@ -1046,11 +1046,10 @@ Data::whereNonPositive() const
 Data
 Data::whereZero(double tol) const
 {
-    THROWONCOMPLEX
 //   Data dataAbs=abs();
 //   return C_TensorUnaryOperation(dataAbs, bind2nd(less_equal<double>(),tol));
     MAKELAZYOPOFF(EZ,tol);
-    return C_TensorUnaryOperation(*this, bind2nd(AbsLTE(),tol));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::EQZEROF, tol);
 }
 
 Data
@@ -1750,7 +1749,6 @@ Data::sqrt() const
 double
 Data::Lsup_const() const
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot compute Lsup for constant lazy data.");
@@ -1761,7 +1759,6 @@ Data::Lsup_const() const
 double
 Data::Lsup() 
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1771,9 +1768,23 @@ Data::Lsup()
         else
         {
 #ifdef ESYS_MPI
-            return lazyAlgWorker<AbsMax>(0,MPI_MAX);
+	    if (isComplex())
+	    {
+		return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);
+	    }
+	    else
+	    {
+		return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);	      
+	    }
 #else
-            return lazyAlgWorker<AbsMax>(0);
+	    if (isComplex())
+	    {
+		return lazyAlgWorker<AbsMax<real_t> >(0);
+	    }
+	    else
+	    {
+		return lazyAlgWorker<AbsMax<real_t> >(0);
+	    }
 #endif
         }
     }
@@ -1783,7 +1794,10 @@ Data::Lsup()
 double
 Data::sup_const() const
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute sup() for complex data.");
+    }  
     if (isLazy())
     {
         throw DataException("Error - cannot compute sup for constant lazy data.");
@@ -1794,7 +1808,10 @@ Data::sup_const() const
 double
 Data::sup() 
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute sup() for complex data.");
+    }
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1816,7 +1833,10 @@ Data::sup()
 double
 Data::inf_const() const
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute inf() for complex data.");
+    }  
     if (isLazy())
     {
         throw DataException("Error - cannot compute inf for constant lazy data.");
@@ -1827,7 +1847,10 @@ Data::inf_const() const
 double
 Data::inf() 
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute inf() for complex data.");
+    }  
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1934,20 +1957,21 @@ Data::replaceNaN(double value)
 
 
 // Do not call this on Lazy Data use the proper entry point
-double
+real_t
 Data::LsupWorker() const
 {
     bool haveNaN=getReady()->hasNaN();
-    double localValue=0;
+
   
 #ifdef ESYS_MPI
+    int nanchecker=0;    
     if (haveNaN)
     {
-        localValue=1.0;
+        nanchecker=1.0;
     }
-    double globalValue;
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
-    if (globalValue!=0)
+    int globalnan;
+    MPI_Allreduce( &nanchecker, &globalnan, 1, MPI_INT, MPI_MAX, getDomain()->getMPIComm() );
+    if (globalnan!=0)
     {
         return makeNaN();
     }
@@ -1960,16 +1984,32 @@ Data::LsupWorker() const
 
     //
     // set the initial absolute maximum value to zero
+    if (isComplex())
+    {
+	AbsMax<cplx_t> abs_max_func;
+	real_t localValue=0;
+	localValue = algorithm(abs_max_func,0);
 
-    AbsMax abs_max_func;
-    localValue = algorithm(abs_max_func,0);
+    #ifdef ESYS_MPI
+	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
+	return globalValue;
+    #else
+	return localValue;
+    #endif
+    }
+    else
+    {  
+	AbsMax<real_t> abs_max_func;
+	real_t localValue=0;
+	localValue = algorithm(abs_max_func,0);
 
-#ifdef ESYS_MPI
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
-    return globalValue;
-#else
-    return localValue;
-#endif
+    #ifdef ESYS_MPI
+	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
+	return globalValue;
+    #else
+	return localValue;
+    #endif
+    }
 }
 
 double
@@ -4712,7 +4752,8 @@ void Data::complicate()
 
 Data
 escript::C_TensorUnaryOperation(Data const &arg_0,
-                       escript::ESFunction operation)
+                       escript::ESFunction operation,
+		       DataTypes::real_t tol)
 {
   if (arg_0.isEmpty())	// do this before we attempt to interpolate
   {
@@ -4746,7 +4787,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         res.complicate();
         const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
-        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
     }
     else
     {
@@ -4754,7 +4795,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
         const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
-        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
     }
   }
   else if (arg_0_Z.isTagged()) {
@@ -4774,7 +4815,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
         DataTypes::cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,dummy));
         // Compute a result for the default
-        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
         // Compute a result for each tag
         const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
         DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
@@ -4782,7 +4823,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
           tmp_2->addTag(i->first);
           const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
           DataTypes::cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummy));
-          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
         }
     }
     else
@@ -4791,7 +4832,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         const DataTypes::real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
         DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
         // Compute a result for the default
-        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
         // Compute a result for each tag
         const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
         DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
@@ -4799,7 +4840,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
           tmp_2->addTag(i->first);
           const DataTypes::real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
           DataTypes::real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
-          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation);
+          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
         }
     }
   }
@@ -4822,7 +4863,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
 	    const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
 	    DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummy));
-	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation);
+	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
 	}      
     }
     else
@@ -4834,7 +4875,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
 	    const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
 	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation);
+	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
 	}      
     }
   }

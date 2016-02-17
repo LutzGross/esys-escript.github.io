@@ -599,7 +599,7 @@ void DataMathsTestCase::testReductionOp()
       }
 
       // apply a reduction operation to this data point and check the results
-      AbsMax absmax_func;
+      AbsMax<DataTypes::real_t> absmax_func;
       CPPUNIT_ASSERT(reductionOp(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
 
       if (p<npoints-1) {

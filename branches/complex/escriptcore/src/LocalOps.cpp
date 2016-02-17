@@ -45,6 +45,12 @@ bool supports_cplx(escript::ESFunction operation)
     case ABSF: 
     case EXPF: 
     case SQRTF: return true;
+    case EQZEROF:
+    case NEQZEROF:return true;
+    case GTZEROF:
+    case GEZEROF:
+    case LTZEROF:
+    case LEZEROF: return false;    
     default:
       return false;	// let's be conservative
   }  

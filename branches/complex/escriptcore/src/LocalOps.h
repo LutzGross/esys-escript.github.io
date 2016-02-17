@@ -67,7 +67,13 @@ DIVIDESF,
 LESSF,
 GREATERF,
 GREATER_EQUALF,
-LESS_EQUALF
+LESS_EQUALF,
+EQZEROF,
+NEQZEROF,
+GTZEROF,
+GEZEROF,
+LTZEROF,
+LEZEROF
 } ESFunction;
 
 
@@ -881,7 +887,74 @@ struct less_equal_func
     typedef T result_type;
 };
 
+template <typename T>
+struct gtzero_func
+{
+    T operator() (const T& x) const {return x>0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
 
+template <>
+struct gtzero_func<DataTypes::cplx_t>		// to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+
+template <typename T>
+struct gezero_func
+{
+    T operator() (const T& x) const {return x>=0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct gezero_func<DataTypes::cplx_t>		// to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+template <typename T>
+struct ltzero_func
+{
+    T operator() (const T& x) const {return x<0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct ltzero_func<DataTypes::cplx_t>		// to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+
+template <typename T>
+struct lezero_func
+{
+    T operator() (const T& x) const {return x>=0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct lezero_func<DataTypes::cplx_t>		// to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
 
 
 template <class IN, typename OUT, class UnaryFunction>
@@ -903,7 +976,8 @@ template <class IN, typename OUT>
 inline void tensor_unary_array_operation(const int size,
                              const IN *arg1,
                              OUT * argRes,
-                             escript::ESFunction operation)
+                             escript::ESFunction operation,
+			     DataTypes::real_t tol=0)
 {
   switch (operation)
   {
@@ -926,6 +1000,23 @@ inline void tensor_unary_array_operation(const int size,
     case ABSF: tensor_unary_operation_helper(size, arg1, argRes, abs_func<IN>()); break;
     case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
     case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
+    
+    case EQZEROF:   
+	  for (int i = 0; i < size; ++i) {
+	      argRes[i] = (fabs(arg1[i])<=tol);
+	  }
+	  break;
+    case NEQZEROF: 
+	  for (int i = 0; i < size; ++i) {
+	      argRes[i] = (fabs(arg1[i])>tol);
+	  }
+	  break;
+    case GTZEROF: tensor_unary_operation_helper(size, arg1, argRes, gtzero_func<IN>()); break;
+    case GEZEROF: tensor_unary_operation_helper(size, arg1, argRes, gezero_func<IN>()); break;
+    case LTZEROF: tensor_unary_operation_helper(size, arg1, argRes, ltzero_func<IN>()); break;
+    case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
+    
+    
     default:
       throw DataException("Unsupported unary operation");
   }

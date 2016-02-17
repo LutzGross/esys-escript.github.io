@@ -1037,21 +1037,40 @@ binaryOpVector(LVEC& left,
 
 template <class BinaryFunction>
 inline
-double
+DataTypes::real_t
 reductionOp(const DataTypes::RealVectorType& left, 
 			   const DataTypes::ShapeType& leftShape,
 			   DataTypes::RealVectorType::size_type offset,
                            BinaryFunction operation,
-                           double initial_value)
+                           DataTypes::real_t initial_value)
 {
   EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
                "Error - Couldn't perform reductionOp due to insufficient storage.");
-  double current_value=initial_value;
+  DataTypes::real_t current_value=initial_value;
   for (DataTypes::RealVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     current_value=operation(current_value,left[offset+i]);
   }
   return current_value;
 }
+
+template <class BinaryFunction>
+inline
+DataTypes::real_t
+reductionOp(const DataTypes::CplxVectorType& left, 
+			   const DataTypes::ShapeType& leftShape,
+			   DataTypes::CplxVectorType::size_type offset,
+                           BinaryFunction operation,
+                           DataTypes::real_t initial_value)
+{
+  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
+               "Error - Couldn't perform reductionOp due to insufficient storage.");
+  DataTypes::real_t current_value=initial_value;
+  for (DataTypes::RealVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
+    current_value=operation(current_value,left[offset+i]);
+  }
+  return current_value;
+}
+
 
 /**
      \brief
