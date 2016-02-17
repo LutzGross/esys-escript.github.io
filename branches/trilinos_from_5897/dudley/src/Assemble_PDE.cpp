@@ -48,14 +48,11 @@
 #include "Assemble.h"
 #include "Util.h"
 #include "esysUtils/blocktimer.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 /************************************************************************************/
 
 void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
-                         paso::SystemMatrix_ptr S, escript::Data* F,
+                         escript::ASM_ptr S, escript::Data* F,
                          const escript::Data* A, const escript::Data* B, const escript::Data* C,
                          const escript::Data* D, const escript::Data* X, const escript::Data* Y)
 {

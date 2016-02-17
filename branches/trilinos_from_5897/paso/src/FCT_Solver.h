@@ -38,7 +38,7 @@ struct FCT_Solver
 
     void initialize(double dt, Options* options, Performance* pp);
 
-    static double getSafeTimeStepSize(TransportProblem_ptr tp);
+    static double getSafeTimeStepSize(const_TransportProblem_ptr tp);
 
     static void setLowOrderOperator(TransportProblem_ptr tp);
 

@@ -18,10 +18,14 @@
 #include "esysUtils/first.h"
 
 #include "MeshAdapter.h"
-#include "escript/Data.h"
-#include "escript/DataFactory.h"
 #include "esysUtils/blocktimer.h"
 #include "esysUtils/EsysRandom.h"
+#include <escript/Data.h>
+#include <escript/DataFactory.h>
+#include <escript/SolverOptions.h>
+
+#include <paso/SystemMatrix.h>
+#include <paso/Transport.h>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -30,7 +34,6 @@
 
 using namespace std;
 using namespace escript;
-using namespace paso;
 namespace bp = boost::python;
 
 namespace dudley {
@@ -129,15 +132,15 @@ void MeshAdapter::dump(const string& fileName) const
    Dudley_Mesh *mesh = m_dudleyMesh.get();
    Dudley_TagMap* tag_map;
    int num_Tags = 0;
-   int mpi_size				= mesh->MPIInfo->size;
-   int mpi_rank				= mesh->MPIInfo->rank;
-   int numDim				= mesh->Nodes->numDim;
-   int numNodes				= mesh->Nodes->numNodes;
-   int num_Elements			= mesh->Elements->numElements;
-   int num_FaceElements			= mesh->FaceElements->numElements;
-   int num_Points			= mesh->Points->numElements;
-   int num_Elements_numNodes		= mesh->Elements->numNodes;
-   int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
+   int mpi_size                         = mesh->MPIInfo->size;
+   int mpi_rank                         = mesh->MPIInfo->rank;
+   int numDim                           = mesh->Nodes->numDim;
+   int numNodes                         = mesh->Nodes->numNodes;
+   int num_Elements                     = mesh->Elements->numElements;
+   int num_FaceElements                 = mesh->FaceElements->numElements;
+   int num_Points                       = mesh->Points->numElements;
+   int num_Elements_numNodes            = mesh->Elements->numNodes;
+   int num_FaceElements_numNodes        = mesh->FaceElements->numNodes;
 #ifdef ESYS_MPI
    MPI_Status status;
 #endif
@@ -474,7 +477,7 @@ void MeshAdapter::dump(const string& fileName) const
 
 #else
    Dudley_setError(IO_ERROR, "MeshAdapter::dump: not configured with NetCDF. Please contact your installation manager.");
-#endif	/* USE_NETCDF */
+#endif  /* USE_NETCDF */
    checkDudleyError();
 }
 
@@ -676,55 +679,52 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 //
 // adds linear PDE of second order into a given stiffness matrix and right hand side:
 //
-void MeshAdapter::addPDEToSystem(
-                                 AbstractSystemMatrix& mat, escript::Data& rhs,
-                                 const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
+void MeshAdapter::addPDEToSystem(AbstractSystemMatrix& mat, escript::Data& rhs,
+                                 const escript::Data& A, const escript::Data& B,
+                                 const escript::Data& C, const escript::Data& D,
+                                 const escript::Data& X, const escript::Data& Y,
                                  const escript::Data& d, const escript::Data& y,
-				 const escript::Data& d_contact, const escript::Data& y_contact,
-                                 const escript::Data& d_dirac,const escript::Data& y_dirac) const
+                                 const escript::Data& d_contact,
+                                 const escript::Data& y_contact,
+                                 const escript::Data& d_dirac,
+                                 const escript::Data& y_dirac) const
 {
-    if (!d_contact.isEmpty())
-    {
-	throw DudleyAdapterException("Dudley does not support d_contact");
+    if (!d_contact.isEmpty() || !y_contact.isEmpty())
+        throw DudleyAdapterException("Dudley does not support contact elements");
+
+    paso::SystemMatrix* smat = dynamic_cast<paso::SystemMatrix*>(&mat);
+    if (smat) {
+        paso::SystemMatrix_ptr S(smat->shared_from_this());
+        Dudley_Mesh* mesh = m_dudleyMesh.get();
+
+        Dudley_Assemble_PDE(mesh->Nodes, mesh->Elements, S, &rhs, &A, &B, &C, &D, &X, &Y);
+        checkDudleyError();
+
+        Dudley_Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, &rhs, 0, 0, 0, &d, 0, &y);
+        checkDudleyError();
+
+        Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, S, &rhs, 0, 0, 0, &d_dirac, 0, &y_dirac);
+        checkDudleyError();
+        return;
     }
-    if (!y_contact.isEmpty())
-    {
-	throw DudleyAdapterException("Dudley does not support y_contact");
-    }
-   SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
-   if (smat==0)
-   {
-	throw DudleyAdapterException("Dudley only accepts Paso system matrices");
-   }
-
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,smat->getPaso_SystemMatrix(), &rhs, &A, &B, &C, &D, &X, &Y );
-   checkDudleyError();
-
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, smat->getPaso_SystemMatrix(), &rhs, 0, 0, 0, &d, 0, &y );
-   checkDudleyError();
-
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, smat->getPaso_SystemMatrix(), &rhs, 0, 0, 0, &d_dirac, 0, &y_dirac );
-   checkDudleyError();
+    throw DudleyAdapterException("Dudley only accepts Paso system matrices");
 }
 
-void  MeshAdapter::addPDEToLumpedSystem(
-                                        escript::Data& mat,
+void  MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
                                         const escript::Data& D,
                                         const escript::Data& d,
                                         const escript::Data& d_dirac,
-					const bool useHRZ) const
+                                        bool useHRZ) const
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&mat, &D, useHRZ);
+   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements, &mat, &D, useHRZ);
    checkDudleyError();
    
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&mat, &d, useHRZ);
+   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, &mat, &d, useHRZ);
    checkDudleyError();
 
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&mat, &d_dirac, useHRZ);
+   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, &mat, &d_dirac, useHRZ);
    checkDudleyError();
 
 }
@@ -733,63 +733,70 @@ void  MeshAdapter::addPDEToLumpedSystem(
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs, const escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
    if (!y_contact.isEmpty())
    {
-	throw DudleyAdapterException("Dudley does not support y_contact");
+        throw DudleyAdapterException("Dudley does not support y_contact");
    }
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, paso::SystemMatrix_ptr(), &rhs, 0, 0, 0, 0, &X, &Y);
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, escript::ASM_ptr(), &rhs,
+                       NULL, NULL, NULL, NULL, &X, &Y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, paso::SystemMatrix_ptr(), &rhs, 0, 0, 0, 0, 0, &y );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, escript::ASM_ptr(),
+                       &rhs, NULL, NULL, NULL, NULL, NULL, &y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, paso::SystemMatrix_ptr(), &rhs, 0, 0, 0, 0, 0, &y_dirac );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, escript::ASM_ptr(), &rhs,
+                       NULL, NULL, NULL, NULL, NULL, &y_dirac);
    checkDudleyError();
 }
 //
 // adds PDE of second order into a transport problem
 //
 void MeshAdapter::addPDEToTransportProblem(
-                                           AbstractTransportProblem& tp, escript::Data& source, const escript::Data& M,
-                                           const escript::Data& A, const escript::Data& B, const escript::Data& C,
-                                           const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
-                                           const escript::Data& d, const escript::Data& y, 
-					   const escript::Data& d_contact,const escript::Data& y_contact,
-					   const escript::Data& d_dirac, const escript::Data& y_dirac) const
+        AbstractTransportProblem& tp, escript::Data& source,
+        const escript::Data& M, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const  escript::Data& D,const escript::Data& X,
+        const escript::Data& Y, const escript::Data& d, const escript::Data& y,
+        const escript::Data& d_contact,const escript::Data& y_contact,
+        const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty())
     {
-	throw DudleyAdapterException("Dudley does not support d_contact");
+        throw DudleyAdapterException("Dudley does not support d_contact");
     }
     if (!y_contact.isEmpty())
     {
-	throw DudleyAdapterException("Dudley does not support y_contact");
+        throw DudleyAdapterException("Dudley does not support y_contact");
     }   
-   TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
-   if (tpa==0)
-   {
-	throw DudleyAdapterException("Dudley only accepts Paso transport problems");
-   }
-   DataTypes::ShapeType shape;
-   source.expand();
+    paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
+    if (!ptp)
+    {
+        throw DudleyAdapterException("Dudley only accepts Paso transport problems");
+    }
+    DataTypes::ShapeType shape;
+    source.expand();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
-   paso::TransportProblem_ptr _tp(tpa->getPaso_TransportProblem());
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->mass_matrix, &source, 0, 0, 0, &M, 0, 0 );
+   Dudley_Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(),
+                       &source, 0, 0, 0, &M, 0, 0);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->transport_matrix, &source, &A, &B, &C, &D, &X, &Y );
+   Dudley_Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
+                       &source, &A, &B, &C, &D, &X, &Y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, _tp->transport_matrix, &source, 0, 0, 0, &d, 0, &y );
+   Dudley_Assemble_PDE(mesh->Nodes, mesh->FaceElements,
+                       ptp->borrowTransportMatrix(), &source, NULL, NULL, NULL,
+                       &d, NULL, &y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, _tp->transport_matrix, &source, 0, 0, 0, &d_dirac, 0, &y_dirac );
+   Dudley_Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
+                       &source, NULL, NULL, NULL, &d_dirac, NULL, &y_dirac);
    checkDudleyError();
 }
 
@@ -1305,14 +1312,13 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 
 
 //
-// creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
+// creates a stiffness matrix an initializes it with zeros
 //
-ASM_ptr MeshAdapter::newSystemMatrix(
-                                                 const int row_blocksize,
-                                                 const escript::FunctionSpace& row_functionspace,
-                                                 const int column_blocksize,
-                                                 const escript::FunctionSpace& column_functionspace,
-                                                 const int type) const
+ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
+                                     const escript::FunctionSpace& row_functionspace,
+                                     const int column_blocksize,
+                                     const escript::FunctionSpace& column_functionspace,
+                                     const int type) const
 {
    int reduceRowOrder=0;
    int reduceColOrder=0;
@@ -1342,7 +1348,7 @@ ASM_ptr MeshAdapter::newSystemMatrix(
  
    paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder));
    checkDudleyError();
-   paso::SystemMatrix_ptr fsystemMatrix;
+   paso::SystemMatrix_ptr sm;
    int trilinos = 0;
    if (trilinos) {
 #ifdef TRILINOS
@@ -1350,19 +1356,20 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 #endif
    }
    else {
-      fsystemMatrix.reset(new paso::SystemMatrix(type, fsystemMatrixPattern, row_blocksize, column_blocksize,false));
+      sm.reset(new paso::SystemMatrix(type, fsystemMatrixPattern,
+                  row_blocksize, column_blocksize, false, row_functionspace,
+                  column_functionspace));
    }
    checkPasoError();
-   SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace, column_blocksize,column_functionspace);
-   return ASM_ptr(sma);
+   return sm;
 }
 
 //
-// creates a TransportProblemAdapter
+// creates a TransportProblem
 //
-ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
+ATP_ptr MeshAdapter::newTransportProblem(int blocksize,
                                          const escript::FunctionSpace& fs,
-                                         const int type) const
+                                         int type) const
 {
    int reduceOrder=0;
    // is the domain right?
@@ -1379,13 +1386,14 @@ ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
    }
    // generate matrix:
  
-   paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder));
+   paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(
+               getDudley_Mesh(),reduceOrder,reduceOrder));
    checkDudleyError();
    paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
-                                            fsystemMatrixPattern, blocksize));
+                                            fsystemMatrixPattern, blocksize,
+                                            fs));
    checkPasoError();
-   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem, blocksize, fs);
-   return ATP_ptr(atp);
+   return transportProblem;
 }
 
 //
@@ -1424,22 +1432,22 @@ bool
 MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
 {
    /* The idea is to use equivalence classes. [Types which can be interpolated back and forth]
-	class 1: DOF <-> Nodes
-	class 2: ReducedDOF <-> ReducedNodes
-	class 3: Points
-	class 4: Elements
-	class 5: ReducedElements
-	class 6: FaceElements
-	class 7: ReducedFaceElements
-	class 8: ContactElementZero <-> ContactElementOne
-	class 9: ReducedContactElementZero <-> ReducedContactElementOne
+        class 1: DOF <-> Nodes
+        class 2: ReducedDOF <-> ReducedNodes
+        class 3: Points
+        class 4: Elements
+        class 5: ReducedElements
+        class 6: FaceElements
+        class 7: ReducedFaceElements
+        class 8: ContactElementZero <-> ContactElementOne
+        class 9: ReducedContactElementZero <-> ReducedContactElementOne
 
    There is also a set of lines. Interpolation is possible down a line but not between lines.
    class 1 and 2 belong to all lines so aren't considered.
-	line 0: class 3
-	line 1: class 4,5
-	line 2: class 6,7
-	line 3: class 8,9
+        line 0: class 3
+        line 1: class 4,5
+        line 2: class 6,7
+        line 3: class 8,9
 
    For classes with multiple members (eg class 2) we have vars to record if there is at least one instance.
    eg hasnodes is true if we have at least one instance of Nodes.
@@ -1449,98 +1457,98 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
         return false;
     }
     vector<int> hasclass(10);
-    vector<int> hasline(4);	
+    vector<int> hasline(4);     
     bool hasnodes=false;
     bool hasrednodes=false;
     for (int i=0;i<fs.size();++i)
     {
-	switch(fs[i])
-	{
-	case(Nodes):   hasnodes=true;	// no break is deliberate
-	case(DegreesOfFreedom):
-		hasclass[1]=1;
-		break;
-	case(ReducedNodes):    hasrednodes=true;	// no break is deliberate
-	case(ReducedDegreesOfFreedom):
-		hasclass[2]=1;
-		break;
-	case(Points):
-		hasline[0]=1;
-		hasclass[3]=1;
-		break;
-	case(Elements):
-		hasclass[4]=1;
-		hasline[1]=1;
-		break;
-	case(ReducedElements):
-		hasclass[5]=1;
-		hasline[1]=1;
-		break;
-	case(FaceElements):
-		hasclass[6]=1;
-		hasline[2]=1;
-		break;
-	case(ReducedFaceElements):
-		hasclass[7]=1;
-		hasline[2]=1;
-		break;
-	default:
-		return false;
-	}
+        switch(fs[i])
+        {
+        case(Nodes):   hasnodes=true;   // no break is deliberate
+        case(DegreesOfFreedom):
+                hasclass[1]=1;
+                break;
+        case(ReducedNodes):    hasrednodes=true;        // no break is deliberate
+        case(ReducedDegreesOfFreedom):
+                hasclass[2]=1;
+                break;
+        case(Points):
+                hasline[0]=1;
+                hasclass[3]=1;
+                break;
+        case(Elements):
+                hasclass[4]=1;
+                hasline[1]=1;
+                break;
+        case(ReducedElements):
+                hasclass[5]=1;
+                hasline[1]=1;
+                break;
+        case(FaceElements):
+                hasclass[6]=1;
+                hasline[2]=1;
+                break;
+        case(ReducedFaceElements):
+                hasclass[7]=1;
+                hasline[2]=1;
+                break;
+        default:
+                return false;
+        }
     }
     int totlines=hasline[0]+hasline[1]+hasline[2]+hasline[3];
     // fail if we have more than one leaf group
 
     if (totlines>1)
     {
-	return false;	// there are at least two branches we can't interpolate between
+        return false;   // there are at least two branches we can't interpolate between
     }
     else if (totlines==1)
     {
-	if (hasline[0]==1)		// we have points
-	{
-	    resultcode=Points;
-	}
-	else if (hasline[1]==1)
-	{
-	    if (hasclass[5]==1)
-	    {
-		resultcode=ReducedElements;
-	    }
-	    else
-	    {
-		resultcode=Elements;
-	    }
-	}
-	else if (hasline[2]==1)
-	{
-	    if (hasclass[7]==1)
-	    {
-		resultcode=ReducedFaceElements;
-	    }
-	    else
-	    {
-		resultcode=FaceElements;
-	    }
-	}
-	else	// so we must be in line3
-	{
+        if (hasline[0]==1)              // we have points
+        {
+            resultcode=Points;
+        }
+        else if (hasline[1]==1)
+        {
+            if (hasclass[5]==1)
+            {
+                resultcode=ReducedElements;
+            }
+            else
+            {
+                resultcode=Elements;
+            }
+        }
+        else if (hasline[2]==1)
+        {
+            if (hasclass[7]==1)
+            {
+                resultcode=ReducedFaceElements;
+            }
+            else
+            {
+                resultcode=FaceElements;
+            }
+        }
+        else    // so we must be in line3
+        {
 
-	    throw DudleyAdapterException("Programmer Error - choosing between contact elements - we should never get here.");
+            throw DudleyAdapterException("Programmer Error - choosing between contact elements - we should never get here.");
 
-	}
+        }
     }
-    else	// totlines==0
+    else        // totlines==0
     {
-	if (hasclass[2]==1)
-	{
-		// something from class 2
-		resultcode=(hasrednodes?ReducedNodes:ReducedDegreesOfFreedom);
-	}
-	else
-	{	// something from class 1
-		resultcode=(hasnodes?Nodes:DegreesOfFreedom);
-	}
+        if (hasclass[2]==1)
+        {
+                // something from class 2
+                resultcode=(hasrednodes?ReducedNodes:ReducedDegreesOfFreedom);
+        }
+        else
+        {       // something from class 1
+                resultcode=(hasnodes?Nodes:DegreesOfFreedom);
+        }
     }
     return true;
 }
@@ -1564,113 +1572,113 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
 {
    switch(functionSpaceType_source) {
    case(Nodes):
-   	switch(functionSpaceType_target) {
-	case(Nodes):
-	case(ReducedNodes):
-	case(ReducedDegreesOfFreedom):
-	case(DegreesOfFreedom):
-	case(Elements):
-	case(ReducedElements):
-	case(FaceElements):
-	case(ReducedFaceElements):
-	case(Points):
-	return true;
-	default:
-	      stringstream temp;
-	      temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-	      throw DudleyAdapterException(temp.str());
+        switch(functionSpaceType_target) {
+        case(Nodes):
+        case(ReducedNodes):
+        case(ReducedDegreesOfFreedom):
+        case(DegreesOfFreedom):
+        case(Elements):
+        case(ReducedElements):
+        case(FaceElements):
+        case(ReducedFaceElements):
+        case(Points):
+        return true;
+        default:
+              stringstream temp;
+              temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
+              throw DudleyAdapterException(temp.str());
    }
    break;
    case(ReducedNodes):
-	switch(functionSpaceType_target) {
-	case(ReducedNodes):
-	case(ReducedDegreesOfFreedom):
-	case(Elements):
-	case(ReducedElements):
-	case(FaceElements):
-	case(ReducedFaceElements):
-	case(Points):
-	return true;
-	case(Nodes):
-	case(DegreesOfFreedom):
-	return false;
-	default:
-		stringstream temp;
-		temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-		throw DudleyAdapterException(temp.str());
+        switch(functionSpaceType_target) {
+        case(ReducedNodes):
+        case(ReducedDegreesOfFreedom):
+        case(Elements):
+        case(ReducedElements):
+        case(FaceElements):
+        case(ReducedFaceElements):
+        case(Points):
+        return true;
+        case(Nodes):
+        case(DegreesOfFreedom):
+        return false;
+        default:
+                stringstream temp;
+                temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
+                throw DudleyAdapterException(temp.str());
    }
    break;
    case(Elements):
-	if (functionSpaceType_target==Elements) {
-	  return true;
-	} else if (functionSpaceType_target==ReducedElements) {
-	  return true;
+        if (functionSpaceType_target==Elements) {
+          return true;
+        } else if (functionSpaceType_target==ReducedElements) {
+          return true;
         } else {
           return false;
         }
    case(ReducedElements):
-	if (functionSpaceType_target==ReducedElements) {
-	  return true;
-	} else {
+        if (functionSpaceType_target==ReducedElements) {
+          return true;
+        } else {
           return false;
-	}
+        }
    case(FaceElements):
-	if (functionSpaceType_target==FaceElements) {
-      		return true;
-	} else if (functionSpaceType_target==ReducedFaceElements) {
-      		return true;
-	} else {
-      		return false;
-	}
+        if (functionSpaceType_target==FaceElements) {
+                return true;
+        } else if (functionSpaceType_target==ReducedFaceElements) {
+                return true;
+        } else {
+                return false;
+        }
    case(ReducedFaceElements):
-	if (functionSpaceType_target==ReducedFaceElements) {
-      		return true;
-	} else {
-		return false;
-	}
+        if (functionSpaceType_target==ReducedFaceElements) {
+                return true;
+        } else {
+                return false;
+        }
    case(Points):
-	if (functionSpaceType_target==Points) {
-      		return true;
-	} else {
-      		return false;
-	}
+        if (functionSpaceType_target==Points) {
+                return true;
+        } else {
+                return false;
+        }
    case(DegreesOfFreedom):
-	switch(functionSpaceType_target) {
-	case(ReducedDegreesOfFreedom):
-	case(DegreesOfFreedom):
-	case(Nodes):
-	case(ReducedNodes):
-	case(Elements):
-	case(ReducedElements):
-	case(Points):
-	case(FaceElements):
-	case(ReducedFaceElements):
-	return true;
-	default:
-		stringstream temp;
-		temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-		throw DudleyAdapterException(temp.str());
-	}
-   	break;
+        switch(functionSpaceType_target) {
+        case(ReducedDegreesOfFreedom):
+        case(DegreesOfFreedom):
+        case(Nodes):
+        case(ReducedNodes):
+        case(Elements):
+        case(ReducedElements):
+        case(Points):
+        case(FaceElements):
+        case(ReducedFaceElements):
+        return true;
+        default:
+                stringstream temp;
+                temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
+                throw DudleyAdapterException(temp.str());
+        }
+        break;
    case(ReducedDegreesOfFreedom):
    switch(functionSpaceType_target) {
-	case(ReducedDegreesOfFreedom):
-	case(ReducedNodes):
-	case(Elements):
-	case(ReducedElements):
-	case(FaceElements):
-	case(ReducedFaceElements):
-	case(Points):
-	return true;
-	case(Nodes):
-	case(DegreesOfFreedom):
-	return false;
-	default:
-		stringstream temp;
-		temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-		throw DudleyAdapterException(temp.str());
-	}
-	break;
+        case(ReducedDegreesOfFreedom):
+        case(ReducedNodes):
+        case(Elements):
+        case(ReducedElements):
+        case(FaceElements):
+        case(ReducedFaceElements):
+        case(Points):
+        return true;
+        case(Nodes):
+        case(DegreesOfFreedom):
+        return false;
+        default:
+                stringstream temp;
+                temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
+                throw DudleyAdapterException(temp.str());
+        }
+        break;
    default:
       stringstream temp;
       temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_source;
@@ -1705,16 +1713,17 @@ int MeshAdapter::getSystemMatrixTypeId(const boost::python::object& options) con
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
-    return SystemMatrixAdapter::getSystemMatrixTypeId(sb.getSolverMethod(),
+    return paso::SystemMatrix::getSystemMatrixTypeId(sb.getSolverMethod(),
                 sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(),
                 m_dudleyMesh->MPIInfo);
 }
 
-int MeshAdapter::getTransportTypeId(int solver, int preconditioner, int package, bool symmetry) const
+int MeshAdapter::getTransportTypeId(int solver, int preconditioner,
+                                    int package, bool symmetry) const
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
-   return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
-           package, symmetry, mesh->MPIInfo);
+   return paso::TransportProblem::getTypeId(solver, preconditioner, package,
+                                            symmetry, mesh->MPIInfo);
 }
 
 escript::Data MeshAdapter::getX() const
@@ -1977,9 +1986,9 @@ bool MeshAdapter::canTag(int functionSpaceCode) const
    case(ReducedNodes):
    case(DegreesOfFreedom):
    case(ReducedDegreesOfFreedom):
-	  return false;
+          return false;
    default:
-	return false;
+        return false;
   }
 }
 
@@ -2036,7 +2045,7 @@ escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape
     escript::DataTypes::ValueType& dv=towipe.getExpandedVectorReference();
     const size_t dvsize=dv.size();
     esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
-    return towipe;  	 
+    return towipe;       
 }
 
 

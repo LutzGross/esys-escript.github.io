@@ -23,25 +23,35 @@
 #include "SystemMatrix.h"
 #include "Options.h"
 
+#include <escript/AbstractTransportProblem.h>
+
 namespace paso {
 
-struct TransportProblem;
+class TransportProblem;
 typedef boost::shared_ptr<TransportProblem> TransportProblem_ptr;
 typedef boost::shared_ptr<const TransportProblem> const_TransportProblem_ptr;
 
-PASO_DLL_API
-struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
+class TransportProblem : public escript::AbstractTransportProblem,
+                         public boost::enable_shared_from_this<TransportProblem>
 {
-    TransportProblem(SystemMatrixPattern_ptr pattern, int block_size);
+public:
+    /// Default constructor - throws exception
+    TransportProblem();
+
+    TransportProblem(SystemMatrixPattern_ptr pattern, int blocksize,
+                     const escript::FunctionSpace& functionspace);
+
     ~TransportProblem();
 
-    void reset();
+    virtual void resetTransport() const;
 
     void solve(double* u, double dt, double* u0, double* q, Options* options);
 
-    double getSafeTimeStepSize();
+    virtual double getSafeTimeStepSize() const;
 
-    void insertConstraint(const double* r,  double* source);
+    virtual double getUnlimitedTimeStepSize() const;
+
+    void insertConstraint(const double* r,  double* source) const;
 
     void setUpConstraint(const double* q);
 
@@ -80,9 +90,9 @@ struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
        return mass_matrix->mainBlock->borrowMainDiagonalPointer();
     }
 
-    inline static index_t getTypeId(index_t solver, index_t preconditioner,
-                                    index_t package, bool symmetry,
-                                    const esysUtils::JMPI& mpi_info)
+    inline static int getTypeId(int solver, int preconditioner,
+                                int package, bool symmetry,
+                                const esysUtils::JMPI& mpi_info)
     {
         return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
     }
@@ -91,12 +101,12 @@ struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
     SystemMatrix_ptr mass_matrix;
     SystemMatrix_ptr iteration_matrix;
 
-    bool valid_matrices;
+    mutable bool valid_matrices;
     /// safe time step size for reactive part
-    double dt_max_R;
+    mutable double dt_max_R;
     /// safe time step size for transport part
-    double dt_max_T;
-    double* constraint_mask;
+    mutable double dt_max_T;
+    mutable double* constraint_mask;
 
     double* main_diagonal_low_order_transport_matrix;
     /// 'relevant' lumped mass matrix is assumed to be positive.
@@ -107,6 +117,14 @@ struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
     double* main_diagonal_mass_matrix;
 
     esysUtils::JMPI mpi_info;
+
+private:
+    virtual void setToSolution(escript::Data& out, escript::Data& u0,
+                               escript::Data& source, double dt,
+                               boost::python::object& options);
+
+    virtual void copyConstraint(escript::Data& source, escript::Data& q,
+                                escript::Data& r);
 };
 
 } // namespace paso

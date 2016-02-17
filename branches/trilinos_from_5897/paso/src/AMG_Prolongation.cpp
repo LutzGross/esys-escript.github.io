@@ -25,6 +25,7 @@
 /****************************************************************************/
 
 #include "Paso.h"
+#include "Options.h"
 #include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
@@ -322,7 +323,9 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
                 output_dist, input_dist, main_pattern, couple_pattern,
                 couple_pattern, col_connector, col_connector));
      out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
-                                      row_block_size, col_block_size, false));
+                                row_block_size, col_block_size, false,
+                                A_p->getRowFunctionSpace(),
+                                A_p->getColumnFunctionSpace()));
    }
 
    /* now fill in the matrix */

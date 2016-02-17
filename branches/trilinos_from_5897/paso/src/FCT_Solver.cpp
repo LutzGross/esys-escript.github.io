@@ -535,13 +535,13 @@ void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix)
 
 /****************************************************************************/
 
-double FCT_Solver::getSafeTimeStepSize(TransportProblem_ptr fctp)
+double FCT_Solver::getSafeTimeStepSize(const_TransportProblem_ptr fctp)
 {
     double dt_max = LARGE_POSITIVE_FLOAT;
     const dim_t n = fctp->transport_matrix->getTotalNumRows();
 
     // set low order transport operator
-    setLowOrderOperator(fctp);
+    setLowOrderOperator(boost::const_pointer_cast<TransportProblem>(fctp));
 
     if (Esys_noError()) {
         // calculate time step size
@@ -596,7 +596,9 @@ void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
         fc->iteration_matrix.reset(new SystemMatrix(
                   fc->transport_matrix->type, fc->transport_matrix->pattern,
                   fc->transport_matrix->row_block_size,
-                  fc->transport_matrix->col_block_size, true));
+                  fc->transport_matrix->col_block_size, true,
+                  fc->transport_matrix->getRowFunctionSpace(),
+                  fc->transport_matrix->getColumnFunctionSpace()));
     }
 
     const_SystemMatrixPattern_ptr pattern(fc->iteration_matrix->pattern);

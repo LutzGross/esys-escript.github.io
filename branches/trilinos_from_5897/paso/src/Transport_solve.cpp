@@ -196,7 +196,7 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     delete[] u2;
 }
 
-double TransportProblem::getSafeTimeStepSize()
+double TransportProblem::getSafeTimeStepSize() const
 {
     double dt_max=0.;
     const dim_t n = transport_matrix->getTotalNumRows();

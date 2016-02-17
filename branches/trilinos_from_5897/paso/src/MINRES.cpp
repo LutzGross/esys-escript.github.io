@@ -108,7 +108,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
         util::scale(n, Z, 1./gamma);
 
         //  Az <- A*z
-        SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, Z, PASO_ZERO, AZ);
+        A->MatrixVector_CSR_OFFSET0(PASO_ONE, Z, PASO_ZERO, AZ);
 
         //  delta <- Az'.z
         delta = util::innerProduct(n, AZ, Z, A->mpi_info);

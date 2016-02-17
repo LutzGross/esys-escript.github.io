@@ -138,7 +138,7 @@ vars.AddVariables(
   ('env_export', 'Environment variables to be passed to tools',[]),
   EnumVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
   EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
-  ('build_shared', 'Build dynamic libraries only', False),
+  ('build_shared', 'Build dynamic libraries only', True),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
@@ -587,7 +587,6 @@ env.SConscript(dirs = ['cusplibrary'])
 #This will pull in the escriptcore/py_src and escriptcore/test
 env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
-env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
 if env['trilinos']:
     env.SConscript(dirs = ['trilinoswrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/trilinoswrap', duplicate=0)
 if 'dudley' in env['domains']:
@@ -630,9 +629,6 @@ env.Alias('install_paso', ['build_paso', 'install_paso_lib'])
 env.Alias('build_escript', ['install_escript_headers', 'build_escript_lib', 'build_escriptcpp_lib'])
 env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_escriptcpp_lib', 'install_escriptcore_py', 'install_escript_py'])
 
-env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
-env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
-
 if env['trilinos']:
     env.Alias('build_trilinoswrap', ['install_trilinoswrap_headers', 'build_trilinoswrap_lib'])
     env.Alias('install_trilinoswrap', ['build_trilinoswrap', 'install_trilinoswrap_lib'])
@@ -664,7 +660,6 @@ build_all_list = []
 build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
 build_all_list += ['build_escript']
-build_all_list += ['build_pasowrap']
 if env['trilinos']: build_all_list += ['build_trilinoswrap']
 if 'dudley' in env['domains']: build_all_list += ['build_dudley']
 if 'finley' in env['domains']: build_all_list += ['build_finley']
@@ -682,7 +677,6 @@ install_all_list += ['target_init']
 install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
 install_all_list += ['install_escript']
-install_all_list += ['install_pasowrap']
 if env['trilinos']: install_all_list += ['install_trilinoswrap']
 if 'dudley' in env['domains']: install_all_list += ['install_dudley']
 if 'finley' in env['domains']: install_all_list += ['install_finley']

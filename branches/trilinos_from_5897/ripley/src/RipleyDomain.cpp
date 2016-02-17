@@ -15,11 +15,11 @@
 *****************************************************************************/
 
 #include <ripley/RipleyDomain.h>
+#include <ripley/domainhelpers.h>
+
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
-#include <pasowrap/SystemMatrixAdapter.h>
-#include <pasowrap/TransportProblemAdapter.h>
-#include <ripley/domainhelpers.h>
+#include <escript/SolverOptions.h>
 
 #ifdef USE_CUDA
 #include <ripley/RipleySystemMatrix.h>
@@ -28,12 +28,15 @@
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 #endif
 
+#include <paso/SystemMatrix.h>
+#include <paso/Transport.h>
+
 #include <iomanip>
 
 namespace bp = boost::python;
 
 using namespace std;
-using paso::TransportProblemAdapter;
+using paso::TransportProblem;
 
 #ifdef USE_TRILINOS
 using esys_trilinos::TrilinosMatrixAdapter;
@@ -844,7 +847,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     }
 
     // in all other cases we use PASO
-    return (int)SMT_PASO | paso::SystemMatrixAdapter::getSystemMatrixTypeId(
+    return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
             sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
             sb.isSymmetric(), m_mpiInfo);
 }
@@ -852,7 +855,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 int RipleyDomain::getTransportTypeId(int solver, int preconditioner,
                                      int package, bool symmetry) const
 {
-    return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
+    return TransportProblem::getTypeId(solver, preconditioner,
             package, symmetry, m_mpiInfo);
 }
 
@@ -915,11 +918,9 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
         paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
                                             reduceRowOrder, reduceColOrder));
         type -= (int)SMT_PASO;
-        paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
-                row_blocksize, column_blocksize, false));
-        escript::ASM_ptr sm(new paso::SystemMatrixAdapter(matrix,
-                    row_blocksize, row_functionspace, column_blocksize,
-                    column_functionspace));
+        escript::ASM_ptr sm(new paso::SystemMatrix(type, pattern,
+                row_blocksize, column_blocksize, false, row_functionspace,
+                column_functionspace));
         return sm;
     } else {
         throw RipleyException("newSystemMatrix: unknown matrix type ID");
@@ -1004,11 +1005,9 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(int blocksize,
     // generate matrix
     paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceOrder,
                                                                reduceOrder));
-    paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
-                                                             blocksize));
-    paso::checkPasoError();
-    escript::ATP_ptr atp(new TransportProblemAdapter(tp, blocksize, functionspace));
-    return atp;
+    escript::ATP_ptr tp(new paso::TransportProblem(pattern, blocksize,
+                                                   functionspace));
+    return tp;
 }
 
 void RipleyDomain::addPDEToTransportProblemFromPython(
@@ -1027,23 +1026,17 @@ void RipleyDomain::addPDEToTransportProblem(
     if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
 
-    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
-    if (!tpa)
+    TransportProblem* ptp=dynamic_cast<TransportProblem*>(&tp);
+    if (!ptp)
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
-    paso::TransportProblem_ptr ptp(tpa->getPaso_TransportProblem());
+    escript::ASM_ptr mm(ptp->borrowMassMatrix());
+    escript::ASM_ptr tm(ptp->borrowTransportMatrix());
 
-    paso::SystemMatrixAdapter mm(ptp->borrowMassMatrix(), ptp->getBlockSize(),
-                                 tpa->getFunctionSpace(), ptp->getBlockSize(),
-                                 tpa->getFunctionSpace());
-    paso::SystemMatrixAdapter tm(ptp->borrowTransportMatrix(),
-                                 ptp->getBlockSize(), tpa->getFunctionSpace(),
-                                 ptp->getBlockSize(), tpa->getFunctionSpace());
-
-    assemblePDE(&mm, source, coefs, assembler);
-    assemblePDE(&tm, source, coefs, assembler);
-    assemblePDEBoundary(&tm, source, coefs, assembler);
-    assemblePDEDirac(&tm, source, coefs, assembler);
+    assemblePDE(mm.get(), source, coefs, assembler);
+    assemblePDE(tm.get(), source, coefs, assembler);
+    assemblePDEBoundary(tm.get(), source, coefs, assembler);
+    assemblePDEDirac(tm.get(), source, coefs, assembler);
 }
 
 void RipleyDomain::addPDEToTransportProblem(
@@ -1253,11 +1246,9 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                                      const IndexVector& nodes, dim_t numEq,
                                      const DoubleVector& array) const
 {
-    paso::SystemMatrixAdapter* sma =
-                    dynamic_cast<paso::SystemMatrixAdapter*>(mat);
-    if (sma) {
-        paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
-        addToSystemMatrix(S, nodes, numEq, array);
+    paso::SystemMatrix* sm = dynamic_cast<paso::SystemMatrix*>(mat);
+    if (sm) {
+        addToPasoMatrix(sm, nodes, numEq, array);
         return;
     }
 #ifdef USE_CUDA
@@ -1278,9 +1269,9 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
 }
 
 //private
-void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat,
-                                     const IndexVector& nodes, dim_t numEq,
-                                     const vector<double>& array) const
+void RipleyDomain::addToPasoMatrix(paso::SystemMatrix* mat,
+                                   const IndexVector& nodes, dim_t numEq,
+                                   const vector<double>& array) const
 {
     const dim_t numMyCols = mat->pattern->mainPattern->numInput;
     const dim_t numMyRows = mat->pattern->mainPattern->numOutput;

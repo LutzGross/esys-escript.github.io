@@ -22,6 +22,7 @@
 #include "Data.h"
 #include <iostream>
 
+namespace bp = boost::python;
 
 namespace escript {
 
@@ -49,7 +50,8 @@ int AbstractTransportProblem::isEmpty() const {
 }
 
 
-Data AbstractTransportProblem::solve(Data& u0, Data& source, const double dt, boost::python::object& options) const
+Data AbstractTransportProblem::solve(Data& u0, Data& source, double dt,
+                                     bp::object& options)
 {
      if (isEmpty())
           throw TransportProblemException("Error - transport problem is empty.");
@@ -71,7 +73,7 @@ Data AbstractTransportProblem::solve(Data& u0, Data& source, const double dt, bo
      return out;
 }
 
-void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) const
+void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r)
 {
      source.expand();
      if (isEmpty())
@@ -98,12 +100,13 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r) 
      }
 }
 
-void AbstractTransportProblem::copyConstraint(Data& source, Data& q, Data& r) const
+void AbstractTransportProblem::copyConstraint(Data& source, Data& q, Data& r)
 {
     throw TransportProblemException("Error - copyConstraint is not available");
 }
 
-void AbstractTransportProblem::setToSolution(Data& out, Data &u0, Data& source,const double dt, boost::python::object& options) const
+void AbstractTransportProblem::setToSolution(Data& out, Data &u0, Data& source,
+                                             double dt, bp::object& options)
 {
     throw TransportProblemException("Error - setToSolution is not available");
 }

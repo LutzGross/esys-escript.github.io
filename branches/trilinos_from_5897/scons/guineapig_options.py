@@ -15,7 +15,9 @@
 ##############################################################################
 
 from templates.jessie_options import *
-cuda = True
+
+# disabled until the boost issue is fixed.
+#cuda = True
 
 nvccflags = "-ccbin=g++-4.8 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
@@ -32,7 +34,5 @@ lapack = 'clapack'
 silo = True
 
 silo_libs = ['siloh5', 'hdf5_openmpi']
-
-build_shared = False
 
 launcher = "mpirun --gmca mpi_warn_on_fork 0 ${EE} -np %N %b"

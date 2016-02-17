@@ -328,9 +328,9 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
     // r <- b
     util::copy(n, amg->r, b);
     // r = r-Ax
-    SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r);
+    A->MatrixVector_CSR_OFFSET0(-1., x, 1., amg->r);
     // b_C = R*r
-    SystemMatrix_MatrixVector_CSR_OFFSET0(1., amg->R, amg->r, 0., amg->b_C);
+    amg->R->MatrixVector_CSR_OFFSET0(1., amg->r, 0., amg->b_C);
     time0 = Esys_timer()-time0;
 
     // coarse level solve
@@ -348,7 +348,7 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
 
     time0 = time0+Esys_timer();
     // x = x + P*x_c
-    SystemMatrix_MatrixVector_CSR_OFFSET0(1., amg->P, amg->x_C, 1., x);
+    amg->P->MatrixVector_CSR_OFFSET0(1., amg->x_C, 1., x);
 
     // postsmoothing:
     // solve Ax=b with initial guess x

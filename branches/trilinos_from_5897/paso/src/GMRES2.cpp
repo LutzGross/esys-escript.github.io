@@ -53,7 +53,7 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
     /*
      *  the show begins:
      */
-    normf0 = util::l2(n,f0,F->mpi_info);
+    normf0 = util::l2(n, f0, F->mpi_info);
     k = 0;
     convergeFlag = (ABS(normf0)<=0);
     if (!convergeFlag) {
