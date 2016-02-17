@@ -26,9 +26,10 @@
 /****************************************************************************/
 
 #include "Paso.h"
-#include "SystemMatrix.h"
-#include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "Options.h"
+#include "PasoUtil.h"
+#include "SystemMatrix.h"
 
 namespace paso {
 
@@ -88,7 +89,7 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
         case PASO_BOOMERAMG:
         case PASO_AMLI:
         case PASO_AMG:
-            prec->amg = Preconditioner_AMG_Root_alloc(A, options);
+            prec->amg = Preconditioner_AMG_Root_alloc(boost::const_pointer_cast<SystemMatrix>(A), options);
             prec->type = PASO_AMG;
             break;
 

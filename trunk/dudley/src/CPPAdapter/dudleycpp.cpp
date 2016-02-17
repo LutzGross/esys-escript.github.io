@@ -17,22 +17,13 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#ifdef ESYS_MPI
-#include "esysUtils/Esys_MPI.h"
-#endif
 #include "../Dudley.h"
-
-#include <pasowrap/SystemMatrixAdapter.h>
-#include <pasowrap/TransportProblemAdapter.h>
-
+#include "DudleyAdapterException.h"
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
-#include "DudleyAdapterException.h"
-// #include "esysUtils/EsysException.h"
+#include "esysUtils/Esys_MPI.h"
 #include "esysUtils/esysExceptionTranslator.h"
-
 #include "escript/AbstractContinuousDomain.h"
 
 #include <boost/python.hpp>
@@ -204,7 +195,7 @@ args("rhs", "X", "Y", "y", "y_contact"),
 )
       .def("addPDEToTransportProblem",&dudley::MeshAdapter::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
-":param tp:\n:type tp: `TransportProblemAdapter`\n"
+":param tp:\n:type tp: `AbstractTransportProblem`\n"
 ":param source:\n:type source: `Data`\n"
 ":param M:\n:type M: `Data`\n"
 ":param A:\n:type A: `Data`\n"
@@ -220,7 +211,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 )
       .def("newOperator",&dudley::MeshAdapter::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
-"creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
+"creates a stiffness matrix and initializes it with zeros\n\n"
 ":param row_blocksize:\n:type row_blocksize: ``int``\n"
 ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
 ":param column_blocksize:\n:type column_blocksize: ``int``\n"
@@ -229,7 +220,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 )
       .def("newTransportProblem",&dudley::MeshAdapter::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
-"creates a TransportProblemAdapter\n\n"
+"creates a TransportProblem\n\n"
 ":param theta:\n:type theta: ``float``\n"
 ":param blocksize:\n:type blocksize: ``int``\n"
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"

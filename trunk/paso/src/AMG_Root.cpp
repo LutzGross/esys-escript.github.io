@@ -25,10 +25,12 @@
 
 /****************************************************************************/
 
-#include <iostream>
-#include "Paso.h"
 #include "Preconditioner.h"
+#include "Paso.h"
+#include "Options.h"
 #include "BOOMERAMG.h"
+
+#include <iostream>
 
 namespace paso {
 

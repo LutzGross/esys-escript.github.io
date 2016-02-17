@@ -1969,7 +1969,8 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
                 output_dist, input_dist, main_pattern, col_couple_pattern,
                 row_couple_pattern, col_connector, row_connector));
     out.reset(new SystemMatrix(A->type, pattern, row_block_size,
-                                    col_block_size, false));
+                               col_block_size, false, A->getRowFunctionSpace(),
+                               A->getColumnFunctionSpace()));
 
     /* finally, fill in the data*/
     memcpy(out->mainBlock->val, RAP_main_val,
@@ -3353,17 +3354,18 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
                MATRIX_FORMAT_DEFAULT, num_RAPext_rows, num_Pmain_cols,
                row_couple_ptr, row_couple_idx));
 
-   /* next, create the system matrix */
-   pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-                output_dist, input_dist, main_pattern, col_couple_pattern,
-                row_couple_pattern, col_connector, row_connector));
-   out.reset(new SystemMatrix(A->type, pattern, row_block_size,
-                                    col_block_size, false));
+    /* next, create the system matrix */
+    pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+                  output_dist, input_dist, main_pattern, col_couple_pattern,
+                  row_couple_pattern, col_connector, row_connector));
+    out.reset(new SystemMatrix(A->type, pattern, row_block_size,
+                               col_block_size, false, A->getRowFunctionSpace(),
+                               A->getColumnFunctionSpace()));
 
-   /* finally, fill in the data*/
-   memcpy(out->mainBlock->val, RAP_main_val,
-                out->mainBlock->len* sizeof(double));
-   memcpy(out->col_coupleBlock->val, RAP_couple_val,
+    /* finally, fill in the data*/
+    memcpy(out->mainBlock->val, RAP_main_val,
+                out->mainBlock->len * sizeof(double));
+    memcpy(out->col_coupleBlock->val, RAP_couple_val,
                 out->col_coupleBlock->len * sizeof(double));
 
     delete[] RAP_main_val;

@@ -49,8 +49,6 @@ void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double**
         } else {
             Esys_setError(SYSTEM_ERROR, "SystemMatrix::mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported.");
         }
-    } else if (type & MATRIX_FORMAT_TRILINOS_CRS) {
-        Esys_setError(SYSTEM_ERROR, "SystemMatrix::mergeMainAndCouple: TRILINOS is not supported.");
     } else {
         Esys_setError(SYSTEM_ERROR,"SystemMatrix::mergeMainAndCouple: CRS is not supported.");
     }

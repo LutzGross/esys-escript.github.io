@@ -14,98 +14,87 @@
 *
 *****************************************************************************/
 
-/* File extracted from finley and modified */
+#ifndef __PASO_EXCEPTION_H__
+#define __PASO_EXCEPTION_H__
 
-#if !defined  PasoException_20040526_H
-#define PasoException_20040526_H
-#include "system_dep.h"
+#include <esysUtils/EsysException.h>
 
-#include "esysUtils/EsysException.h"
+namespace paso {
 
-namespace paso
-{
-
-  /**
+/**
   \brief
   PasoException exception class.
 
   Description:
   PasoException exception class.
   The class provides a public function returning the exception name
-  */
-  class PasoException : public esysUtils::EsysException
-  {
+*/
+class PasoException : public esysUtils::EsysException
+{
 
-  protected:
+protected:
+    typedef EsysException Parent;
 
-     typedef EsysException Parent;
-
-  public:
+public:
     /**
     \brief
     Default constructor for the exception.
     */
-    PASOWRAP_DLL_API
-    PasoException() : Parent() { updateMessage();}
+    PasoException() : Parent() { updateMessage(); }
+
     /**
     \brief
     Constructor for the exception.
     */
-    PASOWRAP_DLL_API
-    PasoException(const char *cstr) : Parent(cstr) { updateMessage();}
+    PasoException(const char *cstr) : Parent(cstr) { updateMessage(); }
+
     /**
     \brief
     Constructor for the exception.
     */
-    PASOWRAP_DLL_API
-    PasoException(const std::string &str) :
-    Parent(str) { updateMessage();}
+    PasoException(const std::string &str) : Parent(str) { updateMessage(); }
+
     /**
     \brief
     Copy Constructor for the exception.
     */
-    PASOWRAP_DLL_API
     PasoException(const PasoException &other) : Parent(other)
-      {
+    {
         updateMessage();
-      }
+    }
 
     /// Destructor
-    PASOWRAP_DLL_API
     virtual ~PasoException() THROW(NO_ARG) {}
 
     /**
     \brief
     Assignment operator.
     */
-    PASOWRAP_DLL_API
-    inline PasoException &
-    operator=(const PasoException &other ) THROW(NO_ARG)
-       {
-         Parent::operator=(other);
-         updateMessage();
-         return *this;
-       }
+    inline PasoException& operator=(const PasoException &other ) THROW(NO_ARG)
+    {
+        Parent::operator=(other);
+        updateMessage();
+        return *this;
+    }
 
     /**
     \brief
     Returns the name of the exception.
     */
-    PASOWRAP_DLL_API
     virtual const std::string & exceptionName() const;
 
-  private:
-
+private:
     //
     // the exception name is immutable and class-wide.
     // Inheritor note; you need one of these too.
     // and an overloaded exceptionName() in your .cpp implementation file. 
     static const std::string exceptionNameValue;
-  };
+};
 
-  PASOWRAP_DLL_API
-  void checkPasoError(); 
-  
-  
+void checkPasoError(); 
+
+
 } // end of namespace
-#endif
+
+#endif // __PASO_EXCEPTION_H__
+

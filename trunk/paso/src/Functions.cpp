@@ -21,9 +21,9 @@
 
 namespace paso {
 
-Function::Function(esysUtils::JMPI& mpiInfo)
+Function::Function(const esysUtils::JMPI& mpiInfo) :
+    mpi_info(mpiInfo)
 {
-    mpi_info = mpiInfo;
 }
 
 Function::~Function()

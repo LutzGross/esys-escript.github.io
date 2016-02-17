@@ -32,63 +32,59 @@
 namespace paso {
 
 /*  raw scaled vector update operation: out = alpha * A * in + beta * out */
-void SystemMatrix_MatrixVector(double alpha, SystemMatrix_ptr A,
-                               const double* in, double beta, double* out)
+void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
+                                double* out) const
 {
-    if (A->is_balanced) {
-        Esys_setError(VALUE_ERROR, "SystemMatrix_MatrixVector: balanced matrix is not supported.");
+    if (is_balanced) {
+        Esys_setError(VALUE_ERROR, "MatrixVector: balanced matrix is not supported.");
         return;
     }
-    if (A->type & MATRIX_FORMAT_CSC) {
-        if (A->mpi_info->size > 1) {
-            Esys_setError(SYSTEM_ERROR,"SystemMatrix_MatrixVector: CSC is not supported by MPI.");
+    if (type & MATRIX_FORMAT_CSC) {
+        if (mpi_info->size > 1) {
+            Esys_setError(SYSTEM_ERROR,"MatrixVector: CSC is not supported by MPI.");
             return;
         } else {
-            if (A->type & MATRIX_FORMAT_OFFSET1) {
-                SparseMatrix_MatrixVector_CSC_OFFSET1(alpha,A->mainBlock,in,beta,out);
+            if (type & MATRIX_FORMAT_OFFSET1) {
+                SparseMatrix_MatrixVector_CSC_OFFSET1(alpha, mainBlock, in, beta, out);
             } else {
-                SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->mainBlock,in,beta,out);
+                SparseMatrix_MatrixVector_CSC_OFFSET0(alpha, mainBlock, in, beta, out);
             }
         }
-    } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-        Esys_setError(SYSTEM_ERROR,"SystemMatrix_MatrixVector: TRILINOS is not supported with MPI.");
-        return;
     } else {
-        if (A->type & MATRIX_FORMAT_OFFSET1) {
-            if (A->mpi_info->size > 1) {
-                Esys_setError(SYSTEM_ERROR,"SystemMatrix_MatrixVector: CSR with offset 1 is not supported in MPI.");
+        if (type & MATRIX_FORMAT_OFFSET1) {
+            if (mpi_info->size > 1) {
+                Esys_setError(SYSTEM_ERROR,"MatrixVector: CSR with offset 1 is not supported in MPI.");
                 return;
             } else {
-                SparseMatrix_MatrixVector_CSR_OFFSET1(alpha,A->mainBlock,in,beta,out);
+                SparseMatrix_MatrixVector_CSR_OFFSET1(alpha, mainBlock, in, beta, out);
             }
         } else {
             if (Esys_noError()) {
-                SystemMatrix_MatrixVector_CSR_OFFSET0(alpha,A,in,beta,out);
+                MatrixVector_CSR_OFFSET0(alpha, in, beta, out);
             }
         }
     }
 }
 
-void SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, SystemMatrix_ptr A,
-                                           const double* in, const double beta,
-                                           double* out)
+void SystemMatrix::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
+                                            double beta, double* out) const
 {
     // start exchange
-    A->startCollect(in);
+    startCollect(in);
     // process main block
-    if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-        SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->mainBlock,in,beta,out);
+    if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+        SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha, mainBlock, in, beta, out);
     } else {
-        SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->mainBlock,in,beta,out);
+        SparseMatrix_MatrixVector_CSR_OFFSET0(alpha, mainBlock, in, beta, out);
     }
     // finish exchange
-    double* remote_values = A->finishCollect();
+    double* remote_values = finishCollect();
     // process couple block
-    if (A->col_coupleBlock->pattern->ptr != NULL) {
-        if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-            SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->col_coupleBlock,remote_values,1.,out);
+    if (col_coupleBlock->pattern->ptr != NULL) {
+        if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+            SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha, col_coupleBlock, remote_values, 1., out);
         } else {
-            SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out);
+            SparseMatrix_MatrixVector_CSR_OFFSET0(alpha, col_coupleBlock, remote_values, 1., out);
         }
     }
 }

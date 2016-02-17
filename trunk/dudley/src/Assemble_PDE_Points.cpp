@@ -48,7 +48,7 @@
 
 void  Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters p,
                                  Dudley_ElementFile* elements,
-                                 paso::SystemMatrix_ptr Mat, escript::Data* F,
+                                 escript::ASM_ptr mat, escript::Data* F,
                                  const escript::Data* d_dirac, const escript::Data* y_dirac) {
 
     index_t color, e, row_index;
@@ -76,7 +76,7 @@ void  Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters p,
                                                         F_p, 
                                                         p.row_DOF_UpperBound);
 		   
-                   if (NULL!=d_dirac_p) Dudley_Assemble_addToSystemMatrix(Mat,
+                   if (NULL!=d_dirac_p) Dudley_Assemble_addToSystemMatrix(mat,
                                                                    1,
                                                                    &row_index,
                                                                    p.numEqu,
@@ -89,3 +89,4 @@ void  Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters p,
          } /* end color loop */
    } /* end parallel region */
 }
+

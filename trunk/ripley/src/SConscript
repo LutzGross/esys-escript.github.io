@@ -65,7 +65,7 @@ headers = """
     WaveAssembler3D.h
 """.split()
 
-local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])
+local_env.Prepend(LIBS = ['escript', 'paso', 'esysUtils'])
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
     local_env.AppendUnique(LIBS = env['silo_libs'])
@@ -99,7 +99,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_ripley_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['ripley', 'pasowrap', 'escript', 'paso', 'esysUtils'])
+py_wrapper_local_env.Prepend(LIBS = ['ripley', 'escript', 'paso', 'esysUtils'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'ripleycpp.cpp')
 env.Alias('build_ripleycpp_lib', py_wrapper_lib)
