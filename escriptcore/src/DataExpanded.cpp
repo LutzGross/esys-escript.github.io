@@ -886,10 +886,17 @@ void DataExpanded::setTaggedValue(int tagKey,
                                   int dataOffset)
 {
     CHECK_FOR_EX_WRITE;
+    if (isComplex())
+    {
+        CplxVectorType tv;
+	fillComplexFromReal(value, tv);
+	setTaggedValue(tagKey, pointshape, tv, dataOffset);
+        return;
+    }
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
     const DataTypes::RealVectorType::size_type n = getNoValues();
-    const double* in = &value[0+dataOffset];
+    const real_t* in = &value[0+dataOffset];
 
     if (value.size() != n)
         throw DataException("DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
@@ -898,7 +905,38 @@ void DataExpanded::setTaggedValue(int tagKey,
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey) {
             for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-                double* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
+                real_t* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
+                for (int i=0; i<n; ++i)
+                    p[i] = in[i];
+            }
+        }
+    }
+}
+
+
+void DataExpanded::setTaggedValue(int tagKey,
+                                  const DataTypes::ShapeType& pointshape,
+                                  const DataTypes::CplxVectorType& value,
+                                  int dataOffset)
+{
+    CHECK_FOR_EX_WRITE;
+    if (!isComplex())
+    {
+	throw DataException("Programming Error - Attempt to set a complex value on a real object.");
+    }
+    const int numSamples = getNumSamples();
+    const int numDataPointsPerSample = getNumDPPSample();
+    const DataTypes::CplxVectorType::size_type n = getNoValues();
+    const DataTypes::cplx_t* in = &value[0+dataOffset];
+
+    if (value.size() != n)
+        throw DataException("DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
+
+#pragma omp parallel for
+    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+        if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey) {
+            for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+                cplx_t* p = &m_data_c[getPointOffset(sampleNo,dataPointNo)];
                 for (int i=0; i<n; ++i)
                     p[i] = in[i];
             }

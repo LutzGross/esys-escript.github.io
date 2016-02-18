@@ -328,7 +328,11 @@ TODO Note that this constructor will also copy data to all points if it only con
                  const DataTypes::RealVectorType& value,
 		 int dataOffset=0);
 
-
+  void  
+  setTaggedValue(int tagKey,
+ 	         const DataTypes::ShapeType& pointshape,
+                 const DataTypes::CplxVectorType& value,
+		 int dataOffset=0);
 
   /**
      \brief

@@ -474,6 +474,10 @@ DataTagged::setTaggedValue(int tagKey,
       throw DataException(DataTypes::createShapeErrorMessage(
                           "Error - Cannot setTaggedValue due to shape mismatch.", pointshape,getShape()));
   }
+  if (isComplex())
+  {
+      throw DataException("Programming Error - attempt to set real value on complex data.");
+  }
   CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos==m_offsetLookup.end()) {
@@ -484,6 +488,34 @@ DataTagged::setTaggedValue(int tagKey,
     int offset=pos->second;
     for (unsigned int i=0; i<getNoValues(); i++) {
       m_data_r[offset+i]=value[i+dataOffset];
+    }
+  }
+}
+
+void
+DataTagged::setTaggedValue(int tagKey,
+			   const DataTypes::ShapeType& pointshape,
+                           const DataTypes::CplxVectorType& value,
+			   int dataOffset)
+{
+  if (!DataTypes::checkShape(getShape(), pointshape)) {
+      throw DataException(DataTypes::createShapeErrorMessage(
+                          "Error - Cannot setTaggedValue due to shape mismatch.", pointshape,getShape()));
+  }
+  if (!isComplex())
+  {
+      throw DataException("Programming Error - attempt to set a complex value on real data");
+  }
+  CHECK_FOR_EX_WRITE
+  DataMapType::iterator pos(m_offsetLookup.find(tagKey));
+  if (pos==m_offsetLookup.end()) {
+    // tag couldn't be found so use addTaggedValue
+    addTaggedValue(tagKey,pointshape, value, dataOffset);
+  } else {
+    // copy the values into the data array at the offset determined by m_offsetLookup
+    int offset=pos->second;
+    for (unsigned int i=0; i<getNoValues(); i++) {
+      m_data_c[offset+i]=value[i+dataOffset];
     }
   }
 }
@@ -553,6 +585,10 @@ DataTagged::addTaggedValue(int tagKey,
     throw DataException(DataTypes::createShapeErrorMessage(
                         "Error - Cannot addTaggedValue due to shape mismatch.", pointshape,getShape()));
   }
+  if (isComplex())
+  {
+      throw DataException("Programming Error - attempt to set a real value on complex data");
+  }
   CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
   if (pos!=m_offsetLookup.end()) {
@@ -573,6 +609,45 @@ DataTagged::addTaggedValue(int tagKey,
     }
     for (unsigned int i=0;i<getNoValues();i++) {
       m_data_r[oldSize+i]=value[i+dataOffset];
+    }
+  }
+}
+
+
+void
+DataTagged::addTaggedValue(int tagKey,
+			   const DataTypes::ShapeType& pointshape,
+                           const DataTypes::CplxVectorType& value,
+			   int dataOffset)
+{
+  if (!DataTypes::checkShape(getShape(), pointshape)) {
+    throw DataException(DataTypes::createShapeErrorMessage(
+                        "Error - Cannot addTaggedValue due to shape mismatch.", pointshape,getShape()));
+  }
+  if (!isComplex())
+  {
+      throw DataException("Programming error - attempt to set a complex value on real data.");
+  }
+  CHECK_FOR_EX_WRITE
+  DataMapType::iterator pos(m_offsetLookup.find(tagKey));
+  if (pos!=m_offsetLookup.end()) {
+    // tag already exists so use setTaggedValue
+    setTaggedValue(tagKey,pointshape, value, dataOffset);
+  } else {
+    // save the key and the location of its data in the lookup tab
+    m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data_r.size()));
+    // add the data given in "value" at the end of m_data_r
+    // need to make a temp copy of m_data_r, resize m_data_r, then copy
+    // all the old values plus the value to be added back into m_data_r
+    DataTypes::CplxVectorType m_data_c_temp(m_data_c);
+    int oldSize=m_data_c.size();
+    int newSize=m_data_c.size()+getNoValues();
+    m_data_c.resize(newSize,0.,newSize);
+    for (int i=0;i<oldSize;i++) {
+      m_data_c[i]=m_data_c_temp[i];
+    }
+    for (unsigned int i=0;i<getNoValues();i++) {
+      m_data_c[oldSize+i]=value[i+dataOffset];
     }
   }
 }
