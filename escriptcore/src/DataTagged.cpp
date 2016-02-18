@@ -402,8 +402,6 @@ DataTagged::setSlice(const DataAbstract* other,
   } 
   else
   {
-      const DataTypes::RealVectorType& otherData=otherTemp->getVectorRO();    
-    
       // copy slice from other default value to this default value
       DataTypes::copySliceFrom(m_data_r,getShape(),getDefaultOffset(),otherTemp->getTypedVectorRO((DataTypes::real_t)0),
 			       otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
