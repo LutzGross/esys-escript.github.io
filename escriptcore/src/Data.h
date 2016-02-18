@@ -69,12 +69,6 @@ class Data {
 
   public:
 
-  // These typedefs allow function names to be cast to pointers
-  // to functions of the appropriate type when calling unaryOp etc.
-  typedef double (*UnaryDFunPtr)(double);
-  typedef double (*BinaryDFunPtr)(double,double);
-
-
   /**
      Constructors.
   */
@@ -127,7 +121,7 @@ class Data {
                        mechanism will be used.
   */
   ESCRIPT_DLL_API
-  Data(double value,
+  Data(DataTypes::real_t value,
        const DataTypes::ShapeType& dataPointShape=DataTypes::ShapeType(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -191,7 +185,7 @@ class Data {
      Constructor which creates a DataConstant of "shape" with constant value.
   */
   ESCRIPT_DLL_API
-  Data(double value,
+  Data(DataTypes::real_t value,
        const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -299,7 +293,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  setValueOfDataPoint(int dataPointNo, const double);
+  setValueOfDataPoint(int dataPointNo, const DataTypes::real_t);
 
   /**
      \brief Return a data point across all processors as a python tuple.
@@ -374,7 +368,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
 
   /**
    \brief Ensures data is ready for write access.
@@ -823,36 +817,36 @@ If false, the result is a list of scalars [1, 2, ...]
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable3D(const WrappedArray& table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep, Data& C, 
-			double Cmin, double Cstep, bool check_boundaries);
+  interpolateFromTable3D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                       DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, 
+			DataTypes::real_t Cmin, DataTypes::real_t Cstep, bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep,bool check_boundaries);
+  interpolateFromTable2D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                       DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep,bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
-                       double undef,bool check_boundaries);
-
-
-  ESCRIPT_DLL_API
-  Data
-  interpolateFromTable3DP(boost::python::object table, double Amin, double Astep,
-                        Data& B, double Bmin, double Bstep, Data& C, double Cmin, double Cstep, double undef,bool check_boundaries);
+  interpolateFromTable1D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                       DataTypes::real_t undef,bool check_boundaries);
 
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
-                        Data& B, double Bmin, double Bstep, double undef,bool check_boundaries);
+  interpolateFromTable3DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                        Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, DataTypes::real_t Cmin, DataTypes::real_t Cstep, DataTypes::real_t undef,bool check_boundaries);
+
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
-                        double undef,bool check_boundaries);
+  interpolateFromTable2DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                        Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, DataTypes::real_t undef,bool check_boundaries);
+
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable1DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                        DataTypes::real_t undef,bool check_boundaries);
   
   ESCRIPT_DLL_API
   Data
@@ -946,7 +940,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   Data
-  whereZero(double tol=0.0) const;
+  whereZero(DataTypes::real_t tol=0.0) const;
 
   /**
      \brief
@@ -955,7 +949,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   Data
-  whereNonZero(double tol=0.0) const;
+  whereNonZero(DataTypes::real_t tol=0.0) const;
 
   /**
      \brief
@@ -969,11 +963,11 @@ If false, the result is a list of scalars [1, 2, ...]
      zero is returned.
   */
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   Lsup();
 
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   Lsup_const() const;
 
 
@@ -989,11 +983,11 @@ If false, the result is a list of scalars [1, 2, ...]
      a large negative value is returned.
   */
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   sup();
 
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   sup_const() const;
 
 
@@ -1009,11 +1003,11 @@ If false, the result is a list of scalars [1, 2, ...]
      a large positive value is returned.
   */
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   inf();
 
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   inf_const() const;
 
 
@@ -1136,7 +1130,7 @@ instead of manually manipulating process and point IDs.
   */
   ESCRIPT_DLL_API
   const boost::python::tuple
-  eigenvalues_and_eigenvectors(const double tol=1.e-12) const;
+  eigenvalues_and_eigenvectors(const DataTypes::real_t tol=1.e-12) const;
 
   /**
      \brief
@@ -1191,7 +1185,7 @@ instead of manually manipulating process and point IDs.
   */
   ESCRIPT_DLL_API
   Data
-  bessel(int order, double (*besselfunc) (int,double) );
+  bessel(int order, DataTypes::real_t (*besselfunc) (int,DataTypes::real_t) );
   
 
   /**
@@ -1714,20 +1708,20 @@ instead of manually manipulating process and point IDs.
  private:
 
 template <class BinaryOp>
-  double 
+  DataTypes::real_t 
 #ifdef ESYS_MPI
-  lazyAlgWorker(double init, MPI_Op mpiop_type);
+  lazyAlgWorker(DataTypes::real_t init, MPI_Op mpiop_type);
 #else
-  lazyAlgWorker(double init);
+  lazyAlgWorker(DataTypes::real_t init);
 #endif
 
-  double
+  DataTypes::real_t
   LsupWorker() const;
 
-  double
+  DataTypes::real_t
   supWorker() const;
 
-  double
+  DataTypes::real_t
   infWorker() const;
 
   boost::python::object
@@ -1769,9 +1763,9 @@ template <class BinaryOp>
   */
   template <class BinaryFunction>
   inline
-  double
+  DataTypes::real_t
   algorithm(BinaryFunction operation,
-            double initial_value) const;
+            DataTypes::real_t initial_value) const;
 
   /**
      \brief
@@ -1784,7 +1778,7 @@ template <class BinaryOp>
   inline
   Data
   dp_algorithm(BinaryFunction operation,
-               double initial_value) const;
+               DataTypes::real_t initial_value) const;
 
   /**
      \brief
@@ -1838,7 +1832,7 @@ template <class BinaryOp>
                  bool expanded);
 
   void
-  initialise(const double value,
+  initialise(const DataTypes::real_t value,
 	     const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
@@ -2122,7 +2116,7 @@ Data::getDataRO(DataTypes::cplx_t dummy) const
 /**
    Binary Data object operators.
 */
-inline double rpow(double x,double y)
+inline DataTypes::real_t rpow(DataTypes::real_t x,DataTypes::real_t y)
 {
     return pow(y,x);
 }
@@ -2454,8 +2448,8 @@ Data::binaryOp(const Data& right,
 */
 template <class BinaryFunction>
 inline
-double
-Data::algorithm(BinaryFunction operation, double initial_value) const
+DataTypes::real_t
+Data::algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
@@ -2489,7 +2483,7 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
 template <class BinaryFunction>
 inline
 Data
-Data::dp_algorithm(BinaryFunction operation, double initial_value) const
+Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isEmpty()) {
     throw DataException("Error - Operations (dp_algorithm) not permitted on instances of DataEmpty.");
