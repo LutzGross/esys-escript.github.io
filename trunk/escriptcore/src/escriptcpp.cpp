@@ -165,7 +165,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
-  def("releaseUnusedMemory",escript::releaseUnusedMemory);
+  def("releaseUnusedMemory",escript::DataTypes::releaseUnusedMemory);
   def("blocktimer_initialize",blocktimer_initialize);
   def("blocktimer_reportSortByName",blocktimer_reportSortByName);
   def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
@@ -517,6 +517,8 @@ args("arg"), "assigns new location to the domain\n\n"
         ":return: True if this ``Data`` is lazy.")
     .def("isReady",&escript::Data::isReady,":rtype: ``bool``\n"
         ":return: True if this ``Data`` is not lazy.")
+    .def("isComplex", &escript::Data::isComplex,":rtype: ``bool``\n"
+	":return: True if this ``Data`` stores complex values.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
     .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN.")
     .def("replaceNaN",&escript::Data::replaceNaN,args("value"),"Replaces NaN values with value")
@@ -619,6 +621,8 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param dpno: datapoint number\n"
         ":type dpno: int")
     // Unary functions for Data
+    .def("conjugate", &escript::Data::conjugate)
+    .def("promote", &escript::Data::complicate)
     .def("_interpolate",&escript::Data::interpolate)
     .def("_grad",&escript::Data::gradOn)
     .def("_grad",&escript::Data::grad)

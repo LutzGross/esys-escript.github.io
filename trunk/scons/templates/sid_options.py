@@ -35,7 +35,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 202
+escript_opts_version = 203
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '<sourcedir>' (source directory)
@@ -69,6 +69,7 @@ escript_opts_version = 202
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = '-Wextra -Wno-unused-parameter'
+cxx_extra = '-std=c++11'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)

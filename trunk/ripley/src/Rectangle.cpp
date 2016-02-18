@@ -2419,7 +2419,7 @@ escript::Data Rectangle::randomFillWorker(
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, shape, fs, true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv = resdat.getExpandedVectorReference();
+        escript::DataTypes::RealVectorType& dv = resdat.getExpandedVectorReference();
 
         // now we need to copy values over
         for (size_t y=0; y < internal[1]; ++y) {
@@ -2435,7 +2435,7 @@ escript::Data Rectangle::randomFillWorker(
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, escript::DataTypes::scalarShape, fs, true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        escript::DataTypes::RealVectorType& dv=resdat.getExpandedVectorReference();
         double* convolution=get2DGauss(radius, sigma);
         for (size_t y=0; y < internal[1]; ++y) {
             for (size_t x=0; x < internal[0]; ++x) {

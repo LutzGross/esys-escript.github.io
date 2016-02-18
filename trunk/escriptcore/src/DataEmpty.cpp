@@ -32,8 +32,8 @@ namespace {
   }
 
 
-  escript::DataTypes::ValueType dummy;	
-
+  escript::DataTypes::RealVectorType dummy;	
+  escript::DataTypes::CplxVectorType dummyc;	
 }
 
 namespace escript {
@@ -56,12 +56,12 @@ DataEmpty::toString() const
 
 
 DataAbstract*
-DataEmpty::deepCopy()
+DataEmpty::deepCopy() const
 {
   return new DataEmpty();
 }
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 
 {
@@ -69,7 +69,7 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo)
 {
@@ -77,7 +77,7 @@ DataEmpty::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataEmpty::getLength() const
 {
   return 0;
@@ -105,19 +105,65 @@ DataEmpty::matrixInverse(DataAbstract* out) const
 }
 
 
-DataTypes::ValueType&
+DataTypes::RealVectorType&
 DataEmpty::getVectorRW()
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
 }
 
-const DataTypes::ValueType&
+const DataTypes::RealVectorType&
 DataEmpty::getVectorRO() const
 {
   throwStandardException("getVector");	// always throws but the compiler doesn't know that.
   return dummy;			// dead code to stop the compiler complaining
 }
+
+
+DataTypes::CplxVectorType&
+DataEmpty::getVectorRWC()
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
+const DataTypes::CplxVectorType&
+DataEmpty::getVectorROC() const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
+
+DataTypes::RealVectorType&
+DataEmpty::getTypedVectorRW(DataTypes::real_t dummypar)
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
+}
+
+const DataTypes::RealVectorType&
+DataEmpty::getTypedVectorRO(DataTypes::real_t dummypar) const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummy;			// dead code to stop the compiler complaining
+}
+
+
+DataTypes::CplxVectorType&
+DataEmpty::getTypedVectorRW(DataTypes::cplx_t dummypar)
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
+const DataTypes::CplxVectorType&
+DataEmpty::getTypedVectorRO(DataTypes::cplx_t dummypar) const
+{
+  throwStandardException("getVector");	// always throws but the compiler doesn't know that.
+  return dummyc;			// dead code to stop the compiler complaining
+}
+
 
 
 void

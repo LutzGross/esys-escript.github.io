@@ -2042,7 +2042,7 @@ escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape
     Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't need to check for
     // exlusive write
-    escript::DataTypes::ValueType& dv=towipe.getExpandedVectorReference();
+    escript::DataTypes::RealVectorType& dv=towipe.getExpandedVectorReference();
     const size_t dvsize=dv.size();
     esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
     return towipe;       

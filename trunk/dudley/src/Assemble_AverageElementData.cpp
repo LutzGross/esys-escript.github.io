@@ -37,7 +37,7 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escript::
     dim_t n, q, numElements, numQuad_in, numQuad_out, i;
     __const double *in_array;
     double *out_array, vol, volinv, wq;
-    register double rtmp;
+    double rtmp;
     dim_t numComps = getDataPointSize(out);
     size_t numComps_size;
 

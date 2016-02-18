@@ -69,12 +69,6 @@ class Data {
 
   public:
 
-  // These typedefs allow function names to be cast to pointers
-  // to functions of the appropriate type when calling unaryOp etc.
-  typedef double (*UnaryDFunPtr)(double);
-  typedef double (*BinaryDFunPtr)(double,double);
-
-
   /**
      Constructors.
   */
@@ -110,7 +104,7 @@ class Data {
   */ 
 
   ESCRIPT_DLL_API
-  Data(const DataTypes::ValueType& value,
+  Data(const DataTypes::RealVectorType& value,
 		 const DataTypes::ShapeType& shape,
                  const FunctionSpace& what=FunctionSpace(),
                  bool expanded=false);
@@ -127,7 +121,7 @@ class Data {
                        mechanism will be used.
   */
   ESCRIPT_DLL_API
-  Data(double value,
+  Data(DataTypes::real_t value,
        const DataTypes::ShapeType& dataPointShape=DataTypes::ShapeType(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -191,7 +185,7 @@ class Data {
      Constructor which creates a DataConstant of "shape" with constant value.
   */
   ESCRIPT_DLL_API
-  Data(double value,
+  Data(DataTypes::real_t value,
        const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -228,7 +222,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   Data
-  copySelf();
+  copySelf() const;
 
 
   /**
@@ -299,7 +293,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  setValueOfDataPoint(int dataPointNo, const double);
+  setValueOfDataPoint(int dataPointNo, const DataTypes::real_t);
 
   /**
      \brief Return a data point across all processors as a python tuple.
@@ -374,7 +368,7 @@ class Data {
   */
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
 
   /**
    \brief Ensures data is ready for write access.
@@ -444,6 +438,14 @@ contains datapoints.
   ESCRIPT_DLL_API
   bool
   isEmpty() const;
+
+  /**
+    \brief
+    True if components of this data are stored as complex
+  */
+  ESCRIPT_DLL_API
+  bool
+  isComplex() const;
 
   /**
      \brief
@@ -599,8 +601,8 @@ If false, the result is a list of scalars [1, 2, ...]
 */
   ESCRIPT_DLL_API
   inline
-  const DataAbstract::ValueType::value_type*
-  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const;
+  const DataTypes::real_t*
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
 
 
   /**
@@ -612,8 +614,8 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   inline
-  DataAbstract::ValueType::value_type*
-  getSampleDataRW(DataAbstract::ValueType::size_type sampleNo);
+  DataTypes::real_t*
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
 
 
  /**
@@ -623,9 +625,14 @@ If false, the result is a list of scalars [1, 2, ...]
     \return pointer to the data.
 */
   ESCRIPT_DLL_API
-  inline
-  const DataAbstract::ValueType::value_type*
-  getDataRO() const;  
+  const DataTypes::real_t*
+  getDataRO(DataTypes::real_t dummy=0) const;  
+  
+  ESCRIPT_DLL_API
+  const DataTypes::cplx_t*
+  getDataRO(DataTypes::cplx_t dummy) const;    
+  
+  
   
   /**
      \brief
@@ -635,7 +642,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   inline
-  DataAbstract::ValueType::value_type*
+  DataTypes::real_t*
   getSampleDataByTag(int tag)
   {
     return m_data->getSampleDataByTag(tag);
@@ -648,7 +655,7 @@ If false, the result is a list of scalars [1, 2, ...]
      \param dataPointNo - Input -
   */
   ESCRIPT_DLL_API
-  DataTypes::ValueType::const_reference
+  DataTypes::RealVectorType::const_reference
   getDataPointRO(int sampleNo, int dataPointNo);
 
   /**
@@ -658,7 +665,7 @@ If false, the result is a list of scalars [1, 2, ...]
      \param dataPointNo - Input -
   */
   ESCRIPT_DLL_API
-  DataTypes::ValueType::reference
+  DataTypes::RealVectorType::reference
   getDataPointRW(int sampleNo, int dataPointNo);
 
 
@@ -669,7 +676,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   inline
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getDataOffset(int sampleNo,
                int dataPointNo)
   {
@@ -710,7 +717,7 @@ If false, the result is a list of scalars [1, 2, ...]
      Return the number of doubles stored for this Data.
   */
   ESCRIPT_DLL_API
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -765,10 +772,16 @@ If false, the result is a list of scalars [1, 2, ...]
   void
   setTaggedValueFromCPP(int tagKey,
 			const DataTypes::ShapeType& pointshape,
-                        const DataTypes::ValueType& value,
+                        const DataTypes::RealVectorType& value,
 			int dataOffset=0);
 
 
+  ESCRIPT_DLL_API
+  void
+  setTaggedValueFromCPP(int tagKey,
+			const DataTypes::ShapeType& pointshape,
+                        const DataTypes::CplxVectorType& value,
+			int dataOffset=0);  
 
   /**
     \brief
@@ -804,36 +817,36 @@ If false, the result is a list of scalars [1, 2, ...]
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable3D(const WrappedArray& table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep, Data& C, 
-			double Cmin, double Cstep, bool check_boundaries);
+  interpolateFromTable3D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                       DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, 
+			DataTypes::real_t Cmin, DataTypes::real_t Cstep, bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
-                       double undef, Data& B, double Bmin, double Bstep,bool check_boundaries);
+  interpolateFromTable2D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                       DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep,bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable1D(const WrappedArray& table, double Amin, double Astep,
-                       double undef,bool check_boundaries);
-
-
-  ESCRIPT_DLL_API
-  Data
-  interpolateFromTable3DP(boost::python::object table, double Amin, double Astep,
-                        Data& B, double Bmin, double Bstep, Data& C, double Cmin, double Cstep, double undef,bool check_boundaries);
+  interpolateFromTable1D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                       DataTypes::real_t undef,bool check_boundaries);
 
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
-                        Data& B, double Bmin, double Bstep, double undef,bool check_boundaries);
+  interpolateFromTable3DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                        Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, DataTypes::real_t Cmin, DataTypes::real_t Cstep, DataTypes::real_t undef,bool check_boundaries);
+
 
   ESCRIPT_DLL_API
   Data
-  interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
-                        double undef,bool check_boundaries);
+  interpolateFromTable2DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                        Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, DataTypes::real_t undef,bool check_boundaries);
+
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable1DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                        DataTypes::real_t undef,bool check_boundaries);
   
   ESCRIPT_DLL_API
   Data
@@ -927,7 +940,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   Data
-  whereZero(double tol=0.0) const;
+  whereZero(DataTypes::real_t tol=0.0) const;
 
   /**
      \brief
@@ -936,7 +949,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   ESCRIPT_DLL_API
   Data
-  whereNonZero(double tol=0.0) const;
+  whereNonZero(DataTypes::real_t tol=0.0) const;
 
   /**
      \brief
@@ -950,11 +963,11 @@ If false, the result is a list of scalars [1, 2, ...]
      zero is returned.
   */
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   Lsup();
 
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   Lsup_const() const;
 
 
@@ -970,11 +983,11 @@ If false, the result is a list of scalars [1, 2, ...]
      a large negative value is returned.
   */
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   sup();
 
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   sup_const() const;
 
 
@@ -990,11 +1003,11 @@ If false, the result is a list of scalars [1, 2, ...]
      a large positive value is returned.
   */
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   inf();
 
   ESCRIPT_DLL_API
-  double
+  DataTypes::real_t
   inf_const() const;
 
 
@@ -1117,7 +1130,7 @@ instead of manually manipulating process and point IDs.
   */
   ESCRIPT_DLL_API
   const boost::python::tuple
-  eigenvalues_and_eigenvectors(const double tol=1.e-12) const;
+  eigenvalues_and_eigenvectors(const DataTypes::real_t tol=1.e-12) const;
 
   /**
      \brief
@@ -1136,6 +1149,16 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   Data
   erf() const;
+
+
+  /**
+     \brief
+     For complex values return the conjugate values.
+     For non-complex data return a copy
+  */
+  ESCRIPT_DLL_API
+  Data
+  conjugate() const;
 
   /**
      \brief
@@ -1162,7 +1185,7 @@ instead of manually manipulating process and point IDs.
   */
   ESCRIPT_DLL_API
   Data
-  bessel(int order, double (*besselfunc) (int,double) );
+  bessel(int order, DataTypes::real_t (*besselfunc) (int,DataTypes::real_t) );
   
 
   /**
@@ -1630,13 +1653,23 @@ instead of manually manipulating process and point IDs.
   */
 
   ESCRIPT_DLL_API
-        DataTypes::ValueType::const_reference
-        getDataAtOffsetRO(DataTypes::ValueType::size_type i);
+        DataTypes::RealVectorType::const_reference
+        getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
 
 
   ESCRIPT_DLL_API
-        DataTypes::ValueType::reference
-        getDataAtOffsetRW(DataTypes::ValueType::size_type i);
+        DataTypes::RealVectorType::reference
+        getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
+	
+  ESCRIPT_DLL_API
+        DataTypes::CplxVectorType::const_reference
+        getDataAtOffsetRO(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
+
+
+  ESCRIPT_DLL_API
+        DataTypes::CplxVectorType::reference
+        getDataAtOffsetRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);	
+	
 
   /**
     \brief Ensures that the Data is expanded and returns its underlying vector
@@ -1648,8 +1681,12 @@ instead of manually manipulating process and point IDs.
     escript's other mechanisms.
   */
   ESCRIPT_DLL_API
-  DataTypes::ValueType&
-  getExpandedVectorReference();
+  DataTypes::RealVectorType&
+  getExpandedVectorReference(DataTypes::real_t dummy=0);
+
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType&
+  getExpandedVectorReference(DataTypes::cplx_t dummy);
   
   
   /**
@@ -1659,26 +1696,32 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   size_t
   getNumberOfTaggedValues() const;
+
+  /*
+  * \brief make the data complex
+  */
+  ESCRIPT_DLL_API
+  void complicate();
  
  protected:
 
  private:
 
 template <class BinaryOp>
-  double 
+  DataTypes::real_t 
 #ifdef ESYS_MPI
-  lazyAlgWorker(double init, MPI_Op mpiop_type);
+  lazyAlgWorker(DataTypes::real_t init, MPI_Op mpiop_type);
 #else
-  lazyAlgWorker(double init);
+  lazyAlgWorker(DataTypes::real_t init);
 #endif
 
-  double
+  DataTypes::real_t
   LsupWorker() const;
 
-  double
+  DataTypes::real_t
   supWorker() const;
 
-  double
+  DataTypes::real_t
   infWorker() const;
 
   boost::python::object
@@ -1720,9 +1763,9 @@ template <class BinaryOp>
   */
   template <class BinaryFunction>
   inline
-  double
+  DataTypes::real_t
   algorithm(BinaryFunction operation,
-            double initial_value) const;
+            DataTypes::real_t initial_value) const;
 
   /**
      \brief
@@ -1735,7 +1778,7 @@ template <class BinaryOp>
   inline
   Data
   dp_algorithm(BinaryFunction operation,
-               double initial_value) const;
+               DataTypes::real_t initial_value) const;
 
   /**
      \brief
@@ -1750,6 +1793,11 @@ template <class BinaryOp>
   void
   binaryOp(const Data& right,
            BinaryFunction operation);
+  
+  void
+  binaryDataOp(const Data& right,
+		   escript::ESFunction operation); 
+  
 
   /**
      \brief
@@ -1773,7 +1821,7 @@ template <class BinaryOp>
   */
 
   void
-  initialise(const DataTypes::ValueType& value,
+  initialise(const DataTypes::RealVectorType& value,
 	     const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
@@ -1784,7 +1832,7 @@ template <class BinaryOp>
                  bool expanded);
 
   void
-  initialise(const double value,
+  initialise(const DataTypes::real_t value,
 	     const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
@@ -1998,8 +2046,8 @@ Data::getReadyPtr() const
 }
 
 inline
-DataAbstract::ValueType::value_type*
-Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
+DataTypes::real_t*
+Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
 {
    if (isLazy())
    {
@@ -2015,22 +2063,22 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 }
 
 inline
-const DataAbstract::ValueType::value_type*
-Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const
+const DataTypes::real_t*
+Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
    {
 	size_t offset=0;
-	const DataTypes::ValueType* res=l->resolveSample(sampleNo,offset);
+	const DataTypes::RealVectorType* res=l->resolveSample(sampleNo,offset);
 	return &((*res)[offset]);
    }
    return getReady()->getSampleDataRO(sampleNo);
 }
 
 inline
-const DataAbstract::ValueType::value_type*
-Data::getDataRO() const
+const DataTypes::real_t*
+Data::getDataRO(DataTypes::real_t dummy) const
 {
     if (isLazy())
     {
@@ -2042,7 +2090,25 @@ Data::getDataRO() const
     }
     else
     {
-	return &(getReady()->getVectorRO()[0]);
+	return &(getReady()->getTypedVectorRO(0)[0]);
+    }
+}
+
+inline
+const DataTypes::cplx_t*
+Data::getDataRO(DataTypes::cplx_t dummy) const
+{
+    if (isLazy())
+    {
+        throw DataException("Programmer error - getDataRO must not be called on Lazy Data.");
+    }
+    if (getNumSamples()==0)
+    {
+	return 0;
+    }
+    else
+    {
+	return &(getReady()->getTypedVectorRO(dummy)[0]);
     }
 }
 
@@ -2050,7 +2116,7 @@ Data::getDataRO() const
 /**
    Binary Data object operators.
 */
-inline double rpow(double x,double y)
+inline DataTypes::real_t rpow(DataTypes::real_t x,DataTypes::real_t y)
 {
     return pow(y,x);
 }
@@ -2208,6 +2274,86 @@ Data::rtruedivO(const boost::python::object& left)
     return tmp.truedivD(*this);
 }
 
+
+inline 
+void
+Data::binaryDataOp(const Data& right,
+		   escript::ESFunction operation)
+{
+   //
+   // if this has a rank of zero promote it to the rank of the RHS
+   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
+     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
+   }
+
+   if (isLazy() || right.isLazy())
+   {
+     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
+   }
+   //
+   // initially make the temporary a shallow copy
+   Data tempRight(right);
+   FunctionSpace fsl=getFunctionSpace();
+   FunctionSpace fsr=right.getFunctionSpace();
+   if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
+	 msg+=fsl.toString();
+	 msg+="  ";
+	 msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
+       // an interpolation is required so create a new Data
+       tempRight=Data(right,fsl);
+     }
+     else	// reverse interpolation preferred
+     {
+        // interpolate onto the RHS function space
+       Data tempLeft(*this,fsr);
+       set_m_data(tempLeft.m_data);
+     }
+   }
+   operandCheck(tempRight);
+   //
+   // ensure this has the right type for the RHS
+   typeMatchRight(tempRight);
+   //
+   // Need to cast to the concrete types so that the correct binaryOp
+   // is called.
+   if (isExpanded()) {
+     //
+     // Expanded data will be done in parallel, the right hand side can be
+     // of any data type
+     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
+     EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
+     escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
+   } else if (isTagged()) {
+     //
+     // Tagged data is operated on serially, the right hand side can be
+     // either DataConstant or DataTagged
+     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
+     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
+     if (right.isTagged()) {
+       DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
+       EsysAssert((rightC!=0), "Programming error - casting to DataTagged.");
+       escript::binaryOpDataReady(*leftC,*rightC,operation);
+     } else {
+       DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+       EsysAssert((rightC!=0), "Programming error - casting to DataConstant.");
+       escript::binaryOpDataReady(*leftC,*rightC,operation);
+     }
+   } else if (isConstant()) {
+     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
+     DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+     EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
+     escript::binaryOpDataReady(*leftC,*rightC,operation);
+   }  
+}
+
 /**
   \brief
   Perform the given binary operation with this and right as operands.
@@ -2309,8 +2455,8 @@ Data::binaryOp(const Data& right,
 */
 template <class BinaryFunction>
 inline
-double
-Data::algorithm(BinaryFunction operation, double initial_value) const
+DataTypes::real_t
+Data::algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
@@ -2344,7 +2490,7 @@ Data::algorithm(BinaryFunction operation, double initial_value) const
 template <class BinaryFunction>
 inline
 Data
-Data::dp_algorithm(BinaryFunction operation, double initial_value) const
+Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isEmpty()) {
     throw DataException("Error - Operations (dp_algorithm) not permitted on instances of DataEmpty.");
@@ -2361,7 +2507,7 @@ Data::dp_algorithm(BinaryFunction operation, double initial_value) const
   else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
     EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
-    DataTypes::ValueType defval(1);
+    DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
     escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
@@ -2404,6 +2550,12 @@ C_TensorBinaryOperation(Data const &arg_0,
   {
      throw DataException("Error - Operations not permitted on lazy data.");
   }
+  
+  // for disambiguation of some methods later
+  typename decltype(operation)::first_argument_type dummy0=0;
+  typename decltype(operation)::second_argument_type dummy1=0;
+  typename decltype(operation)::result_type dummyr=0;  
+  
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
   FunctionSpace fsl=arg_0.getFunctionSpace();
@@ -2439,15 +2591,23 @@ C_TensorBinaryOperation(Data const &arg_0,
   DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
   int size0 = arg_0_Z.getDataPointSize();
   int size1 = arg_1_Z.getDataPointSize();
+  
+  
+  
   // Declare output Data object
   Data res;
 
   if (shape0 == shape1) {
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
+      typename decltype(operation)::first_argument_type dummy=0;
       res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataConstant output
-      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
-      double *ptr_2 = &(res.getDataAtOffsetRW(0));
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+	  res.complicate();	// It would be much better to create the Data object as complex to start with
+      }				// But that would require more work so let's just get this case working first
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
 
       tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
     }
@@ -2464,13 +2624,15 @@ C_TensorBinaryOperation(Data const &arg_0,
       res.tag();
       DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
+
+      
       // Prepare offset into DataConstant
       int offset_0 = tmp_0->getPointOffset(0,0);
-      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
 
       // Get the pointers to the actual data
-      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
@@ -2479,8 +2641,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
         tmp_2->addTag(i->first);
-        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
 
         tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
       }
@@ -2502,9 +2664,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
           int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1)); 
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2)); 
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1)); 
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr)); 
           tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
         }
       }
@@ -2525,10 +2687,10 @@ C_TensorBinaryOperation(Data const &arg_0,
       // Prepare offset into DataConstant
       int offset_1 = tmp_1->getPointOffset(0,0);
 
-      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
       // Get the pointers to the actual data
-      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
       // Compute a result for each tag
@@ -2536,8 +2698,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
         tmp_2->addTag(i->first);
-        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0,dummyr));
         tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
       }
 
@@ -2555,9 +2717,9 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
       // Get the pointers to the actual data
-      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
@@ -2575,9 +2737,9 @@ C_TensorBinaryOperation(Data const &arg_0,
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
       for (i=lookup_2.begin();i!=lookup_2.end();i++) {
 
-        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
 
         tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
       }
@@ -2597,12 +2759,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
         }
       }
@@ -2625,9 +2787,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
 
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
 
 
           tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
@@ -2649,12 +2811,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
         }
       }
@@ -2678,9 +2840,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_1, ptr_2, operation);
 //       }
       }
@@ -2693,9 +2855,9 @@ C_TensorBinaryOperation(Data const &arg_0,
   } else if (0 == rank0) {
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
       res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());      // DataConstant output
-      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
-      double *ptr_2 = &(res.getDataAtOffsetRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
       tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2713,10 +2875,10 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_0 = tmp_0->getPointOffset(0,0);
-      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
 
-      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
       // Compute a result for the default
       tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
@@ -2725,8 +2887,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
         tmp_2->addTag(i->first);
-        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
         tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
       }
 
@@ -2742,21 +2904,17 @@ C_TensorBinaryOperation(Data const &arg_0,
       int numSamples_1 = arg_1_Z.getNumSamples();
       int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
       int offset_0 = tmp_0->getPointOffset(0,0);
-      const double *ptr_src = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-      double ptr_0 = ptr_src[0];
+      const typename decltype(operation)::first_argument_type *ptr_src = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+      typename decltype(operation)::first_argument_type ptr_0 = ptr_src[0];
       int size = size1*numDataPointsPerSample_1;
       res.requireWrite();
       #pragma omp parallel for private(sampleNo_1) schedule(static)
       for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
-//        for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_1,0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_1,0);
-//          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size, ptr_0, ptr_1, ptr_2, operation);
-
-//        }
       }
 
     }
@@ -2775,11 +2933,11 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_1 = tmp_1->getPointOffset(0,0);
-      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
 
       // Get the pointers to the actual data
-      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
 
       // Compute a result for the default
@@ -2789,8 +2947,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
         tmp_2->addTag(i->first);
-        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
 
         tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
       }
@@ -2810,9 +2968,9 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
       // Get the pointers to the actual data
-      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
       // Compute a result for the default
       tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
@@ -2829,9 +2987,9 @@ C_TensorBinaryOperation(Data const &arg_0,
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
       for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
 
         tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
       }
@@ -2852,12 +3010,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2879,9 +3037,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2903,12 +3061,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2932,9 +3090,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
         }
       }
@@ -2947,9 +3105,9 @@ C_TensorBinaryOperation(Data const &arg_0,
   } else if (0 == rank1) {
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
       res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataConstant output
-      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
-      double *ptr_2 = &(res.getDataAtOffsetRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
       tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2967,11 +3125,11 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_0 = tmp_0->getPointOffset(0,0);
-      const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
 
       //Get the pointers to the actual data
-      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
@@ -2980,8 +3138,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_1.begin();i!=lookup_1.end();i++) {
         tmp_2->addTag(i->first);
-        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
         tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
       }
     }
@@ -3002,9 +3160,9 @@ C_TensorBinaryOperation(Data const &arg_0,
         for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
           int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -3025,10 +3183,10 @@ C_TensorBinaryOperation(Data const &arg_0,
 
       // Prepare offset into DataConstant
       int offset_1 = tmp_1->getPointOffset(0,0);
-      const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
       // Get the pointers to the actual data
-      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
       // Compute a result for each tag
@@ -3036,8 +3194,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
       for (i=lookup_0.begin();i!=lookup_0.end();i++) {
         tmp_2->addTag(i->first);
-        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
         tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
       }
 
@@ -3056,9 +3214,9 @@ C_TensorBinaryOperation(Data const &arg_0,
       DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
       // Get the pointers to the actual data
-      const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-      const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-      double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
+      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
 
       // Compute a result for the default
       tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
@@ -3075,9 +3233,9 @@ C_TensorBinaryOperation(Data const &arg_0,
       // Compute a result for each tag
       const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
       for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-        const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-        const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-        double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
+        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
         tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
       }
 
@@ -3097,12 +3255,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -3118,20 +3276,17 @@ C_TensorBinaryOperation(Data const &arg_0,
       int numSamples_0 = arg_0_Z.getNumSamples();
       int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
       int offset_1 = tmp_1->getPointOffset(0,0);
-      const double *ptr_src = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-      double ptr_1 = ptr_src[0];
+      const typename decltype(operation)::second_argument_type *ptr_src = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+      typename decltype(operation)::second_argument_type ptr_1 = ptr_src[0];
       int size = size0 * numDataPointsPerSample_0;
       res.requireWrite();
       #pragma omp parallel for private(sampleNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-//        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-//          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size, ptr_0, ptr_1, ptr_2, operation);
-//        }
       }
 
 
@@ -3151,12 +3306,12 @@ C_TensorBinaryOperation(Data const &arg_0,
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
         int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
         for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -3180,9 +3335,9 @@ C_TensorBinaryOperation(Data const &arg_0,
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-          const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-          double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
+          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
+          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
           tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
         }
       }
@@ -3219,13 +3374,19 @@ C_TensorUnaryOperation(Data const &arg_0,
   const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
   int size0 = arg_0_Z.getDataPointSize();
 
+  // Sanity check on the types of the function
+  if (typeid(typename UnaryFunction::argument_type)!=typeid(typename UnaryFunction::result_type))
+  {
+      throw DataException("Error - Types for C_TensorUnaryOperation must be consistent");
+  }
+  
   // Declare output Data object
   Data res;
 
   if (arg_0_Z.isConstant()) {
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
-    const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-    double *ptr_2 = &(res.getDataAtOffsetRW(0));
+    const typename UnaryFunction::argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
+    typename UnaryFunction::result_type *ptr_2 = &(res.getDataAtOffsetRW(0));
     tensor_unary_operation(size0, ptr_0, ptr_2, operation);
   }
   else if (arg_0_Z.isTagged()) {
@@ -3239,8 +3400,8 @@ C_TensorUnaryOperation(Data const &arg_0,
     DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
     // Get the pointers to the actual data
-    const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-    double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+    const typename decltype(operation)::argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+    typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0));
     // Compute a result for the default
     tensor_unary_operation(size0, ptr_0, ptr_2, operation);
     // Compute a result for each tag
@@ -3248,8 +3409,8 @@ C_TensorUnaryOperation(Data const &arg_0,
     DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
     for (i=lookup_0.begin();i!=lookup_0.end();i++) {
       tmp_2->addTag(i->first);
-      const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-      double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+      const typename decltype(operation)::argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
       tensor_unary_operation(size0, ptr_0, ptr_2, operation);
     }
 
@@ -3266,13 +3427,11 @@ C_TensorUnaryOperation(Data const &arg_0,
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
 	dataPointNo_0=0;
-//      for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-        double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+        const typename decltype(operation)::argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
         tensor_unary_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation);
-//      }
     }
   }
   else {
@@ -3281,6 +3440,17 @@ C_TensorUnaryOperation(Data const &arg_0,
 
   return res;
 }
+
+
+Data
+C_TensorUnaryOperation(Data const &arg_0,
+                       escript::ESFunction operation,
+		       DataTypes::real_t tol=0
+		      );
+
+
+
+
 
 }
 #endif

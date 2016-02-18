@@ -50,13 +50,29 @@ DataConstant::DataConstant(const WrappedArray& value,
                            const FunctionSpace& what)
   : parent(what,value.getShape())
 {
-  m_data.copyFromArray(value,1);
+  if (value.isComplex())
+  {
+      m_data_c.copyFromArray(value,1);
+      this->m_iscompl=true;
+  }
+  else
+  {
+      m_data_r.copyFromArray(value,1);
+  }
 }
 
 DataConstant::DataConstant(const DataConstant& other)
   : parent(other.getFunctionSpace(),other.getShape())
-{ 
-  m_data=other.m_data;
+{
+  this->m_iscompl=other.m_iscompl;
+  if (other.isComplex()) 
+  {
+      m_data_c=other.m_data_c;
+  }
+  else
+  {
+      m_data_r=other.m_data_r;
+  }
 }
 
 DataConstant::DataConstant(const DataConstant& other,
@@ -64,31 +80,46 @@ DataConstant::DataConstant(const DataConstant& other,
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   //
-  // allocate space for this new DataConstant's data
-  int len = getNoValues();
-  m_data.resize(len,0.,len);
-  //
   // create a view of the data with the correct shape
   DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
-  //
-  // load the view with the data from the slice
-  DataTypes::copySlice(m_data,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+  int len = getNoValues();
+  if (other.isComplex())
+  {
+throw DataException("Complex not supported for this op");
+/*
+      //
+      // allocate space for this new DataConstant's data
+      m_data_c.resize(len,0.,len);
+      //
+      // load the view with the data from the slice
+      DataTypes::copySlice(m_data_c,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+*/
+  }
+  else
+  {
+      //
+      // allocate space for this new DataConstant's data
+      m_data_r.resize(len,0.,len);
+      //
+      // load the view with the data from the slice
+      DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+  }
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const DataTypes::ValueType &data)
+                           const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
   //
   // copy the data in the correct format
-  m_data=data;
+  m_data_r=data;
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const double v)
-  : parent(what,shape), m_data(DataTypes::noValues(shape),v)
+  : parent(what,shape), m_data_r(DataTypes::noValues(shape),v)
 {
 }
 
@@ -97,48 +128,109 @@ bool
 DataConstant::hasNaN() const
 {
   bool haveNaN=false;
-  #pragma omp parallel for
-	for (ValueType::size_type i=0;i<m_data.size();++i)
-	{
-		if (nancheck(m_data[i]))	
-		{
-		    #pragma omp critical 
-        {
-            haveNaN=true;
-        }
-		}
-	}
-	return haveNaN;
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_r[i]))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  return haveNaN;
 }
 
 void
-DataConstant::replaceNaN(double value)
-{
-  #pragma omp parallel for
-  for (ValueType::size_type i=0;i<m_data.size();++i)
+DataConstant::replaceNaN(double value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
   {
-    if (nancheck(m_data[i]))  
-    {
-      m_data[i] = value;
-    } 
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_r[i]))  
+	{
+	  m_data_r[i] = value;
+	}
+      }    
   }
 }
+
+void
+DataConstant::replaceNaN(DataTypes::cplx_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      complicate();
+      replaceNaN(value);
+  }
+}
+
+
 
 string
 DataConstant::toString() const
 {
-  return DataTypes::pointToString(m_data,getShape(),0,"");
+  if (isComplex())
+  {
+      return DataTypes::pointToString(m_data_c,getShape(),0,"");
+  }
+  else
+  {
+      return DataTypes::pointToString(m_data_r,getShape(),0,"");
+  }
 }
 
 
 DataAbstract*
-DataConstant::deepCopy()
+DataConstant::deepCopy() const
 {
   return new DataConstant(*this);
 }
 
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo) const
 {
@@ -152,7 +244,7 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo)
 {
@@ -168,10 +260,10 @@ DataConstant::getPointOffset(int sampleNo,
   return 0;
 }
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataConstant::getLength() const
 {
-  return m_data.size();
+  return m_data_r.size();
 }
 
 DataAbstract*
@@ -202,7 +294,7 @@ DataConstant::setSlice(const DataAbstract* value,
                 "Error - Couldn't copy slice due to shape mismatch.",shape,value->getShape()));
   }
   //   getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region_loop_range);
-  DataTypes::copySliceFrom(m_data,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
+  DataTypes::copySliceFrom(m_data_r,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
 }
 
 
@@ -214,7 +306,7 @@ DataConstant::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::symmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  DataMaths::symmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -224,7 +316,7 @@ DataConstant::nonsymmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::nonsymmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  DataMaths::nonsymmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -234,9 +326,9 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::trace: casting to DataConstant failed (probably a programming error).");
   }
-  ValueType& evVec=temp_ev->getVectorRW();
+  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  DataMaths::trace(m_data,getShape(),0,evVec,evShape,0,axis_offset);
+  DataMaths::trace(m_data_r,getShape(),0,evVec,evShape,0,axis_offset);
 }
 
 void
@@ -246,7 +338,7 @@ DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::swapaxes(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
+  DataMaths::swapaxes(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
 }
 
 void
@@ -256,7 +348,7 @@ DataConstant::transpose(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::transpose(m_data, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
+  DataMaths::transpose(m_data_r, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
 }
 
 void
@@ -266,7 +358,7 @@ DataConstant::eigenvalues(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::eigenvalues(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  DataMaths::eigenvalues(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 void
 DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
@@ -279,7 +371,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   if (temp_V==0) {
     throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
+  DataMaths::eigenvalues_and_eigenvectors(m_data_r, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
 }
 
 
@@ -290,14 +382,14 @@ DataConstant::matrixInverse(DataAbstract* out) const
   DataConstant* temp=dynamic_cast<DataConstant*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (probably a programming error).");
+        throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (probably a programming error).");
   }
   if (getRank()!=2)
   {
-	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+        throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
   }
   LapackInverseHelper h(getShape()[0]);
-  int res=DataMaths::matrix_inverse(m_data, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
+  int res=DataMaths::matrix_inverse(m_data_r, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
   return res;
 }
 
@@ -305,8 +397,8 @@ void
 DataConstant::setToZero()
 {
     CHECK_FOR_EX_WRITE
-    DataTypes::ValueType::size_type n=m_data.size();
-    for (int i=0; i<n ;++i) m_data[i]=0.;
+    DataTypes::RealVectorType::size_type n=m_data_r.size();
+    for (int i=0; i<n ;++i) m_data_r[i]=0.;
 }
 
 void
@@ -319,7 +411,7 @@ DataConstant::dump(const std::string fileName) const
    int type=  getFunctionSpace().getTypeCode();
    int ndims =0;
    long dims[DataTypes::maxRank];
-   const double* d_ptr=&(m_data[0]);
+   const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
    int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
    int mpi_num=getFunctionSpace().getDomain()->getMPISize();
@@ -340,43 +432,43 @@ DataConstant::dump(const std::string fileName) const
    NcFile dataFile(newFileName.c_str(), NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
-	throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
+        throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
    if (!dataFile.add_att("type_id",0) )
-	throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
    if (!dataFile.add_att("rank",rank) )
-	throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
    if (!dataFile.add_att("function_space_type",type))
-	throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
 
    if (rank == 0) {
       if( ! (ncdims[0] = dataFile.add_dim("l", 1)) )
-		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
       dims[0]=1,
       ndims=1;
    } else {
        ndims=rank;
        dims[0]=shape[0];
        if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
        if ( rank >1 ) {
            dims[1]=shape[1];
            if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
        }
        if ( rank >2 ) {
            dims[2]=shape[2];
            if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
        }
        if ( rank >3 ) {
            dims[3]=shape[3];
            if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
-		throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
+                throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
        }
    }
 
    if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
-	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
+        throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
    if (! (var->put(d_ptr,dims)) )
          throw DataException("Error - DataConstant:: copy data to netCDF buffer failed.");
 #ifdef ESYS_MPI
@@ -389,17 +481,67 @@ DataConstant::dump(const std::string fileName) const
 
 // These used to be marked as inline in DataConstant.
 // But they are marked virtual in DataReady
-DataTypes::ValueType&
+DataTypes::RealVectorType&
 DataConstant::getVectorRW()
 {
   CHECK_FOR_EX_WRITE
-  return m_data;
+  return m_data_r;
 }
 
-const DataTypes::ValueType&
+const DataTypes::RealVectorType&
 DataConstant::getVectorRO() const
 {
-  return m_data;
+  return m_data_r;
 }
+
+DataTypes::CplxVectorType&
+DataConstant::getVectorRWC()
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_c;
+}
+
+const DataTypes::CplxVectorType&
+DataConstant::getVectorROC() const
+{
+  return m_data_c;
+}
+
+DataTypes::RealVectorType&
+DataConstant::getTypedVectorRW(DataTypes::real_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_r;
+}
+
+const DataTypes::RealVectorType&
+DataConstant::getTypedVectorRO(DataTypes::real_t dummy) const
+{
+  return m_data_r;
+}
+
+DataTypes::CplxVectorType&
+DataConstant::getTypedVectorRW(DataTypes::cplx_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  return m_data_c;
+}
+
+const DataTypes::CplxVectorType&
+DataConstant::getTypedVectorRO(DataTypes::cplx_t dummy) const
+{
+  return m_data_c;
+}
+
+void DataConstant::complicate()
+{
+    if (!isComplex())
+    {
+        fillComplexFromReal(m_data_r, m_data_c);
+        this->m_iscompl=true;
+        m_data_r.resize(0,0,1);
+    }
+}
+
 
 }  // end of namespace

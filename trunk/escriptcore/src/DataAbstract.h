@@ -20,6 +20,7 @@
 #include "system_dep.h"
 
 #include "DataTypes.h"
+#include "DataVector.h"
 #include "FunctionSpace.h"
 
 #include <boost/scoped_ptr.hpp>
@@ -45,7 +46,7 @@ namespace escript {
    array of data points where one dimension corresponds to the number of samples
    and the other to the number of data points per sample as defined by the function
    space associated with each Data object. The data points themselves are arrays of
-   doubles of rank 0-4.
+   reals or complexes of rank 0-4.
 */
 
 class DataAbstract;
@@ -63,7 +64,6 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
  public:
 
-  typedef DataTypes::ValueType ValueType;
   typedef DataTypes::ShapeType ShapeType;
 
    /**
@@ -93,7 +93,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param shape - Input - Shape of each data value.
      \param isDataEmpty - Input - Is this an instance of DataEmpty (for internal use only)
   */
-  DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false);
+  DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false,bool isCplx=false);
 
   /**
     \brief
@@ -115,7 +115,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   virtual
   DataAbstract*
-  deepCopy()=0;
+  deepCopy() const =0 ;
 
   /**
      \brief Return a data object with all points resolved.
@@ -173,14 +173,10 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
     \param dataPointNo - Input - data point number.
   */
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
 
-  virtual
-  ValueType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo) = 0;
 
 
   /**
@@ -188,18 +184,26 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Return the number of doubles stored for this Data object.
   */
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const = 0;
 
   /**
      \brief
-     Return the sample data for the given tag key.
+     Return the real sample data for the given tag key.
      NB: If the data isn't tagged an exception will be thrown.
   */
   virtual
-  double*
+  DataTypes::real_t*
   getSampleDataByTag(int tag);
 
+  /**
+     \brief
+     Return the complex sample data for the given tag key.
+     NB: If the data isn't tagged an exception will be thrown.
+  */
+  virtual
+  DataTypes::cplx_t*
+  getSampleDataByTag_C(int tag);
 
   /**
      \brief Return number of tagged values stored in the data object
@@ -277,9 +281,15 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   void
   setTaggedValue(int tagKey,
 		 const DataTypes::ShapeType& pointshape,
-                 const DataTypes::ValueType& value,
+                 const DataTypes::RealVectorType& value,
 		 int dataOffset=0);
 
+  virtual
+  void
+  setTaggedValue(int tagKey,
+		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::CplxVectorType& value,
+		 int dataOffset=0);  
 
   /**
      \brief
@@ -293,7 +303,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param value Input - new values for the data point
   */
   virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const double value);
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::real_t value);
 
   /**
      \brief
@@ -453,6 +463,11 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
 
+  /**
+   \brief true if the components of datapoints are complex
+  */
+  bool isComplex() const;
+
 
   /**
   	\warning should only be used in single threaded code (or inside a single/critical section)
@@ -483,6 +498,11 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 				// sharing has not occurred since that call
 				// This flag is for internal use only may be removed without warning
 #endif
+
+/*
+ * Make the object complex
+*/
+ virtual void complicate();
   
 protected:
     /**
@@ -503,7 +523,6 @@ protected:
     std::vector<Data*> m_owners;
     bool m_lazyshared;
 
-private:
   //
   // The number of samples in this Data object.
   // This is derived directly from the FunctionSpace.
@@ -513,6 +532,11 @@ private:
   // The number of data points per sample in this Data object.
   // This is derived directly from the FunctionSpace.
   int m_noDataPointsPerSample;
+
+  //
+  // is the data made of complex components
+  bool m_iscompl;
+private:
 
   //
   // A FunctionSpace which provides a description of the data associated

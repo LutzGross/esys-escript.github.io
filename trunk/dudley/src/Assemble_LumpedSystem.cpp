@@ -50,8 +50,8 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     __const double *D_p = NULL;
     const double *S = NULL;
     double *EM_lumpedMat = NULL, *lumpedMat_p = NULL;
-    register double rtmp;
-    register double m_t = 0., diagS = 0.;
+    double rtmp;
+    double m_t = 0., diagS = 0.;
 
     Dudley_resetError();
 

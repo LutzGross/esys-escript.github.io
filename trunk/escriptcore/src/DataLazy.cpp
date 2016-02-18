@@ -36,6 +36,8 @@
 
 #include <iomanip>		// for some fancy formatting in debug
 
+using namespace escript::DataTypes;
+
 // #define LAZYDEBUG(X) if (privdebug){X;} 
 #define LAZYDEBUG(X)
 namespace
@@ -1018,7 +1020,7 @@ LAZYDEBUG(cout << " result=      " << resultp[0] << endl;) \
 
 // The result will be stored in m_samples
 // The return value is a pointer to the DataVector, offset is the offset within the return value
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeSample(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
@@ -1067,7 +1069,7 @@ if (&x<stackend[omp_get_thread_num()])
   }
 }
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
@@ -1082,7 +1084,7 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
   {
     throw DataException("Programmer error - resolveNodeUnary should not be called on identity nodes.");
   }
-  const DataTypes::ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
+  const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
   const double* left=&((*leftres)[roffset]);
   roffset=m_samplesize*tid;
   double* result=&(m_samples[roffset]);
@@ -1199,7 +1201,7 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
 }
 
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
@@ -1215,7 +1217,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
     throw DataException("Programmer error - resolveNodeUnary should not be called on identity nodes.");
   }
   size_t loffset=0;
-  const DataTypes::ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, loffset);
+  const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, loffset);
 
   roffset=m_samplesize*tid;
   unsigned int ndpps=getNumDPPSample();
@@ -1251,7 +1253,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
   return &(m_samples);
 }
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
@@ -1296,7 +1298,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
   return &m_samples;
 }
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
@@ -1344,7 +1346,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
 }
 
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
 {
   if (m_readytype!='E')
@@ -1380,7 +1382,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
   return &m_samples;
 }
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const
 {
   if (m_readytype!='E')
@@ -1424,7 +1426,7 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const
 // There is an additional complication when scalar operations are considered.
 // For example, 2+Vector.
 // In this case each double within the point is treated individually
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeBinary(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
@@ -1581,7 +1583,7 @@ LAZYDEBUG(cout << "Result res[" << roffset<< "]" << m_samples[roffset] << endl;)
 // This method assumes that any subexpressions which evaluate to Constant or Tagged Data
 // have already been collapsed to IDENTITY. So we must have at least one expanded child.
 // unlike the other resolve helpers, we must treat these datapoints separately.
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
@@ -1640,7 +1642,7 @@ LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, 
 }
 
 
-const DataTypes::ValueType*
+const DataTypes::RealVectorType*
 DataLazy::resolveSample(int sampleNo, size_t& roffset) const
 {
 #ifdef _OPENMP
@@ -1652,7 +1654,7 @@ DataLazy::resolveSample(int sampleNo, size_t& roffset) const
 #ifdef LAZY_STACK_PROF
 	stackstart[tid]=&tid;
 	stackend[tid]=&tid;
-	const DataTypes::ValueType* r=resolveNodeSample(tid, sampleNo, roffset);
+	const DataTypes::RealVectorType* r=resolveNodeSample(tid, sampleNo, roffset);
 	size_t d=(size_t)stackstart[tid]-(size_t)stackend[tid];
 	#pragma omp critical
 	if (d>maxstackuse)
@@ -1761,8 +1763,8 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
 #else
     		    res=work[j]->resolveNodeSample(0,sample,roffset);
 #endif
-    		    DataVector::size_type outoffset=dep[j]->getPointOffset(sample,0);
-    		    memcpy(&((*vecs[j])[outoffset]),&((*res)[roffset]),work[j]->m_samplesize*sizeof(DataVector::ElementType));
+    		    RealVectorType::size_type outoffset=dep[j]->getPointOffset(sample,0);
+    		    memcpy(&((*vecs[j])[outoffset]),&((*res)[roffset]),work[j]->m_samplesize*sizeof(RealVectorType::ElementType));
 		}
 	    }
 	}
@@ -1822,8 +1824,8 @@ LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
 #endif
 LAZYDEBUG(cout << "Sample #" << sample << endl;)
 LAZYDEBUG(cout << "Final res[" << roffset<< "]=" << (*res)[roffset] << (*res)[roffset]<< endl; )
-    		DataVector::size_type outoffset=result->getPointOffset(sample,0);
-    		memcpy(&(resvec[outoffset]),&((*res)[roffset]),m_samplesize*sizeof(DataVector::ElementType));
+    		RealVectorType::size_type outoffset=result->getPointOffset(sample,0);
+    		memcpy(&(resvec[outoffset]),&((*res)[roffset]),m_samplesize*sizeof(RealVectorType::ElementType));
   	}
   }
 #ifdef LAZY_STACK_PROF
@@ -1989,7 +1991,7 @@ DataLazy::intoTreeString(ostringstream& oss, string indent) const
 
 
 DataAbstract* 
-DataLazy::deepCopy()
+DataLazy::deepCopy() const
 {
   switch (getOpgroup(m_op))
   {
@@ -2015,7 +2017,7 @@ DataLazy::deepCopy()
 // or it could be some function of the lengths of the DataReady instances which 
 // form part of the expression.
 // Rather than have people making assumptions, I have disabled the method.
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 DataLazy::getLength() const
 {
   throw DataException("getLength() does not make sense for lazy data.");
@@ -2030,7 +2032,7 @@ DataLazy::getSlice(const DataTypes::RegionType& region) const
 
 
 // To do this we need to rely on our child nodes
-DataTypes::ValueType::size_type 
+DataTypes::RealVectorType::size_type 
 DataLazy::getPointOffset(int sampleNo,
                  int dataPointNo)
 {
@@ -2056,7 +2058,7 @@ DataLazy::getPointOffset(int sampleNo,
 }
 
 // To do this we need to rely on our child nodes
-DataTypes::ValueType::size_type 
+DataTypes::RealVectorType::size_type 
 DataLazy::getPointOffset(int sampleNo,
                  int dataPointNo) const
 {
@@ -2089,7 +2091,7 @@ DataLazy::getPointOffset(int sampleNo,
 void
 DataLazy::setToZero()
 {
-//   DataTypes::ValueType v(getNoValues(),0);
+//   DataTypes::RealVectorType v(getNoValues(),0);
 //   m_id=DataReady_ptr(new DataConstant(getFunctionSpace(),getShape(),v));
 //   m_op=IDENTITY;
 //   m_right.reset();   

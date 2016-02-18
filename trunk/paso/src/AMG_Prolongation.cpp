@@ -379,8 +379,8 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
    index_t range;
 
    dim_t i;
-   register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
-   register index_t iPtr, j, offset;
+   double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
+   index_t iPtr, j, offset;
    index_t *where_p, *start_p;
 
    #pragma omp parallel for private(i,offset,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp) schedule(static)
@@ -519,8 +519,8 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
 
    dim_t i;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
-   register double A_ij, rtmp;
-   register index_t iPtr, j, offset, ib;
+   double A_ij, rtmp;
+   index_t iPtr, j, offset, ib;
    index_t *where_p, *start_p;
 
    #pragma omp parallel private(i,offset,ib,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp)
@@ -1163,7 +1163,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
 
               /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) {
-                   register double a2=a[ib];
+                   double a2=a[ib];
                    if (std::abs(a2)>0.) {
                         a2=-1./a2;
                         range = main_pattern->ptr[i + 1];

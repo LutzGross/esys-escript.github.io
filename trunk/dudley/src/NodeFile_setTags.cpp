@@ -32,9 +32,9 @@
 
 void Dudley_NodeFile_setTags(Dudley_NodeFile * self, const int newTag, const escript::Data* mask)
 {
-    register dim_t n;
+    dim_t n;
     dim_t numNodes;
-    register __const double *mask_array;
+    __const double *mask_array;
     Dudley_resetError();
 
     if (self == NULL)

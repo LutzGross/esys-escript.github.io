@@ -163,8 +163,8 @@ void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p,
 {
    dim_t i;
    const dim_t n =A_p->numRows;
-   register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
-   register index_t iPtr, j, offset;
+   double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
+   index_t iPtr, j, offset;
    index_t *where_p, *start_p;
 
    #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij , rtmp)  schedule(static)
@@ -247,8 +247,8 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
    const dim_t row_block=A_p->row_block_size;
    const dim_t A_block = A_p->block_size;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
-   register double A_ij, rtmp;
-   register index_t iPtr, j, offset, ib;
+   double A_ij, rtmp;
+   index_t iPtr, j, offset, ib;
    index_t *where_p, *start_p;
 
    #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )
@@ -556,7 +556,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                  }
               }  /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) {
-                   register double a2=a[ib];
+                   double a2=a[ib];
                    if (std::abs(a2)>0.) {
                         a2=-1./a2;
                         for (iPtr=P_p->pattern->ptr[i]; iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {

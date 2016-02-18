@@ -228,7 +228,7 @@ escript::Data TestDomain::getX() const
 {
     if (m_dpsize<2) {
         Data res(0,DataTypes::scalarShape,FunctionSpace( getPtr(), getDefaultCode()),true);
-        DataTypes::ValueType& vec=res.getReady()->getVectorRW();
+        DataTypes::RealVectorType& vec=res.getReady()->getVectorRW();
         for (dim_t i=0; i<m_samples; ++i) {
             for (int j=0; j<m_dpps; ++j) {
                 vec[i*m_dpps+j]=i+(1.0*j)/m_dpps;
@@ -239,7 +239,7 @@ escript::Data TestDomain::getX() const
     DataTypes::ShapeType p;
     p.push_back(m_dpsize);
     Data res(0,p,FunctionSpace( getPtr(), getDefaultCode()),true);
-    DataTypes::ValueType& vec=res.getReady()->getVectorRW();
+    DataTypes::RealVectorType& vec=res.getReady()->getVectorRW();
     double majorstep=double(1)/m_dpps;
     double minorstep=majorstep*0.9/m_dpsize;
     for (dim_t i=0; i<m_samples; ++i) {
@@ -258,7 +258,7 @@ escript::Data TestDomain::randomFill(const DataTypes::ShapeType& shape,
     escript::Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't
     // need to check for exclusive write
-    escript::DataTypes::ValueType& dv=towipe.getExpandedVectorReference();
+    escript::DataTypes::RealVectorType& dv=towipe.getExpandedVectorReference();
     const size_t dvsize=dv.size();
     esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
     return towipe;
