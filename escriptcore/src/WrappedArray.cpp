@@ -26,6 +26,8 @@
 
 using namespace escript;
 using namespace boost::python;
+using DataTypes::cplx_t;
+using DataTypes::real_t;
 
 namespace
 {
@@ -138,9 +140,9 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	// First we check for scalars
 	try
 	{
-	   extract<complextype> ec(obj_in);
-	   extract<double> er(obj_in);
-	   if (er.check())		// check for double first because complex will fail this
+	   extract<DataTypes::cplx_t> ec(obj_in);
+	   extract<real_t> er(obj_in);
+	   if (er.check())		// check for real_t first because complex will fail this
 	   {
 	      scalar_r=er();
 	   }
@@ -160,8 +162,8 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	try
 	{
 	   const boost::python::object obj_in_t=obj_in[make_tuple()];
-	   extract<complextype> ec(obj_in_t);
-	   extract<double> er(obj_in_t);
+	   extract<DataTypes::cplx_t> ec(obj_in_t);
+	   extract<real_t> er(obj_in_t);
 	   if (er.check())
 	   {	     
 	      scalar_r=er();
@@ -217,9 +219,9 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 
 				if (arr->typekind == 'f')
 				{
-					if (arr->itemsize==sizeof(double))
+					if (arr->itemsize==sizeof(real_t))
 					{
-						convertNumpyArray<double>((const double*)arr->data, strides);
+						convertNumpyArray<real_t>((const real_t*)arr->data, strides);
 					}
 					else if (arr->itemsize==sizeof(float))
 			   		{
@@ -250,9 +252,9 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 				}
 				else if (arr->typekind == 'c')
 				{
-					if (arr->itemsize==sizeof(complextype))
+					if (arr->itemsize==sizeof(cplx_t))
 				   	{
-						convertNumpyArrayC<complextype>((const complextype*)arr->data, strides);
+						convertNumpyArrayC<DataTypes::cplx_t>((const cplx_t*)arr->data, strides);
 						iscomplex=true;
 					}
 					// not accomodating other types of complex values
@@ -273,7 +275,7 @@ void WrappedArray::convertNumpyArrayC(const T* array, const std::vector<int>& st
 	// this method is only called by the constructor above which does the
 	// necessary checks and initialisations
 	int size=DataTypes::noValues(shape);
-	dat_c=new complextype[size];
+	dat_c=new cplx_t[size];
 	switch (rank)
 	{
 		case 1:
@@ -332,7 +334,7 @@ void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& str
 	// this method is only called by the constructor above which does the
 	// necessary checks and initialisations
 	int size=DataTypes::noValues(shape);
-	dat_r=new double[size];
+	dat_r=new real_t[size];
 	switch (rank)
 	{
 		case 1:
@@ -392,7 +394,7 @@ void WrappedArray::convertArrayR() const
 	    return;				// will just cause an error to be raised later
 	}
 	int size=DataTypes::noValues(shape);
-	double* tdat=new double[size];
+	real_t* tdat=new real_t[size];
 	switch (rank)
 	{
 	case 1: for (int i=0;i<shape[0];i++)
@@ -449,7 +451,7 @@ void WrappedArray::convertArrayC() const
 	    return;				// will just cause an error to be raised later
 	}
 	int size=DataTypes::noValues(shape);
-	complextype* tdat=new complextype[size];
+	cplx_t* tdat=new cplx_t[size];
 	switch (rank)
 	{
 	case 1: for (int i=0;i<shape[0];i++)
