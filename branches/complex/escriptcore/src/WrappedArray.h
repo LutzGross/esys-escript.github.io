@@ -30,23 +30,22 @@ namespace escript
 class WrappedArray
 {
 public:
-	typedef  std::complex<double> complextype;
 	WrappedArray(const boost::python::object& obj_in);
 	~WrappedArray();
 	unsigned int getRank() const;
 	const DataTypes::ShapeType& getShape() const;
 	bool isComplex() const;
-	double getElt() const;
-	double getElt(unsigned int i) const;
-	double getElt(unsigned int i, unsigned int j) const;
-	double getElt(unsigned int i, unsigned int j, unsigned int k) const;
-	double getElt(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const;
+	DataTypes::real_t getElt() const;
+	DataTypes::real_t getElt(unsigned int i) const;
+	DataTypes::real_t getElt(unsigned int i, unsigned int j) const;
+	DataTypes::real_t getElt(unsigned int i, unsigned int j, unsigned int k) const;
+	DataTypes::real_t getElt(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const;
 	
-	complextype getEltC() const;
-	complextype getEltC(unsigned int i) const;
-	complextype getEltC(unsigned int i, unsigned int j) const;
-	complextype getEltC(unsigned int i, unsigned int j, unsigned int k) const;
-	complextype getEltC(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const;
+	DataTypes::cplx_t getEltC() const;
+	DataTypes::cplx_t getEltC(unsigned int i) const;
+	DataTypes::cplx_t getEltC(unsigned int i, unsigned int j) const;
+	DataTypes::cplx_t getEltC(unsigned int i, unsigned int j, unsigned int k) const;
+	DataTypes::cplx_t getEltC(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const;
 	
 	
 	void convertArray() const;
@@ -60,10 +59,10 @@ private:
 	mutable bool converted;		// has the array been converted to a C array
 	bool iscomplex;		// is the wrapped array storing complex values?	
 	escript::DataTypes::ShapeType shape;
-	double scalar_r;
-	complextype scalar_c;
-	mutable double* dat_r;			// real data
-	mutable complextype* dat_c;	// complex data   - only one of these members should be used
+	DataTypes::real_t scalar_r;
+	DataTypes::cplx_t scalar_c;
+	mutable DataTypes::real_t* dat_r;			// real data
+	mutable DataTypes::cplx_t* dat_c;	// complex data   - only one of these members should be used
 };
 
 
@@ -84,7 +83,7 @@ WrappedArray::getShape() const
 	return shape;
 }
 
-inline double
+inline DataTypes::real_t
 WrappedArray::getElt() const
 {
     if (iscomplex)
@@ -95,54 +94,54 @@ WrappedArray::getElt() const
 }
 
 
-inline double
+inline DataTypes::real_t
 WrappedArray::getElt(unsigned int i) const
 {  // __float__ added to deal with numpy. If this causes problems we may have to register a custom converter
     if (iscomplex)
     {
       return nan("");
     }
-    return (dat_r!=0)?dat_r[i]:(boost::python::extract<double>(obj[i].attr("__float__")()));	
+    return (dat_r!=0)?dat_r[i]:(boost::python::extract<DataTypes::real_t>(obj[i].attr("__float__")()));	
 }
 
 inline
-double 
+DataTypes::real_t 
 WrappedArray::getElt(unsigned int i, unsigned int j) const
 {
     if (iscomplex)
     {
       return nan("");
     }  
-    return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j)]:(boost::python::extract<double>(obj[i][j].attr("__float__")()));
+    return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j)]:(boost::python::extract<DataTypes::real_t>(obj[i][j].attr("__float__")()));
 }
 
 inline
-double 
+DataTypes::real_t 
 WrappedArray::getElt(unsigned int i, unsigned int j, unsigned int k) const
 {
     if (iscomplex)
     {
       return nan("");
     }    
-    return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j,k)]:(boost::python::extract<double>(obj[i][j][k].attr("__float__")()));
+    return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j,k)]:(boost::python::extract<DataTypes::real_t>(obj[i][j][k].attr("__float__")()));
 }
 
 inline
-double 
+DataTypes::real_t 
 WrappedArray::getElt(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const
 {
     if (iscomplex)
     {
       return nan("");
     }  
-    return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j,k,m)]:(boost::python::extract<double>(obj[i][j][k][m].attr("__float__")()));
+    return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j,k,m)]:(boost::python::extract<DataTypes::real_t>(obj[i][j][k][m].attr("__float__")()));
 }
 
 
 
 
 
-inline WrappedArray::complextype
+inline DataTypes::cplx_t
 WrappedArray::getEltC() const
 {
     if (!iscomplex)
@@ -153,47 +152,47 @@ WrappedArray::getEltC() const
 }
 
 
-inline WrappedArray::complextype
+inline DataTypes::cplx_t
 WrappedArray::getEltC(unsigned int i) const
 {
     if (!iscomplex)
     {
       return nan("");
     }
-    return (dat_c!=0)?dat_c[i]:(boost::python::extract<complextype>(obj[i]));	// don't know if this will work with numpy	
+    return (dat_c!=0)?dat_c[i]:(boost::python::extract<DataTypes::cplx_t>(obj[i]));	// don't know if this will work with numpy	
 }
 
 inline
-WrappedArray::complextype 
+DataTypes::cplx_t 
 WrappedArray::getEltC(unsigned int i, unsigned int j) const
 {
     if (!iscomplex)
     {
       return nan("");
     }  
-    return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j)]:(boost::python::extract<complextype>(obj[i][j]));
+    return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j)]:(boost::python::extract<DataTypes::cplx_t>(obj[i][j]));
 }
 
 inline
-WrappedArray::complextype 
+DataTypes::cplx_t 
 WrappedArray::getEltC(unsigned int i, unsigned int j, unsigned int k) const
 {
     if (!iscomplex)
     {
       return nan("");
     }    
-    return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j,k)]:(boost::python::extract<complextype>(obj[i][j][k]));
+    return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j,k)]:(boost::python::extract<DataTypes::cplx_t>(obj[i][j][k]));
 }
 
 inline
-WrappedArray::complextype 
+DataTypes::cplx_t 
 WrappedArray::getEltC(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const
 {
     if (!iscomplex)
     {
       return nan("");
     }  
-    return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j,k,m)]:(boost::python::extract<complextype>(obj[i][j][k][m]));
+    return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j,k,m)]:(boost::python::extract<DataTypes::cplx_t>(obj[i][j][k][m]));
 }
 
 

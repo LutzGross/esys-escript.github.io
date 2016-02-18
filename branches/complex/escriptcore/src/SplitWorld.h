@@ -54,7 +54,7 @@ public:
 
     void clearAllJobs();
 
-    double getScalarVariable(const std::string& name);
+    DataTypes::real_t getScalarVariable(const std::string& name);
     boost::python::object getLocalObjectVariable(const std::string& name);
     
     int getSubWorldCount();
