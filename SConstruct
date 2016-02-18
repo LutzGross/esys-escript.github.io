@@ -256,7 +256,7 @@ if cc_name == 'icpc':
     # Intel compiler
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags    = "-fPIC -w2 -wd1875 -Wno-unknown-pragmas"
+    cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -Wno-unknown-pragmas"
     cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
     omp_flags   = "-openmp"
@@ -266,7 +266,7 @@ elif cc_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
+    cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0 -D_GLIBCXX_DEBUG -DDOASSERT -DDOPROF -DBOUNDS_CHECK --param=max-vartrack-size=100000000"
