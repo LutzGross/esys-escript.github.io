@@ -45,7 +45,7 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
   bool set_A;
   dim_t n_loc_rows=A_CC->numRows;
   dim_t n_block=A_CC->row_block_size;
-  register double A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,
+  double A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,
          invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,
          A11=0,A21=0,A31=0,A12=0,A22=0,A32=0,A13=0,A23=0,A33=0,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33;
   if (n_block==1) {

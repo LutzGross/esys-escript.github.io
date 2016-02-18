@@ -38,7 +38,7 @@ using namespace escript::DataTypes;
 namespace
 {
 
-ValueType::const_reference
+RealVectorType::const_reference
 getSRefRO(DataReady& data,int sample, int point)
 {
    return data.getVectorRO()[data.getPointOffset(sample,point)];
@@ -68,13 +68,13 @@ void DataAlgorithmAdapterTestCase::testAll() {
 
   cout << "\tTesting AbsMax." << endl;
 
-  AbsMax absmax;
+  AbsMax<DataTypes::real_t> absmax;
   CPPUNIT_ASSERT(std::abs(absmax(5,6)-6)<=REL_TOL*6);
   CPPUNIT_ASSERT(std::abs(absmax(5,-6)-6)<=REL_TOL*6);
   CPPUNIT_ASSERT(std::abs(absmax(0,0)-0)<=REL_TOL*6);
   CPPUNIT_ASSERT(std::abs(absmax(15,-96)-96)<=REL_TOL*6);
 
-  DataAlgorithmAdapter<AbsMax> Lsup(0);
+  DataAlgorithmAdapter<AbsMax<DataTypes::real_t> > Lsup(0);
   Lsup.resetResult();
   Lsup(-2);
   Lsup(2);
@@ -160,7 +160,7 @@ void DataAlgorithmAdapterTestCase::testAlgorithm() {
     shape.push_back(3);
 
     // allocate the data for the DataArrayView
-    DataTypes::ValueType dataArray(DataTypes::noValues(shape),0);
+    DataTypes::RealVectorType dataArray(DataTypes::noValues(shape),0);
 
     // construct DataArrayView
 //     DataArrayView dataView(dataArray,shape);
@@ -210,8 +210,8 @@ void DataAlgorithmAdapterTestCase::testDpAlgorithm() {
     DataTypes::ShapeType shape2;
 
     // allocate the data for the DataArrayViews
-    DataTypes::ValueType dataArray(DataTypes::noValues(shape),0);
-    DataTypes::ValueType dataArray2(DataTypes::noValues(shape2),0);
+    DataTypes::RealVectorType dataArray(DataTypes::noValues(shape),0);
+    DataTypes::RealVectorType dataArray2(DataTypes::noValues(shape2),0);
 
     // construct DataArrayViews
 //     DataArrayView dataView(dataArray,shape);

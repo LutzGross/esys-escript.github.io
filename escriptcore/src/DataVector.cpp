@@ -31,266 +31,384 @@
 using namespace std;
 using namespace escript;
 using namespace boost::python;
+using namespace DataTypes;
+
+namespace 
+{
+inline  
+void cplxout(std::ostream& os, const DataTypes::cplx_t& c)
+{
+    os << c.real();
+    if (c.imag()>=0)
+    {
+        os << '+';      
+    }
+    os << c.imag() << 'j';
+}
+  
+}
+
 
 namespace escript {
 
-Taipan arrayManager;
-
-void releaseUnusedMemory()
-{
-   arrayManager.release_unused_arrays();
-}
-
-
-DataVector::DataVector() :
-  m_size(0),
-  m_dim(0),
-  m_N(0),
-  m_array_data(0)
-{
-}
-
-DataVector::DataVector(const DataVector& other) :
-  m_size(other.m_size),
-  m_dim(other.m_dim),
-  m_N(other.m_N),
-  m_array_data(0)
-{
-  m_array_data = arrayManager.new_array(m_dim,m_N);
-  int i;
-  #pragma omp parallel for private(i) schedule(static)
-  for (i=0; i<m_size; i++) {
-    m_array_data[i] = other.m_array_data[i];
-  }
-}
-
-DataVector::DataVector(const DataVector::size_type size,
-                       const DataVector::value_type val,
-                       const DataVector::size_type blockSize) :
-  m_size(size),
-  m_dim(blockSize),
-  m_array_data(0)
-{
-  resize(size, val, blockSize);
-}
-
-DataVector::~DataVector()
-{
-  // dispose of data array
-  if (m_array_data!=0) {
-    arrayManager.delete_array(m_array_data);
-  }
-
-  // clear data members
-  m_size = -1;
-  m_dim = -1;
-  m_N = -1;
-  m_array_data = 0;
-}
-
-void
-DataVector::resize(const DataVector::size_type newSize,
-                   const DataVector::value_type newValue,
-                   const DataVector::size_type newBlockSize)
-{
-  assert(m_size >= 0);
-
-			// The < 1 is to catch both ==0 and negatives
-  if ( newBlockSize < 1) {
-    ostringstream oss;
-    oss << "DataVector: invalid blockSize specified (" << newBlockSize << ')';    
-    throw DataException(oss.str());
-  }
-
-  if ( newSize < 0 ) {
-    ostringstream oss;
-    oss << "DataVector: invalid new size specified (" << newSize << ')';
-    throw DataException(oss.str());
-  }
-  if ( (newSize % newBlockSize) != 0) {
-    ostringstream oss;
-    oss << "DataVector: newSize is not a multiple of blockSize: (" << newSize << ", " << newBlockSize<< ')';
-    throw DataException(oss.str());
-  }
-
-  if (m_array_data!=0) {
-    arrayManager.delete_array(m_array_data);
-  }
-
-  m_size = newSize;
-  m_dim = newBlockSize;
-  m_N = newSize / newBlockSize;
-  m_array_data = arrayManager.new_array(m_dim,m_N);
-
-  int i;
-  #pragma omp parallel for private(i) schedule(static)
-  for (i=0; i<m_size; i++) {
-    m_array_data[i] = newValue;
-  }
-}
-
-DataVector&
-DataVector::operator=(const DataVector& other)
-{
-  assert(m_size >= 0);
-
-  if (m_array_data!=0) {
-    arrayManager.delete_array(m_array_data);
-  }
-
-  m_size = other.m_size;
-  m_dim = other.m_dim;
-  m_N = other.m_N;
-
-  m_array_data = arrayManager.new_array(m_dim,m_N);
-  int i;
-  #pragma omp parallel for private(i) schedule(static)
-  for (i=0; i<m_size; i++) {
-    m_array_data[i] = other.m_array_data[i];
-  }
-
-  return *this;
-}
-
-bool
-DataVector::operator==(const DataVector& other) const
-{
-  assert(m_size >= 0);
-
-  if (m_size!=other.m_size) {
-    return false;
-  }
-  if (m_dim!=other.m_dim) {
-    return false;
-  }
-  if (m_N!=other.m_N) {
-    return false;
-  }
-  for (int i=0; i<m_size; i++) {
-    if (m_array_data[i] != other.m_array_data[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool
-DataVector::operator!=(const DataVector& other) const
-{
-  return !(*this==other);
-}
-
-void 
-DataVector::copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies)
-{
-  using DataTypes::ValueType;
-  const DataTypes::ShapeType& tempShape=value.getShape();
-  size_type len=DataTypes::noValues(tempShape);
-  if (offset+len*copies>size())
-  {
-     ostringstream ss;
-     ss << "Error - not enough room for that DataPoint at that offset. (";
-     ss << "offset=" << offset << " + " << " len=" << len << " >= " << size();
-     throw DataException(ss.str());
-  }
-  size_t si=0,sj=0,sk=0,sl=0;
-  switch (value.getRank())
-  {
-  case 0:	
-	for (size_type z=0;z<copies;++z)
-	{
-	   m_array_data[offset+z]=value.getElt();
-	}
-	break;
-  case 1:
-	for (size_type z=0;z<copies;++z)
-	{
-	   for (size_t i=0;i<tempShape[0];++i)
-	   {
-	      m_array_data[offset+i]=value.getElt(i);
-	   }
-	   offset+=len;
-	}
-	break;
-  case 2:
-	si=tempShape[0];
-	sj=tempShape[1];
-	for (size_type z=0;z<copies;++z)
-	{
-           for (ValueType::size_type i=0;i<si;i++)
-	   {
-              for (ValueType::size_type j=0;j<sj;j++)
-	      {
-                 m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
-              }
-           }
-	   offset+=len;
-	}
-	break;
-  case 3:
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	for (size_type z=0;z<copies;++z) 
-	{
-          for (ValueType::size_type i=0;i<si;i++)
-	  {
-            for (ValueType::size_type j=0;j<sj;j++)
+   void
+   DataTypes::pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
+   {
+      using namespace std;
+      EsysAssert(data!=0, "Error - data is null");
+//      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      switch (getRank(shape)) {
+      case 0:
+	 if (needsep)
+	 {
+		os << sep;
+	 }
+	 else
+	 {
+		needsep=true;
+	 }
+         cplxout(os,data[offset]);
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+	    if (needsep)
 	    {
-              for (ValueType::size_type k=0;k<sk;k++)
-	      {
-                 m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
-              }
-            }
-          }
-	  offset+=len;
-	}
-	break;
-  case 4:
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	sl=tempShape[3];
-	for (size_type z=0;z<copies;++z)
-	{
-          for (ValueType::size_type i=0;i<si;i++)
-	  {
-            for (ValueType::size_type j=0;j<sj;j++)
+		os << sep;
+	    }
+	    else
 	    {
-              for (ValueType::size_type k=0;k<sk;k++)
-	      {
-                 for (ValueType::size_type l=0;l<sl;l++)
-		 {
-                    m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
-                 }
-              }
+		needsep=true;
+	    }
+	    cplxout(os,data[i+offset]);
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+		if (needsep)
+		{
+			os << sep;
+		}
+		else
+		{
+			needsep=true;
+		}
+                cplxout(os,data[offset+getRelIndex(shape,i,j)]);
             }
-          }
-	  offset+=len;
-	}
-	break;
-  default:
-	ostringstream oss;
-	oss << "Error - unknown rank. Rank=" << value.getRank();
-	throw DataException(oss.str());
-  }
-}
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+		   if (needsep)
+		   {
+			os << sep;
+		   }
+		   else
+		   {
+			needsep=true;
+		   }
+                   cplxout(os,data[offset+getRelIndex(shape,i,j,k)]);
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+			if (needsep)
+			{
+				os << sep;
+			}
+			else
+			{
+				needsep=true;
+			}
+			cplxout(os,data[offset+getRelIndex(shape,i,j,k,l)]);
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+   }
 
 
-void
-DataVector::copyFromArray(const WrappedArray& value, size_type copies)
-{
-  using DataTypes::ValueType;
-  if (m_array_data!=0) {
-    arrayManager.delete_array(m_array_data);
-  }
-  DataTypes::ShapeType tempShape=value.getShape();
-  DataVector::size_type nelements=DataTypes::noValues(tempShape)*copies;
-  m_array_data = arrayManager.new_array(1,nelements);
-  m_size=nelements;	// total amount of elements
-  m_dim=m_size;		// elements per sample
-  m_N=1;			// number of samples
-  copyFromArrayToOffset(value,0,copies);
-}
+   void
+   DataTypes::pointToStream(std::ostream& os, const RealVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
+   {
+      using namespace std;
+      EsysAssert(data!=0, "Error - data is null");
+//      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      switch (getRank(shape)) {
+      case 0:
+	 if (needsep)
+	 {
+		os << sep;
+	 }
+	 else
+	 {
+		needsep=true;
+	 }
+         os << data[offset];
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+	    if (needsep)
+	    {
+		os << sep;
+	    }
+	    else
+	    {
+		needsep=true;
+	    }
+	    os << data[i+offset];
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+		if (needsep)
+		{
+			os << sep;
+		}
+		else
+		{
+			needsep=true;
+		}
+                os << data[offset+getRelIndex(shape,i,j)];
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+		   if (needsep)
+		   {
+			os << sep;
+		   }
+		   else
+		   {
+			needsep=true;
+		   }
+                   os << data[offset+getRelIndex(shape,i,j,k)];
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+			if (needsep)
+			{
+				os << sep;
+			}
+			else
+			{
+				needsep=true;
+			}
+			os << data[offset+getRelIndex(shape,i,j,k,l)];
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+   }
+
+
+   std::string
+   DataTypes::pointToString(const CplxVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
+   {
+      using namespace std;
+      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      stringstream temp;
+      string finalPrefix=prefix;
+      if (prefix.length() > 0) {
+         finalPrefix+=" ";
+      }
+      switch (getRank(shape)) {
+      case 0:
+         temp << finalPrefix;
+	 cplxout(temp,data[offset]);
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+            temp << finalPrefix << "(" << i <<  ") ";
+	    cplxout(temp,data[i+offset]);
+            if (i!=(shape[0]-1)) {
+               temp << endl;
+            }
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               temp << finalPrefix << "(" << i << "," << j << ") ";
+	       	 cplxout(temp,data[offset+getRelIndex(shape,i,j)]);
+               if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
+                  temp << endl;
+               }
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  temp << finalPrefix << "(" << i << "," << j << "," << k << ") ";
+		  cplxout(temp,data[offset+getRelIndex(shape,i,j,k)]);
+                  if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
+                     temp << endl;
+                  }
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+                     temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") ";
+		     cplxout(temp,data[offset+getRelIndex(shape,i,j,k,l)]);
+                     if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
+                        temp << endl;
+                     }
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (toString) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+      return temp.str();
+   }
+
+   std::string
+   DataTypes::pointToString(const RealVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
+   {
+      using namespace std;
+      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      stringstream temp;
+      string finalPrefix=prefix;
+      if (prefix.length() > 0) {
+         finalPrefix+=" ";
+      }
+      switch (getRank(shape)) {
+      case 0:
+         temp << finalPrefix << data[offset];
+         break;
+      case 1:
+         for (int i=0;i<shape[0];i++) {
+            temp << finalPrefix << "(" << i <<  ") " << data[i+offset];
+            if (i!=(shape[0]-1)) {
+               temp << endl;
+            }
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               temp << finalPrefix << "(" << i << "," << j << ") " << data[offset+getRelIndex(shape,i,j)];
+               if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
+                  temp << endl;
+               }
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  temp << finalPrefix << "(" << i << "," << j << "," << k << ") " << data[offset+getRelIndex(shape,i,j,k)];
+                  if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
+                     temp << endl;
+                  }
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+                     temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") " << data[offset+getRelIndex(shape,i,j,k,l)];
+                     if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
+                        temp << endl;
+                     }
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (toString) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+      return temp.str();
+   }
+
+
+   void DataTypes::copyPoint(RealVectorType& dest, RealVectorType::size_type doffset, RealVectorType::size_type nvals, const RealVectorType& src, RealVectorType::size_type soffset)
+   {
+      EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
+                 "Error - Couldn't copy due to insufficient storage.");
+      if (checkOffset(doffset,dest.size(),nvals) && checkOffset(soffset,src.size(),nvals)) {
+         memcpy(&dest[doffset],&src[soffset],sizeof(real_t)*nvals);
+      } else {
+         throw DataException("Error - invalid offset specified.");
+      }
+   } 
+   
+   void DataTypes::copyPoint(CplxVectorType& dest, CplxVectorType::size_type doffset, CplxVectorType::size_type nvals, const CplxVectorType& src, CplxVectorType::size_type soffset)
+   {
+      EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
+                 "Error - Couldn't copy due to insufficient storage.");
+      if (checkOffset(doffset,dest.size(),nvals) && checkOffset(soffset,src.size(),nvals)) {
+         memcpy(&dest[doffset],&src[soffset],sizeof(cplx_t)*nvals);
+      } else {
+         throw DataException("Error - invalid offset specified.");
+      }
+   }    
+   
+   
+   /**
+    * \brief copy data from a real vector to a complex vector
+    * The complex vector will be resized as needed and any previous
+    * values will be replaced.
+   */
+   void DataTypes::fillComplexFromReal(const RealVectorType& r, CplxVectorType& c)
+   {
+       if (c.size()!=r.size())
+       {
+	   c.resize(r.size(), 0, 1);
+       }
+       size_t limit=r.size();
+       #pragma omp parallel for schedule(static)
+       for (size_t i=0;i<limit;++i)
+       {
+	   c[i]=r[i];
+       }
+   }
 
 } // end of namespace

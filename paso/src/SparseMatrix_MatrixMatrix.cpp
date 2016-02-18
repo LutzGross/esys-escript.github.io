@@ -115,7 +115,7 @@ void SparseMatrix_MatrixMatrix_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
     const dim_t B_block_size =B->block_size;
     const dim_t A_block_size =A->block_size;
     double *C_ij, *A_ik, *B_kj;
-    register double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
+    double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
     dim_t i, ib, irb, icb;
     index_t ij_ptrC, j, ik_ptrA, k, kj_ptrB, *start_p, *where_p;
 
@@ -421,7 +421,7 @@ void SparseMatrix_MatrixMatrix_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
     const dim_t B_block_size =B->block_size;
     const dim_t A_block_size =A->block_size;
     double *C_ij, *A_ik, *B_kj;
-    register double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
+    double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
     dim_t i, ib, irb, icb;
     index_t ij_ptrC, j, ik_ptrA, k, kj_ptrB, *start_p, *where_p;
 
@@ -656,7 +656,7 @@ void SparseMatrix_MatrixMatrix_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
     const dim_t B_block_size =B->block_size;
     const dim_t A_block_size =A->block_size;
     double *C_ij, *A_ik, *B_kj;
-    register double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
+    double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
     dim_t i, ib, irb, icb;
     index_t ij_ptrC, j, ik_ptrA, k, kj_ptrB, *start_p, *where_p;
 
@@ -887,7 +887,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
     const dim_t B_block_size =B->block_size;
     const dim_t A_block_size =A->block_size;
     double *C_ij, *A_ik, *B_kj;
-    register double C_ij_0, C_ij_1, C_ij_2, C_ij_3;
+    double C_ij_0, C_ij_1, C_ij_2, C_ij_3;
     dim_t i, ib;
     index_t ij_ptrC, j, ik_ptrA, k, kj_ptrB, *start_p, *where_p;
 

@@ -20,7 +20,6 @@
 #include "system_dep.h"
 
 #include "DataReady.h"
-#include "DataBlocks2D.h"
 
 namespace escript {
 
@@ -92,13 +91,26 @@ TODO Note that this constructor will also copy data to all points if it only con
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const DataTypes::ValueType &data);
+               const DataTypes::RealVectorType &data);
+  
+  
+  ESCRIPT_DLL_API
+  DataExpanded(const FunctionSpace& what,
+               const DataTypes::ShapeType &shape,
+               const DataTypes::CplxVectorType &data);
+  
 
 	       
   ESCRIPT_DLL_API
   DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const double data);	       
+               const DataTypes::real_t data);	       
+  
+  ESCRIPT_DLL_API
+  DataExpanded(const FunctionSpace& what,
+               const DataTypes::ShapeType &shape,
+               const DataTypes::cplx_t data);	       
+  
 	       
   /**
      \brief
@@ -158,7 +170,11 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
+
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(DataTypes::cplx_t value);
     
   /**
      \brief
@@ -175,7 +191,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  deepCopy();
+  deepCopy() const;
 
 
  /**
@@ -217,15 +233,15 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  ESCRIPT_DLL_API
-  virtual
-  DataTypes::ValueType::size_type
-  getPointOffset(int sampleNo,
-                 int dataPointNo);
+//   ESCRIPT_DLL_API
+//   virtual
+//   DataTypes::RealVectorType::size_type
+//   getPointOffset(int sampleNo,
+//                  int dataPointNo);
 
   /**
      \brief
@@ -233,14 +249,32 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
 
   ESCRIPT_DLL_API
-  DataTypes::ValueType&
+  DataTypes::RealVectorType&
   getVectorRW();
 
   ESCRIPT_DLL_API
-  const DataTypes::ValueType&
+  const DataTypes::RealVectorType&
   getVectorRO() const;
 
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType&
+  getVectorRWC();
 
+  ESCRIPT_DLL_API
+  const DataTypes::CplxVectorType&
+  getVectorROC() const;
+  
+  virtual DataTypes::RealVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy);  
+  
+  virtual const DataTypes::RealVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const;
+
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy);
+  
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const;    
 
   /**
      \brief
@@ -248,7 +282,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -291,10 +325,14 @@ TODO Note that this constructor will also copy data to all points if it only con
   void  
   setTaggedValue(int tagKey,
  	         const DataTypes::ShapeType& pointshape,
-                 const DataTypes::ValueType& value,
+                 const DataTypes::RealVectorType& value,
 		 int dataOffset=0);
 
-
+  void  
+  setTaggedValue(int tagKey,
+ 	         const DataTypes::ShapeType& pointshape,
+                 const DataTypes::CplxVectorType& value,
+		 int dataOffset=0);
 
   /**
      \brief
@@ -390,6 +428,9 @@ TODO Note that this constructor will also copy data to all points if it only con
   virtual void
   reorderByReferenceIDs(dim_t *reference_ids);
 
+  ESCRIPT_DLL_API
+  void
+  complicate();
  protected:
 
  private:
@@ -407,10 +448,13 @@ TODO Note that this constructor will also copy data to all points if it only con
 
      \param noSamples - Input - number of samples.
      \param noDataPointsPerSample - Input - number of data points per sample.
+     \param cplx - Input - is this data complex?
   */
   void
   initialise(int noSamples,
-             int noDataPointsPerSample);
+             int noDataPointsPerSample,
+	     bool cplx
+	    );
 
   /**
      \brief
@@ -468,8 +512,8 @@ TODO Note that this constructor will also copy data to all points if it only con
   //
   // The main data storage array, a 2D array of data blocks.
   // noSamples * noDataPointsPerSample
-  DataBlocks2D m_data;
-
+  DataTypes::RealVectorType m_data_r;
+  DataTypes::CplxVectorType m_data_c;
 };
 
 } // end of namespace

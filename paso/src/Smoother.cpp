@@ -231,9 +231,9 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
     double *diag = smoother->diag;
     index_t* pivot = smoother->pivot;
     const dim_t block_len=A->block_size;
-    register dim_t i,k;
-    register index_t iptr_ik, mm;
-    register double rtmp;
+    dim_t i,k;
+    index_t iptr_ik, mm;
+    double rtmp;
     int failed = 0;
     const index_t* ptr_main = A->borrowMainDiagonalPointer();
 
@@ -347,9 +347,9 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
     const dim_t block_len=A->block_size;
     double *y;
 
-    register dim_t i,k;
-    register index_t color,iptr_ik, mm;
-    register double rtmp;
+    dim_t i,k;
+    index_t color,iptr_ik, mm;
+    double rtmp;
     int failed = 0;
 
     const index_t* coloring = A->pattern->borrowColoringPointer();

@@ -71,7 +71,7 @@ public:
     bool deliverImports(std::string& errmsg);	// load imports into Job objects
     bool amLeader();	// true if this proc is the leader for its world
     
-    double getScalarVariable(const std::string& name);
+    DataTypes::real_t getScalarVariable(const std::string& name);
     boost::python::object getLocalObjectVariable(const std::string& name);    
     
     void debug();	// print out current state information

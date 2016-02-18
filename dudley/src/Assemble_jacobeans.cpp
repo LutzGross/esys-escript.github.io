@@ -59,13 +59,13 @@ void Dudley_Assemble_jacobeans_2D(double *coordinates, dim_t numQuad, dim_t numE
 {
 #define DIM 2
 #define LOCDIM 2
-    register int e, q;
+    int e, q;
     char error_msg[LenErrorMsg_MAX];
     const dim_t numTest = 3;	/* hoping this is used in constant folding */
     *quadweight = (numQuad == 1) ? 1. / 2 : 1. / 6;	/* numQuad is 1 or 3 */
 #pragma omp parallel
     {
-	register double dXdv00, dXdv10, dXdv01, dXdv11, dvdX00, dvdX10, dvdX01, dvdX11, D, invD;
+	double dXdv00, dXdv10, dXdv01, dXdv11, dvdX00, dvdX10, dvdX01, dvdX11, D, invD;
 #pragma omp for private(e,q, dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD) schedule(static)
 	for (e = 0; e < numElements; e++)
 	{
@@ -150,14 +150,14 @@ void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 {
 #define DIM 2
 #define LOCDIM 1
-    register int e;
+    int e;
     char error_msg[LenErrorMsg_MAX];
     const dim_t numTest = 2;
     *quadweight = (numQuad == 1) ? 1.0 : 0.5;
     /* numQuad is 1 or 2 */
 #pragma omp parallel
     {
-	register double dXdv00, dXdv10, dvdX00, dvdX01, D, invD;
+	double dXdv00, dXdv10, dvdX00, dvdX01, D, invD;
 #pragma omp for private(e,dXdv00,dXdv10,dvdX00,dvdX01,D,invD) schedule(static)
 	for (e = 0; e < numElements; e++)
 	{
@@ -218,7 +218,7 @@ void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numE
 
 #pragma omp parallel
     {
-	register double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, dXdv02, dXdv12, dXdv22,
+	double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, dXdv02, dXdv12, dXdv22,
 	    dvdX00, dvdX10, dvdX20, dvdX01, dvdX11, dvdX21, dvdX02, dvdX12, dvdX22, D, invD, X0_loc, X1_loc, X2_loc;
 #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22,dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22,D,invD,X0_loc,X1_loc,X2_loc) schedule(static)
 	for (e = 0; e < numElements; e++)
@@ -296,7 +296,7 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, di
 {
 #define DIM 3
 #define LOCDIM 2
-    register int e, q, s;
+    int e, q, s;
     char error_msg[LenErrorMsg_MAX];
     const double DTDV[3][2] = { {-1., -1.}, {1., 0.}, {0., 1.} };
     const dim_t numShape = 3, numTest = 3;
@@ -304,7 +304,7 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, di
     *quadweight = (numQuad == 1) ? 1. / 2 : 1. / 6;
 #pragma omp parallel
     {
-	register double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, m00, m01, m11,
+	double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, m00, m01, m11,
 	    dvdX00, dvdX01, dvdX02, dvdX10, dvdX11, dvdX12, D, invD, X0_loc, X1_loc, X2_loc;
 #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,m00,m01,m11,dvdX00,dvdX01,dvdX02,dvdX10,dvdX11,dvdX12,D,invD, X0_loc, X1_loc, X2_loc) schedule(static)
 	for (e = 0; e < numElements; e++)

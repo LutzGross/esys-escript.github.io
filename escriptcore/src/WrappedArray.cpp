@@ -26,6 +26,8 @@
 
 using namespace escript;
 using namespace boost::python;
+using DataTypes::cplx_t;
+using DataTypes::real_t;
 
 namespace
 {
@@ -52,6 +54,55 @@ void checkFeatures(const boost::python::object& obj)
 	   PyErr_Clear();
 	   throw DataException("Object passed to WrappedArray must support __getitem__");
 	}
+}
+
+
+// This should not be called on anything which does
+// not have a __len__
+bool checkForComplex(const boost::python::object& obj)
+{
+    try
+    {
+	int len=extract<int>(obj.attr("__len__")());
+	for (int i=0;i<len;++i)
+	{
+	    const boost::python::object t=obj[i];
+	    bool haslen=false;
+	    try
+            {
+	        extract<int>(t.attr("__len__")());
+	        haslen=true;
+	    }
+	    catch(...)
+	    {
+		PyErr_Clear();
+	    }
+	    	// If it has a length, we dig down
+		// if not, we test for complex
+	    if (haslen)
+	    {
+                if (checkForComplex(t))
+		{
+		    return true;
+		}
+	    }
+	    else
+	    {
+		extract<DataTypes::real_t> er(t);
+		if (!er.check())
+		{
+		    return true;
+		}
+	    }
+	}
+	return false;
+    }
+    catch(...)
+    {
+        PyErr_Clear();
+	return false;
+    }
+    return false;
 }
 
 void getObjShape(const boost::python::object& obj, DataTypes::ShapeType& s)
@@ -82,14 +133,25 @@ void getObjShape(const boost::python::object& obj, DataTypes::ShapeType& s)
 }
 
 WrappedArray::WrappedArray(const boost::python::object& obj_in)
-:obj(obj_in)
+:obj(obj_in),iscomplex(false),scalar_r(nan("")),scalar_c(nan(""))
 {
-	dat=0;
+	dat_r=0;
+	dat_c=0;
 	// First we check for scalars
 	try
 	{
-	   double v=extract<double>(obj_in);
-	   m_scalar=v;
+	   extract<DataTypes::cplx_t> ec(obj_in);
+	   extract<real_t> er(obj_in);
+	   if (er.check())		// check for real_t first because complex will fail this
+	   {
+	      scalar_r=er();
+	   }
+	   else
+	   {
+	      scalar_c=ec();
+	      iscomplex=true;
+	     
+	   }
 	   rank=0;
 	   return;
 	} 
@@ -99,8 +161,19 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	}
 	try
 	{
-	   double v=extract<double>(obj_in[make_tuple()]);
-	   m_scalar=v;
+	   const boost::python::object obj_in_t=obj_in[make_tuple()];
+	   extract<DataTypes::cplx_t> ec(obj_in_t);
+	   extract<real_t> er(obj_in_t);
+	   if (er.check())
+	   {	     
+	      scalar_r=er();
+	     
+	   }
+	   else
+	   {
+	      scalar_c=ec();
+	      iscomplex=true;
+	   }	   
 	   rank=0;
 	   return;
 	} 
@@ -110,10 +183,12 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	}
 
 
-	m_scalar=0;
+	scalar_c=0;
+	scalar_r=0;
 	checkFeatures(obj_in);
 	getObjShape(obj,shape);
 	rank=shape.size();
+	iscomplex=checkForComplex(obj_in);
 
 #if HAVE_NUMPY_H
 	// if obj is a numpy array it is much faster to copy the array through the
@@ -144,9 +219,9 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 
 				if (arr->typekind == 'f')
 				{
-					if (arr->itemsize==sizeof(double))
+					if (arr->itemsize==sizeof(real_t))
 					{
-						convertNumpyArray<double>((const double*)arr->data, strides);
+						convertNumpyArray<real_t>((const real_t*)arr->data, strides);
 					}
 					else if (arr->itemsize==sizeof(float))
 			   		{
@@ -175,6 +250,15 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 						convertNumpyArray<unsigned long>((const unsigned long*)arr->data, strides);
 					}
 				}
+				else if (arr->typekind == 'c')
+				{
+					if (arr->itemsize==sizeof(cplx_t))
+				   	{
+						convertNumpyArrayC<DataTypes::cplx_t>((const cplx_t*)arr->data, strides);
+						iscomplex=true;
+					}
+					// not accomodating other types of complex values
+				}				
 			}
 		}
 	} catch (...)
@@ -184,20 +268,21 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 #endif
 }
 
+
 template<typename T>
-void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& strides) const
+void WrappedArray::convertNumpyArrayC(const T* array, const std::vector<int>& strides) const
 {
 	// this method is only called by the constructor above which does the
 	// necessary checks and initialisations
 	int size=DataTypes::noValues(shape);
-	dat=new double[size];
+	dat_c=new cplx_t[size];
 	switch (rank)
 	{
 		case 1:
 #pragma omp parallel for
 			for (int i=0;i<shape[0];i++)
 			{
-				dat[i]=array[i*strides[0]];
+				dat_c[i]=array[i*strides[0]];
 			}
 		break;
 		case 2:
@@ -206,7 +291,7 @@ void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& str
 			{
 				for (int j=0;j<shape[1];j++)
 				{
-					dat[DataTypes::getRelIndex(shape,i,j)]=array[i*strides[0]+j*strides[1]];
+					dat_c[DataTypes::getRelIndex(shape,i,j)]=array[i*strides[0]+j*strides[1]];
 				}
 			}
 		break;
@@ -218,7 +303,7 @@ void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& str
 				{
 					for (int k=0;k<shape[2];k++)
 					{
-						dat[DataTypes::getRelIndex(shape,i,j,k)]=array[i*strides[0]+j*strides[1]+k*strides[2]];
+						dat_c[DataTypes::getRelIndex(shape,i,j,k)]=array[i*strides[0]+j*strides[1]+k*strides[2]];
 					}
 				}
 			}
@@ -233,7 +318,7 @@ void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& str
 					{
 						for (int m=0;m<shape[3];m++)
 						{
-							dat[DataTypes::getRelIndex(shape,i,j,k,m)]=array[i*strides[0]+j*strides[1]+k*strides[2]+m*strides[3]];
+							dat_c[DataTypes::getRelIndex(shape,i,j,k,m)]=array[i*strides[0]+j*strides[1]+k*strides[2]+m*strides[3]];
 						}
 					}
 				}
@@ -242,14 +327,74 @@ void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& str
 	}
 }
 
-void WrappedArray::convertArray() const
+
+template<typename T>
+void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& strides) const
 {
-	if ((dat!=0) || (rank<=0) || (rank>4))	// checking illegal rank here to avoid memory issues later
+	// this method is only called by the constructor above which does the
+	// necessary checks and initialisations
+	int size=DataTypes::noValues(shape);
+	dat_r=new real_t[size];
+	switch (rank)
+	{
+		case 1:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				dat_r[i]=array[i*strides[0]];
+			}
+		break;
+		case 2:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				for (int j=0;j<shape[1];j++)
+				{
+					dat_r[DataTypes::getRelIndex(shape,i,j)]=array[i*strides[0]+j*strides[1]];
+				}
+			}
+		break;
+		case 3:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				for (int j=0;j<shape[1];j++)
+				{
+					for (int k=0;k<shape[2];k++)
+					{
+						dat_r[DataTypes::getRelIndex(shape,i,j,k)]=array[i*strides[0]+j*strides[1]+k*strides[2]];
+					}
+				}
+			}
+		break;
+		case 4:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				for (int j=0;j<shape[1];j++)
+				{
+					for (int k=0;k<shape[2];k++)
+					{
+						for (int m=0;m<shape[3];m++)
+						{
+							dat_r[DataTypes::getRelIndex(shape,i,j,k,m)]=array[i*strides[0]+j*strides[1]+k*strides[2]+m*strides[3]];
+						}
+					}
+				}
+			}
+		break;
+	}
+}
+
+
+void WrappedArray::convertArrayR() const
+{
+	if ((converted) || (rank<=0) || (rank>4))	// checking illegal rank here to avoid memory issues later
 	{					// yes the failure is silent here but not doing the copy 
 	    return;				// will just cause an error to be raised later
 	}
 	int size=DataTypes::noValues(shape);
-	double* tdat=new double[size];
+	real_t* tdat=new real_t[size];
 	switch (rank)
 	{
 	case 1: for (int i=0;i<shape[0];i++)
@@ -294,15 +439,90 @@ void WrappedArray::convertArray() const
 		;  // do nothing
 		// can't happen. We've already checked the bounds above
 	}
-	dat=tdat;
+	dat_r=tdat;    
+	converted=true;
+}  
+
+
+void WrappedArray::convertArrayC() const
+{
+	if ((converted) || (rank<=0) || (rank>4))	// checking illegal rank here to avoid memory issues later
+	{					// yes the failure is silent here but not doing the copy 
+	    return;				// will just cause an error to be raised later
+	}
+	int size=DataTypes::noValues(shape);
+	cplx_t* tdat=new cplx_t[size];
+	switch (rank)
+	{
+	case 1: for (int i=0;i<shape[0];i++)
+		{
+			tdat[i]=getElt(i);
+		}
+		break;
+	case 2: for (int i=0;i<shape[0];i++)
+		{
+		    for (int j=0;j<shape[1];j++)
+		    {
+			tdat[DataTypes::getRelIndex(shape,i,j)]=getElt(i,j);
+		    }
+		}
+		break;
+	case 3: for (int i=0;i<shape[0];i++)
+		{
+		    for (int j=0;j<shape[1];j++)
+		    {
+			for (int k=0;k<shape[2];k++)
+			{
+			    tdat[DataTypes::getRelIndex(shape,i,j,k)]=getElt(i,j,k);
+			}
+		    }
+		}
+		break;
+	case 4: for (int i=0;i<shape[0];i++)
+		{
+		    for (int j=0;j<shape[1];j++)
+		    {
+			for (int k=0;k<shape[2];k++)
+			{
+			    for (int m=0;m<shape[3];m++)
+			    {
+			    	tdat[DataTypes::getRelIndex(shape,i,j,k,m)]=getElt(i,j,k,m);
+			    }
+			}
+		    }
+		}
+		break;
+	default:
+		;  // do nothing
+		// can't happen. We've already checked the bounds above
+	}
+	dat_c=tdat;    
+	converted=true;
+}  
+
+
+void WrappedArray::convertArray() const
+{
+    if (iscomplex)
+    {
+	convertArrayC();
+    }
+    else
+    {
+	convertArrayR();
+    }
 }
 
 WrappedArray::~WrappedArray()
 {
-	if (dat!=0)
-	{
-	    delete[] dat;
-	}
+    if (dat_r!=0)
+    {
+	delete[] dat_r;
+    }
+    if (dat_c!=0)
+    {
+	delete[] dat_c;
+    }
 }
 
 

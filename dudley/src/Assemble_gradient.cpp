@@ -37,9 +37,9 @@ void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elem
 			      escript::Data* grad_data, const escript::Data* data)
 {
     size_t localGradSize = 0;
-    register dim_t e, q, l, s, n;
-    register __const double *data_array;
-    register double *grad_data_e;
+    dim_t e, q, l, s, n;
+    __const double *data_array;
+    double *grad_data_e;
     dim_t numNodes = 0, numShapesTotal = 0, numComps, NN = 0, numDim = 0, numQuad = 0;
     type_t data_type = getFunctionSpaceType(data);
     bool reducedIntegrationOrder = FALSE;

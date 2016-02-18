@@ -149,9 +149,9 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //    DataArrayView sourceView(sourceData, sourceShape);
-    DataVector targetData(1, 2.0, 1);
+    RealVectorType targetData(1, 2.0, 1);
 //    DataArrayView targetView(targetData, DataTypes::ShapeType());
 
     // Copy source view to target view.
@@ -177,9 +177,9 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
-    DataVector targetData(1, 2.0, 1);
+    RealVectorType targetData(1, 2.0, 1);
 //     DataArrayView targetView(targetData, DataTypes::ShapeType());
 
     // Copy source view to target view.
@@ -205,14 +205,14 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
     //DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceData[i]=i;
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
     //DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -242,7 +242,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
 
     for (int i=0;i<sourceShape[0];i++) {
@@ -250,7 +250,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -282,14 +282,14 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     for (int i=0;i<sourceShape[0];i++) {
       sourceData[i]=i;
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -320,12 +320,12 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     sourceData[0]=5;
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -356,7 +356,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -366,7 +366,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -399,7 +399,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -409,7 +409,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -442,7 +442,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -452,7 +452,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -488,7 +488,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -498,7 +498,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -533,12 +533,12 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     sourceData[0]=5;
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -573,7 +573,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -585,7 +585,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -626,7 +626,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -638,7 +638,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -678,7 +678,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -690,7 +690,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -727,7 +727,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -739,7 +739,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -776,7 +776,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -788,7 +788,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -825,12 +825,12 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     sourceData[0]=5;
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 
     // Copy source view to target view.
 //     targetView.copySliceFrom(sourceView,region);
@@ -868,7 +868,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -882,7 +882,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -928,7 +928,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -942,7 +942,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -985,7 +985,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -999,7 +999,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -1041,7 +1041,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -1055,7 +1055,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -1096,7 +1096,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
     //DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -1110,7 +1110,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -1151,7 +1151,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     int val=0;
     for (int i=0;i<sourceShape[0];i++) {
@@ -1165,7 +1165,7 @@ void DataTypesTestCase::testSlicing() {
     }
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.
@@ -1206,12 +1206,12 @@ void DataTypesTestCase::testSlicing() {
 
     // Create source and target views.
     int len = DataTypes::noValues(sourceShape);
-    DataVector sourceData(len, 2.0, len);
+    RealVectorType sourceData(len, 2.0, len);
 //     DataArrayView sourceView(sourceData, sourceShape);
     sourceData[0]=5;
 
     len = DataTypes::noValues(targetShape);
-    DataVector targetData(len, 2.0, len);
+    RealVectorType targetData(len, 2.0, len);
 //     DataArrayView targetView(targetData, targetShape);
 
     // Copy source view to target view.

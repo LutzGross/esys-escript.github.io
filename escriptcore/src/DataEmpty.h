@@ -69,7 +69,7 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  deepCopy();
+  deepCopy() const;
 
 
   /**
@@ -82,13 +82,13 @@ typedef DataReady parent;
    */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -99,7 +99,7 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -161,15 +161,36 @@ typedef DataReady parent;
 	\brief Provide access to underlying storage. Internal use only!
   */
   ESCRIPT_DLL_API
-  virtual DataTypes::ValueType&
+  virtual DataTypes::RealVectorType&
   getVectorRW();
 
 
   ESCRIPT_DLL_API
-  virtual const DataTypes::ValueType&
+  virtual const DataTypes::RealVectorType&
   getVectorRO() const;
 
+  ESCRIPT_DLL_API
+  virtual DataTypes::CplxVectorType&
+  getVectorRWC();
 
+
+  ESCRIPT_DLL_API
+  virtual const DataTypes::CplxVectorType&
+  getVectorROC() const;
+  
+  virtual DataTypes::RealVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy);  
+  
+  virtual const DataTypes::RealVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const;
+
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy);
+  
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const;      
+  
+  
  private:
 
 //  /**

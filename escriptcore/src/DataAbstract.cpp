@@ -91,17 +91,22 @@ DataAbstract::isLazy() const
     return (dynamic_cast<const DataLazy*>(this)!=0);
 }
 
+bool
+DataAbstract::isComplex() const
+{
+    return m_iscompl;
+}
 
 
-DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty):
+DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty, bool isCplx):
     m_lazyshared(false),
     m_noSamples(what.getNumSamples()),
     m_noDataPointsPerSample(what.getNumDPPSample()),
+    m_iscompl(isCplx),
     m_functionSpace(what),
     m_shape(shape),
     m_novalues(DataTypes::noValues(shape)),
     m_rank(DataTypes::getRank(shape))
-
 {
 #ifdef EXWRITECHK
     exclusivewritecalled=false;
@@ -162,10 +167,17 @@ DataAbstract::dump(const std::string fileName) const
 
 
 
-DataAbstract::ValueType::value_type*
+DataTypes::real_t*
 DataAbstract::getSampleDataByTag(int tag)
 {
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
+}
+
+
+DataTypes::cplx_t*
+DataAbstract::getSampleDataByTag_C(int tag)
+{
+    throw DataException("Error - DataAbstract::getSampleDataByTag_C: Data type does not have complex tag values.");
 }
 
 size_t
@@ -179,12 +191,20 @@ DataAbstract::getTagCount() const
 void  
 DataAbstract::setTaggedValue(int tagKey,
            const DataTypes::ShapeType& pointshape,
-               const DataTypes::ValueType& value,
+           const DataTypes::RealVectorType& value,
            int dataOffset)
 {
     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
 }
 
+void  
+DataAbstract::setTaggedValue(int tagKey,
+           const DataTypes::ShapeType& pointshape,
+           const DataTypes::CplxVectorType& value,
+           int dataOffset)
+{
+    throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
+}
 
 int
 DataAbstract::getTagNumber(int dpno)
@@ -312,6 +332,11 @@ void DataAbstract::makeLazyShared()
         m_owners[i]->updateShareStatus(true);
     }
 }   
+
+void DataAbstract::complicate()
+{
+    throw DataException("This type does not support converting to complex.");
+}
 
 
 }  // end of namespace

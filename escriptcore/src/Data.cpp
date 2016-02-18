@@ -49,7 +49,14 @@
 
 namespace bp = boost::python;
 using namespace escript;
+using namespace escript::DataTypes;
 using namespace std;
+using DataTypes::real_t;
+using DataTypes::cplx_t;
+
+
+#define THROWONCOMPLEX if (m_data->isComplex()){throw DataException("Operation does not support complex objects");}
+#define THROWONCOMPLEXA(Z) if (Z.isComplex()){throw DataException("Operation does not support complex objects");}
 
 // ensure the current object is not a DataLazy
 // The idea was that we could add an optional warning whenever a resolve is forced
@@ -101,12 +108,47 @@ using namespace std;
 #define MAKELAZYBIN2(L,R,X) do {\
   if (L.isLazy() || R.isLazy() || (AUTOLAZYON && (L.isExpanded() || R.isExpanded()))) \
   {\
+  if (L.isComplex() || R.isComplex()) \
+  {\
+      throw DataException("Lazy operations on complex not supported yet");\
+  }\
         DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
         return Data(c);\
   }\
 }while(0)
 
 #define CHECK_DO_CRES escriptParams.getRESOLVE_COLLECTIVE()
+
+
+
+#define BINOPTENSOR(L,T) \
+    if (!(L).isComplex()) \
+    { \
+	if (!right.isComplex())	/* both are real */ \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>()); \
+	} \
+	else \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
+	} \
+    } \
+    else	/* L isComplex */\
+    { \
+	if (!right.isComplex())	 \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>()); \
+	} \
+	else \
+	{ \
+	    return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
+	} \
+    } 
+
+
+    
+    
+    
 
 namespace
 {
@@ -248,7 +290,7 @@ Data::Data()
     m_protected=false;
 }
 
-Data::Data(double value,
+Data::Data(real_t value,
            const boost::python::tuple& shape,
            const FunctionSpace& what,
            bool expanded)
@@ -260,12 +302,12 @@ Data::Data(double value,
     }
 
     int len = DataTypes::noValues(dataPointShape);
-    DataVector temp_data(len,value,len);
+    RealVectorType temp_data(len,value,len);
     initialise(temp_data, dataPointShape, what, expanded);
     m_protected=false;
 }
 
-Data::Data(double value,
+Data::Data(real_t value,
            const DataTypes::ShapeType& dataPointShape,
            const FunctionSpace& what,
            bool expanded)
@@ -360,7 +402,7 @@ Data::Data(DataAbstract_ptr underlyingdata)
     m_protected=false;
 }
 
-Data::Data(const DataTypes::ValueType& value,
+Data::Data(const DataTypes::RealVectorType& value,
            const DataTypes::ShapeType& shape,
            const FunctionSpace& what,
            bool expanded)
@@ -403,12 +445,12 @@ Data::Data(const boost::python::object& value,
 
         // get the space for the data vector
         int len1 = DataTypes::noValues(tempShape);
-        DataVector temp_data(len1, 0.0, len1);
+        RealVectorType temp_data(len1, 0.0, len1);
         temp_data.copyFromArray(w,1);
 
         int len = DataTypes::noValues(other.getDataPointShape());
 
-        DataVector temp2_data(len, temp_data[0], len);
+        RealVectorType temp2_data(len, temp_data[0], len);
         DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
         set_m_data(DataAbstract_ptr(t));
 
@@ -465,7 +507,7 @@ void Data::initialise(const WrappedArray& value,
 
 
 void
-Data::initialise(const DataTypes::ValueType& value,
+Data::initialise(const DataTypes::RealVectorType& value,
                  const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
@@ -485,7 +527,7 @@ Data::initialise(const DataTypes::ValueType& value,
 }
 
 void
-Data::initialise(const double value,
+Data::initialise(const real_t value,
                  const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
@@ -532,7 +574,7 @@ Data::getShapeTuple() const
 // There are ways to fix this involving creating function pointer variables for each form
 // but there doesn't seem to be a need given that the methods have the same name from the python point of view
 Data
-Data::copySelf()
+Data::copySelf() const
 {
     DataAbstract* temp=m_data->deepCopy();
     return Data(temp);
@@ -585,7 +627,7 @@ Data::setToZero()
     }
     if (isLazy())
     {
-        DataTypes::ValueType v(getNoValues(),0);
+        DataTypes::RealVectorType v(getNoValues(),0);
         DataConstant* dc=new DataConstant(getFunctionSpace(),getDataPointShape(),v);
         DataLazy* dl=new DataLazy(dc->getPtr());
         set_m_data(dl->getPtr());
@@ -672,9 +714,9 @@ Data::copyWithMask(const Data& other,
     }
     exclusiveWrite();
     // Now we iterate over the elements
-    DataVector& self=getReady()->getVectorRW();;
-    const DataVector& ovec=other2.getReadyPtr()->getVectorRO();
-    const DataVector& mvec=mask2.getReadyPtr()->getVectorRO();
+    RealVectorType& self=getReady()->getVectorRW();;
+    const RealVectorType& ovec=other2.getReadyPtr()->getVectorRO();
+    const RealVectorType& mvec=mask2.getReadyPtr()->getVectorRO();
 
     if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
     {
@@ -730,9 +772,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
@@ -755,9 +797,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::ValueType::size_type toff=tptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::ValueType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
@@ -877,6 +919,12 @@ Data::isReady() const
 }
 
 
+bool
+Data::isComplex() const
+{
+    return m_data->isComplex();
+}
+
 void
 Data::setProtection()
 {
@@ -960,52 +1008,54 @@ Data::requireWrite()
 Data
 Data::oneOver() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(RECIP);
-    return C_TensorUnaryOperation(*this, bind1st(divides<double>(),1.));
+    return C_TensorUnaryOperation(*this, bind1st(divides<real_t>(),1.));
 }
 
 Data
 Data::wherePositive() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(GZ);
-    return C_TensorUnaryOperation(*this, bind2nd(greater<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(greater_func<real_t>(),0.0));
 }
 
 Data
 Data::whereNegative() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(LZ);
-    return C_TensorUnaryOperation(*this, bind2nd(less<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(less_func<real_t>(),0.0));
 }
 
 Data
 Data::whereNonNegative() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(GEZ);
-    return C_TensorUnaryOperation(*this, bind2nd(greater_equal<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(greater_equal_func<real_t>(),0.0));
 }
 
 Data
 Data::whereNonPositive() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(LEZ);
-    return C_TensorUnaryOperation(*this, bind2nd(less_equal<double>(),0.0));
+    return C_TensorUnaryOperation(*this, bind2nd(less_equal_func<real_t>(),0.0));
 }
 
 Data
-Data::whereZero(double tol) const
+Data::whereZero(real_t tol) const
 {
-//   Data dataAbs=abs();
-//   return C_TensorUnaryOperation(dataAbs, bind2nd(less_equal<double>(),tol));
     MAKELAZYOPOFF(EZ,tol);
-    return C_TensorUnaryOperation(*this, bind2nd(AbsLTE(),tol));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::EQZEROF, tol);
 }
 
 Data
-Data::whereNonZero(double tol) const
+Data::whereNonZero(real_t tol) const
 {
-//   Data dataAbs=abs();
-//   return C_TensorUnaryOperation(dataAbs, bind2nd(greater<double>(),tol));
+    THROWONCOMPLEX
     MAKELAZYOPOFF(NEZ,tol);
     return C_TensorUnaryOperation(*this, bind2nd(AbsGT(),tol));
 }
@@ -1025,11 +1075,12 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
+    THROWONCOMPLEX
     if (isEmpty())
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
     }
-    double blocktimer_start = blocktimer_time();
+    real_t blocktimer_start = blocktimer_time();
     if (functionspace.getDomain()!=getDomain())
         throw DataException("Error - gradient cannot be calculated on different domains.");
     DataTypes::ShapeType grad_shape=getDataPointShape();
@@ -1043,6 +1094,7 @@ Data::gradOn(const FunctionSpace& functionspace) const
 Data
 Data::grad() const
 {
+    THROWONCOMPLEX
     if (isEmpty())
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
@@ -1057,7 +1109,7 @@ Data::getDataPointSize() const
 }
 
 
-DataTypes::ValueType::size_type
+DataTypes::RealVectorType::size_type
 Data::getLength() const
 {
     return m_data->getLength();
@@ -1071,6 +1123,7 @@ Data::getLength() const
 const bp::object
 Data::toListOfTuples(bool scalarastuple)
 {
+    THROWONCOMPLEX
     if (get_MPISize()>1)
     {
         throw DataException("::toListOfTuples is not available for MPI with more than one process.");
@@ -1080,7 +1133,7 @@ Data::toListOfTuples(bool scalarastuple)
 
     int npoints=getNumDataPoints();
     expand();                   // This will also resolve if required
-    const DataTypes::ValueType& vec=getReady()->getVectorRO();
+    const DataTypes::RealVectorType& vec=getReady()->getVectorRO();
     bp::list temp;
     temp.append(bp::object());
     bp::list res(temp*npoints);// pre-size the list by the "[None] * npoints"  trick
@@ -1148,6 +1201,7 @@ Data::toListOfTuples(bool scalarastuple)
 const bp::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
 {
+    THROWONCOMPLEX
     forceResolve();
     if (getNumDataPointsPerSample()>0) {
         int sampleNo = dataPointNo/getNumDataPointsPerSample();
@@ -1164,7 +1218,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
             throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid dataPointNoInSample.");
         }
         // TODO: global error handling
-        DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+        DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
         return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset)));
     }
     else
@@ -1179,6 +1233,7 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const bp::object& py_object)
 {
+    THROWONCOMPLEX
     // this will throw if the value cannot be represented
     setValueOfDataPointToArray(dataPointNo,py_object);
 }
@@ -1187,6 +1242,7 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const bp::object& py_object
 void
 Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 {
+    THROWONCOMPLEX
 #ifdef ESYS_MPI 
     int error=0;
 #endif
@@ -1194,7 +1250,7 @@ Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
     {
         try
         {
-            bp::extract<double> dex(v);
+            bp::extract<real_t> dex(v);
             if (dex.check())
             {
                 setValueOfDataPoint(id, dex());
@@ -1231,6 +1287,7 @@ Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 void
 Data::setValueOfDataPointToArray(int dataPointNo, const bp::object& obj)
 {
+    THROWONCOMPLEX
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
@@ -1266,8 +1323,9 @@ Data::setValueOfDataPointToArray(int dataPointNo, const bp::object& obj)
 }
 
 void
-Data::setValueOfDataPoint(int dataPointNo, const double value)
+Data::setValueOfDataPoint(int dataPointNo, const real_t value)
 {
+    THROWONCOMPLEX
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
@@ -1290,6 +1348,7 @@ const
 bp::object
 Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 {
+    THROWONCOMPLEX
     // This could be lazier than it is now
     forceResolve();
 
@@ -1302,7 +1361,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
     size_t length=DataTypes::noValues(dataPointShape);
 
     // added for the MPI communication
-    double *tmpData = new double[length];
+    real_t *tmpData = new real_t[length];
 
     // updated for the MPI case
     if( get_MPIRank()==procNo ){
@@ -1321,9 +1380,9 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
                 throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid dataPointNoInSample.");
             }
             // TODO: global error handling
-            DataTypes::ValueType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+            DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
-            memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(double));
+            memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(real_t));
         }
     }
 #ifdef ESYS_MPI
@@ -1342,6 +1401,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 bp::object
 Data::integrateToTuple_const() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot integrate for constant lazy data.");
@@ -1368,8 +1428,8 @@ Data::integrateWorker() const
 
     //
     // calculate the integral values
-    vector<double> integrals(dataPointSize);
-    vector<double> integrals_local(dataPointSize);
+    vector<real_t> integrals(dataPointSize);
+    vector<real_t> integrals_local(dataPointSize);
     const AbstractContinuousDomain* dom=dynamic_cast<const AbstractContinuousDomain*>(getDomain().get());
     if (dom==0)
     {                             
@@ -1378,8 +1438,8 @@ Data::integrateWorker() const
 #ifdef ESYS_MPI
     dom->setToIntegrals(integrals_local,*this);
     // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
-    double *tmp = new double[dataPointSize];
-    double *tmp_local = new double[dataPointSize];
+    real_t *tmp = new real_t[dataPointSize];
+    real_t *tmp_local = new real_t[dataPointSize];
     for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
     MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, getDomain()->getMPIComm() );
     for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
@@ -1388,10 +1448,7 @@ Data::integrateWorker() const
     delete[] tmp_local;
 #else
     dom->setToIntegrals(integrals,*this);
-/*  double *tmp = new double[dataPointSize];
-    for (int i=0; i<dataPointSize; i++) { tmp[i]=integrals[i]; }*/
     bp::tuple result=pointToTuple(shape,integrals);
-//   delete tmp;
 #endif
 
     return result;
@@ -1400,18 +1457,21 @@ Data::integrateWorker() const
 Data
 Data::besselFirstKind(int order)
 {
+    THROWONCOMPLEX
     return bessel(order,boost::math::cyl_bessel_j);
 }
 
 Data
 Data::besselSecondKind(int order)
 {
+    THROWONCOMPLEX
     return bessel(order,boost::math::cyl_neumann);
 }
 
 Data
-Data::bessel(int order, double (*besselfunc) (int,double) )
+Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
 {
+    THROWONCOMPLEX
     if (isEmpty())  // do this before we attempt to interpolate
     {
      throw DataException("Error - Operations (bessel) not permitted on instances of DataEmpty.");
@@ -1432,8 +1492,8 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
 
     if (arg_0_Z.isConstant()) {
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-        double *ptr_2 = &(res.getDataAtOffsetRW(0));
+        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
+        real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
         for (int i = 0; i < size0; ++i) {
             ptr_2[i] = besselfunc(order, ptr_0[i]);
         }
@@ -1449,8 +1509,8 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
         // Get the pointers to the actual data
-        const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-        double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
         // Compute a result for the default
         for (int i = 0; i < size0; ++i) {
             ptr_2[i] = besselfunc(order, ptr_0[i]);
@@ -1460,8 +1520,8 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
         DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
         for (i=lookup_0.begin();i!=lookup_0.end();i++) {
             tmp_2->addTag(i->first);
-            const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-            double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+            const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
             for (int i = 0; i < size0; ++i) {
                 ptr_2[i] = besselfunc(order, ptr_0[i]);
             }
@@ -1484,8 +1544,8 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
         //      for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
             int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
             int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-            const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-            double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+            const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+            real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
             for (int i = 0; i < size0*numDataPointsPerSample_0; ++i) {
                 ptr_2[i] = besselfunc(order, ptr_0[i]);
             }
@@ -1500,38 +1560,58 @@ Data::bessel(int order, double (*besselfunc) (int,double) )
 }
 
 Data
+Data::conjugate() const
+{
+    THROWONCOMPLEX
+    if (isLazy())
+    {
+	Data temp(*this);
+        temp.resolve();
+	return temp.conjugate();
+    }
+    if (isComplex())
+    {
+	throw DataException("Conjugate of complex value not supported yet.");
+    }
+    else
+    {
+	return copySelf();
+    }
+}
+
+Data
 Data::sin() const
 {
     MAKELAZYOP(SIN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sin);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SINF);
 }
 
 Data
 Data::cos() const
 {
     MAKELAZYOP(COS);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cos);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::COSF);
 }
 
 Data
 Data::tan() const
 {
     MAKELAZYOP(TAN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tan);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::TANF);
 }
 
 Data
 Data::asin() const
 {
     MAKELAZYOP(ASIN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::asin);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ASINF);
 }
 
 Data
 Data::acos() const
 {
     MAKELAZYOP(ACOS);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::acos);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ACOSF);
 }
 
 
@@ -1539,28 +1619,28 @@ Data
 Data::atan() const
 {
     MAKELAZYOP(ATAN);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::atan);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ATANF);
 }
 
 Data
 Data::sinh() const
 {
     MAKELAZYOP(SINH);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sinh);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SINHF);
 }
 
 Data
 Data::cosh() const
 {
     MAKELAZYOP(COSH);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::cosh);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::COSHF);
 }
 
 Data
 Data::tanh() const
 {
     MAKELAZYOP(TANH);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::tanh);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::TANHF);
 }
 
 
@@ -1571,7 +1651,7 @@ Data::erf() const
     throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
     MAKELAZYOP(ERF);
-    return C_TensorUnaryOperation(*this, ::erf);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ERFF);
 #endif
 }
 
@@ -1579,73 +1659,64 @@ Data
 Data::asinh() const
 {
     MAKELAZYOP(ASINH);
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    return C_TensorUnaryOperation(*this, escript::asinh_substitute);
-#else
-    return C_TensorUnaryOperation(*this, ::asinh);
-#endif
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ASINHF);
 }
 
 Data
 Data::acosh() const
 {
     MAKELAZYOP(ACOSH);
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    return C_TensorUnaryOperation(*this, escript::acosh_substitute);
-#else
-    return C_TensorUnaryOperation(*this, ::acosh);
-#endif
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ACOSHF);    
 }
 
 Data
 Data::atanh() const
 {
     MAKELAZYOP(ATANH);
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    return C_TensorUnaryOperation(*this, escript::atanh_substitute);
-#else
-    return C_TensorUnaryOperation(*this, ::atanh);
-#endif
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ATANHF); 
 }
 
 Data
 Data::log10() const
 {
     MAKELAZYOP(LOG10);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::log10);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::LOG10F);
 }
 
 Data
 Data::log() const
 {
     MAKELAZYOP(LOG);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::log);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::LOGF);
 }
 
 Data
 Data::sign() const
 {
     MAKELAZYOP(SIGN);
-    return C_TensorUnaryOperation(*this, escript::fsign);
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SIGNF);
 }
 
 Data
 Data::abs() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(ABS);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::fabs);
+    return C_TensorUnaryOperation(*this, abs_func<real_t>());
 }
 
 Data
 Data::neg() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(NEG);
-    return C_TensorUnaryOperation(*this, negate<double>());
+    return C_TensorUnaryOperation(*this, negate<real_t>());
 }
 
 Data
 Data::pos() const
 {
+    THROWONCOMPLEX
     // not doing lazy check here is deliberate.
     // since a deep copy of lazy data should be cheap, I'll just let it happen now
     Data result;
@@ -1657,18 +1728,20 @@ Data::pos() const
 Data
 Data::exp() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(EXP);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::exp);
+    return C_TensorUnaryOperation(*this, exp_func<real_t>());
 }
 
 Data
 Data::sqrt() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(SQRT);
-    return C_TensorUnaryOperation<double (*)(double)>(*this, ::sqrt);
+    return C_TensorUnaryOperation(*this, sqrt_func<real_t>());
 }
 
-double
+real_t
 Data::Lsup_const() const
 {
     if (isLazy())
@@ -1678,7 +1751,7 @@ Data::Lsup_const() const
     return LsupWorker();
 }
 
-double
+real_t
 Data::Lsup() 
 {
     if (isLazy())
@@ -1690,18 +1763,36 @@ Data::Lsup()
         else
         {
 #ifdef ESYS_MPI
-            return lazyAlgWorker<AbsMax>(0,MPI_MAX);
+	    if (isComplex())
+	    {
+		return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);
+	    }
+	    else
+	    {
+		return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);	      
+	    }
 #else
-            return lazyAlgWorker<AbsMax>(0);
+	    if (isComplex())
+	    {
+		return lazyAlgWorker<AbsMax<real_t> >(0);
+	    }
+	    else
+	    {
+		return lazyAlgWorker<AbsMax<real_t> >(0);
+	    }
 #endif
         }
     }
     return LsupWorker();
 }
 
-double
+real_t
 Data::sup_const() const
 {
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute sup() for complex data.");
+    }  
     if (isLazy())
     {
         throw DataException("Error - cannot compute sup for constant lazy data.");
@@ -1709,9 +1800,13 @@ Data::sup_const() const
     return supWorker();
 }
 
-double
+real_t
 Data::sup() 
 {
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute sup() for complex data.");
+    }
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1721,18 +1816,22 @@ Data::sup()
         else
         {
 #ifdef ESYS_MPI
-            return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1, MPI_MAX);
+            return lazyAlgWorker<FMax>(numeric_limits<real_t>::max()*-1, MPI_MAX);
 #else
-            return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1);
+            return lazyAlgWorker<FMax>(numeric_limits<real_t>::max()*-1);
 #endif
         }
     }
     return supWorker();
 }
 
-double
+real_t
 Data::inf_const() const
 {
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute inf() for complex data.");
+    }  
     if (isLazy())
     {
         throw DataException("Error - cannot compute inf for constant lazy data.");
@@ -1740,9 +1839,13 @@ Data::inf_const() const
     return infWorker();
 }
 
-double
+real_t
 Data::inf() 
 {
+    if (isComplex())
+    {
+        throw DataException("Error Cannot compute inf() for complex data.");
+    }  
     if (isLazy())
     {
         if (!actsExpanded() || CHECK_DO_CRES)
@@ -1752,9 +1855,9 @@ Data::inf()
         else
         {
 #ifdef ESYS_MPI
-            return lazyAlgWorker<FMin>(numeric_limits<double>::max(), MPI_MIN);
+            return lazyAlgWorker<FMin>(numeric_limits<real_t>::max(), MPI_MIN);
 #else
-            return lazyAlgWorker<FMin>(numeric_limits<double>::max());
+            return lazyAlgWorker<FMin>(numeric_limits<real_t>::max());
 #endif
         }
     }
@@ -1762,11 +1865,11 @@ Data::inf()
 }
 
 template <class BinaryOp>
-double
+real_t
 #ifdef ESYS_MPI
-Data::lazyAlgWorker(double init, MPI_Op mpiop_type)
+Data::lazyAlgWorker(real_t init, MPI_Op mpiop_type)
 #else
-Data::lazyAlgWorker(double init)
+Data::lazyAlgWorker(real_t init)
 #endif
 {
     if (!isLazy() || !m_data->actsExpanded())
@@ -1775,20 +1878,20 @@ Data::lazyAlgWorker(double init)
     }
     DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
     EsysAssert((dl!=0), "Programming error - casting to DataLazy.");
-    double val=init;
+    real_t val=init;
     int i=0;
     const size_t numsamples=getNumSamples();
     const size_t samplesize=getNoValues()*getNumDataPointsPerSample();
     BinaryOp operation;
-    double localValue=0, globalValue;
+    real_t localValue=0, globalValue;
    #pragma omp parallel private(i)
     {
-        double localtot=init;
+        real_t localtot=init;
         #pragma omp for schedule(static) private(i)
         for (i=0;i<numsamples;++i)
         {
             size_t roffset=0;
-            const DataTypes::ValueType* v=dl->resolveSample(i, roffset);
+            const DataTypes::RealVectorType* v=dl->resolveSample(i, roffset);
             // Now we have the sample, run operation on all points
             for (size_t j=0;j<samplesize;++j)
             {
@@ -1825,6 +1928,7 @@ Data::lazyAlgWorker(double init)
 bool
 Data::hasNaN()
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -1834,8 +1938,9 @@ Data::hasNaN()
 }
 
 void
-Data::replaceNaN(double value)
+Data::replaceNaN(real_t value)
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -1847,20 +1952,21 @@ Data::replaceNaN(double value)
 
 
 // Do not call this on Lazy Data use the proper entry point
-double
+real_t
 Data::LsupWorker() const
 {
     bool haveNaN=getReady()->hasNaN();
-    double localValue=0;
+
   
 #ifdef ESYS_MPI
+    int nanchecker=0;    
     if (haveNaN)
     {
-        localValue=1.0;
+        nanchecker=1.0;
     }
-    double globalValue;
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
-    if (globalValue!=0)
+    int globalnan;
+    MPI_Allreduce( &nanchecker, &globalnan, 1, MPI_INT, MPI_MAX, getDomain()->getMPIComm() );
+    if (globalnan!=0)
     {
         return makeNaN();
     }
@@ -1873,30 +1979,48 @@ Data::LsupWorker() const
 
     //
     // set the initial absolute maximum value to zero
+    if (isComplex())
+    {
+	AbsMax<cplx_t> abs_max_func;
+	real_t localValue=0;
+	localValue = algorithm(abs_max_func,0);
 
-    AbsMax abs_max_func;
-    localValue = algorithm(abs_max_func,0);
+    #ifdef ESYS_MPI
+	real_t globalValue=0;
+	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
+	return globalValue;
+    #else
+	return localValue;
+    #endif
+    }
+    else
+    {  
+	AbsMax<real_t> abs_max_func;
+	real_t localValue=0;
+	localValue = algorithm(abs_max_func,0);
 
-#ifdef ESYS_MPI
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
-    return globalValue;
-#else
-    return localValue;
-#endif
+    #ifdef ESYS_MPI
+	real_t globalValue=0;	
+	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
+	return globalValue;
+    #else
+	return localValue;
+    #endif
+    }
 }
 
-double
+real_t
 Data::supWorker() const
 {
     bool haveNaN=getReady()->hasNaN();
-    double localValue=0;
+    real_t localValue=0;
 
 #ifdef ESYS_MPI
     if (haveNaN)
     {
         localValue=1.0;
     }
-    double globalValue;
+    real_t globalValue;
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     if (globalValue!=0)
     {
@@ -1910,9 +2034,9 @@ Data::supWorker() const
 #endif
 
     //
-    // set the initial maximum value to min possible double
+    // set the initial maximum value to min possible real_t
     FMax fmax_func;
-    localValue = algorithm(fmax_func,numeric_limits<double>::infinity()*-1);
+    localValue = algorithm(fmax_func,numeric_limits<real_t>::infinity()*-1);
     #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     return globalValue;
@@ -1921,18 +2045,18 @@ Data::supWorker() const
 #endif
 }
 
-double
+real_t
 Data::infWorker() const
 {
     bool haveNaN=getReady()->hasNaN();
-    double localValue=0;
+    real_t localValue=0;
 
 #ifdef ESYS_MPI
     if (haveNaN)
     {
         localValue=1.0;
     }
-    double globalValue;
+    real_t globalValue;
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     if (globalValue!=0)
     {
@@ -1945,9 +2069,9 @@ Data::infWorker() const
     }
 #endif
     //
-    // set the initial minimum value to max possible double
+    // set the initial minimum value to max possible real_t
     FMin fmin_func;
-    localValue = algorithm(fmin_func,numeric_limits<double>::infinity());
+    localValue = algorithm(fmin_func,numeric_limits<real_t>::infinity());
 #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, getDomain()->getMPIComm() );
     return globalValue;
@@ -1962,26 +2086,29 @@ Data::infWorker() const
 inline Data
 Data::minval_nonlazy() const
 {
+    THROWONCOMPLEX
     //
-    // set the initial minimum value to max possible double
+    // set the initial minimum value to max possible real_t
     FMin fmin_func;
-    return dp_algorithm(fmin_func,numeric_limits<double>::max());
+    return dp_algorithm(fmin_func,numeric_limits<real_t>::max());
 }
 
 
 inline Data
 Data::maxval_nonlazy() const
 {
+    THROWONCOMPLEX
     //
-    // set the initial maximum value to min possible double
+    // set the initial maximum value to min possible real_t
     FMax fmax_func;
-    return dp_algorithm(fmax_func,numeric_limits<double>::max()*-1);
+    return dp_algorithm(fmax_func,numeric_limits<real_t>::max()*-1);
 }
 
 
 Data
 Data::maxval() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(MAXVAL);
     return maxval_nonlazy();
 }
@@ -1990,6 +2117,7 @@ Data::maxval() const
 Data
 Data::minval() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(MINVAL);
     return minval_nonlazy();
 }
@@ -1998,6 +2126,7 @@ Data::minval() const
 Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
+    THROWONCOMPLEX
     int axis0_tmp,axis1_tmp;
     DataTypes::ShapeType s=getDataPointShape();
     DataTypes::ShapeType ev_shape;
@@ -2055,6 +2184,7 @@ Data::swapaxes(const int axis0, const int axis1) const
 Data
 Data::symmetric() const
 {
+    THROWONCOMPLEX
     // check input
     DataTypes::ShapeType s=getDataPointShape();
     if (getDataPointRank()==2) {
@@ -2078,6 +2208,7 @@ Data::symmetric() const
 Data
 Data::nonsymmetric() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(NSYM);
     // check input
     DataTypes::ShapeType s=getDataPointShape();
@@ -2112,7 +2243,8 @@ Data::nonsymmetric() const
 
 Data
 Data::trace(int axis_offset) const
-{     
+{
+    THROWONCOMPLEX     
     MAKELAZYOPOFF(TRACE,axis_offset);
     if ((axis_offset<0) || (axis_offset>getDataPointRank()))
     {
@@ -2167,7 +2299,8 @@ Data::trace(int axis_offset) const
 
 Data
 Data::transpose(int axis_offset) const
-{     
+{
+    THROWONCOMPLEX     
     MAKELAZYOPOFF(TRANS,axis_offset);
     DataTypes::ShapeType s=getDataPointShape();
     DataTypes::ShapeType ev_shape;
@@ -2192,6 +2325,7 @@ Data::transpose(int axis_offset) const
 Data
 Data::eigenvalues() const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);       // to get around the fact that you can't resolve a const Data
@@ -2213,8 +2347,9 @@ Data::eigenvalues() const
 }
 
 const bp::tuple
-Data::eigenvalues_and_eigenvectors(const double tol) const
+Data::eigenvalues_and_eigenvectors(const real_t tol) const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);       // to get around the fact that you can't resolve a const Data
@@ -2244,6 +2379,7 @@ Data::minGlobalDataPoint() const
     // abort (for unknown reasons) if there are openmp directives with it in the
     // surrounding function
 
+    THROWONCOMPLEX
     int DataPointNo;
     int ProcNo;
     calc_minGlobalDataPoint(ProcNo,DataPointNo);
@@ -2254,6 +2390,7 @@ void
 Data::calc_minGlobalDataPoint(int& ProcNo,
                         int& DataPointNo) const
 {
+    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);   // to get around the fact that you can't resolve a const Data
@@ -2262,16 +2399,16 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     }
     int i,j;
     int lowi=0,lowj=0;
-    double min=numeric_limits<double>::max();
+    real_t min=numeric_limits<real_t>::max();
 
     Data temp=minval_nonlazy();   // need to do this to prevent autolazy from reintroducing laziness
 
     int numSamples=temp.getNumSamples();
     int numDPPSample=temp.getNumDataPointsPerSample();
 
-    double local_val, local_min;
+    real_t local_val, local_min;
 #ifdef ESYS_MPI
-    double next[2];
+    real_t next[2];
 #endif
     int local_lowi=0,local_lowj=0;        
 
@@ -2302,7 +2439,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     next[0] = min;
     next[1] = numSamples;
     int lowProc = 0;
-    double *globalMins = new double[get_MPISize()*2+1];
+    real_t *globalMins = new real_t[get_MPISize()*2+1];
     /*int error =*/ MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
 
     if ( get_MPIRank()==0 ) {
@@ -2330,6 +2467,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 const bp::tuple
 Data::maxGlobalDataPoint() const
 {
+    THROWONCOMPLEX
     int DataPointNo;
     int ProcNo;
     calc_maxGlobalDataPoint(ProcNo,DataPointNo);
@@ -2346,19 +2484,20 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
         temp.resolve();
         return temp.calc_maxGlobalDataPoint(ProcNo,DataPointNo);
     }
+    THROWONCOMPLEX
     int i,j;
     int highi=0,highj=0;
     //-------------
-    double max= -numeric_limits<double>::max();
+    real_t max= -numeric_limits<real_t>::max();
 
     Data temp=maxval_nonlazy();   // need to do this to prevent autolazy from reintroducing laziness
 
     int numSamples=temp.getNumSamples();
     int numDPPSample=temp.getNumDataPointsPerSample();
 
-    double local_val, local_max;
+    real_t local_val, local_max;
 #ifdef ESYS_MPI
-    double next[2];
+    real_t next[2];
 #endif
     int local_highi=0,local_highj=0;      
 
@@ -2388,7 +2527,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
     next[0] = max;
     next[1] = numSamples;
     int highProc = 0;
-    double *globalMaxs = new double[get_MPISize()*2+1];
+    real_t *globalMaxs = new real_t[get_MPISize()*2+1];
     /*int error =*/ MPI_Gather ( next, 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
     if( get_MPIRank()==0 ){
         for (highProc=0; highProc<get_MPISize(); highProc++)
@@ -2423,7 +2562,11 @@ Data::operator+=(const Data& right)
     }
     MAKELAZYBINSELF(right,ADD);    // for lazy + is equivalent to +=
     exclusiveWrite();                     // Since Lazy data does not modify its leaves we only need to worry here
-    binaryOp(right,plus<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::PLUSF);
     return (*this);
 }
 
@@ -2455,7 +2598,11 @@ Data::operator-=(const Data& right)
     }
     MAKELAZYBINSELF(right,SUB);
     exclusiveWrite();
-    binaryOp(right,minus<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::MINUSF);
     return (*this);
 }
 
@@ -2478,7 +2625,11 @@ Data::operator*=(const Data& right)
     }
     MAKELAZYBINSELF(right,MUL);
     exclusiveWrite();
-    binaryOp(right,multiplies<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
     return (*this);
 }
 
@@ -2501,7 +2652,11 @@ Data::operator/=(const Data& right)
     }
     MAKELAZYBINSELF(right,DIV);
     exclusiveWrite();
-    binaryOp(right,divides<double>());
+    if (!isComplex() && right.isComplex())
+    {
+        complicate();
+    }
+    binaryDataOp(right, escript::ESFunction::DIVIDESF);
     return (*this);
 }
 
@@ -2529,7 +2684,7 @@ Data::matrixInverse() const
         d.resolve();
         return d.matrixInverse();
     }
-
+    THROWONCOMPLEX
     Data out(0.,getDataPointShape(),getFunctionSpace());
     out.typeMatchRight(*this);
     int errcode=m_data->matrixInverse(out.getReadyPtr().get());
@@ -2564,7 +2719,7 @@ Data
 Data::powD(const Data& right) const
 {
     MAKELAZYBIN(right,POW);
-    return C_TensorBinaryOperation<double (*)(double, double)>(*this, right, ::pow);
+    BINOPTENSOR(*this, pow_func);
 }
 
 
@@ -2574,7 +2729,7 @@ Data
 escript::operator+(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,ADD);
-    return C_TensorBinaryOperation(left, right, plus<double>());
+    BINOPTENSOR(left,plus_func)
 }
 
 //
@@ -2583,7 +2738,7 @@ Data
 escript::operator-(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,SUB);
-    return C_TensorBinaryOperation(left, right, minus<double>());
+    BINOPTENSOR(left,minus_func)
 }
 
 //
@@ -2592,7 +2747,7 @@ Data
 escript::operator*(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,MUL);
-    return C_TensorBinaryOperation(left, right, multiplies<double>());
+    BINOPTENSOR(left,multiplies_func);
 }
 
 //
@@ -2601,7 +2756,7 @@ Data
 escript::operator/(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,DIV);
-    return C_TensorBinaryOperation(left, right, divides<double>());
+    BINOPTENSOR(left,divides_func);
 }
 
 //
@@ -2819,7 +2974,7 @@ Data::setTaggedValue(int tagKey,
     if (isConstant()) tag();
     WrappedArray w(value);
 
-    DataVector temp_data2;
+    RealVectorType temp_data2;
     temp_data2.copyFromArray(w,1);
 
     m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
@@ -2829,7 +2984,7 @@ Data::setTaggedValue(int tagKey,
 void
 Data::setTaggedValueFromCPP(int tagKey,
                             const DataTypes::ShapeType& pointshape,
-                            const DataTypes::ValueType& value,
+                            const DataTypes::RealVectorType& value,
                             int dataOffset)
 {
     if (isProtected()) {
@@ -2844,6 +2999,26 @@ Data::setTaggedValueFromCPP(int tagKey,
     // Call DataAbstract::setTaggedValue
     m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
 }
+
+void
+Data::setTaggedValueFromCPP(int tagKey,
+                            const DataTypes::ShapeType& pointshape,
+                            const DataTypes::CplxVectorType& value,
+                            int dataOffset)
+{
+    if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+    }
+    //
+    // Ensure underlying data object is of type DataTagged
+    forceResolve();
+    if (isConstant()) tag();
+    exclusiveWrite();
+    //
+    // Call DataAbstract::setTaggedValue
+    m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
+}
+
 
 int
 Data::getTagNumber(int dpno)
@@ -2872,8 +3047,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     // SM is the product of the last axis_offset entries in arg_0.getShape().
 
     // deal with any lazy data
-//   if (arg_0.isLazy()) {arg_0.resolve();}
-//   if (arg_1.isLazy()) {arg_1.resolve();}
     if (arg_0.isLazy() || arg_1.isLazy() || (AUTOLAZYON && (arg_0.isExpanded() || arg_1.isExpanded())))
     {
         DataLazy* c=new DataLazy(arg_0.borrowDataPtr(), arg_1.borrowDataPtr(), PROD, axis_offset,transpose);
@@ -2918,20 +3091,6 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     for (int i=0; i<rank0; i++)   { tmpShape0[i]=shape0[(i+start0)%rank0]; }
     for (int i=0; i<rank1; i++)   { tmpShape1[i]=shape1[(i+start1)%rank1]; }
 
-#if 0
-    // For debugging: show shape after transpose
-    char tmp[100];
-    std::string shapeStr;
-    shapeStr = "(";
-    for (int i=0; i<rank0; i++)   { sprintf(tmp, "%d,", tmpShape0[i]); shapeStr += tmp; }
-    shapeStr += ")";
-    cout << "C_GeneralTensorProduct: Shape of arg0 is " << shapeStr << endl;
-    shapeStr = "(";
-    for (int i=0; i<rank1; i++)   { sprintf(tmp, "%d,", tmpShape1[i]); shapeStr += tmp; }
-    shapeStr += ")";
-    cout << "C_GeneralTensorProduct: Shape of arg1 is " << shapeStr << endl;
-#endif
-
     // Prepare for the loops of the product
     int SL=1, SM=1, SR=1;
     for (int i=0; i<rank0-axis_offset; i++) {
@@ -2967,9 +3126,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     if (arg_0_Z.isConstant() && arg_1_Z.isConstant()) {
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());        // DataConstant output
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
-        double *ptr_2 = &(res.getDataAtOffsetRW(0));
+        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
+        const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
+        real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
@@ -2990,10 +3149,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
         // Prepare offset into DataConstant
         int offset_0 = tmp_0->getPointOffset(0,0);
-        const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
 
-        const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-        double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
+        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
         // Compute an MVP for the default
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -3003,8 +3162,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         for (i=lookup_1.begin();i!=lookup_1.end();i++) {
             tmp_2->addTag(i->first);
 
-            const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-            double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+            const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
+            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
         
             matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
         }
@@ -3028,9 +3187,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
             for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
                 int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
                 int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-                const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
                 matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
             }
         }
@@ -3053,9 +3212,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
         // Prepare offset into DataConstant
         int offset_1 = tmp_1->getPointOffset(0,0);
-        const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-        const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-        double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
         // Compute an MVP for the default
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -3065,8 +3224,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         for (i=lookup_0.begin();i!=lookup_0.end();i++) {
 
             tmp_2->addTag(i->first);
-            const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-            double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+            const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
             matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
         }
     }
@@ -3086,9 +3245,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
         if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-        const double *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-        const double *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-        double *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+        const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
+        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
         // Compute an MVP for the default
         matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
@@ -3105,9 +3264,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         // Compute an MVP for each tag
         const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
         for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-            const double *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-            const double *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-            double *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+            const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+            const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
+            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
 
             matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
         }
@@ -3128,12 +3287,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
         for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
             int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-            const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+            const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
             for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
                 int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
                 int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
                 matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
             }
         }
@@ -3156,9 +3315,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
             for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
                 int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
                 int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
                 matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
             }
         }
@@ -3179,12 +3338,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
         for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
             int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-            const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+            const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
             for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
                 int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
                 int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
                 matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
             }
         }
@@ -3208,9 +3367,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
                 int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
                 int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
                 int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const double *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                const double *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                double *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
                 matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
             }
         }
@@ -3273,34 +3432,38 @@ Data::toString() const
 
 
 // This method is not thread-safe
-DataTypes::ValueType::reference
-Data::getDataAtOffsetRW(DataTypes::ValueType::size_type i)
+DataTypes::RealVectorType::reference
+Data::getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy)
 {
     checkExclusiveWrite();
     return getReady()->getDataAtOffsetRW(i);
 }
 
 // This method is not thread-safe
-DataTypes::ValueType::const_reference
-Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i)
+DataTypes::RealVectorType::const_reference
+Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy)
 {
     forceResolve();
     return getReady()->getDataAtOffsetRO(i);
 }
 
+// This method is not thread-safe
+DataTypes::CplxVectorType::reference
+Data::getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy)
+{
+    checkExclusiveWrite();
+    return getReady()->getDataAtOffsetRWC(i);
+}
 
-// DataTypes::ValueType::const_reference
-// Data::getDataAtOffsetRO(DataTypes::ValueType::size_type i) const
-// {
-//     if (isLazy())
-//     {
-//      throw DataException("Programmer error - getDataAtOffsetRO() not permitted on Lazy Data (object is const which prevents resolving).");
-//     }
-//     return getReady()->getDataAtOffsetRO(i);
-// }
+// This method is not thread-safe
+DataTypes::CplxVectorType::const_reference
+Data::getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::cplx_t dummy)
+{
+    forceResolve();
+    return getReady()->getDataAtOffsetROC(i);
+}
 
-
-DataTypes::ValueType::const_reference
+DataTypes::RealVectorType::const_reference
 Data::getDataPointRO(int sampleNo, int dataPointNo)
 {
     forceResolve();
@@ -3316,7 +3479,7 @@ Data::getDataPointRO(int sampleNo, int dataPointNo)
 }
 
 
-DataTypes::ValueType::reference
+DataTypes::RealVectorType::reference
 Data::getDataPointRW(int sampleNo, int dataPointNo)
 {
     checkExclusiveWrite();
@@ -3325,27 +3488,27 @@ Data::getDataPointRW(int sampleNo, int dataPointNo)
 }
 
 Data
-Data::interpolateFromTable3DP(bp::object table, double Amin, double Astep,
-                Data& B, double Bmin, double Bstep,
-                Data& C, double Cmin, double Cstep,
-                double undef, bool check_boundaries)
+Data::interpolateFromTable3DP(bp::object table, real_t Amin, real_t Astep,
+                Data& B, real_t Bmin, real_t Bstep,
+                Data& C, real_t Cmin, real_t Cstep,
+                real_t undef, bool check_boundaries)
 {
     WrappedArray t(table);
     return interpolateFromTable3D(t, Amin, Astep, undef, B, Bmin, Bstep, C, Cmin, Cstep, check_boundaries);
 }
 
 Data
-Data::interpolateFromTable2DP(bp::object table, double Amin, double Astep,
-                Data& B, double Bmin, double Bstep,
-                double undef, bool check_boundaries)
+Data::interpolateFromTable2DP(bp::object table, real_t Amin, real_t Astep,
+                Data& B, real_t Bmin, real_t Bstep,
+                real_t undef, bool check_boundaries)
 {
     WrappedArray t(table);
     return interpolateFromTable2D(t, Amin, Astep, undef, B, Bmin, Bstep,check_boundaries);
 }
 
 Data
-Data::interpolateFromTable1DP(bp::object table, double Amin, double Astep,
-                              double undef,bool check_boundaries)
+Data::interpolateFromTable1DP(bp::object table, real_t Amin, real_t Astep,
+                              real_t undef,bool check_boundaries)
 {
     WrappedArray t(table);
     return interpolateFromTable1D(t, Amin, Astep, undef, check_boundaries);
@@ -3353,8 +3516,8 @@ Data::interpolateFromTable1DP(bp::object table, double Amin, double Astep,
 
 
 Data
-Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
-                             double Astep, double undef, bool check_boundaries)
+Data::interpolateFromTable1D(const WrappedArray& table, real_t Amin,
+                             real_t Astep, real_t undef, bool check_boundaries)
 {
     table.convertArray(); // critical! Calling getElt on an unconverted array is not thread safe
     int error=0;
@@ -3378,8 +3541,8 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
     int numpts=getNumDataPoints();
     int twidth=table.getShape()[0]-1;       
     bool haserror=false;
-    const DataVector* adat=0;
-    DataVector* rdat=0;
+    const RealVectorType* adat=0;
+    RealVectorType* rdat=0;
     try
     {
         adat=&(getReady()->getVectorRO());
@@ -3399,7 +3562,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
 #pragma omp flush(haserror) // In case haserror was in register
             if (!haserror)                
             {
-                double a=(*adat)[l];
+                real_t a=(*adat)[l];
                 int x=static_cast<int>(((a-Amin)/Astep));
                 if (check_boundaries)
                 {
@@ -3419,7 +3582,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
                     try {
                         if (x==twidth) // value is on the far end of the table
                         {
-                            double e=table.getElt(x);
+                            real_t e=table.getElt(x);
                             if (e>undef)
                             {
                                 lerror=2;
@@ -3431,8 +3594,8 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
                         }
                         else            // x and y are in bounds
                         {
-                            double e=table.getElt(x);
-                            double w=table.getElt(x+1);
+                            real_t e=table.getElt(x);
+                            real_t w=table.getElt(x+1);
                             if ((e>undef) || (w>undef))
                             {
                                 lerror=2;
@@ -3440,7 +3603,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
                             else
                             {
                                 // map x*Astep <= a << (x+1)*Astep to [-1,1] 
-                                double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+                                real_t la = 2.0*(a-Amin-(x*Astep))/Astep-1;
                                 (*rdat)[l]=((1-la)*e + (1+la)*w)/2;
                             }
                         }
@@ -3481,9 +3644,9 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin,
 }
 
 Data
-Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
-                             double Astep, double undef, Data& B, double Bmin,
-                             double Bstep, bool check_boundaries)
+Data::interpolateFromTable2D(const WrappedArray& table, real_t Amin,
+                             real_t Astep, real_t undef, Data& B, real_t Bmin,
+                             real_t Bstep, bool check_boundaries)
 {
     table.convertArray(); // critical! Calling getElt on an unconverted array is not thread safe
     int error=0;
@@ -3518,9 +3681,9 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
 
     int numpts=getNumDataPoints();
-    const DataVector* adat=0;
-    const DataVector* bdat=0;
-    DataVector* rdat=0;
+    const RealVectorType* adat=0;
+    const RealVectorType* bdat=0;
+    RealVectorType* rdat=0;
     const DataTypes::ShapeType& ts=table.getShape();
     try
     {
@@ -3546,8 +3709,8 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
            if (!haserror)               
            {
                 int lerror=0;
-                double a=(*adat)[l];
-                double b=(*bdat)[l];
+                real_t a=(*adat)[l];
+                real_t b=(*bdat)[l];
                 int x=static_cast<int>(((a-Amin)/Astep));
                 int y=static_cast<int>(((b-Bmin)/Bstep));
                 if (check_boundaries)
@@ -3573,9 +3736,9 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
                         int nx=x+1;
                         int ny=y+1;
 
-                        double la=0; // map position of a between x and nx to [-1,1]
-                        double lb=0;
-                        double weight=4;
+                        real_t la=0; // map position of a between x and nx to [-1,1]
+                        real_t lb=0;
+                        real_t weight=4;
 
                         // now we work out which terms we should be considering
                         bool usex=(x!=twx);
@@ -3584,15 +3747,12 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
                         la = 2.0*(a-Amin-(x*Astep))/Astep-1;
                         lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
 
-                        double sw=table.getElt(y,x);
-                        double nw=usey?table.getElt(ny,x):0; // 0 because if !usey ny does not actually exist
-                        double se=usex?table.getElt(y,nx):0;
-                        double ne=(usex&&usey)?table.getElt(ny,nx):0;
+                        real_t sw=table.getElt(y,x);
+                        real_t nw=usey?table.getElt(ny,x):0; // 0 because if !usey ny does not actually exist
+                        real_t se=usex?table.getElt(y,nx):0;
+                        real_t ne=(usex&&usey)?table.getElt(ny,nx):0;                
 
-// cout << a << "," << b << " -> " << x << "," << y << "   " <<  sw <<  "," << 
-// nw <<  "," <<  se <<  "," <<  ne <<  "\n";                   
-
-                        double ans=(1-la)*(1-lb)*sw +
+                        real_t ans=(1-la)*(1-lb)*sw +
                                    (1-la)*(1+lb)*nw +
                                    (1+la)*(1-lb)*se +
                                    (1+la)*(1+lb)*ne;
@@ -3640,9 +3800,9 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin,
 
 
 Data
-Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
-                             double Astep, double undef, Data& B, double Bmin,
-                             double Bstep, Data& C, double Cmin, double Cstep,
+Data::interpolateFromTable3D(const WrappedArray& table, real_t Amin,
+                             real_t Astep, real_t undef, Data& B, real_t Bmin,
+                             real_t Bstep, Data& C, real_t Cmin, real_t Cstep,
                              bool check_boundaries)
 {
     table.convertArray(); // critical! Calling getElt on an unconverted array is not thread safe
@@ -3688,10 +3848,10 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
     Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
 
     int numpts=getNumDataPoints();
-    const DataVector* adat=0;
-    const DataVector* bdat=0;
-    const DataVector* cdat=0;
-    DataVector* rdat=0;
+    const RealVectorType* adat=0;
+    const RealVectorType* bdat=0;
+    const RealVectorType* cdat=0;
+    RealVectorType* rdat=0;
     const DataTypes::ShapeType& ts=table.getShape();
     try
     {
@@ -3706,10 +3866,6 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
     }
     if (!error)
     {
-//      int twx=ts[0]-1;        // table width x
-//      int twy=ts[1]-1;        // table width y
-//      int twz=ts[2]-1;        // table width z
-
         int twx=ts[2]-1;        // table width x
         int twy=ts[1]-1;        // table width y
         int twz=ts[0]-1;        // table width z
@@ -3723,9 +3879,9 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
            if (!haserror)               
            {
                 int lerror=0;
-                double a=(*adat)[l];
-                double b=(*bdat)[l];
-                double c=(*cdat)[l];
+                real_t a=(*adat)[l];
+                real_t b=(*bdat)[l];
+                real_t c=(*cdat)[l];
                 int x=static_cast<int>(((a-Amin)/Astep));
                 int y=static_cast<int>(((b-Bmin)/Bstep));
                 int z=static_cast<int>(((c-Cmin)/Cstep));
@@ -3754,86 +3910,30 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin,
                         int nx=x+1;
                         int ny=y+1;
                         int nz=z+1;
-                        double la=0; // map position of a between x and nx to [-1,1]
-                        double lb=0;
-                        double lc=0;
-                        double weight=8;
+                        real_t la=0; // map position of a between x and nx to [-1,1]
+                        real_t lb=0;
+                        real_t lc=0;
+                        real_t weight=8;
 
                         // now we work out which terms we should be considering
                         bool usex=(x!=twx);
                         bool usey=(y!=twy);
                         bool usez=(z!=twz);
-//                      if (usex) {weight/=2;}
-//                      if (usey) {weight/=2;}
-//                      if (usez) {weight/=2;}
 
                         la = 2.0*(a-Amin-(x*Astep))/Astep-1;
                         lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
                         lc = 2.0*(c-Cmin-(z*Cstep))/Cstep-1;
 
-/*
-cerr << "Processing point " << l << " x=";
-cerr <<  x << "," << nx << " ";
-cerr <<  "y=" << y << "," << ny << " ";
-cerr <<  "z=" << z << "," << nz << "\n";
+                        real_t swb=table.getElt(z,y,x);
+                        real_t swt=usez?table.getElt(nz,y,x):0;
+                        real_t nwb=usey?table.getElt(z,ny,x):0;
+                        real_t nwt=(usey&&usez)?table.getElt(nz,ny,x):0;
+                        real_t seb=usex?table.getElt(z,y,nx):0;
+                        real_t set=(usex&&usez)?table.getElt(nz,y,nx):0;
+                        real_t neb=(usex&&usey)?table.getElt(z,ny,nx):0;
+                        real_t net=(usex&&usey&&usez)?table.getElt(nz,ny,nx):0;
 
-cerr << "  usex=" << usex << "  usey=" << usey << "  usez=" << usez << endl;*/
-
-//                      double swb=table.getElt(x,y,z);
-//                      double swt=usez?table.getElt(x,y,nz):0;
-//                      double nwb=usey?table.getElt(x,ny,z):0;
-//                      double nwt=(usey&&usez)?table.getElt(x,ny,nz):0;
-//                      double seb=usex?table.getElt(nx,y,z):0;
-//                      double set=(usex&&usez)?table.getElt(nx,y,nz):0;
-//                      double neb=(usex&&usey)?table.getElt(nx,ny,z):0;
-//                      double net=(usex&&usey&&usez)?table.getElt(nx,ny,nz):0;
-
-                        double swb=table.getElt(z,y,x);
-                        double swt=usez?table.getElt(nz,y,x):0;
-                        double nwb=usey?table.getElt(z,ny,x):0;
-                        double nwt=(usey&&usez)?table.getElt(nz,ny,x):0;
-                        double seb=usex?table.getElt(z,y,nx):0;
-                        double set=(usex&&usez)?table.getElt(nz,y,nx):0;
-                        double neb=(usex&&usey)?table.getElt(z,ny,nx):0;
-                        double net=(usex&&usey&&usez)?table.getElt(nz,ny,nx):0;
-
-// cerr << "     +(0,1,0) " << table.getElt(0,1,0) << endl;
-// cerr << "     +(1,1,0) " << table.getElt(1,1,0) << endl;
-// cerr << "     +(0,0,1) " << table.getElt(0,0,1) << endl;
-// cerr << "     +(0,1,1) " << table.getElt(0,1,1) << endl;
-
-
-// cerr << "    " << swb << ", " << swt << ", ";
-// cerr << nwb << ", " << nwt << ", ";
-// cerr << seb << ", " << set << ", ";
-// cerr << neb << ", " << net << "\n";
-// 
-// cerr << "       la=" << la << " lb=" << lb << " lc="<< lc << endl;
-
-/*                      double la = 2.0*(a-Amin-(x*Astep))/Astep-1;*/
-/*                      double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;*/
-//                      double lc = 2.0*(c-Cmin-(z*Cstep))/Cstep-1;
-
-// cerr << "        swb=" << swb << endl;
-// cerr << "        swt=" << swt << endl;
-// cerr << "        nwb=" <<    nwb << endl;
-// cerr << "        nwt=" <<    nwt << endl;
-// cerr << "        seb=" <<    seb << endl;
-// cerr << "        set=" <<    set << endl;
-// cerr << "        neb=" <<    neb << endl;
-// cerr << "        net=" <<    net << endl;;
-// 
-// cerr << "      swb->" << (1-la)*(1-lb)*(1-lc)*swb << endl;
-// cerr << "      swt->" << (1-la)*(1-lb)*(1+lc)*swt << endl;
-// cerr << "      nwb->" << (1-la)*(1+lb)*(1-lc)*nwb << endl;
-// cerr << "      nwt->" << (1-la)*(1+lb)*(1+lc)*nwt << endl;
-// cerr << "      seb->" << (1+la)*(1-lb)*(1-lc)*seb << endl;
-// cerr << "      set->" << (1+la)*(1-lb)*(1+lc)*set << endl;
-// cerr << "      neb->" << (1+la)*(1+lb)*(1-lc)*neb << endl;
-// cerr << "      net->" << (1+la)*(1+lb)*(1+lc)*net << endl;;
-
-
-                        double ans=(1-la)*(1-lb)*(1-lc)*swb +
+                        real_t ans=(1-la)*(1-lb)*(1-lc)*swb +
                                    (1-la)*(1-lb)*(1+lc)*swt +
                                    (1-la)*(1+lb)*(1-lc)*nwb +
                                    (1-la)*(1+lb)*(1+lc)*nwt +
@@ -3906,10 +4006,10 @@ Data Data::nonuniforminterp(boost::python::object in, boost::python::object out,
     expand();
     Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
     int numpts=getNumDataPoints();
-    const DataVector& sdat=getReady()->getVectorRO();
-    DataVector& rdat=result.getReady()->getVectorRW();
-    double maxlimit=win.getElt(win.getShape()[0]-1);
-    double maxout=wout.getElt(wout.getShape()[0]-1);
+    const RealVectorType& sdat=getReady()->getVectorRO();
+    RealVectorType& rdat=result.getReady()->getVectorRW();
+    real_t maxlimit=win.getElt(win.getShape()[0]-1);
+    real_t maxout=wout.getElt(wout.getShape()[0]-1);
     int ipoints=win.getShape()[0];
     int l=0;
     bool error=false;
@@ -3982,9 +4082,9 @@ Data Data::nonuniformslope(boost::python::object in, boost::python::object out, 
     expand();
     Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
     int numpts=getNumDataPoints();
-    const DataVector& sdat=getReady()->getVectorRO();
-    DataVector& rdat=result.getReady()->getVectorRW();
-    double maxlimit=win.getElt(win.getShape()[0]-1);
+    const RealVectorType& sdat=getReady()->getVectorRO();
+    RealVectorType& rdat=result.getReady()->getVectorRW();
+    real_t maxlimit=win.getElt(win.getShape()[0]-1);
     int ipoints=win.getShape()[0];
     int l=0;
     bool error=false;
@@ -4176,9 +4276,9 @@ escript::applyBinaryCFunction(bp::object cfunc, bp::tuple shape, escript::Data& 
     }
     if (d.isConstant() && e.isConstant())
     {
-        const double* src=d.getSampleDataRO(0);
-        const double* src2=e.getSampleDataRO(0);
-        double* dest=res.getSampleDataRW(0);
+        const real_t* src=d.getSampleDataRO(0);
+        const real_t* src2=e.getSampleDataRO(0);
+        real_t* dest=res.getSampleDataRW(0);
         err=func(dest,src,src2,rpointsize, dpointsize, epointsize);
     }
     else if (d.isTagged() && e.isTagged())
@@ -4209,17 +4309,17 @@ escript::applyBinaryCFunction(bp::object cfunc, bp::tuple shape, escript::Data& 
         for (std::list<int>::iterator j=alltags.begin();(j!=alltags.end()) && (err==0);++j)
         {
             destd.addTag(*j);
-            const double *ptr_0 = &(srcd.getDataByTagRO(*j,0));
-            const double *ptr_1 = &(srce.getDataByTagRO(*j,0));
-            double *ptr_2 = &(destd.getDataByTagRW(*j,0));
+            const real_t *ptr_0 = &(srcd.getDataByTagRO(*j,0));
+            const real_t *ptr_1 = &(srce.getDataByTagRO(*j,0));
+            real_t *ptr_2 = &(destd.getDataByTagRW(*j,0));
             err=func(ptr_2,ptr_0,ptr_1,rpointsize, dpointsize, epointsize);
         }
         if (err==0)
         {
             // now we do the default tag
-            const double *ptr_0 = &(srcd.getDefaultValueRO(0));
-            const double *ptr_1 = &(srce.getDefaultValueRO(0));
-            double *ptr_2 = &(destd.getDefaultValueRW(0));
+            const real_t *ptr_0 = &(srcd.getDefaultValueRO(0));
+            const real_t *ptr_1 = &(srce.getDefaultValueRO(0));
+            real_t *ptr_2 = &(destd.getDefaultValueRW(0));
             err=func(ptr_2,ptr_0,ptr_1,rpointsize, dpointsize, epointsize);
         }
     }
@@ -4239,9 +4339,9 @@ escript::applyBinaryCFunction(bp::object cfunc, bp::tuple shape, escript::Data& 
            {
                 if(!localerr)
                 {
-                    const double* src=d.getSampleDataRO(sampleid);
-                    const double* src2=e.getSampleDataRO(sampleid);
-                    double* dest=res.getSampleDataRW(sampleid);
+                    const real_t* src=d.getSampleDataRO(sampleid);
+                    const real_t* src2=e.getSampleDataRO(sampleid);
+                    real_t* dest=res.getSampleDataRW(sampleid);
                     for (int pointnum=0;pointnum<dpps;++pointnum)
                     {
                         localerr=func(dest,src,src2,rpointsize, dpointsize, epointsize);
@@ -4359,7 +4459,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
         const DataTagged* tdat=dynamic_cast<const DataTagged*>(trueval.getReady());
         const DataTagged* fdat=dynamic_cast<const DataTagged*>(falseval.getReady());
         const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
-        DataVector::ConstValueType srcptr;
+        RealVectorType::const_pointer srcptr;
 
         // default value first
         if (mdat->getDefaultValueRO(0)>0)
@@ -4418,7 +4518,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 #else
             size_t i;
 #endif
-            DataVector& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
+            RealVectorType& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
             unsigned int psize=result.getDataPointSize();
                 
             size_t numsamples=result.getNumSamples();
@@ -4428,8 +4528,8 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
             {
                 // We are assuming that the first datapoint in the sample determines which side to use
                 // for the whole sample.
-                const DataAbstract::ValueType::value_type* src=0;
-                const DataAbstract::ValueType::value_type* masksample=mask.getSampleDataRO(i);
+                const DataTypes::real_t* src=0;
+                const DataTypes::real_t* masksample=mask.getSampleDataRO(i);
                 if (masksample[0]>0)    // first scalar determines whole sample
                 {
                     src=trueval.getSampleDataRO(i);
@@ -4455,13 +4555,22 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     }
 }
 
-DataTypes::ValueType& Data::getExpandedVectorReference()
+DataTypes::RealVectorType& Data::getExpandedVectorReference(DataTypes::real_t dummy)
 {
     if (!isExpanded())
     {
         expand();
     }
-    return getReady()->getVectorRW();
+    return getReady()->getTypedVectorRW(dummy);
+}
+
+DataTypes::CplxVectorType& Data::getExpandedVectorReference(DataTypes::cplx_t dummy)
+{
+    if (!isExpanded())
+    {
+        expand();
+    }
+    return getReady()->getTypedVectorRW(dummy);
 }
 
 size_t Data::getNumberOfTaggedValues() const
@@ -4498,22 +4607,6 @@ Data escript::randomData(const boost::python::tuple& shape,
     {
 	throw DataException("The specified domain does not support those filter options.");
     }
-    
-/*     This code below needs to be moved into the other domains' randomFill code */    
-    
-    
-//     }
-//     else
-//     {
-// 	Data towipe(0, shape, what, true);
-// 	DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
-// 	if (de==0) 
-// 	{
-// 	    throw DataException("Programmer Error: Expanded data is not expanded");
-// 	}
-// 	de->randomFill(seed);
-//         return towipe;
-//     }
 }
 
 
@@ -4678,3 +4771,143 @@ bp::object Data::__rdiv__(const bp::object& right)
     }         
 }
 
+void Data::complicate()
+{
+    m_data->complicate();
+}
+
+Data
+escript::C_TensorUnaryOperation(Data const &arg_0,
+                       escript::ESFunction operation,
+		       DataTypes::real_t tol)
+{
+  if (arg_0.isEmpty())	// do this before we attempt to interpolate
+  {
+     throw DataException("Error - Operations (C_TensorUnaryOperation) not permitted on instances of DataEmpty.");
+  }
+  if (arg_0.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
+  }
+  
+  if (arg_0.isComplex() && !supports_cplx(operation))
+  {
+      throw DataException("Error - the requested operation does not support complex values");
+  }
+  
+  // Interpolate if necessary and find an appropriate function space
+  Data arg_0_Z = Data(arg_0);
+
+  // Get rank and shape of inputs
+  const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
+  int size0 = arg_0_Z.getDataPointSize();
+  
+  // Declare output Data object
+  Data res;
+
+  if (arg_0_Z.isConstant()) {
+    if (arg_0_Z.isComplex())			// this is not taking into account cplx->real
+    {
+        DataTypes::cplx_t dummy=0;
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        res.complicate();
+        const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
+        DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+    }
+    else
+    {
+        DataTypes::real_t dummy=0;
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
+        DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+    }
+  }
+  else if (arg_0_Z.isTagged()) {
+
+    // Borrow DataTagged input from Data object
+    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+
+    // Prepare a DataTagged output 2
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
+    res.tag();
+    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
+    if (arg_0_Z.isComplex())
+    {
+        DataTypes::cplx_t dummy=0;
+        // Get the pointers to the actual data
+        const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
+        DataTypes::cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,dummy));
+        // Compute a result for the default
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        // Compute a result for each tag
+        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+          tmp_2->addTag(i->first);
+          const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
+          DataTypes::cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummy));
+          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        }
+    }
+    else
+    {
+        // Get the pointers to the actual data
+        const DataTypes::real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+        DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        // Compute a result for the default
+        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        // Compute a result for each tag
+        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+          tmp_2->addTag(i->first);
+          const DataTypes::real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+          DataTypes::real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        }
+    }
+  }
+  else if (arg_0_Z.isExpanded()) {
+
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
+    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
+    DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+
+    int sampleNo_0,dataPointNo_0;
+    int numSamples_0 = arg_0_Z.getNumSamples();
+    int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+    if (arg_0_Z.isComplex())
+    {
+	DataTypes::cplx_t dummy=0;
+	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	    dataPointNo_0=0;
+	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	    const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
+	    DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummy));
+	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+	}      
+    }
+    else
+    {
+	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+	    dataPointNo_0=0;
+	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+	    const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+	}      
+    }
+  }
+  else {
+    throw DataException("Error - C_TensorUnaryOperation: unknown combination of inputs");
+  }
+
+  return res;
+}

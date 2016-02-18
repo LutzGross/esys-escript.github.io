@@ -48,9 +48,9 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
   const index_t* colorOf = A->pattern->borrowColoringPointer();
   const dim_t num_colors = A->pattern->getNumColors();
   const index_t *ptr_main = A->borrowMainDiagonalPointer();
-  register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
-  register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
-  register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
+  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
+  double S11,S12,S13,S21,S22,S23,S31,S32,S33;
+  index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
   double time0=0,time_fac=0;
   /* allocations: */
   Solver_ILU* out=new Solver_ILU;
@@ -321,9 +321,9 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
 void Solver_solveILU(SparseMatrix_ptr A, Solver_ILU* ilu, double* x,
                      const double* b)
 {
-     register dim_t i,k;
-     register index_t color,iptr_ik,iptr_main;
-     register double S1,S2,S3,R1,R2,R3;
+     dim_t i,k;
+     index_t color,iptr_ik,iptr_main;
+     double S1,S2,S3,R1,R2,R3;
      const dim_t n=A->numRows;
      const dim_t n_block=A->row_block_size;
      const index_t* colorOf = A->pattern->borrowColoringPointer();

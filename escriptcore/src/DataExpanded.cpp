@@ -41,7 +41,7 @@ using namespace escript::DataTypes;
         abort();\
         throw DataException(ss.str());\
     }\
-} while(0)
+} while(0);
 
 
 namespace escript {
@@ -51,22 +51,23 @@ DataExpanded::DataExpanded(const WrappedArray& value,
   : parent(what,value.getShape())
 {
     // initialise the data array for this object
-    initialise(what.getNumSamples(),what.getNumDPPSample());
+    initialise(what.getNumSamples(),what.getNumDPPSample(), value.isComplex());
     // copy the given value to every data point
     copy(value);
 }
 
 DataExpanded::DataExpanded(const DataExpanded& other)
   : parent(other.getFunctionSpace(), other.getShape()),
-    m_data(other.m_data)
+    m_data_r(other.m_data_r), m_data_c(other.m_data_c)
 {
+    m_iscompl=other.m_iscompl;
 }
 
 DataExpanded::DataExpanded(const DataConstant& other)
   : parent(other.getFunctionSpace(), other.getShape())
 {
     // initialise the data array for this object
-    initialise(other.getNumSamples(),other.getNumDPPSample());
+    initialise(other.getNumSamples(),other.getNumDPPSample(), other.isComplex());
     // DataConstant only has one value, copy this to every data point
     copy(other);
 }
@@ -75,22 +76,42 @@ DataExpanded::DataExpanded(const DataTagged& other)
   : parent(other.getFunctionSpace(), other.getShape())
 {
     // initialise the data array for this object
-    initialise(other.getNumSamples(),other.getNumDPPSample());
+    initialise(other.getNumSamples(),other.getNumDPPSample(), other.isComplex());
     // for each data point in this object, extract and copy the corresponding
     // data value from the given DataTagged object
-    DataTypes::ValueType::size_type numRows=m_data.getNumRows();
-    DataTypes::ValueType::size_type numCols=m_data.getNumCols();
-#pragma omp parallel for
-    for (int i=0; i<numRows; i++) {
-        for (int j=0; j<numCols; j++) {
-            try {
-                DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j),
-                                     getNoValues(), other.getVectorRO(),
-                                     other.getPointOffset(i,j));
-            } catch (std::exception& e) {
-                cerr << e.what() << endl;
-            }
-        }
+    if (isComplex())
+    {
+	DataTypes::cplx_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+					getNoValues(), other.getTypedVectorRO(dummy),
+					other.getPointOffset(i,j));
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}      
+      
+      
+    }
+    else
+    {
+	DataTypes::real_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+					getNoValues(), other.getTypedVectorRO(dummy),
+					other.getPointOffset(i,j));
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}
     }
 }
 
@@ -99,40 +120,60 @@ DataExpanded::DataExpanded(const DataExpanded& other,
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
     // initialise this Data object to the shape of the slice
-    initialise(other.getNumSamples(),other.getNumDPPSample());
+    initialise(other.getNumSamples(),other.getNumDPPSample(), other.isComplex());
     // copy the data
     DataTypes::RegionLoopRangeType region_loop_range =
                                     DataTypes::getSliceRegionLoopRange(region);
-    DataTypes::ValueType::size_type numRows=m_data.getNumRows();
-    DataTypes::ValueType::size_type numCols=m_data.getNumCols();
-#pragma omp parallel for
-    for (int i=0; i<numRows; i++) {
-        for (int j=0; j<numCols; j++) {
-            try {
-                DataTypes::copySlice(getVectorRW(), getShape(),
-                                     getPointOffset(i,j), other.getVectorRO(),
-                                     other.getShape(),
-                                     other.getPointOffset(i,j),
-                                     region_loop_range);
-            } catch (std::exception& e) {
-                cerr << e.what() << endl;
-            }
-        }
+    if (isComplex())
+    {
+	DataTypes::cplx_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copySlice(getTypedVectorRW(dummy), getShape(),
+					getPointOffset(i,j), other.getTypedVectorRO(dummy),
+					other.getShape(),
+					other.getPointOffset(i,j),
+					region_loop_range);
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}      
+    }
+    else
+    {
+	DataTypes::real_t dummy=0;
+	#pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		try {
+		    DataTypes::copySlice(getTypedVectorRW(dummy), getShape(),
+					getPointOffset(i,j), other.getTypedVectorRO(dummy),
+					other.getShape(),
+					other.getPointOffset(i,j),
+					region_loop_range);
+		} catch (std::exception& e) {
+		    cerr << e.what() << endl;
+		}
+	    }
+	}
     }
 }
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const DataTypes::ValueType &data)
+                           const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
     EsysAssert(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
-        ValueType& vec=m_data.getData();
+        RealVectorType& vec=m_data_r;
         // create the view of the data
-        initialise(what.getNumSamples(),what.getNumDPPSample());
+        initialise(what.getNumSamples(),what.getNumDPPSample(), false);
         // now we copy this value to all elements
         for (int i=0; i<getLength();) {
             for (unsigned int j=0;j<getNoValues();++j,++i) {
@@ -141,18 +182,42 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
         }
     } else {
         // copy the data in the correct format
-        m_data.getData() = data;
+        m_data_r = data;
     }
 }
 
 DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const double v)
+                           const DataTypes::CplxVectorType &data)
   : parent(what,shape)
 {
-    ValueType& vec=m_data.getData();
-    // create the view of the data
-    initialise(what.getNumSamples(),what.getNumDPPSample());
+    EsysAssert(data.size()%getNoValues()==0,
+                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
+
+    if (data.size() == getNoValues()) {
+        CplxVectorType& vec=m_data_c;
+        // create the view of the data
+        initialise(what.getNumSamples(),what.getNumDPPSample(), true);
+        // now we copy this value to all elements
+        for (int i=0; i<getLength();) {
+            for (unsigned int j=0;j<getNoValues();++j,++i) {
+                vec[i]=data[j];
+            }
+        }
+    } else {
+        // copy the data in the correct format
+        m_data_c = data;
+    }
+}
+
+
+DataExpanded::DataExpanded(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::real_t v)
+  : parent(what,shape)
+{
+    initialise(what.getNumSamples(),what.getNumDPPSample(), false);
+    DataTypes::RealVectorType& vec=m_data_r;
     // now we copy this value to all elements
     const int L=getLength();
 #pragma omp parallel for
@@ -161,11 +226,28 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
     }
 }
 
+DataExpanded::DataExpanded(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::cplx_t v)
+  : parent(what,shape)
+{
+    initialise(what.getNumSamples(),what.getNumDPPSample(), true);
+    DataTypes::CplxVectorType& vec=m_data_c;
+    
+    // now we copy this value to all elements
+    const int L=getLength();
+#pragma omp parallel for
+    for (int i=0; i<L; ++i) {
+        vec[i]=v;
+    }
+}
+
+
 DataExpanded::~DataExpanded()
 {
 }
 
-DataAbstract* DataExpanded::deepCopy()
+DataAbstract* DataExpanded::deepCopy() const
 {
     return new DataExpanded(*this);
 }
@@ -198,15 +280,13 @@ void DataExpanded::setSlice(const DataAbstract* value,
                 shape, value->getShape()));
 
     // copy the data from the slice into this object
-    DataTypes::ValueType::size_type numRows = m_data.getNumRows();
-    DataTypes::ValueType::size_type numCols = m_data.getNumCols();
-    ValueType& vec=getVectorRW();
+    DataTypes::RealVectorType& vec=getVectorRW();
     const ShapeType& mshape=getShape();
-    const ValueType& tVec=tempDataExp->getVectorRO();
+    const DataTypes::RealVectorType& tVec=tempDataExp->getVectorRO();
     const ShapeType& tShape=tempDataExp->getShape();
 #pragma omp parallel for
-    for (int i=0; i<numRows; i++) {
-        for (int j=0; j<numCols; j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             DataTypes::copySliceFrom(vec, mshape, getPointOffset(i,j), tVec,
                                      tShape, tempDataExp->getPointOffset(i,j),
                                      region_loop_range);
@@ -218,17 +298,44 @@ void DataExpanded::copy(const DataConstant& value)
 {
     EsysAssert((checkShape(getShape(), value.getShape())),
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
-
-    // copy a single value to every data point in this object
-    int nRows=m_data.getNumRows();
-    int nCols=m_data.getNumCols();
-#pragma omp parallel for
-    for (int i=0; i<nRows; i++) {
-        for (int j=0; j<nCols; j++) {
-            DataTypes::copyPoint(getVectorRW(), getPointOffset(i,j),
-                                 getNoValues(), value.getVectorRO(), 0);
-        }
+    if (isComplex())
+    {
+	if (value.isComplex())
+	{
+	    // copy a single value to every data point in this object
+	    #pragma omp parallel for
+	    for (int i=0; i<m_noSamples; i++) {
+		for (int j=0; j<m_noDataPointsPerSample; j++) {
+		    DataTypes::copyPoint(getTypedVectorRW((cplx_t)(0)), getPointOffset(i,j),
+					getNoValues(), value.getTypedVectorRO((cplx_t)(0)), 0);
+		}
+	    }	    
+	}
+	else	// value is real
+	{
+	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  
+	}
     }
+    else
+    {
+	if (value.isComplex())
+	{
+	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  	  
+	}
+	else
+	{
+	    real_t dummy=0;
+	    // copy a single value to every data point in this object
+	    #pragma omp parallel for
+	    for (int i=0; i<m_noSamples; i++) {
+		for (int j=0; j<m_noDataPointsPerSample; j++) {
+		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+					getNoValues(), value.getTypedVectorRO(dummy), 0);
+		}
+	    }
+	}
+    }
+    
 }
 
 void DataExpanded::copy(const WrappedArray& value)
@@ -241,39 +348,106 @@ void DataExpanded::copy(const WrappedArray& value)
     getVectorRW().copyFromArray(value, getNumDPPSample()*getNumSamples());
 }
 
-void DataExpanded::initialise(int noSamples, int noDataPointsPerSample)
+void DataExpanded::initialise(int noSamples, int noDataPointsPerSample, bool cplx)
 {
+    this->m_iscompl=cplx;
     if (noSamples==0) //retain the default empty object
         return;
 
-    // resize data array to the required size
-    m_data.resize(noSamples, noDataPointsPerSample, getNoValues());
+    if (cplx)
+    {
+	// resize data array to the required size
+	m_data_c.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());      
+    }
+    else
+    {
+	// resize data array to the required size
+	m_data_r.resize(noSamples*noDataPointsPerSample*getNoValues(), 0.0, noDataPointsPerSample*getNoValues());
+    }
 }
 
-bool DataExpanded::hasNaN() const
+bool
+DataExpanded::hasNaN() const
 {
-    bool haveNaN = false;
-    const ValueType& v = m_data.getData();
-#pragma omp parallel for
-    for (ValueType::size_type i=0; i<v.size(); ++i) {
-        if (nancheck(v[i])) {
-#pragma omp critical
-            {
-                haveNaN=true;
-            }
-        }
-    }
-    return haveNaN;
+  bool haveNaN=false;
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	  if (std::isnan(m_data_r[i]))
+	  {
+	      #pragma omp critical 
+	      {
+		  haveNaN=true;
+	      }
+	  }
+      }
+  }
+  return haveNaN;
 }
 
-void DataExpanded::replaceNaN(double value)
-{
-#pragma omp parallel for
-    for (ValueType::size_type i=0; i<m_data.size(); ++i) {
-        if (nancheck(m_data[i])) {
-            m_data[i] = value;
-        }
-    }
+
+void
+DataExpanded::replaceNaN(DataTypes::real_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_r[i]))  
+	{
+	  m_data_r[i] = value;
+	}
+      }    
+  }
+}
+
+void
+DataExpanded::replaceNaN(DataTypes::cplx_t value) {
+  CHECK_FOR_EX_WRITE  
+  if (isComplex())
+  {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+	{
+	  m_data_c[i] = value;
+	}
+      }
+  }
+  else
+  {
+      complicate();
+      replaceNaN(value);
+  }
 }
 
 string DataExpanded::toString() const
@@ -282,15 +456,17 @@ string DataExpanded::toString() const
     FunctionSpace fs=getFunctionSpace();
 
     int offset=0;
-    for (int i=0; i<m_data.getNumRows(); i++) {
-        for (int j=0; j<m_data.getNumCols(); j++) {
+    for (int i=0; i<m_noSamples; i++) {
+        for (int j=0; j<m_noDataPointsPerSample; j++) {
             offset = getPointOffset(i,j);
             stringstream suffix;
             suffix << "( id: " << i << ", ref: "
                    << fs.getReferenceIDOfSample(i) << ", pnt: " << j << ")";
-            ss << DataTypes::pointToString(getVectorRO(), getShape(), offset,
-                                           suffix.str());
-            if (!(i==(m_data.getNumRows()-1) && j==(m_data.getNumCols()-1))) {
+            ss << (isComplex()?
+		    DataTypes::pointToString(getTypedVectorRO((cplx_t)0), getShape(), offset, suffix.str())
+		   :
+		    DataTypes::pointToString(getTypedVectorRO((real_t)0), getShape(), offset, suffix.str()));
+            if (!(i==(m_noSamples-1) && j==(m_noDataPointsPerSample-1))) {
                 ss << endl;
             }
         }
@@ -302,21 +478,39 @@ string DataExpanded::toString() const
     return result;
 }
 
-DataTypes::ValueType::size_type DataExpanded::getPointOffset(int sampleNo,
+DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
-    return m_data.index(sampleNo,dataPointNo);
+    DataTypes::RealVectorType::size_type blockSize=getNoValues();
+    EsysAssert((isComplex()?
+		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_c.size() > 0))
+		:
+		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
+	       "(DataBlocks2D) Index value out of range.");
+    DataTypes::RealVectorType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
+    EsysAssert((isComplex()?
+		  (temp <= (m_data_c.size()-blockSize))
+		:
+		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range.");
+
+    return temp;
 }
 
-DataTypes::ValueType::size_type DataExpanded::getPointOffset(int sampleNo,
-                                                             int dataPointNo)
+
+void DataExpanded::complicate()
 {
-    return m_data.index(sampleNo,dataPointNo);
+    if (!isComplex())
+    {
+        fillComplexFromReal(m_data_r, m_data_c);
+        this->m_iscompl=true;
+        m_data_r.resize(0,0,1);
+    }
 }
 
-DataTypes::ValueType::size_type DataExpanded::getLength() const
+
+DataTypes::RealVectorType::size_type DataExpanded::getLength() const
 {
-    return m_data.size();
+    return m_data_r.size();
 }
 
 void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, double value)
@@ -334,8 +528,8 @@ void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, double value)
         if (dataPointNo >= numDataPointsPerSample || dataPointNo < 0)
             throw DataException("DataExpanded::copyDataPoint: invalid dataPointNo.");
 
-        ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-        ValueType& vec = getVectorRW();
+        DataTypes::RealVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+        DataTypes::RealVectorType& vec = getVectorRW();
         if (dataPointRank==0) {
             vec[offset] = value;
         } else if (dataPointRank==1) {
@@ -388,8 +582,8 @@ void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo,
         if (dataPointNo >= numDataPointsPerSample || dataPointNo < 0)
             throw DataException("DataExpanded::copyDataPoint: invalid dataPointNoInSample.");
 
-        ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-        ValueType& vec = getVectorRW();
+        DataTypes::RealVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+        DataTypes::RealVectorType& vec = getVectorRW();
         vec.copyFromArrayToOffset(value, offset, 1);
     }
 }
@@ -402,9 +596,9 @@ void DataExpanded::symmetric(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::symmetric: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -424,9 +618,9 @@ void DataExpanded::nonsymmetric(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::nonsymmetric: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -446,9 +640,9 @@ void DataExpanded::trace(DataAbstract* ev, int axis_offset)
     if (!temp_ev)
         throw DataException("DataExpanded::trace: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec=getVectorRO();
+    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    ValueType& evVec=temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
     const ShapeType& evShape=temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -468,9 +662,9 @@ void DataExpanded::transpose(DataAbstract* ev, int axis_offset)
     if (!temp_ev)
         throw DataException("DataExpanded::transpose: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -490,9 +684,9 @@ void DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
     if (!temp_ev)
         throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec=getVectorRO();
+    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    ValueType& evVec=temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
     const ShapeType& evShape=temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -512,9 +706,9 @@ void DataExpanded::eigenvalues(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::eigenvalues: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec=getVectorRO();
+    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    ValueType& evVec=temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
     const ShapeType& evShape=temp_ev->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -539,11 +733,11 @@ void DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,
     if (!temp_V)
         throw DataException("DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (probably a programming error).");
 
-    const ValueType& vec = getVectorRO();
+    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    ValueType& evVec = temp_ev->getVectorRW();
+    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
-    ValueType& VVec = temp_V->getVectorRW();
+    DataTypes::RealVectorType& VVec = temp_V->getVectorRW();
     const ShapeType& VShape = temp_V->getShape();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -568,7 +762,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
 
     const int numdpps=getNumDPPSample();
     const int numSamples = getNumSamples();
-    const ValueType& vec=m_data.getData();
+    const DataTypes::RealVectorType& vec=m_data_r;
     int errcode=0;
 #pragma omp parallel
     {
@@ -578,7 +772,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
         for (int sampleNo = 0; sampleNo < numSamples; sampleNo++)
         {
             // not sure I like all those virtual calls to getPointOffset
-            DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
+            DataTypes::RealVectorType::size_type offset=getPointOffset(sampleNo,0);
             int res=DataMaths::matrix_inverse(vec, getShape(), offset,
                     temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
             if (res > errorcode) {
@@ -603,11 +797,11 @@ void DataExpanded::setToZero()
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::ValueType::size_type n = getNoValues();
+    const DataTypes::RealVectorType::size_type n = getNoValues();
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            double* p = &m_data[getPointOffset(sampleNo,dataPointNo)];
+            double* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
             for (int i=0; i<n; ++i)
                 p[i] = 0.;
         }
@@ -624,7 +818,7 @@ void DataExpanded::dump(const std::string fileName) const
     int type=  getFunctionSpace().getTypeCode();
     int ndims =0;
     long dims[ldims];
-    const double* d_ptr=&(m_data[0]);
+    const double* d_ptr=&(m_data_r[0]);
     const DataTypes::ShapeType& shape = getShape();
     int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
     int mpi_num=getFunctionSpace().getDomain()->getMPISize();
@@ -688,14 +882,21 @@ void DataExpanded::dump(const std::string fileName) const
 
 void DataExpanded::setTaggedValue(int tagKey,
                                   const DataTypes::ShapeType& pointshape,
-                                  const DataTypes::ValueType& value,
+                                  const DataTypes::RealVectorType& value,
                                   int dataOffset)
 {
     CHECK_FOR_EX_WRITE;
+    if (isComplex())
+    {
+        CplxVectorType tv;
+	fillComplexFromReal(value, tv);
+	setTaggedValue(tagKey, pointshape, tv, dataOffset);
+        return;
+    }
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::ValueType::size_type n = getNoValues();
-    const double* in = &value[0+dataOffset];
+    const DataTypes::RealVectorType::size_type n = getNoValues();
+    const real_t* in = &value[0+dataOffset];
 
     if (value.size() != n)
         throw DataException("DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
@@ -704,7 +905,38 @@ void DataExpanded::setTaggedValue(int tagKey,
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey) {
             for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-                double* p = &m_data[getPointOffset(sampleNo,dataPointNo)];
+                real_t* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
+                for (int i=0; i<n; ++i)
+                    p[i] = in[i];
+            }
+        }
+    }
+}
+
+
+void DataExpanded::setTaggedValue(int tagKey,
+                                  const DataTypes::ShapeType& pointshape,
+                                  const DataTypes::CplxVectorType& value,
+                                  int dataOffset)
+{
+    CHECK_FOR_EX_WRITE;
+    if (!isComplex())
+    {
+	throw DataException("Programming Error - Attempt to set a complex value on a real object.");
+    }
+    const int numSamples = getNumSamples();
+    const int numDataPointsPerSample = getNumDPPSample();
+    const DataTypes::CplxVectorType::size_type n = getNoValues();
+    const DataTypes::cplx_t* in = &value[0+dataOffset];
+
+    if (value.size() != n)
+        throw DataException("DataExpanded::setTaggedValue: number of input values does not match number of values per data points.");
+
+#pragma omp parallel for
+    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+        if (getFunctionSpace().getTagFromSampleNo(sampleNo) == tagKey) {
+            for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+                cplx_t* p = &m_data_c[getPointOffset(sampleNo,dataPointNo)];
                 for (int i=0; i<n; ++i)
                     p[i] = in[i];
             }
@@ -717,7 +949,7 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
 {
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
-    const DataTypes::ValueType::size_type n = getNoValues() * getNumDPPSample();
+    const DataTypes::RealVectorType::size_type n = getNoValues() * getNumDPPSample();
     FunctionSpace fs=getFunctionSpace();
 
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
@@ -727,8 +959,8 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
             bool matched=false;
             for (int sampleNo2 = sampleNo+1; sampleNo2 < numSamples; sampleNo2++) {
                 if (id == reference_ids[sampleNo2]) {
-                    double* p = &m_data[getPointOffset(sampleNo,0)];
-                    double* p2 = &m_data[getPointOffset(sampleNo2,0)];
+                    double* p = &m_data_r[getPointOffset(sampleNo,0)];
+                    double* p2 = &m_data_r[getPointOffset(sampleNo2,0)];
                     for (int i=0; i<n; i++) {
                         const double rtmp=p[i];
                         p[i] = p2[i];
@@ -746,16 +978,50 @@ void DataExpanded::reorderByReferenceIDs(dim_t *reference_ids)
     }
 }
 
-DataTypes::ValueType& DataExpanded::getVectorRW()
+DataTypes::RealVectorType& DataExpanded::getVectorRW()
 {
     CHECK_FOR_EX_WRITE;
-    return m_data.getData();
+    return m_data_r;
 }
 
-const DataTypes::ValueType& DataExpanded::getVectorRO() const
+const DataTypes::RealVectorType& DataExpanded::getVectorRO() const
 {
-    return m_data.getData();
+    return m_data_r;
 }
+
+DataTypes::CplxVectorType& DataExpanded::getVectorRWC()
+{
+    CHECK_FOR_EX_WRITE;
+    return m_data_c;
+}
+
+const DataTypes::CplxVectorType& DataExpanded::getVectorROC() const
+{
+    return m_data_c;
+}
+
+DataTypes::RealVectorType& DataExpanded::getTypedVectorRW(DataTypes::real_t dummypar)
+{
+    CHECK_FOR_EX_WRITE;
+    return m_data_r;
+}
+
+const DataTypes::RealVectorType& DataExpanded::getTypedVectorRO(DataTypes::real_t dummypar) const
+{
+    return m_data_r;
+}
+
+DataTypes::CplxVectorType& DataExpanded::getTypedVectorRW(DataTypes::cplx_t dummypar)
+{
+    CHECK_FOR_EX_WRITE;
+    return m_data_c;
+}
+
+const DataTypes::CplxVectorType& DataExpanded::getTypedVectorRO(DataTypes::cplx_t dummypar) const
+{
+    return m_data_c;
+}
+
 
 //void DataExpanded::randomFill(long seed)
 //{

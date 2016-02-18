@@ -108,7 +108,7 @@ void Dudley_Util_AddScatter(const dim_t len, const index_t * index, const dim_t 
 void Dudley_Util_SmallMatMult(dim_t A1, dim_t A2, double *A, dim_t B2, const double *B, const double *C)
 {
     dim_t i, j, s;
-    register double rtmp;
+    double rtmp;
     for (i = 0; i < A1; i++)
     {
 	for (j = 0; j < A2; j++)
@@ -130,7 +130,7 @@ void Dudley_Util_SmallMatMult(dim_t A1, dim_t A2, double *A, dim_t B2, const dou
 void Dudley_Util_SmallMatSetMult(dim_t len, dim_t A1, dim_t A2, double *A, dim_t B2, const double *B, const double *C)
 {
     dim_t q, i, j, s;
-    register double rtmp;
+    double rtmp;
     for (q = 0; q < len; q++)
     {
 	for (i = 0; i < A1; i++)
@@ -153,7 +153,7 @@ void Dudley_Util_SmallMatSetMult(dim_t len, dim_t A1, dim_t A2, double *A, dim_t
 void Dudley_Util_SmallMatSetMult1(dim_t len, dim_t A1, dim_t A2, double *A, dim_t B2, const double *B, const double *C)
 {
     dim_t q, i, j, s;
-    register double rtmp;
+    double rtmp;
     for (q = 0; q < len; q++)
     {
 	for (i = 0; i < A1; i++)
@@ -175,7 +175,7 @@ void Dudley_Util_SmallMatSetMult1(dim_t len, dim_t A1, dim_t A2, double *A, dim_
 void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, double *det)
 {
     dim_t q;
-    register double D, A11, A12, A13, A21, A22, A23, A31, A32, A33;
+    double D, A11, A12, A13, A21, A22, A23, A31, A32, A33;
 
     switch (dim)
     {
@@ -268,7 +268,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
 void Dudley_Util_DetOfSmallMat(dim_t len, dim_t dim, double *A, double *det)
 {
     dim_t q;
-    register double A11, A12, A13, A21, A22, A23, A31, A32, A33;
+    double A11, A12, A13, A21, A22, A23, A31, A32, A33;
 
     switch (dim)
     {
@@ -318,7 +318,7 @@ void Dudley_Util_DetOfSmallMat(dim_t len, dim_t dim, double *A, double *det)
 void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *Normal)
 {
     dim_t q;
-    register double A11, A12, CO_A13, A21, A22, CO_A23, A31, A32, CO_A33, length, invlength;
+    double A11, A12, CO_A13, A21, A22, CO_A23, A31, A32, CO_A33, length, invlength;
 
     switch (dim)
     {
@@ -656,7 +656,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
 {
     dim_t i;
     index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse = NULL;
-    register index_t itmp;
+    index_t itmp;
     bool allFound = FALSE;
     dim_t nv = 0;
 

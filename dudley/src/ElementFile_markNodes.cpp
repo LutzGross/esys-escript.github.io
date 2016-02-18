@@ -53,7 +53,7 @@ void Dudley_ElementFile_markDOFsConnectedToRange(index_t * mask, index_t offset,
 {
     dim_t i, NN, e, j;
     index_t color;
-    register index_t k;
+    index_t k;
 
     if (in != NULL)
     {

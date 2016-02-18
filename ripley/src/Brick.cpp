@@ -3536,7 +3536,7 @@ std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << st
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, shape, fs , true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        escript::DataTypes::RealVectorType& dv=resdat.getExpandedVectorReference();
 
         // now we need to copy values over
         for (size_t z=0; z < internal[2]; ++z) {
@@ -3554,7 +3554,7 @@ std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << st
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        escript::DataTypes::RealVectorType& dv=resdat.getExpandedVectorReference();
         double* convolution=get3DGauss(radius, sigma);
 
         for (size_t z=0;z<(internal[2]);++z) {

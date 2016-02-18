@@ -379,15 +379,15 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
 #pragma omp parallel for private(i,iptr) schedule(static)
     for (i=0;i<my_n;++i) {
         double max_offdiagonal = 0.;
-        register double sum_row=0;
-        register double main_row=0;
-        register dim_t kdeg=0;
-        register const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+        double sum_row=0;
+        double main_row=0;
+        dim_t kdeg=0;
+        const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 
         // collect information for row i:
         #pragma ivdep
         for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
-            register index_t j=A->mainBlock->pattern->index[iptr];
+            index_t j=A->mainBlock->pattern->index[iptr];
             const double fnorm=std::abs(A->mainBlock->val[iptr]);
             if(j != i) {
                 max_offdiagonal = std::max(max_offdiagonal,fnorm);
@@ -449,12 +449,12 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
 #pragma omp parallel for private(i,iptr) schedule(static)
         for (i=0; i<overlap_n; i++) {
             const double threshold = remote_threshold[2*i+1];
-            register dim_t kdeg=0;
-            register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
+            dim_t kdeg=0;
+            const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
             if (remote_threshold[2*i]>0) {
                 #pragma ivdep
                 for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-                  register index_t j=A->row_coupleBlock->pattern->index[iptr];
+                  index_t j=A->row_coupleBlock->pattern->index[iptr];
                   if(std::abs(A->row_coupleBlock->val[iptr])>threshold) {
                      S[koffset+kdeg] = j ;
                      kdeg++;
@@ -463,7 +463,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
 
                 #pragma ivdep
                 for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; iptr++) {
-                  register index_t j=A->remote_coupleBlock->pattern->index[iptr];
+                  index_t j=A->remote_coupleBlock->pattern->index[iptr];
                   if(std::abs(A->remote_coupleBlock->val[iptr])>threshold && i!=j) {
                       S[koffset+kdeg] = j + my_n;
                       kdeg++;
@@ -507,10 +507,10 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
         #pragma omp for schedule(static)
         for (i=0;i<my_n;++i) {
             double max_offdiagonal = 0.;
-            register double sum_row=0;
-            register double main_row=0;
-            register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
-            register dim_t kdeg=0;
+            double sum_row=0;
+            double main_row=0;
+            index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
+            dim_t kdeg=0;
             const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 
             /* collect information for row i: */
@@ -596,7 +596,7 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
         #pragma omp parallel for private(i,iptr) schedule(static)
         for (i=0; i<overlap_n; i++) {
             const double threshold2 = remote_threshold[2*i+1]*remote_threshold[2*i+1];
-            register dim_t kdeg=0;
+            dim_t kdeg=0;
             const index_t koffset = koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
             if (remote_threshold[2*i]>0) {
                 #pragma ivdep
