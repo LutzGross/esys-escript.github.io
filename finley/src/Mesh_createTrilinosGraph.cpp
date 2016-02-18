@@ -47,6 +47,8 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
     const index_t numRowTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
     const index_t* rowTarget = Nodes->borrowTargetDegreesOfFreedom();
     boost::scoped_array<IndexList> index_list(new IndexList[numRowTargets]);
+    IndexVector myRows(myNumRowTargets);
+    IndexVector columns(numColTargets);
   
 #pragma omp parallel
     {
@@ -59,13 +61,7 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
                                  false, rowTarget, false, colTarget);
         IndexList_insertElements(index_list.get(), Points, false,
                                  rowTarget, false, colTarget);
-    }
 
-    IndexVector myRows(myNumRowTargets);
-    IndexVector columns(numColTargets);
-
-#pragma omp parallel
-    {
 #pragma omp for nowait
         for (size_t i=0; i<myRows.size(); i++) {
             myRows[i] = Nodes->getFirstNode()+i;
@@ -75,13 +71,7 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
         for (size_t i=0; i<columns.size(); i++) {
             columns[colTarget[i]] = gNI[i];
         }
-    } // parallel section
-
-    TrilinosMap_ptr rowMap(new MapType(Nodes->getGlobalNumNodes(), myRows,
-                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
-
-    TrilinosMap_ptr colMap(new MapType(Nodes->getGlobalNumNodes(), columns,
-                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
+    } // end parallel section
 
     Teuchos::ArrayRCP<size_t> rowPtr(myNumRowTargets+1);
     for (size_t i=0; i < myNumRowTargets; i++) {
@@ -95,6 +85,12 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
         index_list[i].toArray(&colInd[rowPtr[i]], 0, numColTargets, 0);
         std::sort(&colInd[rowPtr[i]], &colInd[rowPtr[i+1]]);
     }
+
+    TrilinosMap_ptr rowMap(new MapType(Nodes->getGlobalNumNodes(), myRows,
+                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
+
+    TrilinosMap_ptr colMap(new MapType(Nodes->getGlobalNumNodes(), columns,
+                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
 
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
