@@ -129,7 +129,7 @@ namespace DataTypes
     * The complex vector will be resized as needed and any previous
     * values will be replaced.
    */
-   void fillComplexFromReal(RealVectorType& r, CplxVectorType& c);
+   void fillComplexFromReal(const RealVectorType& r, CplxVectorType& c);
    
    
    

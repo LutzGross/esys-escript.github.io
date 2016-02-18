@@ -1991,6 +1991,7 @@ Data::LsupWorker() const
 	localValue = algorithm(abs_max_func,0);
 
     #ifdef ESYS_MPI
+	real_t globalValue=0;
 	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
 	return globalValue;
     #else
@@ -2004,6 +2005,7 @@ Data::LsupWorker() const
 	localValue = algorithm(abs_max_func,0);
 
     #ifdef ESYS_MPI
+	real_t globalValue=0;	
 	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
 	return globalValue;
     #else
@@ -3002,6 +3004,26 @@ Data::setTaggedValueFromCPP(int tagKey,
     // Call DataAbstract::setTaggedValue
     m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
 }
+
+void
+Data::setTaggedValueFromCPP(int tagKey,
+                            const DataTypes::ShapeType& pointshape,
+                            const DataTypes::CplxVectorType& value,
+                            int dataOffset)
+{
+    if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+    }
+    //
+    // Ensure underlying data object is of type DataTagged
+    forceResolve();
+    if (isConstant()) tag();
+    exclusiveWrite();
+    //
+    // Call DataAbstract::setTaggedValue
+    m_data->setTaggedValue(tagKey,pointshape, value, dataOffset);
+}
+
 
 int
 Data::getTagNumber(int dpno)
@@ -4538,13 +4560,22 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     }
 }
 
-DataTypes::RealVectorType& Data::getExpandedVectorReference()
+DataTypes::RealVectorType& Data::getExpandedVectorReference(DataTypes::real_t dummy)
 {
     if (!isExpanded())
     {
         expand();
     }
-    return getReady()->getVectorRW();
+    return getReady()->getTypedVectorRW(dummy);
+}
+
+DataTypes::CplxVectorType& Data::getExpandedVectorReference(DataTypes::cplx_t dummy)
+{
+    if (!isExpanded())
+    {
+        expand();
+    }
+    return getReady()->getTypedVectorRW(dummy);
 }
 
 size_t Data::getNumberOfTaggedValues() const

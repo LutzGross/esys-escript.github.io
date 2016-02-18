@@ -631,9 +631,14 @@ If false, the result is a list of scalars [1, 2, ...]
     \return pointer to the data.
 */
   ESCRIPT_DLL_API
-  inline
   const DataTypes::real_t*
-  getDataRO() const;  
+  getDataRO(DataTypes::real_t dummy=0) const;  
+  
+  ESCRIPT_DLL_API
+  const DataTypes::cplx_t*
+  getDataRO(DataTypes::cplx_t dummy) const;    
+  
+  
   
   /**
      \brief
@@ -777,6 +782,12 @@ If false, the result is a list of scalars [1, 2, ...]
 			int dataOffset=0);
 
 
+  ESCRIPT_DLL_API
+  void
+  setTaggedValueFromCPP(int tagKey,
+			const DataTypes::ShapeType& pointshape,
+                        const DataTypes::CplxVectorType& value,
+			int dataOffset=0);  
 
   /**
     \brief
@@ -1677,7 +1688,11 @@ instead of manually manipulating process and point IDs.
   */
   ESCRIPT_DLL_API
   DataTypes::RealVectorType&
-  getExpandedVectorReference();
+  getExpandedVectorReference(DataTypes::real_t dummy=0);
+
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType&
+  getExpandedVectorReference(DataTypes::cplx_t dummy);
   
   
   /**
@@ -2069,7 +2084,7 @@ Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
 
 inline
 const DataTypes::real_t*
-Data::getDataRO() const
+Data::getDataRO(DataTypes::real_t dummy) const
 {
     if (isLazy())
     {
@@ -2081,7 +2096,25 @@ Data::getDataRO() const
     }
     else
     {
-	return &(getReady()->getVectorRO()[0]);
+	return &(getReady()->getTypedVectorRO(0)[0]);
+    }
+}
+
+inline
+const DataTypes::cplx_t*
+Data::getDataRO(DataTypes::cplx_t dummy) const
+{
+    if (isLazy())
+    {
+        throw DataException("Programmer error - getDataRO must not be called on Lazy Data.");
+    }
+    if (getNumSamples()==0)
+    {
+	return 0;
+    }
+    else
+    {
+	return &(getReady()->getTypedVectorRO(dummy)[0]);
     }
 }
 

@@ -191,12 +191,20 @@ DataAbstract::getTagCount() const
 void  
 DataAbstract::setTaggedValue(int tagKey,
            const DataTypes::ShapeType& pointshape,
-               const DataTypes::RealVectorType& value,
+           const DataTypes::RealVectorType& value,
            int dataOffset)
 {
     throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
 }
 
+void  
+DataAbstract::setTaggedValue(int tagKey,
+           const DataTypes::ShapeType& pointshape,
+           const DataTypes::CplxVectorType& value,
+           int dataOffset)
+{
+    throw DataException("Error - DataAbstract::setTaggedValue: Data type does not have tag values.");
+}
 
 int
 DataAbstract::getTagNumber(int dpno)

@@ -397,7 +397,7 @@ namespace escript {
     * The complex vector will be resized as needed and any previous
     * values will be replaced.
    */
-   void DataTypes::fillComplexFromReal(RealVectorType& r, CplxVectorType& c)
+   void DataTypes::fillComplexFromReal(const RealVectorType& r, CplxVectorType& c)
    {
        if (c.size()!=r.size())
        {

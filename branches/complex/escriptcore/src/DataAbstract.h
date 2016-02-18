@@ -284,6 +284,12 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
                  const DataTypes::RealVectorType& value,
 		 int dataOffset=0);
 
+  virtual
+  void
+  setTaggedValue(int tagKey,
+		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::CplxVectorType& value,
+		 int dataOffset=0);  
 
   /**
      \brief

@@ -323,6 +323,13 @@ TODO Make sure to document the relationship between tags and data, ie: data also
                  const DataTypes::ShapeType& pointshape,
                  const DataTypes::RealVectorType& value,
                  int dataOffset=0);
+  
+  void
+  addTaggedValue(int tagKey,
+                 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::CplxVectorType& value,
+                 int dataOffset=0);  
+  
 
   /**
      \brief
@@ -354,6 +361,13 @@ TODO Make sure to document the relationship between tags and data, ie: data also
                  const DataTypes::ShapeType& pointshape,
                  const DataTypes::RealVectorType& value,
                  int dataOffset=0);
+  
+  void
+  setTaggedValue(int tagKey,
+                 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::CplxVectorType& value,
+                 int dataOffset=0);  
+  
 
   /**
      \brief
