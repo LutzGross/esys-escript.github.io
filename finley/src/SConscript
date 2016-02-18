@@ -54,6 +54,7 @@ sources = """
     IndexList.cpp
     Mesh.cpp
     Mesh_addPoints.cpp
+    Mesh_createTrilinosGraph.cpp
     Mesh_findMatchingFaces.cpp
     Mesh_getPattern.cpp
     Mesh_glueFaces.cpp
@@ -102,6 +103,9 @@ cppadapter_headers = """
 """.split()
 
 local_env.Prepend(LIBS = ['escript', 'paso', 'esysUtils'])
+
+if local_env['trilinos']:
+    local_env.AppendUnique(LIBS = ['trilinoswrap'])
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS'])
