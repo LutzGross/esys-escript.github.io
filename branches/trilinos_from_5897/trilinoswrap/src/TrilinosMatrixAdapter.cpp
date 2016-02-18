@@ -371,7 +371,7 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
     Teuchos::ArrayRCP<const ST> colMask(gblCol->getData(0));
 
     mat->resumeFill();
-// OpenMP here will interact with OpenMP in Trilinos
+// Can't use OpenMP here as replaceLocalValues() is not thread-safe.
 //#pragma omp parallel for
     for (LO lclrow=0; lclrow < mat->getNodeNumRows(); lclrow++) {
         Teuchos::ArrayView<const LO> indices;
@@ -391,7 +391,7 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
         if (cols.size() > 0)
             mat->replaceLocalValues(lclrow, cols, vals);
     }
-    mat->fillComplete(mat->getDomainMap(), mat->getRangeMap());
+    fillComplete(true);
 }
 
 void TrilinosMatrixAdapter::saveMM(const std::string& filename) const

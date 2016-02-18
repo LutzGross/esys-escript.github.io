@@ -31,8 +31,14 @@
 #include <netcdfcpp.h>
 #endif
 
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+
+using esys_trilinos::TrilinosMatrixAdapter;
+using esys_trilinos::const_TrilinosGraph_ptr;
+#endif
+
 using namespace std;
-using namespace paso;
 namespace bp = boost::python;
 
 namespace finley {
@@ -729,29 +735,23 @@ void MeshAdapter::addPDEToSystem(
         const escript::Data& d_contact, const escript::Data& y_contact,
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-    paso::SystemMatrix* smat = dynamic_cast<paso::SystemMatrix*>(&mat);
-    if (smat) {
-        paso::SystemMatrix_ptr S(smat->shared_from_this());
-        Mesh* mesh=m_finleyMesh.get();
-        Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
-        checkFinleyError();
+    Mesh* mesh=m_finleyMesh.get();
+    Assemble_PDE(mesh->Nodes, mesh->Elements, &mat, rhs, A, B, C, D, X, Y);
+    checkFinleyError();
 
-        Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs,
-                escript::Data(), escript::Data(), escript::Data(), d,
-                escript::Data(), y);
-        checkFinleyError();
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, &mat, rhs,
+            escript::Data(), escript::Data(), escript::Data(), d,
+            escript::Data(), y);
+    checkFinleyError();
 
-        Assemble_PDE(mesh->Nodes, mesh->ContactElements, S, rhs,
-                escript::Data(), escript::Data(), escript::Data(), d_contact,
-                escript::Data(), y_contact);
-        checkFinleyError();
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, &mat, rhs,
+            escript::Data(), escript::Data(), escript::Data(), d_contact,
+            escript::Data(), y_contact);
+    checkFinleyError();
 
-        Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
-                escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
-        checkFinleyError();
-        return;
-    }
-    throw FinleyAdapterException("finley only supports Paso system matrices.");
+    Assemble_PDE(mesh->Nodes, mesh->Points, &mat, rhs, escript::Data(),
+            escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
+    checkFinleyError();
 }
 
 void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
@@ -777,22 +777,22 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
     Mesh* mesh=m_finleyMesh.get();
-    Assemble_PDE(mesh->Nodes, mesh->Elements, paso::SystemMatrix_ptr(), rhs,
+    Assemble_PDE(mesh->Nodes, mesh->Elements, NULL, rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             X, Y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, paso::SystemMatrix_ptr(),
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, NULL,
             rhs, escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), escript::Data(), y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->ContactElements, paso::SystemMatrix_ptr(),
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, NULL,
             rhs, escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), escript::Data(), y_contact);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->Points, paso::SystemMatrix_ptr(), rhs,
+    Assemble_PDE(mesh->Nodes, mesh->Points, NULL, rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), y_dirac);
     checkFinleyError();
@@ -810,7 +810,7 @@ void MeshAdapter::addPDEToTransportProblem(
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     source.expand();
-
+/*
     Mesh* mesh=m_finleyMesh.get();
     paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
@@ -840,6 +840,7 @@ void MeshAdapter::addPDEToTransportProblem(
                  source, escript::Data(), escript::Data(), escript::Data(),
                  d_dirac, escript::Data(), y_dirac);
     checkFinleyError();
+    */
 }
 
 //
@@ -1403,6 +1404,15 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
     return true;
 }
 
+#ifdef USE_TRILINOS
+const_TrilinosGraph_ptr MeshAdapter::getTrilinosGraph() const
+{
+    if (m_graph.is_null()) {
+        m_graph = m_finleyMesh->createTrilinosGraph();
+    }
+    return m_graph;
+}
+#endif
 
 //
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
@@ -1435,22 +1445,29 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
         throw FinleyAdapterException("Error - illegal function space type for system matrix columns.");
     }
 
-    // generate matrix:
-    paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
-            reduceRowOrder, reduceColOrder);
-    checkFinleyError();
-    paso::SystemMatrix_ptr sm;
-    const int trilinos = 0;
-    if (trilinos) {
-#ifdef TRILINOS
-        // FIXME: Allocation Epetra_VrbMatrix here...
+    // generate matrix
+    if (type & (int)SMT_TRILINOS) {
+#ifdef USE_TRILINOS
+        const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_finleyMesh->MPIInfo,
+                    row_blocksize, row_functionspace, graph));
+        return sm;
+#else
+        throw FinleyAdapterException("newSystemMatrix: finley was not compiled "
+                "with Trilinos support so the Trilinos solver stack cannot be "
+                "used.");
 #endif
-    } else {
-        sm.reset(new paso::SystemMatrix(type, pattern, row_blocksize,
-                    column_blocksize, false, row_functionspace,
+    } else if (type & (int)SMT_PASO) {
+        paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
+                reduceRowOrder, reduceColOrder);
+        checkFinleyError();
+        paso::SystemMatrix_ptr sm(new paso::SystemMatrix(type, pattern,
+                    row_blocksize, column_blocksize, false, row_functionspace,
                     column_functionspace));
+        return sm;
+    } else {
+        throw FinleyAdapterException("newSystemMatrix: unknown matrix type ID");
     }
-    return sm;
 }
 
 //
@@ -1823,9 +1840,17 @@ int MeshAdapter::getSystemMatrixTypeId(const boost::python::object& options) con
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
-    return paso::SystemMatrix::getSystemMatrixTypeId(sb.getSolverMethod(),
-                sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(),
-                m_finleyMesh->MPIInfo);
+    int package = sb.getPackage();
+    if (package == escript::SO_PACKAGE_TRILINOS) {
+#ifdef USE_TRILINOS
+        return (int)SMT_TRILINOS;
+#else
+        throw FinleyAdapterException("Trilinos requested but not built with Trilinos.");       
+#endif
+    }
+    return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
+                sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
+                sb.isSymmetric(), m_finleyMesh->MPIInfo);
 }
 
 int MeshAdapter::getTransportTypeId(int solver, int preconditioner,

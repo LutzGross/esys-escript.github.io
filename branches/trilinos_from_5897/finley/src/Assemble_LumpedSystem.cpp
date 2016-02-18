@@ -27,7 +27,6 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "Assemble.h"
 #include "Util.h"
 
@@ -63,8 +62,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
     }
 
     // initialize parameters
-    AssembleParameters p(nodes, elements, paso::SystemMatrix_ptr(), lumpedMat,
-                         reducedOrder);
+    AssembleParameters p(nodes, elements, NULL, lumpedMat, reducedOrder);
     if (!noError())
         return;
 
