@@ -332,6 +332,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     double* out_dp = out.getSampleDataRW(0);        
     double* in_dp = in.getSampleDataRW(0);                
     solve(out_dp, in_dp, &paso_options);
+    checkPasoError();
     paso_options.updateEscriptDiagnostics(options);
 }
 
