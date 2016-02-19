@@ -50,7 +50,8 @@ bool supports_cplx(escript::ESFunction operation)
     case GTZEROF:
     case GEZEROF:
     case LTZEROF:
-    case LEZEROF: return false;    
+    case LEZEROF: return false;   
+    case CONJF: return true;
     default:
       return false;	// let's be conservative
   }  

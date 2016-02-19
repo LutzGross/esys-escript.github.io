@@ -73,7 +73,8 @@ NEQZEROF,
 GTZEROF,
 GEZEROF,
 LTZEROF,
-LEZEROF
+LEZEROF,
+CONJF
 } ESFunction;
 
 
@@ -1015,8 +1016,11 @@ inline void tensor_unary_array_operation(const int size,
     case GEZEROF: tensor_unary_operation_helper(size, arg1, argRes, gezero_func<IN>()); break;
     case LTZEROF: tensor_unary_operation_helper(size, arg1, argRes, ltzero_func<IN>()); break;
     case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
-    
-    
+    case CONJF: 
+	  for (int i = 0; i < size; ++i) {
+	      argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
+	  }
+	  break;    
     default:
       throw DataException("Unsupported unary operation");
   }

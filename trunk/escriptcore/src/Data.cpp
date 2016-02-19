@@ -1562,7 +1562,6 @@ Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
 Data
 Data::conjugate() const
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
 	Data temp(*this);
@@ -1571,7 +1570,7 @@ Data::conjugate() const
     }
     if (isComplex())
     {
-	throw DataException("Conjugate of complex value not supported yet.");
+	return C_TensorUnaryOperation(*this, escript::ESFunction::CONJF);      
     }
     else
     {
@@ -4831,11 +4830,14 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 
     // Prepare a DataTagged output 2
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
-    res.tag();
-    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+
 
     if (arg_0_Z.isComplex())
     {
+        res.complicate();
+	res.tag();
+	DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
+      
         DataTypes::cplx_t dummy=0;
         // Get the pointers to the actual data
         const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
@@ -4854,6 +4856,10 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     }
     else
     {
+      
+	res.tag();
+	DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
+      
         // Get the pointers to the actual data
         const DataTypes::real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
         DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
@@ -4873,6 +4879,10 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   else if (arg_0_Z.isExpanded()) {
 
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
+    if (arg_0_Z.isComplex())
+    {
+	res.complicate();
+    }
     DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
 
