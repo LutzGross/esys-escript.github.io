@@ -1159,6 +1159,14 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   Data
   conjugate() const;
+  
+  ESCRIPT_DLL_API
+  Data
+  real() const;  
+  
+  ESCRIPT_DLL_API
+  Data
+  imag() const;  
 
   /**
      \brief

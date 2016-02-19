@@ -74,10 +74,12 @@ GTZEROF,
 GEZEROF,
 LTZEROF,
 LEZEROF,
-CONJF
+CONJF,
+REALF,
+IMAGF
 } ESFunction;
 
-
+bool always_real(ESFunction operation);
 
 /**
 \brief acts as a wrapper to isnan.
@@ -970,6 +972,35 @@ inline void tensor_unary_operation_helper(const int size,
   }
 }
 
+
+// deals with unary operations which return real, regardless of
+// their input type
+template <class IN>
+inline void tensor_unary_array_operation_real(const int size,
+                             const IN *arg1,
+                             DataTypes::real_t * argRes,
+                             escript::ESFunction operation,
+			     DataTypes::real_t tol=0)
+{
+   switch (operation)
+   {
+     case REALF: 
+	  for (int i = 0; i < size; ++i) {
+	      argRes[i] = std::real(arg1[i]);
+	  }
+	  break;   	  
+     case IMAGF: 
+	  for (int i = 0; i < size; ++i) {
+	      argRes[i] = std::imag(arg1[i]);
+	  }
+	  break;       
+     default:
+          throw DataException("Unsupported unary operation");      
+   }  
+}
+
+
+
 // In most cases, IN and OUT will be the same
 // but not ruling out putting Re() and Im()
 // through this
@@ -1020,7 +1051,7 @@ inline void tensor_unary_array_operation(const int size,
 	  for (int i = 0; i < size; ++i) {
 	      argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
 	  }
-	  break;    
+	  break;     	  
     default:
       throw DataException("Unsupported unary operation");
   }
