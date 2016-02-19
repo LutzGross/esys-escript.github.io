@@ -125,8 +125,8 @@ Mesh* RectangularMesh_Rec4(const dim_t* numElements, const double* Length,
             const dim_t k = i0+local_N0*i1;
             const index_t global_i0 = i0+offset0;
             const index_t global_i1 = i1+offset1;
-            out->Nodes->Coordinates[INDEX2(0,k,DIM)]=DBLE(global_i0)/DBLE(N0-1)*Length[0];
-            out->Nodes->Coordinates[INDEX2(1,k,DIM)]=DBLE(global_i1)/DBLE(N1-1)*Length[1];
+            out->Nodes->Coordinates[INDEX2(0,k,DIM)]=(real_t)global_i0/(real_t)(N0-1)*Length[0];
+            out->Nodes->Coordinates[INDEX2(1,k,DIM)]=(real_t)global_i1/(real_t)(N1-1)*Length[1];
             out->Nodes->Id[k] = Nstride0*global_i0 + Nstride1*global_i1;
             out->Nodes->Tag[k]=0;
             out->Nodes->globalDegreesOfFreedom[k] = Nstride0*(global_i0%NDOF0)

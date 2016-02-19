@@ -72,7 +72,7 @@ ESCRIPT_DLL_API int isDataPointShapeEqual(const escript::Data* data, int rank, c
    \param numSamples Input - number of samples
 */
 ESCRIPT_DLL_API int numSamplesEqual(const escript::Data* data, int numDataPointsPerSample,
-		    dim_t numSamples);
+		    escript::DataTypes::dim_t numSamples);
 
 /**
    \brief

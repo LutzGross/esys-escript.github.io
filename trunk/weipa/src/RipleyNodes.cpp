@@ -27,6 +27,10 @@
 #include <silo.h>
 #endif
 
+#ifndef VISIT_PLUGIN
+using escript::DataTypes::dim_t;
+#endif
+
 using namespace std;
 
 namespace weipa {

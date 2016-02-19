@@ -83,7 +83,8 @@ dim_t numPositives(dim_t N, const double *x)
 
 index_t iMax(dim_t N, const index_t* array)
 {
-    index_t out=INDEX_T_MIN;
+    const index_t INDEX_T_MIN = escript::DataTypes::index_t_min();
+    index_t out = INDEX_T_MIN;
     index_t out2;
     dim_t i;
     if (N>0) {

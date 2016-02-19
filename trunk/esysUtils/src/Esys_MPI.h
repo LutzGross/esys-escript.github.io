@@ -21,11 +21,12 @@
 #include "system_dep.h"
 #include "types.h"
 
+#include <escript/DataTypes.h>
+
 #include <sstream>
 #include <boost/shared_ptr.hpp>
 
 #ifdef ESYS_MPI
-
 #include <mpi.h>
 
 #ifdef ESYS_INDEXTYPE_LONG
@@ -53,8 +54,7 @@
    #define MPI_OP_NULL 17
 // end MPI_op
 
-   
-#endif
+#endif // ESYS_MPI
 
 typedef int Esys_MPI_rank;
 
@@ -65,6 +65,9 @@ typedef int Esys_MPI_rank;
 #define ESYS_MPI_SET_COUNTER(V,I) {(V).msg_tag_counter=(I)%1010201;}
 
 namespace esysUtils {
+
+using escript::DataTypes::index_t;
+using escript::DataTypes::dim_t;
 
 /** \brief tag reserved for use by SubWorld code
     this value should be higher than the modulus used in JMPI_::setCounter, apart from that, its value
@@ -90,7 +93,7 @@ public:
     int msg_tag_counter;
     bool ownscomm;	// if true, destroy comm on destruct    
     
-    dim_t setDistribution(index_t min_id,index_t max_id,index_t* distribution);
+    dim_t setDistribution(index_t min_id, index_t max_id, index_t* distribution);
     void split(dim_t N, dim_t* local_N,index_t* offset);     
     
     void incCounter(int i)

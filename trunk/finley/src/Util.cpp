@@ -350,14 +350,15 @@ std::vector<index_t> packMask(const std::vector<short>& mask)
 void setValuesInUse(const int *values, const int numValues,
                     std::vector<int>& valuesInUse, esysUtils::JMPI& mpiinfo)
 {
-    int lastFoundValue=INDEX_T_MIN;
+    const index_t INDEX_T_MAX = escript::DataTypes::index_t_max();
+    index_t lastFoundValue = escript::DataTypes::index_t_min();
     bool allFound=false;
 
     valuesInUse.clear();
 
     while (!allFound) {
         // find smallest value bigger than lastFoundValue
-        int minFoundValue = INDEX_T_MAX;
+        index_t minFoundValue = INDEX_T_MAX;
 #pragma omp parallel
         {
             int local_minFoundValue=minFoundValue;

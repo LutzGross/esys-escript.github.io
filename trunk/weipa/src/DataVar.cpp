@@ -132,7 +132,7 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
     if (numSamples == 0)
         return true;
 
-    const dim_t* iPtr = escriptData.getFunctionSpace().borrowSampleReferenceIDs();
+    const escript::DataTypes::dim_t* iPtr = escriptData.getFunctionSpace().borrowSampleReferenceIDs();
     sampleID.insert(sampleID.end(), numSamples, 0);
     copy(iPtr, iPtr+numSamples, sampleID.begin());
 

@@ -79,11 +79,11 @@ public:
     virtual int getReducedSolutionCode() const;
     virtual int getDiracDeltaFunctionsCode() const;
 
-    virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
+    virtual std::pair<int,DataTypes::dim_t> getDataShape(int functionSpaceCode) const;
 
-    virtual int getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const;
+    virtual int getTagFromSampleNo(int functionSpaceType, DataTypes::index_t sampleNo) const;
 
-    virtual const dim_t* borrowSampleReferenceIDs(int functionSpaceType) const;
+    virtual const DataTypes::dim_t* borrowSampleReferenceIDs(int functionSpaceType) const;
 
     virtual int getDim() const;
 
@@ -102,14 +102,14 @@ public:
                                      const boost::python::tuple& filter) const;
 
 private:
-    dim_t m_samples;       // number of samples
+    DataTypes::dim_t m_samples;       // number of samples
     int m_dpps;            // data points per sample
     int m_dpsize;          // how big are the datapoints?
-    dim_t* m_samplerefids; // sample reference ids
+    DataTypes::dim_t* m_samplerefids; // sample reference ids
 };
 
 ESCRIPT_DLL_API
-FunctionSpace getTestDomainFunctionSpace(int dpps, dim_t samples, int dpsize);
+FunctionSpace getTestDomainFunctionSpace(int dpps, DataTypes::dim_t samples, int dpsize);
 
 } // end of namespace
 

@@ -463,7 +463,7 @@ index_t Dudley_Util_getMinInt(dim_t dim, dim_t N, index_t * values)
 {
     dim_t i, j;
     index_t out, out_local;
-    out = INDEX_T_MAX;
+    out = escript::DataTypes::index_t_max();
     if (values != NULL && dim * N > 0)
     {
 	out = values[0];
@@ -489,7 +489,7 @@ index_t Dudley_Util_getMaxInt(dim_t dim, dim_t N, index_t * values)
 {
     dim_t i, j;
     index_t out, out_local;
-    out = -INDEX_T_MAX;
+    out = -escript::DataTypes::index_t_max();
     if (values != NULL && dim * N > 0)
     {
 	out = values[0];
@@ -520,7 +520,7 @@ index_t Dudley_Util_getFlaggedMinInt(dim_t dim, dim_t N, index_t * values, index
 {
     dim_t i, j;
     index_t out, out_local;
-    out = INDEX_T_MAX;
+    out = escript::DataTypes::index_t_max();
     if (values != NULL && dim * N > 0)
     {
 	out = values[0];
@@ -547,7 +547,7 @@ index_t Dudley_Util_getFlaggedMaxInt(dim_t dim, dim_t N, index_t * values, index
 {
     dim_t i, j;
     index_t out, out_local;
-    out = -INDEX_T_MAX;
+    out = -escript::DataTypes::index_t_max();
     if (values != NULL && dim * N > 0)
     {
 	out = values[0];
@@ -649,7 +649,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
 				index_t ** valuesInUse, esysUtils::JMPI& mpiinfo)
 {
     dim_t i;
-    index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse = NULL;
+    index_t lastFoundValue = escript::DataTypes::index_t_min(), minFoundValue, local_minFoundValue, *newValuesInUse = NULL;
     index_t itmp;
     bool allFound = FALSE;
     dim_t nv = 0;
@@ -659,7 +659,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
 	/* 
 	 *  find smallest value bigger than lastFoundValue 
 	 */
-	minFoundValue = INDEX_T_MAX;
+	minFoundValue = escript::DataTypes::index_t_max();
 #pragma omp parallel private(local_minFoundValue)
 	{
 	    local_minFoundValue = minFoundValue;
@@ -683,7 +683,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
 #endif
 	/* if we found a new tag we need to add this too the valuesInUseList */
 
-	if (minFoundValue < INDEX_T_MAX)
+	if (minFoundValue < escript::DataTypes::index_t_max())
 	{
 	    newValuesInUse = new index_t[nv + 1];
 	    if (*valuesInUse != NULL)

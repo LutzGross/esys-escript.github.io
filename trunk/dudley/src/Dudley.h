@@ -26,7 +26,13 @@
 #include "esysUtils/types.h"
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
+
+#include <escript/DataTypes.h>
 #include <cstring>
+
+//FIXME: this is evil! Fix by putting all of dudley into its own namespace!
+using escript::DataTypes::index_t;
+using escript::DataTypes::dim_t;
 
 /************************************************************************************/
 /*#define Dudley_TRACE */

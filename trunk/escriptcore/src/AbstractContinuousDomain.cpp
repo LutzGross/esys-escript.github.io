@@ -188,16 +188,16 @@ ATP_ptr AbstractContinuousDomain::newTransportProblem(
   return ATP_ptr();
 }
 
-dim_t AbstractContinuousDomain::getNumDataPointsGlobal() const
+DataTypes::dim_t AbstractContinuousDomain::getNumDataPointsGlobal() const
 {
   throwStandardException("AbstractContinuousDomain::getNumDataPointsGlobal");
   return 1;
 }
 
-std::pair<int,dim_t> AbstractContinuousDomain::getDataShape(int functionSpaceCode) const
+std::pair<int,DataTypes::dim_t> AbstractContinuousDomain::getDataShape(int functionSpaceCode) const
 {
   throwStandardException("AbstractContinuousDomain::getDataShape");
-  return std::pair<int,dim_t>(0,0);
+  return std::pair<int,DataTypes::dim_t>(0,0);
 }
 
 void AbstractContinuousDomain::setNewX(const escript::Data& arg)

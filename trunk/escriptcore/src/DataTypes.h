@@ -43,8 +43,38 @@ namespace DataTypes {
   static const ShapeType scalarShape;//!< Use this instead of creating empty shape objects for scalars.
   typedef long vec_size_type; 
 
+  /// type of all real-valued scalars in escript
   typedef double real_t;
-  typedef std::complex<double> cplx_t;
+
+  /// complex data type
+  typedef std::complex<real_t> cplx_t;
+
+  /// type for array/matrix indices used both globally and on each rank
+#ifdef ESYS_INDEXTYPE_LONG
+  typedef long index_t;
+#else
+  typedef int index_t;
+#endif
+
+  typedef index_t dim_t;
+
+  /**
+     \brief
+     Returns the minimum finite value for the index_t type.
+  */
+  inline index_t index_t_min()
+  {
+      return std::numeric_limits<index_t>::min();
+  }
+
+  /**
+     \brief
+     Returns the maximum finite value for the index_t type.
+  */
+  inline index_t index_t_max()
+  {
+      return std::numeric_limits<index_t>::max();
+  }
 
   /**
      \brief

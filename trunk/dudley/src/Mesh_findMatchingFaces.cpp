@@ -77,7 +77,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile * nodes, Dudley_ElementFile *
       for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
       }
     char error_msg[LenErrorMsg_MAX];
-    double h = DBLE(HUGE_VAL), h_local, dist, *X = NULL;
+    double h = HUGE_VAL, h_local, dist, *X = NULL;
     Dudley_Mesh_findMatchingFaces_center *center;
     index_t e_0, e_1, *a1 = NULL, *a2 = NULL, *perm = NULL, *perm_tmp = NULL, *itmp_ptr = NULL;
     const index_t *shiftNodes = NULL, *reverseNodes = NULL;
