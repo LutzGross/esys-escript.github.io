@@ -26,9 +26,13 @@
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
 
+#include <escript/DataTypes.h>
+
 #include <vector>
 
 namespace finley {
+
+using escript::DataTypes::real_t;
 
 //#define Finley_TRACE
 #define FINLEY_UNKNOWN -1

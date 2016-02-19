@@ -37,6 +37,14 @@
 
 namespace paso {
 
+static const real_t EPSILON = escript::DataTypes::real_t_eps();
+
+// exp(h)-1 ~ h + h**2/2 for abs(h) <  PASO_RT_EXP_LIM_MIN
+static const real_t PASO_RT_EXP_LIM_MIN = sqrt(EPSILON);
+
+// it is assumed that exp(h) with  h>PASO_RT_EXP_LIM_MAX is not reliable
+static const real_t PASO_RT_EXP_LIM_MAX = log(1./sqrt(EPSILON));
+
 err_t ReactiveSolver::solve(double* u, double* u_old, const double* source,
                             Options* options, Performance* pp)
 {
@@ -82,6 +90,7 @@ err_t ReactiveSolver::solve(double* u, double* u_old, const double* source,
 
 double ReactiveSolver::getSafeTimeStepSize(const_TransportProblem_ptr tp)
 {
+    const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
     const double EXP_LIM_MAX = PASO_RT_EXP_LIM_MAX;
     const dim_t n = tp->transport_matrix->getTotalNumRows();
     double dt_max = LARGE_POSITIVE_FLOAT;

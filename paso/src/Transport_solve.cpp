@@ -49,6 +49,8 @@ namespace paso {
 void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                              Options* options)
 {
+    const real_t EPSILON = escript::DataTypes::real_t_eps();
+    const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
     const double reduction_after_divergence_factor = 0.5;
     const dim_t num_failures_max=50;
 

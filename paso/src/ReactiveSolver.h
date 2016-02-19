@@ -21,12 +21,6 @@
 #include "performance.h"
 #include "Transport.h"
 
-// exp(h)-1 ~ h + h**2/2 for abs(h) <  PASO_RT_EXP_LIM_MIN
-#define PASO_RT_EXP_LIM_MIN sqrt(EPSILON)
-
-// it is assumed that exp(h) with  h>PASO_RT_EXP_LIM_MAX is not reliable
-#define PASO_RT_EXP_LIM_MAX log(1./sqrt(EPSILON))
-
 namespace paso {
 
 PASO_DLL_API

@@ -39,9 +39,7 @@ headers = """
     esysExceptionTranslator.h
     esysFileWriter.h
     blocktimer.h
-    mem.h
     index.h
-    maths.h
     pyerr.h
     system_dep.h
     first.h
