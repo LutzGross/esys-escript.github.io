@@ -89,7 +89,11 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     n_chunks=n/chunk_size;
     if (n_chunks*chunk_size<n) n_chunks+=1;
 #else
+#ifdef _OPENMP
     np=omp_get_max_threads();
+#else
+    np=1;
+#endif
     len=n/np;
     rest=n-len*np;
 #endif
