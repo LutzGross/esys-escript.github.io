@@ -19,17 +19,11 @@
 /*   Some utility routines: */
 
 /************************************************************************************/
-#include "esysUtils/maths.h"
 #include "Util.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include "esysUtils/index.h"
-#include "esysUtils/mem.h"
+
 #include <limits.h>
-#include "string.h"  /* for memcpy*/
+#include <cstring>  /* for memcpy*/
 
 /************************************************************************************/
 

@@ -14,8 +14,7 @@
 *****************************************************************************/
 
 #include "ShapeTable.h"
-#include "esysUtils/mem.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 /* Joel Fenwick - derived from info in Finley's Quadrature and shape files
 
