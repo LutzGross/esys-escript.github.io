@@ -354,8 +354,8 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 
     myFirstDOF = dof_distribution[myRank];
     myLastDOF = dof_distribution[myRank + 1];
-    max_id = -INDEX_T_MAX;
-    min_id = INDEX_T_MAX;
+    max_id = -escript::DataTypes::index_t_max();
+    min_id = escript::DataTypes::index_t_max();
 #pragma omp parallel private(loc_max_id,loc_min_id)
     {
 	loc_max_id = max_id;

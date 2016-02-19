@@ -22,6 +22,8 @@
 #ifndef INC_DUDLEY_NODEMAPPING
 #define INC_DUDLEY_NODEMAPPING
 
+#include "Dudley.h"
+
 #include "esysUtils/Esys_MPI.h"
 
 struct Dudley_NodeMapping {

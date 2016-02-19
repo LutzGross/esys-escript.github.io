@@ -81,7 +81,7 @@ public:
       \brief Returns the shape of the data needed to represent the function
              space.
     */
-    std::pair<int,dim_t> getDataShape() const;
+    std::pair<int,DataTypes::dim_t> getDataShape() const;
 
     /**
       \brief Comparison operator.  Returns true if function spaces are equal.
@@ -99,18 +99,18 @@ public:
     /**
       \brief Returns the tag associated with the given sample number.
     */
-    int getTagFromSampleNo(dim_t sampleNo) const;
+    int getTagFromSampleNo(DataTypes::dim_t sampleNo) const;
 
     /**
       \brief Returns the tag associated with the given data-point number.
     */
-    int getTagFromDataPointNo(dim_t dataPointNo) const;
+    int getTagFromDataPointNo(DataTypes::dim_t dataPointNo) const;
 
     /**
       \brief Returns the reference number associated with the given data-point
              number.
     */
-    dim_t getReferenceIDFromDataPointNo(dim_t dataPointNo) const;
+    DataTypes::dim_t getReferenceIDFromDataPointNo(DataTypes::dim_t dataPointNo) const;
 
     /**
       \brief Returns the reference number associated with the given sample
@@ -119,7 +119,7 @@ public:
              to use sampleNo as an offset.
     */
     inline
-    dim_t getReferenceIDOfSample(dim_t sampleNo) const {
+    DataTypes::dim_t getReferenceIDOfSample(DataTypes::dim_t sampleNo) const {
         return borrowSampleReferenceIDs()[sampleNo];
     }
 
@@ -128,14 +128,14 @@ public:
              return true
     */
     inline
-    bool ownSample(dim_t sampleNo) const {
+    bool ownSample(DataTypes::dim_t sampleNo) const {
         return m_domain->ownSample(m_functionSpaceType, sampleNo);
     }
 
     /**
       \brief Returns a borrowed reference to the list of sample reference IDs
     */
-    const dim_t* borrowSampleReferenceIDs() const;
+    const DataTypes::dim_t* borrowSampleReferenceIDs() const;
 
     /**
       \brief Returns the spatial locations of the data points.
@@ -157,7 +157,7 @@ public:
       \brief Returns the number of samples.
     */
     inline
-    dim_t getNumSamples() const { return getDataShape().second; }
+    DataTypes::dim_t getNumSamples() const { return getDataShape().second; }
 
     /**
       \brief Returns the number of data points per sample.

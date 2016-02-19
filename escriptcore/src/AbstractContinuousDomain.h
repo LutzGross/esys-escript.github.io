@@ -272,14 +272,14 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
      \brief
      Return the number of data points summed across all MPI processes
   */
-  virtual dim_t getNumDataPointsGlobal() const;
+  virtual DataTypes::dim_t getNumDataPointsGlobal() const;
 
   /**
      \brief
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
-  virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
+  virtual std::pair<int,DataTypes::dim_t> getDataShape(int functionSpaceCode) const;
 
   /**
      \brief

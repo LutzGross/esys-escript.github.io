@@ -29,7 +29,7 @@
 #ifndef __PASO_OPTIONS_H__
 #define __PASO_OPTIONS_H__
 
-#include <esysUtils/Esys_MPI.h>
+#include "Paso.h"
 
 #include <boost/python/object.hpp>
 

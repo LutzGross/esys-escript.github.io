@@ -425,7 +425,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param reference_ids - Input - reference_ids used for current ordering
   */
   virtual void
-  reorderByReferenceIDs(dim_t *reference_ids);
+  reorderByReferenceIDs(DataTypes::dim_t *reference_ids);
 
 
 

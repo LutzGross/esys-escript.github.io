@@ -51,7 +51,7 @@ int getNumDataPointsPerSample(const escript::Data* data)
 }
 
 int numSamplesEqual(const escript::Data* data, int numDataPointsPerSample,
-                    dim_t numSamples)
+                    escript::DataTypes::dim_t numSamples)
 {
   if (data == 0) {
      return 1;

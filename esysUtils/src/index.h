@@ -23,12 +23,9 @@
 
 /****************************************************************************/
 
-#include <limits.h>
-
 #define FALSE 0
 #define TRUE 1
 #define UNKNOWN -1
-#define DBLE(_x_) (double)(_x_)
 #define INDEX1(_X1_) (_X1_)
 #define INDEX2(_X1_,_X2_,_N1_) ((_X1_)+(_N1_)*(_X2_))
 #define INDEX3(_X1_,_X2_,_X3_,_N1_,_N2_) ((_X1_)+(_N1_)*INDEX2(_X2_,_X3_,_N2_))
@@ -43,9 +40,6 @@
 #define ABS(_arg_) MAX((_arg_),-(_arg_))
 #define SAMESIGN(_arg1_, _arg2_) ( ( ( (_arg1_)>=0 ) && ( (_arg2_)>=0 ) ) || ( ((_arg1_)<=0 ) && ( (_arg2_)<=0 ) ) )
 #define XNOR(_a0_,_a1_) ( ( (_a0_) && (_a1_) ) || ( !(_a0_) && !(_a1_) ) )
-
-#define INDEX_T_MAX INT_MAX
-#define INDEX_T_MIN -INT_MAX
 
 #endif // __ESYS_INDEX_H__
 

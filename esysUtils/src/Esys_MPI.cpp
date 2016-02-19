@@ -14,19 +14,13 @@
 *
 *****************************************************************************/
 
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-
 #include "Esys_MPI.h"
-#include "index.h"
 #include "error.h"
+#include "index.h"
 #include "EsysException.h"
 
+#include <vector>
 
-#include <iostream>        // temp for debugging
 
 namespace esysUtils
 {
@@ -35,7 +29,7 @@ JMPI makeInfo(MPI_Comm comm, bool owncom)
 {
     if (esysUtils::NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
     {
-        throw esysUtils::EsysException("Attempt to use the MPI_COMM_WORLD communicator when it is blocked.");
+        throw EsysException("Attempt to use the MPI_COMM_WORLD communicator when it is blocked.");
     }
     JMPI_* p=new JMPI_(comm, owncom);
     return JMPI(p);
@@ -45,23 +39,23 @@ JMPI makeInfo(MPI_Comm comm, bool owncom)
 JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
         : comm(mpicomm), ownscomm(owncom)
 {
-        msg_tag_counter = 0;
+    msg_tag_counter = 0;
 #ifdef ESYS_MPI
     if (mpicomm!=MPI_COMM_NULL)
     {
         if (MPI_Comm_rank(comm, &rank)!=MPI_SUCCESS || MPI_Comm_size(comm, &size)!=MPI_SUCCESS)
         {
-            Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
+            throw EsysException("JMPI::JMPI: error finding comm rank/size" );
         }
     }
     else
     {
-	rank=0;
-	size=0;
+        rank=0;
+        size=0;
     }
 #else
-        rank=0;
-        size=1;        
+    rank=0;
+    size=1;        
 #endif        
 }
 
@@ -75,91 +69,84 @@ JMPI_::~JMPI_()
 #endif
 }
 
-dim_t JMPI_::setDistribution(index_t min_id,index_t max_id,index_t* distribution)
+dim_t JMPI_::setDistribution(index_t min_id, index_t max_id,
+                             index_t* distribution)
 {
-   int rest=0, p;
-   int s=size;
-   dim_t N=max_id-min_id+1;
-   if (N>0) {
-      int local_N=N/s;
-      rest=N-local_N*s;
-      for (p=0; p<s; ++p) {
-         if (p<rest) {
-             distribution[p]=min_id+(local_N+1)*p;
-         } else {
-             distribution[p]=min_id+rest+local_N*p;
-         }
-      }
-      distribution[s]=max_id+1;
-      if (rest==0) {
-         return local_N;
-      } else {
-         return local_N+1;
-      }
-  } else {
-      for (p=0; p<s+1; ++p) distribution[p]=min_id;
-      return 0;
-  }  
-  
-  
+    const dim_t N = max_id-min_id+1;
+    if (N > 0) {
+        const dim_t local_N = N/size;
+        const dim_t rest = N-local_N*size;
+        for (int p=0; p<size; ++p) {
+            if (p < rest) {
+                distribution[p]=min_id+(local_N+1)*p;
+            } else {
+                distribution[p]=min_id+rest+local_N*p;
+            }
+        }
+        distribution[size]=max_id+1;
+        if (rest==0) {
+            return local_N;
+        } else {
+            return local_N+1;
+        }
+    } else {
+        for (int p=0; p<size+1; ++p)
+            distribution[p]=min_id;
+        return 0;
+    }
 }
 
-void JMPI_::split(dim_t N, dim_t* local_N,index_t* offset) 
+void JMPI_::split(dim_t N, dim_t* local_N, index_t* offset) 
 {
-   int rest=0;
-   int s=size;
-   int r=rank;
-   *local_N=N/s;
-   rest=N-(*local_N)*s;
-   if (r<rest) {
-       (*local_N)++;
-       (*offset)=(*local_N)*r;
-   } else {
-       (*offset)=(*local_N)*r+rest;
-   }
+    *local_N = N/size;
+    dim_t rest = N-(*local_N)*size;
+    if (rank < rest) {
+        (*local_N)++;
+        *offset = (*local_N)*rank;
+    } else {
+        *offset = (*local_N)*rank + rest;
+    }
 }
 
-}
-
-
-
-dim_t Esys_MPIInfo_setDistribution(esysUtils::JMPI& mpi_info ,index_t min_id,index_t max_id,index_t* distribution) {
-   int rest=0, p;
-   int s=mpi_info->size;
-   dim_t N=max_id-min_id+1;
-   if (N>0) {
-      int local_N=N/s;
-      rest=N-local_N*s;
-      for (p=0; p<s; ++p) {
-         if (p<rest) {
-             distribution[p]=min_id+(local_N+1)*p;
-         } else {
-             distribution[p]=min_id+rest+local_N*p;
-         }
-      }
-      distribution[s]=max_id+1;
-      if (rest==0) {
-         return local_N;
-      } else {
-         return local_N+1;
-      }
-  } else {
-      for (p=0; p<s+1; ++p) distribution[p]=min_id;
-      return 0;
-  }
-}
-
-
-
-/* N = #CPUs, k is a CPU number but out of range or even negative. Return a CPU number in 0...n-1. */
-index_t esysUtils::mod_rank(index_t n, index_t k) 
+dim_t Esys_MPIInfo_setDistribution(JMPI& mpi_info, index_t min_id,
+                                   index_t max_id,index_t* distribution)
 {
-    index_t q, out=0;
-    if (n>1) {
-        q=k/n;
-        if (k>0) {
+    const int s = mpi_info->size;
+    const dim_t N = max_id-min_id+1;
+    if (N > 0) {
+        const dim_t local_N = N/s;
+        const dim_t rest = N-local_N*s;
+        for (int p=0; p<s; ++p) {
+            if (p < rest) {
+                distribution[p]=min_id+(local_N+1)*p;
+            } else {
+                distribution[p]=min_id+rest+local_N*p;
+            }
+        }
+        distribution[s]=max_id+1;
+        if (rest==0) {
+            return local_N;
+        } else {
+            return local_N+1;
+        }
+    } else {
+        for (int p=0; p<s+1; ++p)
+            distribution[p]=min_id;
+        return 0;
+    }
+}
+
+
+// N = #CPUs, k is a CPU number but out of range or even negative.
+// Return a CPU number in 0...n-1.
+index_t mod_rank(index_t n, index_t k) 
+{
+    index_t out=0;
+    if (n > 1) {
+        const index_t q = k/n;
+        if (k > 0) {
            out=k-n*q;
-        } else if (k<0) {
+        } else if (k < 0) {
            out=k-n*(q-1);
         }
     }
@@ -168,24 +155,24 @@ index_t esysUtils::mod_rank(index_t n, index_t k)
 
 
 /* checks that there is no error across all processes in a communicator */
-/* NOTE : does not make guarantee consistency of error string on each process */
-bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
+/* NOTE: does not guarantee consistency of error string on each process */
+bool Esys_MPIInfo_noError(const JMPI& mpi_info)
 {
-  int errorLocal = Esys_noError() ? 0 : 1;
-  int errorGlobal = errorLocal;
+    int errorLocal = Esys_noError() ? 0 : 1;
+    int errorGlobal = errorLocal;
 
 #ifdef ESYS_MPI
-  if (!checkResult(errorLocal, errorGlobal, mpi_info))
-  {
-      return false;
-  }
-  if( (errorLocal==0) && (errorGlobal==1)) 
-  {
-     Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_noError() : there was an error on another MPI process" );
-  }
+    if (!checkResult(errorLocal, errorGlobal, mpi_info))
+    {
+        return false;
+    }
+    if (errorLocal==0 && errorGlobal==1) 
+    {
+        Esys_setError(ESYS_MPI_ERROR, "Esys_MPIInfo_noError(): there was an error on another MPI process" );
+    }
 #endif
-  
-  return (errorGlobal==0);
+
+    return (errorGlobal==0);
 }
 
 // Throw all values in and get the maximum --- used for error checking.
@@ -193,7 +180,7 @@ bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
 // However, if there are other (overlapping) communicators in the system, they don't
 // react well to getting unexpected/untagged messages.
 // To avoid this, we do individual sends to the root which sends the result back.
-bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
+bool checkResult(int res, int& mres, const esysUtils::JMPI& info)
 {
     if (info->size==1)
     {
@@ -255,21 +242,12 @@ bool esysUtils::checkResult(int res, int& mres, const esysUtils::JMPI& info)
 }
 
 
-
-
-
-
-
-
-
-
-
-// ensure that the any ranks with an empty src argument end up with the string from
-// one of the other ranks
-// with no-mpi, it makes dest point at a copy of src
-// Expected use case for this code is to ship error messages between ranks
-// as such, it is not written to be speedy
-bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
+// ensure that the any ranks with an empty src argument end up with the string
+// from one of the other ranks.
+// without mpi, it makes dest point at a copy of src.
+// Expected use case for this code is to ship error messages between ranks.
+// As such, it is not written to be speedy
+bool shipString(const char* src, char** dest, MPI_Comm& comm)
 {
 #ifdef ESYS_MPI  
     Esys_MPI_rank rank=0;
@@ -330,16 +308,16 @@ bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
     strcpy(*dest, src);
     return true;
 #endif
-  
 }
 
 namespace 
 {
-    // true if a split world call is currently running and MPI_COMM_WORLD should not be allowed by default
+    // true if a split world call is currently running and MPI_COMM_WORLD
+    // should not be allowed by default
     bool nocommworldplease=false;
 }
 
-esysUtils::NoCOMM_WORLD::NoCOMM_WORLD()
+NoCOMM_WORLD::NoCOMM_WORLD()
 {
     if (nocommworldplease)
     {
@@ -348,12 +326,12 @@ esysUtils::NoCOMM_WORLD::NoCOMM_WORLD()
     nocommworldplease=true;
 }
 
-esysUtils::NoCOMM_WORLD::~NoCOMM_WORLD()
+NoCOMM_WORLD::~NoCOMM_WORLD()
 {
     nocommworldplease=false;
 }  
 
-bool esysUtils::NoCOMM_WORLD::active()
+bool NoCOMM_WORLD::active()
 {
     return nocommworldplease;
 }
@@ -361,19 +339,6 @@ bool esysUtils::NoCOMM_WORLD::active()
 /**************************************************
                  WRAPPERS 
 **************************************************/
-
-int Esys_MPIInfo_initialized( void )
-{
-  #ifdef ESYS_MPI
-     int error=0, initialised=0;
-     error = MPI_Initialized( &initialised );
-     if( error!=MPI_SUCCESS )
-         Esys_setError( ESYS_MPI_ERROR, "mpi_initialised : MPI error" );
-     return initialised;
-  #else
-     return TRUE;
-  #endif
-}
 
 #ifndef _OPENMP 
 int serial_get_max_threads(void) {
@@ -383,4 +348,7 @@ int serial_get_thread_num(void) {
    return 0;
 }
 #endif
+
+} // namespace esysUtils
+
 
