@@ -4996,15 +4996,50 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     }
     else
     {
-	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-	    dataPointNo_0=0;
-	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-	    const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
-	}      
+	// we require storage to be contiguous so let's do it in one chunk
+        #pragma omp parallel private(sampleNo_0,dataPointNo_0)
+        {
+#ifdef _OPENMP
+	    int tid=omp_get_thread_num();
+	    int mt=omp_get_num_threads();
+	    int rem=numSamples_0%mt;
+	    size_t samples_per=numSamples_0/mt;
+	    size_t startsample=samples_per*tid+((tid<rem)?tid:rem);
+	    size_t nextsample=samples_per*(tid+1)+(((tid+1)<rem)?(tid+1):rem);
+	    size_t ulimit=min<size_t>(nextsample, numSamples_0);
+	    size_t samples=ulimit-startsample;    
+#else
+	    size_t startsample=0;
+	    size_t samples=num_samples;
+#endif	    
+	    if (startsample<numSamples_0)
+	    {
+		size_t offset_0 = tmp_0->getPointOffset(startsample,0);
+		size_t offset_2 = tmp_2->getPointOffset(startsample,0);
+		const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+		DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+		tensor_unary_array_operation(size0*samples*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+	    }
+	}    	    
+	    
+	    
+// 	    for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+// 		dataPointNo_0=0;
+// 		int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+// 		int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+// 		const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+// 		DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+// 		tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+// 	    }	
+//        }
+// 	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+// 	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+// 	    dataPointNo_0=0;
+// 	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+// 	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+// 	    const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+// 	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+// 	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);    
     }
   }
   else {
