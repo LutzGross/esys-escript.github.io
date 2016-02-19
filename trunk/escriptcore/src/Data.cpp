@@ -5006,7 +5006,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 	    size_t samples=ulimit-startsample;    
 #else
 	    size_t startsample=0;
-	    size_t samples=num_samples;
+	    size_t samples=numSamples_0;
 #endif	    
 	    if (startsample<numSamples_0)
 	    {

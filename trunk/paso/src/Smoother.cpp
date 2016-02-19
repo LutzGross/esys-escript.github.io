@@ -210,7 +210,11 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
 void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* smoother, double* x)
 {
+#ifdef _OPENMP
     const dim_t nt=omp_get_max_threads();
+#else
+    const dim_t nt=1;
+#endif
     if (smoother->Jacobi) {
         BlockOps_solveAll(A->row_block_size,A->numRows,smoother->diag,smoother->pivot,x);
     } else {

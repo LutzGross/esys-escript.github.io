@@ -28,10 +28,6 @@
 #include "system_dep.h"
 #include "types.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <stdio.h>	/* For FILENAME_MAX */
 #define LenString_MAX FILENAME_MAX*2
 #define LenErrorMsg_MAX LenString_MAX

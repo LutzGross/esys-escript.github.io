@@ -107,16 +107,19 @@ index_t cumsum(dim_t N, index_t* array)
 {
     index_t out=0,tmp;
     dim_t i;
-    index_t *partial_sums=NULL,sum;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
-    int thread_num;
+#else
+    const int num_threads=1;
+#endif
 
     if (num_threads>1) {
-        partial_sums=new index_t[num_threads];
-        #pragma omp parallel private(sum,thread_num ,i,tmp)
+#ifdef _OPENMP
+        index_t* partial_sums = new index_t[num_threads];
+        #pragma omp parallel private(i,tmp)
         {
-            sum=0;
-            thread_num=omp_get_thread_num();
+            index_t sum=0;
+            const int thread_num = omp_get_thread_num();
             #pragma omp for schedule(static)
             for (i=0;i<N;++i) sum+=array[i];
 
@@ -141,6 +144,7 @@ index_t cumsum(dim_t N, index_t* array)
             }
         }
         delete[] partial_sums;
+#endif
     } else {
         for (i=0;i<N;++i) {
             tmp=out;
@@ -153,18 +157,21 @@ index_t cumsum(dim_t N, index_t* array)
 
 index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
 {
-    index_t out=0,tmp;
+    index_t out=0;
     dim_t i;
-    index_t *partial_sums=NULL,sum;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
-    int thread_num;
+#else
+    const int num_threads=1;
+#endif
 
     if (num_threads>1) {
-        partial_sums=new index_t[num_threads];
-        #pragma omp parallel private(sum,i,thread_num,tmp)
+#ifdef _OPENMP
+        index_t* partial_sums=new index_t[num_threads];
+        #pragma omp parallel private(i)
         {
-            sum=0;
-            thread_num=omp_get_thread_num();
+            index_t sum=0, tmp;
+            const int thread_num = omp_get_thread_num();
             #pragma omp for schedule(static)
             for (i=0;i<N;++i) {
                 if (mask[i]) {
@@ -199,6 +206,7 @@ index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
             }
         }
         delete[] partial_sums;
+#endif
     } else { /* num_threads=1 */
         for (i=0;i<N;++i) {
             if (mask[i]) {
@@ -214,18 +222,21 @@ index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
 
 index_t cumsum_maskedFalse(dim_t N, index_t* array, int* mask)
 {
-    index_t out=0,tmp=0;
+    index_t out=0;
     dim_t i;
-    index_t *partial_sums=NULL,sum;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
-    int thread_num=0;
+#else
+    const int num_threads=1;
+#endif
 
     if (num_threads>1) {
-        partial_sums=new index_t[num_threads];
-        #pragma omp parallel private(sum,i,thread_num,tmp)
+#ifdef _OPENMP
+        index_t* partial_sums=new index_t[num_threads];
+        #pragma omp parallel private(i)
         {
-            sum=0;
-            thread_num=omp_get_thread_num();
+            index_t sum = 0, tmp = 0;
+            const int thread_num=omp_get_thread_num();
             #pragma omp for schedule(static)
             for (i=0;i<N;++i) {
                 if (! mask[i]) {
@@ -260,6 +271,7 @@ index_t cumsum_maskedFalse(dim_t N, index_t* array, int* mask)
             }
         }
         delete[] partial_sums;
+#endif
     } else {
         for (i=0;i<N;++i) {
             if (! mask[i]) {
@@ -280,13 +292,17 @@ index_t arg_max(dim_t n, dim_t* lambda)
     index_t argmax=-1;
     index_t lmax=-1;
     index_t li=-1;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
     if (n>0) {
         max=lambda[0];
         argmax=0;
-        if (num_threads>1) {
-         #pragma omp parallel private(i,lmax,li)
+        if (num_threads > 1) {
+#pragma omp parallel private(i,lmax,li)
             {
                 lmax=max;
                 li=argmax;
@@ -322,7 +338,11 @@ index_t arg_max(dim_t n, dim_t* lambda)
 void zeroes(dim_t n, double* x)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
 #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
     for (i=0;i<num_threads;++i) {
@@ -338,7 +358,11 @@ void zeroes(dim_t n, double* x)
 void update(dim_t n, double a, double* x, double b, const double* y)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
     #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
     for (i=0;i<num_threads;++i) {
@@ -384,7 +408,11 @@ void linearCombination(dim_t n, double* z, double a, const double* x,
                        double b, const double* y)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
 #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
     for (i=0;i<num_threads;++i) {
@@ -421,7 +449,11 @@ double innerProduct(const dim_t n,const double* x, const double* y,
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0, local_out=0., out=0.;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
 #pragma omp parallel for private(i,local_out,local_n,rest,n_start,n_end,q)
     for (i=0; i<num_threads; ++i) {
@@ -454,7 +486,11 @@ double lsup(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0., local_out=0., out=0.;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
 #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out)
     for (i=0; i<num_threads; ++i) {
@@ -482,10 +518,14 @@ double lsup(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
     return out;
 }
 
-double l2(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
+double l2(dim_t n, const double* x, const esysUtils::JMPI& mpiinfo)
 {
     double my_out=0, out=0.;
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
 
 #pragma omp parallel for
     for (dim_t i=0; i<num_threads; ++i) {

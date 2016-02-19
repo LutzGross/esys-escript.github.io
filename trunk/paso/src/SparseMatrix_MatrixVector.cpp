@@ -287,7 +287,11 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 #endif
 
     const dim_t nrow = A->numRows;
+#ifdef _OPENMP
     const dim_t np = omp_get_max_threads();
+#else
+    const dim_t np = 1;
+#endif
     const dim_t len = nrow/np;
 
 #ifdef USE_DYNAMIC_SCHEDULING

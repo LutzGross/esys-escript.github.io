@@ -72,7 +72,11 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     if (Length_of_recursion <= 0) {
         return SOLVER_INPUT_ERROR;
     }
+#ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
+#else
+    const int num_threads=1;
+#endif
     double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
     double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
     double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;

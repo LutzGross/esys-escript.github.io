@@ -336,19 +336,6 @@ bool NoCOMM_WORLD::active()
     return nocommworldplease;
 }
 
-/**************************************************
-                 WRAPPERS 
-**************************************************/
-
-#ifndef _OPENMP 
-int serial_get_max_threads(void) {
-   return 1;
-}
-int serial_get_thread_num(void) {
-   return 0;
-}
-#endif
-
 } // namespace esysUtils
 
 

@@ -68,7 +68,11 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
    const dim_t col_block_size=A_p->col_block_size;
    const dim_t my_n=A_p->mainBlock->numCols;
    const dim_t overlap_n=A_p->col_coupleBlock->numCols;
-   const dim_t num_threads=omp_get_max_threads();
+#ifdef _OPENMP
+   const int num_threads=omp_get_max_threads();
+#else
+   const int num_threads=1;
+#endif
    index_t size=mpi_info->size, *dist=NULL;
    index_t *main_p=NULL, *couple_p=NULL, *main_idx=NULL, *couple_idx=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
