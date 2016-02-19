@@ -30,6 +30,8 @@
 
 #include "RectangularMesh.h"
 
+using escript::DataTypes::real_t;
+
 namespace finley {
 
 Mesh* RectangularMesh_Rec4(const dim_t* numElements, const double* Length,

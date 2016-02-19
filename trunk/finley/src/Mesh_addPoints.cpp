@@ -51,7 +51,8 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
         return;
     }
 
-    const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
+    const escript::DataTypes::real_t LARGE_POSITIVE_FLOAT =
+                                         escript::DataTypes::real_t_max();
     ElementFile *oldPoints=Points;
     const_ReferenceElementSet_ptr refPoints;
     int numOldPoints;

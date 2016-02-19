@@ -31,6 +31,8 @@
 
 #include "RectangularMesh.h"
 
+using escript::DataTypes::real_t;
+
 namespace finley {
 
 Mesh* RectangularMesh_Hex8(const dim_t* numElements, const double* Length,
