@@ -29,7 +29,6 @@
 #include "Solver.h"
 #include "Options.h"
 #include "SystemMatrix.h"
-#include "esysUtils/blocktimer.h"
 
 #include <boost/math/special_functions/fpclassify.hpp>  // for isnan
 
@@ -62,7 +61,6 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     err_t errorCode=SOLVER_NO_ERROR;
     const dim_t numSol = A->getTotalNumCols();
     const dim_t numEqua = A->getTotalNumRows();
-    double blocktimer_precond, blocktimer_start = blocktimer_time();
     double *x0=NULL;
 
     Esys_resetError();
@@ -179,11 +177,9 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
             }
 
             // construct the preconditioner
-            blocktimer_precond = blocktimer_time();
             Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
             A->setPreconditioner(options);
             Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
-            blocktimer_increment("Solver_setPreconditioner()", blocktimer_precond);
             options->set_up_time=Esys_timer()-time_iter;
             if (Esys_noError()) {
                 // get an initial guess by evaluating the preconditioner
@@ -339,7 +335,6 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     delete[] x0;
     options->time = Esys_timer()-time_iter;
     Performance_stopMonitor(pp, PERFORMANCE_ALL);
-    blocktimer_increment("Solver()", blocktimer_start);
 }
 
 } // namespace paso

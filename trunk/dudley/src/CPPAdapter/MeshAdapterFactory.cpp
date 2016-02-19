@@ -20,7 +20,6 @@
 
 #include "MeshAdapterFactory.h"
 #include "DudleyError.h"
-#include "esysUtils/blocktimer.h"
 #include "dudley/Dudley.h"
 #include "dudley/Mesh.h"
 #include "dudley/TriangularMesh.h"
@@ -78,7 +77,6 @@ namespace dudley {
     std::string fName(esysUtils::appendRankToFileName(fileName, mpi_info->size,
                                                       mpi_info->rank));
 
-    double blocktimer_start = blocktimer_time();
     Dudley_resetError();
     int *first_DofComponent, *first_NodeComponent;
 
@@ -396,7 +394,6 @@ namespace dudley {
         Dudley_Mesh_free(mesh_p);
     }
 
-    blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom->getPtr();
 #else
     throw DataException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
@@ -421,7 +418,6 @@ namespace dudley {
     char *fName = new char[fileName.size()+1];
         
     strcpy(fName,fileName.c_str());
-    double blocktimer_start = blocktimer_time();
 
     fMesh=Dudley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     checkDudleyError();
@@ -429,7 +425,6 @@ namespace dudley {
     
     delete[] fName;
     
-    blocktimer_increment("ReadMesh()", blocktimer_start);
     return temp->getPtr();
   }
 
@@ -453,7 +448,6 @@ namespace dudley {
     char *fName = new char[fileName.size()+1];
         
     strcpy(fName,fileName.c_str());
-    double blocktimer_start = blocktimer_time();
 
     fMesh=Dudley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE), (useMacroElements ? TRUE : FALSE));
     checkDudleyError();
@@ -461,7 +455,6 @@ namespace dudley {
     
     delete[] fName;
     
-    blocktimer_increment("ReadGmsh()", blocktimer_start);
     return temp->getPtr();
   }
 

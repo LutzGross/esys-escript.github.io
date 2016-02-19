@@ -51,7 +51,6 @@
 
 #include "Assemble.h"
 #include "Util.h"
-#include "esysUtils/blocktimer.h"
 
 #include <sstream>
 
@@ -217,8 +216,6 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     if (!noError())
         return;
 
-    double blocktimer_start = blocktimer_time();
-
     if (p.numSides == 1) {
         if (funcspace==FINLEY_POINTS) {
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
@@ -258,8 +255,6 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     } else {
         setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
     }
-
-    blocktimer_increment("Assemble_PDE()", blocktimer_start);
 }
 
 } // namespace finley

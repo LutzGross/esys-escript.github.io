@@ -18,7 +18,6 @@
 #include <esysUtils/first.h>
 
 #include "MeshAdapterFactory.h"
-#include <esysUtils/blocktimer.h>
 #include <esysUtils/Esys_MPI.h>
 
 #ifdef USE_NETCDF
@@ -68,7 +67,6 @@ Domain_ptr loadMesh(const std::string& fileName)
     const string fName(esysUtils::appendRankToFileName(fileName,
                         mpi_info->size, mpi_info->rank));
 
-    double blocktimer_start = blocktimer_time();
     resetError();
 
     // Open NetCDF file for reading
@@ -503,7 +501,6 @@ Domain_ptr loadMesh(const std::string& fileName)
     MeshAdapter* ma=new MeshAdapter(mesh_p);
     Domain_ptr dom(ma);
 
-    blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom;
 #else
     throw FinleyAdapterException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
@@ -518,12 +515,10 @@ Domain_ptr readMesh(esysUtils::JMPI& info, const std::string& fileName,
     if (fileName.size() == 0 )
         throw FinleyAdapterException("Null file name!");
 
-    double blocktimer_start = blocktimer_time();
     Mesh* fMesh=Mesh::read(info, fileName, integrationOrder, reducedIntegrationOrder, optimize);
     checkFinleyError();
     MeshAdapter* ma=new MeshAdapter(fMesh);
     ma->addDiracPoints(points, tags);    
-    blocktimer_increment("ReadMesh()", blocktimer_start);
     return Domain_ptr(ma);
 }
 
@@ -617,10 +612,8 @@ Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
     if (fileName.size() == 0 )
         throw FinleyAdapterException("Null file name!");
 
-    double blocktimer_start = blocktimer_time();
     Mesh* fMesh=Mesh::readGmsh(info, fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
     checkFinleyError();
-    blocktimer_increment("ReadGmsh()", blocktimer_start);
     MeshAdapter* ma=new MeshAdapter(fMesh);
     ma->addDiracPoints(points, tags);
     return Domain_ptr(ma);

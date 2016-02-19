@@ -18,7 +18,6 @@
 #include "esysUtils/first.h"
 
 #include "MeshAdapter.h"
-#include "esysUtils/blocktimer.h"
 #include "esysUtils/EsysRandom.h"
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -1108,7 +1107,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    if (argDomain!=*this) 
       throw DudleyAdapterException("Error - Illegal domain of integration kernel");
 
-   double blocktimer_start = blocktimer_time();
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    escript::Data temp;
    switch(arg.getFunctionSpace().getTypeCode()) {
@@ -1150,7 +1148,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
       break;
    }
    checkDudleyError();
-   blocktimer_increment("integrate()", blocktimer_start);
 }
 
 //

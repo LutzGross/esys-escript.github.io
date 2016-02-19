@@ -40,8 +40,6 @@
 #include "SolverOptions.h"
 #include "SolverOptionsException.h"
 
-#include "esysUtils/blocktimer.h"
-
 #include "esysUtils/esysExceptionTranslator.h"
 
 #include <boost/version.hpp>
@@ -166,11 +164,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
   def("releaseUnusedMemory",escript::DataTypes::releaseUnusedMemory);
-  def("blocktimer_initialize",blocktimer_initialize);
-  def("blocktimer_reportSortByName",blocktimer_reportSortByName);
-  def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
-  def("blocktimer_increment",blocktimer_increment);
-  def("blocktimer_time",blocktimer_time);
   def("getVersion",escript::getSvnVersion,"This method will only report accurate version numbers for clean checkouts.");
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld,"Return number of MPI processes in the job.");

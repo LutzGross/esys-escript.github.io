@@ -18,7 +18,6 @@
 #include <esysUtils/first.h>
 
 #include "MeshAdapter.h"
-#include "esysUtils/blocktimer.h"
 #include "esysUtils/EsysRandom.h"
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
@@ -1196,7 +1195,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
     if (argDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of integration kernel");
 
-    double blocktimer_start = blocktimer_time();
     Mesh* mesh=m_finleyMesh.get();
     switch(arg.getFunctionSpace().getTypeCode()) {
         case Nodes:
@@ -1242,7 +1240,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
             break;
     }
     checkFinleyError();
-    blocktimer_increment("integrate()", blocktimer_start);
 }
 
 //
