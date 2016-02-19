@@ -31,6 +31,8 @@
 
 #include "RectangularMesh.h"
 
+using escript::DataTypes::real_t;
+
 namespace finley {
 
 Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
