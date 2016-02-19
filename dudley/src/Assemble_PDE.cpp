@@ -47,7 +47,6 @@
 
 #include "Assemble.h"
 #include "Util.h"
-#include "esysUtils/blocktimer.h"
 
 /************************************************************************************/
 
@@ -61,7 +60,6 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     Dudley_Assemble_Parameters p;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
     type_t funcspace;
-    double blocktimer_start = blocktimer_time();
 
     Dudley_resetError();
 
@@ -376,5 +374,5 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
 	    }
 	  }
     }
-    blocktimer_increment("Dudley_Assemble_PDE()", blocktimer_start);
 }
+

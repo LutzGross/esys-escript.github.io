@@ -34,8 +34,6 @@
 #include "Dodgy.h"
 #endif
 
-#include "esysUtils/blocktimer.h"
-
 #include <algorithm>
 #include <fstream>
 #include <functional>
@@ -1080,14 +1078,12 @@ Data::gradOn(const FunctionSpace& functionspace) const
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
     }
-    real_t blocktimer_start = blocktimer_time();
     if (functionspace.getDomain()!=getDomain())
         throw DataException("Error - gradient cannot be calculated on different domains.");
     DataTypes::ShapeType grad_shape=getDataPointShape();
     grad_shape.push_back(functionspace.getDim());
     Data out(0.0,grad_shape,functionspace,true);
     getDomain()->setToGradient(out,*this);
-    blocktimer_increment("grad()", blocktimer_start);
     return out;
 }
 
