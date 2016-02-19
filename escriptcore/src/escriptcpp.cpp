@@ -622,6 +622,8 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type dpno: int")
     // Unary functions for Data
     .def("conjugate", &escript::Data::conjugate)
+    .def("real", &escript::Data::real)
+    .def("imag", &escript::Data::imag)
     .def("promote", &escript::Data::complicate)
     .def("_interpolate",&escript::Data::interpolate)
     .def("_grad",&escript::Data::gradOn)

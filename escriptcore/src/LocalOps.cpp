@@ -52,9 +52,17 @@ bool supports_cplx(escript::ESFunction operation)
     case LTZEROF:
     case LEZEROF: return false;   
     case CONJF: return true;
+    case REALF: return true;
+    case IMAGF: return true;
     default:
       return false;	// let's be conservative
   }  
 }
+
+bool always_real(escript::ESFunction operation)
+{
+    return ((operation==REALF) || (operation==IMAGF));
+}
+
 
 }
