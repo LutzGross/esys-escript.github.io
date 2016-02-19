@@ -30,12 +30,15 @@
 
 /****************************************************************************/
 
-#include <iostream>
 #include "FCT_Solver.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 
+#include <iostream>
+
 namespace paso {
+
+static const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
 
 FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
     transportproblem(tp),
@@ -78,6 +81,7 @@ FCT_Solver::~FCT_Solver()
 // modifies the main diagonal of the iteration matrix to introduce new dt
 void FCT_Solver::initialize(double _dt, Options* options, Performance* pp)
 {
+    const real_t EPSILON = escript::DataTypes::real_t_eps();
     const_TransportProblem_ptr fctp(transportproblem);
     const index_t* main_iptr = fctp->borrowMainDiagonalPointer();
     const dim_t n = fctp->transport_matrix->getTotalNumRows();

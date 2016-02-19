@@ -33,6 +33,7 @@ Function::~Function()
 err_t Function::derivative(double* J0w, const double* w, const double* f0,
                            const double* x0, double* setoff, Performance* pp)
 {
+    const real_t EPSILON = escript::DataTypes::real_t_eps();
     err_t err = SOLVER_NO_ERROR;
     dim_t i;
     double aw;

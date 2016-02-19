@@ -22,7 +22,6 @@
 
 #include "Esys_MPI.h"
 #include "index.h"
-#include "mem.h"
 #include "error.h"
 #include "EsysException.h"
 

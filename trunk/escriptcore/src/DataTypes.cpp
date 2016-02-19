@@ -24,8 +24,10 @@
 #include <boost/python/tuple.hpp>
 #include "DataException.h"
 
+namespace bp = boost::python;
+
 namespace {
-using namespace boost::python;
+
 using namespace escript;
 using namespace escript::DataTypes;
 
@@ -41,12 +43,11 @@ using namespace escript::DataTypes;
   /param key - Input - key object specifying slice range.
 */
    std::pair<int,int>
-   getSliceRange(const boost::python::object& key,
-              const int shape)
+   getSliceRange(const bp::object& key, int shape)
    {
       /* default slice range is range of entire shape dimension */
       int s0=0, s1=shape;;
-      extract<int> slice_int(key);
+      bp::extract<int> slice_int(key);
       if (slice_int.check()) {
          /* if the key is a single int set start=key and end=key */
          /* in this case, we want to return a rank-1 dimension object from
@@ -56,15 +57,15 @@ using namespace escript::DataTypes;
          s1=s0;
       } else {
          /* if key is a pair extract begin and end values */
-         extract<int> step(key.attr("step"));
+         bp::extract<int> step(key.attr("step"));
          if (step.check() && step()!=1) {
             throw DataException("Error - Data does not support increments in slicing ");
          } else {
-            extract<int> start(key.attr("start"));
+            bp::extract<int> start(key.attr("start"));
             if (start.check()) {
                s0=start();
             }
-            extract<int> stop(key.attr("stop"));
+            bp::extract<int> stop(key.attr("stop"));
             if (stop.check()) {
                s1=stop();
             }
@@ -80,10 +81,8 @@ using namespace escript::DataTypes;
          throw DataException("Error - lower index must less or equal upper index.");
       return std::pair<int,int>(s0,s1);
    }
-}
+} // anonymous namespace
 
-
-using namespace boost::python;
 
 namespace escript
 {
@@ -137,7 +136,7 @@ namespace DataTypes
 
 
    DataTypes::RegionType
-   getSliceRegion(const DataTypes::ShapeType& shape, const boost::python::object& key)
+   getSliceRegion(const DataTypes::ShapeType& shape, const bp::object& key)
    {
       int slice_rank, i;
       int this_rank=shape.size();
@@ -146,9 +145,9 @@ namespace DataTypes
       want to generate a rank-1 dimension object, as opposed to eg: [1,2]
       which implies we want to take a rank dimensional object with one
       dimension of size 1 */
-      extract<tuple> key_tuple(key);
+      bp::extract<bp::tuple> key_tuple(key);
       if (key_tuple.check()) {
-         slice_rank=extract<int> (key.attr("__len__")());
+         slice_rank=bp::extract<int> (key.attr("__len__")());
          /* ensure slice is correctly dimensioned */
          if (slice_rank>this_rank) {
             throw DataException("Error - rank of slices does not match rank of slicee");
@@ -217,8 +216,6 @@ namespace DataTypes
       return temp.str();
    }
 
-
-
-
 }	// end namespace DataTypes
 }	// end namespace escript
+

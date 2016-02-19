@@ -48,6 +48,7 @@ void Solver_free(SystemMatrix* A)
 void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
             Performance* pp)
 {
+    const real_t EPSILON = escript::DataTypes::real_t_eps();
     double norm2_of_b,tol,tolerance,time_iter,net_time_start;
     double *r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b;
     double norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local;

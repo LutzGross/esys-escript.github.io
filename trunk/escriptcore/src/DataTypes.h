@@ -22,7 +22,6 @@
 #include <vector>
 #include <string>
 #include <boost/python/object.hpp>
-#include <boost/python/extract.hpp>
 
 namespace escript {
 
@@ -30,9 +29,11 @@ namespace DataTypes {
 
 /**
 \namespace escript::DataTypes 
-\brief Contains the types to represent Shapes, Regions, RegionLoop ranges and vectors of data as well as the functions to manipulate them.
+\brief Contains the types to represent Shapes, Regions, RegionLoop ranges and
+       vectors of data as well as the functions to manipulate them.
 \note The contents of the namespace are spread between DataTypes.h and DataVector.h
 */
+
   //
   // Some basic types which define the data values and view shapes.
   typedef std::vector<int>                  ShapeType;//!< The shape of a single datapoint.
@@ -44,6 +45,24 @@ namespace DataTypes {
 
   typedef double real_t;
   typedef std::complex<double> cplx_t;
+
+  /**
+     \brief
+     Returns the maximum finite value for the real_t type.
+  */
+  inline real_t real_t_max()
+  {
+      return std::numeric_limits<real_t>::max();
+  }
+
+  /**
+     \brief
+     Returns the machine epsilon for the real_t type.
+  */
+  inline real_t real_t_eps()
+  {
+      return std::numeric_limits<real_t>::epsilon();
+  }
 
   /**
      \brief

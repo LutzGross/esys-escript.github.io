@@ -22,7 +22,6 @@
 *****************************************************************************/
 
 #include "ReferenceElements.h"
-#include "esysUtils/mem.h"
 #include <cstring>
 #include <algorithm> // std::max
 
