@@ -15,23 +15,20 @@
 *****************************************************************************/
 
 #define ESNEEDPYTHON
-#include "first.h"
-#include "system_dep.h"
-#include "esysExceptionTranslator.h" 
-#include <iostream>
+#include "esysUtils/first.h"
+#include "ExceptionTranslators.h" 
 
-using namespace std;
+namespace escript {
 
-namespace esysUtils {
-
-void RuntimeErrorTranslator(EsysException const& e) 
+void RuntimeErrorTranslator(const esysUtils::EsysException& e) 
   {
     PyErr_SetString(PyExc_RuntimeError,e.what());
   }
 
-void ValueErrorTranslator(EsysException const& e) 
+void ValueErrorTranslator(const esysUtils::EsysException& e) 
 {
     PyErr_SetString(PyExc_ValueError,e.what());
 }
 
 }  // end of namespace
+

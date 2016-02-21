@@ -48,6 +48,7 @@ sources = """
     DataVectorTaipan.cpp    
     DomainException.cpp
     EscriptParams.cpp
+    ExceptionTranslators.cpp
     FunctionSpace.cpp
     FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
@@ -97,6 +98,7 @@ headers = """
     Dodgy.h
     DomainException.h
     EscriptParams.h
+    ExceptionTranslators.h
     FunctionSpace.h
     FunctionSpaceException.h
     FunctionSpaceFactory.h

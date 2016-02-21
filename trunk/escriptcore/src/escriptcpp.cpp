@@ -16,41 +16,37 @@
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
+#include "esysUtils/Esys_MPI.h"
 
-
-#include "Data.h"
-#include "FunctionSpace.h"
-#include "FunctionSpaceFactory.h"
-#include "DataFactory.h"
 #include "AbstractContinuousDomain.h"
-#include "AbstractDomain.h"
-#include "Utils.h"
+#include "AbstractReducer.h"
 #include "AbstractSystemMatrix.h"
 #include "AbstractTransportProblem.h"
+#include "Data.h"
+#include "DataFactory.h"
 #include "DataVector.h"
-#include "esysUtils/Esys_MPI.h"
 #include "EscriptParams.h"
-#include "TestDomain.h"
-#include "SubWorld.h"
-#include "SplitWorld.h"
-#include "AbstractReducer.h"
+#include "ExceptionTranslators.h"
+#include "FunctionSpace.h"
+#include "FunctionSpaceFactory.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "SolverOptionsException.h"
+#include "SplitWorld.h"
+#include "SubWorld.h"
+#include "TestDomain.h"
+#include "Utils.h"
 
-#include "esysUtils/esysExceptionTranslator.h"
-
-#include <boost/version.hpp>
 #include <boost/python.hpp>
-#include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
+#include <boost/python/errors.hpp>
+#include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/version.hpp>
-#include <boost/python/errors.hpp>
 
 using namespace boost::python;
 
@@ -1278,18 +1274,17 @@ args("source", "q", "r","factor"),
   def("resolveGroup", escript::resolveGroup);
 
 #ifdef IKNOWWHATIMDOING
-
-  def("applyBinaryCFunction", escript::applyBinaryCFunction, (arg("function"), arg("outshape"),
-arg("in1"), 
-arg("in2"))
-);
+  def("applyBinaryCFunction", escript::applyBinaryCFunction,
+          (arg("function"), arg("outshape"), arg("in1"), arg("in2"))
+  );
 #endif
 
   def("_condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
 
   //
-  // Register esysExceptionTranslator
+  // Register exception translators
   //
-  register_exception_translator<esysUtils::EsysException>(&esysUtils::RuntimeErrorTranslator);
-  register_exception_translator<escript::SolverOptionsException>(&esysUtils::ValueErrorTranslator);
+  register_exception_translator<esysUtils::EsysException>(&escript::RuntimeErrorTranslator);
+  register_exception_translator<escript::SolverOptionsException>(&escript::ValueErrorTranslator);
 }
+
