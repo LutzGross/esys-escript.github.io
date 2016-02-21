@@ -133,7 +133,7 @@ void getObjShape(const boost::python::object& obj, DataTypes::ShapeType& s)
 }
 
 WrappedArray::WrappedArray(const boost::python::object& obj_in)
-:obj(obj_in),iscomplex(false),scalar_r(nan("")),scalar_c(nan(""))
+:obj(obj_in),converted(false),iscomplex(false),scalar_r(nan("")),scalar_c(nan(""))
 {
 	dat_r=0;
 	dat_c=0;
