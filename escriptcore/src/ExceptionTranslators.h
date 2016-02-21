@@ -14,31 +14,24 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_EXCEPTIONTRANSLATORS_H__
+#define __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 
-#if !defined  esysUtils_esysExceptionTranslator_20040419_H
-#define esysUtils_esysExceptionTranslator_20040419_H
-#include "system_dep.h"
+#include "esysUtils/EsysException.h"
 
-#include "EsysException.h"
-
-#include "boost/python/errors.hpp"
-
-#include <iostream>
-
-namespace esysUtils {
+namespace escript {
   /**
      \brief
      Function which translates an EsysException into a python RuntimeError
   */
-  ESYSUTILS_DLL_API
-  void RuntimeErrorTranslator(EsysException const& e);
+  void RuntimeErrorTranslator(const esysUtils::EsysException& e);
 
   /**
      \brief
      Function which translates an EsysException into a python ValueError
   */
-  ESYSUTILS_DLL_API
-  void ValueErrorTranslator(EsysException const& e);
+  void ValueErrorTranslator(const esysUtils::EsysException& e);
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_EXCEPTIONTRANSLATORS_H__
+
