@@ -54,6 +54,7 @@ bool supports_cplx(escript::ESFunction operation)
     case CONJF: return true;
     case REALF: return true;
     case IMAGF: return true;
+    case INVF: return true;
     default:
       return false;	// let's be conservative
   }  
@@ -61,7 +62,7 @@ bool supports_cplx(escript::ESFunction operation)
 
 bool always_real(escript::ESFunction operation)
 {
-    return ((operation==REALF) || (operation==IMAGF));
+    return ((operation==REALF) || (operation==IMAGF) || (operation==EQZEROF) || (operation==NEQZEROF));
 }
 
 

@@ -76,7 +76,8 @@ LTZEROF,
 LEZEROF,
 CONJF,
 REALF,
-IMAGF
+IMAGF,
+INVF
 } ESFunction;
 
 bool always_real(ESFunction operation);
@@ -88,10 +89,10 @@ bool always_real(ESFunction operation);
 inline
 bool nancheck(double d)
 {
-		// Q: so why not just test d!=d?
-		// A: Coz it doesn't always work [I've checked].
-		// One theory is that the optimizer skips the test.
-    return std::isnan(d);	// isNan should be a function in C++ land
+                // Q: so why not just test d!=d?
+                // A: Coz it doesn't always work [I've checked].
+                // One theory is that the optimizer skips the test.
+    return std::isnan(d);       // isNan should be a function in C++ land
 }
 
 /**
@@ -521,7 +522,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       for (int j=0; j<SR; j++) {
         double sum = 0.0;
         for (int l=0; l<SM; l++) {
-	  sum += A[i+SL*l] * B[l+SM*j];
+          sum += A[i+SL*l] * B[l+SM*j];
         }
         C[i+SL*j] = sum;
       }
@@ -532,7 +533,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       for (int j=0; j<SR; j++) {
         double sum = 0.0;
         for (int l=0; l<SM; l++) {
-	  sum += A[i*SM+l] * B[l+SM*j];
+          sum += A[i*SM+l] * B[l+SM*j];
         }
         C[i+SL*j] = sum;
       }
@@ -543,7 +544,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       for (int j=0; j<SR; j++) {
         double sum = 0.0;
         for (int l=0; l<SM; l++) {
-	  sum += A[i+SL*l] * B[l*SR+j];
+          sum += A[i+SL*l] * B[l*SR+j];
         }
         C[i+SL*j] = sum;
       }
@@ -553,9 +554,9 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
 
 template <typename UnaryFunction>
 inline void tensor_unary_operation(const int size,
-			     const double *arg1,
-			     double * argRes,
-			     UnaryFunction operation)
+                             const double *arg1,
+                             double * argRes,
+                             UnaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1[i]);
@@ -570,10 +571,10 @@ inline void tensor_unary_operation(const int size,
 
 template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
-			     const T *arg1,
-			     const U *arg2,
-			     V * argRes,
-			     BinaryFunction operation)
+                             const T *arg1,
+                             const U *arg2,
+                             V * argRes,
+                             BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1[i], arg2[i]);
@@ -583,10 +584,10 @@ inline void tensor_binary_operation(const int size,
 
 template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
-			     T arg1,
-			     const U *arg2,
-			     V *argRes,
-			     BinaryFunction operation)
+                             T arg1,
+                             const U *arg2,
+                             V *argRes,
+                             BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1, arg2[i]);
@@ -596,10 +597,10 @@ inline void tensor_binary_operation(const int size,
 
 template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
-			     const T *arg1,
-			     U arg2,
-			     V *argRes,
-			     BinaryFunction operation)
+                             const T *arg1,
+                             U arg2,
+                             V *argRes,
+                             BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1[i], arg2);
@@ -692,7 +693,7 @@ struct erf_func
 };
 
 template <>
-struct erf_func<escript::DataTypes::cplx_t>		// dummy instantiation
+struct erf_func<escript::DataTypes::cplx_t>             // dummy instantiation
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t argument_type;
@@ -771,7 +772,7 @@ struct sign_func
 };
 
 template <>
-struct sign_func<DataTypes::cplx_t>	// dummy instantiation
+struct sign_func<DataTypes::cplx_t>     // dummy instantiation
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t argument_type;
@@ -899,7 +900,7 @@ struct gtzero_func
 };
 
 template <>
-struct gtzero_func<DataTypes::cplx_t>		// to keep the templater happy
+struct gtzero_func<DataTypes::cplx_t>           // to keep the templater happy
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t first_argument_type;
@@ -917,7 +918,7 @@ struct gezero_func
 };
 
 template <>
-struct gezero_func<DataTypes::cplx_t>		// to keep the templater happy
+struct gezero_func<DataTypes::cplx_t>           // to keep the templater happy
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t first_argument_type;
@@ -934,7 +935,7 @@ struct ltzero_func
 };
 
 template <>
-struct ltzero_func<DataTypes::cplx_t>		// to keep the templater happy
+struct ltzero_func<DataTypes::cplx_t>           // to keep the templater happy
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t first_argument_type;
@@ -946,13 +947,13 @@ struct ltzero_func<DataTypes::cplx_t>		// to keep the templater happy
 template <typename T>
 struct lezero_func
 {
-    T operator() (const T& x) const {return x>=0;}
+    T operator() (const T& x) const {return x<=0;}
     typedef T first_argument_type;
     typedef T result_type;
 };
 
 template <>
-struct lezero_func<DataTypes::cplx_t>		// to keep the templater happy
+struct lezero_func<DataTypes::cplx_t>           // to keep the templater happy
 {
     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
     typedef DataTypes::cplx_t first_argument_type;
@@ -961,7 +962,7 @@ struct lezero_func<DataTypes::cplx_t>		// to keep the templater happy
 
 
 template <class IN, typename OUT, class UnaryFunction>
-inline void tensor_unary_operation_helper(const int size,
+inline void tensor_unary_operation_helper(const size_t size,
                              const IN *arg1,
                              OUT * argRes,
                              UnaryFunction operation)
@@ -976,24 +977,34 @@ inline void tensor_unary_operation_helper(const int size,
 // deals with unary operations which return real, regardless of
 // their input type
 template <class IN>
-inline void tensor_unary_array_operation_real(const int size,
+inline void tensor_unary_array_operation_real(const size_t size,
                              const IN *arg1,
                              DataTypes::real_t * argRes,
                              escript::ESFunction operation,
-			     DataTypes::real_t tol=0)
+                             DataTypes::real_t tol=0)
 {
    switch (operation)
    {
      case REALF: 
-	  for (int i = 0; i < size; ++i) {
-	      argRes[i] = std::real(arg1[i]);
-	  }
-	  break;   	  
+          for (int i = 0; i < size; ++i) {
+              argRes[i] = std::real(arg1[i]);
+          }
+          break;          
      case IMAGF: 
-	  for (int i = 0; i < size; ++i) {
-	      argRes[i] = std::imag(arg1[i]);
-	  }
-	  break;       
+          for (int i = 0; i < size; ++i) {
+              argRes[i] = std::imag(arg1[i]);
+          }
+          break;  
+    case EQZEROF:   
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = (fabs(arg1[i])<=tol);
+          }
+          break;
+    case NEQZEROF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = (fabs(arg1[i])>tol);
+          }
+          break;          
      default:
           throw DataException("Unsupported unary operation");      
    }  
@@ -1005,11 +1016,11 @@ inline void tensor_unary_array_operation_real(const int size,
 // but not ruling out putting Re() and Im()
 // through this
 template <class IN, typename OUT>
-inline void tensor_unary_array_operation(const int size,
+inline void tensor_unary_array_operation(const size_t size,
                              const IN *arg1,
                              OUT * argRes,
                              escript::ESFunction operation,
-			     DataTypes::real_t tol=0)
+                             DataTypes::real_t tol=0)
 {
   switch (operation)
   {
@@ -1032,26 +1043,22 @@ inline void tensor_unary_array_operation(const int size,
     case ABSF: tensor_unary_operation_helper(size, arg1, argRes, abs_func<IN>()); break;
     case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
     case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
-    
-    case EQZEROF:   
-	  for (int i = 0; i < size; ++i) {
-	      argRes[i] = (fabs(arg1[i])<=tol);
-	  }
-	  break;
-    case NEQZEROF: 
-	  for (int i = 0; i < size; ++i) {
-	      argRes[i] = (fabs(arg1[i])>tol);
-	  }
-	  break;
+
     case GTZEROF: tensor_unary_operation_helper(size, arg1, argRes, gtzero_func<IN>()); break;
     case GEZEROF: tensor_unary_operation_helper(size, arg1, argRes, gezero_func<IN>()); break;
     case LTZEROF: tensor_unary_operation_helper(size, arg1, argRes, ltzero_func<IN>()); break;
     case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
     case CONJF: 
-	  for (int i = 0; i < size; ++i) {
-	      argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
-	  }
-	  break;     	  
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
+          }
+          break; 
+    case INVF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = 1.0/arg1[i];
+          }
+          break; 
+          
     default:
       throw DataException("Unsupported unary operation");
   }

@@ -122,25 +122,25 @@ using DataTypes::cplx_t;
 #define BINOPTENSOR(L,T) \
     if (!(L).isComplex()) \
     { \
-	if (!right.isComplex())	/* both are real */ \
-	{ \
-	    return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>()); \
-	} \
-	else \
-	{ \
-	    return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
-	} \
+        if (!right.isComplex()) /* both are real */ \
+        { \
+            return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>()); \
+        } \
+        else \
+        { \
+            return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
+        } \
     } \
-    else	/* L isComplex */\
+    else        /* L isComplex */\
     { \
-	if (!right.isComplex())	 \
-	{ \
-	    return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>()); \
-	} \
-	else \
-	{ \
-	    return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
-	} \
+        if (!right.isComplex())  \
+        { \
+            return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>()); \
+        } \
+        else \
+        { \
+            return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
+        } \
     } 
 
 
@@ -1008,7 +1008,7 @@ Data::oneOver() const
 {
     THROWONCOMPLEX
     MAKELAZYOP(RECIP);
-    return C_TensorUnaryOperation(*this, bind1st(divides<real_t>(),1.));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::INVF);    
 }
 
 Data
@@ -1016,7 +1016,7 @@ Data::wherePositive() const
 {
     THROWONCOMPLEX
     MAKELAZYOP(GZ);
-    return C_TensorUnaryOperation(*this, bind2nd(greater_func<real_t>(),0.0));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::GTZEROF);    
 }
 
 Data
@@ -1024,7 +1024,7 @@ Data::whereNegative() const
 {
     THROWONCOMPLEX
     MAKELAZYOP(LZ);
-    return C_TensorUnaryOperation(*this, bind2nd(less_func<real_t>(),0.0));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::LTZEROF);    
 }
 
 Data
@@ -1032,7 +1032,7 @@ Data::whereNonNegative() const
 {
     THROWONCOMPLEX
     MAKELAZYOP(GEZ);
-    return C_TensorUnaryOperation(*this, bind2nd(greater_equal_func<real_t>(),0.0));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::GEZEROF);    
 }
 
 Data
@@ -1040,7 +1040,7 @@ Data::whereNonPositive() const
 {
     THROWONCOMPLEX
     MAKELAZYOP(LEZ);
-    return C_TensorUnaryOperation(*this, bind2nd(less_equal_func<real_t>(),0.0));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::LEZEROF);
 }
 
 Data
@@ -1053,9 +1053,8 @@ Data::whereZero(real_t tol) const
 Data
 Data::whereNonZero(real_t tol) const
 {
-    THROWONCOMPLEX
     MAKELAZYOPOFF(NEZ,tol);
-    return C_TensorUnaryOperation(*this, bind2nd(AbsGT(),tol));
+    return C_TensorUnaryOperation(*this, escript::ESFunction::NEQZEROF, tol);
 }
 
 Data
@@ -1560,17 +1559,17 @@ Data::conjugate() const
 {
     if (isLazy())
     {
-	Data temp(*this);
+        Data temp(*this);
         temp.resolve();
-	return temp.conjugate();
+        return temp.conjugate();
     }
     if (isComplex())
     {
-	return C_TensorUnaryOperation(*this, escript::ESFunction::CONJF);      
+        return C_TensorUnaryOperation(*this, escript::ESFunction::CONJF);      
     }
     else
     {
-	return copySelf();
+        return copySelf();
     }
 }
 
@@ -1580,17 +1579,17 @@ Data::real() const
 {
     if (isLazy())
     {
-	Data temp(*this);
+        Data temp(*this);
         temp.resolve();
-	return temp.real();
+        return temp.real();
     }
     if (isComplex())
     {
-	return C_TensorUnaryOperation(*this, escript::ESFunction::REALF);      
+        return C_TensorUnaryOperation(*this, escript::ESFunction::REALF);      
     }
     else
     {
-	return copySelf();
+        return copySelf();
     }
 }
 
@@ -1599,18 +1598,18 @@ Data::imag() const
 {
     if (isLazy())
     {
-	Data temp(*this);
+        Data temp(*this);
         temp.resolve();
-	return temp.imag();
+        return temp.imag();
     }
     if (isComplex())
     {
-	return C_TensorUnaryOperation(*this, escript::ESFunction::IMAGF);      
+        return C_TensorUnaryOperation(*this, escript::ESFunction::IMAGF);      
     }
     else
     {
-	return copySelf()*Data(0, m_data->getShape(), getFunctionSpace());	// return an object with same tags etc but all values 0
-				// This is not efficient, but why are you taking imag of R anyway?
+        return copySelf()*Data(0, m_data->getShape(), getFunctionSpace());      // return an object with same tags etc but all values 0
+                                // This is not efficient, but why are you taking imag of R anyway?
     }
 }
 
@@ -1800,23 +1799,23 @@ Data::Lsup()
         else
         {
 #ifdef ESYS_MPI
-	    if (isComplex())
-	    {
-		return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);
-	    }
-	    else
-	    {
-		return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);	      
-	    }
+            if (isComplex())
+            {
+                return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);
+            }
+            else
+            {
+                return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);             
+            }
 #else
-	    if (isComplex())
-	    {
-		return lazyAlgWorker<AbsMax<real_t> >(0);
-	    }
-	    else
-	    {
-		return lazyAlgWorker<AbsMax<real_t> >(0);
-	    }
+            if (isComplex())
+            {
+                return lazyAlgWorker<AbsMax<real_t> >(0);
+            }
+            else
+            {
+                return lazyAlgWorker<AbsMax<real_t> >(0);
+            }
 #endif
         }
     }
@@ -2018,30 +2017,30 @@ Data::LsupWorker() const
     // set the initial absolute maximum value to zero
     if (isComplex())
     {
-	AbsMax<cplx_t> abs_max_func;
-	real_t localValue=0;
-	localValue = algorithm(abs_max_func,0);
+        AbsMax<cplx_t> abs_max_func;
+        real_t localValue=0;
+        localValue = algorithm(abs_max_func,0);
 
     #ifdef ESYS_MPI
-	real_t globalValue=0;
-	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
-	return globalValue;
+        real_t globalValue=0;
+        MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
+        return globalValue;
     #else
-	return localValue;
+        return localValue;
     #endif
     }
     else
     {  
-	AbsMax<real_t> abs_max_func;
-	real_t localValue=0;
-	localValue = algorithm(abs_max_func,0);
+        AbsMax<real_t> abs_max_func;
+        real_t localValue=0;
+        localValue = algorithm(abs_max_func,0);
 
     #ifdef ESYS_MPI
-	real_t globalValue=0;	
-	MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
-	return globalValue;
+        real_t globalValue=0;   
+        MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
+        return globalValue;
     #else
-	return localValue;
+        return localValue;
     #endif
     }
 }
@@ -2715,7 +2714,7 @@ Changing this would mean that any resolve call would need to use MPI (to check f
 Data
 Data::matrixInverse() const
 {
-    if (isLazy())	// Cannot use lazy for this because individual inversions could throw.
+    if (isLazy())       // Cannot use lazy for this because individual inversions could throw.
     {
         Data d(*this);
         d.resolve();
@@ -4054,42 +4053,42 @@ Data Data::nonuniforminterp(boost::python::object in, boost::python::object out,
     for (l=0; l<numpts; ++l)
     {
         if ((sdat)[l]<win.getElt(0))
-	{
-	   if (check_boundaries)
-	   {
-	       error=true;		// Could have done an early exit but I'm not sure it's worth it
-	   }
-	   else
-	   {
-	       rdat[l]=wout.getElt(0);
-	   }
-	}
-	else if (sdat[l]>maxlimit)
-	{
-	   if (check_boundaries)
-	   {
-	       error=true;		// Could have done an early exit but I'm not sure it's worth it
-	   }
-	   else
-	   {
-	       rdat[l]=maxout;
-	   }
-	}
+        {
+           if (check_boundaries)
+           {
+               error=true;              // Could have done an early exit but I'm not sure it's worth it
+           }
+           else
+           {
+               rdat[l]=wout.getElt(0);
+           }
+        }
+        else if (sdat[l]>maxlimit)
+        {
+           if (check_boundaries)
+           {
+               error=true;              // Could have done an early exit but I'm not sure it's worth it
+           }
+           else
+           {
+               rdat[l]=maxout;
+           }
+        }
         else
-	{
-	    int i=0;
-	    for (;i<ipoints-2;++i)
-	    {
-	        if (sdat[l]<win.getElt(i+1))
-		{
-		    break;
-		}
-	    }
-	    // we must have found one by this point or we would have triggered earlier branches
-	    rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i)) * (sdat[l]-win.getElt(i)) + wout.getElt(i);
-	}
+        {
+            int i=0;
+            for (;i<ipoints-2;++i)
+            {
+                if (sdat[l]<win.getElt(i+1))
+                {
+                    break;
+                }
+            }
+            // we must have found one by this point or we would have triggered earlier branches
+            rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i)) * (sdat[l]-win.getElt(i)) + wout.getElt(i);
+        }
     }
-    if (error)	// we had an illegal value (below the start threshold)
+    if (error)  // we had an illegal value (below the start threshold)
     {
         throw DataException("Data being interpolated contains a value outside the range given.");
     }
@@ -4129,42 +4128,42 @@ Data Data::nonuniformslope(boost::python::object in, boost::python::object out, 
     for (l=0; l<numpts; ++l)
     {
         if ((sdat)[l]<win.getElt(0))
-	{
-	   if (check_boundaries)
-	   {
-	       error=true;		// Could have done an early exit but I'm not sure it's worth it
-	   }
-	   else
-	   {
-	       rdat[l]=0;
-	   }
-	}
-	else if (sdat[l]>maxlimit)
-	{
-	   if (check_boundaries)
-	   {
-	       error=true;		// Could have done an early exit but I'm not sure it's worth it
-	   }
-	   else
-	   {
-	       rdat[l]=0;
-	   }
-	}
+        {
+           if (check_boundaries)
+           {
+               error=true;              // Could have done an early exit but I'm not sure it's worth it
+           }
+           else
+           {
+               rdat[l]=0;
+           }
+        }
+        else if (sdat[l]>maxlimit)
+        {
+           if (check_boundaries)
+           {
+               error=true;              // Could have done an early exit but I'm not sure it's worth it
+           }
+           else
+           {
+               rdat[l]=0;
+           }
+        }
         else
-	{
-	    int i=0;
-	    for (;i<ipoints-2;++i)
-	    {
-	        if (sdat[l]<=win.getElt(i+1))
-		{
-		    break;
-		}
-	    }
-	    // we must have found one by this point or we would have triggered earlier branches
-	    rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i));
-	}
+        {
+            int i=0;
+            for (;i<ipoints-2;++i)
+            {
+                if (sdat[l]<=win.getElt(i+1))
+                {
+                    break;
+                }
+            }
+            // we must have found one by this point or we would have triggered earlier branches
+            rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i));
+        }
     }
-    if (error)	// we had an illegal value (below the start threwshold)
+    if (error)  // we had an illegal value (below the start threwshold)
     {
         throw DataException("Data being interpolated contains a value outside the range given.");
     }
@@ -4614,11 +4613,11 @@ size_t Data::getNumberOfTaggedValues() const
 {
     if (isTagged())
     {
-	return m_data->getTagCount();
+        return m_data->getTagCount();
     }
     else
     {
-	return 0;
+        return 0;
     }
 }
 
@@ -4638,11 +4637,11 @@ Data escript::randomData(const boost::python::tuple& shape,
     // does our domain support this?
     if (what.getDomain()->supportsFilter(filter))
     {
-	return what.getDomain()->randomFill(dataPointShape, what, seed, filter);
+        return what.getDomain()->randomFill(dataPointShape, what, seed, filter);
     }
     else
     {
-	throw DataException("The specified domain does not support those filter options.");
+        throw DataException("The specified domain does not support those filter options.");
     }
 }
 
@@ -4816,9 +4815,9 @@ void Data::complicate()
 Data
 escript::C_TensorUnaryOperation(Data const &arg_0,
                        escript::ESFunction operation,
-		       DataTypes::real_t tol)
+                       DataTypes::real_t tol)
 {
-  if (arg_0.isEmpty())	// do this before we attempt to interpolate
+  if (arg_0.isEmpty())  // do this before we attempt to interpolate
   {
      throw DataException("Error - Operations (C_TensorUnaryOperation) not permitted on instances of DataEmpty.");
   }
@@ -4843,32 +4842,39 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   Data res;
 
   if (arg_0_Z.isConstant()) {
-    if (arg_0_Z.isComplex())			// this is not taking into account cplx->real
+    if (arg_0_Z.isComplex())                    // this is not taking into account cplx->real
     {
         DataTypes::cplx_t dummy=0;
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
         const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
-	if (always_real(operation))
-	{
-	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, (real_t)(0)));
-	    tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);	  
-	}
-	else
-	{
-	    res.complicate();
-	    DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
-	    tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
-	}
+        if (always_real(operation))
+        {
+            DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, (real_t)(0)));
+            tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);       
+        }
+        else
+        {
+            res.complicate();
+            DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
+            tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        }
     }
     else
     {
-	// This currently does not call the tensor_unary_array_operation_real
+        // This currently does not call the tensor_unary_array_operation_real
         // functions like .real() and .imag() but they are caught in the Data interface
         DataTypes::real_t dummy=0;
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
         const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
-        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        if (always_real(operation))
+        {
+            tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);
+        }
+        else
+        {
+            tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        }
     }
   }
   else if (arg_0_Z.isTagged()) {
@@ -4883,60 +4889,67 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     if (arg_0_Z.isComplex())
     {
         if (always_real(operation))
-	{
-	    res.tag();
-	    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
-	  
-	    DataTypes::cplx_t dummy=0;
-	    // Get the pointers to the actual data
-	    const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
-	    DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,real_t(0)));
-	    // Compute a result for the default
-	    tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);
-	    // Compute a result for each tag
-	    const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-	    DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-	    for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-	      tmp_2->addTag(i->first);
-	      const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
-	      DataTypes::real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, real_t(0)));
-	      tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);
-	    }
-	}
-	else
-	{
-	    res.complicate();
-	    res.tag();
-	    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
-	  
-	    DataTypes::cplx_t dummy=0;
-	    // Get the pointers to the actual data
-	    const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
-	    DataTypes::cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,dummy));
-	    // Compute a result for the default
-	    tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
-	    // Compute a result for each tag
-	    const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-	    DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-	    for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-	      tmp_2->addTag(i->first);
-	      const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
-	      DataTypes::cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummy));
-	      tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
-	    }
-	}
+        {
+            res.tag();
+            DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
+          
+            DataTypes::cplx_t dummy=0;
+            // Get the pointers to the actual data
+            const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
+            DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,real_t(0)));
+            // Compute a result for the default
+            tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);
+            // Compute a result for each tag
+            const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+            DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+            for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+              tmp_2->addTag(i->first);
+              const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
+              DataTypes::real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, real_t(0)));
+              tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);
+            }
+        }
+        else
+        {
+            res.complicate();
+            res.tag();
+            DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
+          
+            DataTypes::cplx_t dummy=0;
+            // Get the pointers to the actual data
+            const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0,dummy));
+            DataTypes::cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,dummy));
+            // Compute a result for the default
+            tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+            // Compute a result for each tag
+            const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+            DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+            for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+              tmp_2->addTag(i->first);
+              const DataTypes::cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy));
+              DataTypes::cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummy));
+              tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+            }
+        }
     }
     else
     {
       
-	res.tag();
-	DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
+        res.tag();
+        DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
       
         // Get the pointers to the actual data
         const DataTypes::real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
         DataTypes::real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
         // Compute a result for the default
-        tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        if (always_real(operation))
+        {
+            tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);       
+        }
+        else
+        {
+            tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+        }
         // Compute a result for each tag
         const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
         DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
@@ -4944,7 +4957,14 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
           tmp_2->addTag(i->first);
           const DataTypes::real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
           DataTypes::real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
-          tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+          if (always_real(operation))
+          {
+              tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);
+          }
+          else
+          {
+              tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
+          }
         }
     }
   }
@@ -4953,7 +4973,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
     if (arg_0_Z.isComplex() && !always_real(operation))
     {
-	res.complicate();
+        res.complicate();
     }
     DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
@@ -4963,79 +4983,67 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
     if (arg_0_Z.isComplex())
     {
-	if (always_real(operation))
-	{
-	    DataTypes::cplx_t dummy=0;
-	    #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-	    for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-		dataPointNo_0=0;
-		int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-		int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-		const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
-		DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, real_t(0)));
-		tensor_unary_array_operation_real(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
-	    }	  	  
-	}
-	else
-	{
-	    DataTypes::cplx_t dummy=0;
-	    #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-	    for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-		dataPointNo_0=0;
-		int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-		int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-		const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
-		DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummy));
-		tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
-	    }     
-	}
+        if (always_real(operation))
+        {
+            DataTypes::cplx_t dummy=0;
+            #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+            for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+                dataPointNo_0=0;
+                int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+                int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+                const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
+                DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, real_t(0)));
+                tensor_unary_array_operation_real(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+            }             
+        }
+        else
+        {
+            DataTypes::cplx_t dummy=0;
+            #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+            for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+                dataPointNo_0=0;
+                int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+                int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+                const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy));
+                DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummy));
+                tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+            }     
+        }
     }
     else
     {
-	// we require storage to be contiguous so let's do it in one chunk
+        // we require storage to be contiguous so let's do it in one chunk
         #pragma omp parallel private(sampleNo_0,dataPointNo_0)
         {
 #ifdef _OPENMP
-	    int tid=omp_get_thread_num();
-	    int mt=omp_get_num_threads();
-	    int rem=numSamples_0%mt;
-	    size_t samples_per=numSamples_0/mt;
-	    size_t startsample=samples_per*tid+((tid<rem)?tid:rem);
-	    size_t nextsample=samples_per*(tid+1)+(((tid+1)<rem)?(tid+1):rem);
-	    size_t ulimit=min<size_t>(nextsample, numSamples_0);
-	    size_t samples=ulimit-startsample;    
+            int tid=omp_get_thread_num();
+            int mt=omp_get_num_threads();
+            int rem=numSamples_0%mt;
+            size_t samples_per=numSamples_0/mt;
+            size_t startsample=samples_per*tid+((tid<rem)?tid:rem);
+            size_t nextsample=samples_per*(tid+1)+(((tid+1)<rem)?(tid+1):rem);
+            size_t ulimit=min<size_t>(nextsample, numSamples_0);
+            size_t samples=ulimit-startsample;    
 #else
-	    size_t startsample=0;
-	    size_t samples=numSamples_0;
-#endif	    
-	    if (startsample<numSamples_0)
-	    {
-		size_t offset_0 = tmp_0->getPointOffset(startsample,0);
-		size_t offset_2 = tmp_2->getPointOffset(startsample,0);
-		const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-		DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-		tensor_unary_array_operation(size0*samples*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
-	    }
-	}    	    
-	    
-	    
-// 	    for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-// 		dataPointNo_0=0;
-// 		int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-// 		int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-// 		const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-// 		DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-// 		tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
-// 	    }	
-//        }
-// 	#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-// 	for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-// 	    dataPointNo_0=0;
-// 	    int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-// 	    int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-// 	    const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-// 	    DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-// 	    tensor_unary_array_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);    
+            size_t startsample=0;
+            size_t samples=numSamples_0;
+#endif      
+            if (startsample<numSamples_0)
+            {
+                size_t offset_0 = tmp_0->getPointOffset(startsample,0);
+                size_t offset_2 = tmp_2->getPointOffset(startsample,0);
+                const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+                DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                if (always_real(operation))
+                {
+                    tensor_unary_array_operation_real(size0*samples*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+                }
+                else
+                {
+                    tensor_unary_array_operation(size0*samples*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
+                }
+            }
+        }           
     }
   }
   else {
