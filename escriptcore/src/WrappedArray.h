@@ -146,7 +146,7 @@ WrappedArray::getEltC() const
 {
     if (!iscomplex)
     {
-      return nan("");
+      return scalar_r;
     }  
     return scalar_c;
 }
@@ -155,9 +155,9 @@ WrappedArray::getEltC() const
 inline DataTypes::cplx_t
 WrappedArray::getEltC(unsigned int i) const
 {
-    if (!iscomplex)
+    if (!iscomplex)	// let's try to get a real value out instead
     {
-      return nan("");
+      return (dat_r!=0)?dat_r[i]:(boost::python::extract<DataTypes::real_t>(obj[i]));
     }
     return (dat_c!=0)?dat_c[i]:(boost::python::extract<DataTypes::cplx_t>(obj[i]));	// don't know if this will work with numpy	
 }
@@ -168,7 +168,7 @@ WrappedArray::getEltC(unsigned int i, unsigned int j) const
 {
     if (!iscomplex)
     {
-      return nan("");
+       return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j)]:(boost::python::extract<DataTypes::real_t>(obj[i][j]));
     }  
     return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j)]:(boost::python::extract<DataTypes::cplx_t>(obj[i][j]));
 }
@@ -179,7 +179,7 @@ WrappedArray::getEltC(unsigned int i, unsigned int j, unsigned int k) const
 {
     if (!iscomplex)
     {
-      return nan("");
+      return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j,k)]:(boost::python::extract<DataTypes::real_t>(obj[i][j][k]));
     }    
     return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j,k)]:(boost::python::extract<DataTypes::cplx_t>(obj[i][j][k]));
 }
@@ -190,7 +190,7 @@ WrappedArray::getEltC(unsigned int i, unsigned int j, unsigned int k, unsigned i
 {
     if (!iscomplex)
     {
-      return nan("");
+      return (dat_r!=0)?dat_r[DataTypes::getRelIndex(shape,i,j,k,m)]:(boost::python::extract<DataTypes::real_t>(obj[i][j][k][m]));
     }  
     return (dat_c!=0)?dat_c[DataTypes::getRelIndex(shape,i,j,k,m)]:(boost::python::extract<DataTypes::cplx_t>(obj[i][j][k][m]));
 }

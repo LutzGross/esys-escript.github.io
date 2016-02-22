@@ -214,7 +214,13 @@ DataAbstract::getTagNumber(int dpno)
 }
 
 void
-DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const double value)
+DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::real_t value)
+{
+    throw DataException("Error - DataAbstract::copying data from double value to a single data point is not supported.");
+}
+
+void
+DataAbstract::copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::cplx_t value)
 {
     throw DataException("Error - DataAbstract::copying data from double value to a single data point is not supported.");
 }

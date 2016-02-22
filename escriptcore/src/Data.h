@@ -294,6 +294,11 @@ class Data {
   ESCRIPT_DLL_API
   void
   setValueOfDataPoint(int dataPointNo, const DataTypes::real_t);
+  
+  ESCRIPT_DLL_API
+  void
+  setValueOfDataPointC(int dataPointNo, const DataTypes::cplx_t);  
+  
 
   /**
      \brief Return a data point across all processors as a python tuple.

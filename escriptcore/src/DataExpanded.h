@@ -494,8 +494,12 @@ TODO Note that this constructor will also copy data to all points if it only con
   */
   ESCRIPT_DLL_API
   virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const double value);
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::real_t value);
 
+  ESCRIPT_DLL_API
+  virtual void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::cplx_t value);  
+  
 
   /**
      \brief
