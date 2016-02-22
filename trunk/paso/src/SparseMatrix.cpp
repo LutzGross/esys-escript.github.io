@@ -112,7 +112,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
     solver_p(NULL)
 {
     if (patternIsUnrolled) {
-        if (!XNOR(ntype & MATRIX_FORMAT_OFFSET1, npattern->type & MATRIX_FORMAT_OFFSET1)) {
+        if ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1)) {
             Esys_setError(TYPE_ERROR, "SparseMatrix: requested offset and pattern offset do not match.");
         }
     }

@@ -65,7 +65,7 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
 {
     Esys_resetError();
     if (patternIsUnrolled) {
-        if (!XNOR(ntype & MATRIX_FORMAT_OFFSET1, npattern->type & MATRIX_FORMAT_OFFSET1)) {
+        if ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1)) {
             Esys_setError(TYPE_ERROR, "SystemMatrix: requested offset and pattern offset do not match.");
         }
     }
