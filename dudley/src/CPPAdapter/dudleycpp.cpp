@@ -23,12 +23,12 @@
 #include "MeshAdapterFactory.h"
 
 #include "esysUtils/Esys_MPI.h"
-#include "esysUtils/esysExceptionTranslator.h"
-#include "escript/AbstractContinuousDomain.h"
+#include <escript/ExceptionTranslators.h>
+#include <escript/AbstractContinuousDomain.h>
 
 #include <boost/python.hpp>
-#include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
+#include <boost/python/module.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
 #include <boost/version.hpp>
 
@@ -44,13 +44,12 @@ BOOST_PYTHON_MODULE(dudleycpp)
 
   scope().attr("__doc__") = "To use this module, please import esys.dudley";  
   
-  
+  register_exception_translator<dudley::DudleyAdapterException>(&escript::RuntimeErrorTranslator);
+
   //
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<dudley::DudleyAdapterException>(&(esysUtils::RuntimeErrorTranslator));
-
   def("LoadMesh",dudley::loadMesh,
       (arg("fileName")="file.nc"),":rtype: `Domain`"
 /*      ,return_value_policy<manage_new_object>());*/
@@ -262,5 +261,5 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
       .def("getMPIRank",&dudley::MeshAdapter::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
       .def("MPIBarrier",&dudley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
       .def("onMasterProcessor",&dudley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
-
 }
+

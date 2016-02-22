@@ -17,23 +17,21 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
-#include <algorithm>
-#include <limits>
-
 #include <speckley/Rectangle.h>
-#include <esysUtils/esysFileWriter.h>
-#include <esysUtils/index.h>
-#include <esysUtils/Esys_MPI.h>
 #include <speckley/DefaultAssembler2D.h>
 #include <speckley/WaveAssembler2D.h>
-#include <boost/scoped_array.hpp>
-#include <escript/FunctionSpaceFactory.h>
-#include "esysUtils/EsysRandom.h"
-
 #ifdef USE_RIPLEY
 #include <speckley/CrossDomainCoupler.h>
 #endif
+
+#include <esysUtils/Esys_MPI.h>
+#include <esysUtils/esysFileWriter.h>
+#include <esysUtils/index.h>
+#include <escript/FunctionSpaceFactory.h>
+#include <escript/Random.h>
+
+#include <boost/scoped_array.hpp>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -46,7 +44,9 @@
 #endif
 #endif
 
+#include <algorithm>
 #include <iomanip>
+#include <limits>
 
 namespace bm=boost::math;
 using esysUtils::FileWriter;
@@ -1052,7 +1052,7 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
     }
 
     double* src=new double[m_NE[0]*m_NE[1]*per_element*numvals];
-    esysUtils::randomFillArray(seed, src, m_NE[0]*m_NE[1]*per_element);
+    escript::randomFillArray(seed, src, m_NE[0]*m_NE[1]*per_element);
     escript::Data res(0, shape, escript::function(*this), true);
     int current = 0;
     for (int ei = 0; ei < m_NE[1]; ++ei) {

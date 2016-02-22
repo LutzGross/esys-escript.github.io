@@ -89,7 +89,7 @@ m_functionSpaceType(other.m_functionSpaceType)
 {
 }
 
-std::pair<int,dim_t>
+std::pair<int,DataTypes::dim_t>
 FunctionSpace::getDataShape() const
 {
   return m_domain->getDataShape(m_functionSpaceType);
@@ -145,13 +145,13 @@ FunctionSpace::toPyString() const
 
 
 int
-FunctionSpace::getTagFromSampleNo(dim_t sampleNo) const
+FunctionSpace::getTagFromSampleNo(DataTypes::dim_t sampleNo) const
 {
   return m_domain->getTagFromSampleNo(m_functionSpaceType,sampleNo);
 }
 
 int
-FunctionSpace::getTagFromDataPointNo(dim_t dataPointNo) const
+FunctionSpace::getTagFromDataPointNo(DataTypes::dim_t dataPointNo) const
 {
   //
   // Get the number of samples and data-points per sample
@@ -180,26 +180,26 @@ FunctionSpace::getTagFromDataPointNo(dim_t dataPointNo) const
   return(tagNo);
 }
 
-dim_t FunctionSpace::getReferenceIDFromDataPointNo(dim_t dataPointNo) const
+DataTypes::dim_t FunctionSpace::getReferenceIDFromDataPointNo(DataTypes::dim_t dataPointNo) const
 {
      //
      // Get the number of samples and data-points per sample
-     dim_t numSamples = getNumSamples();
-     int numDataPointsPerSample = getNumDPPSample();
-     const dim_t* referenceIDs= borrowSampleReferenceIDs();
-     dim_t numDataPoints = numSamples * numDataPointsPerSample;
+    DataTypes::dim_t numSamples = getNumSamples();
+    int numDataPointsPerSample = getNumDPPSample();
+    const DataTypes::dim_t* referenceIDs= borrowSampleReferenceIDs();
+    DataTypes::dim_t numDataPoints = numSamples * numDataPointsPerSample;
 
-     if (numDataPointsPerSample==0) {
+    if (numDataPointsPerSample==0) {
         throw DataException("FunctionSpace::getReferenceIDFromDataPointNo error: no data-points associated with this object.");
-     }
-     if (dataPointNo<0 || dataPointNo>numDataPoints) {
+    }
+    if (dataPointNo<0 || dataPointNo>numDataPoints) {
         throw DataException("FunctionSpace::getReferenceIDFromDataPointNo error: invalid data-point number supplied.");
-     }
-     dim_t sampleNo = dataPointNo / numDataPointsPerSample;
-     return referenceIDs[sampleNo];
+    }
+    DataTypes::dim_t sampleNo = dataPointNo / numDataPointsPerSample;
+    return referenceIDs[sampleNo];
 }
 
-const dim_t*
+const DataTypes::dim_t*
 FunctionSpace::borrowSampleReferenceIDs() const
 {
   return m_domain->borrowSampleReferenceIDs(m_functionSpaceType);

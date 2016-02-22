@@ -59,7 +59,7 @@ DataAbstract_ptr
 getLazy(DataTypes::ShapeType& shape,bool minus=false)
 {
   int pts=DataTypes::noValues(shape);
-  DataTypes::ValueType data(pts,0);
+  DataTypes::RealVectorType data(pts,0);
   for (int i=0;i<pts;++i)
   {
 	data[i]=minus?-(i+1):i+1;
@@ -74,7 +74,7 @@ DataAbstract_ptr
 getLazyU(DataTypes::ShapeType& shape, ES_optype typ)
 {
   int pts=DataTypes::noValues(shape);
-  DataTypes::ValueType data(pts,0);
+  DataTypes::RealVectorType data(pts,0);
   for (int i=0;i<pts;++i)
   {
 	data[i]=(i+1);
@@ -89,7 +89,7 @@ DataAbstract_ptr
 getLazyUP(DataTypes::ShapeType& shape, ES_optype typ, int par)
 {
   int pts=DataTypes::noValues(shape);
-  DataTypes::ValueType data(pts,0);
+  DataTypes::RealVectorType data(pts,0);
   for (int i=0;i<pts;++i)
   {
 	data[i]=(i+1);
@@ -105,8 +105,8 @@ DataAbstract_ptr
 getLazyB(DataTypes::ShapeType& shape, ES_optype typ)
 {
   int pts=DataTypes::noValues(shape);
-  DataTypes::ValueType data(pts,0);
-  DataTypes::ValueType data2(pts,0);
+  DataTypes::RealVectorType data(pts,0);
+  DataTypes::RealVectorType data2(pts,0);
   for (int i=0;i<pts;++i)
   {
 	data[i]=(i+1);
@@ -124,8 +124,8 @@ DataAbstract_ptr
 getLazyGTP(DataTypes::ShapeType& shape, ES_optype typ, int ax, int tr)
 {
   int pts=DataTypes::noValues(shape);
-  DataTypes::ValueType data(pts,0);
-  DataTypes::ValueType data2(pts,0);
+  DataTypes::RealVectorType data(pts,0);
+  DataTypes::RealVectorType data2(pts,0);
   for (int i=0;i<pts;++i)
   {
 	data[i]=(i+1);

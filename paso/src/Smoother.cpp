@@ -134,16 +134,16 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
     }
 }
 
-err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
-        Preconditioner_Smoother* smoother, double* x, const double* b,
-        double atol, dim_t* sweeps, bool x_is_initial)
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+            Preconditioner_Smoother* smoother, double* x, const double* b,
+            double atol, dim_t* sweeps, bool x_is_initial)
 {
    const dim_t n = A->mainBlock->numRows * A->mainBlock->row_block_size;
    double *b_new = smoother->localSmoother->buffer;
    const dim_t max_sweeps=*sweeps;
    dim_t s=0;
    double norm_dx = atol * 2.;
-   err_t errorCode = PRECONDITIONER_NO_ERROR;
+   SolverResult errorCode = NoError;
 
    if (! x_is_initial) {
         util::copy(n, x, b);
@@ -158,7 +158,7 @@ err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
         norm_dx=util::lsup(n,b_new,A->mpi_info);
         util::AXPY(n, x, 1., b_new);
         if (s >= max_sweeps) {
-              errorCode = PRECONDITIONER_MAXITER_REACHED;
+              errorCode = MaxIterReached;
               break;
         }
         s++;
@@ -210,7 +210,11 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
 void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* smoother, double* x)
 {
+#ifdef _OPENMP
     const dim_t nt=omp_get_max_threads();
+#else
+    const dim_t nt=1;
+#endif
     if (smoother->Jacobi) {
         BlockOps_solveAll(A->row_block_size,A->numRows,smoother->diag,smoother->pivot,x);
     } else {
@@ -231,9 +235,9 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
     double *diag = smoother->diag;
     index_t* pivot = smoother->pivot;
     const dim_t block_len=A->block_size;
-    register dim_t i,k;
-    register index_t iptr_ik, mm;
-    register double rtmp;
+    dim_t i,k;
+    index_t iptr_ik, mm;
+    double rtmp;
     int failed = 0;
     const index_t* ptr_main = A->borrowMainDiagonalPointer();
 
@@ -347,9 +351,9 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
     const dim_t block_len=A->block_size;
     double *y;
 
-    register dim_t i,k;
-    register index_t color,iptr_ik, mm;
-    register double rtmp;
+    dim_t i,k;
+    index_t color,iptr_ik, mm;
+    double rtmp;
     int failed = 0;
 
     const index_t* coloring = A->pattern->borrowColoringPointer();

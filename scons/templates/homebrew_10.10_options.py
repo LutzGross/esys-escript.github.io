@@ -32,7 +32,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 202
+escript_opts_version = 203
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -70,7 +70,7 @@ cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wn
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = '-Wno-c99-extensions'
+cxx_extra = '-std=c++11 -Wno-c99-extensions'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)

@@ -34,8 +34,8 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out,
     dim_t n, k, l, mpiSize;
     dim_t numComps = getDataPointSize(out);
     paso::Coupler_ptr coupler;
-    type_t in_data_type = getFunctionSpaceType(in);
-    type_t out_data_type = getFunctionSpaceType(out);
+    int in_data_type = getFunctionSpaceType(in);
+    int out_data_type = getFunctionSpaceType(out);
     index_t upperBound;
     double *recv_buffer;
     size_t numComps_size = 0;

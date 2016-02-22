@@ -23,45 +23,43 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include "Util.h"
 #include "Assemble.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "Util.h"
 
-/************************************************************************************/
+#include <sstream>
 
-void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile * nodes, escript::Data * x)
+void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile* nodes, escript::Data* x)
 {
-    char error_msg[LenErrorMsg_MAX];
-    dim_t n;
-    size_t dim_size;
     Dudley_resetError();
     if (nodes == NULL)
-	return;
+        return;
     if (!numSamplesEqual(x, 1, nodes->numNodes))
     {
-	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_NodeCoordinates: illegal number of samples of Data object");
+        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_NodeCoordinates: illegal number of samples of Data object");
     }
     else if (getFunctionSpaceType(x) != DUDLEY_NODES)
     {
-	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
+        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
     }
     else if (!isExpanded(x))
     {
-	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_NodeCoordinates: expanded Data object expected");
+        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_NodeCoordinates: expanded Data object expected");
     }
     else if (!isDataPointShapeEqual(x, 1, &(nodes->numDim)))
     {
-	sprintf(error_msg, "Dudley_Assemble_NodeCoordinates: Data object of shape (%d,) expected", nodes->numDim);
-	Dudley_setError(TYPE_ERROR, error_msg);
+        std::stringstream ss;
+        ss << "Dudley_Assemble_NodeCoordinates: Data object of shape ("
+            << nodes->numDim << ",) expected.";
+        std::string errorMsg(ss.str());
+        Dudley_setError(TYPE_ERROR, errorMsg.c_str());
     }
     else
     {
-	dim_size = nodes->numDim * sizeof(double);
-	requireWrite(x);
-#pragma omp parallel for private(n)
-	for (n = 0; n < nodes->numNodes; n++)
-	    memcpy(getSampleDataRWFast(x, n), &(nodes->Coordinates[INDEX2(0, n, nodes->numDim)]), dim_size);
+        const size_t dim_size = nodes->numDim * sizeof(double);
+        x->requireWrite();
+#pragma omp parallel for
+        for (dim_t n = 0; n < nodes->numNodes; n++)
+            memcpy(x->getSampleDataRW(n),
+                    &nodes->Coordinates[INDEX2(0, n, nodes->numDim)], dim_size);
     }
 }

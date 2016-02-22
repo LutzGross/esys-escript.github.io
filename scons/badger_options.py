@@ -16,7 +16,7 @@
 
 from templates.jessie_options import *
 
-debug = True
+debug = False
 
 boost_libs = ['boost_python-py27']
 
@@ -24,3 +24,4 @@ lapack = 'clapack'
 umfpack = True
 silo = True
 
+cxx_extra += ' -Wno-literal-suffix '

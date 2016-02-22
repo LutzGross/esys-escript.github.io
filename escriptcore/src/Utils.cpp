@@ -562,7 +562,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     int error = 0;
     try {
         std::vector<int> offset(numdata);
-        std::vector<const DataAbstract::ValueType::value_type*> samples(numdata);
+        std::vector<const DataTypes::real_t*> samples(numdata);
 
         for (int i=0; i<numsamples; ++i) {
             if (!best.ownSample(i)) {

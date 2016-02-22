@@ -23,8 +23,7 @@ This file is not to be included in .h files - only .c files should have any use 
 #ifndef SHAPETABLE_DUDLEY
 #define SHAPETABLE_DUDLEY
 
-#include "esysUtils/types.h"	
-
+#include "Dudley.h"
 #include "ElementType.h"
 
 /* These are constructed from dsdv in ShapeFunction.c in finley

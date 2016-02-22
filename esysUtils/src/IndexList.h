@@ -28,7 +28,7 @@
 #ifndef __ESYSUTILS_INDEXLIST_H__
 #define __ESYSUTILS_INDEXLIST_H__
 
-#include "types.h"
+#include <escript/DataTypes.h>
 
 // pre-reserving saves time under OpenMP. The 85 is a value taken over
 // from revision ~101 by jgs.

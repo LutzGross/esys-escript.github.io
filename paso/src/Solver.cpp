@@ -29,7 +29,6 @@
 #include "Solver.h"
 #include "Options.h"
 #include "SystemMatrix.h"
-#include "esysUtils/blocktimer.h"
 
 #include <boost/math/special_functions/fpclassify.hpp>  // for isnan
 
@@ -48,6 +47,7 @@ void Solver_free(SystemMatrix* A)
 void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
             Performance* pp)
 {
+    const real_t EPSILON = escript::DataTypes::real_t_eps();
     double norm2_of_b,tol,tolerance,time_iter,net_time_start;
     double *r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b;
     double norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local;
@@ -58,10 +58,9 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
 #endif
     dim_t i,totIter=0,cntIter,method;
     bool finalizeIteration;
-    err_t errorCode=SOLVER_NO_ERROR;
+    SolverResult errorCode = NoError;
     const dim_t numSol = A->getTotalNumCols();
     const dim_t numEqua = A->getTotalNumRows();
-    double blocktimer_precond, blocktimer_start = blocktimer_time();
     double *x0=NULL;
 
     Esys_resetError();
@@ -90,7 +89,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         LinearSystem* F = new LinearSystem(A, b, options);
         A->solvePreconditioner(x, b);
         errorCode = Solver_NewtonGMRES(F, x, options, pp);
-        if (errorCode != NO_ERROR) {
+        if (errorCode != NoError) {
             Esys_setError(SYSTEM_ERROR,"Solver_NewtonGMRES: an error has occurred.");
         }
         delete F;
@@ -178,11 +177,9 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
             }
 
             // construct the preconditioner
-            blocktimer_precond = blocktimer_time();
             Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
             A->setPreconditioner(options);
             Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
-            blocktimer_increment("Solver_setPreconditioner()", blocktimer_precond);
             options->set_up_time=Esys_timer()-time_iter;
             if (Esys_noError()) {
                 // get an initial guess by evaluating the preconditioner
@@ -287,23 +284,23 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                             totIter += cntIter;
 
                             // error handling
-                            if (errorCode == SOLVER_NO_ERROR) {
+                            if (errorCode == NoError) {
                                 finalizeIteration = false;
-                            } else if (errorCode == SOLVER_MAXITER_REACHED) {
+                            } else if (errorCode == MaxIterReached) {
                                 Esys_setError(DIVERGED, "Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
                                 if (options->verbose)
                                     std::cout << "Solver: Maximum number of "
                                         "iterations reached." << std::endl;
-                            } else if (errorCode == SOLVER_INPUT_ERROR) {
+                            } else if (errorCode == InputError) {
                                 Esys_setError(SYSTEM_ERROR, "Solver: illegal dimension in iterative solver.");
                                 if (options->verbose)
                                     std::cout << "Solver: Internal error!\n";
-                            } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+                            } else if (errorCode == NegativeNormError) {
                                 Esys_setError(VALUE_ERROR, "Solver: negative energy norm (try other solver or preconditioner).");
                                 if (options->verbose)
                                     std::cout << "Solver: negative energy norm"
                                        " (try other solver or preconditioner)!\n";
-                            } else if (errorCode == SOLVER_BREAKDOWN) {
+                            } else if (errorCode == Breakdown) {
                                 if (cntIter <= 1) {
                                     Esys_setError(ZERO_DIVISION_ERROR, "Solver: fatal break down in iterative solver.");
                                     if (options->verbose)
@@ -338,7 +335,6 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     delete[] x0;
     options->time = Esys_timer()-time_iter;
     Performance_stopMonitor(pp, PERFORMANCE_ALL);
-    blocktimer_increment("Solver()", blocktimer_start);
 }
 
 } // namespace paso

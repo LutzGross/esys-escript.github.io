@@ -36,7 +36,7 @@ using namespace escript::DataTypes;
 namespace
 {
 
-ValueType::const_reference
+RealVectorType::const_reference
 getRefRO(DataReady& data,int i, int j, int k)
 {
    return data.getVectorRO()[getRelIndex(data.getShape(),i,j,k)];
@@ -64,7 +64,7 @@ void DataConstantTestCase::testAll()
   //
   // Create a scalar pointData
   DataTypes::ShapeType shape;
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //  DataArrayView pointData(data,shape);
 
   //
@@ -84,7 +84,7 @@ void DataConstantTestCase::testAll()
   shape.push_back(21);
 
   cout << "\tTesting alternative constructor." << endl;
-  DataTypes::ValueType data1(DataTypes::noValues(shape),1.0);
+  DataTypes::RealVectorType data1(DataTypes::noValues(shape),1.0);
   // do not call the FunctionSpace constructor directly
   // in the argument of DataConstant
   // GCC chokes on it.

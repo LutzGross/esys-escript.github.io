@@ -41,7 +41,7 @@ LinearSystem::~LinearSystem()
 /*
  * evaluates value=P*(b-Ax)
  */
-err_t LinearSystem::call(double* value, const double* arg, Performance* pp)
+SolverResult LinearSystem::call(double* value, const double* arg, Performance* pp)
 {
     // tmp = b
     util::copy(n, tmp, b);
@@ -49,7 +49,7 @@ err_t LinearSystem::call(double* value, const double* arg, Performance* pp)
     mat->MatrixVector_CSR_OFFSET0(PASO_ONE, arg, -PASO_ONE, tmp);
     // value = P*tmp
     mat->solvePreconditioner(value, tmp);
-    return NO_ERROR;
+    return NoError;
 }
 
 } // namespace paso

@@ -60,14 +60,14 @@ namespace paso {
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                 double* tolerance, Performance* pp)
+SolverResult Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+                        double* tolerance, Performance* pp)
 {
     dim_t maxit,num_iter_global, len,rest, np, ipp;
-    register double ss,ss1;
+    double ss,ss1;
     dim_t i0, istart, iend;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
-    err_t status = SOLVER_NO_ERROR;
+    SolverResult status = NoError;
     const dim_t n = A->getTotalNumRows();
     double *resid = tolerance;
     double tau_old,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
@@ -75,7 +75,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     double loc_sum[2], sum[2];
 #endif
     double norm_of_residual=0,norm_of_residual_global;
-    register double d;
+    double d;
 
 #ifdef USE_DYNAMIC_SCHEDULING
     dim_t chunk_size=-1;
@@ -89,7 +89,11 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     n_chunks=n/chunk_size;
     if (n_chunks*chunk_size<n) n_chunks+=1;
 #else
+#ifdef _OPENMP
     np=omp_get_max_threads();
+#else
+    np=1;
+#endif
     len=n/np;
     rest=n-len*np;
 #endif
@@ -348,9 +352,9 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     num_iter_global = num_iter;
     norm_of_residual_global = norm_of_residual;
     if (maxIterFlag) {
-        status = SOLVER_MAXITER_REACHED;
+        status = MaxIterReached;
     } else if (breakFlag) {
-        status = SOLVER_BREAKDOWN;
+        status = Breakdown;
     }
     Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
     delete[] rs;

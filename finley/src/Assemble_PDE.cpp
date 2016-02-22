@@ -51,7 +51,6 @@
 
 #include "Assemble.h"
 #include "Util.h"
-#include "esysUtils/blocktimer.h"
 
 #include <sstream>
 
@@ -106,14 +105,14 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     }
 
     // get the function space for this assemblage call
-    int funcspace = UNKNOWN;
+    int funcspace = -1;
     if (!A.isEmpty()) funcspace=A.getFunctionSpace().getTypeCode();
     if (!B.isEmpty()) funcspace=B.getFunctionSpace().getTypeCode();
     if (!C.isEmpty()) funcspace=C.getFunctionSpace().getTypeCode();
     if (!D.isEmpty()) funcspace=D.getFunctionSpace().getTypeCode();
     if (!X.isEmpty()) funcspace=X.getFunctionSpace().getTypeCode();
     if (!Y.isEmpty()) funcspace=Y.getFunctionSpace().getTypeCode();
-    if (funcspace==UNKNOWN)
+    if (funcspace==-1)
         return; // all data are empty
 
     // check if all function spaces are the same
@@ -217,8 +216,6 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     if (!noError())
         return;
 
-    double blocktimer_start = blocktimer_time();
-
     if (p.numSides == 1) {
         if (funcspace==FINLEY_POINTS) {
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
@@ -258,8 +255,6 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     } else {
         setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
     }
-
-    blocktimer_increment("Assemble_PDE()", blocktimer_start);
 }
 
 } // namespace finley

@@ -49,6 +49,8 @@ namespace paso {
 void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                              Options* options)
 {
+    const real_t EPSILON = escript::DataTypes::real_t_eps();
+    const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
     const double reduction_after_divergence_factor = 0.5;
     const dim_t num_failures_max=50;
 
@@ -59,7 +61,7 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     dim_t i_substeps=0, n_substeps=1, num_failures=0;
     double *u_save=NULL, *u2=NULL;
     double  dt2,t=0, dt3;
-    err_t errorCode=SOLVER_NO_ERROR;
+    SolverResult errorCode=NoError;
     const dim_t n = transport_matrix->getTotalNumRows();
     options->time_step_backtracking_used = false;
     options->num_iter=0;
@@ -119,11 +121,11 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                 // initialize the iteration matrix
                 fctsolver->initialize(dt3, options, &pp);
                 rsolver->initialize(dt3/2, options);
-                errorCode = SOLVER_NO_ERROR;
+                errorCode = NoError;
 
                 // start iteration
                 for (i_substeps=0; i_substeps<n_substeps &&
-                                   errorCode==SOLVER_NO_ERROR &&
+                                   errorCode==NoError &&
                                    Esys_noError(); i_substeps++) {
                     if (options->verbose) {
                         std::cout << "TransportProblem::solve: substep "
@@ -139,22 +141,22 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                     errorCode = rsolver->solve(u2, u, q, options, &pp);
 
                     // Mv_t=Lv   v(0)=u(dt/2)
-                    if (errorCode == SOLVER_NO_ERROR) {
+                    if (errorCode == NoError) {
                         errorCode = fctsolver->update(u, u2, options, &pp);
 
                     }
                     // Mu_t=Du+q u(dt/2)=v(dt/2)
-                    if (errorCode == SOLVER_NO_ERROR) {
+                    if (errorCode == NoError) {
                         errorCode = rsolver->solve(u2, u, q, options, &pp);
                     }
 
-                    if (errorCode == SOLVER_NO_ERROR) {
+                    if (errorCode == NoError) {
                         num_failures = 0;
                         t += dt3;
                         util::copy(n, u, u2);
                     }
                 }
-                if (errorCode == SOLVER_MAXITER_REACHED || errorCode == SOLVER_DIVERGENCE) {
+                if (errorCode == MaxIterReached || errorCode == Divergence) {
                     // if num_failures_max failures in a row: give up
                     if (num_failures >= num_failures_max) {
                         Esys_setError(VALUE_ERROR, "TransportProblem::solve: "
@@ -170,19 +172,19 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                         num_failures++;
                         util::copy(n, u, u_save); // reset initial value
                     }
-                } else if (errorCode == SOLVER_INPUT_ERROR) {
+                } else if (errorCode == InputError) {
                     Esys_setError(VALUE_ERROR, "TransportProblem::solve: "
                                                "input error for solver.");
-                } else if (errorCode == SOLVER_MEMORY_ERROR) {
+                } else if (errorCode == MemoryError) {
                     Esys_setError(MEMORY_ERROR, "TransportProblem::solve: "
                                                 "memory allocation failed.");
-                } else if (errorCode == SOLVER_BREAKDOWN) {
+                } else if (errorCode == Breakdown) {
                     Esys_setError(VALUE_ERROR, "TransportProblem::solve: "
                                                "solver break down.");
-                } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+                } else if (errorCode == NegativeNormError) {
                     Esys_setError(VALUE_ERROR, "TransportProblem::solve: "
                                                "negative norm.");
-                } else if (errorCode != SOLVER_NO_ERROR) {
+                } else if (errorCode != NoError) {
                     Esys_setError(SYSTEM_ERROR, "TransportProblem::solve: "
                                                 "general error.");
                 }

@@ -108,7 +108,6 @@ headers = """
     UMFPACK.h
 """.split()
 
-# And just for blocktimer cancer.....
 local_env.Prepend(LIBS = ['esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])

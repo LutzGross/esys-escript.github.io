@@ -28,6 +28,7 @@
 #include <iostream>
 #include <algorithm>
 #include <list>
+#include <cmath>	// for max
 
 namespace escript {
 
@@ -108,24 +109,32 @@ struct FMin : public std::binary_function<double,double,double>
    \brief
    Return the absolute maximum value of the two given values.
 */
-struct AbsMax : public std::binary_function<double,double,double>
+template<typename T>
+struct AbsMax 
 {
-  inline double operator()(double x, double y) const
+  inline DataTypes::real_t operator()(T x, T y) const
   {
-    return std::max(fabs(x),fabs(y));
+    return std::max(std::abs(x),std::abs(y));
   }
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef DataTypes::real_t result_type;
 };
 
 /**
    \brief
    Return the absolute minimum value of the two given values.
 */
-struct AbsMin : public std::binary_function<double,double,double>
+template<typename T>
+struct AbsMin 
 {
-  inline double operator()(double x, double y) const
+  inline DataTypes::real_t operator()(T x, T y) const
   {
-    return std::min(fabs(x),fabs(y));
+    return min(abs(x),abs(y));
   }
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef DataTypes::real_t result_type;
 };
 
 /**
@@ -182,18 +191,18 @@ struct AbsLTE : public std::binary_function<double,double,double>
 */
 template <class BinaryFunction>
 inline
-double
+DataTypes::real_t
 algorithm(const DataExpanded& data,
           BinaryFunction operation,
-	  double initial_value)
+	  DataTypes::real_t initial_value)
 {
   int i,j;
   int numDPPSample=data.getNumDPPSample();
   int numSamples=data.getNumSamples();
-  double global_current_value=initial_value;
-  double local_current_value;
+  DataTypes::real_t global_current_value=initial_value;
+  DataTypes::real_t local_current_value;
 //  DataArrayView dataView=data.getPointDataView();
-  const DataTypes::ValueType& vec=data.getVectorRO();
+  const auto& vec=data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0));
   const DataTypes::ShapeType& shape=data.getShape();
   // calculate the reduction operation value for each data point
   // reducing the result for each data-point into the current_value variables
@@ -217,14 +226,14 @@ algorithm(const DataExpanded& data,
 // It is important that the algorithm only be applied to tags which are actually in use.
 template <class BinaryFunction>
 inline
-double
+DataTypes::real_t
 algorithm(DataTagged& data,
           BinaryFunction operation,
-	  double initial_value)
+	  DataTypes::real_t initial_value)
 {
-  double current_value=initial_value;
+  DataTypes::real_t current_value=initial_value;
 
-  const DataTypes::ValueType& vec=data.getVectorRO();
+  const auto& vec=data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0));
   const DataTypes::ShapeType& shape=data.getShape();
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
@@ -249,12 +258,12 @@ algorithm(DataTagged& data,
 
 template <class BinaryFunction>
 inline
-double
+DataTypes::real_t
 algorithm(DataConstant& data,
           BinaryFunction operation,
-	  double initial_value)
+	  DataTypes::real_t initial_value)
 {
-  return DataMaths::reductionOp(data.getVectorRO(),data.getShape(),0,operation,initial_value);
+  return DataMaths::reductionOp(data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),data.getShape(),0,operation,initial_value);
 }
 
 /**
@@ -265,8 +274,6 @@ algorithm(DataConstant& data,
    Objects data and result must be of the same type, and have the same number
    of data points, but where data has data points of rank n, result must have
    data points of rank 0.
-
-   Calls DataArrayView::reductionOp
 */
 template <class BinaryFunction>
 inline
@@ -274,23 +281,21 @@ void
 dp_algorithm(const DataExpanded& data,
              DataExpanded& result,
              BinaryFunction operation,
-	     double initial_value)
+	     typename BinaryFunction::first_argument_type initial_value)
 {
   int i,j;
   int numSamples=data.getNumSamples();
   int numDPPSample=data.getNumDPPSample();
 //  DataArrayView dataView=data.getPointDataView();
 //  DataArrayView resultView=result.getPointDataView();
-  const DataTypes::ValueType& dataVec=data.getVectorRO();
+  const auto& dataVec=data.getTypedVectorRO(initial_value);
   const DataTypes::ShapeType& shape=data.getShape();
-  DataTypes::ValueType& resultVec=result.getVectorRW();
+  auto& resultVec=result.getTypedVectorRW(initial_value);
   // perform the operation on each data-point and assign
   // this to the corresponding element in result
   #pragma omp parallel for private(i,j) schedule(static)
   for (i=0;i<numSamples;i++) {
     for (j=0;j<numDPPSample;j++) {
-/*      resultView.getData(result.getPointOffset(i,j)) =
-        dataView.reductionOp(data.getPointOffset(i,j),operation,initial_value);*/
       resultVec[result.getPointOffset(i,j)] =
         DataMaths::reductionOp(dataVec, shape, data.getPointOffset(i,j),operation,initial_value);
 
@@ -304,12 +309,12 @@ void
 dp_algorithm(const DataTagged& data,
              DataTagged& result,
              BinaryFunction operation,
-	     double initial_value)
+	     typename BinaryFunction::first_argument_type initial_value)
 {
   // perform the operation on each tagged value in data
   // and assign this to the corresponding element in result
   const DataTypes::ShapeType& shape=data.getShape();
-  const DataTypes::ValueType& vec=data.getVectorRO();
+  const auto& vec=data.getTypedVectorRO(initial_value);
   const DataTagged::DataMapType& lookup=data.getTagLookup();
   for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
     result.getDataByTagRW(i->first,0) =
@@ -317,7 +322,7 @@ dp_algorithm(const DataTagged& data,
   }
   // perform the operation on the default data value
   // and assign this to the default element in result
-  result.getVectorRW()[result.getDefaultOffset()] = DataMaths::reductionOp(data.getVectorRO(),data.getShape(),data.getDefaultOffset(),operation,initial_value);
+  result.getTypedVectorRW(initial_value)[result.getDefaultOffset()] = DataMaths::reductionOp(data.getTypedVectorRO(initial_value),data.getShape(),data.getDefaultOffset(),operation,initial_value);
 }
 
 template <class BinaryFunction>
@@ -326,12 +331,12 @@ void
 dp_algorithm(DataConstant& data,
              DataConstant& result,
              BinaryFunction operation,
-	     double initial_value)
+	     typename BinaryFunction::first_argument_type initial_value)
 {
   // perform the operation on the data value
   // and assign this to the element in result
-  result.getVectorRW()[0] =
-    DataMaths::reductionOp(data.getVectorRO(),data.getShape(),0,operation,initial_value);
+  result.getTypedVectorRW(initial_value)[0] =
+    DataMaths::reductionOp(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);
 }
 
 } // end of namespace

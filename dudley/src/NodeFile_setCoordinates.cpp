@@ -30,33 +30,29 @@
 
 /************************************************************************************/
 
-void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, const escript::Data* newX)
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self, const escript::Data* newX)
 {
-    char error_msg[LenErrorMsg_MAX];
-    size_t numDim_size;
-    int n;
     if (getDataPointSize(newX) != self->numDim)
     {
-	sprintf(error_msg, "Dudley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.", self->numDim);
-	Dudley_setError(VALUE_ERROR, error_msg);
-    }
-    else if (!numSamplesEqual(newX, 1, self->numNodes))
-    {
-	sprintf(error_msg, "Dudley_NodeFile_setCoordinates: number of given nodes must to be %d.", self->numNodes);
-	Dudley_setError(VALUE_ERROR, error_msg);
-    }
-    else
-    {
-	numDim_size = self->numDim * sizeof(double);
-	Dudley_increaseStatus(self);
-#pragma omp parallel private(n)
-	{
-
-#pragma omp for schedule(static)
-	    for (n = 0; n < self->numNodes; n++)
-	    {
-		memcpy(&(self->Coordinates[INDEX2(0, n, self->numDim)]), getSampleDataROFast(newX, n), numDim_size);
-	    }
-	}
+        std::stringstream ss;
+        ss << "Dudley_NodeFile_setCoordinates: number of dimensions of new "
+            "coordinates has to be " << self->numDim;
+        const std::string errorMsg(ss.str());
+        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+    } else if (!numSamplesEqual(newX, 1, self->numNodes)) {
+        std::stringstream ss;
+        ss << "Dudley_NodeFile_setCoordinates: number of given nodes must be "
+            << self->numNodes;
+        const std::string errorMsg(ss.str());
+        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+    } else {
+        const size_t numDim_size = self->numDim * sizeof(double);
+        Dudley_increaseStatus(self);
+#pragma omp parallel for
+        for (index_t n = 0; n < self->numNodes; n++) {
+            memcpy(&self->Coordinates[INDEX2(0, n, self->numDim)],
+                    newX->getSampleDataRO(n), numDim_size);
+        }
     }
 }
+

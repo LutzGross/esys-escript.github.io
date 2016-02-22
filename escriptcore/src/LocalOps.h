@@ -18,6 +18,10 @@
 #if !defined escript_LocalOps_H
 #define escript_LocalOps_H
 #include <cmath>
+#include <complex>
+#include "UnaryFuncs.h"
+#include "DataTypes.h"
+#include "DataException.h"
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif
@@ -33,6 +37,51 @@ For operations on DataVector see DataMaths.h.
 
 namespace escript {
 
+
+typedef enum
+{
+SINF,
+COSF,
+TANF,
+ASINF,
+ACOSF,
+ATANF,
+SINHF,
+COSHF,
+TANHF,
+ERFF,
+ASINHF,
+ACOSHF,
+ATANHF,
+LOG10F,
+LOGF,
+SIGNF,
+ABSF,
+EXPF,
+SQRTF,
+POWF,
+PLUSF,
+MINUSF,
+MULTIPLIESF,
+DIVIDESF,
+LESSF,
+GREATERF,
+GREATER_EQUALF,
+LESS_EQUALF,
+EQZEROF,
+NEQZEROF,
+GTZEROF,
+GEZEROF,
+LTZEROF,
+LEZEROF,
+CONJF,
+REALF,
+IMAGF,
+INVF
+} ESFunction;
+
+bool always_real(ESFunction operation);
+
 /**
 \brief acts as a wrapper to isnan.
 \warning if compiler does not support FP_NAN this function will always return false.
@@ -40,10 +89,10 @@ namespace escript {
 inline
 bool nancheck(double d)
 {
-		// Q: so why not just test d!=d?
-		// A: Coz it doesn't always work [I've checked].
-		// One theory is that the optimizer skips the test.
-    return std::isnan(d);	// isNan should be a function in C++ land
+                // Q: so why not just test d!=d?
+                // A: Coz it doesn't always work [I've checked].
+                // One theory is that the optimizer skips the test.
+    return std::isnan(d);       // isNan should be a function in C++ land
 }
 
 /**
@@ -88,10 +137,10 @@ void eigenvalues1(const double A00,double* ev0) {
 inline
 void eigenvalues2(const double A00,const double A01,const double A11,
                  double* ev0, double* ev1) {
-      const register double trA=(A00+A11)/2.;
-      const register double A_00=A00-trA;
-      const register double A_11=A11-trA;
-      const register double s=sqrt(A01*A01-A_00*A_11);
+      const double trA=(A00+A11)/2.;
+      const double A_00=A00-trA;
+      const double A_11=A11-trA;
+      const double s=sqrt(A01*A01-A_00*A_11);
       *ev0=trA-s;
       *ev1=trA+s;
 }
@@ -115,29 +164,29 @@ void eigenvalues3(const double A00, const double A01, const double A02,
                                                      const double A22,
                  double* ev0, double* ev1,double* ev2) {
 
-      const register double trA=(A00+A11+A22)/3.;
-      const register double A_00=A00-trA;
-      const register double A_11=A11-trA;
-      const register double A_22=A22-trA;
-      const register double A01_2=A01*A01;
-      const register double A02_2=A02*A02;
-      const register double A12_2=A12*A12;
-      const register double p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
+      const double trA=(A00+A11+A22)/3.;
+      const double A_00=A00-trA;
+      const double A_11=A11-trA;
+      const double A_22=A22-trA;
+      const double A01_2=A01*A01;
+      const double A02_2=A02*A02;
+      const double A12_2=A12*A12;
+      const double p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
       if (p<=0.) {
          *ev2=trA;
          *ev1=trA;
          *ev0=trA;
 
       } else {
-         const register double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
-         const register double sq_p=sqrt(p/3.);
-         register double z=-q/(2*pow(sq_p,3));
+         const double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
+         const double sq_p=sqrt(p/3.);
+         double z=-q/(2*pow(sq_p,3));
          if (z<-1.) {
             z=-1.;
          } else if (z>1.) {
             z=1.;
          }
-         const register double alpha_3=acos(z)/3.;
+         const double alpha_3=acos(z)/3.;
          *ev2=trA+2.*sq_p*cos(alpha_3);
          *ev1=trA-2.*sq_p*cos(alpha_3+M_PI/3.);
          *ev0=trA-2.*sq_p*cos(alpha_3-M_PI/3.);
@@ -174,11 +223,11 @@ inline
 void  vectorInKernel2(const double A00,const double A10,const double A01,const double A11,
                       double* V0, double*V1)
 {
-      register double absA00=fabs(A00);
-      register double absA10=fabs(A10);
-      register double absA01=fabs(A01);
-      register double absA11=fabs(A11);
-      register double m=absA11>absA10 ? absA11 : absA10;
+      double absA00=fabs(A00);
+      double absA10=fabs(A10);
+      double absA01=fabs(A01);
+      double absA11=fabs(A11);
+      double m=absA11>absA10 ? absA11 : absA10;
       if (absA00>m || absA01>m) {
          *V0=-A01;
          *V1=A00;
@@ -217,9 +266,9 @@ void  vectorInKernel3__nonZeroA00(const double A00,const double A10,const double
                                 double* V0,double* V1,double* V2)
 {
     double TEMP0,TEMP1;
-    register const double I00=1./A00;
-    register const double IA10=I00*A10;
-    register const double IA20=I00*A20;
+    const double I00=1./A00;
+    const double IA10=I00*A10;
+    const double IA20=I00*A20;
     vectorInKernel2(A11-IA10*A01,A12-IA10*A02,
                     A21-IA20*A01,A22-IA20*A02,&TEMP0,&TEMP1);
     *V0=-(A10*TEMP0+A20*TEMP1);
@@ -252,9 +301,9 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
 {
      double TEMP0,TEMP1;
      eigenvalues2(A00,A01,A11,ev0,ev1);
-     const register double absev0=fabs(*ev0);
-     const register double absev1=fabs(*ev1);
-     register double max_ev=absev0>absev1 ? absev0 : absev1;
+     const double absev0=fabs(*ev0);
+     const double absev1=fabs(*ev1);
+     double max_ev=absev0>absev1 ? absev0 : absev1;
      if (fabs((*ev0)-(*ev1))<tol*max_ev) {
         *V00=1.;
         *V10=0.;
@@ -262,7 +311,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
         *V11=1.;
      } else {
         vectorInKernel2(A00-(*ev0),A01,A01,A11-(*ev0),&TEMP0,&TEMP1);
-        const register double scale=1./sqrt(TEMP0*TEMP0+TEMP1*TEMP1);
+        const double scale=1./sqrt(TEMP0*TEMP0+TEMP1*TEMP1);
         if (TEMP0<0.) {
             *V00=-TEMP0*scale;
             *V10=-TEMP1*scale;
@@ -302,7 +351,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
 inline
 void  normalizeVector3(double* V0,double* V1,double* V2)
 {
-    register double s;
+    double s;
     if (*V0>0) {
         s=1./sqrt((*V0)*(*V0)+(*V1)*(*V1)+(*V2)*(*V2));
         *V0*=s;
@@ -362,9 +411,9 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
                                     double* V02, double* V12, double* V22,
                                     const double tol)
 {
-      register const double absA01=fabs(A01);
-      register const double absA02=fabs(A02);
-      register const double m=absA01>absA02 ? absA01 : absA02;
+      const double absA01=fabs(A01);
+      const double absA02=fabs(A02);
+      const double m=absA01>absA02 ? absA01 : absA02;
       if (m<=0) {
         double TEMP_V00,TEMP_V10,TEMP_V01,TEMP_V11,TEMP_EV0,TEMP_EV1;
         eigenvalues_and_eigenvectors2(A11,A12,A22,
@@ -473,7 +522,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       for (int j=0; j<SR; j++) {
         double sum = 0.0;
         for (int l=0; l<SM; l++) {
-	  sum += A[i+SL*l] * B[l+SM*j];
+          sum += A[i+SL*l] * B[l+SM*j];
         }
         C[i+SL*j] = sum;
       }
@@ -484,7 +533,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       for (int j=0; j<SR; j++) {
         double sum = 0.0;
         for (int l=0; l<SM; l++) {
-	  sum += A[i*SM+l] * B[l+SM*j];
+          sum += A[i*SM+l] * B[l+SM*j];
         }
         C[i+SL*j] = sum;
       }
@@ -495,7 +544,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
       for (int j=0; j<SR; j++) {
         double sum = 0.0;
         for (int l=0; l<SM; l++) {
-	  sum += A[i+SL*l] * B[l*SR+j];
+          sum += A[i+SL*l] * B[l*SR+j];
         }
         C[i+SL*j] = sum;
       }
@@ -505,9 +554,9 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
 
 template <typename UnaryFunction>
 inline void tensor_unary_operation(const int size,
-			     const double *arg1,
-			     double * argRes,
-			     UnaryFunction operation)
+                             const double *arg1,
+                             double * argRes,
+                             UnaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1[i]);
@@ -515,12 +564,17 @@ inline void tensor_unary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction>
+// ----------------------
+
+
+// -------------------------------------
+
+template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
-			     const double *arg1,
-			     const double *arg2,
-			     double * argRes,
-			     BinaryFunction operation)
+                             const T *arg1,
+                             const U *arg2,
+                             V * argRes,
+                             BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1[i], arg2[i]);
@@ -528,12 +582,12 @@ inline void tensor_binary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction>
+template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
-			     double arg1,
-			     const double *arg2,
-			     double *argRes,
-			     BinaryFunction operation)
+                             T arg1,
+                             const U *arg2,
+                             V *argRes,
+                             BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1, arg2[i]);
@@ -541,18 +595,478 @@ inline void tensor_binary_operation(const int size,
   return;
 }
 
-template <typename BinaryFunction>
+template <typename BinaryFunction, typename T, typename U, typename V>
 inline void tensor_binary_operation(const int size,
-			     const double *arg1,
-			     double arg2,
-			     double *argRes,
-			     BinaryFunction operation)
+                             const T *arg1,
+                             U arg2,
+                             V *argRes,
+                             BinaryFunction operation)
 {
   for (int i = 0; i < size; ++i) {
     argRes[i] = operation(arg1[i], arg2);
   }
   return;
 }
+
+// following the form of negate from <functional>
+template <typename T>
+struct sin_func
+{
+    T operator() (const T& x) const {return sin(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct cos_func
+{
+    T operator() (const T& x) const {return cos(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct tan_func
+{
+    T operator() (const T& x) const {return tan(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct asin_func
+{
+    T operator() (const T& x) const {return asin(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct acos_func
+{
+    T operator() (const T& x) const {return acos(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct atan_func
+{
+    T operator() (const T& x) const {return atan(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct sinh_func
+{
+    T operator() (const T& x) const {return sinh(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct cosh_func
+{
+    T operator() (const T& x) const {return cosh(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+
+template <typename T>
+struct tanh_func
+{
+    T operator() (const T& x) const {return tanh(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+#else
+template <typename T>
+struct erf_func
+{
+    T operator() (const T& x) const {return ::erf(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct erf_func<escript::DataTypes::cplx_t>             // dummy instantiation
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+#endif
+    
+template <typename T>
+struct asinh_func
+{
+    T operator() (const T& x) const
+    {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    return escript::asinh_substitute(x);
+#else
+    return asinh(x);
+#endif      
+    }
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct acosh_func
+{
+    T operator() (const T& x) const
+    {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    return escript::acosh_substitute(x);
+#else
+    return acosh(x);
+#endif
+    }
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct atanh_func
+{
+    T operator() (const T& x) const
+    {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    return escript::atanh_substitute(x);
+#else
+    return atanh(x);
+#endif
+    }    
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct log10_func
+{
+    T operator() (const T& x) const {return log10(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct log_func
+{
+    T operator() (const T& x) const {return log(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct sign_func
+{
+    T operator() (const T& x) const {return escript::fsign(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct sign_func<DataTypes::cplx_t>     // dummy instantiation
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+
+template <typename T>
+struct abs_func
+{
+    T operator() (const T& x) const {return fabs(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct exp_func
+{
+    T operator() (const T& x) const {return exp(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct sqrt_func
+{
+    T operator() (const T& x) const {return sqrt(x);}
+    typedef T argument_type;
+    typedef T result_type;
+};
+    
+// following the form of plus from <functional>
+template <typename T, typename U, typename V>
+struct pow_func
+{
+    V operator() (const T& x, const U& y) const {return pow(static_cast<V>(x),static_cast<V>(y));}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+// following the form of plus from <functional>
+template <typename T, typename U, typename V>
+struct plus_func
+{
+    V operator() (const T& x, const U& y) const {return x+y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+template <typename T, typename U, typename V>
+struct minus_func
+{
+    V operator() (const T& x, const U& y) const {return x-y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+template <typename T, typename U, typename V>
+struct multiplies_func
+{
+    V operator() (const T& x, const U& y) const {return x*y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+template <typename T, typename U, typename V>
+struct divides_func
+{
+    V operator() (const T& x, const U& y) const {return x/y;}
+    typedef T first_argument_type;
+    typedef U second_argument_type;
+    typedef V result_type;
+};
+
+
+// using this instead of ::less because that returns bool and we need a result type of T
+template <typename T>
+struct less_func
+{
+    T operator() (const T& x, const T& y) const {return x<y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+// using this instead of ::less because that returns bool and we need a result type of T
+template <typename T>
+struct greater_func
+{
+    T operator() (const T& x, const T& y) const {return x>y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct greater_equal_func
+{
+    T operator() (const T& x, const T& y) const {return x>=y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct less_equal_func
+{
+    T operator() (const T& x, const T& y) const {return x<=y;}
+    typedef T first_argument_type;
+    typedef T second_argument_type;
+    typedef T result_type;
+};
+
+template <typename T>
+struct gtzero_func
+{
+    T operator() (const T& x) const {return x>0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct gtzero_func<DataTypes::cplx_t>           // to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+
+template <typename T>
+struct gezero_func
+{
+    T operator() (const T& x) const {return x>=0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct gezero_func<DataTypes::cplx_t>           // to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+template <typename T>
+struct ltzero_func
+{
+    T operator() (const T& x) const {return x<0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct ltzero_func<DataTypes::cplx_t>           // to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+
+template <typename T>
+struct lezero_func
+{
+    T operator() (const T& x) const {return x<=0;}
+    typedef T first_argument_type;
+    typedef T result_type;
+};
+
+template <>
+struct lezero_func<DataTypes::cplx_t>           // to keep the templater happy
+{
+    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
+    typedef DataTypes::cplx_t first_argument_type;
+    typedef DataTypes::cplx_t result_type;
+};
+
+
+template <class IN, typename OUT, class UnaryFunction>
+inline void tensor_unary_operation_helper(const size_t size,
+                             const IN *arg1,
+                             OUT * argRes,
+                             UnaryFunction operation)
+{
+
+  for (int i = 0; i < size; ++i) {
+    argRes[i] = operation(arg1[i]);
+  }
+}
+
+
+// deals with unary operations which return real, regardless of
+// their input type
+template <class IN>
+inline void tensor_unary_array_operation_real(const size_t size,
+                             const IN *arg1,
+                             DataTypes::real_t * argRes,
+                             escript::ESFunction operation,
+                             DataTypes::real_t tol=0)
+{
+   switch (operation)
+   {
+     case REALF: 
+          for (int i = 0; i < size; ++i) {
+              argRes[i] = std::real(arg1[i]);
+          }
+          break;          
+     case IMAGF: 
+          for (int i = 0; i < size; ++i) {
+              argRes[i] = std::imag(arg1[i]);
+          }
+          break;  
+    case EQZEROF:   
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = (fabs(arg1[i])<=tol);
+          }
+          break;
+    case NEQZEROF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = (fabs(arg1[i])>tol);
+          }
+          break;          
+     default:
+          throw DataException("Unsupported unary operation");      
+   }  
+}
+
+
+
+// In most cases, IN and OUT will be the same
+// but not ruling out putting Re() and Im()
+// through this
+template <class IN, typename OUT>
+inline void tensor_unary_array_operation(const size_t size,
+                             const IN *arg1,
+                             OUT * argRes,
+                             escript::ESFunction operation,
+                             DataTypes::real_t tol=0)
+{
+  switch (operation)
+  {
+    case SINF: tensor_unary_operation_helper(size, arg1, argRes, sin_func<IN>()); break;
+    case COSF: tensor_unary_operation_helper(size, arg1, argRes, cos_func<IN>()); break;
+    case TANF: tensor_unary_operation_helper(size, arg1, argRes, tan_func<IN>()); break;
+    case ASINF: tensor_unary_operation_helper(size, arg1, argRes, asin_func<IN>()); break;
+    case ACOSF: tensor_unary_operation_helper(size, arg1, argRes, acos_func<IN>()); break;
+    case ATANF: tensor_unary_operation_helper(size, arg1, argRes, atan_func<IN>()); break;
+    case SINHF: tensor_unary_operation_helper(size, arg1, argRes, sinh_func<IN>()); break; 
+    case COSHF: tensor_unary_operation_helper(size, arg1, argRes, cosh_func<IN>()); break;
+    case TANHF: tensor_unary_operation_helper(size, arg1, argRes, tanh_func<IN>()); break;
+    case ERFF: tensor_unary_operation_helper(size, arg1, argRes, erf_func<IN>()); break;
+    case ASINHF: tensor_unary_operation_helper(size, arg1, argRes, asinh_func<IN>()); break;
+    case ACOSHF: tensor_unary_operation_helper(size, arg1, argRes, acosh_func<IN>()); break;
+    case ATANHF: tensor_unary_operation_helper(size, arg1, argRes, atanh_func<IN>()); break;
+    case LOG10F: tensor_unary_operation_helper(size, arg1, argRes, log10_func<IN>()); break;
+    case LOGF: tensor_unary_operation_helper(size, arg1, argRes, log_func<IN>()); break;
+    case SIGNF: tensor_unary_operation_helper(size, arg1, argRes, sign_func<IN>()); break;
+    case ABSF: tensor_unary_operation_helper(size, arg1, argRes, abs_func<IN>()); break;
+    case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
+    case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
+
+    case GTZEROF: tensor_unary_operation_helper(size, arg1, argRes, gtzero_func<IN>()); break;
+    case GEZEROF: tensor_unary_operation_helper(size, arg1, argRes, gezero_func<IN>()); break;
+    case LTZEROF: tensor_unary_operation_helper(size, arg1, argRes, ltzero_func<IN>()); break;
+    case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
+    case CONJF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
+          }
+          break; 
+    case INVF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = 1.0/arg1[i];
+          }
+          break; 
+          
+    default:
+      throw DataException("Unsupported unary operation");
+  }
+  return;
+}
+
+bool supports_cplx(escript::ESFunction operation);
+
 
 } // end of namespace
 #endif

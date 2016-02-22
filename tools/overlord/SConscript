@@ -19,7 +19,7 @@ Import('*')
 local_env = env.Clone()
 
 if not local_env['IS_WINDOWS']:
-    prog = local_env.Program('escript-overlord', ['overlord.c'])
+    prog = local_env.Program('escript-overlord', ['overlord.cpp'])
     env.Alias('build_overlord', prog)
     install_overlord = local_env.Install(local_env['bininstall'], prog)
     env.Alias('install_overlord', install_overlord) #oh no! our freedoms!

@@ -14,20 +14,21 @@
 *
 *****************************************************************************/
 
+#define ESNEEDPYTHON
+#include "esysUtils/first.h"
+#include "ExceptionTranslators.h" 
 
-#if !defined  DataBlocks2DTestCase_20040405_H
-#define  DataBlocks2DTestCase_20040405_H
+namespace escript {
 
-#include <cppunit/TestFixture.h>
-#include <cppunit/TestSuite.h>
+void RuntimeErrorTranslator(const esysUtils::EsysException& e) 
+  {
+    PyErr_SetString(PyExc_RuntimeError,e.what());
+  }
 
-class DataBlocks2DTestCase : public CppUnit::TestFixture
+void ValueErrorTranslator(const esysUtils::EsysException& e) 
 {
-public:
-  void testAll();
+    PyErr_SetString(PyExc_ValueError,e.what());
+}
 
-  static CppUnit::TestSuite* suite();
-};
-
-#endif
+}  // end of namespace
 

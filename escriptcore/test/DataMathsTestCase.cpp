@@ -43,13 +43,13 @@ void DataMathsTestCase::testMatMult()
     DataTypes::ShapeType leftShape;
     leftShape.push_back(1);
     leftShape.push_back(3);
-    DataTypes::ValueType leftData(DataTypes::noValues(leftShape),0);
+    DataTypes::RealVectorType leftData(DataTypes::noValues(leftShape),0);
 //     DataArrayView leftDataView(leftData,leftShape);
 
     DataTypes::ShapeType rightShape;
     rightShape.push_back(3);
     rightShape.push_back(2);
-    DataTypes::ValueType rightData(DataTypes::noValues(rightShape),0);
+    DataTypes::RealVectorType rightData(DataTypes::noValues(rightShape),0);
 //     DataArrayView rightDataView(rightData,rightShape);
 
     DataTypes::ShapeType resultShape=DataMaths::determineResultShape(leftShape,rightShape);
@@ -58,7 +58,7 @@ void DataMathsTestCase::testMatMult()
     CPPUNIT_ASSERT(resultShape[0]==1);
     CPPUNIT_ASSERT(resultShape[1]==2);
 
-    DataTypes::ValueType resultData(DataTypes::noValues(resultShape),0);
+    DataTypes::RealVectorType resultData(DataTypes::noValues(resultShape),0);
 
     cout << "\tTest matrix multiplication.";
     double aValue=0.0;
@@ -96,7 +96,7 @@ void DataMathsTestCase::testUnaryOp()
 
     // allocate the data for the Data
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     double tmp;
     int offset=0;
@@ -132,7 +132,7 @@ void DataMathsTestCase::testUnaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
 
     int offset=0;
@@ -179,7 +179,7 @@ void DataMathsTestCase::testUnaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -234,8 +234,8 @@ void DataMathsTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data2(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the views along each data point in the underlying data
@@ -270,8 +270,8 @@ void DataMathsTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data2(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the views along each data point in the underlying data
@@ -317,8 +317,8 @@ void DataMathsTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayViews
     int npoints=4;
-    DataTypes::ValueType data1(DataTypes::noValues(shape)*npoints,0);
-    DataTypes::ValueType data2(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data1(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data2(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the views along each data point in the underlying data
@@ -368,7 +368,7 @@ void DataMathsTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -403,7 +403,7 @@ void DataMathsTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -450,7 +450,7 @@ void DataMathsTestCase::testBinaryOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -508,7 +508,7 @@ void DataMathsTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -543,7 +543,7 @@ void DataMathsTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -581,7 +581,7 @@ void DataMathsTestCase::testReductionOp()
 
     // allocate the data for the DataArrayView
     int npoints=4;
-    DataTypes::ValueType data(DataTypes::noValues(shape)*npoints,0);
+    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
 
     int offset=0;
     // step the view along each data point in the underlying data
@@ -599,7 +599,7 @@ void DataMathsTestCase::testReductionOp()
       }
 
       // apply a reduction operation to this data point and check the results
-      AbsMax absmax_func;
+      AbsMax<DataTypes::real_t> absmax_func;
       CPPUNIT_ASSERT(reductionOp(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
 
       if (p<npoints-1) {

@@ -84,7 +84,7 @@ void SharedDataTestCase::testSetTaggedValueFromCPP()
   Data d((double)42,DataTypes::scalarShape);
   d.tag(); 
   Data L=d.delay();
-  ValueType v(1,17);
+  RealVectorType v(1,17);
   d.setTaggedValueFromCPP(1,DataTypes::scalarShape,v);
   L.resolve();
   // at this point, d should have a tag and L should not

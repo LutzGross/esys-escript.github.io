@@ -48,7 +48,6 @@ void Preconditioner_free(Preconditioner* in)
 Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
 {
     Preconditioner* prec = new Preconditioner;
-    prec->type=UNKNOWN;
     prec->jacobi=NULL;
     prec->gs=NULL;
     prec->amg=NULL;

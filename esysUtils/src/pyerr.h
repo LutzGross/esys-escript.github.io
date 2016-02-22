@@ -17,12 +17,12 @@
 #ifndef ESPYERR_H
 #define ESPYERR_H
 
-#include <string>
 #include "system_dep.h"
-#include "types.h"
-#include "boost/python/errors.hpp"
 
-ESYSUTILS_DLL_API
+#include <boost/python/errors.hpp>
+
+#include <string>
+
 void getStringFromPyException(boost::python::error_already_set e, std::string& errormsg);
 
 #endif

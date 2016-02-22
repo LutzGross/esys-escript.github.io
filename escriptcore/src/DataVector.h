@@ -15,8 +15,8 @@
 *****************************************************************************/
 
 
-#if !defined escript_DataVector_20050324_H
-#define escript_DataVector_20050324_H
+#if !defined escript_DataVector_H
+#define escript_DataVector_H
 #include "system_dep.h"
 
 #include "esysUtils/EsysAssert.h"
@@ -25,214 +25,407 @@
 #include <iostream>
 #include <fstream>
 
+#include "DataTypes.h"
+
+#include "DataVectorTaipan.h"
+#include "DataVectorAlt.h"
+
+// ensure that nobody else tries to instantiate the complex version
+extern template class escript::DataTypes::DataVectorAlt<escript::DataTypes::cplx_t>;
+
+
 namespace escript {
 
-class WrappedArray;
-
-/**
-   \brief
-   DataVector implements an arbitrarily long vector of data values.
-   DataVector is the underlying data container for Data objects.
-
-   Description:
-   DataVector provides an implementation of a vector of data values for use
-   by DataBlocks2D and DataArrayView. Hiding the vector in this container
-   allows different implementations to be swapped in without disrupting the
-   client classes.
-*/
-
-class ESCRIPT_DLL_API DataVector {
-
- public:
-
-  //
-  // The type of the elements stored in the vector.
-  typedef double ElementType;
-
-  //
-  // The underlying type used to implement the vector.
-  typedef ElementType *  ValueType;
-  typedef const ElementType * ConstValueType;
-
-  //
-  // Various types exported to clients of this class.
-  typedef ElementType          value_type;
-  typedef long                 size_type;
-  typedef ElementType &        reference;
-  typedef const ElementType &  const_reference;
-
-  /**
-     \brief
-     Default constructor for DataVector.
-
-     Description:
-     Constructs an empty DataVector object.
-  */
-  DataVector();
-
-  /**
-     \brief
-     Copy constructor for DataVector.
-
-     Description:
-     Constructs a DataVector object which is a copy of the
-     given DataVector object.
-  */
-  DataVector(const DataVector& other);
-
-  /**
-     \brief
-     Constructor for DataVector.
-
-     Description:
-     Constructs a DataVector object of length "size" with all elements
-     initilised to "val".
-
-     \param size - Input - Number of elements in the vector.
-     \param val - Input - Initial value for all elements in the vector. Default is 0.0.
-     \param blockSize - Input - size of blocks within the vector, overall vector
-                size must be a precise multiple of the block size. Default is 1.
-
-     In escript::Data, blocksize corresponds to the number of elements required to hold all
-     the data-points for a sample, ie: the product of the dimensions of a data-point and the
-     number of data-points per sample. Size is the total number of elements required to hold
-     all elements for all data-points in the given object, ie: number of samples * blocksize.
-  */
-  DataVector(const size_type size,
-             const value_type val=0.0,
-             const size_type blockSize=1);
-
-  /**
-     \brief
-     Default destructor for DataVector.
-
-     Description:
-     Destroys the current DataVector object.
-  */
-  ~DataVector();
-
-  /**
-     \brief
-     Resize the DataVector to the given length "newSize".
-     All current data is lost. All elements in the new DataVector are
-     initialised to "newVal".
-
-     \param newSize - Input - New size for the vector.
-     \param newVal - Input - New initial value for all elements in the vector.
-     \param newBlockSize - Input - New block size for the vector.
-  */
-  void
-  resize(const size_type newSize,
-         const value_type newVal=0.0,
-         const size_type newBlockSize=1);
-
-  /**
-    \brief 
-    Populates the vector with the data from value.
-    This method currently throws an exception if the specified number of copies won't fit.
-    \warning This function does not attempt to perform shape checking.
-  */
-  void
-  copyFromArray(const escript::WrappedArray& value, size_type copies);
-
-  void 
-  copyFromArrayToOffset(const WrappedArray& value, size_type offset, size_type copies);
-
-
-  /**
-     \brief
-     Return the number of elements in this DataVector.
-  */
-  inline
-  size_type
-  size() const;
-
-  /**
-     \brief
-     DataVector assignment operator "=".
-     Assign the given DataVector object to this.
-  */
-  DataVector&
-  operator=(const DataVector& other);
-
-  /**
-     \brief
-     DataVector equality comparison operator "==".
-     Return true if the given DataVector is equal to this.
-  */
-  bool
-  operator==(const DataVector& other) const;
-
-  /**
-     \brief
-     DataVector inequality comparison operator "!=".
-     Return true if the given DataVector is not equal to this.
-  */
-  bool
-  operator!=(const DataVector& other) const;
-
-  /**
-    \brief
-    Return a reference to the element at position i in this DataVector.
-    Will throw an exception if an invalid index "i" is given.
-
-    NB: access to the element one past the end of the vector is permitted
-    in order to provide a facility equivalent to an end() pointer.
-  */
-  inline
-  reference
-  operator[](const size_type i);
-
-  inline
-  const_reference
-  operator[](const size_type i) const;
-
-
- protected:
-
- private:
-
-  size_type m_size;
-  size_type m_dim;
-  size_type m_N;
-
-  //
-  // The container for the elements contained in this DataVector.
-  ValueType m_array_data;
-};
-
-/**
-  \brief
-  releases unused memory in the memory manager.
-*/
-                                                                                                                                                                                                     
-ESCRIPT_DLL_API void releaseUnusedMemory();
-                                                                                                                                                                                                     
-
-
-inline
-DataVector::size_type
-DataVector::size() const
+// Functions in DataTypes:: which manipulate DataVectors
+namespace DataTypes
 {
-  return m_size;
+  
+  // This is the main version we had
+  //typedef DataVectorTaipan DataVector;
+  typedef escript::DataTypes::DataVectorAlt<real_t> RealVectorType;//!< Vector to store underlying data.
+  typedef escript::DataTypes::DataVectorAlt<cplx_t> CplxVectorType;
+
+
+   
+
+
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
+     Despite its similar name this function behaves differently to pointToString.
+     There are no prefixes or (i,j,k) identifiers on each field. each datapoint is printed without
+     new lines.
+     It also works with double* rather than vectors so be careful what you pass it.
+
+     \param os - stream to write to
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param needsep - Does this output need to start with a separator
+     \param sep - separator string to print between components
+   */
+   void
+   pointToStream(std::ostream& os, const RealVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
+     Despite its similar name this function behaves differently to pointToString.
+     There are no prefixes or (i,j,k) identifiers on each field. each datapoint is printed without
+     new lines.
+     It also works with double* rather than vectors so be careful what you pass it.
+
+     \param os - stream to write to
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param needsep - Does this output need to start with a separator
+     \param sep - separator string to print between components
+   */
+   void
+   pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+   
+   
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param prefix - string to prepend to the output
+   */
+   std::string
+   pointToString(const RealVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
+
+
+   std::string
+   pointToString(const CplxVectorType& data,const ShapeType& shape, int offset, const std::string& prefix);
+
+   /**
+      \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
+
+   \param dest - vector to copy to
+   \param doffset - beginning of the target datapoint in dest
+   \param nvals - the number of values comprising the datapoint
+   \param src - vector to copy from
+   \param soffset - beginning of the datapoint in src
+   */
+   void copyPoint(RealVectorType& dest, vec_size_type doffset, vec_size_type nvals, const RealVectorType& src, vec_size_type soffset);  
+
+   /**
+      \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
+
+   \param dest - vector to copy to
+   \param doffset - beginning of the target datapoint in dest
+   \param nvals - the number of values comprising the datapoint
+   \param src - vector to copy from
+   \param soffset - beginning of the datapoint in src
+   */
+   void copyPoint(CplxVectorType& dest, vec_size_type doffset, vec_size_type nvals, const CplxVectorType& src, vec_size_type soffset);     
+   
+   
+   /**
+    * \brief copy data from a real vector to a complex vector
+    * The complex vector will be resized as needed and any previous
+    * values will be replaced.
+   */
+   void fillComplexFromReal(const RealVectorType& r, CplxVectorType& c);
+   
+   
+   
+   
+   
+   
+  /**
+     \brief
+     Copy a data slice specified by the given region and offset from the
+     "other" view into the "left" view at the given offset.
+     
+     \param left - vector to copy into
+     \param leftShape - shape of datapoints for the left vector
+     \param leftOffset - location within left to start copying to
+     \param other - vector to copy from
+     \param otherShape - shape of datapoints for the other vector
+     \param otherOffset - location within other vector to start copying from
+     \param region - Input -
+                      Region in other view to copy data from.
+  */
+   template <class VEC>
+   ESCRIPT_DLL_API
+   void
+   copySlice(VEC& left,
+			    const ShapeType& leftShape,
+			    typename VEC::size_type leftOffset,
+                            const VEC& other,
+			    const ShapeType& otherShape,
+                            typename VEC::size_type otherOffset,
+                            const RegionLoopRangeType& region)
+   {
+      //
+      // Make sure views are not empty
+
+      EsysAssert(!left.size()==0,
+                 "Error - left data is empty.");
+      EsysAssert(!other.size()==0,
+                 "Error - other data is empty.");
+
+      //
+      // Check the view to be sliced from is compatible with the region to be sliced,
+      // and that the region to be sliced is compatible with this view:
+      EsysAssert(checkOffset(leftOffset,left.size(),noValues(leftShape)),
+                 "Error - offset incompatible with this view.");
+      EsysAssert(otherOffset+noValues(leftShape)<=other.size(),
+                 "Error - offset incompatible with other view.");
+
+      EsysAssert(getRank(otherShape)==region.size(),
+                 "Error - slice not same rank as view to be sliced from.");
+
+      EsysAssert(noValues(leftShape)==noValues(getResultSliceShape(region)),
+                 "Error - slice shape not compatible shape for this view.");
+
+      //
+      // copy the values in the specified region of the other view into this view
+
+      // the following loops cannot be parallelised due to the numCopy counter
+      int numCopy=0;
+
+      switch (region.size()) {
+      case 0:
+         /* this case should never be encountered, 
+         as python will never pass us an empty region.
+         here for completeness only, allows slicing of a scalar */
+//          (*m_data)[leftOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex()];
+
+         left[leftOffset+numCopy]=other[otherOffset];
+         numCopy++;
+         break;
+      case 1:
+         for (int i=region[0].first;i<region[0].second;i++) {
+            left[leftOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i)];
+            numCopy++;
+         }
+         break;
+      case 2:
+         for (int j=region[1].first;j<region[1].second;j++) {
+            for (int i=region[0].first;i<region[0].second;i++) {
+/*               (*m_data)[leftOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex(i,j)];*/
+               left[leftOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i,j)];
+               numCopy++;
+            }
+         }
+         break;
+      case 3:
+         for (int k=region[2].first;k<region[2].second;k++) {
+            for (int j=region[1].first;j<region[1].second;j++) {
+               for (int i=region[0].first;i<region[0].second;i++) {
+//                  (*m_data)[leftOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex(i,j,k)];
+                  left[leftOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i,j,k)];
+                  numCopy++;
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int l=region[3].first;l<region[3].second;l++) {
+            for (int k=region[2].first;k<region[2].second;k++) {
+               for (int j=region[1].first;j<region[1].second;j++) {
+                  for (int i=region[0].first;i<region[0].second;i++) {
+/*                     (*m_data)[leftOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex(i,j,k,l)];*/
+                     left[leftOffset+numCopy]=other[otherOffset+getRelIndex(otherShape,i,j,k,l)];
+                     numCopy++;
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         std::stringstream mess;
+         mess << "Error - (copySlice) Invalid slice region rank: " << region.size();
+         throw DataException(mess.str());
+      }
+   }
+
+   
+   
+  /**
+     \brief
+     Copy data into a slice specified by the given region and offset in
+     the left vector from the other vector at the given offset.
+
+     \param left - vector to copy into
+     \param leftShape - shape of datapoints for the left vector
+     \param leftOffset - location within left to start copying to
+     \param other - vector to copy from
+     \param otherShape - shape of datapoints for the other vector
+     \param otherOffset - location within other vector to start copying from
+     \param region - Input -
+                      Region in the left vector to copy data to.
+  */
+   template<typename VEC>
+   ESCRIPT_DLL_API
+   void
+   copySliceFrom(VEC& left,
+				const ShapeType& leftShape,
+				typename VEC::size_type leftOffset,
+                                const VEC& other,
+				const ShapeType& otherShape,
+                                typename VEC::size_type otherOffset,
+                                const RegionLoopRangeType& region)
+   {
+      //
+      // Make sure views are not empty
+
+      EsysAssert(left.size()!=0,
+                 "Error - this view is empty.");
+      EsysAssert(other.size()!=0,
+                 "Error - other view is empty.");
+
+      //
+      // Check this view is compatible with the region to be sliced,
+      // and that the region to be sliced is compatible with the other view:
+
+      EsysAssert(checkOffset(otherOffset,other.size(),noValues(otherShape)),
+                 "Error - offset incompatible with other view.");
+      EsysAssert(leftOffset+noValues(otherShape)<=left.size(),
+                 "Error - offset incompatible with this view.");
+
+      EsysAssert(getRank(leftShape)==region.size(),
+                 "Error - slice not same rank as this view.");
+
+      EsysAssert(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
+                 "Error - slice shape not compatible shape for other view.");
+
+      //
+      // copy the values in the other view into the specified region of this view
+
+      // allow for case where other view is a scalar
+      if (getRank(otherShape)==0) {
+
+         // the following loops cannot be parallelised due to the numCopy counter
+         int numCopy=0;
+
+         switch (region.size()) {
+         case 0:
+            /* this case should never be encountered, 
+            as python will never pass us an empty region.
+            here for completeness only, allows slicing of a scalar */
+            //(*m_data)[leftOffset+relIndex()]=(*other.m_data)[otherOffset];
+	    left[leftOffset]=other[otherOffset];
+            numCopy++;
+            break;
+         case 1:
+            for (int i=region[0].first;i<region[0].second;i++) {
+               left[leftOffset+getRelIndex(leftShape,i)]=other[otherOffset];
+               numCopy++;
+            }
+            break;
+         case 2:
+            for (int j=region[1].first;j<region[1].second;j++) {
+               for (int i=region[0].first;i<region[0].second;i++) {
+                  left[leftOffset+getRelIndex(leftShape,i,j)]=other[otherOffset];
+                  numCopy++;
+               }
+            }
+            break;
+         case 3:
+            for (int k=region[2].first;k<region[2].second;k++) {
+               for (int j=region[1].first;j<region[1].second;j++) {
+                  for (int i=region[0].first;i<region[0].second;i++) {
+                     left[leftOffset+getRelIndex(leftShape,i,j,k)]=other[otherOffset];
+                     numCopy++;
+                  }
+               }
+            }
+            break;
+         case 4:
+            for (int l=region[3].first;l<region[3].second;l++) {
+               for (int k=region[2].first;k<region[2].second;k++) {
+                  for (int j=region[1].first;j<region[1].second;j++) {
+                     for (int i=region[0].first;i<region[0].second;i++) {
+                        left[leftOffset+getRelIndex(leftShape,i,j,k,l)]=other[otherOffset];
+                        numCopy++;
+                     }
+                  }
+               }
+            }
+            break;
+         default:
+            std::stringstream mess;
+            mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
+            throw DataException(mess.str());
+         }
+
+      } else {
+
+         // the following loops cannot be parallelised due to the numCopy counter
+         int numCopy=0;
+
+         switch (region.size()) {
+         case 0:
+            /* this case should never be encountered, 
+            as python will never pass us an empty region.
+            here for completeness only, allows slicing of a scalar */
+            //(*m_data)[leftOffset+relIndex()]=(*other.m_data)[otherOffset+numCopy];
+	    left[leftOffset]=other[otherOffset+numCopy];
+            numCopy++;
+            break;
+         case 1:
+            for (int i=region[0].first;i<region[0].second;i++) {
+               left[leftOffset+getRelIndex(leftShape,i)]=other[otherOffset+numCopy];
+               numCopy++;
+            }
+            break;
+         case 2:
+            for (int j=region[1].first;j<region[1].second;j++) {
+               for (int i=region[0].first;i<region[0].second;i++) {
+                  left[leftOffset+getRelIndex(leftShape,i,j)]=other[otherOffset+numCopy];
+                  numCopy++;
+               }
+            }
+            break;
+         case 3:
+            for (int k=region[2].first;k<region[2].second;k++) {
+               for (int j=region[1].first;j<region[1].second;j++) {
+                  for (int i=region[0].first;i<region[0].second;i++) {
+                     left[leftOffset+getRelIndex(leftShape,i,j,k)]=other[otherOffset+numCopy];
+                     numCopy++;
+                  }
+               }
+            }
+            break;
+         case 4:
+            for (int l=region[3].first;l<region[3].second;l++) {
+               for (int k=region[2].first;k<region[2].second;k++) {
+                  for (int j=region[1].first;j<region[1].second;j++) {
+                     for (int i=region[0].first;i<region[0].second;i++) {
+                        left[leftOffset+getRelIndex(leftShape,i,j,k,l)]=other[otherOffset+numCopy];
+                        numCopy++;
+                     }
+                  }
+               }
+            }
+            break;
+         default:
+            std::stringstream mess;
+            mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
+            throw DataException(mess.str());
+         }
+
+      }
+
+   }
+   
+   
+   
+   
+   
+   
+   
+   
+   
 }
 
-inline
-DataVector::reference
-DataVector::operator[](const DataVector::size_type i)
-{
-  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
-  return m_array_data[i];
-}
-
-inline
-DataVector::const_reference
-DataVector::operator[](const DataVector::size_type i) const
-{
-  EsysAssert(i<size(),"DataVector: invalid index specified. " << i << " of " << size());
-  return m_array_data[i];
-}
-
+ 
 } // end of namespace
 
 #endif

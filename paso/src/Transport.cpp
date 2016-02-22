@@ -39,6 +39,8 @@ namespace bp = boost::python;
 
 namespace paso {
 
+static const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
+
 TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
                                    int block_size,
                                    const escript::FunctionSpace& functionspace) :

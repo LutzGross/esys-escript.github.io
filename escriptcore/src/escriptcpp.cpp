@@ -16,43 +16,37 @@
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
+#include "esysUtils/Esys_MPI.h"
 
-
-#include "Data.h"
-#include "FunctionSpace.h"
-#include "FunctionSpaceFactory.h"
-#include "DataFactory.h"
 #include "AbstractContinuousDomain.h"
-#include "AbstractDomain.h"
-#include "Utils.h"
+#include "AbstractReducer.h"
 #include "AbstractSystemMatrix.h"
 #include "AbstractTransportProblem.h"
+#include "Data.h"
+#include "DataFactory.h"
 #include "DataVector.h"
-#include "esysUtils/Esys_MPI.h"
 #include "EscriptParams.h"
-#include "TestDomain.h"
-#include "SubWorld.h"
-#include "SplitWorld.h"
-#include "AbstractReducer.h"
+#include "ExceptionTranslators.h"
+#include "FunctionSpace.h"
+#include "FunctionSpaceFactory.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "SolverOptionsException.h"
+#include "SplitWorld.h"
+#include "SubWorld.h"
+#include "TestDomain.h"
+#include "Utils.h"
 
-#include "esysUtils/blocktimer.h"
-
-#include "esysUtils/esysExceptionTranslator.h"
-
-#include <boost/version.hpp>
 #include <boost/python.hpp>
-#include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
+#include <boost/python/errors.hpp>
+#include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/version.hpp>
-#include <boost/python/errors.hpp>
 
 using namespace boost::python;
 
@@ -165,12 +159,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
-  def("releaseUnusedMemory",escript::releaseUnusedMemory);
-  def("blocktimer_initialize",blocktimer_initialize);
-  def("blocktimer_reportSortByName",blocktimer_reportSortByName);
-  def("blocktimer_reportSortByTime",blocktimer_reportSortByTime);
-  def("blocktimer_increment",blocktimer_increment);
-  def("blocktimer_time",blocktimer_time);
+  def("releaseUnusedMemory",escript::DataTypes::releaseUnusedMemory);
   def("getVersion",escript::getSvnVersion,"This method will only report accurate version numbers for clean checkouts.");
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld,"Return number of MPI processes in the job.");
@@ -517,6 +506,8 @@ args("arg"), "assigns new location to the domain\n\n"
         ":return: True if this ``Data`` is lazy.")
     .def("isReady",&escript::Data::isReady,":rtype: ``bool``\n"
         ":return: True if this ``Data`` is not lazy.")
+    .def("isComplex", &escript::Data::isComplex,":rtype: ``bool``\n"
+	":return: True if this ``Data`` stores complex values.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
     .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN.")
     .def("replaceNaN",&escript::Data::replaceNaN,args("value"),"Replaces NaN values with value")
@@ -619,6 +610,10 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param dpno: datapoint number\n"
         ":type dpno: int")
     // Unary functions for Data
+    .def("conjugate", &escript::Data::conjugate)
+    .def("real", &escript::Data::real)
+    .def("imag", &escript::Data::imag)
+    .def("promote", &escript::Data::complicate)
     .def("_interpolate",&escript::Data::interpolate)
     .def("_grad",&escript::Data::gradOn)
     .def("_grad",&escript::Data::grad)
@@ -1279,18 +1274,17 @@ args("source", "q", "r","factor"),
   def("resolveGroup", escript::resolveGroup);
 
 #ifdef IKNOWWHATIMDOING
-
-  def("applyBinaryCFunction", escript::applyBinaryCFunction, (arg("function"), arg("outshape"),
-arg("in1"), 
-arg("in2"))
-);
+  def("applyBinaryCFunction", escript::applyBinaryCFunction,
+          (arg("function"), arg("outshape"), arg("in1"), arg("in2"))
+  );
 #endif
 
   def("_condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
 
   //
-  // Register esysExceptionTranslator
+  // Register exception translators
   //
-  register_exception_translator<esysUtils::EsysException>(&esysUtils::RuntimeErrorTranslator);
-  register_exception_translator<escript::SolverOptionsException>(&esysUtils::ValueErrorTranslator);
+  register_exception_translator<esysUtils::EsysException>(&escript::RuntimeErrorTranslator);
+  register_exception_translator<escript::SolverOptionsException>(&escript::ValueErrorTranslator);
 }
+

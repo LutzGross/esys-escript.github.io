@@ -18,10 +18,9 @@
 #include <esysUtils/first.h>
 
 #include "MeshAdapter.h"
-#include "esysUtils/blocktimer.h"
-#include "esysUtils/EsysRandom.h"
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
+#include "escript/Random.h"
 #include "escript/SolverOptions.h"
 
 #include <paso/SystemMatrix.h>
@@ -1197,7 +1196,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
     if (argDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of integration kernel");
 
-    double blocktimer_start = blocktimer_time();
     Mesh* mesh=m_finleyMesh.get();
     switch(arg.getFunctionSpace().getTypeCode()) {
         case Nodes:
@@ -1243,7 +1241,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
             break;
     }
     checkFinleyError();
-    blocktimer_increment("integrate()", blocktimer_start);
 }
 
 //
@@ -1836,7 +1833,7 @@ bool MeshAdapter::operator!=(const escript::AbstractDomain& other) const
     return !(operator==(other));
 }
 
-int MeshAdapter::getSystemMatrixTypeId(const boost::python::object& options) const
+int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
@@ -2184,14 +2181,13 @@ bool MeshAdapter::supportsContactElements() const
 
 escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what, long seed,
-       const boost::python::tuple& filter) const
+       const bp::tuple& filter) const
 {
     escript::Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't need to check for
     // exlusive write
-    escript::DataTypes::ValueType& dv=towipe.getExpandedVectorReference();
-    const size_t dvsize=dv.size();
-    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+    escript::DataTypes::RealVectorType& dv=towipe.getExpandedVectorReference();
+    escript::randomFillArray(seed, &(dv[0]), dv.size());
     return towipe;	 
 }
 

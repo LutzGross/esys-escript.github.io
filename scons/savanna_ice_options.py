@@ -18,7 +18,7 @@ from savanna_options import *
 
 build_dir = 'buildice'
 
-cxx_extra = '-ipo -sox -I/sw/pymodules/2.7/scipy-0.15.1-ice/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-std=c++11 -ipo -sox -I/sw/pymodules/2.7/scipy-0.15.1-ice/lib/python2.7/site-packages/numpy/core/include'
 
 cuda = False
 werror = True

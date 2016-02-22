@@ -32,7 +32,6 @@ sources = """
     AbstractTransportProblem.cpp
     Data.cpp
     DataAbstract.cpp
-    DataBlocks2D.cpp
     DataC.cpp
     DataConstant.cpp
     DataEmpty.cpp
@@ -45,16 +44,21 @@ sources = """
     DataTagged.cpp
     DataTypes.cpp
     DataVector.cpp
+    DataVectorAlt.cpp
+    DataVectorTaipan.cpp    
     DomainException.cpp
     EscriptParams.cpp
+    ExceptionTranslators.cpp
     FunctionSpace.cpp
     FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
+    LocalOps.cpp
     NonReducedVariable.cpp
     NullDomain.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
+    Random.cpp
     SplitWorld.cpp
     SplitWorldException.cpp
     SubWorld.cpp
@@ -67,7 +71,7 @@ sources = """
     SolverOptions.cpp
     SolverOptionsException.cpp
 """.split()
-    # blocktimer.c
+
 headers = """
     AbstractContinuousDomain.h
     AbstractDomain.h
@@ -78,7 +82,6 @@ headers = """
     Data.h
     DataAbstract.h
     DataAlgorithm.h
-    DataBlocks2D.h
     DataC.h
     DataConstant.h
     DataEmpty.h
@@ -91,9 +94,12 @@ headers = """
     DataTagged.h
     DataTypes.h
     DataVector.h
+    DataVectorAlt.h
+    DataVectorTaipan.h    
     Dodgy.h
     DomainException.h
     EscriptParams.h
+    ExceptionTranslators.h
     FunctionSpace.h
     FunctionSpaceException.h
     FunctionSpaceFactory.h
@@ -104,6 +110,7 @@ headers = """
     MPIDataReducer.h
     MPIScalarReducer.h
     Pointers.h
+    Random.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h
@@ -120,7 +127,6 @@ headers = """
     SolverOptions.h
     SolverOptionsException.h
 """.split()
-    # blocktimer.h
 
 dodgy_sources = """
     Dodgy.cpp

@@ -1,0 +1,14 @@
+\chapter{Required compiler features}
+\label{app:cxxfeatures}
+
+Building escript from source requires that your c++ compiler supports at least the following features:
+\begin{itemize}
+ \item \texttt{std::complex<>}
+ \item Variables declared with type \texttt{auto}
+ \item Variables declared with type \texttt{decltype(T)}
+ \item \texttt{extern template class} to prevent instantiation of templates. 
+ \item \texttt{template class \textit{classname$<$type$>$};} to force instantiation of templates
+ \item \texttt{isnan()} is defined in the \texttt{std::} namespace
+\end{itemize}
+The above is not exhaustive and only lists language features which are more recent that our previous baseline of c++99 (or which
+we have recently begun to rely on).

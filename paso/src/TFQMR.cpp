@@ -59,14 +59,14 @@ namespace paso {
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                   double* tolerance, Performance* pp)
+SolverResult Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+                          double* tolerance, Performance* pp)
 {
     int m=1;
     int j=0;
     dim_t num_iter=0;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
-    err_t status = SOLVER_NO_ERROR;
+    SolverResult status = NoError;
     const dim_t n = A->getTotalNumRows();
     double eta,theta,tau,rho,beta,alpha,sigma,rhon,c;
     double norm_of_residual;
@@ -84,7 +84,7 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     dim_t maxit = *iter;
 
     if (maxit <= 0) {
-        status = SOLVER_INPUT_ERROR;
+        status = InputError;
     }
 
     util::zeroes(n, x);
@@ -121,7 +121,7 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     rho = tau * tau;
     norm_of_residual=tau;
 
-    while (!(convergeFlag || maxIterFlag || breakFlag || (status !=SOLVER_NO_ERROR) )) {
+    while (!(convergeFlag || maxIterFlag || breakFlag || (status!=NoError) )) {
         sigma = util::innerProduct(n,res,v,A->mpi_info);
         if (! (breakFlag = (ABS(sigma) == 0.))) {
             alpha = rho / sigma;
@@ -196,9 +196,9 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         convergeFlag = (norm_of_residual<(*tolerance));
 
         if (maxIterFlag) {
-            status = SOLVER_MAXITER_REACHED;
+            status = MaxIterReached;
         } else if (breakFlag) {
-            status = SOLVER_BREAKDOWN;
+            status = Breakdown;
         }
         ++num_iter;
     } // end of iterations
