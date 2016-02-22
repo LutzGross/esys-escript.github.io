@@ -1271,7 +1271,6 @@ Data::toListOfTuples(bool scalarastuple)
 const bp::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
 {
-    THROWONCOMPLEX
     forceResolve();
     if (getNumDataPointsPerSample()>0) {
         int sampleNo = dataPointNo/getNumDataPointsPerSample();
@@ -1288,8 +1287,16 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
             throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid dataPointNoInSample.");
         }
         // TODO: global error handling
-        DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-        return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset)));
+        if (isComplex())
+	{
+	    DataTypes::CplxVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+	    return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset, cplx_t(0))));
+	}
+	else
+	{
+	    DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
+	    return pointToTuple(getDataPointShape(),&(getDataAtOffsetRO(offset, real_t(0))));
+	}
     }
     else
     {
@@ -1303,7 +1310,6 @@ Data::getValueOfDataPointAsTuple(int dataPointNo)
 void
 Data::setValueOfDataPointToPyObject(int dataPointNo, const bp::object& py_object)
 {
-    THROWONCOMPLEX
     // this will throw if the value cannot be represented
     setValueOfDataPointToArray(dataPointNo,py_object);
 }
@@ -1357,12 +1363,17 @@ Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 void
 Data::setValueOfDataPointToArray(int dataPointNo, const bp::object& obj)
 {
-    THROWONCOMPLEX
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
 
     WrappedArray w(obj);
+    if (w.isComplex() && (static_cast<unsigned int>(w.getRank())==0))
+    {
+	cplx_t v=w.getEltC();
+	setValueOfDataPointC(dataPointNo, v);
+	return;
+    }
     //
     // check rank
     if (static_cast<unsigned int>(w.getRank())<getDataPointRank())
@@ -1395,7 +1406,6 @@ Data::setValueOfDataPointToArray(int dataPointNo, const bp::object& obj)
 void
 Data::setValueOfDataPoint(int dataPointNo, const real_t value)
 {
-    THROWONCOMPLEX
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }
@@ -1413,6 +1423,28 @@ Data::setValueOfDataPoint(int dataPointNo, const real_t value)
         m_data->copyToDataPoint(-1, 0,value);
     }
 }
+
+void
+Data::setValueOfDataPointC(int dataPointNo, const cplx_t value)
+{
+    if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+    }
+    //
+    // make sure data is expanded:
+    exclusiveWrite();
+    if (!isExpanded()) {
+        expand();
+    }
+    if (getNumDataPointsPerSample()>0) {
+        int sampleNo = dataPointNo/getNumDataPointsPerSample();
+        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
+        m_data->copyToDataPoint(sampleNo, dataPointNoInSample,value);
+    } else {
+        m_data->copyToDataPoint(-1, 0,value);
+    }
+}
+
 
 const
 bp::object
@@ -4884,6 +4916,9 @@ bp::object Data::__rdiv__(const bp::object& right)
 
 void Data::complicate()
 {
+    if (isProtected()) {
+        throw DataException("Error - attempt to update protected Data object.");
+    }  
     m_data->complicate();
 }
 

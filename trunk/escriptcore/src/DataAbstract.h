@@ -305,6 +305,9 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual void
   copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::real_t value);
 
+  virtual void
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::cplx_t value);  
+  
   /**
      \brief
      Copy the array object to the data point dataPointNo of sample sampleNo in this object.

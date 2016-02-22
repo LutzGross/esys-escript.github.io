@@ -513,8 +513,69 @@ DataTypes::RealVectorType::size_type DataExpanded::getLength() const
     return m_data_r.size();
 }
 
-void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, double value)
+void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, const DataTypes::cplx_t value)
 {
+    if (!isComplex())
+    {
+	throw DataException("Programming error - attempt to set complex value on real data.");
+    }
+    CHECK_FOR_EX_WRITE;
+    // Get the number of samples and data-points per sample.
+    int numSamples = getNumSamples();
+    int numDataPointsPerSample = getNumDPPSample();
+    int dataPointRank = getRank();
+    ShapeType dataPointShape = getShape();
+    if (numSamples*numDataPointsPerSample > 0) {
+        //TODO: global error handling
+        if (sampleNo >= numSamples || sampleNo < 0)
+            throw DataException("DataExpanded::copyDataPoint: invalid sampleNo.");
+        if (dataPointNo >= numDataPointsPerSample || dataPointNo < 0)
+            throw DataException("DataExpanded::copyDataPoint: invalid dataPointNo.");
+
+        DataTypes::CplxVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+        DataTypes::CplxVectorType& vec = getTypedVectorRW(cplx_t(0));
+        if (dataPointRank==0) {
+            vec[offset] = value;
+        } else if (dataPointRank==1) {
+            for (int i=0; i<dataPointShape[0]; i++) {
+                vec[offset+i] = value;
+            }
+        } else if (dataPointRank==2) {
+            for (int i=0; i<dataPointShape[0]; i++) {
+                for (int j=0; j<dataPointShape[1]; j++) {
+                    vec[offset+getRelIndex(dataPointShape,i,j)] = value;
+                }
+            }
+        } else if (dataPointRank==3) {
+            for (int i=0; i<dataPointShape[0]; i++) {
+                for (int j=0; j<dataPointShape[1]; j++) {
+                    for (int k=0; k<dataPointShape[2]; k++) {
+                        vec[offset+getRelIndex(dataPointShape,i,j,k)] = value;
+                    }
+                }
+            }
+        } else if (dataPointRank==4) {
+            for (int i=0; i<dataPointShape[0]; i++) {
+                for (int j=0; j<dataPointShape[1]; j++) {
+                    for (int k=0; k<dataPointShape[2]; k++) {
+                        for (int l=0; l<dataPointShape[3]; l++) {
+                            vec[offset+getRelIndex(dataPointShape,i,j,k,l)] = value;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, const DataTypes::real_t value)
+{
+    if (isComplex())
+    {
+	copyToDataPoint(sampleNo, dataPointNo, cplx_t(value));
+	return;
+    }
     CHECK_FOR_EX_WRITE;
     // Get the number of samples and data-points per sample.
     int numSamples = getNumSamples();
@@ -582,9 +643,18 @@ void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo,
         if (dataPointNo >= numDataPointsPerSample || dataPointNo < 0)
             throw DataException("DataExpanded::copyDataPoint: invalid dataPointNoInSample.");
 
-        DataTypes::RealVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
-        DataTypes::RealVectorType& vec = getVectorRW();
-        vec.copyFromArrayToOffset(value, offset, 1);
+	if (isComplex())
+	{
+	    DataTypes::CplxVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+	    DataTypes::CplxVectorType& vec = getTypedVectorRW(cplx_t(0));
+	    vec.copyFromArrayToOffset(value, offset, 1);
+	}
+	else
+	{
+	    DataTypes::RealVectorType::size_type offset = getPointOffset(sampleNo, dataPointNo);
+	    DataTypes::RealVectorType& vec = getTypedVectorRW(real_t(0));
+	    vec.copyFromArrayToOffset(value, offset, 1);
+	}
     }
 }
 
