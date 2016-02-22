@@ -66,7 +66,6 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
         method = PASO_BACKWARD_EULER;
     } else {
         Esys_setError(VALUE_ERROR, "FCT_Solver: unknown integration scheme.");
-        method = UNKNOWN;
     }
 }
 

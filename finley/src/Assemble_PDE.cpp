@@ -105,14 +105,14 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     }
 
     // get the function space for this assemblage call
-    int funcspace = UNKNOWN;
+    int funcspace = -1;
     if (!A.isEmpty()) funcspace=A.getFunctionSpace().getTypeCode();
     if (!B.isEmpty()) funcspace=B.getFunctionSpace().getTypeCode();
     if (!C.isEmpty()) funcspace=C.getFunctionSpace().getTypeCode();
     if (!D.isEmpty()) funcspace=D.getFunctionSpace().getTypeCode();
     if (!X.isEmpty()) funcspace=X.getFunctionSpace().getTypeCode();
     if (!Y.isEmpty()) funcspace=Y.getFunctionSpace().getTypeCode();
-    if (funcspace==UNKNOWN)
+    if (funcspace==-1)
         return; // all data are empty
 
     // check if all function spaces are the same
