@@ -72,9 +72,11 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
     const int* reverseNodes=refElement->Type->reverseNodes;
 
     if (numNodesOnFace <= 0) {
-        char error_msg[LenErrorMsg_MAX];
-        sprintf(error_msg, "Mesh::findMatchingFaces: matching faces cannot be applied to face elements of type %s",refElement->Type->Name);
-        setError(TYPE_ERROR, error_msg);
+        std::stringstream ss;
+        ss << "Mesh::findMatchingFaces: matching faces cannot be applied to "
+            "face elements of type " << refElement->Type->Name;
+        const std::string msg(ss.str());
+        setError(TYPE_ERROR, msg.c_str());
         return;
     }
     double* X = new double[NN*numDim*FaceElements->numElements];
@@ -148,9 +150,11 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
                 // if the permutation is back at the identity, i.e. perm[0]=0,
                 // the faces don't match:
                 if (perm[0]==0) {
-                    char error_msg[LenErrorMsg_MAX];
-                    sprintf(error_msg, "Mesh_findMatchingFaces: couldn't match first node of element %d to touching element %d", e_0, e_1);
-                    setError(VALUE_ERROR, error_msg);
+                    std::stringstream ss;
+                    ss << "Mesh::findMatchingFaces: couldn't match first node "
+                        "of element " << e_0 << " to touching element " << e_1;
+                    const std::string msg(ss.str());
+                    setError(VALUE_ERROR, msg.c_str());
                 }
             }
             // now we check if the second nodes match
@@ -162,9 +166,12 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
                     if (dist > h*tolerance) {
                         // rotate the nodes
                         if (reverseNodes[0] < 0) {
-                            char error_msg[LenErrorMsg_MAX];
-                            sprintf(error_msg, "Mesh_findMatchingFaces: couldn't match the second node of element %d to touching element %d", e_0, e_1);
-                            setError(VALUE_ERROR, error_msg);
+                            std::stringstream ss;
+                            ss << "Mesh::findMatchingFaces: couldn't match the"
+                                " second node of element " << e_0
+                                << " to touching element " << e_1;
+                            const std::string msg(ss.str());
+                            setError(VALUE_ERROR, msg.c_str());
                         } else {
                             int* itmp_ptr=perm;
                             perm=perm_tmp;
@@ -174,9 +181,12 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
                                 perm[i]=perm_tmp[reverseNodes[i]];
                             dist=getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
                             if (dist > h*tolerance) {
-                                char error_msg[LenErrorMsg_MAX];
-                                sprintf(error_msg, "Mesh_findMatchingFaces: couldn't match the second node of element %d to touching element %d", e_0, e_1);
-                                setError(VALUE_ERROR, error_msg);
+                                std::stringstream ss;
+                                ss << "Mesh::findMatchingFaces: couldn't match the"
+                                    " second node of element " << e_0
+                                    << " to touching element " << e_1;
+                                const std::string msg(ss.str());
+                                setError(VALUE_ERROR, msg.c_str());
                             }
                         }
                     }
@@ -188,9 +198,12 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
                     const int n=faceNodes[i];
                     dist=getDist(e_0, n, e_1, perm[n], numDim, NN, X);
                     if (dist > h*tolerance) {
-                        char error_msg[LenErrorMsg_MAX];
-                        sprintf(error_msg, "Mesh_findMatchingFaces: couldn't match the %d-th node of element %d to touching element %d", i, e_0, e_1);
-                        setError(VALUE_ERROR, error_msg);
+                        std::stringstream ss;
+                        ss << "Mesh::findMatchingFaces: couldn't match the "
+                            << i << "-th node of element " << e_0
+                            << " to touching element " << e_1;
+                        const std::string msg(ss.str());
+                        setError(VALUE_ERROR, msg.c_str());
                         break;
                     }
                 }

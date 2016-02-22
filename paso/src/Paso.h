@@ -40,6 +40,17 @@
 
 namespace paso {
 
+// return codes used by the solvers
+enum SolverResult {
+    NoError = 0,
+    MaxIterReached,
+    InputError,
+    MemoryError,
+    Breakdown,
+    NegativeNormError,
+    Divergence
+};
+
 using escript::DataTypes::dim_t;
 using escript::DataTypes::index_t;
 using escript::DataTypes::real_t;

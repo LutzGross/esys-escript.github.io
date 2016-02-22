@@ -134,16 +134,16 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
     }
 }
 
-err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
-        Preconditioner_Smoother* smoother, double* x, const double* b,
-        double atol, dim_t* sweeps, bool x_is_initial)
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+            Preconditioner_Smoother* smoother, double* x, const double* b,
+            double atol, dim_t* sweeps, bool x_is_initial)
 {
    const dim_t n = A->mainBlock->numRows * A->mainBlock->row_block_size;
    double *b_new = smoother->localSmoother->buffer;
    const dim_t max_sweeps=*sweeps;
    dim_t s=0;
    double norm_dx = atol * 2.;
-   err_t errorCode = PRECONDITIONER_NO_ERROR;
+   SolverResult errorCode = NoError;
 
    if (! x_is_initial) {
         util::copy(n, x, b);
@@ -158,7 +158,7 @@ err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
         norm_dx=util::lsup(n,b_new,A->mpi_info);
         util::AXPY(n, x, 1., b_new);
         if (s >= max_sweeps) {
-              errorCode = PRECONDITIONER_MAXITER_REACHED;
+              errorCode = MaxIterReached;
               break;
         }
         s++;

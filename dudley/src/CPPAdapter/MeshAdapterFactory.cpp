@@ -17,16 +17,13 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "MeshAdapterFactory.h"
 #include "DudleyError.h"
 #include "dudley/Dudley.h"
 #include "dudley/Mesh.h"
 #include "dudley/TriangularMesh.h"
-#ifdef ESYS_MPI
-#include "esysUtils/Esys_MPI.h"
-#endif
 
+#include "esysUtils/Esys_MPI.h"
 #include "escript/SubWorld.h"
 
 #ifdef USE_NETCDF
@@ -44,38 +41,37 @@ using namespace escript;
 namespace dudley {
 
 #ifdef USE_NETCDF
-  // A convenience method to retrieve an integer attribute from a NetCDF file
-  int NetCDF_Get_Int_Attribute(NcFile *dataFile, const std::string &fName, char *attr_name)
-  {
-    NcAtt *attr;
-    char error_msg[LenErrorMsg_MAX];
-    if (! (attr=dataFile->get_att(attr_name)) ) {
-      sprintf(error_msg,"loadMesh: Error retrieving integer attribute '%s' from NetCDF file '%s'", attr_name, fName.c_str());
-      throw DataException(error_msg);
+// A convenience method to retrieve an integer attribute from a NetCDF file
+template<typename T>
+T ncReadAtt(NcFile* dataFile, const string& fName, const string& attrName)
+{
+    NcAtt* attr = dataFile->get_att(attrName.c_str());
+    if (!attr) {
+        stringstream msg;
+        msg << "loadMesh: Error retrieving integer attribute '" << attrName
+            << "' from NetCDF file '" << fName << "'";
+        throw DudleyAdapterException(msg.str());
     }
-    int temp = attr->as_int(0);
+    T value = (sizeof(T) > 4 ? attr->as_long(0) : attr->as_int(0));
     delete attr;
-    return(temp);
-  }
+    return value;
+}
 #endif
 
-  inline void cleanupAndThrow(Dudley_Mesh* mesh, string msg)
-  {
-      Dudley_Mesh_free(mesh);
-      string msgPrefix("loadMesh: NetCDF operation failed - ");
-      throw DataException(msgPrefix+msg);
-  }
+inline void cleanupAndThrow(Dudley_Mesh* mesh, string msg)
+{
+    Dudley_Mesh_free(mesh);
+    string msgPrefix("loadMesh: NetCDF operation failed - ");
+    throw DudleyAdapterException(msgPrefix+msg);
+}
 
-//   AbstractContinuousDomain* loadMesh(const std::string& fileName)
-  Domain_ptr loadMesh(const std::string& fileName)
-  {
+Domain_ptr loadMesh(const std::string& fileName)
+{
 #ifdef USE_NETCDF
     esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
     Dudley_Mesh *mesh_p=NULL;
-    char error_msg[LenErrorMsg_MAX];
-
-    std::string fName(esysUtils::appendRankToFileName(fileName, mpi_info->size,
-                                                      mpi_info->rank));
+    const string fName(esysUtils::appendRankToFileName(fileName,
+                                        mpi_info->size, mpi_info->rank));
 
     Dudley_resetError();
     int *first_DofComponent, *first_NodeComponent;
@@ -88,49 +84,71 @@ namespace dudley {
     // Create the NetCDF file.
     NcFile dataFile(fName.c_str(), NcFile::ReadOnly);
     if (!dataFile.is_valid()) {
-      sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
-      Dudley_setError(IO_ERROR,error_msg);
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: Opening NetCDF file '" << fName << "' for reading failed.";
+        throw DudleyAdapterException(msg.str());
     }
 
     // Read NetCDF integer attributes
-    int mpi_size                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_size");
-    int mpi_rank                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_rank");
-    int numDim                          = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numDim");
-    int numNodes                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numNodes");
-    int num_Elements                    = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements");
-    int num_FaceElements                = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements");
-    int num_Points                      = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Points");
-    int num_Elements_numNodes           = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements_numNodes");
-    int Elements_TypeId                 = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Elements_TypeId");
-    int num_FaceElements_numNodes       = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements_numNodes");
-    int FaceElements_TypeId             = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"FaceElements_TypeId");
-    int Points_TypeId                   = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Points_TypeId");
-    int num_Tags                        = NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Tags");
+
+    // index_size was only introduced with 64-bit index support so fall back
+    // to 32 bits if not found.
+    int index_size;
+    try {
+        index_size = ncReadAtt<int>(&dataFile, fName, "index_size");
+    } catch (DudleyAdapterException& e) {
+        index_size = 4;
+    }
+    // technically we could cast if reading 32-bit data on 64-bit escript
+    // but cost-benefit analysis clearly favours this implementation for now
+    if (sizeof(index_t) != index_size) {
+        throw DudleyAdapterException("loadMesh: size of index types at runtime differ from dump file");
+    }
+
+    int mpi_size = ncReadAtt<int>(&dataFile, fName, "mpi_size");
+    int mpi_rank = ncReadAtt<int>(&dataFile, fName, "mpi_rank");
+    int numDim = ncReadAtt<int>(&dataFile, fName, "numDim");
+    dim_t numNodes = ncReadAtt<dim_t>(&dataFile, fName, "numNodes");
+    dim_t num_Elements = ncReadAtt<dim_t>(&dataFile, fName, "num_Elements");
+    dim_t num_FaceElements = ncReadAtt<dim_t>(&dataFile, fName, "num_FaceElements");
+    dim_t num_Points = ncReadAtt<dim_t>(&dataFile, fName, "num_Points");
+    int num_Elements_numNodes = ncReadAtt<int>(&dataFile, fName, "num_Elements_numNodes");
+    int Elements_TypeId = ncReadAtt<int>(&dataFile, fName, "Elements_TypeId");
+    int num_FaceElements_numNodes = ncReadAtt<int>(&dataFile, fName, "num_FaceElements_numNodes");
+    int FaceElements_TypeId = ncReadAtt<int>(&dataFile, fName, "FaceElements_TypeId");
+    int Points_TypeId = ncReadAtt<int>(&dataFile, fName, "Points_TypeId");
+    int num_Tags = ncReadAtt<int>(&dataFile, fName, "num_Tags");
 
     // Verify size and rank
     if (mpi_info->size != mpi_size) {
-      sprintf(error_msg, "loadMesh: The NetCDF file '%s' can only be read on %d CPUs instead of %d", fName.c_str(), mpi_size, mpi_info->size);
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: The NetCDF file '" << fName
+            << "' can only be read on " << mpi_size
+            << " CPUs. Currently running: " << mpi_info->size;
+        throw DudleyAdapterException(msg.str());
     }
     if (mpi_info->rank != mpi_rank) {
-      sprintf(error_msg, "loadMesh: The NetCDF file '%s' should be read on CPU #%d instead of %d", fName.c_str(), mpi_rank, mpi_info->rank);
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: The NetCDF file '" << fName
+            << "' should be read on CPU #" << mpi_rank
+            << " and NOT on #" << mpi_info->rank;
+        throw DudleyAdapterException(msg.str());
     }
 
     // Read mesh name
     if (! (attr=dataFile.get_att("Name")) ) {
-      sprintf(error_msg,"loadMesh: Error retrieving mesh name from NetCDF file '%s'", fName.c_str());
-      throw DataException(error_msg);
+        stringstream msg;
+        msg << "loadMesh: Error retrieving mesh name from NetCDF file '"
+            << fName << "'";
+        throw DudleyAdapterException(msg.str());
     }
     boost::scoped_array<char> name(attr->as_string(0));
     delete attr;
 
-    /* allocate mesh */
+    // allocate mesh
     mesh_p = Dudley_Mesh_alloc(name.get(), numDim, mpi_info);
     if (Dudley_noError()) {
-
-        /* read nodes */
+        // read nodes
         Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
@@ -345,8 +363,9 @@ namespace dudley {
               sprintf(name_temp, "Tags_name_%d", i);
               if (! (attr=dataFile.get_att(name_temp)) ) {
                   delete[] Tags_keys;
-                  sprintf(error_msg,"get_att(%s)", name_temp);
-                  cleanupAndThrow(mesh_p, error_msg);
+                  stringstream msg;
+                  msg << "get_att(" << name_temp << ")";
+                  cleanupAndThrow(mesh_p, msg.str());
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;

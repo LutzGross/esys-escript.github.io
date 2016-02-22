@@ -33,8 +33,6 @@ namespace finley {
 
 void Mesh::joinFaces(double safety_factor, double tolerance, bool optimize)
 {
-    char error_msg[LenErrorMsg_MAX];
-
     if (MPIInfo->size>1) {
         setError(TYPE_ERROR, "Mesh::joinFaces: MPI is not supported yet.");
         return;
@@ -50,14 +48,21 @@ void Mesh::joinFaces(double safety_factor, double tolerance, bool optimize)
     const_ReferenceElement_ptr contactRefElement(ContactElements->referenceElementSet->borrowReferenceElement(false));
 
     if (faceRefElement->Type->numNodesOnFace <= 0) {
-        sprintf(error_msg,"Mesh_joinFaces: joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
-        setError(TYPE_ERROR,error_msg);
+        std::stringstream ss;
+        ss << "Mesh::joinFaces: joining faces cannot be applied to face "
+            "elements of type " << faceRefElement->Type->Name;
+        const std::string msg(ss.str());
+        setError(TYPE_ERROR, msg.c_str());
         return;
     }
 
     if (contactRefElement->Type->numNodes != 2*faceRefElement->Type->numNodes) {
-        sprintf(error_msg,"Mesh_joinFaces: contact element file for %s needs to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
-        setError(TYPE_ERROR,error_msg);
+        std::stringstream ss;
+        ss << "Mesh::joinFaces: contact element file for "
+            << contactRefElement->Type->Name << " needs to hold elements "
+            "created from face elements " << faceRefElement->Type->Name;
+        const std::string msg(ss.str());
+        setError(TYPE_ERROR, msg.c_str());
         return;
     }
 

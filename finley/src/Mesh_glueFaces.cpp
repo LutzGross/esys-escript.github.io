@@ -39,7 +39,6 @@ void Mesh::glueFaces(double safety_factor, double tolerance, bool optimize)
     if (!FaceElements)
         return;
 
-    char error_msg[LenErrorMsg_MAX];
     const_ReferenceElement_ptr faceRefElement(FaceElements->
                         referenceElementSet->borrowReferenceElement(false));
     const int NNFace=faceRefElement->Type->numNodesOnFace;
@@ -48,8 +47,11 @@ void Mesh::glueFaces(double safety_factor, double tolerance, bool optimize)
     const int* faceNodes=faceRefElement->Type->faceNodes;
    
     if (NNFace <= 0) {
-        sprintf(error_msg, "Mesh::glueFaces: glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
-        setError(TYPE_ERROR, error_msg);
+        std::stringstream ss;
+        ss << "Mesh::glueFaces: glueing faces cannot be applied to face "
+            "elements of type " << faceRefElement->Type->Name;
+        const std::string msg(ss.str());
+        setError(TYPE_ERROR, msg.c_str());
         return;
     }
 

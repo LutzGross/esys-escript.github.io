@@ -32,8 +32,8 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 {
     dim_t numNodes, numDim=0, numEle, i0, i1;
     Dudley_Mesh *mesh_p = NULL;
-    char name[LenString_MAX], element_type[LenString_MAX], frm[20];
-    char error_msg[LenErrorMsg_MAX];
+    char name[1024], element_type[1024], frm[20];
+    char error_msg[1024];
     FILE *fileHandle_p = NULL;
     Dudley_ElementTypeId typeID = Dudley_NoRef;
     int scan_ret;
@@ -54,7 +54,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	}
 
 	/* read header */
-	sprintf(frm, "%%%d[^\n]", LenString_MAX - 1);
+	sprintf(frm, "%%%d[^\n]", 1023);
 	scan_ret = fscanf(fileHandle_p, frm, name);
 	FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 	    /* get the number of nodes */

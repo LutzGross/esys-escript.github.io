@@ -24,7 +24,7 @@
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
-#include <stdio.h>
+#include <cstdio>
 
 #define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Dudley_setError(IO_ERROR,"scan error while reading dudley file"); return NULL;} }
 
@@ -44,8 +44,8 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
     index_t e, i0, j, gmsh_type, partition_id, itmp, elementary_id;
     index_t numElements = 0, numFaceElements = 0, *id = NULL, *tag = NULL, *vertices = NULL;
     Dudley_Mesh *mesh_p = NULL;
-    char line[LenString_MAX + 1];
-    char error_msg[LenErrorMsg_MAX];
+    char line[1024];
+    char error_msg[1024];
     double rtmp0, rtmp1;
 #ifdef Dudley_TRACE
     double time0 = Dudley_timer();
@@ -368,7 +368,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 	    }      
 	    /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
 	    else if (!strncmp(&line[1], "PhysicalNames", 13)) {
-	        char name[LenString_MAX+1];
+	        char name[1024];
 	        index_t tag_key;
 		scan_ret = fscanf(fileHandle_p, "%d", &numTags);
 		FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");

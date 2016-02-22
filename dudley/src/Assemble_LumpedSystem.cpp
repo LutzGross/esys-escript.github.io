@@ -45,7 +45,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     Dudley_Assemble_Parameters p;
     int dimensions[ESCRIPT_MAX_DATA_RANK];
     dim_t k, e, len_EM_lumpedMat, q, s;
-    type_t funcspace;
+    int funcspace;
     index_t color, *row_index = NULL;
     __const double *D_p = NULL;
     const double *S = NULL;

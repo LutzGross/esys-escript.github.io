@@ -30,11 +30,11 @@ struct FCT_Solver
 
     ~FCT_Solver();
 
-    err_t update(double* u, double* u_old, Options* options, Performance* pp);
+    SolverResult update(double* u, double* u_old, Options* options, Performance* pp);
 
-    err_t updateNL(double* u, double* u_old, Options* options, Performance* pp);
+    SolverResult updateNL(double* u, double* u_old, Options* options, Performance* pp);
 
-    err_t updateLCN(double* u, double* u_old, Options* options, Performance* pp);
+    SolverResult updateLCN(double* u, double* u_old, Options* options, Performance* pp);
 
     void initialize(double dt, Options* options, Performance* pp);
 

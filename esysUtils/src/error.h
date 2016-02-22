@@ -26,11 +26,6 @@
 #define INC_ESYS_ERROR
 
 #include "system_dep.h"
-#include "types.h"
-
-#include <stdio.h>	/* For FILENAME_MAX */
-#define LenString_MAX FILENAME_MAX*2
-#define LenErrorMsg_MAX LenString_MAX
 
 /************************************************************************************/
 

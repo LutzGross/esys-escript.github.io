@@ -23,7 +23,6 @@
 
 /************************************************************************************/
 
-#include "esysUtils/types.h"
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
 

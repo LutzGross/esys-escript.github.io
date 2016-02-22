@@ -32,7 +32,7 @@ namespace finley {
 #define FSCANF_CHECK(scan_ret, reason) {\
     if (scan_ret == EOF) {\
         perror(reason);\
-        setError(IO_ERROR,"scan error while reading finley file");\
+        setError(IO_ERROR, "scan error while reading finley file");\
         return NULL;\
     }\
 }
@@ -43,8 +43,7 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
 {
     int numNodes, numDim=0, numEle, i0, i1;
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
-    char name[LenString_MAX],element_type[LenString_MAX],frm[20];
-    char error_msg[LenErrorMsg_MAX];
+    char name[1024], element_type[1024], frm[20];
     FILE *fileHandle_p = NULL;
     ElementTypeId typeID=NoRef;
     int scan_ret;
@@ -55,13 +54,15 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
         // get file handle
         fileHandle_p = fopen(fname.c_str(), "r");
         if (fileHandle_p==NULL) {
-            sprintf(error_msg,"Mesh_read: Opening file %s for reading failed.",fname.c_str());
-            setError(IO_ERROR,error_msg);
+            std::stringstream ss;
+            ss << "Mesh::read: Opening file " << fname << " for reading failed.";
+            const std::string msg(ss.str());
+            setError(IO_ERROR, msg.c_str());
             return NULL;
         }
 
         // read header
-        sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
+        sprintf(frm,"%%%d[^\n]",1023);
         scan_ret = fscanf(fileHandle_p, frm, name);
         FSCANF_CHECK(scan_ret, "Mesh::read")
 
@@ -134,13 +135,13 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
                         scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le %le\n",
                                             &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
                                             &tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1], &tempCoords[i1*numDim+2]);
-                        FSCANF_CHECK(scan_ret, "Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh::read")
                     }
                     totalNodes++; /* When do we quit the infinite loop? */
                     chunkNodes++; /* How many nodes do we actually have in this chunk? It may be smaller than chunkSize. */
                 }
                 if (chunkNodes > chunkSize) {
-                    setError(ESYS_MPI_ERROR, "Mesh_read: error reading chunks of mesh, data too large for message size");
+                    setError(ESYS_MPI_ERROR, "Mesh::read: error reading chunks of mesh, data too large for message size");
                     return NULL;
                 }
                 #ifdef ESYS_MPI
@@ -208,8 +209,10 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
             }
         #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Mesh_read: Unidentified element type %s", element_type);
-            setError(VALUE_ERROR, error_msg);
+            std::stringstream ss;
+            ss << "Mesh::read: Unidentified element type " << element_type;
+            const std::string msg(ss.str());
+            setError(VALUE_ERROR, msg.c_str());
           }
     }
 
@@ -309,8 +312,10 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
             }
         #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Mesh_read: Unidentified element type %s", element_type);
-            setError(VALUE_ERROR, error_msg);
+            std::stringstream ss;
+            ss << "Mesh::read: Unidentified element type " << element_type;
+            const std::string msg(ss.str());
+            setError(VALUE_ERROR, msg.c_str());
         }
         if (noError()) {
             /* Allocate the ElementFile */
@@ -411,8 +416,10 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
             }
         #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Mesh_read: Unidentified element type %s", element_type);
-            setError(VALUE_ERROR, error_msg);
+            std::stringstream ss;
+            ss << "Mesh::read: Unidentified element type " << element_type;
+            const std::string msg(ss.str());
+            setError(VALUE_ERROR, msg.c_str());
          }
     }
 
@@ -511,8 +518,10 @@ Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname,
         }
 #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Mesh::read: Unidentified element type %s", element_type);
-            setError(VALUE_ERROR, error_msg);
+            std::stringstream ss;
+            ss << "Mesh::read: Unidentified element type " << element_type;
+            const std::string msg(ss.str());
+            setError(VALUE_ERROR, msg.c_str());
          }
     }
 

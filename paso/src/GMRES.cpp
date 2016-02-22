@@ -65,12 +65,12 @@
 
 namespace paso {
 
-err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                   double* tolerance, dim_t Length_of_recursion, dim_t restart,
-                   Performance* pp)
+SolverResult Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+                          double* tolerance, dim_t Length_of_recursion,
+                          dim_t restart, Performance* pp)
 {
     if (Length_of_recursion <= 0) {
-        return SOLVER_INPUT_ERROR;
+        return InputError;
     }
 #ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
@@ -85,7 +85,7 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
     dim_t i,z,order, th, local_n , rest, n_start ,n_end;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false,restartFlag=false;
-    err_t Status=SOLVER_NO_ERROR;
+    SolverResult status = NoError;
 
     // adapt original routine parameters
     const dim_t n = A->getTotalNumRows();
@@ -587,9 +587,9 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         Norm_of_residual_global=norm_of_residual;
         Num_iter_global=num_iter;
         if (maxIterFlag) {
-               Status = SOLVER_MAXITER_REACHED;
+               status = MaxIterReached;
            } else if (breakFlag) {
-               Status = SOLVER_BREAKDOWN;
+               status = Breakdown;
         }
     for (i=0; i<Length_of_mem; i++) {
         delete[] X_PRES[i];
@@ -608,7 +608,7 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     delete[] loc_dots;
     *iter=Num_iter_global;
     *tolerance=Norm_of_residual_global;
-    return Status;
+    return status;
 }
 
 } // namespace paso

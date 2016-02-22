@@ -30,11 +30,11 @@ Function::~Function()
 {
 }
 
-err_t Function::derivative(double* J0w, const double* w, const double* f0,
+SolverResult Function::derivative(double* J0w, const double* w, const double* f0,
                            const double* x0, double* setoff, Performance* pp)
 {
     const real_t EPSILON = escript::DataTypes::real_t_eps();
-    err_t err = SOLVER_NO_ERROR;
+    SolverResult err = NoError;
     dim_t i;
     double aw;
     const double epsnew = sqrt(EPSILON);
@@ -75,7 +75,7 @@ err_t Function::derivative(double* J0w, const double* w, const double* f0,
         //printf("s = %e\n",s);
         util::linearCombination(n,setoff,1.,x0,s,w);
         err = call(J0w, setoff, pp);
-        if (err==SOLVER_NO_ERROR) {
+        if (err==NoError) {
             util::update(n,1./s,J0w,-1./s,f0); // J0w = (J0w - f0)/epsnew;
             //for (int i=0;i<n; i++) printf("df[%d]=%e %e\n",i,J0w[i],w[i]);
         }

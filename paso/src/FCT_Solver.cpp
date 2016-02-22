@@ -120,9 +120,10 @@ void FCT_Solver::initialize(double _dt, Options* options, Performance* pp)
 }
 
 // entry point for update procedures
-err_t FCT_Solver::update(double* u, double* u_old, Options* options, Performance* pp)
+SolverResult FCT_Solver::update(double* u, double* u_old, Options* options,
+                                Performance* pp)
 {
-    err_t err_out = SOLVER_NO_ERROR;
+    SolverResult err_out = NoError;
 
     if (method == PASO_LINEAR_CRANK_NICOLSON) {
         err_out = updateLCN(u, u_old, options, pp);
@@ -131,20 +132,21 @@ err_t FCT_Solver::update(double* u, double* u_old, Options* options, Performance
     } else if (method == PASO_BACKWARD_EULER) {
         err_out = updateNL(u, u_old, options, pp);
     } else {
-        err_out = SOLVER_INPUT_ERROR;
+        err_out = InputError;
     }
     return err_out;
 }
 
 /// linear crank-nicolson update
-err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Performance* pp)
+SolverResult FCT_Solver::updateLCN(double* u, double* u_old, Options* options,
+                                   Performance* pp)
 {
     dim_t sweep_max, i;
     double const RTOL = options->tolerance;
     const dim_t n = transportproblem->getTotalNumRows();
     SystemMatrix_ptr iteration_matrix(transportproblem->iteration_matrix);
     const index_t* main_iptr = transportproblem->borrowMainDiagonalPointer();
-    err_t errorCode = SOLVER_NO_ERROR;
+    SolverResult errorCode = NoError;
     double norm_u_tilde;
 
     u_old_coupler->startCollect(u_old);
@@ -189,23 +191,23 @@ err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Performa
     errorCode = Preconditioner_Smoother_solve_byTolerance(iteration_matrix,
             ((Preconditioner*)(iteration_matrix->solver_p))->gs, u, b, RTOL,
             &sweep_max, true);
-    if (errorCode == PRECONDITIONER_NO_ERROR) {
+    if (errorCode == NoError) {
         if (options->verbose)
             std::cout << "FCT_Solver::updateLCN: convergence after "
                 << sweep_max << " Gauss-Seidel steps." << std::endl;
-        errorCode = SOLVER_NO_ERROR;
+        errorCode = NoError;
     } else {
         if (options->verbose)
             std::cout << "FCT_Solver::updateLCN: Gauss-Seidel failed within "
                 << sweep_max << " steps (rel. tolerance " << RTOL << ")."
                 << std::endl;
-        errorCode = SOLVER_MAXITER_REACHED;
+        errorCode = MaxIterReached;
     }
     return errorCode;
 }
 
-err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
-                           Performance* pp)
+SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
+                                  Performance* pp)
 {
     // number of rates >=critical_rate accepted before divergence is triggered
     const dim_t num_critical_rates_max = 3;
@@ -220,7 +222,7 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
     const double rtol = options->tolerance;
     const dim_t max_m = options->iter_max;
     dim_t m = 0, num_critical_rates = 0;
-    err_t errorCode = SOLVER_NO_ERROR;
+    SolverResult errorCode = NoError;
     bool converged=false, max_m_reached=false, diverged=false;
     /* //////////////////////////////////////////////////////////////////// */
 
@@ -310,7 +312,7 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
                 std::cout << "FCT_Solver::updateNL: BiCGStab completed after "
                     << cntIter << " steps (residual = " << tol << ")." << std::endl;
             options->num_iter += cntIter;
-            if (errorCode != SOLVER_NO_ERROR) break;
+            if (errorCode != NoError) break;
         } else {
             // just use the main diagonal of (m/omega - L )
 
@@ -347,19 +349,19 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
         }
         m++;
     } // end of while loop
-    if (errorCode == SOLVER_NO_ERROR) {
+    if (errorCode == NoError) {
         if (converged) {
             if (options->verbose)
                 std::cout << "FCT_Solver::updateNL: iteration is completed." << std::endl;
-            errorCode = SOLVER_NO_ERROR;
+            errorCode = NoError;
         } else if (diverged) {
             if (options->verbose)
                 std::cout << "FCT_Solver::updateNL: divergence." << std::endl;
-            errorCode = SOLVER_DIVERGENCE;
+            errorCode = Divergence;
         } else if (max_m_reached) {
             if (options->verbose)
                 std::cout << "FCT_Solver::updateNL: maximum number of iteration steps reached." << std::endl;
-            errorCode = SOLVER_MAXITER_REACHED;
+            errorCode = MaxIterReached;
         }
     }
     return errorCode;
