@@ -58,6 +58,7 @@ sources = """
     NullDomain.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
+    Random.cpp
     SplitWorld.cpp
     SplitWorldException.cpp
     SubWorld.cpp
@@ -109,6 +110,7 @@ headers = """
     MPIDataReducer.h
     MPIScalarReducer.h
     Pointers.h
+    Random.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h

@@ -16,21 +16,22 @@
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
 #include <speckley/WaveAssembler3D.h>
-#include <esysUtils/esysFileWriter.h>
-#include <esysUtils/EsysRandom.h>
-#include <esysUtils/index.h>
-#include <escript/FunctionSpaceFactory.h>
-
-#include <boost/scoped_array.hpp>
 
 #ifdef USE_RIPLEY
 #include <speckley/CrossDomainCoupler.h>
 #endif
+
+#include <esysUtils/esysFileWriter.h>
+#include <esysUtils/index.h>
+#include <escript/FunctionSpaceFactory.h>
+#include <escript/Random.h>
+
+#include <boost/scoped_array.hpp>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -2515,7 +2516,7 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
     }
 
     double* src=new double[m_NE[0]*m_NE[1]*m_NE[2]*per_element*numvals];
-    esysUtils::randomFillArray(seed, src, m_NE[0]*m_NE[1]*m_NE[2]*per_element);
+    escript::randomFillArray(seed, src, m_NE[0]*m_NE[1]*m_NE[2]*per_element);
     escript::Data res(0, shape, escript::function(*this), true);
     int current = 0;
     for (int ei = 0; ei < m_NE[2]; ++ei) {

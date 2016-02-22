@@ -17,12 +17,11 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#include "DomainException.h"
 #include "TestDomain.h"
 #include "Data.h"
+#include "DomainException.h"
+#include "Random.h"
 #include "Utils.h" // for MPI functions
-#include <esysUtils/EsysRandom.h>
 
 namespace escript {
 
@@ -260,7 +259,7 @@ escript::Data TestDomain::randomFill(const DataTypes::ShapeType& shape,
     // need to check for exclusive write
     escript::DataTypes::RealVectorType& dv=towipe.getExpandedVectorReference();
     const size_t dvsize=dv.size();
-    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+    escript::randomFillArray(seed, &(dv[0]), dvsize);
     return towipe;
 }
 
