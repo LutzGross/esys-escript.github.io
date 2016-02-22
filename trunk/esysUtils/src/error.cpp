@@ -18,11 +18,15 @@
 #include "error.h"
 #include "Esys_MPI.h"
 
+#include <stdio.h>	/* For FILENAME_MAX */
 #include <string.h>
 #include <time.h>
 #ifdef _OPENMP 
 #include <omp.h>
 #endif
+
+#define LenString_MAX FILENAME_MAX*2
+#define LenErrorMsg_MAX LenString_MAX
 
 #define MIN(X,Y) ((X)<(Y)?(X):(Y))
 

@@ -37,7 +37,6 @@ headers = """
     pyerr.h
     system_dep.h
     first.h
-    types.h
 """.split()
 
 lib_name = 'esysUtils'

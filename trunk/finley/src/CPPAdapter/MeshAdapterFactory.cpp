@@ -128,7 +128,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     if (mpi_info->rank != mpi_rank) {
         stringstream msg;
         msg << "loadMesh: The NetCDF file '" << fName
-            << "' should be ready on CPU #" << mpi_rank
+            << "' should be read on CPU #" << mpi_rank
             << " and NOT on #" << mpi_info->rank;
         throw FinleyAdapterException(msg.str());
     }

@@ -42,11 +42,11 @@
     error flags include:
 
         0 - all ok
-        1 - early eof
+        1 - early EOF
         2 - EOF before nodes section found
         3 - EOF before elements section found
-        4 - throw error_msg
-        5 - eof at apropriate time.
+        4 - throw errorMsg
+        5 - EOF at apropriate time.
         6 - !noError
 */
 
@@ -58,21 +58,24 @@ struct ElementInfo {
     int tag;
 };
 
-bool is_node_string(char *line) {
-    if (line == NULL)
+inline bool is_node_string(const char *line)
+{
+    if (!line)
         return false;
     return !strncmp(line, "$NOD", 4) || !strncmp(line, "$NOE", 4)
             || !strncmp(line, "$Nodes", 6);
 }
 
-bool is_endnode_string(char *line) {
-    if (line == NULL)
+inline bool is_endnode_string(const char *line)
+{
+    if (!line)
         return false;
     return !strncmp(line, "$ENDNOD", 7) || !strncmp(line, "$ENDNOE", 7)
             || !strncmp(line, "$EndNodes", 9);
 }
 
-bool get_line(std::vector<char>& line, FILE *file) {
+inline bool get_line(std::vector<char>& line, FILE *file)
+{
     int capacity = 1024;
     line.clear();
     line.resize(capacity);
@@ -85,7 +88,7 @@ bool get_line(std::vector<char>& line, FILE *file) {
         capacity += 1024;
         line.resize(capacity);
         tmp = strchr(&line[0], '\0'); //this bit is awful, O(n) instead of O(1)
-        if (capacity > LenString_MAX) {//madness
+        if (capacity > 1024) {//madness
             res = NULL;
             break;
         }
@@ -93,19 +96,20 @@ bool get_line(std::vector<char>& line, FILE *file) {
     return res == tmp; //true if line read, false if EOF without or without \n
 }
 
-namespace finley {
-
-char *next_space(char **position, int count) {
+inline char *next_space(char **position, int count)
+{
     for (int i = 0; i < count; i++) {
         *position = strchr(*position, ' ');
-        if ((*position)++ == NULL)//move off the space
+        if ((*position)++ == NULL) //move off the space
             return NULL;
     }
     return *position;
 }
 
+namespace finley {
+
 int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
-        char *error_msg, const char *fname, bool useMacroElements)
+        std::string& errorMsg, const char *fname, bool useMacroElements)
 {
     int gmsh_type = -1;
 
@@ -114,7 +118,7 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
         return EARLY_EOF;
     char *position = &line[0];
     if (sscanf(position, "%d %d", &e.id, &gmsh_type) != 2) {
-        sprintf(error_msg, "malformed mesh file");
+        errorMsg = "malformed mesh file";
         return THROW_ERROR;
     }
     if (next_space(&position, 2) == NULL)
@@ -199,10 +203,15 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
             e.dim=0;
             break;
         default:
-            e.type=NoRef;
-            e.dim=-1;
-            sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname);
-            return THROW_ERROR;
+            {
+                e.type=NoRef;
+                e.dim=-1;
+                std::stringstream ss;
+                ss << "readGmsh: Unexpected gmsh element type "
+                    << gmsh_type << " in mesh file " << fname;
+                errorMsg = ss.str();
+                return THROW_ERROR;
+            }
     }
     if (version <= 1.0){
         int tmp = 0;
@@ -210,7 +219,10 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
                 || next_space(&position, 3) == NULL )
             return EARLY_EOF;
         if (tmp != numNodesPerElement) {
-            sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.", e.id, fname);
+            std::stringstream ss;
+            ss << "readGmsh: Illegal number of nodes for element " << e.id
+                << " in mesh file " << fname;
+            errorMsg = ss.str();
             return THROW_ERROR;
         }
     } else {
@@ -237,8 +249,8 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     return 0;
 }
 
-int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
-        char * error_msg, bool useMacroElements, const std::string fname,
+int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
+        std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     /*
      *  This function should read in the elements and distribute
@@ -276,13 +288,11 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandl
     std::vector<int> elementIndices (chunkSize, -1);
     std::vector<int> faceElementIndices (chunkSize, -1);
 
-
-
 #ifdef ESYS_MPI
-    int chunkInfo[2];//chunkInfo stores the number of element and number of face elements
+    //chunkInfo stores the number of elements and number of face elements
+    int chunkInfo[2];
     int cpuId = 0;
 #endif
-
 
 #pragma omp parallel for schedule(static)
     for (int i=0; i<chunkSize; i++) {
@@ -291,11 +301,11 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandl
         element_type[i] = NoRef;
     }
 
-    /* read all in */
+    // read all in
     for(int e = 0, count = 0; e < totalNumElements; e++, count++) {
         struct ElementInfo element = {NoRef, 0, 0, &vertices[count*MAX_numNodes_gmsh], 0};
         getSingleElement(fileHandle_p, numDim, version,
-                element, error_msg, fname.c_str(), useMacroElements);
+                element, errorMsg, fname.c_str(), useMacroElements);
         element_type[count] = element.type;
         id[count] = element.id;
         tag[count] = element.tag;
@@ -311,7 +321,7 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandl
             if (final_element_type == NoRef) {
                final_element_type = element.type;
             } else if (final_element_type != element.type) {
-                sprintf(error_msg,"Finley can only handle a single type of internal elements.");
+                errorMsg = "Finley can only handle a single type of internal elements.";
                 errorFlag = THROW_ERROR;
             }
             elementIndices[chunkElements]=count;
@@ -321,7 +331,7 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandl
             if (final_face_element_type == NoRef) {
                final_face_element_type = element.type;
             } else if (final_face_element_type != element.type) {
-               sprintf(error_msg,"Finley can only handle a single type of face elements.");
+               errorMsg = "Finley can only handle a single type of face elements.";
                errorFlag = THROW_ERROR;
             }
             faceElementIndices[chunkFaceElements]=count;
@@ -488,19 +498,18 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandl
 }
 
 int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        char *error_msg, bool useMacroElements, const std::string fname,
+        std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     /*
      *  This function should read in the elements and distribute
      *  them to the apropriate process.
      */
 #ifndef ESYS_MPI
-    sprintf(error_msg, "Slave function called in non-MPI build");
+    errorMsg = "Slave function called in non-MPI build";
     return THROW_ERROR; // calling the slave from a non-mpi process is an awful idea
 #else
-
     if (mpi_info->size == 1) {
-        sprintf(error_msg, "Slave function called with no master");
+        errorMsg = "Slave function called with no master";
         return THROW_ERROR; //again, sillyness
     }
 
@@ -527,7 +536,8 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
     std::vector<int> elementIndices (chunkSize, -1);
     std::vector<int> faceElementIndices (chunkSize, -1);
 
-    int chunkInfo[2];//chunkInfo stores the number of element and number of face elements
+    //chunkInfo stores the number of elements and number of face elements
+    int chunkInfo[2];
 
 #pragma omp parallel for schedule(static)
     for (int i=0; i<chunkSize; i++) {
@@ -535,7 +545,6 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
         tag[i] = -1;
         element_type[i] = NoRef;
     }
-
 
     /* Each worker receives messages */
     MPI_Status status;
@@ -556,7 +565,7 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
 
 
     MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpi_info->comm);
-    if(errorFlag){
+    if (errorFlag) {
         return errorFlag;
     }
 
@@ -572,8 +581,6 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
     final_face_element_type = static_cast<ElementTypeId>(numNodes[1]);
     contact_element_type = static_cast<ElementTypeId>(numNodes[2]);
 
-
-
     refElements.reset(new ReferenceElementSet(final_element_type, order, reduced_order));
     refFaceElements.reset(new ReferenceElementSet(final_face_element_type, order, reduced_order));
     refContactElements.reset(new ReferenceElementSet(contact_element_type, order, reduced_order));
@@ -582,7 +589,6 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
     mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
     mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
     mesh_p->Points=new ElementFile(refPoints, mpi_info);
-
 
     if (!noError())
         return ERROR;
@@ -603,6 +609,7 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
     mesh_p->ContactElements->maxColor=0;
     mesh_p->Points->minColor=0;
     mesh_p->Points->maxColor=0;
+
 #pragma omp parallel for schedule(static)
     for(int e = 0; e < chunkElements; e++) {
         mesh_p->Elements->Id[e]=id[elementIndices[e]];
@@ -632,24 +639,24 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
     delete[] tag;
     delete[] element_type;
     return errorFlag;
-#endif //#ifndef ESYS_MPI -> #else
+#endif // ESYS_MPI
 }
 
 int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
-        char * error_msg, bool useMacroElements, const std::string fname,
+        std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     if (mpi_info->rank == 0) {
         return getElementsMaster(mpi_info, mesh_p, fileHandle_p,
-                error_msg, useMacroElements, fname,
+                errorMsg, useMacroElements, fname,
                 numDim, version, order, reduced_order);
     }
     return getElementsSlave(mpi_info, mesh_p, fileHandle_p,
-                error_msg, useMacroElements, fname,
+                errorMsg, useMacroElements, fname,
                 numDim, version, order, reduced_order);
 }
 
-int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
-        int dim, double version, const char *fname)
+int gather_nodes(FILE *f, std::map<int,int>& tags, std::string& errorMsg,
+                 int dim, double version, const char *fname)
 {
     int numNodes=0;
     std::vector<char> line;
@@ -660,29 +667,33 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
         return EARLY_EOF;
     for (int node = 0; node < numNodes; node++) {
         int tmp = 0;
-        std::vector<char> line;
         if (!get_line(line, f))
             return EARLY_EOF;
         int scan_ret = sscanf(&line[0], "%d", &tmp);
         if (scan_ret == EOF) {
             return EARLY_EOF;
         } else if (scan_ret != 1) {
-            sprintf(error_msg, "malformed meshfile");
+            errorMsg = "malformed meshfile";
             return THROW_ERROR;
         }
         tags[tmp] = -1;
-
     }
     if (!get_line(line, f))
         return EARLY_EOF;
     if (!is_endnode_string(&line[0])) {
-        sprintf(error_msg, "malformed meshfile, expected '$EndNodes', got '%s'", &line[0]);
+        std::stringstream ss;
+        ss << "readGmsh: malformed mesh file. Expected '$EndNodes', got '"
+            << &line[0] << "'";
+        errorMsg = ss.str();
         return THROW_ERROR;
     }
     if (!get_line(line, f))
         return EARLY_EOF;
     if (strncmp(&line[0], "$ELM", 4) && strncmp(&line[0], "$Elements", 9)) {
-        sprintf(error_msg, "malformed meshfile, expected '$Elements', got '%s'", &line[0]);
+        std::stringstream ss;
+        ss << "readGmsh: malformed mesh file. Expected '$Elements', got '"
+            << &line[0] << "'";
+        errorMsg = ss.str();
         return THROW_ERROR;
     }
     int numElements = -1;
@@ -692,7 +703,7 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
     if (scan_ret == EOF) {
         return EARLY_EOF;
     } else if (scan_ret != 1) {
-        sprintf(error_msg, "malformed meshfile");
+        errorMsg = "readGmsh: malformed mesh file";
         return THROW_ERROR;
     }
     struct ElementInfo e;
@@ -700,11 +711,14 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
     e.vertex = &v[0];
 
     for (int element = 0; element < numElements; element++) {
-        getSingleElement(f, dim, version, e, error_msg, fname, false);
+        getSingleElement(f, dim, version, e, errorMsg, fname, false);
         for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
             std::map<int,int>::iterator it = tags.find(v[i]);
             if (it == tags.end()) {
-                sprintf(error_msg, "element contains unknown node (node %d)", v[i]);
+                std::stringstream ss;
+                ss << "readGmsh: element contains unknown node (node " << v[i]
+                    << ")";
+                errorMsg = ss.str();
                 return THROW_ERROR;
             }
             // the first tagged element using a node tags that node too
@@ -716,7 +730,7 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, char *error_msg,
 }
 
 int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        int numDim, char *error_msg, std::map< int, int>& tags, int errorFlag)
+        int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
     int numNodes=0;
     std::vector<char> line;
@@ -755,7 +769,10 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
             //read in chunksize nodes
             for (chunkNodes=0; chunkNodes<chunkSize; chunkNodes++) {
                 if(totalNodes > numNodes) {
-                    sprintf(error_msg, "too many nodes %d > %d", totalNodes, numNodes);
+                    std::stringstream ss;
+                    ss << "readGmsh: too many nodes (" << totalNodes << " < "
+                        << numNodes << ")";
+                    errorMsg = ss.str();
                     errorFlag = THROW_ERROR;
                     break;
                 }
@@ -764,7 +781,7 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
                     errorFlag = EARLY_EOF;
                 
                 if (is_endnode_string(&line[0])) {
-                    sprintf(error_msg, "found end node string while still reading nodes");
+                    errorMsg = "readGmsh: found end node string while still reading nodes!";
                     errorFlag = THROW_ERROR;
                     break;   
                 } else {
@@ -832,7 +849,7 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
 }
 
 int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        int numDim, char *error_msg, std::map< int, int>& tags, int errorFlag)
+        int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
 #ifndef ESYS_MPI
     throw FinleyAdapterException("slave function called in non-MPI build");
@@ -890,13 +907,13 @@ int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
 }
 
 int getNodes(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        int numDim, char *error_msg, std::map< int, int>& tags, int errorFlag)
+        int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
     if (mpi_info->rank == 0)
-        return getNodesMaster(mpi_info, mesh_p, fileHandle_p, numDim, error_msg,
+        return getNodesMaster(mpi_info, mesh_p, fileHandle_p, numDim, errorMsg,
                 tags, errorFlag);
 
-    return getNodesSlave(mpi_info, mesh_p, fileHandle_p, numDim, error_msg,
+    return getNodesSlave(mpi_info, mesh_p, fileHandle_p, numDim, errorMsg,
                 tags, errorFlag);
 }
 
@@ -951,8 +968,9 @@ void send_state(esysUtils::JMPI& mpi_info, int error, int logic) {
 #endif
 }
 
-int check_error(int error, FILE *f, char *error_msg) {
-        //handle errors
+int check_error(int error, FILE *f, const std::string& errorMsg)
+{
+    //handle errors
     switch(error) {
         case 0:
             break;
@@ -964,8 +982,8 @@ int check_error(int error, FILE *f, char *error_msg) {
             throw FinleyAdapterException("EOF before nodes section found");
         case MISSING_ELEMENTS:
             throw FinleyAdapterException("EOF before elements section found");
-        case THROW_ERROR: // throw error_msg
-            throw FinleyAdapterException(error_msg);
+        case THROW_ERROR: // throw errorMsg
+            throw FinleyAdapterException(errorMsg);
         case SUCCESS: // eof at apropriate time.
             if (f)
                 fclose(f);
@@ -984,20 +1002,19 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     bool nodesRead=false, elementsRead=false;
     int format = 0, size = sizeof(double), scan_ret,  errorFlag=0, logicFlag=0;
     std::vector<char> line;
-    char error_msg[LenErrorMsg_MAX];
     std::map<int,int> nodeTags;
 #ifdef Finley_TRACE
     double time0=timer();
 #endif
-    FILE * fileHandle_p = NULL;
+    FILE* fileHandle_p = NULL;
+    std::string errorMsg;
 
     resetError();
-    std::size_t found = fname.find("\n");
-    if (found!=std::string::npos){
-        sprintf(error_msg, "file %s contains newline characters.", fname.c_str());
+    size_t found = fname.find("\n");
+    if (found != std::string::npos){
         errorFlag=THROW_ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
-        throw FinleyAdapterException(error_msg);
+        throw FinleyAdapterException("readGmsh: filename contains newline characters!");
     }
 
     // allocate mesh
@@ -1006,23 +1023,25 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     // get file handle
     fileHandle_p = fopen(fname.c_str(), "r");
     if (fileHandle_p==NULL) {
-        sprintf(error_msg, "Opening Gmsh file %s for reading failed.", fname.c_str());
+        std::stringstream ss;
+        ss << "readGmsh: opening file " << fname << " for reading failed.";
+        errorMsg = ss.str();
         errorFlag=THROW_ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
-        throw FinleyAdapterException(error_msg);
+        throw FinleyAdapterException(errorMsg);
     }
-    /* start reading */
+    // start reading
     while(noError() && errorFlag==0) {
-        /* find line starting with $ */
+        // find line starting with $
         logicFlag=0;
         errorFlag = get_next_state(fileHandle_p, nodesRead, elementsRead, &logicFlag);
         if (!errorFlag && !noError())
             errorFlag = ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
         //pre-logic error check
-        if (check_error(errorFlag, fileHandle_p, error_msg) == SUCCESS)
+        if (check_error(errorFlag, fileHandle_p, errorMsg) == SUCCESS)
             break;
-        /* format */
+        // format
         if (logicFlag == 1 && errorFlag ==0) {
             std::vector<char> fmt;
             if (!get_line(fmt, fileHandle_p))
@@ -1030,19 +1049,19 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
             scan_ret = sscanf(&fmt[0], "%lf %d %d\n", &version, &format, &size);
             SSCANF_CHECK(scan_ret);
         }
-        /* nodes are read */
+        // nodes are read
         else if (logicFlag == 2 && errorFlag ==0) {
             nodesRead=true;
             std::vector<int> sendable_map;
             long current = ftell(fileHandle_p);
-            errorFlag = gather_nodes(fileHandle_p, nodeTags, error_msg,
+            errorFlag = gather_nodes(fileHandle_p, nodeTags, errorMsg,
                     numDim, version, fname.c_str());
             if (!errorFlag && fseek(fileHandle_p, current, SEEK_SET) < 0) {
-                sprintf(error_msg, "Error in file operation");
+                errorMsg = "Error in file operation";
                 errorFlag = THROW_ERROR;
             }
             send_state(mpi_info, errorFlag, logicFlag);
-            check_error(errorFlag, fileHandle_p, error_msg);
+            check_error(errorFlag, fileHandle_p, errorMsg);
 #ifdef ESYS_MPI
             int mapsize = 2*nodeTags.size();
             sendable_map.resize(mapsize);
@@ -1060,16 +1079,16 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
             }
 #endif
             errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,
-                    error_msg, nodeTags, errorFlag);
+                    errorMsg, nodeTags, errorFlag);
         }
-
-        /* elements */
+        // elements
         else if(logicFlag==3 && errorFlag ==0) {
             elementsRead=true;
-            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, error_msg, useMacroElements,
-                    fname, numDim, version, order, reduced_order);
+            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, errorMsg,
+                    useMacroElements, fname, numDim, version, order,
+                    reduced_order);
         }
-         /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
+        // name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca )
         else if (logicFlag==4 && errorFlag ==0) {
             if (!noError())
                 errorFlag = ERROR;
@@ -1087,7 +1106,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
 #endif
             for (int i = 0; i < numNames; i++) {
                 std::vector<char> line;
-                char name[LenString_MAX] = {0};
+                char name[1024] = {0};
                 if (!get_line(line, fileHandle_p))
                     errorFlag = EARLY_EOF;
                 int tag_info[2] = {0};
@@ -1097,7 +1116,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
                         || sscanf(position, "%d", tag_info) != 1 
                         || next_space(&position, 1) == NULL
                         || sscanf(position, "%s", name) != 1) {
-                    setError(IO_ERROR,"Mesh_readGmsh: bad tagname");
+                    setError(IO_ERROR,"Mesh::readGmsh: bad tagname");
                 }
                 if (!noError())
                     errorFlag = ERROR;
@@ -1121,11 +1140,14 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
         }
         if (line[0] != '$') {
             errorFlag = THROW_ERROR;
-            snprintf(error_msg, 50, "expected closing tag, got:%s...\n", &line[0]);
+            std::stringstream ss;
+            ss << "readGmsh: expected closing tag, got '"
+                << &line[0] << "'...";
+            errorMsg = ss.str();
         }
         send_state(mpi_info, errorFlag, logicFlag);
         //post logic error check, throws if relevant
-        check_error(errorFlag, fileHandle_p, error_msg);
+        check_error(errorFlag, fileHandle_p, errorMsg);
     }
     // clean up
     if (!noError()) {
@@ -1159,8 +1181,8 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
     int errorFlag=0, logicFlag=0;
     int numNames=0;
     int i, tag_info[2];
-    char name[LenString_MAX+1];
-    char error_msg[LenErrorMsg_MAX] = {0};
+    char name[1024];
+    std::string errorMsg;
     std::map<int,int> nodeTags;
 #ifdef Finley_TRACE
     double time0=timer();
@@ -1177,7 +1199,7 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
         logicFlag = 0;
         //pre logic state fetch
         recv_state(mpi_info, &errorFlag, &logicFlag);
-        if (check_error(errorFlag, NULL, error_msg) == SUCCESS)
+        if (check_error(errorFlag, NULL, errorMsg) == SUCCESS)
             break;
          
         /* format */
@@ -1186,7 +1208,7 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
             int mapsize = 0;
             std::vector<int> sendable_map;
             recv_state(mpi_info, &errorFlag, &logicFlag);
-            check_error(errorFlag, NULL, error_msg);
+            check_error(errorFlag, NULL, errorMsg);
             MPI_Bcast(&mapsize, 1, MPI_INT, 0, mpi_info->comm);
             sendable_map.resize(mapsize);
             MPI_Bcast(&sendable_map[0], mapsize, MPI_INT, 0, mpi_info->comm);
@@ -1194,12 +1216,12 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
                 nodeTags[sendable_map[j]] = sendable_map[j + 1];
 
             errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,
-                    error_msg, nodeTags, errorFlag);
+                    errorMsg, nodeTags, errorFlag);
         }
 
         /* elements */
         else if(logicFlag==3) {
-            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, error_msg, useMacroElements,
+            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, errorMsg, useMacroElements,
                     fname, numDim, version, order, reduced_order);
         }
          /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
@@ -1219,7 +1241,7 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
         }
         //post logic error check
         recv_state(mpi_info, &errorFlag, &logicFlag);
-        if (check_error(errorFlag, NULL, error_msg) == SUCCESS)
+        if (check_error(errorFlag, NULL, errorMsg) == SUCCESS)
             break;
     //end while loop
     }

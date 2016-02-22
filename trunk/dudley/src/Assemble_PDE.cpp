@@ -48,7 +48,33 @@
 #include "Assemble.h"
 #include "Util.h"
 
-/************************************************************************************/
+inline void setNumSamplesError(const char* c, int n0, int n1)
+{
+    std::stringstream ss;
+    ss << "Assemble_PDE: number of sample points of coefficient " << c
+        << " don't match (" << n0 << "," << n1 << ").";
+    std::string errorMsg(ss.str());
+    Dudley_setError(TYPE_ERROR, errorMsg.c_str());
+}
+
+inline void setShapeError(const char* c, int num, const int *dims)
+{
+    std::stringstream ss;
+    ss << "Assemble_PDE: shape of coefficient " << c
+        << " does not match (" << dims[0] << ",";
+    if (num > 1) {
+       ss << dims[1];
+       if (num > 2) {
+           ss << "," << dims[2];
+           if (num > 3) {
+               ss << "," << dims[3];
+           }
+       }
+    }
+    ss << ").";
+    std::string errorMsg(ss.str());
+    Dudley_setError(TYPE_ERROR, errorMsg.c_str());
+}
 
 void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                          escript::ASM_ptr S, escript::Data* F,
@@ -56,10 +82,8 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                          const escript::Data* D, const escript::Data* X, const escript::Data* Y)
 {
     bool reducedIntegrationOrder = false;
-    char error_msg[LenErrorMsg_MAX];
     Dudley_Assemble_Parameters p;
-    dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
-    type_t funcspace;
+    int funcspace;
 
     Dudley_resetError();
 
@@ -150,229 +174,142 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     if (!Dudley_noError())
         return;
 
-    /* check if all function spaces are the same */
+    // check if all function spaces are the same
 
-    if (!numSamplesEqual(A, p.numQuad, elements->numElements))
-    {
-        sprintf(error_msg, "Dudley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)", p.numQuad,
-                elements->numElements);
-        Dudley_setError(TYPE_ERROR, error_msg);
+    if (!numSamplesEqual(A, p.numQuad, elements->numElements)) {
+        setNumSamplesError("A", p.numQuad, elements->numElements);
+    } else if (!numSamplesEqual(B, p.numQuad, elements->numElements)) {
+        setNumSamplesError("B", p.numQuad, elements->numElements);
+    } else if (!numSamplesEqual(C, p.numQuad, elements->numElements)) {
+        setNumSamplesError("C", p.numQuad, elements->numElements);
+    } else if (!numSamplesEqual(D, p.numQuad, elements->numElements)) {
+        setNumSamplesError("D", p.numQuad, elements->numElements);
+    } else if (!numSamplesEqual(X, p.numQuad, elements->numElements)) {
+        setNumSamplesError("X", p.numQuad, elements->numElements);
+    } else if (!numSamplesEqual(Y, p.numQuad, elements->numElements)) {
+        setNumSamplesError("Y", p.numQuad, elements->numElements);
     }
 
-    if (!numSamplesEqual(B, p.numQuad, elements->numElements))
-    {
-        sprintf(error_msg, "Dudley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)", p.numQuad,
-                elements->numElements);
-        Dudley_setError(TYPE_ERROR, error_msg);
-    }
-
-    if (!numSamplesEqual(C, p.numQuad, elements->numElements))
-    {
-        sprintf(error_msg, "Dudley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)", p.numQuad,
-                elements->numElements);
-        Dudley_setError(TYPE_ERROR, error_msg);
-    }
-
-    if (!numSamplesEqual(D, p.numQuad, elements->numElements))
-    {
-        sprintf(error_msg, "Dudley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)", p.numQuad,
-                elements->numElements);
-        Dudley_setError(TYPE_ERROR, error_msg);
-    }
-
-    if (!numSamplesEqual(X, p.numQuad, elements->numElements))
-    {
-        sprintf(error_msg, "Dudley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)", p.numQuad,
-                elements->numElements);
-        Dudley_setError(TYPE_ERROR, error_msg);
-    }
-
-    if (!numSamplesEqual(Y, p.numQuad, elements->numElements))
-    {
-        sprintf(error_msg, "Dudley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)", p.numQuad,
-                elements->numElements);
-        Dudley_setError(TYPE_ERROR, error_msg);
-    }
-
-    /*  check the dimensions: */
+    // check the dimensions
 
     if (p.numEqu == 1 && p.numComp == 1)
     {
-        if (!isEmpty(A))
-        {
-            dimensions[0] = p.numDim;
-            dimensions[1] = p.numDim;
-            if (!isDataPointShapeEqual(A, 2, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient A: illegal shape, expected shape (%d,%d)",
-                        dimensions[0], dimensions[1]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        const int dimensions[2] = { p.numDim, p.numDim };
+        if (!isEmpty(A)) {
+            if (!isDataPointShapeEqual(A, 2, dimensions)) {
+                setShapeError("A", 2, dimensions);
             }
         }
-        if (!isEmpty(B))
-        {
-            dimensions[0] = p.numDim;
-            if (!isDataPointShapeEqual(B, 1, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient B: illegal shape (%d,)", dimensions[0]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(B)) {
+            if (!isDataPointShapeEqual(B, 1, dimensions)) {
+                setShapeError("B", 1, dimensions);
             }
         }
-        if (!isEmpty(C))
-        {
-            dimensions[0] = p.numDim;
-            if (!isDataPointShapeEqual(C, 1, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient C, expected shape (%d,)", dimensions[0]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(C)) {
+            if (!isDataPointShapeEqual(C, 1, dimensions)) {
+                setShapeError("C", 1, dimensions);
             }
         }
-        if (!isEmpty(D))
-        {
-            if (!isDataPointShapeEqual(D, 0, dimensions))
-            {
-                Dudley_setError(TYPE_ERROR, "Dudley_Assemble_PDE: coefficient D, rank 0 expected.");
+        if (!isEmpty(D)) {
+            if (!isDataPointShapeEqual(D, 0, dimensions)) {
+                Dudley_setError(TYPE_ERROR, "Assemble_PDE: coefficient D must be rank 0.");
             }
         }
-        if (!isEmpty(X))
-        {
-            dimensions[0] = p.numDim;
-            if (!isDataPointShapeEqual(X, 1, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient X, expected shape (%d,", dimensions[0]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(X)) {
+            if (!isDataPointShapeEqual(X, 1, dimensions)) {
+                setShapeError("X", 1, dimensions);
             }
         }
-        if (!isEmpty(Y))
-        {
-            if (!isDataPointShapeEqual(Y, 0, dimensions))
-            {
-                Dudley_setError(TYPE_ERROR, "Dudley_Assemble_PDE: coefficient Y, rank 0 expected.");
+        if (!isEmpty(Y)) {
+            if (!isDataPointShapeEqual(Y, 0, dimensions)) {
+                Dudley_setError(TYPE_ERROR, "Assemble_PDE: coefficient Y must be rank 0.");
             }
         }
-    }
-    else
-    {
-        if (!isEmpty(A))
-        {
-            dimensions[0] = p.numEqu;
-            dimensions[1] = p.numDim;
-            dimensions[2] = p.numComp;
-            dimensions[3] = p.numDim;
-            if (!isDataPointShapeEqual(A, 4, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient A, expected shape (%d,%d,%d,%d)", dimensions[0],
-                        dimensions[1], dimensions[2], dimensions[3]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+    } else {
+        const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
+        const int dimCD[3] = { p.numEqu, p.numComp, p.numDim };
+        if (!isEmpty(A)) {
+            if (!isDataPointShapeEqual(A, 4, dimAB)) {
+                setShapeError("A", 4, dimAB);
             }
         }
-        if (!isEmpty(B))
-        {
-            dimensions[0] = p.numEqu;
-            dimensions[1] = p.numDim;
-            dimensions[2] = p.numComp;
-            if (!isDataPointShapeEqual(B, 3, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient B, expected shape (%d,%d,%d)", dimensions[0],
-                        dimensions[1], dimensions[2]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(B)) {
+            if (!isDataPointShapeEqual(B, 3, dimAB)) {
+                setShapeError("B", 3, dimAB);
             }
         }
-        if (!isEmpty(C))
-        {
-            dimensions[0] = p.numEqu;
-            dimensions[1] = p.numComp;
-            dimensions[2] = p.numDim;
-            if (!isDataPointShapeEqual(C, 3, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient C, expected shape (%d,%d,%d)", dimensions[0],
-                        dimensions[1], dimensions[2]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(C)) {
+            if (!isDataPointShapeEqual(C, 3, dimCD)) {
+                setShapeError("C", 3, dimCD);
             }
         }
-        if (!isEmpty(D))
-        {
-            dimensions[0] = p.numEqu;
-            dimensions[1] = p.numComp;
-            if (!isDataPointShapeEqual(D, 2, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient D, expected shape (%d,%d)", dimensions[0],
-                        dimensions[1]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(D)) {
+            if (!isDataPointShapeEqual(D, 2, dimCD)) {
+                setShapeError("D", 2, dimCD);
             }
         }
-        if (!isEmpty(X))
-        {
-            dimensions[0] = p.numEqu;
-            dimensions[1] = p.numDim;
-            if (!isDataPointShapeEqual(X, 2, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient X, expected shape (%d,%d)", dimensions[0],
-                        dimensions[1]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(X)) {
+            if (!isDataPointShapeEqual(X, 2, dimAB)) {
+                setShapeError("X", 2, dimAB);
             }
         }
-        if (!isEmpty(Y))
-        {
-            dimensions[0] = p.numEqu;
-            if (!isDataPointShapeEqual(Y, 1, dimensions))
-            {
-                sprintf(error_msg, "Dudley_Assemble_PDE: coefficient Y, expected shape (%d,)", dimensions[0]);
-                Dudley_setError(TYPE_ERROR, error_msg);
+        if (!isEmpty(Y)) {
+            if (!isDataPointShapeEqual(Y, 1, dimAB)) {
+                setShapeError("Y", 1, dimAB);
             }
         }
     }
     if (Dudley_noError())
-    {      
-            if (funcspace==DUDLEY_POINTS) {
-                 if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                         Dudley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
-                  } else {
-                      Dudley_Assemble_PDE_Points(p, elements,S,F, D, Y);
-                  }
-           }
-           else
-           {
-              if (p.numEqu == p.numComp)
-              {
-                  if (p.numEqu > 1)
-                  {
-                      /* system of PDESs */
-                      if (p.numDim == 3)
-                      {
-                          Dudley_Assemble_PDE_System2_3D(p, elements, S, F, A, B, C, D, X, Y);
-                      }
-                      else if (p.numDim == 2)
-                      {
-                          Dudley_Assemble_PDE_System2_2D(p, elements, S, F, A, B, C, D, X, Y);
-                      }
-                      else
-                      {
-                          Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
-                      }
-                  }
-                  else
-                  {
-                      /* single PDES */
-                      if (p.numDim == 3)
-                      {
-                          Dudley_Assemble_PDE_Single2_3D(p, elements, S, F, A, B, C, D, X, Y);
-                      }
-                      else if (p.numDim == 2)
-                      {
-                          Dudley_Assemble_PDE_Single2_2D(p, elements, S, F, A, B, C, D, X, Y);
-                      }
-                      else
-                      {
-                          Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
-                      }
-                  }
+    {
+        if (funcspace==DUDLEY_POINTS) {
+            if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                Dudley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+            } else {
+                Dudley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+            }
+        }
+        else
+        {
+            if (p.numEqu == p.numComp)
+            {
+                if (p.numEqu > 1)
+                {
+                    // system of PDEs
+                    if (p.numDim == 3)
+                    {
+                        Dudley_Assemble_PDE_System2_3D(p, elements, S, F, A, B, C, D, X, Y);
+                    }
+                    else if (p.numDim == 2)
+                    {
+                        Dudley_Assemble_PDE_System2_2D(p, elements, S, F, A, B, C, D, X, Y);
+                    }
+                    else
+                    {
+                        Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
+                    }
+                }
+                else
+                {
+                    // single PDE
+                    if (p.numDim == 3)
+                    {
+                        Dudley_Assemble_PDE_Single2_3D(p, elements, S, F, A, B, C, D, X, Y);
+                    }
+                    else if (p.numDim == 2)
+                    {
+                        Dudley_Assemble_PDE_Single2_2D(p, elements, S, F, A, B, C, D, X, Y);
+                    }
+                    else
+                    {
+                        Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
+                    }
+                }
             }
             else
             {
                 Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE requires number of equations == number of solutions  .");
             }
-          }
+        }
     }
 }
 

@@ -38,15 +38,15 @@
 
 namespace paso {
 
-err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
-                         Performance* pp)
+SolverResult Solver_NewtonGMRES(Function* F, double* x, Options* options,
+                                Performance* pp)
 {
     const double inner_tolerance_safety=.9;
     dim_t gmres_iter;
     double stop_tol, norm2_f,norm2_fo, normsup_f,reduction_f, gmres_tol, rtmp, quad_tolerance;
     bool convergeFlag=false, maxIterFlag=false, breakFlag=false;
     double *f=NULL, *step=NULL;
-    err_t Status=SOLVER_NO_ERROR;
+    SolverResult status=NoError;
     const bool debug = options->verbose;
     const dim_t n = F->getLen();
     dim_t iteration_count = 0;
@@ -81,7 +81,7 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
      */
     stop_tol=atol + rtol*normsup_f;
     if (stop_tol<=0) {
-        Status=SOLVER_INPUT_ERROR;
+        status=InputError;
         if (debug)
             std::cout << "NewtonGMRES: zero tolerance given." << std::endl;
     } else {
@@ -116,13 +116,13 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
             // call GMRES to get increment
             gmres_iter=lmaxit;
             gmres_tol=inner_tolerance;
-            Status = Solver_GMRES2(F, f, x, step, &gmres_iter, &gmres_tol, pp);
+            status = Solver_GMRES2(F, f, x, step, &gmres_iter, &gmres_tol, pp);
             inner_tolerance=std::max(inner_tolerance, gmres_tol/norm2_f);
             std::cout << "NewtonGMRES: actual rel. inner tolerance = "
                 << inner_tolerance << std::endl;
             iteration_count+=gmres_iter;
-            if ((Status==SOLVER_NO_ERROR) || (Status==SOLVER_MAXITER_REACHED)) {
-                Status=SOLVER_NO_ERROR;
+            if ((status==NoError) || (status==MaxIterReached)) {
+                status=NoError;
                 // update x
                 norm2_fo=norm2_f;
                 util::update(n,1.,x,1.,step);
@@ -162,14 +162,14 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
                 std::cout << "NewtonGMRES: maximum number of iteration steps "
                     << maxit << " reached." << std::endl;
         }
-        if (breakFlag) Status = SOLVER_BREAKDOWN;
-        if (maxIterFlag) Status = SOLVER_MAXITER_REACHED;
+        if (breakFlag) status = Breakdown;
+        if (maxIterFlag) status = MaxIterReached;
     }
     delete[] f;
     delete[] step;
     if (debug)
-        std::cout << "NewtonGMRES: STATUS return = " << Status << std::endl;
-    return Status;
+        std::cout << "NewtonGMRES: STATUS return = " << status << std::endl;
+    return status;
 }
 
 } // namespace paso

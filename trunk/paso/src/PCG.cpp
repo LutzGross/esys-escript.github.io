@@ -60,14 +60,14 @@ namespace paso {
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                 double* tolerance, Performance* pp)
+SolverResult Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+                        double* tolerance, Performance* pp)
 {
     dim_t maxit,num_iter_global, len,rest, np, ipp;
     double ss,ss1;
     dim_t i0, istart, iend;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
-    err_t status = SOLVER_NO_ERROR;
+    SolverResult status = NoError;
     const dim_t n = A->getTotalNumRows();
     double *resid = tolerance;
     double tau_old,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
@@ -352,9 +352,9 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     num_iter_global = num_iter;
     norm_of_residual_global = norm_of_residual;
     if (maxIterFlag) {
-        status = SOLVER_MAXITER_REACHED;
+        status = MaxIterReached;
     } else if (breakFlag) {
-        status = SOLVER_BREAKDOWN;
+        status = Breakdown;
     }
     Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
     delete[] rs;

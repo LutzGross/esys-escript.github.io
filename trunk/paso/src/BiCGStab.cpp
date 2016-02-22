@@ -75,8 +75,8 @@ namespace paso {
 *  ==============================================================
 */
 
-err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x,
-                      dim_t* iter, double* tolerance, Performance* pp)
+SolverResult Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x,
+                             dim_t* iter, double* tolerance, Performance* pp)
 {
   /* Local variables */
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;/*, *buf1=NULL, *buf0=NULL;*/
@@ -88,14 +88,14 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x,
   dim_t num_iter=0,maxit,num_iter_global=0;
   dim_t i0;
   bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
-  dim_t status = SOLVER_NO_ERROR;
+  SolverResult status = NoError;
   double *resid = tolerance;
   dim_t n = A->getTotalNumRows();
 
   /* Test the input parameters. */
 
   if (n < 0) {
-    status = SOLVER_INPUT_ERROR;
+    status = InputError;
   } else {
     /* allocate memory: */
     rtld=new double[n];
@@ -236,9 +236,9 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x,
       num_iter_global=num_iter;
       norm_of_residual_global=norm_of_residual;
       if (maxIterFlag) {
-            status = SOLVER_MAXITER_REACHED;
+            status = MaxIterReached;
       } else if (breakFlag) {
-            status = SOLVER_BREAKDOWN;
+            status = Breakdown;
       }
     }
     delete[] rtld;

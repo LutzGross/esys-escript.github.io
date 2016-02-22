@@ -58,7 +58,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
 #endif
     dim_t i,totIter=0,cntIter,method;
     bool finalizeIteration;
-    err_t errorCode=SOLVER_NO_ERROR;
+    SolverResult errorCode = NoError;
     const dim_t numSol = A->getTotalNumCols();
     const dim_t numEqua = A->getTotalNumRows();
     double *x0=NULL;
@@ -89,7 +89,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         LinearSystem* F = new LinearSystem(A, b, options);
         A->solvePreconditioner(x, b);
         errorCode = Solver_NewtonGMRES(F, x, options, pp);
-        if (errorCode != NO_ERROR) {
+        if (errorCode != NoError) {
             Esys_setError(SYSTEM_ERROR,"Solver_NewtonGMRES: an error has occurred.");
         }
         delete F;
@@ -284,23 +284,23 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                             totIter += cntIter;
 
                             // error handling
-                            if (errorCode == SOLVER_NO_ERROR) {
+                            if (errorCode == NoError) {
                                 finalizeIteration = false;
-                            } else if (errorCode == SOLVER_MAXITER_REACHED) {
+                            } else if (errorCode == MaxIterReached) {
                                 Esys_setError(DIVERGED, "Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
                                 if (options->verbose)
                                     std::cout << "Solver: Maximum number of "
                                         "iterations reached." << std::endl;
-                            } else if (errorCode == SOLVER_INPUT_ERROR) {
+                            } else if (errorCode == InputError) {
                                 Esys_setError(SYSTEM_ERROR, "Solver: illegal dimension in iterative solver.");
                                 if (options->verbose)
                                     std::cout << "Solver: Internal error!\n";
-                            } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+                            } else if (errorCode == NegativeNormError) {
                                 Esys_setError(VALUE_ERROR, "Solver: negative energy norm (try other solver or preconditioner).");
                                 if (options->verbose)
                                     std::cout << "Solver: negative energy norm"
                                        " (try other solver or preconditioner)!\n";
-                            } else if (errorCode == SOLVER_BREAKDOWN) {
+                            } else if (errorCode == Breakdown) {
                                 if (cntIter <= 1) {
                                     Esys_setError(ZERO_DIVISION_ERROR, "Solver: fatal break down in iterative solver.");
                                     if (options->verbose)
