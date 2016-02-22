@@ -1006,7 +1006,6 @@ Data::requireWrite()
 Data
 Data::oneOver() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(RECIP);
     return C_TensorUnaryOperation(*this, escript::ESFunction::INVF);    
 }
@@ -1014,7 +1013,10 @@ Data::oneOver() const
 Data
 Data::wherePositive() const
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("The wherePositive operation is not supported for complex data.");
+    }
     MAKELAZYOP(GZ);
     return C_TensorUnaryOperation(*this, escript::ESFunction::GTZEROF);    
 }
@@ -1022,7 +1024,10 @@ Data::wherePositive() const
 Data
 Data::whereNegative() const
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("The whereNegative operation is not supported for complex data.");
+    }
     MAKELAZYOP(LZ);
     return C_TensorUnaryOperation(*this, escript::ESFunction::LTZEROF);    
 }
@@ -1030,7 +1035,10 @@ Data::whereNegative() const
 Data
 Data::whereNonNegative() const
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("The whereNonNegative operation is not supported for complex data.");
+    }
     MAKELAZYOP(GEZ);
     return C_TensorUnaryOperation(*this, escript::ESFunction::GEZEROF);    
 }
@@ -1038,7 +1046,10 @@ Data::whereNonNegative() const
 Data
 Data::whereNonPositive() const
 {
-    THROWONCOMPLEX
+    if (isComplex())
+    {
+        throw DataException("The whereNonPositive operation is not supported for complex data.");
+    }
     MAKELAZYOP(LEZ);
     return C_TensorUnaryOperation(*this, escript::ESFunction::LEZEROF);
 }
@@ -1118,7 +1129,6 @@ Data::getLength() const
 const bp::object
 Data::toListOfTuples(bool scalarastuple)
 {
-    THROWONCOMPLEX
     if (get_MPISize()>1)
     {
         throw DataException("::toListOfTuples is not available for MPI with more than one process.");
@@ -1128,67 +1138,132 @@ Data::toListOfTuples(bool scalarastuple)
 
     int npoints=getNumDataPoints();
     expand();                   // This will also resolve if required
-    const DataTypes::RealVectorType& vec=getReady()->getVectorRO();
     bp::list temp;
     temp.append(bp::object());
     bp::list res(temp*npoints);// pre-size the list by the "[None] * npoints"  trick
-    if (rank==0)
+    if (isComplex())
     {
-        long count;
-        if (scalarastuple)
+        const DataTypes::CplxVectorType& vec=getReady()->getTypedVectorRO(cplx_t(0));
+        if (rank==0)
         {
-            for (count=0;count<npoints;++count)
+            long count;
+            if (scalarastuple)
             {
-                res[count]=bp::make_tuple(vec[count]);
+                for (count=0;count<npoints;++count)
+                {
+                    res[count]=bp::make_tuple(vec[count]);
+                }
+            }
+            else
+            {
+                for (count=0;count<npoints;++count)
+                {
+                    res[count]=vec[count];
+                }
+            }
+        }
+        else if (rank==1)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple1(getDataPointShape(), vec, offset);
+            }
+        }
+        else if (rank==2)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple2(getDataPointShape(), vec, offset);
+            }
+        }
+        else if (rank==3)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple3(getDataPointShape(), vec, offset);
+            }
+        }
+        else if (rank==4)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple4(getDataPointShape(), vec, offset);
             }
         }
         else
         {
-            for (count=0;count<npoints;++count)
-            {
-                res[count]=vec[count];
-            }
-        }
-    }
-    else if (rank==1)
-    {
-        size_t count;
-        size_t offset=0;
-        for (count=0;count<npoints;++count,offset+=size)
-        {
-            res[count]=pointToTuple1(getDataPointShape(), vec, offset);
-        }
-    }
-    else if (rank==2)
-    {
-        size_t count;
-        size_t offset=0;
-        for (count=0;count<npoints;++count,offset+=size)
-        {
-            res[count]=pointToTuple2(getDataPointShape(), vec, offset);
-        }
-    }
-    else if (rank==3)
-    {
-        size_t count;
-        size_t offset=0;
-        for (count=0;count<npoints;++count,offset+=size)
-        {
-            res[count]=pointToTuple3(getDataPointShape(), vec, offset);
-        }
-    }
-    else if (rank==4)
-    {
-        size_t count;
-        size_t offset=0;
-        for (count=0;count<npoints;++count,offset+=size)
-        {
-            res[count]=pointToTuple4(getDataPointShape(), vec, offset);
-        }
+            throw DataException("Unknown rank in ::toListOfTuples()");
+        }      
     }
     else
     {
-        throw DataException("Unknown rank in ::toListOfTuples()");
+        const DataTypes::RealVectorType& vec=getReady()->getVectorRO();
+        if (rank==0)
+        {
+            long count;
+            if (scalarastuple)
+            {
+                for (count=0;count<npoints;++count)
+                {
+                    res[count]=bp::make_tuple(vec[count]);
+                }
+            }
+            else
+            {
+                for (count=0;count<npoints;++count)
+                {
+                    res[count]=vec[count];
+                }
+            }
+        }
+        else if (rank==1)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple1(getDataPointShape(), vec, offset);
+            }
+        }
+        else if (rank==2)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple2(getDataPointShape(), vec, offset);
+            }
+        }
+        else if (rank==3)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple3(getDataPointShape(), vec, offset);
+            }
+        }
+        else if (rank==4)
+        {
+            size_t count;
+            size_t offset=0;
+            for (count=0;count<npoints;++count,offset+=size)
+            {
+                res[count]=pointToTuple4(getDataPointShape(), vec, offset);
+            }
+        }
+        else
+        {
+            throw DataException("Unknown rank in ::toListOfTuples()");
+        }
     }
     return res;
 }
