@@ -17,6 +17,8 @@
 #ifndef __TRILINOSWRAP_TYPES_H__
 #define __TRILINOSWRAP_TYPES_H__
 
+#include <escript/DataTypes.h>
+
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_CrsMatrix.hpp>
 #include <Amesos2_Solver_decl.hpp>
@@ -27,9 +29,9 @@ namespace esys_trilinos {
 /// Scalar type
 typedef double  ST;
 /// Global Ordinal type
-typedef index_t GO;
+typedef escript::DataTypes::index_t GO;
 /// Local Ordinal type
-typedef index_t LO;
+typedef escript::DataTypes::index_t LO;
 /// Kokkos Node type
 #ifdef _OPENMP
 typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;

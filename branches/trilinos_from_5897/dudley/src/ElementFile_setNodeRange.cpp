@@ -40,7 +40,7 @@ void Dudley_ElementFile_setNodeRange(index_t * min_id, index_t * max_id, Dudley_
     }
     else
     {
-	*min_id = INDEX_T_MAX;
-	*max_id = -INDEX_T_MAX;
+	*min_id = escript::DataTypes::index_t_max();
+	*max_id = -escript::DataTypes::index_t_max();
     }
 }

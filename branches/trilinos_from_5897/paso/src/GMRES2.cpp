@@ -20,9 +20,9 @@
 
 namespace paso {
 
-err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
-                    double* dx, dim_t* iter, double* tolerance,
-                    Performance* pp)
+SolverResult Solver_GMRES2(Function* F, const double* f0, const double* x0,
+                           double* dx, dim_t* iter, double* tolerance,
+                           Performance* pp)
 {
     static double RENORMALIZATION_CONST=0.001;
     const dim_t l=(*iter)+1, iter_max=*iter;
@@ -33,10 +33,10 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
     bool breakFlag = false, maxIterFlag = false, convergeFlag = false;
 
     if (n < 0 || iter_max<=0 || l<1 || rel_tol<0) {
-        return SOLVER_INPUT_ERROR;
+        return InputError;
     }
 
-    err_t Status=SOLVER_NO_ERROR;
+    SolverResult status=NoError;
 
     double* h = new double[l*l];
     double** v = new double*[l];
@@ -64,7 +64,7 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
         util::zeroes(n, v[0]);
         util::update(n, 1., v[0], -1./normf0, f0); // v = -1./normf0*f0
         g[0] = normf0;
-        while (!breakFlag && !maxIterFlag && !convergeFlag && Status==SOLVER_NO_ERROR) {
+        while (!breakFlag && !maxIterFlag && !convergeFlag && status==NoError) {
             k++;
             v[k]=new double[n];
             /*
@@ -148,7 +148,7 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
     delete[] work;
     *iter=k;
     *tolerance=norm_of_residual;
-    return Status;
+    return status;
 }
 
 } // namespace paso

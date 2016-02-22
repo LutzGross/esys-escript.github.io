@@ -16,10 +16,6 @@
 
 #define ESNEEDPYTHON
 #include <esysUtils/first.h>
-#include <esysUtils/esysFileWriter.h>
-#include <esysUtils/EsysRandom.h>
-
-#include <paso/SystemMatrix.h>
 
 #include <ripley/Brick.h>
 #include <ripley/DefaultAssembler3D.h>
@@ -27,6 +23,11 @@
 #include <ripley/WaveAssembler3D.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
+
+#include <esysUtils/esysFileWriter.h>
+#include <escript/Random.h>
+
+#include <paso/SystemMatrix.h>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -3388,7 +3389,7 @@ namespace
  */
 escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
                                 const escript::FunctionSpace& what,
-                                long seed, const boost::python::tuple& filter) const
+                                long seed, const bp::tuple& filter) const
 {
     int numvals=escript::DataTypes::noValues(shape);
     if (len(filter) > 0 && numvals != 1) {
@@ -3441,7 +3442,7 @@ that ripley has.
 */
 escript::Data Brick::randomFillWorker(
                         const escript::DataTypes::ShapeType& shape, long seed,
-                        const boost::python::tuple& filter) const
+                        const bp::tuple& filter) const
 {
     unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;
@@ -3491,7 +3492,7 @@ escript::Data Brick::randomFillWorker(
     }
 
     double* src=new double[ext[0]*ext[1]*ext[2]*numvals];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);
+    escript::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);
 
 #ifdef ESYS_MPI
     if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5)) {
@@ -3513,9 +3514,9 @@ escript::Data Brick::randomFillWorker(
     basex=X*m_gNE[0]/m_NX[0];
     basey=Y*m_gNE[1]/m_NX[1];
     basez=Z*m_gNE[2]/m_NX[2];
-std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << std::endl;
+    std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << std::endl;
 #endif
-    esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
+    escript::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
 */
 
 #ifdef ESYS_MPI
@@ -3579,7 +3580,7 @@ std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << st
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, shape, fs , true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        escript::DataTypes::RealVectorType& dv=resdat.getExpandedVectorReference();
 
         // now we need to copy values over
         for (size_t z=0; z < internal[2]; ++z) {
@@ -3597,7 +3598,7 @@ std::cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << st
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        escript::DataTypes::RealVectorType& dv=resdat.getExpandedVectorReference();
         double* convolution=get3DGauss(radius, sigma);
 
         for (size_t z=0;z<(internal[2]);++z) {

@@ -61,6 +61,7 @@ FCT_FluxLimiter::~FCT_FluxLimiter()
 // and calculates the limiters QP and QN
 void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
 {
+    const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
 

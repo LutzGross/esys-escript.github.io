@@ -24,7 +24,6 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "Mesh.h"
 
 namespace finley {
@@ -51,6 +50,9 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
     if (numPoints==0) {
         return;
     }
+
+    const escript::DataTypes::real_t LARGE_POSITIVE_FLOAT =
+                                         escript::DataTypes::real_t_max();
     ElementFile *oldPoints=Points;
     const_ReferenceElementSet_ptr refPoints;
     int numOldPoints;

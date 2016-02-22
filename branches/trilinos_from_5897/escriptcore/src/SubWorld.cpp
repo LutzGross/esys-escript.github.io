@@ -338,7 +338,7 @@ void SubWorld::debug()
 // not to be called while running jobs
 // The tricky bit, is that this could be be called between job runs
 // this means that the values of variables may not have been synched yet
-double SubWorld::getScalarVariable(const std::string& name)
+DataTypes::real_t SubWorld::getScalarVariable(const std::string& name)
 {
     str2reduce::iterator it=reducemap.find(name);
     if (it==reducemap.end())
@@ -372,7 +372,7 @@ double SubWorld::getScalarVariable(const std::string& name)
     }
     if (dynamic_cast<NonReducedVariable*>(it->second.get()))
     {
-	boost::python::extract<double> ex(it->second->getPyObj());
+	boost::python::extract<DataTypes::real_t> ex(it->second->getPyObj());
 	if (!ex.check())
 	{
 	    throw SplitWorldException("Variable is not scalar.");

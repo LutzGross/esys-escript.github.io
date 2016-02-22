@@ -35,26 +35,26 @@ using namespace escript::DataTypes;
 namespace
 {
 
-ValueType::const_reference
+RealVectorType::const_reference
 getRefRO(DataReady& data,int i, int j)
 {
    return data.getVectorRO()[getRelIndex(data.getShape(),i,j)];
 }
 
-ValueType::const_reference
+RealVectorType::const_reference
 getRefRO(DataReady& data,int i, int j,int k)
 {
    return data.getVectorRO()[getRelIndex(data.getShape(),i,j,k)];
 }
 
-ValueType::reference
-getDRef(ValueType& data,const ShapeType& shape,int i, int j)
+RealVectorType::reference
+getDRef(RealVectorType& data,const ShapeType& shape,int i, int j)
 {
    return data[getRelIndex(shape,i,j)];
 }
 
-ValueType::reference
-getDRef(ValueType& data,const ShapeType& shape,int i, int j, int k)
+RealVectorType::reference
+getDRef(RealVectorType& data,const ShapeType& shape,int i, int j, int k)
 {
    return data[getRelIndex(shape,i,j,k)];
 }
@@ -81,7 +81,7 @@ void DataExpandedTestCase::testAll()
   // Create a rank 1 pointData
   DataTypes::ShapeType shape;
   shape.push_back(3);
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //  DataArrayView pointData(data,shape);
 
   //
@@ -174,7 +174,7 @@ void DataExpandedTestCase::testSlicing() {
   // Create a rank 1 pointData
   DataTypes::ShapeType shape;
   shape.push_back(3);
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //   DataArrayView pointData(data,shape);
 
   //
@@ -211,7 +211,7 @@ void DataExpandedTestCase::testSlicing2() {
   DataTypes::ShapeType shape;
   shape.push_back(3);
   shape.push_back(3);
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //  DataArrayView pointData(data,shape);
 
   //
@@ -290,7 +290,7 @@ void DataExpandedTestCase::testSlicing3() {
   shape.push_back(3);
   shape.push_back(3);
   shape.push_back(3);
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //   DataArrayView pointData(data,shape);
 
   //
@@ -405,7 +405,7 @@ void DataExpandedTestCase::testSliceSetting() {
   DataTypes::ShapeType shape;
   shape.push_back(2);
   shape.push_back(2);
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //   DataArrayView pointData(data,shape);
 
   //
@@ -425,7 +425,7 @@ void DataExpandedTestCase::testSliceSetting() {
   DataTypes::ShapeType shape2;
   shape2.push_back(3);
   shape2.push_back(3);
-  DataTypes::ValueType data2(DataTypes::noValues(shape2),0);
+  DataTypes::RealVectorType data2(DataTypes::noValues(shape2),0);
 //   DataArrayView pointData2(data2,shape2);
 
   //
@@ -478,7 +478,7 @@ void DataExpandedTestCase::testSliceSetting2() {
   //
   // Create a rank 0 pointData
   DataTypes::ShapeType shape;
-  DataTypes::ValueType data(DataTypes::noValues(shape),0);
+  DataTypes::RealVectorType data(DataTypes::noValues(shape),0);
 //   DataArrayView pointData(data,shape);
 
   //
@@ -495,7 +495,7 @@ void DataExpandedTestCase::testSliceSetting2() {
   DataTypes::ShapeType shape2;
   shape2.push_back(3);
   shape2.push_back(3);
-  DataTypes::ValueType data2(DataTypes::noValues(shape2),0);
+  DataTypes::RealVectorType data2(DataTypes::noValues(shape2),0);
 //   DataArrayView pointData2(data2,shape2);
 
   //

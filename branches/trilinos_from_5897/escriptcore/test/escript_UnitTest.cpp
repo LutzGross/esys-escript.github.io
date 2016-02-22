@@ -22,7 +22,6 @@
 #include "DataTaggedTestCase.h"
 #include "DataExpandedTestCase.h"
 #include "DataFactoryTestCase.h"
-#include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
 #include "TaipanTestCase.h"
 #include "DataAlgorithmAdapterTestCase.h"
@@ -63,7 +62,6 @@ int main(int argc, char* argv[])
  	runner.addTest(DataTaggedTestCase::suite());
 	runner.addTest(DataExpandedTestCase::suite());
 	runner.addTest(DataFactoryTestCase::suite());
-	runner.addTest(DataBlocks2DTestCase::suite());
 	runner.addTest(DataVectorTestCase::suite());
 	runner.addTest(TaipanTestCase::suite());
  	runner.addTest(DataAlgorithmAdapterTestCase::suite());

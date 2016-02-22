@@ -32,7 +32,7 @@ using namespace escript;
 namespace rs=escript::reducerstatus;
 
 
-double SplitWorld::getScalarVariable(const std::string& name)
+DataTypes::real_t SplitWorld::getScalarVariable(const std::string& name)
 {
     // do we have a variable of that name?
     return localworld->getScalarVariable(name);

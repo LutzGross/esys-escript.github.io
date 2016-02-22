@@ -161,7 +161,7 @@ public:
         \return pair, first - number of data points per sample,
                 second - number of samples
     */
-    virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const = 0;
+    virtual std::pair<int,DataTypes::dim_t> getDataShape(int functionSpaceCode) const = 0;
 
     /**
        \brief
@@ -169,7 +169,7 @@ public:
        \param functionSpaceType Input - The function space type.
        \param sampleNo Input - The sample number.
     */
-    virtual int getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const = 0;
+    virtual int getTagFromSampleNo(int functionSpaceType, DataTypes::index_t sampleNo) const = 0;
 
     /**
        \brief
@@ -205,7 +205,7 @@ public:
        \param functionSpaceType Input - The function space type.
     */
     ESCRIPT_DLL_API
-    virtual const dim_t* borrowSampleReferenceIDs(int functionSpaceType) const = 0;
+    virtual const DataTypes::dim_t* borrowSampleReferenceIDs(int functionSpaceType) const = 0;
 
     /**
        \brief
@@ -326,7 +326,7 @@ public:
     \brief True if this rank owns the sample(id)
     Must be implemented by the Domain adapter
     */
-    virtual bool ownSample(int fs_code, index_t id) const = 0;
+    virtual bool ownSample(int fs_code, DataTypes::index_t id) const = 0;
 
     /**
        \brief

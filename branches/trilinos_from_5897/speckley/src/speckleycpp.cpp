@@ -17,19 +17,18 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include <speckley/AbstractAssembler.h>
 #include <speckley/Brick.h>
 #include <speckley/Rectangle.h>
-#include <esysUtils/esysExceptionTranslator.h>
+
+#include <escript/ExceptionTranslators.h>
+#include <escript/SubWorld.h>
 
 #include <boost/python.hpp> 
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
 #include <boost/version.hpp>
-
-#include "escript/SubWorld.h"
 
 using namespace boost::python;
 
@@ -325,7 +324,7 @@ BOOST_PYTHON_MODULE(speckleycpp)
     docstring_options docopt(true, true, false);
 #endif
 
-    register_exception_translator<speckley::SpeckleyException>(&(esysUtils::RuntimeErrorTranslator));
+    register_exception_translator<speckley::SpeckleyException>(&escript::RuntimeErrorTranslator);
 
     scope().attr("__doc__") = "To use this module, please import esys.speckley";
     scope().attr("BYTEORDER_NATIVE") = (int)speckley::BYTEORDER_NATIVE;

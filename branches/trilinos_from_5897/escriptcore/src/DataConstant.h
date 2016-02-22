@@ -87,14 +87,14 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
-               const DataTypes::ValueType &data);
+               const DataTypes::RealVectorType &data);
 
   ESCRIPT_DLL_API
   DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const double v);
-	       
-	       
+               
+               
   ESCRIPT_DLL_API
   bool
   isConstant() const 
@@ -114,7 +114,11 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value);
+  replaceNaN(DataTypes::real_t value);
+
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(DataTypes::cplx_t value);
 
   /**
      \brief
@@ -130,7 +134,7 @@ typedef DataReady parent;
   ESCRIPT_DLL_API
   virtual
   DataAbstract*
-  deepCopy();
+  deepCopy() const;
 
 
  /**
@@ -162,13 +166,13 @@ typedef DataReady parent;
    */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo);
 
@@ -178,7 +182,7 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual
-  DataTypes::ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
   /**
@@ -305,20 +309,57 @@ typedef DataReady parent;
      Return a reference to the underlying DataVector.
   */
   ESCRIPT_DLL_API
-  DataTypes::ValueType&
+  DataTypes::RealVectorType&
   getVectorRW();
 
 
   ESCRIPT_DLL_API
-  const DataTypes::ValueType&
+  const DataTypes::RealVectorType&
   getVectorRO() const;
+
+  ESCRIPT_DLL_API
+  DataTypes::CplxVectorType&
+  getVectorRWC();
+
+
+  ESCRIPT_DLL_API
+  const DataTypes::CplxVectorType&
+  getVectorROC() const;  
+
+
+
+  ESCRIPT_DLL_API
+  virtual DataTypes::RealVectorType&
+  getTypedVectorRW(DataTypes::real_t dummy);  
+  
+  ESCRIPT_DLL_API
+  virtual const DataTypes::RealVectorType&
+  getTypedVectorRO(DataTypes::real_t dummy) const;
+
+  ESCRIPT_DLL_API
+  virtual DataTypes::CplxVectorType&
+  getTypedVectorRW(DataTypes::cplx_t dummy);
+  
+  ESCRIPT_DLL_API
+  virtual const DataTypes::CplxVectorType&
+  getTypedVectorRO(DataTypes::cplx_t dummy) const;  
+
+
+
+  
+  /**
+   * \brief Convert from real data to complex data.
+  */ 
+  ESCRIPT_DLL_API
+  void complicate();
 
  protected:
 
  private:
   //
   // the actual data
-  DataTypes::ValueType m_data;
+  DataTypes::RealVectorType m_data_r;
+  DataTypes::CplxVectorType m_data_c;
 
 };
 

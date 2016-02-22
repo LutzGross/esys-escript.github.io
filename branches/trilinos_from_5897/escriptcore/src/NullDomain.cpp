@@ -31,7 +31,7 @@ int defaultList[2]={0,1}; // an array to return in borrowListOfTagsInUse();
 // Null domains only support 1 functionspace type.
 // The choice of -7 as the value is to prevent collision with other domain enums
 int NullDomain::NullDomainFS = -7;
-dim_t NullDomain::referenceID = dim_t(10); // arbitrary
+DataTypes::dim_t NullDomain::referenceID = DataTypes::dim_t(10); // arbitrary
 
 std::string NullDomain::getDescription() const 
 {
@@ -66,13 +66,13 @@ void NullDomain::interpolateAcross(Data& target, const Data& source) const
    throw DomainException("Error - interpolation to the NullDomain not supported.");
 }
 
-std::pair<int,dim_t> NullDomain::getDataShape(int functionSpaceCode) const
+std::pair<int,DataTypes::dim_t> NullDomain::getDataShape(int functionSpaceCode) const
 {
   //
   // return an arbitrary value
   // - I know it says arbitrary but its not a good idea to change it now.
   // - some tests assume that the null domain holds a single value
-  return std::pair<int,dim_t>(1,1);
+  return std::pair<int,DataTypes::dim_t>(1,1);
 }
 
 bool NullDomain::operator==(const AbstractDomain& other) const
@@ -113,7 +113,7 @@ bool NullDomain::isCellOriented(int) const
     throwStandardException("NullDomain::isCellOriented");
     return false;
 }
-bool NullDomain::ownSample(int, index_t) const
+bool NullDomain::ownSample(int, DataTypes::index_t) const
 {
     throwStandardException("NullDomain::ownSample");
     return false;

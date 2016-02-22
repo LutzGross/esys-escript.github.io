@@ -34,9 +34,13 @@
 
 namespace speckley {
 
+using escript::DataTypes::dim_t;
+using escript::DataTypes::index_t;
+using escript::DataTypes::real_t;
+
 typedef std::pair<index_t,index_t> IndexPair;
 typedef std::vector<index_t> IndexVector;
-typedef std::vector<double> DoubleVector;
+typedef std::vector<real_t> DoubleVector;
 typedef std::vector<Esys_MPI_rank> RankVector;
 typedef std::map<std::string,int> TagMap;
 

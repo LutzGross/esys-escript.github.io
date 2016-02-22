@@ -39,13 +39,13 @@ namespace DataMaths
 {
 
   void
-  matMult(const DataTypes::ValueType& left, 
+  matMult(const DataTypes::RealVectorType& left, 
 	  const DataTypes::ShapeType& leftShape,
-	  DataTypes::ValueType::size_type leftOffset,
-          const DataTypes::ValueType& right,
+	  DataTypes::RealVectorType::size_type leftOffset,
+          const DataTypes::RealVectorType& right,
    	  const DataTypes::ShapeType& rightShape,
-	  DataTypes::ValueType::size_type rightOffset,
-          DataTypes::ValueType& result,
+	  DataTypes::RealVectorType::size_type rightOffset,
+          DataTypes::RealVectorType& result,
 	  const DataTypes::ShapeType& resultShape)
    {
       using namespace escript::DataTypes;
@@ -207,12 +207,12 @@ void matrixInverseError(int err)
 
 // Copied from the python version in util.py
 int
-matrix_inverse(const DataTypes::ValueType& in, 
+matrix_inverse(const DataTypes::RealVectorType& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::ValueType::size_type inOffset,
-            DataTypes::ValueType& out,
+            DataTypes::RealVectorType::size_type inOffset,
+            DataTypes::RealVectorType& out,
 	    const DataTypes::ShapeType& outShape,
-            DataTypes::ValueType::size_type outOffset,
+            DataTypes::RealVectorType::size_type outOffset,
 	    int count,
 	    LapackInverseHelper& helper)
 {

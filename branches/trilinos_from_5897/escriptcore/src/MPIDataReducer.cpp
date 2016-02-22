@@ -233,9 +233,9 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 bool MPIDataReducer::reduceRemoteValues(MPI_Comm& comm)
 {
 #ifdef ESYS_MPI
-    DataTypes::ValueType& vr=value.getExpandedVectorReference();
+    DataTypes::RealVectorType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
-    DataTypes::ValueType& rr=result.getExpandedVectorReference();
+    DataTypes::RealVectorType& rr=result.getExpandedVectorReference();
     if (reduceop==MPI_OP_NULL)
     {
 	reset();	// we can't be sure what the value should be
@@ -259,12 +259,13 @@ bool MPIDataReducer::reduceRemoteValues(MPI_Comm& comm)
 //  [1]    Functionspace type code
 //  [2]    Only used for tagged --- gives the number of tags (which exist in the data object)
 //  [3..6] Components of the shape  
+//  [7]    Complexity: {0: real, 1:complex}
 void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
 {
-    params.resize(7);
-    for (int i=0;i<7;++i)
+    params.resize(8);
+    for (int i=0;i<8;++i)
     {
-	params[0]=0;
+	params[i]=0;
     }
     if (!valueadded)
     {
@@ -294,7 +295,8 @@ void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
     for (int i=0;i<s.size();++i)
     {
 	params[3+i]=s[i];
-    }    
+    }
+    params[7]=value.isComplex();
 }
 
 
@@ -336,7 +338,7 @@ bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysU
 	// are the same number of tags
 	value.tag();
 	
-	DataVector dv(DataTypes::noValues(s), 0, 1);
+	DataTypes::RealVectorType dv(DataTypes::noValues(s), 0, 1);
 	for (unsigned i=0;i<params[2];++i)
 	{
 	    value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
@@ -373,17 +375,42 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
       {
 	  return false;
       }
-	// at this point, we know there is data to send
-      const DataAbstract::ValueType::value_type* vect=value.getDataRO();
-	// now the receiver knows how much data it should be receive
-	// need to make sure that we aren't trying to send data with no local samples
-      if (vect!=0)
+      
+      if (value.isComplex())
       {
-	  // MPI v3 has this first param as a const void* (as it should be)
-	  // Version on my machine expects void*
-	  if (MPI_Send(const_cast<DataAbstract::ValueType::value_type*>(vect), value.getLength(), MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+	  DataTypes::cplx_t dummy=0;
+	    // at this point, we know there is data to send
+	  const DataTypes::cplx_t* vect=value.getDataRO(dummy);
+	    // now the receiver knows how much data it should be receive
+	    // need to make sure that we aren't trying to send data with no local samples
+	  if (vect!=0)
 	  {
-	      return false;
+	      // MPI v3 has this first param as a const void* (as it should be)
+	      // Version on my machine expects void*
+	      // we don't require MPIv3 yet ... so we can't use MPI_CXX_DOUBLE_COMPLEX
+	      // We'll try just sending twice as many doubles
+	      //if (MPI_Send(const_cast<DataTypes::cplx_t*>(vect), value.getLength(), MPI_CXX_DOUBLE_COMPLEX, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+	      if (MPI_Send(const_cast<DataTypes::cplx_t*>(vect), 2*value.getLength(), MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+	      {
+		  return false;
+	      }
+	  }
+      }
+      else
+      {
+	  DataTypes::real_t dummy=0;
+	    // at this point, we know there is data to send
+	  const DataTypes::real_t* vect=value.getDataRO(dummy);
+	    // now the receiver knows how much data it should be receive
+	    // need to make sure that we aren't trying to send data with no local samples
+	  if (vect!=0)
+	  {
+	      // MPI v3 has this first param as a const void* (as it should be)
+	      // Version on my machine expects void*
+	      if (MPI_Send(const_cast<DataTypes::real_t*>(vect), value.getLength(), MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+	      {
+		  return false;
+	      }
 	  }
       }
 #endif      
@@ -426,24 +453,47 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
 	  {
 	      return false;
 	  }
-	    // at this point, we know there is data to send
-	  const DataAbstract::ValueType::value_type* vect=value.getDataRO();
-	    // now the receiver knows how much data it should be receive
-	    // need to make sure that we aren't trying to send data with no local samples
-	  if (vect!=0)
+	  
+	  if (value.isComplex())
 	  {
-	      if (MPI_Bcast(const_cast<DataAbstract::ValueType::value_type*>(vect), value.getLength(), MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+	      DataTypes::cplx_t dummy=0;
+		// at this point, we know there is data to send
+	      const DataTypes::cplx_t* vect=value.getDataRO(dummy);
+		// now the receiver knows how much data it should be receive
+		// need to make sure that we aren't trying to send data with no local samples
+	      if (vect!=0)
 	      {
-		  return false;
+		  // we don't require MPIv3 yet ... so we can't use MPI_CXX_DOUBLE_COMPLEX
+		  // We'll try just sending twice as many doubles		
+		  //if (MPI_Bcast(const_cast<DataTypes::cplx_t*>(vect), value.getLength(), MPI_CXX_DOUBLE_COMPLEX, 0, comm)!=MPI_SUCCESS)
+		  if (MPI_Bcast(const_cast<DataTypes::cplx_t*>(vect), value.getLength()*2, MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+		  {
+		      return false;
+		  }
+	      }
+	  }
+	  else
+	  {
+	      DataTypes::real_t dummy=0;
+		// at this point, we know there is data to send
+	      const DataTypes::real_t* vect=value.getDataRO(dummy);
+		// now the receiver knows how much data it should be receive
+		// need to make sure that we aren't trying to send data with no local samples
+	      if (vect!=0)
+	      {
+		  if (MPI_Bcast(const_cast<DataTypes::real_t*>(vect), value.getLength(), MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+		  {
+		      return false;
+		  }
 	      }
 	  }
       }
       else	// we are receiving
       {
-	
+	  bool createcplx=false;
 	    // first we need to find out what we are expecting
-	  unsigned params[7];
-	  if (MPI_Bcast(params, 7, MPI_UNSIGNED, 0, comm)!=MPI_SUCCESS)
+	  unsigned params[8];
+	  if (MPI_Bcast(params, 8, MPI_UNSIGNED, 0, comm)!=MPI_SUCCESS)
 	  {
 	      return false;
 	  }
@@ -466,24 +516,53 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
 	  }
 	    // Now we need the FunctionSpace
 	  FunctionSpace fs=FunctionSpace(dom, static_cast<int>(params[1]));
-	  value=Data(0, s, fs, params[0]==12);
-	  if (params[0]==11)	// The Data is tagged so we need to work out what tags we need
+	  
+	  if (createcplx)	// we need to make a complex data
 	  {
-	      // TODO:  Need to ship the tags and names over but for now just make sure there
-	      // are the same number of tags
-	      value.tag();
-	      
-	      DataVector dv(DataTypes::noValues(s), 0, 1);
-	      for (unsigned i=0;i<params[2];++i)
+	      value=Data(0, s, fs, params[0]==12);
+	      value.complicate();
+	      if (params[0]==11)	// The Data is tagged so we need to work out what tags we need
 	      {
-		  value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
+		  // TODO:  Need to ship the tags and names over but for now just make sure there
+		  // are the same number of tags
+		  value.tag();
+		  
+		  DataTypes::CplxVectorType dv(DataTypes::noValues(s), 0, 1);
+		  for (unsigned i=0;i<params[2];++i)
+		  {
+		      value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
+		  }
+		  return false;	// because I don't trust this yet
 	      }
-	      return false;	// because I don't trust this yet
+	      DataTypes::cplx_t* vect=&(value.getExpandedVectorReference(DataTypes::cplx_t(0))[0]);
+	      //if (MPI_Bcast(const_cast<DataTypes::cplx_t*>(vect), value.getLength(), MPI_CXX_DOUBLE_COMPLEX, 0, comm)!=MPI_SUCCESS)
+	      if (MPI_Bcast(const_cast<DataTypes::cplx_t*>(vect), value.getLength()*2, MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+	      {
+		  return false;
+	      }	    
 	  }
-	  DataAbstract::ValueType::value_type* vect=&(value.getExpandedVectorReference()[0]);
-	  if (MPI_Bcast(const_cast<DataAbstract::ValueType::value_type*>(vect), value.getLength(), MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+	  else
 	  {
-	      return false;
+	      
+	      value=Data(0, s, fs, params[0]==12);
+	      if (params[0]==11)	// The Data is tagged so we need to work out what tags we need
+	      {
+		  // TODO:  Need to ship the tags and names over but for now just make sure there
+		  // are the same number of tags
+		  value.tag();
+		  
+		  DataTypes::RealVectorType dv(DataTypes::noValues(s), 0, 1);
+		  for (unsigned i=0;i<params[2];++i)
+		  {
+		      value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
+		  }
+		  return false;	// because I don't trust this yet
+	      }
+	      DataTypes::real_t* vect=&(value.getExpandedVectorReference(0)[0]);
+	      if (MPI_Bcast(const_cast<DataTypes::real_t*>(vect), value.getLength(), MPI_DOUBLE, 0, comm)!=MPI_SUCCESS)
+	      {
+		  return false;
+	      }
 	  }
 	  valueadded=true;
       }

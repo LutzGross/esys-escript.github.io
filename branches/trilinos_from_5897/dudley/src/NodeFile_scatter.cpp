@@ -38,7 +38,7 @@ void Dudley_NodeFile_scatterEntries(dim_t n, index_t * index, index_t min_index,
 				    dim_t numDim, double *Coordinates_out, double *Coordinates_in)
 {
     dim_t i;
-    register index_t k;
+    index_t k;
     const index_t range = max_index - min_index;
     const size_t numDim_size = (size_t) numDim * sizeof(double);
 

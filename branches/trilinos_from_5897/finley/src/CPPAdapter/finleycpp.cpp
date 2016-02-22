@@ -20,12 +20,12 @@
 #include "esysUtils/Esys_MPI.h"
 #include "../Finley.h"
 
+#include "FinleyAdapterException.h"
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
-#include "FinleyAdapterException.h"
-#include "esysUtils/esysExceptionTranslator.h"
-#include "escript/AbstractContinuousDomain.h"
+#include <escript/AbstractContinuousDomain.h>
+#include <escript/ExceptionTranslators.h>
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
@@ -45,13 +45,12 @@ BOOST_PYTHON_MODULE(finleycpp)
 
   scope().attr("__doc__") = "To use this module, please import esys.finley";    
   
-  
+  register_exception_translator<finley::FinleyAdapterException>(&escript::RuntimeErrorTranslator);
+
   //
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::RuntimeErrorTranslator));
-
   def("LoadMesh",finley::loadMesh,
       (arg("fileName")="file.nc"),":rtype: `Domain`"
 /*      ,return_value_policy<manage_new_object>());*/

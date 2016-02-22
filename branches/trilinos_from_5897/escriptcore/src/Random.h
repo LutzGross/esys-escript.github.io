@@ -13,9 +13,10 @@
 *
 *****************************************************************************/
 
-#ifndef ESYS_RANDOM_H
-#define ESYS_RANDOM_H
-namespace esysUtils
+#ifndef __ESCRIPT_RANDOM_H__
+#define __ESCRIPT_RANDOM_H__
+
+namespace escript
 {
 /* \brief put n random doubles (from [0.0, 1.0]) in array (uses OpenMP).
    If using this on Data, then be sure to CHECK_EX_WRITE first
@@ -23,10 +24,15 @@ namespace esysUtils
 void randomFillArray(long seed, double* array, size_t n);
 
 
-void patternFillArray2D(size_t x, size_t y, double* array, size_t spacing, size_t basex, size_t basey, size_t numpoints);
+void patternFillArray2D(size_t x, size_t y, double* array, size_t spacing,
+                        size_t basex, size_t basey, size_t numpoints);
 
-/* Intended for debugging use only */
-void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, size_t spacing, size_t basex, size_t basey, size_t basez, size_t numpoints);
+// Intended for debugging use only
+void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array,
+                      size_t spacing, size_t basex, size_t basey, size_t basez,
+                      size_t numpoints);
 
 }
-#endif
+
+#endif // __ESCRIPT_RANDOM_H__
+

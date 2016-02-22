@@ -33,7 +33,7 @@ void Dudley_Mesh_distributeByRankOfDOF(Dudley_Mesh * self, index_t * dof_distrib
 
     index_t min_dof_id, max_dof_id, *tmp_node_localDOF_map = NULL, *tmp_node_localDOF_mask = NULL;
     Esys_MPI_rank *mpiRankOfDOF = NULL;
-    register index_t k;
+    index_t k;
     dim_t len, n, numDOFs;
 
     if (self == NULL)

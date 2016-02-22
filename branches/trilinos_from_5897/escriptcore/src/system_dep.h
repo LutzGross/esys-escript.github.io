@@ -68,7 +68,5 @@
 #define ESCRIPT_MAX_DATA_RANK 4
 #endif
 
-#include <esysUtils/types.h>
-
 #endif
 

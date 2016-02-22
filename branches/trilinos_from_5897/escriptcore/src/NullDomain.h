@@ -41,7 +41,7 @@ class ESCRIPT_DLL_API NullDomain : public AbstractDomain
 {
 private:
     static int NullDomainFS;
-    static dim_t referenceID;
+    static DataTypes::dim_t referenceID;
         
 public:
     NullDomain() {}
@@ -79,11 +79,11 @@ public:
     virtual int getReducedSolutionCode() const { return NullDomainFS; }
     virtual int getDiracDeltaFunctionsCode() const { return NullDomainFS; }
 
-    virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
+    virtual std::pair<int,DataTypes::dim_t> getDataShape(int functionSpaceCode) const;
 
-    virtual int getTagFromSampleNo(int, index_t) const { return 1; }
+    virtual int getTagFromSampleNo(int, DataTypes::index_t) const { return 1; }
 
-    virtual const dim_t* borrowSampleReferenceIDs(int) const { return &referenceID; }
+    virtual const DataTypes::dim_t* borrowSampleReferenceIDs(int) const { return &referenceID; }
 
     virtual int getDim() const { return 1; }
 
@@ -131,7 +131,7 @@ public:
     virtual void setToNormal(escript::Data& out) const;
     virtual void setToSize(escript::Data& out) const;
     virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
-    virtual bool ownSample(int fs_code, index_t id) const;
+    virtual bool ownSample(int fs_code, DataTypes::index_t id) const;
     virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
                                      const FunctionSpace& what, long seed,
                                      const boost::python::tuple& filter) const;

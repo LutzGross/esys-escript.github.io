@@ -28,6 +28,7 @@
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 #endif
+using escript::DataTypes::index_t;
 #endif // VISIT_PLUGIN
 
 #if USE_NETCDF

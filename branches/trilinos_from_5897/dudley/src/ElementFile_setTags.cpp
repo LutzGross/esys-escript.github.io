@@ -33,10 +33,10 @@
 
 void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, const escript::Data* mask)
 {
-    register dim_t n, q;
+    dim_t n, q;
     dim_t numElements, numQuad;
-    register __const double *mask_array;
-    register bool check;
+    __const double *mask_array;
+    bool check;
     Dudley_resetError();
     if (self == NULL)
 	return;

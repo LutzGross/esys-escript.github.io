@@ -75,7 +75,7 @@ void TrilinosMatrixAdapter::add(const std::vector<LO>& rowIdx,
                     for (int m=0; m<blockSize; m++) {
                         const LO col = rowIdx[j]*blockSize + m;
                         cols.push_back(col);
-                        const index_t srcIdx =
+                        const size_t srcIdx =
                             INDEX4(k, m, i, j, blockSize, blockSize, emSize);
                         vals.push_back(array[srcIdx]);
                         //std::cout << "A[" << row << ","<<col<<"("<<lclcol<<")"

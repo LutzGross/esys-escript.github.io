@@ -20,17 +20,17 @@
 #include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 #include <ripley/MultiBrick.h>
-#include <ripley/Rectangle.h>
 #include <ripley/MultiRectangle.h>
-#include <esysUtils/esysExceptionTranslator.h>
+#include <ripley/Rectangle.h>
+
+#include <escript/ExceptionTranslators.h>
+#include <escript/SubWorld.h>
 
 #include <boost/python.hpp> 
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
 #include <boost/version.hpp>
-
-#include "escript/SubWorld.h"
 
 using namespace boost::python;
 
@@ -491,7 +491,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
     docstring_options docopt(true, true, false);
 #endif
 
-    register_exception_translator<ripley::RipleyException>(&(esysUtils::RuntimeErrorTranslator));
+    register_exception_translator<ripley::RipleyException>(&escript::RuntimeErrorTranslator);
 
     scope().attr("__doc__") = "To use this module, please import esys.ripley";
     scope().attr("BYTEORDER_NATIVE") = (int)ripley::BYTEORDER_NATIVE;
@@ -673,8 +673,10 @@ BOOST_PYTHON_MODULE(ripleycpp)
         .def("getMPIRank",&ripley::RipleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
         .def("MPIBarrier",&ripley::RipleyDomain::MPIBarrier,"Wait until all processes have reached this point")
         .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
-    /* These two class exports are necessary to ensure that the extra methods added by ripley make it to python.
-     * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
+    // These two class exports are necessary to ensure that the extra methods
+    // added by ripley make it to python. This change became necessary when
+    // the Brick and Rectangle constructors turned into factories instead of
+    // classes
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
     class_<ripley::MultiRectangle, bases<ripley::RipleyDomain> >("RipleyMultiRectangle", "", no_init);

@@ -48,21 +48,21 @@ namespace paso {
 *
 *  INFO    (output) INT
 *
-*          = SOLVER_NO_ERROR: Successful exit. Iterated approximate solution returned.
-*          = SOLVER_MAXITER_REACHED
-*          = SOLVER_INPUT_ERROR Illegal parameter:
-*          = SOLVER_MEMORY_ERROR :
-*          = SOLVER_NEGATIVE_NORM_ERROR :
+*          = NoError: Successful exit. Iterated approximate solution returned.
+*          = MaxIterReached
+*          = InputError Illegal parameter:
+*          = MemoryError :
+*          = NegativeNormError :
 *
 *  ==============================================================
 */
 
-err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
-                    dim_t* iter, double* tolerance, Performance* pp)
+SolverResult Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
+                           dim_t* iter, double* tolerance, Performance* pp)
 {
     const dim_t maxit = *iter;
     if (maxit <= 0) {
-        return SOLVER_INPUT_ERROR;
+        return InputError;
     }
 
     double delta,gamma=0.,gamma_old=0.,eta=0.,dp0=0., c=1.0,c_old=1.0;
@@ -72,7 +72,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
     dim_t num_iter = 0;
     const dim_t n = A->getTotalNumRows();
     bool convergeFlag=false;
-    err_t status = SOLVER_NO_ERROR;
+    SolverResult status = NoError;
 
     double* ZNEW = new double[n];
     double* Z = new double[n];
@@ -89,7 +89,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
     dp = util::innerProduct(n, R ,Z,A->mpi_info);
     dp0 = dp;
     if (dp < 0) {
-        status = SOLVER_NEGATIVE_NORM_ERROR;
+        status = NegativeNormError;
     } else if (ABS(dp) <= 0) {
         // happy break down
         convergeFlag = true;
@@ -103,7 +103,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
         tol=(*tolerance)*norm_scal;
     }
 
-    while (!convergeFlag && status == SOLVER_NO_ERROR) {
+    while (!convergeFlag && status == NoError) {
         //  z <- z / gamma
         util::scale(n, Z, 1./gamma);
 
@@ -128,7 +128,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
 
         dp = util::innerProduct(n, R, ZNEW, A->mpi_info);
         if (dp < 0.) {
-            status = SOLVER_NEGATIVE_NORM_ERROR;
+            status = NegativeNormError;
         } else if (ABS(dp) == 0.) {
             // happy break down
             convergeFlag = true;
@@ -169,12 +169,12 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
             eta = - s * eta;
             convergeFlag = rnorm_prec <= tol;
         } else {
-            status = SOLVER_BREAKDOWN;
+            status = Breakdown;
         }
         util::copy(n, Z, ZNEW);
         ++num_iter;
         if (!convergeFlag && num_iter >= maxit)
-            status = SOLVER_MAXITER_REACHED;
+            status = MaxIterReached;
     }
     delete[] Z;
     delete[] ZNEW;

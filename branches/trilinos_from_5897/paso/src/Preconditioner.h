@@ -20,14 +20,6 @@
 #include "SystemMatrix.h"
 #include "BOOMERAMG.h"
 
-#define PRECONDITIONER_NO_ERROR 0
-#define PRECONDITIONER_MAXITER_REACHED 1
-#define PRECONDITIONER_INPUT_ERROR -1
-#define PRECONDITIONER_MEMORY_ERROR -9
-#define PRECONDITIONER_BREAKDOWN -10
-#define PRECONDITIONER_NEGATIVE_NORM_ERROR -11
-#define PRECONDITIONER_DIVERGENCE -12
-
 namespace paso {
 
 struct MergedSolver;
@@ -94,9 +86,9 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* gs, double* x, const double* b,
         dim_t sweeps, bool x_is_initial);
 
-err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
-        Preconditioner_Smoother* gs, double* x, const double* b,
-        double atol, dim_t* sweeps, bool x_is_initial);
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+                    Preconditioner_Smoother* gs, double* x, const double* b,
+                    double atol, dim_t* sweeps, bool x_is_initial);
 
 void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* gs, double* x);

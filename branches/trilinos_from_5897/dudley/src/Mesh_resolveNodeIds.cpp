@@ -46,8 +46,8 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 #endif
     numDim = Dudley_Mesh_getDim(in);
     /*  find the minimum and maximum id used by elements: */
-    min_id = INDEX_T_MAX;
-    max_id = -INDEX_T_MAX;
+    min_id = escript::DataTypes::index_t_max();
+    max_id = -escript::DataTypes::index_t_max();
     Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->Elements);
     max_id = MAX(max_id, max_id2);
     min_id = MIN(min_id, min_id2);
