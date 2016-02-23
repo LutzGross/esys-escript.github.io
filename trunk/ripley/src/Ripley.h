@@ -41,7 +41,7 @@ using escript::DataTypes::real_t;
 typedef std::pair<index_t,index_t> IndexPair;
 typedef std::vector<index_t> IndexVector;
 typedef std::vector<real_t> DoubleVector;
-typedef std::vector<Esys_MPI_rank> RankVector;
+typedef std::vector<int> RankVector;
 typedef std::map<std::string,int> TagMap;
 
 enum {

@@ -79,10 +79,10 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
         return;
 
     dim_t i, k;
-    Esys_MPI_rank rank;
+    int rank;
     int c;
 
-    const Esys_MPI_rank myRank = in->MPIInfo->rank;
+    const int myRank = in->MPIInfo->rank;
     dim_t mpiSize = in->MPIInfo->size;
 
     // first step is to distribute the elements according to a global X of DOF
@@ -236,10 +236,10 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
 
         // now the overlap needs to be created by sending the partition around
 #ifdef ESYS_MPI
-        Esys_MPI_rank dest = esysUtils::mod_rank(mpiSize, myRank + 1);
-        Esys_MPI_rank source = esysUtils::mod_rank(mpiSize, myRank - 1);
+        int dest = esysUtils::mod_rank(mpiSize, myRank + 1);
+        int source = esysUtils::mod_rank(mpiSize, myRank - 1);
 #endif
-        Esys_MPI_rank current_rank = myRank;
+        int current_rank = myRank;
 #pragma omp parallel for private(i)
         for (i = 0; i < in->Nodes->numNodes; ++i)
             setNewDOFId[i] = true;

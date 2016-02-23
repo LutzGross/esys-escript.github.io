@@ -35,13 +35,13 @@
 void Dudley_ElementFile_allocTable(Dudley_ElementFile * in, dim_t numElements)
 {
     index_t *Id2 = NULL, *Nodes2 = NULL, *Tag2 = NULL, *Color2 = NULL;
-    Esys_MPI_rank *Owner2 = NULL;
+    int *Owner2 = NULL;
     dim_t numNodes, e, i;
 
     Dudley_resetError();
     /*  allocate memory: */
     numNodes = in->numNodes;
-    Owner2 = new  Esys_MPI_rank[numElements];
+    Owner2 = new  int[numElements];
     Id2 = new  index_t[numElements];
     Nodes2 = new  index_t[numElements * in->numNodes];
     Tag2 = new  index_t[numElements];

@@ -39,7 +39,7 @@ typedef struct {
 
 struct Dudley_ElementFile {
     esysUtils::JMPI MPIInfo;
-    Esys_MPI_rank *Owner;
+    int *Owner;
 
     dim_t numElements;		/* number of elements. */
 
@@ -93,7 +93,7 @@ void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * 
 dim_t Dudley_ElementFile_getGlobalNumElements(Dudley_ElementFile * in);
 dim_t Dudley_ElementFile_getMyNumElements(Dudley_ElementFile * in);
 index_t Dudley_ElementFile_getFirstElement(Dudley_ElementFile * in);
-void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MPI_rank * mpiRankOfDOF, index_t * Id);
+void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, int * mpiRankOfDOF, index_t * Id);
 
 void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, dim_t * degreeOfFreedom);
 void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in);

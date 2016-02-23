@@ -94,17 +94,17 @@ void Coupler::startCollect(const double* in)
                 send_buffer[i]=in[connector->send->shared[i]];
             }
         }
+#ifdef ESYS_MPI
         // send buffer out
         for (dim_t i=0; i < connector->send->numNeighbors; ++i) {
-#ifdef ESYS_MPI
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
                     MPI_DOUBLE, connector->send->neighbor[i],
                     mpi_info->msg_tag_counter+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->numNeighbors]);
-#endif
         }
-        ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size)
+        mpi_info->incCounter(mpi_info->size);
+#endif
         in_use = true;
     }
 }

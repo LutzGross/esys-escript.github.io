@@ -63,7 +63,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    index_t block_size, copy_block_size, sum, offset, len, msgs;
    double  *val=NULL, *data_set=NULL, *recv_val=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
-   Esys_MPI_rank *neighbor=NULL;
+   int *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -175,10 +175,10 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      }
    }
 
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size)
+   mpi_info->incCounter(size);
+#endif
 
    delete[] degree_set;
    degree_set = new index_t[send->numNeighbors];
@@ -238,10 +238,10 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      temp[p] = temp[p-1] + recv_ptr[p-1];
    }
 
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, 2*size)
+   mpi_info->incCounter(2*size);
+#endif
    delete[] degree_set;
    delete[] offset_set;
    delete[] data_set;

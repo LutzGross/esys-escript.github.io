@@ -396,8 +396,8 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
             MPI_Sendrecv_replace(Coordinates_buffer, buffer_len*numDim,
                     MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
                     in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
+	        in->MPIInfo->incCounter(4);
 #endif
-	    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
         buffer_rank=esysUtils::mod_rank(in->MPIInfo->size, buffer_rank-1);
         scatterEntries(in->numNodes, in->Id, distribution[buffer_rank],
@@ -432,8 +432,8 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
             MPI_Sendrecv_replace(Coordinates_buffer, buffer_len*numDim,
                     MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
                     in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
+            in->MPIInfo->incCounter(4);
 #endif
-            ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
         buffer_rank=esysUtils::mod_rank(in->MPIInfo->size, buffer_rank-1);
     }
@@ -459,7 +459,7 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
 void NodeFile::assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF,
                                    const std::vector<index_t>& distribution)
 {
-    Esys_MPI_rank p_min=MPIInfo->size, p_max=-1;
+    int p_min=MPIInfo->size, p_max=-1;
     // first we retrieve the min and max DOF on this processor to reduce
     // costs for searching
     const std::pair<index_t,index_t> dof_range(getDOFRange());
@@ -595,8 +595,8 @@ dim_t NodeFile::createDenseDOFLabeling()
             MPI_Sendrecv_replace(&DOF_buffer[0], DOF_buffer.size(), MPI_DIM_T,
                     dest, MPIInfo->msg_tag_counter, source,
                     MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
+	        MPIInfo->incCounter(1);
 #endif
-	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
         buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
     }
@@ -710,8 +710,8 @@ dim_t NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
             MPI_Sendrecv_replace(&Node_buffer[0], Node_buffer.size(), MPI_DIM_T,
                     dest, MPIInfo->msg_tag_counter, source,
                     MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
+	        MPIInfo->incCounter(1);
 #endif
-	        ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
         buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
     }
@@ -780,8 +780,8 @@ dim_t NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask
             MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_DIM_T, dest,
                     MPIInfo->msg_tag_counter, source,
                     MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
+	        MPIInfo->incCounter(1);
 #endif
-	        ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
         buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
     }
@@ -865,7 +865,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     std::vector<index_t> wanted_DOFs(numNodes);
     std::vector<index_t> rcv_len(mpiSize);
     std::vector<index_t> snd_len(mpiSize);
-    std::vector<Esys_MPI_rank> neighbor(mpiSize);
+    std::vector<int> neighbor(mpiSize);
     int numNeighbors=0;
     index_t n=0;
     index_t lastn=n;
@@ -980,7 +980,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             n+=snd_len[p];
         }
     }
-    ESYS_MPI_INC_COUNTER(*MPIInfo, MPIInfo->size)
+    MPIInfo->incCounter(MPIInfo->size);
     offsetInShared[numNeighbors]=n;
 #ifdef ESYS_MPI
     MPI_Waitall(count, &mpi_requests[0], &mpi_stati[0]);

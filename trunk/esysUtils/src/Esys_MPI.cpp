@@ -250,7 +250,7 @@ bool checkResult(int res, int& mres, const esysUtils::JMPI& info)
 bool shipString(const char* src, char** dest, MPI_Comm& comm)
 {
 #ifdef ESYS_MPI  
-    Esys_MPI_rank rank=0;
+    int rank=0;
     if (MPI_Comm_rank( comm, &rank )!=MPI_SUCCESS)
     {
         return false;        // we have no reason to believe MPI works anymore

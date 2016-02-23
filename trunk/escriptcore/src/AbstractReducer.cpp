@@ -16,18 +16,10 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#include <sstream>
-#include <limits>
-#include <boost/python/extract.hpp>
-#include <boost/scoped_array.hpp>
-
 #include "AbstractReducer.h"
 #include "SplitWorldException.h"
 
-using namespace boost::python;
-using namespace escript;
-
+namespace escript {
 
 const int AbstractReducer::PARAMTAG=120567;
 
@@ -55,4 +47,6 @@ bool AbstractReducer::canClash()
 {
     return false;
 }
+
+} // namespace escript
 

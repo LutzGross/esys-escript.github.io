@@ -45,7 +45,7 @@ Mesh* RectangularMesh_Hex8(const dim_t* numElements, const double* Length,
     dim_t Nstride0=0, Nstride1=0, Nstride2=0, local_NE0, local_NE1, local_NE2;
     index_t e_offset0, e_offset1, e_offset2;
 
-    const Esys_MPI_rank myRank = mpiInfo->rank;
+    const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
     const dim_t NE0 = std::max(dim_t(1),numElements[0]);

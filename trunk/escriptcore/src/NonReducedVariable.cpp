@@ -79,12 +79,12 @@ std::string NonReducedVariable::description()
     return "Non-Reduced Variable.";
 }
 
-bool NonReducedVariable::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+bool NonReducedVariable::recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo)
 {
     return true;
 }
 
-bool NonReducedVariable::sendTo(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+bool NonReducedVariable::sendTo(int localid, int source, esysUtils::JMPI& mpiinfo)
 {
     return true;
 }

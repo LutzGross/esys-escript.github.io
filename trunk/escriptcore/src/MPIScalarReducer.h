@@ -48,22 +48,22 @@ public:
       // human readable description
     std::string description();
     
-	// Get a value for this variable from another process
-	// This is not a reduction and will replace any existing value
-    bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo);
+    // Get a value for this variable from another process
+    // This is not a reduction and will replace any existing value
+    bool recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo);
 
-	// Send a value to this variable to another process
-	// This is not a reduction and will replace any existing value    
-    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
+    // Send a value to this variable to another process
+    // This is not a reduction and will replace any existing value    
+    bool sendTo(int localid, int target, esysUtils::JMPI& mpiinfo);    
     double getDouble();
     virtual boost::python::object getPyObj(); 
     
-    	// send from proc 0 in the communicator to all others
+        // send from proc 0 in the communicator to all others
     bool groupSend(MPI_Comm& com, bool imsending);
 
     bool canClash();    
     
-	// reduction with some procs submitting identity values
+    // reduction with some procs submitting identity values
     bool groupReduce(MPI_Comm& com, char mystate);
     
     void copyValueFrom(boost::shared_ptr<AbstractReducer>& src);    

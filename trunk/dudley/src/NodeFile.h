@@ -123,7 +123,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 					      const index_t * dof_distribution);
 dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask);
 dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask);
-void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Esys_MPI_rank * mpiRankOfDOF, index_t * distribution);
+void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, int* mpiRankOfDOF, index_t * distribution);
 void Dudley_NodeFile_gather(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_gather_global(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_gatherEntries(dim_t, index_t *, index_t, index_t, index_t *, index_t *, index_t *, index_t *,

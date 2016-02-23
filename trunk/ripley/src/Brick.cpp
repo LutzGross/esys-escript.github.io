@@ -1049,7 +1049,7 @@ bool Brick::ownSample(int fsType, index_t id) const
 RankVector Brick::getOwnerVector(int fsType) const
 {
     RankVector owner;
-    const Esys_MPI_rank rank = m_mpiInfo->rank;
+    const int rank = m_mpiInfo->rank;
 
     if (fsType == Elements || fsType == ReducedElements) {
         owner.assign(getNumElements(), rank);
@@ -2908,7 +2908,7 @@ void Brick::populateDofMap()
     }
 
     // TODO: paso::SharedComponents should take vectors to avoid this
-    Esys_MPI_rank* neighPtr = NULL;
+    int* neighPtr = NULL;
     index_t* sendPtr = NULL;
     index_t* recvPtr = NULL;
     if (neighbour.size() > 0) {
