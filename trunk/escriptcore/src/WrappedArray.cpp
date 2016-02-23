@@ -91,7 +91,21 @@ bool checkForComplex(const boost::python::object& obj)
 		extract<DataTypes::real_t> er(t);
 		if (!er.check())
 		{
-		    return true;
+		    // unfortunately, if this was a numpy object, that check my fail
+		    // even if it should succeed (eg numpy.int64 on python3)
+		    // instead, we will try to call __float__ and see what happens
+		    try
+		    {
+			t.attr("__float__")();
+			return false;			// if this check succeeds it isn't complex
+		    }
+		    catch (...)
+		    {
+			PyErr_Clear();
+			// at this point, we have no apparent way to get a real out so 
+			// we assume it must be complex
+			return true;
+		    }
 		}
 	    }
 	}
