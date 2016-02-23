@@ -25,8 +25,8 @@
 #include <speckley/CrossDomainCoupler.h>
 #endif
 
-#include <esysUtils/esysFileWriter.h>
 #include <esysUtils/index.h>
+#include <escript/FileWriter.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/Random.h>
 
@@ -48,7 +48,7 @@
 #include <limits>
 
 namespace bm=boost::math;
-using esysUtils::FileWriter;
+using escript::FileWriter;
 using std::max;
 using std::min;
 using std::vector;

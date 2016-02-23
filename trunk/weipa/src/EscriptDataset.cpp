@@ -33,8 +33,8 @@
 #endif
 
 #ifndef VISIT_PLUGIN
-#include <esysUtils/esysFileWriter.h>
 #include <escript/Data.h>
+#include <escript/FileWriter.h>
 #ifdef USE_DUDLEY
 #include <dudley/CppAdapter/MeshAdapter.h>
 #endif
@@ -48,7 +48,7 @@
 #include <speckley/SpeckleyDomain.h>
 #endif
 
-using esysUtils::FileWriter;
+using escript::FileWriter;
 #endif
 
 #include <cstring>

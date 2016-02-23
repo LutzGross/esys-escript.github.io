@@ -25,8 +25,8 @@
 #endif
 
 #include <esysUtils/Esys_MPI.h>
-#include <esysUtils/esysFileWriter.h>
 #include <esysUtils/index.h>
+#include <escript/FileWriter.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/Random.h>
 
@@ -49,7 +49,7 @@
 #include <limits>
 
 namespace bm=boost::math;
-using esysUtils::FileWriter;
+using escript::FileWriter;
 
 namespace speckley {
 
