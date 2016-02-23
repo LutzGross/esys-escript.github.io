@@ -15,13 +15,13 @@
 *****************************************************************************/
 
 
-#ifndef __ESYS_FILEWRITERTESTCASE_H__
-#define __ESYS_FILEWRITERTESTCASE_H__
+#ifndef __ESCRIPT_FILEWRITERTESTCASE_H__
+#define __ESCRIPT_FILEWRITERTESTCASE_H__
 
 #include <cppunit/TestFixture.h>
 #include <cppunit/TestSuite.h>
 
-class EsysFileWriterTestCase : public CppUnit::TestFixture
+class FileWriterTestCase : public CppUnit::TestFixture
 {
 public:
     void testAll();
