@@ -40,14 +40,14 @@ PASO_DLL_API
 struct SharedComponents
 {
     SharedComponents(dim_t localLength, dim_t nNeighbours,
-            const Esys_MPI_rank* neighbours, const index_t* sharedArray,
+            const int* neighbours, const index_t* sharedArray,
             const index_t* offset, index_t m, index_t b,
             const esysUtils::JMPI& mpiInfo)
         : local_length(localLength*m),
           numNeighbors(nNeighbours),
           mpi_info(mpiInfo)
     {
-        neighbor = new Esys_MPI_rank[numNeighbors];
+        neighbor = new int[numNeighbors];
         if (!offset) {
             numSharedComponents = 0;
         } else {
@@ -94,7 +94,7 @@ struct SharedComponents
     index_t* offsetInShared;
 
     /// list of the processors sharing values with this processor
-    Esys_MPI_rank* neighbor;
+    int* neighbor;
 
     /// list of the (local) components which are shared with other processors.
     /// Has length numSharedComponents

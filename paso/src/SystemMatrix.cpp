@@ -428,11 +428,11 @@ void SystemMatrix::copyColCoupleBlock()
 
     // wait until everything is done
 #ifdef ESYS_MPI
+    mpi_info->incCounter(mpi_info->size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors+row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests,
                 row_coupler->mpi_stati);
 #endif
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size);
     delete[] send_buffer;
 }
 
@@ -610,8 +610,8 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
             temp_n[i] = remote_n;
             iptr += remote_n;
         }
+        mpi_info->incCounter(size);
         MPI_Waitall(size-1, &mpi_requests[1], &mpi_stati[0]);
-        ESYS_MPI_INC_COUNTER(*mpi_info, size);
 
         // Then, prepare to receive idx and val from other ranks
         index_t len = 0;
@@ -643,7 +643,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
         memcpy(idx_global, idx, temp_len[0]*sizeof(index_t));
         delete[] idx;
         MPI_Waitall(size-1, &mpi_requests[1], &mpi_stati[0]);
-        ESYS_MPI_INC_COUNTER(*mpi_info, size);
+        mpi_info->incCounter(size);
         delete[] temp_n;
 
         // Then generate the sparse matrix
@@ -665,8 +665,8 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
         }
         memcpy(out->val, val, temp_len[0] * sizeof(double) * block_size);
         delete[] val;
+        mpi_info->incCounter(size);
         MPI_Waitall(size-1, &mpi_requests[1], &mpi_stati[0]);
-        ESYS_MPI_INC_COUNTER(*mpi_info, size);
         delete[] temp_len;
         return out;
 
@@ -690,7 +690,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
                    &mpi_requests[2]);
 
         MPI_Waitall(3, &mpi_requests[0], &mpi_stati[0]);
-        ESYS_MPI_SET_COUNTER(*mpi_info, tag + size - rank)
+        mpi_info->setCounter(tag + size - rank);
         delete[] ptr;
         delete[] idx;
         delete[] val;

@@ -37,7 +37,7 @@ void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
     dim_t numQuadTotal;
     dim_t numComps = getDataPointSize(data);
     Dudley_ElementFile_Jacobeans *jac = NULL;
-    Esys_MPI_rank my_mpi_rank;
+    int my_mpi_rank;
 
     Dudley_resetError();
     if (nodes == NULL || elements == NULL)

@@ -94,9 +94,9 @@ void randomFillArray(long seed, double* array, size_t n)
     // now we need to consider MPI since we don't want each rank to start with
     // the same seed. Rank in COMM_WORLD will do
 #ifdef ESYS_MPI
-    Esys_MPI_rank rank;
+    int rank;
     int mperr=MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (mperr!=MPI_SUCCESS) {
+    if (mperr != MPI_SUCCESS) {
         rank=0;
     }
     seed+=rank*5;

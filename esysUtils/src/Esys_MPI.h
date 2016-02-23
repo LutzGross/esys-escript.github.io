@@ -58,12 +58,6 @@
 
 #endif // ESYS_MPI
 
-typedef int Esys_MPI_rank;
-
-// Modding by 7 digit prime to avoid overflow
-#define ESYS_MPI_INC_COUNTER(V,I) {(V).msg_tag_counter=((V).msg_tag_counter+(I))%1010201;}
-#define ESYS_MPI_SET_COUNTER(V,I) {(V).msg_tag_counter=(I)%1010201;}
-
 namespace esysUtils {
 
 using escript::DataTypes::index_t;
@@ -88,7 +82,7 @@ class JMPI_
 public:
     ~JMPI_();
     int size;
-    Esys_MPI_rank rank;
+    int rank;
     MPI_Comm comm;
     int msg_tag_counter;
     bool ownscomm;      // if true, destroy comm on destruct
@@ -101,12 +95,12 @@ public:
         msg_tag_counter+=i;
         // there is no particular significance here other than being 7 digits
         // and prime (because why not). It just needs to be big.
-        msg_tag_counter%=1010201;
+        msg_tag_counter %= 1010201;
     }
 
-    void setCounter(int i)
+    void setCounter(int value)
     {
-        msg_tag_counter%=1010201;
+        msg_tag_counter = value%1010201;
     }
 
     bool isValid()

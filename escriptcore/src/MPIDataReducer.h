@@ -50,11 +50,11 @@ public:
     
 	// Get a value for this variable from another process
 	// This is not a reduction and will replace any existing value
-    bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo);
+    bool recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo);
 
 	// Send a value to this variable to another process
 	// This is not a reduction and will replace any existing value    
-    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
+    bool sendTo(int localid, int target, esysUtils::JMPI& mpiinfo);    
     virtual boost::python::object getPyObj();
 
 	// send from proc 0 in the communicator to all others

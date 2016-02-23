@@ -670,7 +670,7 @@ void MultiRectangle::populateDofMap()
     }
 
     // TODO: paso::SharedComponents should take vectors to avoid this
-    Esys_MPI_rank* neighPtr = NULL;
+    int* neighPtr = NULL;
     index_t* sendPtr = NULL;
     index_t* recvPtr = NULL;
     if (neighbour.size() > 0) {

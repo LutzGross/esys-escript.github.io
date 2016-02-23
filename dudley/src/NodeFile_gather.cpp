@@ -68,13 +68,13 @@ void Dudley_NodeFile_gather(index_t * index, Dudley_NodeFile * in, Dudley_NodeFi
 void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley_NodeFile * out)
 {
     index_t min_id, max_id, undefined_node;
-    Esys_MPI_rank buffer_rank, *distribution = NULL;
+    int buffer_rank, *distribution = NULL;
     index_t *Id_buffer = NULL, *Tag_buffer = NULL, *globalDegreesOfFreedom_buffer = NULL;
     double *Coordinates_buffer = NULL;
     dim_t p, buffer_len, n;
     char error_msg[100];
 #ifdef ESYS_MPI
-    Esys_MPI_rank dest, source;
+    int dest, source;
     MPI_Status status;
 #endif
 
@@ -124,8 +124,8 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 		    MPI_Sendrecv_replace(Coordinates_buffer, buffer_len * out->numDim, MPI_DOUBLE, dest,
 					 in->MPIInfo->msg_tag_counter + 3, source, in->MPIInfo->msg_tag_counter + 3,
 					 in->MPIInfo->comm, &status);
+		    in->MPIInfo->incCounter(4);
 #endif
-		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
 		}
 		buffer_rank = esysUtils::mod_rank(in->MPIInfo->size, buffer_rank - 1);
 		Dudley_NodeFile_scatterEntries(in->numNodes, in->Id,
@@ -164,8 +164,8 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 		    MPI_Sendrecv_replace(Coordinates_buffer, buffer_len * out->numDim, MPI_DOUBLE, dest,
 					 in->MPIInfo->msg_tag_counter + 3, source, in->MPIInfo->msg_tag_counter + 3,
 					 in->MPIInfo->comm, &status);
+		    in->MPIInfo->incCounter(4);
 #endif
-		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
 		}
 		buffer_rank = esysUtils::mod_rank(in->MPIInfo->size, buffer_rank - 1);
 	    }

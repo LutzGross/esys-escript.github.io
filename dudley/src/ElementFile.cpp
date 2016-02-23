@@ -92,7 +92,7 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * distribution)
 {
     dim_t local_num_elements, e, num_elements = 0;
-    Esys_MPI_rank myRank;
+    int myRank;
     if (in == NULL)
     {
 	distribution[0] = num_elements;

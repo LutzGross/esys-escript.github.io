@@ -37,9 +37,9 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     index_t k;
     dim_t mpiSize, myNumVertices, len, p, i;
     paso::Pattern_ptr pattern;
-    Esys_MPI_rank myRank, current_rank;
+    int myRank, current_rank;
 #ifdef ESYS_MPI
-    Esys_MPI_rank dest, source;
+    int dest, source;
     MPI_Status status;
 #endif
 

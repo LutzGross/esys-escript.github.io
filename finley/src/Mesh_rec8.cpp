@@ -46,7 +46,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
     index_t e_offset0, e_offset1;
     const bool generateAllNodes = useFullElementOrder || useMacroElements;
 
-    const Esys_MPI_rank myRank = mpiInfo->rank;
+    const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
     const dim_t NE0 = std::max(dim_t(1),numElements[0]);

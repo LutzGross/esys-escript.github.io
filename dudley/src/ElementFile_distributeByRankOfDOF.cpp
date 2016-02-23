@@ -30,10 +30,10 @@
 
 /************************************************************************************/
 
-void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MPI_rank * mpiRankOfDOF, index_t * Id)
+void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, int * mpiRankOfDOF, index_t * Id)
 {
     size_t size_size;
-    Esys_MPI_rank myRank, p, *Owner_buffer = NULL, loc_proc_mask_max;
+    int myRank, p, *Owner_buffer = NULL, loc_proc_mask_max;
     dim_t e, j, i, size, *send_count = NULL, *recv_count = NULL, *newOwner = NULL, *loc_proc_mask =
 	NULL, *loc_send_count = NULL, newNumElements, numElementsInBuffer, numNodes, NN;
     index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
@@ -63,7 +63,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 	   and define a new element owner as the processor with the largest number of DOFs and the smallest id */
 	send_count = new  dim_t[size];
 	recv_count = new  dim_t[size];
-	newOwner = new  Esys_MPI_rank[self->numElements];
+	newOwner = new  int[self->numElements];
 	if (!(Dudley_checkPtr(send_count) || Dudley_checkPtr(recv_count) || Dudley_checkPtr(newOwner)))
 	{
 	    memset(send_count, 0, size_size);
@@ -127,7 +127,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 	    /* allocate buffers */
 	    Id_buffer = new  index_t[numElementsInBuffer];
 	    Tag_buffer = new  index_t[numElementsInBuffer];
-	    Owner_buffer = new  Esys_MPI_rank[numElementsInBuffer];
+	    Owner_buffer = new  int[numElementsInBuffer];
 	    Nodes_buffer = new  index_t[numElementsInBuffer * NN];
 	    send_offset = new  index_t[size];
 	    recv_offset = new  index_t[size];
@@ -224,9 +224,9 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 
 		    }
 		}
-		ESYS_MPI_INC_COUNTER(*(self->MPIInfo), 4 * size);
 		/* wait for the requests to be finalized */
 #ifdef ESYS_MPI
+		self->MPIInfo->incCounter(4 * size);
 		MPI_Waitall(numRequests, mpi_requests, mpi_stati);
 #endif
 	    }

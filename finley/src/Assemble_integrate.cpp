@@ -37,7 +37,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
-    Esys_MPI_rank my_mpi_rank = nodes->MPIInfo->rank;
+    const int my_mpi_rank = nodes->MPIInfo->rank;
     ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, FALSE,
                                     util::hasReducedIntegrationOrder(data));
     if (noError()) {

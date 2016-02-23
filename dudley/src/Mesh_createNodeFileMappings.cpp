@@ -34,7 +34,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
     index_t min_DOF, max_DOF, *shared = NULL, *offsetInShared = NULL, *locDOFMask =
 	NULL, i, k, myFirstDOF, myLastDOF, *nodeMask = NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs = NULL;
     dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes, *rcv_len = NULL, *snd_len = NULL, count;
-    Esys_MPI_rank myRank, p, p_min, p_max, *neighbor = NULL;
+    int myRank, p, p_min, p_max, *neighbor = NULL;
     paso::SharedComponents_ptr rcv_shcomp, snd_shcomp;
     Dudley_NodeMapping *this_mapping = NULL;
     paso::Connector_ptr this_connector;
@@ -103,7 +103,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 #endif
     wanted_DOFs = new  index_t[numNodes];
     nodeMask = new  index_t[numNodes];
-    neighbor = new  Esys_MPI_rank[mpiSize];
+    neighbor = new  int[mpiSize];
     shared = new  index_t[numNodes * (p_max - p_min + 1)];
     offsetInShared = new  index_t[mpiSize + 1];
     locDOFMask = new  index_t[len_loc_dof];
@@ -358,7 +358,7 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	NULL, *maskMyReducedNodes = NULL, *indexMyReducedNodes = NULL;
     dim_t myNumDOF, myNumNodes, myNumReducedNodes, myNumReducedDOF, globalNumReducedNodes, globalNumReducedDOF, i,
 	mpiSize;
-    Esys_MPI_rank myRank;
+    int myRank;
 
     mpiSize = in->Nodes->MPIInfo->size;
     myRank = in->Nodes->MPIInfo->rank;

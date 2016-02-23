@@ -82,7 +82,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
    #ifdef ESYS_MPI
    index_t rank=mpi_info->rank;
    #endif
-   Esys_MPI_rank *neighbor=NULL;
+   int *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -217,7 +217,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
    /* prepare the receiver for the col_connector.
       Note that the allocation for "shared" assumes the send and receive buffer
       of the interpolation matrix P is no larger than that of matrix A_p. */
-   neighbor = new Esys_MPI_rank[size];
+   neighbor = new int[size];
    offsetInShared = new index_t[size+1];
    recv = A_p->col_coupler->connector->recv;
    send = A_p->col_coupler->connector->send;
@@ -278,10 +278,10 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
                shared, offsetInShared, 1, 0, mpi_info));
 
    /* now we can build the sender */
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size)
+#endif
    delete[] mpi_requests;
    delete[] mpi_stati;
 

@@ -224,10 +224,10 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         i0 = i;
     }
 
+    mpi_info->incCounter(mpi_size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                     row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_size)
 
     len = 0;
     for (index_t i=0; i<overlapped_n; i++) {
@@ -259,10 +259,10 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         j = send_degree[p];
     }
 
+    mpi_info->incCounter(mpi_size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                          row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_size)
 
     // allocate pattern and sparse matrix for remote_coupleBlock
     Pattern_ptr pattern(new Pattern(row_coupleBlock->pattern->type,
@@ -293,10 +293,10 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         j = send_degree[p];
     }
 
+    mpi_info->incCounter(mpi_size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                      row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_size)
 
     // release all temp memory allocation
     delete[] cols;
