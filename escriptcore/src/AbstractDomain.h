@@ -65,6 +65,12 @@ public:
 
     /**
      \brief
+     returns a shared pointer to the MPI information wrapper for this domain
+    */
+    virtual esysUtils::JMPI getMPI() const = 0;
+
+    /**
+     \brief
      return the number of processors used for this domain
     */
     virtual int getMPISize() const = 0;

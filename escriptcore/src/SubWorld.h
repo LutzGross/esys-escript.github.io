@@ -47,15 +47,19 @@ namespace escript
 class SubWorld : public boost::enable_shared_from_this<SubWorld>
 {
 public:
-    SubWorld(esysUtils::JMPI& globalcom, esysUtils::JMPI& comm, esysUtils::JMPI& corr, unsigned int subworldcount, unsigned int local_id, bool manualimport);
+    SubWorld(esysUtils::JMPI& globalcom, esysUtils::JMPI& comm,
+             esysUtils::JMPI& corr, unsigned int subworldcount,
+             unsigned int local_id, bool manualimport);
+
     ~SubWorld();
+
     void setDomain(Domain_ptr d);
     Domain_ptr getDomain();
     esysUtils::JMPI& getMPI();
     esysUtils::JMPI& getCorrMPI();
-    void addJob(boost::python::object j);		// add a Job to the current batch
-    char runJobs(std::string& errmsg);		// run all jobs in the current batch
-    void clearJobs();				// remove all jobs in the current batch
+    void addJob(boost::python::object j);       // add a Job to the current batch
+    char runJobs(std::string& errmsg);          // run all jobs in the current batch
+    void clearJobs();                           // remove all jobs in the current batch
 
     void addVariable(std::string&, Reducer_ptr& red);
     void removeVariable(std::string& name);  
@@ -64,17 +68,17 @@ public:
     std::list<std::pair<std::string, std::string> > getVarInfo();
     size_t getNumVars();
     
-    bool localTransport(std::string& errmsg);	// gather exported values from jobs
-    bool checkRemoteCompatibility(std::string& errmsg);	// check to ensure values
-						// in all worlds are compatible
+    bool localTransport(std::string& errmsg);   // gather exported values from jobs
+    bool checkRemoteCompatibility(std::string& errmsg); // check to ensure values
+                                                // in all worlds are compatible
     
-    bool deliverImports(std::string& errmsg);	// load imports into Job objects
-    bool amLeader();	// true if this proc is the leader for its world
+    bool deliverImports(std::string& errmsg);   // load imports into Job objects
+    bool amLeader();    // true if this proc is the leader for its world
     
     DataTypes::real_t getScalarVariable(const std::string& name);
     boost::python::object getLocalObjectVariable(const std::string& name);    
     
-    void debug();	// print out current state information
+    void debug();       // print out current state information
     
     
     
@@ -87,31 +91,31 @@ public:
     void newRunJobs();
     
 private:
-    esysUtils::JMPI everyone;	// communicator linking all procs in all subworlds
-    esysUtils::JMPI swmpi;	// communicator linking all procs in this subworld
-    esysUtils::JMPI corrmpi;	// communicator linking corresponding procs in all subworlds
-				// eg: If this proc is the first in its domain, then corrmpi
-				//     links to the other "first in its domain" processes.
-				//      (So one in each SubWorld).
+    esysUtils::JMPI everyone;   // communicator linking all procs in all subworlds
+    esysUtils::JMPI swmpi;      // communicator linking all procs in this subworld
+    esysUtils::JMPI corrmpi;    // communicator linking corresponding procs in all subworlds
+                                // eg: If this proc is the first in its domain, then corrmpi
+                                //     links to the other "first in its domain" processes.
+                                //      (So one in each SubWorld).
     escript::Domain_ptr domain;
-    std::vector<boost::python::object> jobvec;	// jobs in the current batch
+    std::vector<boost::python::object> jobvec;  // jobs in the current batch
     
     
-    unsigned int swcount;		// number of subwords
-    unsigned int localid;    	// position of this subworld in that sequence
+    unsigned int swcount;       // number of subwords
+    unsigned int localid;       // position of this subworld in that sequence
     
-typedef std::map<std::string, Reducer_ptr> str2reduce;  
-typedef std::map<std::string, unsigned char> str2char;
-    str2reduce reducemap;		// map: name ->reducer for that variable
-    str2char varstate;		// using the state values from AbstractReducer.h
+    typedef std::map<std::string, Reducer_ptr> str2reduce;  
+    typedef std::map<std::string, unsigned char> str2char;
+    str2reduce reducemap;       // map: name ->reducer for that variable
+    str2char varstate;          // using the state values from AbstractReducer.h
 
     bool manualimports;
     
 #ifdef ESYS_MPI    
-    std::vector<unsigned char> globalvarinfo;	// info about which worlds want which vars
-				  // [vars on process0][vars on process 1][vars on ...]
-typedef std::map<unsigned char, int> countmap;
-typedef std::map<std::string, countmap> str2countmap;
+    std::vector<unsigned char> globalvarinfo;   // info about which worlds want which vars
+                                  // [vars on process0][vars on process 1][vars on ...]
+    typedef std::map<unsigned char, int> countmap;
+    typedef std::map<std::string, countmap> str2countmap;
     str2countmap globalvarcounts;
     bool globalinfoinvalid;
     
@@ -141,7 +145,7 @@ typedef std::map<std::string, countmap> str2countmap;
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;
 
+} // namespace escript
 
-
-}
 #endif
+

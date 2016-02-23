@@ -67,7 +67,6 @@ using escript::DataTypes::dim_t;
     This value should be higher than the modulus used in JMPI_::setCounter.
     Apart from that, its value is not particularly significant.
 */
-ESYSUTILS_DLL_API
 inline int getSubWorldTag()
 {
     return (('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W')%1010201;
@@ -78,6 +77,7 @@ class JMPI_;
 typedef boost::shared_ptr<JMPI_> JMPI;
 
 /// creates a JMPI shared pointer from MPI communicator
+/// if owncom is true, the communicator is freed when mpi info is destroyed.
 JMPI makeInfo(MPI_Comm comm, bool owncom=false);
 
 class JMPI_
@@ -91,8 +91,45 @@ public:
 
     /// N = #CPUs, k is a CPU number but out of range or even negative.
     /// Return a CPU number in 0...N-1.
-    int mod_rank(int k) const;
+    inline int mod_rank(int k) const
+    {
+        int out=0;
+#ifdef ESYS_MPI
+        if (size > 1) {
+            const int q = k/size;
+            if (k > 0) {
+               out=k-size*q;
+            } else if (k < 0) {
+               out=k-size*(q-1);
+            }
+        }
+#endif
+        return out;
+    }
 
+    /// appends MPI rank to a file name if MPI size > 1
+    inline std::string appendRankToFileName(const std::string& fileName) const
+    {
+#ifdef ESYS_MPI
+        if (size > 1) {
+            std::stringstream ss;
+            ss << fileName << '.';
+            ss.fill('0');
+            ss.width(4);
+            ss << rank;
+            return ss.str();
+        }
+#endif
+        return fileName;
+    }
+
+    /// returns the current value of the message tag counter
+    inline int counter() const
+    {
+        return msg_tag_counter;
+    }
+
+    /// increments the message tag counter by `i`
     inline void incCounter(int i=1)
     {
         msg_tag_counter+=i;
@@ -101,12 +138,14 @@ public:
         msg_tag_counter %= 1010201;
     }
 
+    /// sets the message tag counter to `value`
     inline void setCounter(int value)
     {
         msg_tag_counter = value%1010201;
     }
 
-    bool isValid()
+    /// returns true if this has a valid MPI communicator
+    inline bool isValid() const
     {
         return comm!=MPI_COMM_NULL;
     }
@@ -114,46 +153,15 @@ public:
     int size;
     int rank;
     MPI_Comm comm;
-    int msg_tag_counter;
+
 private:
-    JMPI_(MPI_Comm comm, bool ocomm);
+    JMPI_(MPI_Comm comm, bool owncomm);
     friend JMPI makeInfo(MPI_Comm comm, bool owncom);
 
-    bool ownscomm; // if true, destroy comm on destruct
+    bool ownscomm;
+    int msg_tag_counter;
 };
 
-inline int JMPI_::mod_rank(int k) const
-{
-    int out=0;
-#ifdef ESYS_MPI
-    if (size > 1) {
-        const int q = k/size;
-        if (k > 0) {
-           out=k-size*q;
-        } else if (k < 0) {
-           out=k-size*(q-1);
-        }
-    }
-#endif
-    return out;
-}
-
-
-/// Appends MPI rank to a file name if MPI size > 1
-inline std::string appendRankToFileName(const std::string &fileName,
-                                        int mpiSize, int mpiRank)
-{
-    std::stringstream ss;
-    ss << fileName;
-    if (mpiSize > 1) {
-        ss << '.';
-        ss.fill('0');
-        ss.width(4);
-        ss << mpiRank;
-    }
-    std::string result(ss.str());
-    return result;
-}
 
 bool Esys_MPIInfo_noError(const JMPI& mpi_info);
 

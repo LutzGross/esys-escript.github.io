@@ -116,8 +116,8 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
             {                   /* the final send can be skipped */
 #ifdef ESYS_MPI
                 MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
-                                     dest, in->MPIInfo->msg_tag_counter,
-                                     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                                     dest, in->MPIInfo->counter(),
+                                     source, in->MPIInfo->counter(), in->MPIInfo->comm, &status);
                 in->MPIInfo->incCounter();
 #endif
                 current_rank = in->MPIInfo->mod_rank(current_rank - 1);

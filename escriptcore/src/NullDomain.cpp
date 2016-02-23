@@ -43,6 +43,11 @@ std::string NullDomain::functionSpaceTypeAsString(int functionSpaceType) const
     return "Default_FunctionSpace";
 }
 
+esysUtils::JMPI NullDomain::getMPI() const
+{
+    throw DomainException("NullDomain::getMPI() not supported.");
+}
+
 void NullDomain::interpolateOnDomain(Data& target,const Data& source) const
 {
    if (source.getFunctionSpace().getDomain().get()!=this)  
@@ -93,7 +98,7 @@ const int* NullDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 escript::Data NullDomain::randomFill(const DataTypes::ShapeType& shape,
        const FunctionSpace& what, long seed, const boost::python::tuple& filter) const
 {
-    throw DataException("Attempted randomFill on NullDomain. NullDomains do not store values.");
+    throw DomainException("Attempted randomFill on NullDomain. NullDomains do not store values.");
 }
 void NullDomain::dump(std::string const&) const
 {

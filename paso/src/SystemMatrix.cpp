@@ -381,7 +381,7 @@ void SystemMatrix::copyColCoupleBlock()
 
         MPI_Irecv(&row_coupleBlock->val[a*block_size], (b-a) * block_size,
                 MPI_DOUBLE, row_coupler->connector->recv->neighbor[p],
-                mpi_info->msg_tag_counter+row_coupler->connector->recv->neighbor[p],
+                mpi_info->counter()+row_coupler->connector->recv->neighbor[p],
                 mpi_info->comm, &row_coupler->mpi_requests[p]);
 
 #endif
@@ -419,7 +419,7 @@ void SystemMatrix::copyColCoupleBlock()
 #ifdef ESYS_MPI
         MPI_Issend(&send_buffer[z0], z-z0, MPI_DOUBLE,
                    row_coupler->connector->send->neighbor[p],
-                   mpi_info->msg_tag_counter+mpi_info->rank,
+                   mpi_info->counter()+mpi_info->rank,
                    mpi_info->comm,
                    &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
 #endif
@@ -605,7 +605,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
             const index_t remote_n = row_distribution->first_component[i+1] -
                                         row_distribution->first_component[i];
             MPI_Irecv(&ptr_global[iptr], remote_n, MPI_INT, i,
-                        mpi_info->msg_tag_counter+i, mpi_info->comm,
+                        mpi_info->counter()+i, mpi_info->comm,
                         &mpi_requests[i]);
             temp_n[i] = remote_n;
             iptr += remote_n;
@@ -631,7 +631,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
         for (index_t i=1; i<size; i++) {
             len = temp_len[i];
             MPI_Irecv(&idx_global[iptr], len, MPI_INT, i,
-                        mpi_info->msg_tag_counter+i,
+                        mpi_info->counter()+i,
                         mpi_info->comm, &mpi_requests[i]);
             const index_t remote_n = temp_n[i];
             for (index_t j=0; j<remote_n; j++) {
@@ -659,7 +659,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
         for (index_t i=1; i<size; i++) {
             len = temp_len[i];
             MPI_Irecv(&out->val[iptr], len * block_size, MPI_DOUBLE, i,
-                        mpi_info->msg_tag_counter+i, mpi_info->comm,
+                        mpi_info->counter()+i, mpi_info->comm,
                         &mpi_requests[i]);
             iptr += len*block_size;
         }
@@ -673,7 +673,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
     } else { // it's not rank 0
 
         // First, send out the local ptr
-        index_t tag = mpi_info->msg_tag_counter+rank;
+        index_t tag = mpi_info->counter()+rank;
         MPI_Issend(&ptr[1], n, MPI_INT, 0, tag, mpi_info->comm,
                    &mpi_requests[0]);
 

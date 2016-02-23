@@ -77,21 +77,28 @@ MeshAdapter::~MeshAdapter()
    }
 }
 
+esysUtils::JMPI MeshAdapter::getMPI() const
+{
+    return m_dudleyMesh.get()->MPIInfo;
+}
+
 int MeshAdapter::getMPISize() const
 {
    return m_dudleyMesh.get()->MPIInfo->size;
 }
+
 int MeshAdapter::getMPIRank() const
 {
    return m_dudleyMesh.get()->MPIInfo->rank;
 }
+
 void MeshAdapter::MPIBarrier() const
 {
 #ifdef ESYS_MPI
    MPI_Barrier(m_dudleyMesh.get()->MPIInfo->comm);
 #endif
-   return;
 }
+
 bool MeshAdapter::onMasterProcessor() const
 {
    return m_dudleyMesh.get()->MPIInfo->rank == 0;
@@ -101,7 +108,6 @@ MPI_Comm MeshAdapter::getMPIComm() const
 {
     return m_dudleyMesh->MPIInfo->comm;
 }
-
 
 Dudley_Mesh* MeshAdapter::getDudley_Mesh() const
 {
@@ -149,8 +155,7 @@ void MeshAdapter::dump(const string& fileName) const
    if (mpi_rank>0) MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, mesh->MPIInfo->comm, &status);
 #endif
 
-   string newFileName(esysUtils::appendRankToFileName(
-                                            fileName, mpi_size, mpi_rank));
+   string newFileName(mesh->MPIInfo->appendRankToFileName(fileName));
 
    /* Figure out how much storage is required for tags */
    tag_map = mesh->TagMap;

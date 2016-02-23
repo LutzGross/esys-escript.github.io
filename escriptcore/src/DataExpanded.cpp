@@ -890,13 +890,10 @@ void DataExpanded::dump(const std::string fileName) const
     long dims[ldims];
     const double* d_ptr=&(m_data_r[0]);
     const DataTypes::ShapeType& shape = getShape();
-    int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
-    int mpi_num=getFunctionSpace().getDomain()->getMPISize();
-
+    esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     // netCDF error handler
     NcError err(NcError::verbose_nonfatal);
-    std::string newFileName(esysUtils::appendRankToFileName(fileName,
-                                                            mpi_num, mpi_iam));
     NcFile dataFile(newFileName.c_str(), NcFile::Replace);
     if (!dataFile.is_valid())
         throw DataException("DataExpanded::dump: opening of netCDF file for output failed.");

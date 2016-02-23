@@ -77,7 +77,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
                 {               /* the initial send can be skipped */
 #ifdef ESYS_MPI
                     MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
-                                         dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                         dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                          in->MPIInfo->comm, &status);
                     in->MPIInfo->incCounter();
 #endif
@@ -153,7 +153,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
                 {               /* the last send can be skipped */
 #ifdef ESYS_MPI
                     MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
-                                         dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                         dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                          in->MPIInfo->comm, &status);
                     in->MPIInfo->incCounter();
 #endif
@@ -243,7 +243,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
                 {               /* the initial send can be skipped */
 #ifdef ESYS_MPI
                     MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
-                                         dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                         dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                          in->MPIInfo->comm, &status);
                     in->MPIInfo->incCounter();
 #endif
@@ -319,7 +319,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
                 {               /* the last send can be skipped */
 #ifdef ESYS_MPI
                     MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
-                                         dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                         dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                          in->MPIInfo->comm, &status);
                     in->MPIInfo->incCounter();
 #endif
@@ -467,7 +467,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
             {                   /* the last send can be skipped */
 #ifdef ESYS_MPI
                 MPI_Sendrecv_replace(Node_buffer, buffer_len + header_len, MPI_INT,
-                                     dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                     dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                      in->MPIInfo->comm, &status);
                 in->MPIInfo->incCounter();
 #endif
@@ -522,10 +522,10 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
                 {               /* the initial send can be skipped */
 #ifdef ESYS_MPI
                     MPI_Sendrecv_replace(Nodes_buffer, buffer_len, MPI_INT,
-                                         dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                         dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                          in->MPIInfo->comm, &status);
+                    in->MPIInfo->incCounter();
 #endif
-                    in->MPIInfo->msg_tag_counter++;
                 }
                 buffer_rank = in->MPIInfo->mod_rank(buffer_rank - 1);
                 node_0 = distribution[buffer_rank];
@@ -598,7 +598,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
                 {               /* the last send can be skipped */
 #ifdef ESYS_MPI
                     MPI_Sendrecv_replace(Nodes_buffer, buffer_len, MPI_INT,
-                                         dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
+                                         dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
                                          in->MPIInfo->comm, &status);
                     in->MPIInfo->incCounter();
 #endif

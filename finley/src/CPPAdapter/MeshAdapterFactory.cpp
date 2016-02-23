@@ -62,10 +62,9 @@ inline void cleanupAndThrow(Mesh* mesh, string msg)
 Domain_ptr loadMesh(const std::string& fileName)
 {
 #ifdef USE_NETCDF
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
+    esysUtils::JMPI mpiInfo = esysUtils::makeInfo( MPI_COMM_WORLD );
 
-    const string fName(esysUtils::appendRankToFileName(fileName,
-                        mpi_info->size, mpi_info->rank));
+    const string fName(mpiInfo->appendRankToFileName(fileName));
 
     resetError();
 
@@ -118,18 +117,18 @@ Domain_ptr loadMesh(const std::string& fileName)
     int num_Tags = ncReadAtt<int>(&dataFile, fName, "num_Tags");
 
     // Verify size and rank
-    if (mpi_info->size != mpi_size) {
+    if (mpiInfo->size != mpi_size) {
         stringstream msg;
         msg << "loadMesh: The NetCDF file '" << fName
             << "' can only be read on " << mpi_size
-            << " CPUs. Currently running: " << mpi_info->size;
+            << " CPUs. Currently running: " << mpiInfo->size;
         throw FinleyAdapterException(msg.str());
     }
-    if (mpi_info->rank != mpi_rank) {
+    if (mpiInfo->rank != mpi_rank) {
         stringstream msg;
         msg << "loadMesh: The NetCDF file '" << fName
             << "' should be read on CPU #" << mpi_rank
-            << " and NOT on #" << mpi_info->rank;
+            << " and NOT on #" << mpiInfo->rank;
         throw FinleyAdapterException(msg.str());
     }
 
@@ -144,7 +143,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     delete attr;
 
     // allocate mesh
-    Mesh *mesh_p = new Mesh(name.get(), numDim, mpi_info);
+    Mesh *mesh_p = new Mesh(name.get(), numDim, mpiInfo);
     if (noError()) {
         // read nodes
         mesh_p->Nodes->allocTable(numNodes);
@@ -190,7 +189,7 @@ Domain_ptr loadMesh(const std::string& fileName)
             const_ReferenceElementSet_ptr refElements(new ReferenceElementSet(
                         (ElementTypeId)Elements_TypeId, order, reduced_order));
             if (noError())  {
-                mesh_p->Elements=new ElementFile(refElements, mpi_info);
+                mesh_p->Elements=new ElementFile(refElements, mpiInfo);
             }
             if (noError())
                 mesh_p->Elements->allocTable(num_Elements);
@@ -256,7 +255,7 @@ Domain_ptr loadMesh(const std::string& fileName)
                     new ReferenceElementSet((ElementTypeId)FaceElements_TypeId,
                         order, reduced_order));
             if (noError())  {
-                mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
+                mesh_p->FaceElements=new ElementFile(refFaceElements, mpiInfo);
             }
             if (noError())
                 mesh_p->FaceElements->allocTable(num_FaceElements);
@@ -320,7 +319,7 @@ Domain_ptr loadMesh(const std::string& fileName)
                  new ReferenceElementSet((ElementTypeId)ContactElements_TypeId,
                      order, reduced_order));
             if (noError()) {
-                mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
+                mesh_p->ContactElements=new ElementFile(refContactElements, mpiInfo);
             }
             if (noError())
                 mesh_p->ContactElements->allocTable(num_ContactElements);
@@ -383,7 +382,7 @@ Domain_ptr loadMesh(const std::string& fileName)
             const_ReferenceElementSet_ptr refPoints(new ReferenceElementSet(
                         (ElementTypeId)Points_TypeId, order, reduced_order));
             if (noError())  {
-                mesh_p->Points=new ElementFile(refPoints, mpi_info);
+                mesh_p->Points=new ElementFile(refPoints, mpiInfo);
             }
             if (noError())
                 mesh_p->Points->allocTable(num_Points);

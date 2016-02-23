@@ -76,6 +76,11 @@ MeshAdapter::~MeshAdapter()
     }
 }
 
+esysUtils::JMPI MeshAdapter::getMPI() const
+{
+    return m_finleyMesh.get()->MPIInfo;
+}
+
 int MeshAdapter::getMPISize() const
 {
     return m_finleyMesh.get()->MPIInfo->size;
@@ -155,8 +160,7 @@ void MeshAdapter::dump(const string& fileName) const
     }
 #endif
 
-    const std::string newFileName(esysUtils::appendRankToFileName(fileName,
-                                                     mpi_size, mpi_rank));
+    const std::string newFileName(mesh->MPIInfo->appendRankToFileName(fileName));
 
     // Figure out how much storage is required for tags
     num_Tags = mesh->tagMap.size();

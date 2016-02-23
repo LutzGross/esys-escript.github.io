@@ -70,8 +70,7 @@ Domain_ptr loadMesh(const std::string& fileName)
 #ifdef USE_NETCDF
     esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
     Dudley_Mesh *mesh_p=NULL;
-    const string fName(esysUtils::appendRankToFileName(fileName,
-                                        mpi_info->size, mpi_info->rank));
+    const string fName(mpi_info->appendRankToFileName(fileName));
 
     Dudley_resetError();
     int *first_DofComponent, *first_NodeComponent;

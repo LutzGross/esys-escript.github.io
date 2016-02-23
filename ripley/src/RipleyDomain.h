@@ -98,6 +98,12 @@ public:
     ~RipleyDomain();
 
     /**
+     \brief
+     returns a reference to the MPI information wrapper for this domain
+    */
+    virtual esysUtils::JMPI getMPI() const { return m_mpiInfo; }
+
+    /**
        \brief
        returns the number of processors used for this domain
     */

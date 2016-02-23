@@ -20,23 +20,20 @@
 #include "Data.h"
 #include "DataConstant.h"
 #include "DataException.h"
+#include "DataMaths.h"
+
 #include "esysUtils/EsysAssert.h"
 #include "esysUtils/Esys_MPI.h"
 
 #include <iostream>
-#include <boost/python/extract.hpp>
-#include <boost/scoped_ptr.hpp>
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#include "DataMaths.h"
-
-// #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
-
 #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {\
     std::ostringstream ss;\
-    ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
+    ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
     ss << m_owners.size();\
     cerr << ss.str() << endl;\
     throw DataException(ss.str());}
@@ -79,13 +76,12 @@ DataConstant::DataConstant(const DataConstant& other,
                            const DataTypes::RegionType& region)
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
-  //
-  // create a view of the data with the correct shape
-  DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
-  int len = getNoValues();
-  if (other.isComplex())
-  {
-throw DataException("Complex not supported for this op");
+    // create a view of the data with the correct shape
+    DataTypes::RegionLoopRangeType region_loop_range=DataTypes::getSliceRegionLoopRange(region);
+    int len = getNoValues();
+    if (other.isComplex())
+    {
+        throw DataException("Complex not supported for this op");
 /*
       //
       // allocate space for this new DataConstant's data
@@ -94,16 +90,14 @@ throw DataException("Complex not supported for this op");
       // load the view with the data from the slice
       DataTypes::copySlice(m_data_c,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
 */
-  }
-  else
-  {
-      //
-      // allocate space for this new DataConstant's data
-      m_data_r.resize(len,0.,len);
-      //
-      // load the view with the data from the slice
-      DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
-  }
+    }
+    else
+    {
+        // allocate space for this new DataConstant's data
+        m_data_r.resize(len,0.,len);
+        // load the view with the data from the slice
+        DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+    }
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
@@ -111,9 +105,8 @@ DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
-  //
-  // copy the data in the correct format
-  m_data_r=data;
+    // copy the data in the correct format
+    m_data_r=data;
 }
 
 DataConstant::DataConstant(const FunctionSpace& what,
@@ -124,109 +117,102 @@ DataConstant::DataConstant(const FunctionSpace& what,
 }
 
 
-bool
-DataConstant::hasNaN() const
+bool DataConstant::hasNaN() const
 {
-  bool haveNaN=false;
-  if (isComplex())
-  {
-      #pragma omp parallel for
-      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
-      {
-	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
-	  {
-	      #pragma omp critical 
-	      {
-		  haveNaN=true;
-	      }
-	  }
-      }
-  }
-  else
-  {
-      #pragma omp parallel for
-      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
-      {
-	  if (std::isnan(m_data_r[i]))
-	  {
-	      #pragma omp critical 
-	      {
-		  haveNaN=true;
-	      }
-	  }
-      }
-  }
-  return haveNaN;
+    bool haveNaN=false;
+    if (isComplex())
+    {
+        #pragma omp parallel for
+        for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+        {
+            if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+            {
+                #pragma omp critical 
+                {
+                    haveNaN=true;
+                }
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel for
+        for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+        {
+            if (std::isnan(m_data_r[i]))
+            {
+                #pragma omp critical 
+                {
+                    haveNaN=true;
+                }
+            }
+        }
+    }
+    return haveNaN;
 }
 
 void
-DataConstant::replaceNaN(double value) {
-  CHECK_FOR_EX_WRITE  
-  if (isComplex())
-  {
+DataConstant::replaceNaN(double value)
+{
+    CHECK_FOR_EX_WRITE  
+    if (isComplex())
+    {
       #pragma omp parallel for
       for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
-	{
-	  m_data_c[i] = value;
-	}
+        if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+        {
+          m_data_c[i] = value;
+        }
       }
-  }
-  else
-  {
+    }
+    else
+    {
       #pragma omp parallel for
       for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	if (std::isnan(m_data_r[i]))  
-	{
-	  m_data_r[i] = value;
-	}
+        if (std::isnan(m_data_r[i]))  
+        {
+          m_data_r[i] = value;
+        }
       }    
-  }
+    }
 }
 
 void
-DataConstant::replaceNaN(DataTypes::cplx_t value) {
-  CHECK_FOR_EX_WRITE  
-  if (isComplex())
-  {
+DataConstant::replaceNaN(DataTypes::cplx_t value)
+{
+    CHECK_FOR_EX_WRITE  
+    if (isComplex())
+    {
       #pragma omp parallel for
       for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
-	{
-	  m_data_c[i] = value;
-	}
+        if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+        {
+          m_data_c[i] = value;
+        }
       }
-  }
-  else
-  {
+    }
+    else
+    {
       complicate();
       replaceNaN(value);
-  }
+    }
+}
+
+string DataConstant::toString() const
+{
+    if (isComplex())
+        return DataTypes::pointToString(m_data_c,getShape(),0,"");
+
+    return DataTypes::pointToString(m_data_r,getShape(),0,"");
 }
 
 
-
-string
-DataConstant::toString() const
+DataAbstract* DataConstant::deepCopy() const
 {
-  if (isComplex())
-  {
-      return DataTypes::pointToString(m_data_c,getShape(),0,"");
-  }
-  else
-  {
-      return DataTypes::pointToString(m_data_r,getShape(),0,"");
-  }
-}
-
-
-DataAbstract*
-DataConstant::deepCopy() const
-{
-  return new DataConstant(*this);
+    return new DataConstant(*this);
 }
 
 
@@ -404,7 +390,7 @@ DataConstant::setToZero()
 void
 DataConstant::dump(const std::string fileName) const
 {
-   #ifdef USE_NETCDF
+#ifdef USE_NETCDF
    const NcDim* ncdims[DataTypes::maxRank];
    NcVar* var;
    int rank = getRank();
@@ -413,22 +399,21 @@ DataConstant::dump(const std::string fileName) const
    long dims[DataTypes::maxRank];
    const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
-   int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
-   int mpi_num=getFunctionSpace().getDomain()->getMPISize();
+   esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+   const int mpi_iam = mpiInfo->rank;
+   const int mpi_num = mpiInfo->size;
 #ifdef ESYS_MPI
    MPI_Status status;
-#endif
 
-#ifdef ESYS_MPI
    /* Serialize NetCDF I/O */
-   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, MPI_COMM_WORLD, &status);
+   if (mpi_iam > 0)
+       MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, mpiInfo->comm, &status);
 #endif
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   const std::string newFileName(esysUtils::appendRankToFileName(fileName,
-                                                            mpi_num, mpi_iam));
+   const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
    NcFile dataFile(newFileName.c_str(), NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
@@ -484,53 +469,53 @@ DataConstant::dump(const std::string fileName) const
 DataTypes::RealVectorType&
 DataConstant::getVectorRW()
 {
-  CHECK_FOR_EX_WRITE
-  return m_data_r;
+    CHECK_FOR_EX_WRITE
+    return m_data_r;
 }
 
 const DataTypes::RealVectorType&
 DataConstant::getVectorRO() const
 {
-  return m_data_r;
+    return m_data_r;
 }
 
 DataTypes::CplxVectorType&
 DataConstant::getVectorRWC()
 {
-  CHECK_FOR_EX_WRITE
-  return m_data_c;
+    CHECK_FOR_EX_WRITE
+    return m_data_c;
 }
 
 const DataTypes::CplxVectorType&
 DataConstant::getVectorROC() const
 {
-  return m_data_c;
+    return m_data_c;
 }
 
 DataTypes::RealVectorType&
 DataConstant::getTypedVectorRW(DataTypes::real_t dummy)
 {
-  CHECK_FOR_EX_WRITE
-  return m_data_r;
+    CHECK_FOR_EX_WRITE
+    return m_data_r;
 }
 
 const DataTypes::RealVectorType&
 DataConstant::getTypedVectorRO(DataTypes::real_t dummy) const
 {
-  return m_data_r;
+    return m_data_r;
 }
 
 DataTypes::CplxVectorType&
 DataConstant::getTypedVectorRW(DataTypes::cplx_t dummy)
 {
-  CHECK_FOR_EX_WRITE
-  return m_data_c;
+    CHECK_FOR_EX_WRITE
+    return m_data_c;
 }
 
 const DataTypes::CplxVectorType&
 DataConstant::getTypedVectorRO(DataTypes::cplx_t dummy) const
 {
-  return m_data_c;
+    return m_data_c;
 }
 
 void DataConstant::complicate()
@@ -543,5 +528,5 @@ void DataConstant::complicate()
     }
 }
 
-
 }  // end of namespace
+

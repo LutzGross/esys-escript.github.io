@@ -74,7 +74,7 @@ void Coupler::startCollect(const double* in)
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
                     MPI_DOUBLE, connector->recv->neighbor[i],
-                    mpi_info->msg_tag_counter+connector->recv->neighbor[i],
+                    mpi_info->counter()+connector->recv->neighbor[i],
                     mpi_info->comm, &mpi_requests[i]);
 #endif
         }
@@ -100,7 +100,7 @@ void Coupler::startCollect(const double* in)
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
                     MPI_DOUBLE, connector->send->neighbor[i],
-                    mpi_info->msg_tag_counter+mpi_info->rank, mpi_info->comm,
+                    mpi_info->counter()+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->numNeighbors]);
         }
         mpi_info->incCounter(mpi_info->size);

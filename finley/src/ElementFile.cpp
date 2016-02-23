@@ -491,20 +491,20 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         for (int p=0; p<size; ++p) {
             if (recv_count[p] > 0) {
                 MPI_Irecv(&Id[recv_offset[p]], recv_count[p], MPI_DIM_T, p,
-                        MPIInfo->msg_tag_counter+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Tag[recv_offset[p]], recv_count[p], MPI_INT, p,
-                        MPIInfo->msg_tag_counter+size+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Owner[recv_offset[p]], recv_count[p], MPI_INT, p,
-                        MPIInfo->msg_tag_counter+2*size+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+2*size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Nodes[recv_offset[p]*numNodes],
                         recv_count[p]*numNodes, MPI_DIM_T, p,
-                        MPIInfo->msg_tag_counter+3*size+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+3*size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
             }
@@ -513,20 +513,20 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         for (int p=0; p<size; ++p) {
             if (send_count[p] > 0) {
                 MPI_Issend(&Id_buffer[send_offset[p]], send_count[p], MPI_DIM_T,
-                        p, MPIInfo->msg_tag_counter+p, MPIInfo->comm,
+                        p, MPIInfo->counter()+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Tag_buffer[send_offset[p]], send_count[p], MPI_INT,
-                        p, MPIInfo->msg_tag_counter+size+p, MPIInfo->comm,
+                        p, MPIInfo->counter()+size+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Owner_buffer[send_offset[p]], send_count[p],
-                        MPI_INT, p, MPIInfo->msg_tag_counter+2*size+p,
+                        MPI_INT, p, MPIInfo->counter()+2*size+p,
                         MPIInfo->comm, &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Nodes_buffer[send_offset[p]*numNodes],
                         send_count[p]*numNodes, MPI_DIM_T, p,
-                        MPIInfo->msg_tag_counter+3*size+p, MPIInfo->comm,
+                        MPIInfo->counter()+3*size+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
             }

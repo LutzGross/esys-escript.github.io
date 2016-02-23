@@ -392,11 +392,11 @@ void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
 #ifdef ESYS_MPI
                 MPI_Status status;
                 MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
-                                     dest, MPIInfo->msg_tag_counter,
-                                     source, MPIInfo->msg_tag_counter,
+                                     dest, MPIInfo->counter(),
+                                     source, MPIInfo->counter(),
                                      MPIInfo->comm, &status);
+                MPIInfo->incCounter();
 #endif
-                MPIInfo->msg_tag_counter++;
                 current_rank = MPIInfo->mod_rank(current_rank-1);
             }
         }

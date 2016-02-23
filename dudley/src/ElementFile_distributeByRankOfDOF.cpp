@@ -180,19 +180,19 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, int * m
 		    {
 #ifdef ESYS_MPI
 			MPI_Irecv(&(self->Id[recv_offset[p]]), recv_count[p],
-				  MPI_INT, p, self->MPIInfo->msg_tag_counter + myRank,
+				  MPI_INT, p, self->MPIInfo->counter() + myRank,
 				  self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 			MPI_Irecv(&(self->Tag[recv_offset[p]]), recv_count[p],
-				  MPI_INT, p, self->MPIInfo->msg_tag_counter + size + myRank,
+				  MPI_INT, p, self->MPIInfo->counter() + size + myRank,
 				  self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 			MPI_Irecv(&(self->Owner[recv_offset[p]]), recv_count[p],
-				  MPI_INT, p, self->MPIInfo->msg_tag_counter + 2 * size + myRank,
+				  MPI_INT, p, self->MPIInfo->counter() + 2 * size + myRank,
 				  self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 			MPI_Irecv(&(self->Nodes[recv_offset[p] * NN]), recv_count[p] * NN,
-				  MPI_INT, p, self->MPIInfo->msg_tag_counter + 3 * size + myRank,
+				  MPI_INT, p, self->MPIInfo->counter() + 3 * size + myRank,
 				  self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 #endif
@@ -205,19 +205,19 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, int * m
 		    {
 #ifdef ESYS_MPI
 			MPI_Issend(&(Id_buffer[send_offset[p]]), send_count[p],
-				   MPI_INT, p, self->MPIInfo->msg_tag_counter + p,
+				   MPI_INT, p, self->MPIInfo->counter() + p,
 				   self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 			MPI_Issend(&(Tag_buffer[send_offset[p]]), send_count[p],
-				   MPI_INT, p, self->MPIInfo->msg_tag_counter + size + p,
+				   MPI_INT, p, self->MPIInfo->counter() + size + p,
 				   self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 			MPI_Issend(&(Owner_buffer[send_offset[p]]), send_count[p],
-				   MPI_INT, p, self->MPIInfo->msg_tag_counter + 2 * size + p,
+				   MPI_INT, p, self->MPIInfo->counter() + 2 * size + p,
 				   self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 			MPI_Issend(&(Nodes_buffer[send_offset[p] * NN]), send_count[p] * NN,
-				   MPI_INT, p, self->MPIInfo->msg_tag_counter + 3 * size + p,
+				   MPI_INT, p, self->MPIInfo->counter() + 3 * size + p,
 				   self->MPIInfo->comm, &mpi_requests[numRequests]);
 			numRequests++;
 #endif

@@ -264,10 +264,10 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
 #ifdef ESYS_MPI
                 MPI_Status status;
                 MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
-                                     dest, in->MPIInfo->msg_tag_counter,
-                                     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
-#endif
+                                     dest, in->MPIInfo->counter(),
+                                     source, in->MPIInfo->counter(), in->MPIInfo->comm, &status);
                 in->MPIInfo->incCounter();
+#endif
                 current_rank = in->MPIInfo->mod_rank(current_rank - 1);
             }
         }

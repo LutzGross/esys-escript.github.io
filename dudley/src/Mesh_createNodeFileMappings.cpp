@@ -251,7 +251,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 #ifdef ESYS_MPI
 	    MPI_Isend(&(wanted_DOFs[rcv_shcomp->offsetInShared[p]]),
 		      rcv_shcomp->offsetInShared[p + 1] - rcv_shcomp->offsetInShared[p], MPI_INT,
-		      rcv_shcomp->neighbor[p], mpi_info->msg_tag_counter + myRank, mpi_info->comm,
+		      rcv_shcomp->neighbor[p], mpi_info->counter() + myRank, mpi_info->comm,
 		      &mpi_requests[count]);
 #endif
 	    count++;
@@ -264,7 +264,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 	    {
 #ifdef ESYS_MPI
 		MPI_Irecv(&(shared[n]), snd_len[p],
-			  MPI_INT, p, mpi_info->msg_tag_counter + p, mpi_info->comm, &mpi_requests[count]);
+			  MPI_INT, p, mpi_info->counter() + p, mpi_info->comm, &mpi_requests[count]);
 #endif
 		count++;
 		neighbor[numNeighbors] = p;
@@ -273,9 +273,9 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 		n += snd_len[p];
 	    }
 	}
-	mpi_info->incCounter(mpi_info->size);
 	offsetInShared[numNeighbors] = n;
 #ifdef ESYS_MPI
+	mpi_info->incCounter(mpi_info->size);
 	MPI_Waitall(count, mpi_requests, mpi_stati);
 #endif
 	/* map global ids to local id's */
