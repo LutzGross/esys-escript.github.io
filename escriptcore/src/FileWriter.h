@@ -14,16 +14,16 @@
 *
 *****************************************************************************/
 
-#ifndef __ESYS_FILEWRITER_H__
-#define __ESYS_FILEWRITER_H__
+#ifndef __ESCRIPT_FILEWRITER_H__
+#define __ESCRIPT_FILEWRITER_H__
+
+#include <esysUtils/Esys_MPI.h>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include <esysUtils/Esys_MPI.h>
-
-namespace esysUtils {
+namespace escript {
 
 class FileWriter
 {
@@ -36,10 +36,6 @@ public:
             MPI_Comm_rank(mpiComm, &mpiRank);
             MPI_Comm_size(mpiComm, &mpiSize);
         }
-#else
-        (void)mpiRank;	// to prevent the compiler from complaining
-        (void)mpiSize;  // that these are unused
-        (void)mpiComm;
 #endif
     }
 
@@ -103,7 +99,7 @@ public:
                 char errorstr[MPI_MAX_ERROR_STRING];
                 int len;
                 MPI_Error_string(mpiErr, errorstr, &len);
-                std::cerr << "Error " << " opening " << filename
+                std::cerr << "Error opening " << filename
                           << " for parallel writing: " << errorstr << std::endl;
             } else {
                 success=true;
@@ -226,7 +222,7 @@ private:
 };
 
 
-} // namespace esysUtils
+} // namespace escript
 
-#endif //  __ESYS_FILEWRITER_H__
+#endif // __ESCRIPT_FILEWRITER_H__
 

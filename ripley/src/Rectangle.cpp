@@ -24,7 +24,7 @@
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
 
-#include <esysUtils/esysFileWriter.h>
+#include <escript/FileWriter.h>
 #include <escript/Random.h>
 
 #include <paso/SystemMatrix.h>
@@ -48,8 +48,8 @@
 
 namespace bp = boost::python;
 namespace bm = boost::math;
-using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
+using escript::FileWriter;
 using std::vector;
 using std::string;
 using std::min;

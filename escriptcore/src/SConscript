@@ -100,6 +100,7 @@ headers = """
     DomainException.h
     EscriptParams.h
     ExceptionTranslators.h
+    FileWriter.h
     FunctionSpace.h
     FunctionSpaceException.h
     FunctionSpaceFactory.h

@@ -23,10 +23,10 @@
 
 #include "Data.h"
 #include "DataVector.h"
+#include "FileWriter.h"
 #include "Utils.h"
 
 #include <esysUtils/Esys_MPI.h>
-#include <esysUtils/esysFileWriter.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -40,7 +40,6 @@
 #include <boost/scoped_array.hpp>
 
 namespace bp = boost::python;
-using esysUtils::FileWriter;
 
 namespace escript {
 
