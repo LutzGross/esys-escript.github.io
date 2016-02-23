@@ -44,9 +44,9 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 #endif
 
     if (in == NULL)
-	return;
+        return;
     if (in->Nodes == NULL)
-	return;
+        return;
 
     myRank = in->MPIInfo->rank;
     mpiSize = in->MPIInfo->size;
@@ -55,79 +55,79 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     myNumVertices = myLastVertex - myFirstVertex;
     len = 0;
     for (p = 0; p < mpiSize; ++p)
-	len = MAX(len, distribution[p + 1] - distribution[p]);
+        len = MAX(len, distribution[p + 1] - distribution[p]);
 
     boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
     newGlobalDOFID = new  index_t[len];
     /* create the adjacency structure xadj and adjncy */
     {
 #pragma omp parallel private(i)
-	{
-	    /*  insert contributions from element matrices into columns index index_list: */
-	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+        {
+            /*  insert contributions from element matrices into columns index index_list: */
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->Elements,
                 in->Nodes->globalDegreesOfFreedom, in->Nodes->globalDegreesOfFreedom);
-	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->FaceElements,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
-	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->Points,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
-	}
-	/* create the local matrix pattern */
-	pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list.get(),
+        }
+        /* create the local matrix pattern */
+        pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list.get(),
             myFirstVertex, myLastVertex, -myFirstVertex);
 
-	if (Dudley_noError())
-	    pattern->reduceBandwidth(newGlobalDOFID);
+        if (Dudley_noError())
+            pattern->reduceBandwidth(newGlobalDOFID);
 
     }
     esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
     if (Dudley_noError())
     {
-	/* shift new labeling to create a global id */
+        /* shift new labeling to create a global id */
 #pragma omp parallel for private(i)
-	for (i = 0; i < myNumVertices; ++i)
-	    newGlobalDOFID[i] += myFirstVertex;
+        for (i = 0; i < myNumVertices; ++i)
+            newGlobalDOFID[i] += myFirstVertex;
 
-	/* distribute new labeling to other processors */
+        /* distribute new labeling to other processors */
 #ifdef ESYS_MPI
-	dest = esysUtils::mod_rank(mpiSize, myRank + 1);
-	source = esysUtils::mod_rank(mpiSize, myRank - 1);
+        dest = in->MPIInfo->mod_rank(myRank + 1);
+        source = in->MPIInfo->mod_rank(myRank - 1);
 #endif
-	current_rank = myRank;
-	for (p = 0; p < mpiSize; ++p)
-	{
-	    firstVertex = distribution[current_rank];
-	    lastVertex = distribution[current_rank + 1];
+        current_rank = myRank;
+        for (p = 0; p < mpiSize; ++p)
+        {
+            firstVertex = distribution[current_rank];
+            lastVertex = distribution[current_rank + 1];
 #pragma omp parallel for private(i,k)
-	    for (i = 0; i < in->Nodes->numNodes; ++i)
-	    {
-		k = in->Nodes->globalDegreesOfFreedom[i];
-		if ((firstVertex <= k) && (k < lastVertex))
-		{
-		    in->Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
-		}
-	    }
+            for (i = 0; i < in->Nodes->numNodes; ++i)
+            {
+                k = in->Nodes->globalDegreesOfFreedom[i];
+                if ((firstVertex <= k) && (k < lastVertex))
+                {
+                    in->Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
+                }
+            }
 
-	    if (p < mpiSize - 1)
-	    {			/* the final send can be skipped */
+            if (p < mpiSize - 1)
+            {                   /* the final send can be skipped */
 #ifdef ESYS_MPI
-		MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
-				     dest, in->MPIInfo->msg_tag_counter,
-				     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
+                                     dest, in->MPIInfo->msg_tag_counter,
+                                     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                in->MPIInfo->incCounter();
 #endif
-		in->MPIInfo->msg_tag_counter++;
-		current_rank = esysUtils::mod_rank(mpiSize, current_rank - 1);
-	    }
-	}
+                current_rank = in->MPIInfo->mod_rank(current_rank - 1);
+            }
+        }
     }
     delete[] newGlobalDOFID;
 #if 0
     for (i = 0; i < in->Nodes->numNodes; ++i)
-	printf("%d ", in->Nodes->globalDegreesOfFreedom[i]);
+        printf("%d ", in->Nodes->globalDegreesOfFreedom[i]);
     printf("\n");
 #endif
     return;

@@ -108,52 +108,6 @@ void JMPI_::split(dim_t N, dim_t* local_N, index_t* offset)
     }
 }
 
-dim_t Esys_MPIInfo_setDistribution(JMPI& mpi_info, index_t min_id,
-                                   index_t max_id,index_t* distribution)
-{
-    const int s = mpi_info->size;
-    const dim_t N = max_id-min_id+1;
-    if (N > 0) {
-        const dim_t local_N = N/s;
-        const dim_t rest = N-local_N*s;
-        for (int p=0; p<s; ++p) {
-            if (p < rest) {
-                distribution[p]=min_id+(local_N+1)*p;
-            } else {
-                distribution[p]=min_id+rest+local_N*p;
-            }
-        }
-        distribution[s]=max_id+1;
-        if (rest==0) {
-            return local_N;
-        } else {
-            return local_N+1;
-        }
-    } else {
-        for (int p=0; p<s+1; ++p)
-            distribution[p]=min_id;
-        return 0;
-    }
-}
-
-
-// N = #CPUs, k is a CPU number but out of range or even negative.
-// Return a CPU number in 0...n-1.
-index_t mod_rank(index_t n, index_t k) 
-{
-    index_t out=0;
-    if (n > 1) {
-        const index_t q = k/n;
-        if (k > 0) {
-           out=k-n*q;
-        } else if (k < 0) {
-           out=k-n*(q-1);
-        }
-    }
-    return out;
-}
-
-
 /* checks that there is no error across all processes in a communicator */
 /* NOTE: does not guarantee consistency of error string on each process */
 bool Esys_MPIInfo_noError(const JMPI& mpi_info)
