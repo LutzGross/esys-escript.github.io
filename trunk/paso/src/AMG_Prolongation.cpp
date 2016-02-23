@@ -241,7 +241,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      i = send->offsetInShared[p];
      #ifdef ESYS_MPI
      MPI_Irecv (&(send_shared[i]), send->offsetInShared[p+1]-i, MPI_INT,
-                send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
+                send->neighbor[p], mpi_info->counter()+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[p]);
      #endif
    }
@@ -270,7 +270,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      #ifdef ESYS_MPI
      MPI_Issend(&(recv_shared[recv->offsetInShared[i]]),
                 k-recv->offsetInShared[i], MPI_INT, recv->neighbor[i],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm,
+                mpi_info->counter()+rank, mpi_info->comm,
                 &mpi_requests[i+send->numNeighbors]);
      #endif
    }

@@ -385,17 +385,17 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
         if (p>0) { // the initial send can be skipped
 #ifdef ESYS_MPI
             MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_DIM_T, dest,
-                    in->MPIInfo->msg_tag_counter, source,
-                    in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter(), source,
+                    in->MPIInfo->counter(), in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT, dest,
-                    in->MPIInfo->msg_tag_counter+1, source,
-                    in->MPIInfo->msg_tag_counter+1, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter()+1, source,
+                    in->MPIInfo->counter()+1, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len,
-                    MPI_DIM_T, dest, in->MPIInfo->msg_tag_counter+2, source,
-                    in->MPIInfo->msg_tag_counter+2, in->MPIInfo->comm, &status);
+                    MPI_DIM_T, dest, in->MPIInfo->counter()+2, source,
+                    in->MPIInfo->counter()+2, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Coordinates_buffer, buffer_len*numDim,
-                    MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
-                    in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
+                    MPI_DOUBLE, dest, in->MPIInfo->counter()+3, source,
+                    in->MPIInfo->counter()+3, in->MPIInfo->comm, &status);
 	        in->MPIInfo->incCounter(4);
 #endif
         }
@@ -421,17 +421,17 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
         if (p < in->MPIInfo->size-1) { // the last send can be skipped
 #ifdef ESYS_MPI
             MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_DIM_T, dest,
-                    in->MPIInfo->msg_tag_counter, source,
-                    in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter(), source,
+                    in->MPIInfo->counter(), in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT, dest,
-                    in->MPIInfo->msg_tag_counter+1, source,
-                    in->MPIInfo->msg_tag_counter+1, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter()+1, source,
+                    in->MPIInfo->counter()+1, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len,
-                    MPI_DIM_T, dest, in->MPIInfo->msg_tag_counter+2, source,
-                    in->MPIInfo->msg_tag_counter+2, in->MPIInfo->comm, &status);
+                    MPI_DIM_T, dest, in->MPIInfo->counter()+2, source,
+                    in->MPIInfo->counter()+2, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Coordinates_buffer, buffer_len*numDim,
-                    MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
-                    in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
+                    MPI_DOUBLE, dest, in->MPIInfo->counter()+3, source,
+                    in->MPIInfo->counter()+3, in->MPIInfo->comm, &status);
             in->MPIInfo->incCounter(4);
 #endif
         }
@@ -511,10 +511,10 @@ dim_t NodeFile::prepareLabeling(const std::vector<short>& mask,
         if (p>0) { // the initial send can be skipped
 #ifdef ESYS_MPI
             MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_DIM_T, dest,
-                    MPIInfo->msg_tag_counter, source, MPIInfo->msg_tag_counter,
+                    MPIInfo->counter(), source, MPIInfo->counter(),
                     MPIInfo->comm, &status);
+            MPIInfo->incCounter();
 #endif
-            MPIInfo->msg_tag_counter++;
         }
         buffer_rank=MPIInfo->mod_rank(buffer_rank-1);
         const index_t id0=distribution[buffer_rank];
@@ -593,9 +593,9 @@ dim_t NodeFile::createDenseDOFLabeling()
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&DOF_buffer[0], DOF_buffer.size(), MPI_DIM_T,
-                    dest, MPIInfo->msg_tag_counter, source,
-                    MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
-	        MPIInfo->incCounter(1);
+                    dest, MPIInfo->counter(), source,
+                    MPIInfo->counter(), MPIInfo->comm, &status);
+	        MPIInfo->incCounter();
 #endif
         }
         buffer_rank = MPIInfo->mod_rank(buffer_rank-1);
@@ -708,9 +708,9 @@ dim_t NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&Node_buffer[0], Node_buffer.size(), MPI_DIM_T,
-                    dest, MPIInfo->msg_tag_counter, source,
-                    MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
-	        MPIInfo->incCounter(1);
+                    dest, MPIInfo->counter(), source,
+                    MPIInfo->counter(), MPIInfo->comm, &status);
+	        MPIInfo->incCounter();
 #endif
         }
         buffer_rank = MPIInfo->mod_rank(buffer_rank-1);
@@ -778,9 +778,9 @@ dim_t NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_DIM_T, dest,
-                    MPIInfo->msg_tag_counter, source,
-                    MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
-	        MPIInfo->incCounter(1);
+                    MPIInfo->counter(), source,
+                    MPIInfo->counter(), MPIInfo->comm, &status);
+	        MPIInfo->incCounter();
 #endif
         }
         buffer_rank = MPIInfo->mod_rank(buffer_rank-1);
@@ -959,7 +959,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         MPI_Isend(&(wanted_DOFs[rcv_shcomp->offsetInShared[p]]),
                 rcv_shcomp->offsetInShared[p+1]-rcv_shcomp->offsetInShared[p],
                 MPI_DIM_T, rcv_shcomp->neighbor[p],
-                MPIInfo->msg_tag_counter+myRank, MPIInfo->comm,
+                MPIInfo->counter()+myRank, MPIInfo->comm,
                 &mpi_requests[count]);
         count++;
 #endif
@@ -970,7 +970,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         if (snd_len[p] > 0) {
 #ifdef ESYS_MPI
             MPI_Irecv(&shared[n], snd_len[p], MPI_DIM_T, p,
-                    MPIInfo->msg_tag_counter+p, MPIInfo->comm,
+                    MPIInfo->counter()+p, MPIInfo->comm,
                     &mpi_requests[count]);
             count++;
 #endif
@@ -980,9 +980,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             n+=snd_len[p];
         }
     }
-    MPIInfo->incCounter(MPIInfo->size);
     offsetInShared[numNeighbors]=n;
 #ifdef ESYS_MPI
+    MPIInfo->incCounter(MPIInfo->size);
     MPI_Waitall(count, &mpi_requests[0], &mpi_stati[0]);
 #endif
     // map global ids to local id's

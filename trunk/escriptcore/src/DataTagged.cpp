@@ -125,8 +125,8 @@ DataTagged::DataTagged(const FunctionSpace& what,
   int npoints=(data.size()/valsize)-1;
   int ntags=tags.size();
   if (ntags>npoints)
-  {		// This throw is not unit tested yet
-	throw DataException("Programming error - Too many tags for the supplied values.");
+  {     // This throw is not unit tested yet
+        throw DataException("Programming error - Too many tags for the supplied values.");
   }
 
   // create the tag lookup map
@@ -160,8 +160,8 @@ DataTagged::DataTagged(const FunctionSpace& what,
   int npoints=(data.size()/valsize)-1;
   int ntags=tags.size();
   if (ntags>npoints)
-  {		// This throw is not unit tested yet
-	throw DataException("Programming error - Too many tags for the supplied values.");
+  {             // This throw is not unit tested yet
+        throw DataException("Programming error - Too many tags for the supplied values.");
   }
 
   // create the tag lookup map
@@ -200,7 +200,7 @@ DataTagged::DataTagged(const DataConstant& other)
       DataTypes::cplx_t dummy=0;
       m_data_c.resize(len,0.,len);
       for (int i=0; i<len; i++) {
-	m_data_c[i]=other.getTypedVectorRO(dummy)[i];
+        m_data_c[i]=other.getTypedVectorRO(dummy)[i];
       }
   }
   else
@@ -208,7 +208,7 @@ DataTagged::DataTagged(const DataConstant& other)
       DataTypes::real_t dummy=0;
       m_data_r.resize(len,0.,len);
       for (int i=0; i<len; i++) {
-	m_data_r[i]=other.getTypedVectorRO(dummy)[i];
+        m_data_r[i]=other.getTypedVectorRO(dummy)[i];
       }
   }
 }
@@ -217,7 +217,7 @@ DataTagged::DataTagged(const DataConstant& other)
 // Create a new object by copying tags
 DataTagged::DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
-	     const DataTypes::RealVectorType& defaultvalue,
+             const DataTypes::RealVectorType& defaultvalue,
              const DataTagged* tagsource)
  : parent(what,shape)
 {
@@ -235,16 +235,16 @@ DataTagged::DataTagged(const FunctionSpace& what,
 
   if (tagsource!=0)
   {
-       m_data_r.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
+       m_data_r.resize(defaultvalue.size(),0.); // since this is tagged data, we should have blocksize=1
 
        DataTagged::DataMapType::const_iterator i;
        for (i=tagsource->getTagLookup().begin();i!=tagsource->getTagLookup().end();i++) {
-	  addTag(i->first);
+          addTag(i->first);
        }
   }
   else
   {
-	m_data_r.resize(defaultvalue.size());
+        m_data_r.resize(defaultvalue.size());
   }
 
   // need to set the default value ....
@@ -256,7 +256,7 @@ DataTagged::DataTagged(const FunctionSpace& what,
 // Create a new object by copying tags
 DataTagged::DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
-	     const DataTypes::CplxVectorType& defaultvalue,
+             const DataTypes::CplxVectorType& defaultvalue,
              const DataTagged* tagsource)
  : parent(what,shape)
 {
@@ -274,16 +274,16 @@ DataTagged::DataTagged(const FunctionSpace& what,
 
   if (tagsource!=0)
   {
-       m_data_r.resize(defaultvalue.size(),0.);	// since this is tagged data, we should have blocksize=1
+       m_data_r.resize(defaultvalue.size(),0.); // since this is tagged data, we should have blocksize=1
 
        DataTagged::DataMapType::const_iterator i;
        for (i=tagsource->getTagLookup().begin();i!=tagsource->getTagLookup().end();i++) {
-	  addTag(i->first);
+          addTag(i->first);
        }
   }
   else
   {
-	m_data_r.resize(defaultvalue.size());
+        m_data_r.resize(defaultvalue.size());
   }
 
   // need to set the default value ....
@@ -306,7 +306,7 @@ DataTagged::getSlice(const DataTypes::RegionType& region) const
 }
 
 DataTagged::DataTagged(const DataTagged& other, 
-		       const DataTypes::RegionType& region)
+                       const DataTypes::RegionType& region)
   : parent(other.getFunctionSpace(),DataTypes::getResultSliceShape(region))
 {
   // slice constructor
@@ -332,9 +332,9 @@ DataTagged::DataTagged(const DataTagged& other,
       DataMapType::const_iterator pos;
       DataTypes::CplxVectorType::size_type tagOffset=getNoValues();
       for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
-	DataTypes::copySlice(m_data_c,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
-	m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
-	tagOffset+=getNoValues();
+        DataTypes::copySlice(m_data_c,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
+        m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
+        tagOffset+=getNoValues();
       }      
       
       
@@ -351,9 +351,9 @@ DataTagged::DataTagged(const DataTagged& other,
       DataMapType::const_iterator pos;
       DataTypes::RealVectorType::size_type tagOffset=getNoValues();
       for (pos=other.m_offsetLookup.begin();pos!=other.m_offsetLookup.end();pos++){
-	DataTypes::copySlice(m_data_r,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
-	m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
-	tagOffset+=getNoValues();
+        DataTypes::copySlice(m_data_r,getShape(),tagOffset,otherData, otherShape, pos->second, regionLoopRange);
+        m_offsetLookup.insert(DataMapType::value_type(pos->first,tagOffset));
+        tagOffset+=getNoValues();
       }      
   }
 }
@@ -394,17 +394,17 @@ DataTagged::setSlice(const DataAbstract* other,
 
 
   const DataTypes::ShapeType& otherShape=otherTemp->getShape();
-  if (isComplex())	// from check earlier, other will have the same complexity
+  if (isComplex())      // from check earlier, other will have the same complexity
   {
       // copy slice from other default value to this default value
       DataTypes::copySliceFrom(m_data_c,getShape(),getDefaultOffset(),otherTemp->getTypedVectorRO((DataTypes::cplx_t)0),
-			       otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
+                               otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
   } 
   else
   {
       // copy slice from other default value to this default value
       DataTypes::copySliceFrom(m_data_r,getShape(),getDefaultOffset(),otherTemp->getTypedVectorRO((DataTypes::real_t)0),
-			       otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
+                               otherShape,otherTemp->getDefaultOffset(),regionLoopRange);
   }
 
   // loop through tag values in other, adding any which aren't in this, using default value
@@ -419,7 +419,7 @@ DataTagged::setSlice(const DataAbstract* other,
     // loop through the tag values copying slices from other to this
     for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
       DataTypes::copySliceFrom(m_data_c,getShape(),getOffsetForTag(pos->first),otherTemp->getTypedVectorRO((DataTypes::cplx_t)0),
-			       otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
+                               otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
     }
   }
   else
@@ -427,7 +427,7 @@ DataTagged::setSlice(const DataAbstract* other,
     // loop through the tag values copying slices from other to this
     for (pos=m_offsetLookup.begin();pos!=m_offsetLookup.end();pos++) {
       DataTypes::copySliceFrom(m_data_r,getShape(),getOffsetForTag(pos->first),otherTemp->getTypedVectorRO((DataTypes::real_t)0),
-			       otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
+                               otherShape, otherTemp->getOffsetForTag(pos->first), regionLoopRange);
     }
   }
 }
@@ -464,9 +464,9 @@ DataTagged::getTagNumber(int dpno)
 
 void
 DataTagged::setTaggedValue(int tagKey,
-			   const DataTypes::ShapeType& pointshape,
+                           const DataTypes::ShapeType& pointshape,
                            const DataTypes::RealVectorType& value,
-			   int dataOffset)
+                           int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
       throw DataException(DataTypes::createShapeErrorMessage(
@@ -492,9 +492,9 @@ DataTagged::setTaggedValue(int tagKey,
 
 void
 DataTagged::setTaggedValue(int tagKey,
-			   const DataTypes::ShapeType& pointshape,
+                           const DataTypes::ShapeType& pointshape,
                            const DataTypes::CplxVectorType& value,
-			   int dataOffset)
+                           int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
       throw DataException(DataTypes::createShapeErrorMessage(
@@ -527,7 +527,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
   DataTypes::RealVectorType t(values.size(),0);
   for (size_t i=0;i<values.size();++i)
   {
-	t[i]=values[i];
+        t[i]=values[i];
   }
   addTaggedValues(tagKeys,t,vShape);
 }
@@ -558,7 +558,7 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
     if (tagKeys.size()!=numVals) {
       stringstream temp;
       temp << "Error - (addTaggedValue) Number of tags: " << tagKeys.size()
-	   << " doesn't match number of values: " << values.size();
+           << " doesn't match number of values: " << values.size();
       throw DataException(temp.str());
     } else {
       unsigned int i;
@@ -575,9 +575,9 @@ DataTagged::addTaggedValues(const TagListType& tagKeys,
 
 void
 DataTagged::addTaggedValue(int tagKey,
-			   const DataTypes::ShapeType& pointshape,
+                           const DataTypes::ShapeType& pointshape,
                            const DataTypes::RealVectorType& value,
-			   int dataOffset)
+                           int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
     throw DataException(DataTypes::createShapeErrorMessage(
@@ -614,9 +614,9 @@ DataTagged::addTaggedValue(int tagKey,
 
 void
 DataTagged::addTaggedValue(int tagKey,
-			   const DataTypes::ShapeType& pointshape,
+                           const DataTypes::ShapeType& pointshape,
                            const DataTypes::CplxVectorType& value,
-			   int dataOffset)
+                           int dataOffset)
 {
   if (!DataTypes::checkShape(getShape(), pointshape)) {
     throw DataException(DataTypes::createShapeErrorMessage(
@@ -702,13 +702,13 @@ DataTagged::hasNaN() const
       #pragma omp parallel for
       for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
-	  {
-	      #pragma omp critical 
-	      {
-		  haveNaN=true;
-	      }
-	  }
+          if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
+          {
+              #pragma omp critical 
+              {
+                  haveNaN=true;
+              }
+          }
       }
   }
   else
@@ -716,13 +716,13 @@ DataTagged::hasNaN() const
       #pragma omp parallel for
       for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	  if (std::isnan(m_data_r[i]))
-	  {
-	      #pragma omp critical 
-	      {
-		  haveNaN=true;
-	      }
-	  }
+          if (std::isnan(m_data_r[i]))
+          {
+              #pragma omp critical 
+              {
+                  haveNaN=true;
+              }
+          }
       }
   }
   return haveNaN;
@@ -736,10 +736,10 @@ DataTagged::replaceNaN(double value) {
       #pragma omp parallel for
       for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
-	{
-	  m_data_c[i] = value;
-	}
+        if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
+        {
+          m_data_c[i] = value;
+        }
       }
   }
   else
@@ -747,10 +747,10 @@ DataTagged::replaceNaN(double value) {
       #pragma omp parallel for
       for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	if (std::isnan(m_data_r[i]))  
-	{
-	  m_data_r[i] = value;
-	}
+        if (std::isnan(m_data_r[i]))  
+        {
+          m_data_r[i] = value;
+        }
       }    
   }
 }
@@ -763,10 +763,10 @@ DataTagged::replaceNaN(DataTypes::cplx_t value) {
       #pragma omp parallel for
       for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
       {
-	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
-	{
-	  m_data_c[i] = value;
-	}
+        if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
+        {
+          m_data_c[i] = value;
+        }
       }
   }
   else
@@ -791,8 +791,8 @@ DataTagged::toString() const
   
       temp << pointToString(m_data_c,getShape(),getDefaultOffset(),empty) << endl;
       for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
-	temp << "Tag(" << i->first << ")" << endl;
-	temp << pointToString(m_data_c,getShape(),i->second,empty) << endl;
+        temp << "Tag(" << i->first << ")" << endl;
+        temp << pointToString(m_data_c,getShape(),i->second,empty) << endl;
       }
   }
   else
@@ -800,8 +800,8 @@ DataTagged::toString() const
   
       temp << pointToString(m_data_r,getShape(),getDefaultOffset(),empty) << endl;
       for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
-	temp << "Tag(" << i->first << ")" << endl;
-	temp << pointToString(m_data_r,getShape(),i->second,empty) << endl;
+        temp << "Tag(" << i->first << ")" << endl;
+        temp << pointToString(m_data_r,getShape(),i->second,empty) << endl;
       }    
   }
   return temp.str();
@@ -1038,8 +1038,8 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 
   }
   DataMaths::eigenvalues_and_eigenvectors(m_data_r,getShape(),getDefaultOffset(),evVec, evShape,
-					  temp_ev->getDefaultOffset(),VVec,VShape,
-					  temp_V->getDefaultOffset(), tol);
+                                          temp_ev->getDefaultOffset(),VVec,VShape,
+                                          temp_V->getDefaultOffset(), tol);
 
 
 }
@@ -1050,11 +1050,11 @@ DataTagged::matrixInverse(DataAbstract* out) const
   DataTagged* temp=dynamic_cast<DataTagged*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (probably a programming error).");
+        throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (probably a programming error).");
   }
   if (getRank()!=2)
   {
-	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+        throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
   }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -1088,7 +1088,7 @@ DataTagged::setToZero(){
 void
 DataTagged::dump(const std::string fileName) const
 {
-   #ifdef USE_NETCDF
+#ifdef USE_NETCDF
    const int ldims=DataTypes::maxRank+1;
    const NcDim* ncdims[ldims];
    NcVar *var, *tags_var;
@@ -1098,22 +1098,21 @@ DataTagged::dump(const std::string fileName) const
    long dims[ldims];
    const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
-   int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
-   int mpi_num=getFunctionSpace().getDomain()->getMPISize();
+   esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+   const int mpi_iam = mpiInfo->rank;
+   const int mpi_num = mpiInfo->size;
 #ifdef ESYS_MPI
    MPI_Status status;
-#endif
 
-#ifdef ESYS_MPI
    /* Serialize NetCDF I/O */
-   if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81803, MPI_COMM_WORLD, &status);
+   if (mpi_iam > 0)
+       MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81803, mpiInfo->comm, &status);
 #endif
 
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   const std::string newFileName(esysUtils::appendRankToFileName(fileName,
-                                                            mpi_num, mpi_iam));
+   const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
    NcFile dataFile(newFileName.c_str(), NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
@@ -1191,7 +1190,7 @@ DataTagged::getVectorRW()
 const DataTypes::RealVectorType&
 DataTagged::getVectorRO() const
 {
-	return m_data_r;
+        return m_data_r;
 }
 
 DataTypes::CplxVectorType&
@@ -1204,7 +1203,7 @@ DataTagged::getVectorRWC()
 const DataTypes::CplxVectorType&
 DataTagged::getVectorROC() const
 {
-	return m_data_c;
+        return m_data_c;
 }
 
 DataTypes::RealVectorType&

@@ -154,7 +154,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+send->neighbor[p],
+                mpi_info->counter()+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[msgs]);
         #endif
         msgs++;
@@ -168,7 +168,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm,
+                mpi_info->counter()+rank, mpi_info->comm,
                 &mpi_requests[msgs]);
         #endif
         msgs++;
@@ -200,12 +200,12 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (degree_set[p]) {
         #ifdef ESYS_MPI
         MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
-                send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
+                send->neighbor[p], mpi_info->counter()+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
         MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size,
                 MPI_DOUBLE, send->neighbor[p],
-                mpi_info->msg_tag_counter+send->neighbor[p]+size,
+                mpi_info->counter()+send->neighbor[p]+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         offset += degree_set[p];
         #endif
@@ -220,11 +220,11 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
-                recv->neighbor[p], mpi_info->msg_tag_counter+rank,
+                recv->neighbor[p], mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
         MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
-                recv->neighbor[p], mpi_info->msg_tag_counter+rank+size,
+                recv->neighbor[p], mpi_info->counter()+rank+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         #endif
         msgs++;

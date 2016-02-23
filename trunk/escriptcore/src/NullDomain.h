@@ -46,6 +46,7 @@ private:
 public:
     NullDomain() {}
 
+    virtual esysUtils::JMPI getMPI() const;
     virtual int getMPISize() const { return 1; }
     virtual int getMPIRank() const { return 0; }
     virtual void MPIBarrier() const {}

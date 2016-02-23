@@ -153,7 +153,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 #ifdef ESYS_MPI
         MPI_Irecv(&recv_ST[z], j, MPI_INT,
                 row_coupler->connector->recv->neighbor[p],
-                mpi_info->msg_tag_counter+row_coupler->connector->recv->neighbor[p],
+                mpi_info->counter()+row_coupler->connector->recv->neighbor[p],
                 mpi_info->comm, &row_coupler->mpi_requests[p]);
 #endif
         z += j;
@@ -175,7 +175,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 #ifdef ESYS_MPI
         MPI_Issend(&send_buf[z0], z-z0, MPI_INT,
                  row_coupler->connector->send->neighbor[p],
-                 mpi_info->msg_tag_counter+mpi_info->rank,
+                 mpi_info->counter()+mpi_info->rank,
                  mpi_info->comm,
                  &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
 #endif
