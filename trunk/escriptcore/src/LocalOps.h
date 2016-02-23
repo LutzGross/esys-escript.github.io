@@ -779,6 +779,10 @@ struct sign_func<DataTypes::cplx_t>     // dummy instantiation
     typedef DataTypes::cplx_t result_type;
 };
 
+inline escript::DataTypes::real_t fabs(const escript::DataTypes::cplx_t c)
+{
+    return abs(c);
+}
 
 
 template <typename T>
@@ -1010,7 +1014,18 @@ inline void tensor_unary_array_operation_real(const size_t size,
    }  
 }
 
+template <typename OUT, typename IN>
+inline OUT conjugate(const IN i)
+{
+    return conj(i);
+}
 
+// This should never actually be called
+template <>
+inline DataTypes::real_t conjugate(const DataTypes::real_t r)
+{
+    return r;
+}
 
 // In most cases, IN and OUT will be the same
 // but not ruling out putting Re() and Im()
@@ -1050,7 +1065,7 @@ inline void tensor_unary_array_operation(const size_t size,
     case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
     case CONJF: 
           for (size_t i = 0; i < size; ++i) {
-              argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
+              argRes[i] = conjugate<OUT,IN>(arg1[i]);
           }
           break; 
     case INVF: 
