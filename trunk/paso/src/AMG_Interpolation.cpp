@@ -425,15 +425,15 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
 {
     SharedComponents_ptr send, recv;
     index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
-    index_t i, j, p, m, n, size;
+    index_t i, j, p, m, n;
     index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
     index_t *ptr=*p_ptr, *idx=*p_idx;
     double  *val=*p_val, *recv_val=NULL;
   #ifdef ESYS_MPI
-    index_t rank = P->mpi_info->rank;
+    int rank = P->mpi_info->rank;
+    int size = P->mpi_info->size;
   #endif
 
-    size = P->mpi_info->size;
     send = P->col_coupler->connector->recv;
     recv = P->col_coupler->connector->send;
     send_neighbors = send->numNeighbors;

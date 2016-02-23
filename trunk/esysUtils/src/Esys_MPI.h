@@ -77,20 +77,23 @@ class JMPI_;
 
 typedef boost::shared_ptr<JMPI_> JMPI;
 
+/// creates a JMPI shared pointer from MPI communicator
+JMPI makeInfo(MPI_Comm comm, bool owncom=false);
+
 class JMPI_
 {
 public:
     ~JMPI_();
-    int size;
-    int rank;
-    MPI_Comm comm;
-    int msg_tag_counter;
-    bool ownscomm;      // if true, destroy comm on destruct
 
     dim_t setDistribution(index_t min_id, index_t max_id, index_t* distribution);
+
     void split(dim_t N, dim_t* local_N,index_t* offset);
 
-    void incCounter(int i)
+    /// N = #CPUs, k is a CPU number but out of range or even negative.
+    /// Return a CPU number in 0...N-1.
+    int mod_rank(int k) const;
+
+    inline void incCounter(int i=1)
     {
         msg_tag_counter+=i;
         // there is no particular significance here other than being 7 digits
@@ -98,7 +101,7 @@ public:
         msg_tag_counter %= 1010201;
     }
 
-    void setCounter(int value)
+    inline void setCounter(int value)
     {
         msg_tag_counter = value%1010201;
     }
@@ -107,18 +110,34 @@ public:
     {
         return comm!=MPI_COMM_NULL;
     }
+
+    int size;
+    int rank;
+    MPI_Comm comm;
+    int msg_tag_counter;
 private:
     JMPI_(MPI_Comm comm, bool ocomm);
     friend JMPI makeInfo(MPI_Comm comm, bool owncom);
+
+    bool ownscomm; // if true, destroy comm on destruct
 };
 
-JMPI makeInfo(MPI_Comm comm, bool owncom=false);
+inline int JMPI_::mod_rank(int k) const
+{
+    int out=0;
+#ifdef ESYS_MPI
+    if (size > 1) {
+        const int q = k/size;
+        if (k > 0) {
+           out=k-size*q;
+        } else if (k < 0) {
+           out=k-size*(q-1);
+        }
+    }
+#endif
+    return out;
+}
 
-ESYSUTILS_DLL_API
-bool Esys_MPIInfo_noError( const JMPI& mpi_info);
-
-ESYSUTILS_DLL_API
-index_t mod_rank(index_t n, index_t k);
 
 /// Appends MPI rank to a file name if MPI size > 1
 inline std::string appendRankToFileName(const std::string &fileName,
@@ -136,15 +155,15 @@ inline std::string appendRankToFileName(const std::string &fileName,
     return result;
 }
 
+bool Esys_MPIInfo_noError(const JMPI& mpi_info);
+
 // ensure that the any ranks with an empty src argument end up with the string from
 // one of the other ranks
 // with no-mpi, it makes dest point at a copy of src
-ESYSUTILS_DLL_API
 bool shipString(const char* src, char** dest, MPI_Comm& comm);
 
 
 // Everyone puts in their error code and everyone gets the largest one
-ESYSUTILS_DLL_API
 bool checkResult(int input, int& output, const JMPI& comm);
 
 
