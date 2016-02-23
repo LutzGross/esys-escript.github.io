@@ -15,20 +15,21 @@
 *****************************************************************************/
 
 
-#include "EsysFileWriterTestCase.h"
-#include "esysUtils/esysFileWriter.h"
+#include "FileWriterTestCase.h"
+#include "esysUtils/Esys_MPI.h"
+#include "escript/FileWriter.h"
+
 #include <cppunit/TestCaller.h>
 #include <fstream>
 #include <sstream>
 
-#include "esysUtils/Esys_MPI.h"
 
 using namespace CppUnit;
 using namespace std;
 
-using esysUtils::FileWriter;
+using escript::FileWriter;
 
-void EsysFileWriterTestCase::testAll()
+void FileWriterTestCase::testAll()
 {
     const string filename("fwtest_file");
     int mpisize=1, mpirank=0;
@@ -78,7 +79,7 @@ void EsysFileWriterTestCase::testAll()
     delete fw;
 }
 
-long EsysFileWriterTestCase::fileSize(string filename)
+long FileWriterTestCase::fileSize(string filename)
 {
     ifstream f(filename.c_str());
     f.seekg(0, f.end);
@@ -90,11 +91,11 @@ long EsysFileWriterTestCase::fileSize(string filename)
     return pos;
 }
 
-TestSuite* EsysFileWriterTestCase::suite()
+TestSuite* FileWriterTestCase::suite()
 {
-    TestSuite *testSuite = new TestSuite("EsysFileWriterTestCase");
-    testSuite->addTest(new TestCaller<EsysFileWriterTestCase>(
-                "testAll",&EsysFileWriterTestCase::testAll));
+    TestSuite *testSuite = new TestSuite("FileWriterTestCase");
+    testSuite->addTest(new TestCaller<FileWriterTestCase>(
+                "testAll",&FileWriterTestCase::testAll));
     return testSuite;
 }
 
