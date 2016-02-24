@@ -29,9 +29,6 @@
 #include "ShapeTable.h"
 #include "Util.h"
 
-
-/************************************************************************************/
-
 static double Dudley_Mesh_lockingGridSize = 0;
 
 int Dudley_Mesh_findMatchingFaces_compar(const void *arg1, const void *arg2)
@@ -101,104 +98,121 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
         return;
     }
     X = new double[NN * numDim * faces->numElements];
-    center = new  Dudley_Mesh_findMatchingFaces_center[faces->numElements];
-    a1 = new  int[NN];
-    a2 = new  int[NN];
-    if (!(Dudley_checkPtr(X) || Dudley_checkPtr(center) || Dudley_checkPtr(a1) || Dudley_checkPtr(a2)))
+    center = new Dudley_Mesh_findMatchingFaces_center[faces->numElements];
+    a1 = new int[NN];
+    a2 = new int[NN];
+
+    /* OMP */
+    for (e = 0; e < faces->numElements; e++)
     {
-        /* OMP */
-        for (e = 0; e < faces->numElements; e++)
+        /* get the coordinates of the nodes */
+        Dudley_Util_Gather_double(NN, &(faces->Nodes[INDEX2(0, e, NN)]), numDim, nodes->Coordinates,
+                                  &(X[INDEX3(0, 0, e, numDim, NN)]));
+        /* get the element center */
+        center[e].refId = e;
+        for (i = 0; i < MAX_numDim; i++)
+            center[e].x[i] = 0;
+        for (i0 = 0; i0 < numNodesOnFace; i0++)
         {
-            /* get the coordinates of the nodes */
-            Dudley_Util_Gather_double(NN, &(faces->Nodes[INDEX2(0, e, NN)]), numDim, nodes->Coordinates,
-                                      &(X[INDEX3(0, 0, e, numDim, NN)]));
-            /* get the element center */
-            center[e].refId = e;
-            for (i = 0; i < MAX_numDim; i++)
-                center[e].x[i] = 0;
-            for (i0 = 0; i0 < numNodesOnFace; i0++)
-            {
-                for (i = 0; i < numDim; i++)
-                    center[e].x[i] += X[INDEX3(i, i0, e, numDim, NN)];
-            }
             for (i = 0; i < numDim; i++)
-                center[e].x[i] /= numNodesOnFace;
-            /* get the minimum distance between nodes in the element */
-            for (i0 = 0; i0 < numNodesOnFace; i0++)
+                center[e].x[i] += X[INDEX3(i, i0, e, numDim, NN)];
+        }
+        for (i = 0; i < numDim; i++)
+            center[e].x[i] /= numNodesOnFace;
+        /* get the minimum distance between nodes in the element */
+        for (i0 = 0; i0 < numNodesOnFace; i0++)
+        {
+            for (i1 = i0 + 1; i1 < numNodesOnFace; i1++)
             {
-                for (i1 = i0 + 1; i1 < numNodesOnFace; i1++)
-                {
-                    getDist(h_local, e, i0, e, i1);
-                    h = MIN(h, h_local);
-                }
+                getDist(h_local, e, i0, e, i1);
+                h = MIN(h, h_local);
             }
         }
-        /* set the */
-        Dudley_Mesh_lockingGridSize = h * MAX(safety_factor, 0);
+    }
+    /* set the */
+    Dudley_Mesh_lockingGridSize = h * MAX(safety_factor, 0);
 #ifdef Dudley_TRACE
-        printf("locking grid size is %e\n", Dudley_Mesh_lockingGridSize);
-        printf("absolute tolerance is %e.\n", h * tolerance);
+    printf("locking grid size is %e\n", Dudley_Mesh_lockingGridSize);
+    printf("absolute tolerance is %e.\n", h * tolerance);
 #endif
-        /* sort the elements by center coordinates (lexicographical) */
-        qsort(center, faces->numElements, sizeof(Dudley_Mesh_findMatchingFaces_center),
-              Dudley_Mesh_findMatchingFaces_compar);
-        /* find elements with matching center */
-        *numPairs = 0;
-        /* OMP */
-        for (e = 0; e < faces->numElements - 1 && Dudley_noError(); e++)
+    /* sort the elements by center coordinates (lexicographical) */
+    qsort(center, faces->numElements, sizeof(Dudley_Mesh_findMatchingFaces_center),
+          Dudley_Mesh_findMatchingFaces_compar);
+    /* find elements with matching center */
+    *numPairs = 0;
+    /* OMP */
+    for (e = 0; e < faces->numElements - 1 && Dudley_noError(); e++)
+    {
+        dist = 0;
+        for (i = 0; i < numDim; i++)
+            dist = MAX(dist, ABS(center[e].x[i] - center[e + 1].x[i]));
+        if (dist < h * tolerance)
         {
-            dist = 0;
-            for (i = 0; i < numDim; i++)
-                dist = MAX(dist, ABS(center[e].x[i] - center[e + 1].x[i]));
-            if (dist < h * tolerance)
+            e_0 = center[e].refId;
+            e_1 = center[e + 1].refId;
+            elem0[*numPairs] = e_0;
+            elem1[*numPairs] = e_1;
+            /* now the element e_1 is rotated such that the first node in element e_0 and e_1 have the same coordinates */
+            perm = a1;
+            perm_tmp = a2;
+            for (i = 0; i < NN; i++)
+                perm[i] = i;
+            while (Dudley_noError())
             {
-                e_0 = center[e].refId;
-                e_1 = center[e + 1].refId;
-                elem0[*numPairs] = e_0;
-                elem1[*numPairs] = e_1;
-                /* now the element e_1 is rotated such that the first node in element e_0 and e_1 have the same coordinates */
-                perm = a1;
-                perm_tmp = a2;
-                for (i = 0; i < NN; i++)
-                    perm[i] = i;
-                while (Dudley_noError())
+                /* if node 0 and perm[0] are the same we are ready */
+                getDist(dist, e_0, 0, e_1, perm[0]);
+                if (dist <= h * tolerance)
+                    break;
+                if (shiftNodes[0] >= 0)
                 {
-                    /* if node 0 and perm[0] are the same we are ready */
-                    getDist(dist, e_0, 0, e_1, perm[0]);
-                    if (dist <= h * tolerance)
-                        break;
-                    if (shiftNodes[0] >= 0)
+                    /* rotate the nodes */
+                    itmp_ptr = perm;
+                    perm = perm_tmp;
+                    perm_tmp = itmp_ptr;
+#pragma ivdep
+                    for (i = 0; i < NN; i++)
+                        perm[i] = perm_tmp[shiftNodes[i]];
+                }
+                /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
+                if (perm[0] == 0)
+                {
+                    std::stringstream ss;
+                    ss << "Mesh_findMatchingFaces: couldn't match first "
+                        "node of element " << e_0 << " to touching element "
+                        << e_1;
+                    std::string errorMsg(ss.str());
+                    Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+                }
+            }
+            /* now we check if the second nodes match */
+            if (Dudley_noError())
+            {
+                if (numNodesOnFace > 1)
+                {
+                    getDist(dist, e_0, 1, e_1, perm[1]);
+                    /* if the second node does not match we reverse the direction of the nodes */
+                    if (dist > h * tolerance)
                     {
                         /* rotate the nodes */
-                        itmp_ptr = perm;
-                        perm = perm_tmp;
-                        perm_tmp = itmp_ptr;
-#pragma ivdep
-                        for (i = 0; i < NN; i++)
-                            perm[i] = perm_tmp[shiftNodes[i]];
-                    }
-                    /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
-                    if (perm[0] == 0)
-                    {
-                        std::stringstream ss;
-                        ss << "Mesh_findMatchingFaces: couldn't match first "
-                            "node of element " << e_0 << " to touching element "
-                            << e_1;
-                        std::string errorMsg(ss.str());
-                        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
-                    }
-                }
-                /* now we check if the second nodes match */
-                if (Dudley_noError())
-                {
-                    if (numNodesOnFace > 1)
-                    {
-                        getDist(dist, e_0, 1, e_1, perm[1]);
-                        /* if the second node does not match we reverse the direction of the nodes */
-                        if (dist > h * tolerance)
+                        if (reverseNodes[0] < 0)
                         {
-                            /* rotate the nodes */
-                            if (reverseNodes[0] < 0)
+                            std::stringstream ss;
+                            ss << "Mesh_findMatchingFaces: couldn't match "
+                                "the second node of element " << e_0
+                                << " to touching element " << e_1;
+                            std::string errorMsg(ss.str());
+                            Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+                        }
+                        else
+                        {
+                            itmp_ptr = perm;
+                            perm = perm_tmp;
+                            perm_tmp = itmp_ptr;
+#pragma ivdep
+                            for (i = 0; i < NN; i++)
+                                perm[i] = perm_tmp[reverseNodes[i]];
+                            getDist(dist, e_0, 1, e_1, perm[1]);
+                            if (dist > h * tolerance)
                             {
                                 std::stringstream ss;
                                 ss << "Mesh_findMatchingFaces: couldn't match "
@@ -207,66 +221,46 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
                                 std::string errorMsg(ss.str());
                                 Dudley_setError(VALUE_ERROR, errorMsg.c_str());
                             }
-                            else
-                            {
-                                itmp_ptr = perm;
-                                perm = perm_tmp;
-                                perm_tmp = itmp_ptr;
-#pragma ivdep
-                                for (i = 0; i < NN; i++)
-                                    perm[i] = perm_tmp[reverseNodes[i]];
-                                getDist(dist, e_0, 1, e_1, perm[1]);
-                                if (dist > h * tolerance)
-                                {
-                                    std::stringstream ss;
-                                    ss << "Mesh_findMatchingFaces: couldn't match "
-                                        "the second node of element " << e_0
-                                        << " to touching element " << e_1;
-                                    std::string errorMsg(ss.str());
-                                    Dudley_setError(VALUE_ERROR, errorMsg.c_str());
-                                }
-                            }
                         }
                     }
                 }
-                /* we check if the rest of the face nodes match: */
-                if (Dudley_noError())
-                {
-                    for (i = 2; i < numNodesOnFace; i++)
-                    {
-                        n = i;
-                        getDist(dist, e_0, n, e_1, perm[n]);
-                        if (dist > h * tolerance)
-                        {
-                            std::stringstream ss;
-                            ss << "Mesh_findMatchingFaces: couldn't match the "
-                                << i << "-th node of element " << e_0
-                                << " to touching element " << e_1;
-                            std::string errorMsg(ss.str());
-                            Dudley_setError(VALUE_ERROR, errorMsg.c_str());
-                            break;
-                        }
-                    }
-                }
-                /* copy over the permuted nodes of e_1 into matching_nodes_in_elem1 */
-                if (Dudley_noError())
-                {
-                    for (i = 0; i < NN; i++)
-                        matching_nodes_in_elem1[INDEX2(i, *numPairs, NN)] = faces->Nodes[INDEX2(perm[i], e_1, NN)];
-                }
-                (*numPairs)++;
             }
+            /* we check if the rest of the face nodes match: */
+            if (Dudley_noError())
+            {
+                for (i = 2; i < numNodesOnFace; i++)
+                {
+                    n = i;
+                    getDist(dist, e_0, n, e_1, perm[n]);
+                    if (dist > h * tolerance)
+                    {
+                        std::stringstream ss;
+                        ss << "Mesh_findMatchingFaces: couldn't match the "
+                            << i << "-th node of element " << e_0
+                            << " to touching element " << e_1;
+                        std::string errorMsg(ss.str());
+                        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+                        break;
+                    }
+                }
+            }
+            /* copy over the permuted nodes of e_1 into matching_nodes_in_elem1 */
+            if (Dudley_noError())
+            {
+                for (i = 0; i < NN; i++)
+                    matching_nodes_in_elem1[INDEX2(i, *numPairs, NN)] = faces->Nodes[INDEX2(perm[i], e_1, NN)];
+            }
+            (*numPairs)++;
         }
-#ifdef Dudley_TRACE
-        printf("number of pairs of matching faces %d\n", *numPairs);
-#endif
     }
-    /* clean up */
+#ifdef Dudley_TRACE
+    printf("number of pairs of matching faces %d\n", *numPairs);
+#endif
+
     delete[] X;
     delete[] center;
     delete[] a1;
     delete[] a1;
-
 #undef getDist
 }
 

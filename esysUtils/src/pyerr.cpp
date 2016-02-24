@@ -14,13 +14,13 @@
 *****************************************************************************/
 
 #define ESNEEDPYTHON
+#include "first.h"
+#include "pyerr.h"
+
 #include <boost/python/object.hpp>
 #include <boost/python/import.hpp>
 #include <boost/python/list.hpp>
 #include <boost/python/extract.hpp>
-
-#include "first.h"
-#include "pyerr.h"
 
 // Function factored out of SubWorld code
 

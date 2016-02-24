@@ -28,12 +28,8 @@
 
 #include "Assemble.h"
 #include "Util.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
-/************************************************************************************/
-void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data* element_size)
+void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* element_size)
 {
 
     double *local_X = NULL, *element_size_array;
@@ -43,7 +39,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 
     if (nodes == NULL || elements == NULL)
     {
-	return;
+        return;
     }
 
     numDim = nodes->numDim;
@@ -53,11 +49,11 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 
     if (Dudley_Assemble_reducedIntegrationOrder(element_size))
     {
-	numQuad = 1;
+        numQuad = 1;
     }
     else
     {
-	numQuad = elements->numDim + 1;
+        numQuad = elements->numDim + 1;
     }
 
     NN = elements->numNodes;
@@ -68,60 +64,57 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 
     if (!numSamplesEqual(element_size, numQuad, elements->numElements))
     {
-	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: illegal number of samples of element size Data object");
+        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: illegal number of samples of element size Data object");
     }
     else if (!isDataPointShapeEqual(element_size, 0, &(numDim)))
     {
-	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: illegal data point shape of element size Data object");
+        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: illegal data point shape of element size Data object");
     }
     else if (!isExpanded(element_size))
     {
-	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: expanded Data object is expected for element size.");
+        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: expanded Data object is expected for element size.");
     }
     /* now we can start: */
 
     if (Dudley_noError())
     {
-	requireWrite(element_size);
+        requireWrite(element_size);
 #pragma omp parallel private(local_X)
-	{
-	    /* allocation of work arrays */
-	    local_X = new double[NN * numDim];
-	    if (!Dudley_checkPtr(local_X))
-	    {
-		/* open the element loop */
+        {
+            /* allocation of work arrays */
+            local_X = new double[NN * numDim];
+            /* open the element loop */
 #pragma omp for private(e,max_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
-		for (e = 0; e < elements->numElements; e++)
-		{
-		    /* gather local coordinates of nodes into local_X(numDim,NN): */
-		    Dudley_Util_Gather_double(NS, &(elements->Nodes[INDEX2(0, e, NN)]), numDim, nodes->Coordinates,
-					      local_X);
-		    /* calculate minimal differences */
-		    max_diff = 0;
-		    for (n0 = 0; n0 < NVertices; n0++)
-		    {
-			for (n1 = n0 + 1; n1 < NVertices; n1++)
-			{
-			    diff = 0;
-			    for (i = 0; i < numDim; i++)
-			    {
-				d = local_X[INDEX2(i, n0, numDim)] - local_X[INDEX2(i, n1, numDim)];
-				diff += d * d;
-			    }
+            for (e = 0; e < elements->numElements; e++)
+            {
+                /* gather local coordinates of nodes into local_X(numDim,NN): */
+                Dudley_Util_Gather_double(NS, &(elements->Nodes[INDEX2(0, e, NN)]), numDim, nodes->Coordinates,
+                                          local_X);
+                /* calculate minimal differences */
+                max_diff = 0;
+                for (n0 = 0; n0 < NVertices; n0++)
+                {
+                    for (n1 = n0 + 1; n1 < NVertices; n1++)
+                    {
+                        diff = 0;
+                        for (i = 0; i < numDim; i++)
+                        {
+                            d = local_X[INDEX2(i, n0, numDim)] - local_X[INDEX2(i, n1, numDim)];
+                            diff += d * d;
+                        }
 
-    			    max_diff = MAX(max_diff, diff);
-			    
-			}
-		    }
-		    max_diff = sqrt(max_diff);
-		    /* set all values to max_diff */
-		    element_size_array = getSampleDataRW(element_size, e);
-		    for (q = 0; q < numQuad; q++)
-			element_size_array[q] = max_diff;
-		}
-	    }
-	    delete[] local_X;
-	}			/* end of parallel region */
+                        max_diff = MAX(max_diff, diff);
+                        
+                    }
+                }
+                max_diff = sqrt(max_diff);
+                /* set all values to max_diff */
+                element_size_array = getSampleDataRW(element_size, e);
+                for (q = 0; q < numQuad; q++)
+                    element_size_array[q] = max_diff;
+            }
+            delete[] local_X;
+        } /* end of parallel region */
     }
-    return;
 }
+

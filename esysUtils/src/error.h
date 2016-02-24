@@ -25,8 +25,6 @@
 #ifndef INC_ESYS_ERROR
 #define INC_ESYS_ERROR
 
-#include "system_dep.h"
-
 /************************************************************************************/
 
 typedef enum {
@@ -51,25 +49,19 @@ typedef enum {
 /* interfaces */
 
 
-ESYSUTILS_DLL_API
 double Esys_timer(void);
 
-ESYSUTILS_DLL_API
 bool Esys_checkPtr(void*);
 
-ESYSUTILS_DLL_API
 void Esys_resetError(void);
 
-ESYSUTILS_DLL_API
 void Esys_setError(Esys_ErrorCodeType err,__const char* msg);
 
-ESYSUTILS_DLL_API
 bool Esys_noError(void);
 
-ESYSUTILS_DLL_API
 Esys_ErrorCodeType Esys_getErrorType(void);
 
-ESYSUTILS_DLL_API
 char* Esys_getErrorMessage(void);
 
-#endif /* #ifndef INC_ESYS_ERROR */
+#endif // #ifndef INC_ESYS_ERROR
+

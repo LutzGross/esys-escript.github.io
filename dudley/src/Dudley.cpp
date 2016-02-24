@@ -28,13 +28,6 @@ double Dudley_timer(void)
     return Esys_timer();
 }
 
-/* This function checks if the pointer ptr has a target. If not an
-   error is raised and TRUE is returned. */
-bool Dudley_checkPtr(void *arg)
-{
-    return Esys_checkPtr(arg);
-}
-
 /* reset the error to NO_ERROR */
 void Dudley_resetError(void)
 {

@@ -50,25 +50,16 @@ void Esys_setError(Esys_ErrorCodeType err,__const char* msg) {
 }
                                                                                                                                                                                                      
 /* checks if there is no error */
-bool Esys_noError(void) {
+bool Esys_noError(void)
+{
    Esys_ErrorCodeType err=Esys_getErrorType();
    /* return (err==NO_ERROR ||  err==WARNING);*/
    return (err==NO_ERROR);
 }
-/* This function checks if the pointer ptr has a target. If not an
-   error is raised and true is returned. */
-
-bool Esys_checkPtr(void* ptr) {
-   if (ptr==NULL) {
-      Esys_setError(MEMORY_ERROR,"Out of memory.");
-      return true;
-   } else {
-      return false;
-   }
-} 
 
 /* This function returns a timer */
-double Esys_timer(void) {
+double Esys_timer(void)
+{
   double out;
 
 #ifdef ESYS_MPI
@@ -83,15 +74,15 @@ double Esys_timer(void) {
   return out;
 }
 
-
-
 /* return the error code */
-Esys_ErrorCodeType Esys_getErrorType(void) {
+Esys_ErrorCodeType Esys_getErrorType(void)
+{
    return Esys_ErrorCode_;
 }
 
 /* return the error message */
-char* Esys_getErrorMessage(void) {
+char* Esys_getErrorMessage(void)
+{
    return Esys_ErrorMsg_;
 }
 

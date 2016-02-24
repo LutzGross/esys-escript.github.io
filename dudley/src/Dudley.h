@@ -58,7 +58,6 @@ typedef Esys_ErrorCodeType Dudley_ErrorCodeType;
 /* interfaces */
 
 double Dudley_timer(void);
-bool Dudley_checkPtr(void *);
 void Dudley_resetError(void);
 void Dudley_setError(Dudley_ErrorCodeType err, __const char *msg);
 bool Dudley_noError(void);
