@@ -32,14 +32,14 @@
 
 void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self, const escript::Data* newX)
 {
-    if (getDataPointSize(newX) != self->numDim)
-    {
+    if (newX->getDataPointSize() != self->numDim) {
         std::stringstream ss;
         ss << "Dudley_NodeFile_setCoordinates: number of dimensions of new "
             "coordinates has to be " << self->numDim;
         const std::string errorMsg(ss.str());
         Dudley_setError(VALUE_ERROR, errorMsg.c_str());
-    } else if (!numSamplesEqual(newX, 1, self->numNodes)) {
+    } else if (newX->getNumDataPointsPerSample() != 1 ||
+            newX->getNumSamples() != self->numNodes) {
         std::stringstream ss;
         ss << "Dudley_NodeFile_setCoordinates: number of given nodes must be "
             << self->numNodes;

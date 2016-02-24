@@ -17,7 +17,7 @@
 #ifndef INC_DUDLEY_MESH
 #define INC_DUDLEY_MESH
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Dudley: Mesh */
 
@@ -28,7 +28,7 @@
    Dudley_ElementFile. A Dudley_NodeFile and three Dudley_ElementFile
    containing the elements describing the domain, surface and point
    sources respectively. Notice that the surface elements do not
-   necessaryly cover the entire surface of the domain. */
+   necessarily cover the entire surface of the domain. */
 
 /* The element type is fixed by the reference element, see
    ReferenceElement.h. The numbering of the nodes starts with 0. */
@@ -56,36 +56,31 @@
    Dudley_Mesh_getDim. Notice that the element type also determines
    the type of surface elements to be used. */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Dudley.h"
 #include "NodeFile.h"
 #include "ElementFile.h"
 #include "TagMap.h"
 #include "Util.h"
-#include "paso/SystemMatrixPattern.h"
-#include "escript/DataC.h"
-
-#ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
-#endif
 
-/************************************************************************************/
+#include "paso/SystemMatrixPattern.h"
 
 /*  this struct holds a mesh: */
 
 struct Dudley_Mesh {
-    char *Name;			/* the name of the mesh */
-    dim_t reference_counter;	/* counts the number of references to the mesh; */
+    char *Name;                 /* the name of the mesh */
+    dim_t reference_counter;    /* counts the number of references to the mesh; */
     dim_t approximationOrder;
     dim_t reducedApproximationOrder;
     dim_t integrationOrder;
     dim_t reducedIntegrationOrder;
-    Dudley_NodeFile *Nodes;	/* the table of the nodes */
-    Dudley_ElementFile *Elements;	/* the table of the elements */
-    Dudley_ElementFile *FaceElements;	/* the table of the face elements */
-    Dudley_ElementFile *Points;	/* the table of points (treated as elements of dimension 0) */
-    Dudley_TagMap *TagMap;	/* the tag map mapping names to tag keys */
+    Dudley_NodeFile *Nodes;     /* the table of the nodes */
+    Dudley_ElementFile *Elements;       /* the table of the elements */
+    Dudley_ElementFile *FaceElements;   /* the table of the face elements */
+    Dudley_ElementFile *Points; /* the table of points (treated as elements of dimension 0) */
+    Dudley_TagMap *TagMap;      /* the tag map mapping names to tag keys */
 
     /* pointer to the sparse matrix pattern */
 
@@ -140,9 +135,9 @@ void Dudley_Mesh_optimizeElementOrdering(Dudley_Mesh * in);
 void Dudley_Mesh_resolveNodeIds(Dudley_Mesh *);
 void Dudley_Mesh_createMappings(Dudley_Mesh * in, index_t * dof_distribution, index_t * node_distribution);
 void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes, index_t * indexReducedNodes,
-					index_t * dof_first_component, index_t * nodes_first_component);
+                                        index_t * dof_first_component, index_t * nodes_first_component);
 void Dudley_Mesh_markDOFsConnectedToRange(index_t * mask, index_t offset, index_t marker, index_t firstDOF,
-					  index_t lastDOF, Dudley_Mesh * in, bool useLinear);
+                                          index_t lastDOF, Dudley_Mesh * in, bool useLinear);
 
 void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh *, dim_t *);
 
@@ -163,4 +158,5 @@ index_t Dudley_Mesh_getDegree(paso::SystemMatrixPattern_ptr pattern_p, index_t *
 void Dudley_Mesh_setTagsInUse(Dudley_Mesh * in);
 int Dudley_Mesh_getStatus(Dudley_Mesh * in);
 
-#endif				/* #ifndef INC_DUDLEY_MESH */
+#endif /* #ifndef INC_DUDLEY_MESH */
+

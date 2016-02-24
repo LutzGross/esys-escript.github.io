@@ -21,10 +21,7 @@
 #include "NodeFile.h"
 #include "ElementType.h"
 #include "escript/DataC.h"
-
-#ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
-#endif
 
 typedef struct {
     Dudley_Status_t status;	/* status of mesh when jacobeans where updated last time */
@@ -113,4 +110,5 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans *);
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile *, Dudley_NodeFile *, bool);
 void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in);
 
-#endif				/* #ifndef INC_DUDLEY_ELEMENTFILE */
+#endif /* #ifndef INC_DUDLEY_ELEMENTFILE */
+
