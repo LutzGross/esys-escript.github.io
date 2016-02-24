@@ -881,8 +881,8 @@ unaryOp(DataTypes::RealVectorType& data, const DataTypes::ShapeType& shape,
           DataTypes::RealVectorType::size_type offset,
           UnaryFunction operation)
 {
-  EsysAssert((data.size()>0)&&checkOffset(data,shape,offset),
-               "Error - Couldn't perform unaryOp due to insufficient storage.");
+  ESYS_ASSERT((data.size()>0)&&checkOffset(data,shape,offset),
+               "Couldn't perform unaryOp due to insufficient storage.");
   DataTypes::RealVectorType::size_type nVals=DataTypes::noValues(shape);
   for (DataTypes::RealVectorType::size_type i=0;i<nVals;i++) {
     data[offset+i]=operation(data[offset+i]);
@@ -901,12 +901,12 @@ binaryOp(DataTypes::RealVectorType& left,
                         DataTypes::RealVectorType::size_type rightOffset,
                         BinaryFunction operation)
 {
-  EsysAssert(leftShape==rightShape,
-	     "Error - Couldn't perform binaryOp due to shape mismatch,");
-  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape, leftOffset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
-  EsysAssert(((right.size()>0)&&checkOffset(right,rightShape,rightOffset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
+  ESYS_ASSERT(leftShape==rightShape,
+	     "Couldn't perform binaryOp due to shape mismatch,");
+  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape, leftOffset),
+         "Couldn't perform binaryOp due to insufficient storage in left object.");
+  ESYS_ASSERT((right.size()>0)&&checkOffset(right,rightShape,rightOffset),
+         "Couldn't perform binaryOp due to insufficient storage in right object.");
   for (DataTypes::RealVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     left[leftOffset+i]=operation(left[leftOffset+i],right[rightOffset+i]);
   }
@@ -921,8 +921,8 @@ binaryOp(DataTypes::RealVectorType& left,
                         double right,
                         BinaryFunction operation)
 {
-  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
+  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape,offset),
+         "Couldn't perform binaryOp due to insufficient storage in left object.");
   for (DataTypes::RealVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     left[offset+i]=operation(left[offset+i],right);
   }
@@ -964,12 +964,12 @@ binaryOpVector(LVEC& left,
 {
   typedef typename LVEC::ElementType ltype;
   typedef typename RVEC::ElementType rtype;
-  EsysAssert(leftShape==rightShape,
-	     "Error - Couldn't perform binaryOp due to shape mismatch,");
-  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape, leftOffset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
-  EsysAssert(((right.size()>0)&&checkOffset(right,rightShape,rightOffset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage in right object.");
+  ESYS_ASSERT(leftShape==rightShape,
+	     "Couldn't perform binaryOp due to shape mismatch,");
+  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape, leftOffset),
+         "Couldn't perform binaryOp due to insufficient storage in left object.");
+  ESYS_ASSERT((right.size()>0)&&checkOffset(right,rightShape,rightOffset),
+         "Couldn't perform binaryOp due to insufficient storage in right object.");
   switch (operation)
   {
     case POWF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, pow_func<ltype,rtype,ltype>()); break; 
@@ -1013,8 +1013,8 @@ binaryOpVector(LVEC& left,
 {
   typedef typename LVEC::ElementType ltype;
   typedef SCALAR rtype;  
-  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
-             "Error - Couldn't perform binaryOp due to insufficient storage in left object.");
+  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape,offset),
+         "Couldn't perform binaryOp due to insufficient storage in left object.");
   switch (operation)
   {
     case POWF: binaryOpVectorHelper(left, leftShape, offset, right, pow_func<ltype,rtype,ltype>()); break;
@@ -1044,8 +1044,8 @@ reductionOp(const DataTypes::RealVectorType& left,
                            BinaryFunction operation,
                            DataTypes::real_t initial_value)
 {
-  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
-               "Error - Couldn't perform reductionOp due to insufficient storage.");
+  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape,offset),
+         "Couldn't perform reductionOp due to insufficient storage.");
   DataTypes::real_t current_value=initial_value;
   for (DataTypes::RealVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     current_value=operation(current_value,left[offset+i]);
@@ -1062,8 +1062,8 @@ reductionOp(const DataTypes::CplxVectorType& left,
                            BinaryFunction operation,
                            DataTypes::real_t initial_value)
 {
-  EsysAssert(((left.size()>0)&&checkOffset(left,leftShape,offset)),
-               "Error - Couldn't perform reductionOp due to insufficient storage.");
+  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape,offset),
+         "Couldn't perform reductionOp due to insufficient storage.");
   DataTypes::real_t current_value=initial_value;
   for (DataTypes::RealVectorType::size_type i=0;i<DataTypes::noValues(leftShape);i++) {
     current_value=operation(current_value,left[offset+i]);

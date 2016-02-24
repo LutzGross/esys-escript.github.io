@@ -17,18 +17,15 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "TaipanTestCase.h"
 
 #include "escript/Taipan.h"
-#include "esysUtils/EsysException.h"
 
 #include <cppunit/TestCaller.h>
 #include <iostream>
 
 using namespace std;
 using namespace escript;
-using namespace esysUtils;
 using namespace CppUnit;
 
 void TaipanTestCase::testN1() {

@@ -18,6 +18,8 @@
 #include <esysUtils/first.h>
 
 #include "MeshAdapterFactory.h"
+#include "finley/FinleyException.h"
+
 #include <esysUtils/Esys_MPI.h>
 
 #ifdef USE_NETCDF
@@ -44,7 +46,7 @@ T ncReadAtt(NcFile *dataFile, const string &fName, const string& attrName)
         stringstream msg;
         msg << "loadMesh: Error retrieving integer attribute '" << attrName
             << "' from NetCDF file '" << fName << "'";
-        throw FinleyAdapterException(msg.str());
+        throw FinleyException(msg.str());
     }
     T value = (sizeof(T) > 4 ? attr->as_long(0) : attr->as_int(0));
     delete attr;
@@ -56,7 +58,7 @@ inline void cleanupAndThrow(Mesh* mesh, string msg)
 {
     delete mesh;
     string msgPrefix("loadMesh: NetCDF operation failed - ");
-    throw FinleyAdapterException(msgPrefix+msg);
+    throw FinleyException(msgPrefix+msg);
 }
 
 Domain_ptr loadMesh(const std::string& fileName)
@@ -78,7 +80,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     if (!dataFile.is_valid()) {
         stringstream msg;
         msg << "loadMesh: Opening NetCDF file '" << fName << "' for reading failed.";
-        throw FinleyAdapterException(msg.str());
+        throw FinleyException(msg.str());
     }
 
     // Read NetCDF integer attributes
@@ -88,13 +90,13 @@ Domain_ptr loadMesh(const std::string& fileName)
     int index_size;
     try {
         index_size = ncReadAtt<int>(&dataFile, fName, "index_size");
-    } catch (FinleyAdapterException& e) {
+    } catch (FinleyException& e) {
         index_size = 4;
     }
     // technically we could cast if reading 32-bit data on 64-bit escript
     // but cost-benefit analysis clearly favours this implementation for now
     if (sizeof(index_t) != index_size) {
-        throw FinleyAdapterException("loadMesh: size of index types at runtime differ from dump file");
+        throw FinleyException("loadMesh: size of index types at runtime differ from dump file");
     }
 
     int mpi_size = ncReadAtt<int>(&dataFile, fName, "mpi_size");
@@ -122,14 +124,14 @@ Domain_ptr loadMesh(const std::string& fileName)
         msg << "loadMesh: The NetCDF file '" << fName
             << "' can only be read on " << mpi_size
             << " CPUs. Currently running: " << mpiInfo->size;
-        throw FinleyAdapterException(msg.str());
+        throw FinleyException(msg.str());
     }
     if (mpiInfo->rank != mpi_rank) {
         stringstream msg;
         msg << "loadMesh: The NetCDF file '" << fName
             << "' should be read on CPU #" << mpi_rank
             << " and NOT on #" << mpiInfo->rank;
-        throw FinleyAdapterException(msg.str());
+        throw FinleyException(msg.str());
     }
 
     // Read mesh name
@@ -137,7 +139,7 @@ Domain_ptr loadMesh(const std::string& fileName)
         stringstream msg;
         msg << "loadMesh: Error retrieving mesh name from NetCDF file '"
             << fName << "'";
-        throw FinleyAdapterException(msg.str());
+        throw FinleyException(msg.str());
     }
     boost::scoped_array<char> name(attr->as_string(0));
     delete attr;
@@ -502,7 +504,7 @@ Domain_ptr loadMesh(const std::string& fileName)
 
     return dom;
 #else
-    throw FinleyAdapterException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
+    throw FinleyException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
 #endif /* USE_NETCDF */
 }
 
@@ -512,7 +514,7 @@ Domain_ptr readMesh(esysUtils::JMPI& info, const std::string& fileName,
                     const std::vector<int>& tags)
 {
     if (fileName.size() == 0 )
-        throw FinleyAdapterException("Null file name!");
+        throw escript::ValueError("Null file name!");
 
     Mesh* fMesh=Mesh::read(info, fileName, integrationOrder, reducedIntegrationOrder, optimize);
     checkFinleyError();
@@ -527,7 +529,7 @@ Domain_ptr readMesh_driver(const boost::python::list& args)
     using boost::python::extract;
     int l=len(args);
     if (l<7) {
-        throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
+        throw escript::ValueError("Insufficient arguments to readMesh_driver");
     }
     string fileName=extract<string>(args[0])();
     int integrationOrder=extract<int>(args[1])();
@@ -547,7 +549,7 @@ Domain_ptr readMesh_driver(const boost::python::list& args)
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check()) {
-            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+            throw escript::ValueError("Invalid escriptWorld parameter.");
         }
         info=ex()->getMPI();
     } else {
@@ -594,7 +596,7 @@ Domain_ptr readMesh_driver(const boost::python::list& args)
                 curmax++;
             }
         } else {
-            throw FinleyAdapterException("Error - Unable to extract tag value.");
+            throw FinleyException("Error - Unable to extract tag value.");
         }
     }
     // now we need to add the dirac points
@@ -609,7 +611,7 @@ Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
                     const std::vector<int>& tags)
 {
     if (fileName.size() == 0 )
-        throw FinleyAdapterException("Null file name!");
+        throw escript::ValueError("Null file name!");
 
     Mesh* fMesh=Mesh::readGmsh(info, fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
     checkFinleyError();
@@ -623,7 +625,7 @@ Domain_ptr readGmsh_driver(const boost::python::list& args)
     using boost::python::extract;
     int l=len(args);
     if (l<7) {
-        throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
+        throw escript::ValueError("Insufficient arguments to readMesh_driver");
     }
     string fileName=extract<string>(args[0])();
     int numDim=extract<int>(args[1])();
@@ -644,7 +646,7 @@ Domain_ptr readGmsh_driver(const boost::python::list& args)
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check()) {
-            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+            throw escript::ValueError("Invalid escriptWorld parameter.");
         }
         info=ex()->getMPI();
     } else {
@@ -691,7 +693,7 @@ Domain_ptr readGmsh_driver(const boost::python::list& args)
                 curmax++;
             }
         } else {
-            throw FinleyAdapterException("Error - Unable to extract tag value");
+            throw FinleyException("Error - Unable to extract tag value");
         }
     }
     // now we need to add the dirac points
@@ -728,7 +730,7 @@ Domain_ptr brick(esysUtils::JMPI& info, dim_t n0, dim_t n1, dim_t n2, int order,
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
-        throw FinleyAdapterException(message.str());
+        throw escript::ValueError(message.str());
     }
 
     // Convert any finley errors into a C++ exception
@@ -785,7 +787,7 @@ Domain_ptr brick_driver(const boost::python::list& args)
                 curmax++;
             }
         } else {
-            throw FinleyAdapterException("Error - Unable to extract tag value.");
+            throw FinleyException("Error - Unable to extract tag value.");
         }
     }
     boost::python::object pworld=args[17];
@@ -794,7 +796,7 @@ Domain_ptr brick_driver(const boost::python::list& args)
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check())
         {
-            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+            throw escript::ValueError("Invalid escriptWorld parameter.");
         }
         info=ex()->getMPI();
     } else {
@@ -840,7 +842,7 @@ Domain_ptr rectangle(esysUtils::JMPI& info, dim_t n0, dim_t n1, int order,
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
-        throw FinleyAdapterException(message.str());
+        throw escript::ValueError(message.str());
     }
 
     // Convert any finley errors into a C++ exception
@@ -917,7 +919,7 @@ Domain_ptr rectangle_driver(const boost::python::list& args)
                 curmax++;
             }
         } else {
-            throw FinleyAdapterException("Error - Unable to extract tag value.");
+            throw FinleyException("Error - Unable to extract tag value.");
         }
     }
     boost::python::object pworld=args[14];
@@ -925,7 +927,7 @@ Domain_ptr rectangle_driver(const boost::python::list& args)
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check()) {
-            throw FinleyAdapterException("Invalid escriptWorld parameter.");
+            throw escript::ValueError("Invalid escriptWorld parameter.");
         }
         info=ex()->getMPI();
     } else {

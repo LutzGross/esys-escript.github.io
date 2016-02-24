@@ -17,10 +17,7 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "DataTaggedTestCase.h"
-
-#include "esysUtils/EsysException.h"
 
 #include "escript/BinaryOp.h"
 #include "escript/DataConstant.h"
@@ -28,6 +25,7 @@
 #include "escript/DataTagged.h"
 #include "escript/DataTypes.h"
 #include "escript/DataVector.h"
+#include "escript/EsysException.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"
 #include "escript/UnaryOp.h"
@@ -40,7 +38,6 @@
 
 using namespace CppUnit;
 using namespace escript;
-using namespace esysUtils;
 using namespace std;
 using namespace escript::DataTypes;
 

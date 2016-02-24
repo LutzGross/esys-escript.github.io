@@ -23,12 +23,12 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "Mesh.h"
+#include "FinleyException.h"
 #include "IndexList.h"
+
 #include <boost/scoped_array.hpp>
 
-#include "CPPAdapter/FinleyAdapterException.h"
 
 namespace finley {
 
@@ -602,7 +602,7 @@ void Mesh::resolveNodeIds()
         // relabel nodes of the elements
         relabelElementNodes(globalToNewLocalNodeLabels, min_id);
     } else
-        throw FinleyAdapterException("Errors occurred during node resolution");
+        throw FinleyException("Errors occurred during node resolution");
 }
 
 /// sets new coordinates for the nodes

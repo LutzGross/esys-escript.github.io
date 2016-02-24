@@ -61,7 +61,6 @@ double timer();
 void resetError();
 void setError(ErrorCodeType err, const char* msg);
 bool noError();
-ErrorCodeType getErrorType();
 char* getErrorMessage();
 void checkFinleyError();
 bool MPI_noError(esysUtils::JMPI& mpi_info);

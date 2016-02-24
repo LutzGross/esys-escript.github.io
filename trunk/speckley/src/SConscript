@@ -40,7 +40,6 @@ sources = """
     RectangleIntegrals.cpp
     RectangleReductions.cpp
     SpeckleyDomain.cpp
-    SpeckleyException.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
 """.split()

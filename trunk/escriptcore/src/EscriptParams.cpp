@@ -18,14 +18,13 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "EscriptParams.h"
-#include <cstring>
-#include <boost/python/tuple.hpp>
-#include <cmath>                        // to test if we know how to check for nan
-
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 #include "esysUtils/Esys_MPI.h"
+
+#include <cstring>
+#include <cmath>                        // to test if we know how to check for nan
+#include <boost/python/tuple.hpp>
 
 namespace escript
 {
@@ -194,7 +193,7 @@ EscriptParams::setInt(const char* name, int value)
     else if (!strcmp(name,"LAZY_VERBOSE"))
         lazy_verbose=value;
     else
-       throw esysUtils::EsysException("Invalid parameter name");
+       throw EsysException("Invalid parameter name");
 }
 
 void 

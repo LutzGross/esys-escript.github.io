@@ -72,7 +72,6 @@ sources = """
     ReferenceElements.cpp
     ShapeFunctions.cpp
     Util.cpp
-    CPPAdapter/FinleyAdapterException.cpp
     CPPAdapter/MeshAdapter.cpp
     CPPAdapter/MeshAdapterFactory.cpp
 """.split()
@@ -81,6 +80,7 @@ headers = """
     Assemble.h
     ElementFile.h
     Finley.h
+    FinleyException.h
     FinleyVersion.h
     IndexList.h
     Mesh.h
@@ -95,7 +95,6 @@ headers = """
 """.split()
 
 cppadapter_headers = """
-    CPPAdapter/FinleyAdapterException.h
     CPPAdapter/MeshAdapter.h
     CPPAdapter/MeshAdapterFactory.h
     CPPAdapter/system_dep.h

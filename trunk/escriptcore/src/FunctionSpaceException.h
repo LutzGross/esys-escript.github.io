@@ -19,84 +19,19 @@
 #define escript_FunctionSpaceException_20040602_H
 #include "system_dep.h"
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
 
 namespace escript
 {
 
-  /**
-  \brief
-  FunctionSpaceException exception class.
-
-  Description:
-  FunctionSpaceException exception class.
-  The class provides a public function returning the exception name
-  */
-  class FunctionSpaceException : public esysUtils::EsysException
-  {
-
-  protected:
-
-     typedef EsysException Parent;
-
-  public:
-    /**
-    \brief
-    Default constructor for the exception.
-    */
-    ESCRIPT_DLL_API
-    FunctionSpaceException() : Parent() { updateMessage();}
-    /**
-    \brief
-    Constructor for the exception.
-    */
-    ESCRIPT_DLL_API
-    FunctionSpaceException(const char *cstr) : Parent(cstr) { updateMessage();}
-    /**
-    \brief
-    Constructor for the exception.
-    */
-    ESCRIPT_DLL_API
-    FunctionSpaceException(const std::string &str) :
-    Parent(str) { updateMessage();}
-    /**
-    \brief
-    Copy Constructor for the exception.
-    */
-    ESCRIPT_DLL_API
-    FunctionSpaceException(const FunctionSpaceException &other) : Parent(other)
-      {
-        updateMessage();
-      }
-
-    ESCRIPT_DLL_API
-    inline FunctionSpaceException &
-    operator=(const FunctionSpaceException &other ) THROW(NO_ARG)
-       {
-         Parent::operator=(other);
-         updateMessage();
-         return *this;
-       }
-
-
-    /// Destructor
-    ESCRIPT_DLL_API
-    virtual ~FunctionSpaceException() THROW(NO_ARG) {}
-    /**
-    \brief
-    Returns the name of the exception.
-    */
-    ESCRIPT_DLL_API
-    virtual const std::string & exceptionName() const;
-
-  private:
-
-    //
-    // the exception name is immutable and class-wide.
-    // Inheritor note; you need one of these too.
-    // and an overloaded exceptionName() in your .cpp implementation file. 
-    static const std::string exceptionNameValue;
-  };
+class FunctionSpaceException : public EsysException
+{
+public:
+    FunctionSpaceException(const std::string& str) : EsysException(str) {}
+    virtual ~FunctionSpaceException() throw() {}
+};
 
 } // end of namespace
+
 #endif
+

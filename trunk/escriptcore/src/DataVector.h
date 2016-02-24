@@ -19,16 +19,10 @@
 #define escript_DataVector_H
 #include "system_dep.h"
 
-#include "esysUtils/EsysAssert.h"
-
-#include <vector>
-#include <iostream>
-#include <fstream>
-
+#include "Assert.h"
 #include "DataTypes.h"
-
-#include "DataVectorTaipan.h"
 #include "DataVectorAlt.h"
+#include "DataVectorTaipan.h"
 
 // ensure that nobody else tries to instantiate the complex version
 extern template class escript::DataTypes::DataVectorAlt<escript::DataTypes::cplx_t>;
@@ -164,24 +158,22 @@ namespace DataTypes
       //
       // Make sure views are not empty
 
-      EsysAssert(!left.size()==0,
-                 "Error - left data is empty.");
-      EsysAssert(!other.size()==0,
-                 "Error - other data is empty.");
+      ESYS_ASSERT(!left.size()==0, "left data is empty.");
+      ESYS_ASSERT(!other.size()==0, "other data is empty.");
 
       //
       // Check the view to be sliced from is compatible with the region to be sliced,
       // and that the region to be sliced is compatible with this view:
-      EsysAssert(checkOffset(leftOffset,left.size(),noValues(leftShape)),
-                 "Error - offset incompatible with this view.");
-      EsysAssert(otherOffset+noValues(leftShape)<=other.size(),
-                 "Error - offset incompatible with other view.");
+      ESYS_ASSERT(checkOffset(leftOffset,left.size(),noValues(leftShape)),
+                 "offset incompatible with this view.");
+      ESYS_ASSERT(otherOffset+noValues(leftShape)<=other.size(),
+                 "offset incompatible with other view.");
 
-      EsysAssert(getRank(otherShape)==region.size(),
-                 "Error - slice not same rank as view to be sliced from.");
+      ESYS_ASSERT(getRank(otherShape)==region.size(),
+                 "slice not same rank as view to be sliced from.");
 
-      EsysAssert(noValues(leftShape)==noValues(getResultSliceShape(region)),
-                 "Error - slice shape not compatible shape for this view.");
+      ESYS_ASSERT(noValues(leftShape)==noValues(getResultSliceShape(region)),
+                 "slice shape not compatible shape for this view.");
 
       //
       // copy the values in the specified region of the other view into this view
@@ -275,25 +267,23 @@ namespace DataTypes
       //
       // Make sure views are not empty
 
-      EsysAssert(left.size()!=0,
-                 "Error - this view is empty.");
-      EsysAssert(other.size()!=0,
-                 "Error - other view is empty.");
+      ESYS_ASSERT(left.size()!=0, "this view is empty.");
+      ESYS_ASSERT(other.size()!=0, "other view is empty.");
 
       //
       // Check this view is compatible with the region to be sliced,
       // and that the region to be sliced is compatible with the other view:
 
-      EsysAssert(checkOffset(otherOffset,other.size(),noValues(otherShape)),
-                 "Error - offset incompatible with other view.");
-      EsysAssert(leftOffset+noValues(otherShape)<=left.size(),
-                 "Error - offset incompatible with this view.");
+      ESYS_ASSERT(checkOffset(otherOffset,other.size(),noValues(otherShape)),
+                 "offset incompatible with other view.");
+      ESYS_ASSERT(leftOffset+noValues(otherShape)<=left.size(),
+                 "offset incompatible with this view.");
 
-      EsysAssert(getRank(leftShape)==region.size(),
-                 "Error - slice not same rank as this view.");
+      ESYS_ASSERT(getRank(leftShape)==region.size(),
+                 "slice not same rank as this view.");
 
-      EsysAssert(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
-                 "Error - slice shape not compatible shape for other view.");
+      ESYS_ASSERT(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
+                 "slice shape not compatible shape for other view.");
 
       //
       // copy the values in the other view into the specified region of this view

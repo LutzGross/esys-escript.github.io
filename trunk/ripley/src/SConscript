@@ -39,7 +39,6 @@ sources = """
     MultiRectangle.cpp
     Rectangle.cpp
     RipleyDomain.cpp
-    RipleyException.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
 """.split()

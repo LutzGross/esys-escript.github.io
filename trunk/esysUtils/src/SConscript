@@ -18,17 +18,12 @@ Import('*')
 local_env = env.Clone()
 
 sources = """
-    EsysAssertException.cpp
-    EsysException.cpp
     Esys_MPI.cpp
     error.cpp
     pyerr.cpp
 """.split()
 
 headers = """
-    EsysAssert.h
-    EsysAssertException.h
-    EsysException.h
     Esys_MPI.h
     IndexList.h
     error.h
@@ -56,7 +51,4 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('build_esysUtils_lib', lib)
 env.Alias('install_esysUtils_headers', hdr_inst)
 env.Alias('install_esysUtils_lib', lib_inst)
-
-# configure the unit tests
-local_env.SConscript(dirs=['#/esysUtils/test'], variant_dir='test', duplicate=0)
 

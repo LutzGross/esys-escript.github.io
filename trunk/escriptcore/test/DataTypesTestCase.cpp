@@ -22,13 +22,12 @@
 #include "escript/DataAlgorithm.h"
 #include "escript/DataTypes.h"
 #include "escript/DataVector.h"
-#include "esysUtils/EsysException.h"
+#include "escript/EsysException.h"
 
 #include <cppunit/TestCaller.h>
 #include <iostream>
 
 using namespace CppUnit;
-using namespace esysUtils;
 using namespace escript;
 using namespace escript::DataTypes;
 using namespace std;

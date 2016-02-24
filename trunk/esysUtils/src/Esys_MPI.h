@@ -184,6 +184,7 @@ public:
     static bool active();
 };
 
+
 } // namespace esysUtils
 
 #endif /* INC_ESYS_MPI */

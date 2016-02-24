@@ -48,11 +48,7 @@
 * THROW(), so the NO_ARG trick must be used to avoid the mass of warnings.
 */
 
-#   define THROW(ARG)
-#else
-#   define THROW(ARG) throw(ARG)
 #endif
 
-#define NO_ARG
-
 #endif
+

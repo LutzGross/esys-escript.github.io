@@ -33,7 +33,6 @@
 #include "MPIScalarReducer.h"
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
-#include "SolverOptionsException.h"
 #include "SplitWorld.h"
 #include "SubWorld.h"
 #include "TestDomain.h"
@@ -1284,7 +1283,8 @@ args("source", "q", "r","factor"),
   //
   // Register exception translators
   //
-  register_exception_translator<esysUtils::EsysException>(&escript::RuntimeErrorTranslator);
-  register_exception_translator<escript::SolverOptionsException>(&escript::ValueErrorTranslator);
+  register_exception_translator<escript::AssertException>(&escript::AssertionErrorTranslator);
+  register_exception_translator<escript::EsysException>(&escript::RuntimeErrorTranslator);
+  register_exception_translator<escript::ValueError>(&escript::ValueErrorTranslator);
 }
 

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2014-2016 by The University of Queensland
+* Copyright (c) 2003-2016 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,21 +14,21 @@
 *
 *****************************************************************************/
 
-// Adapted from FunctionSpaceException.cpp
 
-#include "SplitWorldException.h"
+#ifndef __FINLEY_EXCEPTION_H__
+#define __FINLEY_EXCEPTION_H__
 
+#include <escript/EsysException.h>
 
-using namespace escript;
+namespace finley {
 
-
-const std::string 
-SplitWorldException::exceptionNameValue("SplitWorldException");
-
-
-const std::string &
-SplitWorldException::exceptionName() const
+class FinleyException : public escript::EsysException
 {
-  return exceptionNameValue;
-}
+public:
+    FinleyException(const std::string& str) : escript::EsysException(str) {}
+};
+
+} // end of namespace
+
+#endif // __FINLEY_EXCEPTION_H__
 

@@ -46,6 +46,7 @@ void SharedDataTestCase::testEQ()
   TESTEQOP(*=)
   cout << "\tOK" << endl << "Testing /=";
   TESTEQOP(/=)
+  cout << "\tOK" << endl;
 }
 
 // Test for shared data caused by using a copy constructor
