@@ -1693,7 +1693,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -1763,7 +1762,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2187,7 +2185,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2276,7 +2273,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
