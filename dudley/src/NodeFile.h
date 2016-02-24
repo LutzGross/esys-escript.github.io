@@ -21,7 +21,7 @@
 
 #include "Dudley.h"
 #include "NodeMapping.h"
-#include "escript/DataC.h"
+#include "escript/Data.h"
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 
