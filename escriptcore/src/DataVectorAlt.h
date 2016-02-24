@@ -19,18 +19,12 @@
 #define escript_DataVectorAlt_H
 #include "system_dep.h"
 
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "esysUtils/EsysAssert.h"
+#include "Assert.h"
 #include "DataException.h"
-
-
-
 #include "DataTypes.h"
 #include "WrappedArray.h"
+
+#include <sstream>
 
 namespace escript
 {
@@ -211,7 +205,7 @@ inline
 typename DataVectorAlt<T>::reference
 DataVectorAlt<T>::operator[](const DataVectorAlt::size_type i)
 {
-  EsysAssert(i<size(),"DataVectorAlt: invalid index specified. " << i << " of " << size());
+  ESYS_ASSERT(i<size(), "DataVectorAlt: invalid index specified, " << i << " of " << size());
   return m_array_data[i];
 }
 
@@ -220,7 +214,7 @@ inline
 typename DataVectorAlt<T>::const_reference
 DataVectorAlt<T>::operator[](const DataVectorAlt::size_type i) const
 {
-  EsysAssert(i<size(),"DataVectorAlt: invalid index specified. " << i << " of " << size());
+  ESYS_ASSERT(i<size(), "DataVectorAlt: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 
@@ -281,9 +275,7 @@ DataVectorAlt<T>::resize(const DataVectorAlt<T>::size_type newSize,
                    const DataVectorAlt<T>::value_type newValue,
                    const DataVectorAlt<T>::size_type newBlockSize)
 {
-  assert(m_size >= 0);
-
-			// The < 1 is to catch both ==0 and negatives
+	// The < 1 is to catch both ==0 and negatives
   if ( newBlockSize < 1) {
     std::ostringstream oss;
     oss << "DataVectorAlt: invalid blockSize specified (" << newBlockSize << ')';    

@@ -17,19 +17,17 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "DataEmptyTestCase.h"
 
 #include "escript/DataEmpty.h"
 #include "escript/FunctionSpace.h"
-#include "esysUtils/EsysException.h"
+#include "escript/EsysException.h"
 
 #include <cppunit/TestCaller.h>
 
 using namespace CppUnit;
 using namespace escript;
 using namespace std;
-using namespace esysUtils;
 
 void DataEmptyTestCase::testAll()
 {

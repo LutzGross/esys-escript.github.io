@@ -17,17 +17,15 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "DataTestCase.h"
 
-#include <cmath>
-
-#include "esysUtils/EsysException.h"
 #include "escript/Data.h"
 #include "escript/DataLazy.h"
 #include "escript/EscriptParams.h"
+#include "escript/EsysException.h"
 #include "escript/FunctionSpace.h"
 
+#include <cmath>
 #include <cppunit/TestCaller.h>
 
 #define AUTOLAZYON setEscriptParamInt("AUTOLAZY",1);
@@ -40,9 +38,7 @@
 using namespace std;
 using namespace CppUnit;
 using namespace escript;
-using namespace esysUtils;
 using namespace escript::DataTypes;
-
 
 namespace
 {

@@ -17,15 +17,15 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include "esysUtils/Esys_MPI.h"
-#include "../Finley.h"
-
-#include "FinleyAdapterException.h"
+#include "finley/Finley.h"
+#include "finley/FinleyException.h"
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/ExceptionTranslators.h>
+
+#include "esysUtils/Esys_MPI.h"
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
@@ -44,8 +44,10 @@ BOOST_PYTHON_MODULE(finleycpp)
 #endif
 
   scope().attr("__doc__") = "To use this module, please import esys.finley";    
-  
-  register_exception_translator<finley::FinleyAdapterException>(&escript::RuntimeErrorTranslator);
+
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
+    register_exception_translator<finley::FinleyException>(&escript::RuntimeErrorTranslator);
 
   //
   // NOTE: The return_value_policy is necessary for functions that

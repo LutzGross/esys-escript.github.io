@@ -17,12 +17,11 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include "Data.h"
 #include "DataConstant.h"
+#include "Data.h"
 #include "DataException.h"
 #include "DataMaths.h"
 
-#include "esysUtils/EsysAssert.h"
 #include "esysUtils/Esys_MPI.h"
 
 #include <iostream>
@@ -34,8 +33,8 @@
 #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {\
     std::ostringstream ss;\
     ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
-    ss << m_owners.size();\
-    cerr << ss.str() << endl;\
+    ss << " num owners=" << m_owners.size();\
+    std::cerr << ss.str() << std::endl;\
     throw DataException(ss.str());}
 
 using namespace std;
@@ -223,7 +222,7 @@ DataConstant::getPointOffset(int sampleNo,
 // We avoid this check for constant data due to issues manipulating 
 // data with no samples.
 
-//  EsysAssert((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
+//  ESYS_ASSERT((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
 //              "Invalid index, sampleNo: " << sampleNo << " dataPointNo: " << dataPointNo);
   //
   // Whatever the coord's always return the same value as this is constant data.
@@ -237,7 +236,7 @@ DataConstant::getPointOffset(int sampleNo,
 // We avoid this check for constant data due to issues manipulating 
 // data with no samples.
  
-//  EsysAssert((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
+//  ESYS_ASSERT((validSamplePointNo(dataPointNo) && validSampleNo(sampleNo)),
 //              "Invalid index, sampleNo: " << sampleNo << " dataPointNo: " << dataPointNo);
   //
   // Whatever the coord's always return the same value as this is constant data.
@@ -400,9 +399,9 @@ DataConstant::dump(const std::string fileName) const
    const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
    esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+#ifdef ESYS_MPI
    const int mpi_iam = mpiInfo->rank;
    const int mpi_num = mpiInfo->size;
-#ifdef ESYS_MPI
    MPI_Status status;
 
    /* Serialize NetCDF I/O */

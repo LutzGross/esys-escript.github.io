@@ -323,8 +323,8 @@ inline dim_t Brick::getNumDataPointsGlobal() const
 
 inline double Brick::getLocalCoordinate(index_t index, int dim) const
 {
-    EsysAssert((dim>=0 && dim<3), "'dim' out of bounds");
-    EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
+    ESYS_ASSERT(dim>=0 && dim<3, "'dim' out of bounds");
+    ESYS_ASSERT(index>=0 && index<m_NN[dim], "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
 }
 

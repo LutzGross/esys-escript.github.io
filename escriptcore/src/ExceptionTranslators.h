@@ -17,20 +17,41 @@
 #ifndef __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 #define __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 
-#include "esysUtils/EsysException.h"
+#include "EsysException.h"
+
+// put this within all boost module definitions so exceptions are translated
+// properly
+#define REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS \
+    register_exception_translator<escript::AssertException>(&escript::AssertionErrorTranslator);\
+    register_exception_translator<escript::NotImplementedError>(&escript::NotImplementedErrorTranslator);\
+    register_exception_translator<escript::ValueError>(&escript::ValueErrorTranslator)
 
 namespace escript {
+
+  /**
+     \brief
+     Function which translates an EsysException into a python AssertionError
+  */
+  void AssertionErrorTranslator(const EsysException& e);
+
+  /**
+     \brief
+     Function which translates an EsysException into a python NotImplementedError
+  */
+  void NotImplementedErrorTranslator(const EsysException& e);
+
   /**
      \brief
      Function which translates an EsysException into a python RuntimeError
   */
-  void RuntimeErrorTranslator(const esysUtils::EsysException& e);
+  void RuntimeErrorTranslator(const EsysException& e);
 
   /**
      \brief
      Function which translates an EsysException into a python ValueError
   */
-  void ValueErrorTranslator(const esysUtils::EsysException& e);
+  void ValueErrorTranslator(const EsysException& e);
+
 } // end of namespace
 
 #endif // __ESCRIPT_EXCEPTIONTRANSLATORS_H__

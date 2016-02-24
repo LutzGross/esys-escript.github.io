@@ -21,24 +21,24 @@
 #define DATA_H
 #include "system_dep.h"
 
-#include "DataTypes.h"
+#include "BinaryOp.h"
 #include "DataAbstract.h"
 #include "DataAlgorithm.h"
-#include "FunctionSpace.h"
-#include "BinaryOp.h"
-#include "UnaryOp.h"
 #include "DataException.h"
+#include "DataTypes.h"
+#include "FunctionSpace.h"
+#include "UnaryOp.h"
+
+#include "esysUtils/Esys_MPI.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-#include "esysUtils/Esys_MPI.h"
-#include <string>
 #include <algorithm>
 #include <sstream>
+#include <string>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 #include <boost/math/special_functions/bessel.hpp>
@@ -1939,7 +1939,6 @@ template <class BinaryOp>
 #ifdef _OPENMP
   if (omp_in_parallel())
   {
-// *((int*)0)=17;
 	throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
   }
 #endif
@@ -2023,7 +2022,7 @@ const DataReady*
 Data::getReady() const
 {
    const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
-   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -2032,7 +2031,7 @@ DataReady*
 Data::getReady()
 {
    DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
-   EsysAssert((dr!=0), "Error - casting to DataReady.");
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -2044,7 +2043,7 @@ DataReady_ptr
 Data::getReadyPtr()
 {
    DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
-   EsysAssert((dr.get()!=0), "Error - casting to DataReady.");
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -2054,7 +2053,7 @@ const_DataReady_ptr
 Data::getReadyPtr() const
 {
    const_DataReady_ptr dr=boost::dynamic_pointer_cast<const DataReady>(m_data);
-   EsysAssert((dr.get()!=0), "Error - casting to DataReady.");
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -2342,27 +2341,27 @@ Data::binaryDataOp(const Data& right,
      // Expanded data will be done in parallel, the right hand side can be
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
+     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
      escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
    } else if (isTagged()) {
      //
      // Tagged data is operated on serially, the right hand side can be
      // either DataConstant or DataTagged
      DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
+     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
      if (right.isTagged()) {
        DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
-       EsysAssert((rightC!=0), "Programming error - casting to DataTagged.");
+       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataTagged.");
        escript::binaryOpDataReady(*leftC,*rightC,operation);
      } else {
        DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-       EsysAssert((rightC!=0), "Programming error - casting to DataConstant.");
+       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataConstant.");
        escript::binaryOpDataReady(*leftC,*rightC,operation);
      }
    } else if (isConstant()) {
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
      DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-     EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
+     ESYS_ASSERT(leftC!=0 && rightC!=0, "Programming error - casting to DataConstant.");
      escript::binaryOpDataReady(*leftC,*rightC,operation);
    }  
 }
@@ -2433,7 +2432,7 @@ Data::binaryOp(const Data& right,
      // Expanded data will be done in parallel, the right hand side can be
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
+     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
      DataReady* dr=dynamic_cast<DataReady*>(rp.get());
      escript::binaryOp(*leftC,*dr,operation);
    } else if (isTagged()) {
@@ -2441,20 +2440,20 @@ Data::binaryOp(const Data& right,
      // Tagged data is operated on serially, the right hand side can be
      // either DataConstant or DataTagged
      DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
+     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
      if (right.isTagged()) {
        DataTagged* rightC=dynamic_cast<DataTagged*>(rp.get());
-       EsysAssert((rightC!=0), "Programming error - casting to DataTagged.");
+       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataTagged.");
        escript::binaryOp(*leftC,*rightC,operation);
      } else {
        DataConstant* rightC=dynamic_cast<DataConstant*>(rp.get());
-       EsysAssert((rightC!=0), "Programming error - casting to DataConstant.");
+       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataConstant.");
        escript::binaryOp(*leftC,*rightC,operation);
      }
    } else if (isConstant()) {
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
      DataConstant* rightC=dynamic_cast<DataConstant*>(rp.get());
-     EsysAssert((leftC!=0 && rightC!=0), "Programming error - casting to DataConstant.");
+     ESYS_ASSERT(leftC!=0 && rightC!=0, "Programming error - casting to DataConstant.");
      escript::binaryOp(*leftC,*rightC,operation);
    }
 }
@@ -2473,15 +2472,15 @@ Data::algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-    EsysAssert((leftC!=0), "Programming error - casting to DataExpanded.");
+    ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-    EsysAssert((leftC!=0), "Programming error - casting to DataTagged.");
+    ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-    EsysAssert((leftC!=0), "Programming error - casting to DataConstant.");
+    ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
@@ -2512,14 +2511,14 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
-    EsysAssert((dataE!=0), "Programming error - casting data to DataExpanded.");
-    EsysAssert((resultE!=0), "Programming error - casting result to DataExpanded.");
+    ESYS_ASSERT(dataE!=0, "Programming error - casting data to DataExpanded.");
+    ESYS_ASSERT(resultE!=0, "Programming error - casting result to DataExpanded.");
     escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
     return result;
   }
   else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
-    EsysAssert((dataT!=0), "Programming error - casting data to DataTagged.");
+    ESYS_ASSERT(dataT!=0, "Programming error - casting data to DataTagged.");
     DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
@@ -2530,8 +2529,8 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
-    EsysAssert((dataC!=0), "Programming error - casting data to DataConstant.");
-    EsysAssert((resultC!=0), "Programming error - casting result to DataConstant.");
+    ESYS_ASSERT(dataC!=0, "Programming error - casting data to DataConstant.");
+    ESYS_ASSERT(resultC!=0, "Programming error - casting result to DataConstant.");
     escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
   } else if (isLazy()) {

@@ -17,8 +17,10 @@
 
 #if !defined escript_DataTypes_20080811_H
 #define escript_DataTypes_20080811_H
+#include <esysUtils/first.h>
 #include "system_dep.h"
-#include "esysUtils/EsysAssert.h"
+#include "Assert.h"
+
 #include <vector>
 #include <string>
 #include <boost/python/object.hpp>
@@ -235,8 +237,8 @@ namespace DataTypes {
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i)
   {
-  	EsysAssert((getRank(shape)==1),"Incorrect number of indices for the rank of this object.");
-	EsysAssert((i < DataTypes::noValues(shape)), "Error - Invalid index.");
+  	ESYS_ASSERT(getRank(shape)==1, "Incorrect number of indices for the rank of this object.");
+	ESYS_ASSERT(i < DataTypes::noValues(shape), "Invalid index.");
 	return i;
   }
 
@@ -255,9 +257,9 @@ namespace DataTypes {
 	   vec_size_type j)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
-  	EsysAssert((getRank(shape)==2),"Incorrect number of indices for the rank of this object.");
+  	ESYS_ASSERT(getRank(shape)==2, "Incorrect number of indices for the rank of this object.");
   	vec_size_type temp=i+j*shape[0];
-  	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
+  	ESYS_ASSERT(temp < DataTypes::noValues(shape), "Invalid index.");
 	return temp;
   }
 
@@ -275,9 +277,9 @@ namespace DataTypes {
 	   vec_size_type j, vec_size_type k)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
-  	EsysAssert((getRank(shape)==3),"Incorrect number of indices for the rank of this object.");
+  	ESYS_ASSERT(getRank(shape)==3, "Incorrect number of indices for the rank of this object.");
   	vec_size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
-  	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
+  	ESYS_ASSERT(temp < DataTypes::noValues(shape), "Invalid index.");
   	return temp;
   }
 
@@ -296,9 +298,9 @@ namespace DataTypes {
 	   vec_size_type m)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
-	EsysAssert((getRank(shape)==4),"Incorrect number of indices for the rank of this object.");
+	ESYS_ASSERT(getRank(shape)==4, "Incorrect number of indices for the rank of this object.");
 	vec_size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
-	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
+	ESYS_ASSERT(temp < DataTypes::noValues(shape), "Invalid index.");
 	return temp;
   }
 

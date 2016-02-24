@@ -25,8 +25,9 @@
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
+#include "FinleyException.h"
+
 #include <cstdio>
-#include "CPPAdapter/FinleyAdapterException.h"
 
 //can't return because the flag need to be shared across all nodes
 #define SSCANF_CHECK(scan_ret) { if (scan_ret == EOF) { errorFlag = 1;} }
@@ -852,11 +853,11 @@ int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
 #ifndef ESYS_MPI
-    throw FinleyAdapterException("slave function called in non-MPI build");
+    throw FinleyException("slave function called in non-MPI build");
 #else
 
     if (mpi_info->size == 1)
-        throw FinleyAdapterException("slave function called without master");
+        throw FinleyException("slave function called without master");
 
     int numNodes=0;
 
@@ -975,21 +976,21 @@ int check_error(int error, FILE *f, const std::string& errorMsg)
         case 0:
             break;
         case ERROR:
-            throw FinleyAdapterException("ERROR set for unknown reason");
+            throw FinleyException("ERROR set for unknown reason");
         case EARLY_EOF: //early eof while scanning
-            throw FinleyAdapterException("early eof while scanning");
+            throw FinleyException("early eof while scanning");
         case MISSING_NODES:  //EOF before nodes section found
-            throw FinleyAdapterException("EOF before nodes section found");
+            throw FinleyException("EOF before nodes section found");
         case MISSING_ELEMENTS:
-            throw FinleyAdapterException("EOF before elements section found");
+            throw FinleyException("EOF before elements section found");
         case THROW_ERROR: // throw errorMsg
-            throw FinleyAdapterException(errorMsg);
+            throw FinleyException(errorMsg);
         case SUCCESS: // eof at apropriate time.
             if (f)
                 fclose(f);
             break;
         default:
-            throw FinleyAdapterException("an unknown error has occured in readGmsh");
+            throw FinleyException("an unknown error has occured in readGmsh");
 
     }
     return error;
@@ -1014,7 +1015,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     if (found != std::string::npos){
         errorFlag=THROW_ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
-        throw FinleyAdapterException("readGmsh: filename contains newline characters!");
+        throw escript::ValueError("readGmsh: filename contains newline characters!");
     }
 
     // allocate mesh
@@ -1028,7 +1029,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
         errorMsg = ss.str();
         errorFlag=THROW_ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
-        throw FinleyAdapterException(errorMsg);
+        throw FinleyException(errorMsg);
     }
     // start reading
     while(noError() && errorFlag==0) {
@@ -1172,10 +1173,10 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
                      int reduced_order, bool optimize, bool useMacroElements)
 {
 #ifndef ESYS_MPI
-    throw FinleyAdapterException("slave function called in non-MPI build");
+    throw FinleyException("slave function called in non-MPI build");
 #else
     if (mpi_info->size == 1)
-        throw FinleyAdapterException("slave function called but only one process");
+        throw FinleyException("slave function called but only one process");
 
     double version = 1.0;
     int errorFlag=0, logicFlag=0;

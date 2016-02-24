@@ -19,18 +19,14 @@
 #define finley_MeshAdapter_20040526_H
 #include "system_dep.h"
 
-#include "finley/Mesh.h"
 #include "finley/Finley.h"
-#include "finley/Assemble.h"
-#include "FinleyAdapterException.h"
+#include "finley/Mesh.h"
 
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"
 
 #include <boost/shared_ptr.hpp>
-#include <boost/python/dict.hpp>
-#include <boost/python/extract.hpp>
 
 #include <map>
 #include <vector>

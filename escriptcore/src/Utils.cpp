@@ -397,7 +397,7 @@ void MPIBarrierWorld()
     if (!esysUtils::NoCOMM_WORLD::active()) {
         MPI_Barrier(MPI_COMM_WORLD );
     } else {
-        throw esysUtils::EsysException("Attempt to use MPI_COMM_WORLD while it is blocked.");
+        throw EsysException("Attempt to use MPI_COMM_WORLD while it is blocked.");
     }
 #endif
 }

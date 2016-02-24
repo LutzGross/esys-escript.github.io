@@ -18,7 +18,7 @@
 #define __RIPLEY_EXCEPTION_H__
 
 #include <ripley/system_dep.h>
-#include <esysUtils/EsysException.h>
+#include <escript/EsysException.h>
 
 namespace ripley {
 
@@ -26,63 +26,10 @@ namespace ripley {
    \brief
    RipleyException exception class.
 */
-class RIPLEY_DLL_API RipleyException : public esysUtils::EsysException
+class RipleyException : public escript::EsysException
 {
-protected:
-    typedef EsysException Parent;
-
 public:
-    /**
-       \brief
-       Default constructor for the exception.
-    */
-    RipleyException() : Parent() { updateMessage(); }
-
-    /**
-       \brief
-       Constructor with message.
-    */
-    RipleyException(const char *cstr) : Parent(cstr) { updateMessage(); }
-
-    /**
-       \brief
-       Constructor with message.
-    */
-    RipleyException(const std::string &str) : Parent(str) { updateMessage(); }
-
-    /**
-       \brief
-       Copy Constructor.
-    */
-    RipleyException(const RipleyException &other) : Parent(other)
-    {
-        updateMessage();
-    }
-
-    /// Destructor
-    virtual ~RipleyException() THROW(NO_ARG) {}
-
-    /**
-       \brief
-       Assignment operator.
-    */
-    inline RipleyException& operator=(const RipleyException &other ) THROW(NO_ARG)
-    {
-        Parent::operator=(other);
-        updateMessage();
-        return *this;
-    }
-
-    /**
-       \brief
-       Returns the name of the exception.
-    */
-    virtual const std::string& exceptionName() const;
-
-private:
-    //
-    // the exception name is immutable and class-wide.
-    static const std::string exceptionNameValue;
+    RipleyException(const std::string& str) : escript::EsysException(str) {}
 };
 
 } // end of namespace ripley

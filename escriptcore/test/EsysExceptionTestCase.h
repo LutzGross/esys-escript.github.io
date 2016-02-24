@@ -14,20 +14,21 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
+#if !defined ESYSEXCEPTIONTESTCASE_H
+#define ESYSEXCEPTIONTESTCASE_H
 
-#include <speckley/SpeckleyException.h>
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-namespace speckley {
-
-const std::string SpeckleyException::exceptionNameValue("SpeckleyException");
-
-const std::string& SpeckleyException::exceptionName() const
+class EsysExceptionTestCase : public CppUnit::TestFixture
 {
-    return exceptionNameValue;
-}
+public:
+   void testCase1();
+   void testCase2();
 
-} // namespace speckley
+   static CppUnit::TestSuite* suite();
+};
+
+#endif
 

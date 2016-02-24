@@ -2020,7 +2020,7 @@ Data::lazyAlgWorker(real_t init)
         throw DataException("Error - lazyAlgWorker can only be called on lazy(expanded) data.");
     }
     DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
-    EsysAssert((dl!=0), "Programming error - casting to DataLazy.");
+    ESYS_ASSERT(dl!=0, "Programming error - casting to DataLazy.");
     real_t val=init;
     int i=0;
     const size_t numsamples=getNumSamples();
@@ -3542,7 +3542,7 @@ DataReady_ptr
 Data::borrowReadyPtr() const
 {
     DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
-    EsysAssert((dr!=0), "Error - casting to DataReady.");
+    ESYS_ASSERT((dr!=0), "Error - casting to DataReady.");
     return dr;
 }
 

@@ -20,7 +20,7 @@ local_env = env.Clone()
 
 if local_env['cppunit']:
     # get the test source file names
-    sources = Glob('*.cpp')+Glob('*.c')
+    sources = Glob('*.cpp')
     testname='escript_UnitTest'
 
     # build the executable

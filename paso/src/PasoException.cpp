@@ -20,13 +20,6 @@
 namespace paso
 {
 
-const std::string PasoException::exceptionNameValue("PasoException");
-
-const std::string& PasoException::exceptionName() const
-{
-  return exceptionNameValue;
-}
-
 void checkPasoError() 
 {
   if (Esys_noError()) {

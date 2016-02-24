@@ -157,7 +157,7 @@ inline dim_t MultiRectangle::getNumDOF() const
 //protected
 inline dim_t MultiRectangle::getNumDOFInAxis(unsigned axis) const
 {
-    EsysAssert((axis < m_numDim), "Invalid axis");
+    ESYS_ASSERT(axis < m_numDim, "Invalid axis");
     dim_t res = m_ownNE[axis] + 1;
     if (m_offset[axis] + m_NE[axis] < m_gNE[axis]) {
         res--;

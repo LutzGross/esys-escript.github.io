@@ -167,7 +167,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
-    EsysAssert(data.size()%getNoValues()==0,
+    ESYS_ASSERT(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
@@ -191,7 +191,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::CplxVectorType &data)
   : parent(what,shape)
 {
-    EsysAssert(data.size()%getNoValues()==0,
+    ESYS_ASSERT(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
@@ -296,7 +296,7 @@ void DataExpanded::setSlice(const DataAbstract* value,
 
 void DataExpanded::copy(const DataConstant& value)
 {
-    EsysAssert((checkShape(getShape(), value.getShape())),
+    ESYS_ASSERT((checkShape(getShape(), value.getShape())),
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
     if (isComplex())
     {
@@ -482,13 +482,13 @@ DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
     DataTypes::RealVectorType::size_type blockSize=getNoValues();
-    EsysAssert((isComplex()?
+    ESYS_ASSERT((isComplex()?
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_c.size() > 0))
 		:
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
 	       "(DataBlocks2D) Index value out of range.");
     DataTypes::RealVectorType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    EsysAssert((isComplex()?
+    ESYS_ASSERT((isComplex()?
 		  (temp <= (m_data_c.size()-blockSize))
 		:
 		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range.");

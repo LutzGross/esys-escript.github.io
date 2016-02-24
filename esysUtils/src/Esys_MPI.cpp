@@ -17,7 +17,7 @@
 #include "Esys_MPI.h"
 #include "error.h"
 #include "index.h"
-#include "EsysException.h"
+#include "escript/EsysException.h"
 
 #include <vector>
 
@@ -27,14 +27,12 @@ namespace esysUtils
   
 JMPI makeInfo(MPI_Comm comm, bool owncom)
 {
-    if (esysUtils::NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
-    {
-        throw EsysException("Attempt to use the MPI_COMM_WORLD communicator when it is blocked.");
-    }
-    JMPI_* p=new JMPI_(comm, owncom);
+    if (NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
+        throw escript::EsysException("Attempt to use the MPI_COMM_WORLD "
+                                     "communicator when it is blocked.");
+    JMPI_* p = new JMPI_(comm, owncom);
     return JMPI(p);
 }
-
 
 JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
         : comm(mpicomm), ownscomm(owncom)
@@ -45,7 +43,7 @@ JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
     {
         if (MPI_Comm_rank(comm, &rank)!=MPI_SUCCESS || MPI_Comm_size(comm, &size)!=MPI_SUCCESS)
         {
-            throw EsysException("JMPI::JMPI: error finding comm rank/size" );
+            throw escript::EsysException("JMPI::JMPI: error finding comm rank/size" );
         }
     }
     else
@@ -275,7 +273,7 @@ NoCOMM_WORLD::NoCOMM_WORLD()
 {
     if (nocommworldplease)
     {
-        throw EsysException("NoCOMM_WORLD does not nest.");
+        throw escript::EsysException("NoCOMM_WORLD does not nest.");
     }
     nocommworldplease=true;
 }

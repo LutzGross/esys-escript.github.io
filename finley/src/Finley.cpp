@@ -15,8 +15,8 @@
 *****************************************************************************/
 
 #include "Finley.h"
+#include "FinleyException.h"
 #include "esysUtils/error.h"
-#include "finley/CppAdapter/FinleyAdapterException.h" // temporary
 
 namespace finley {
 
@@ -24,13 +24,6 @@ namespace finley {
 double timer()
 {
     return Esys_timer();
-}
-
-/// checks if the pointer ptr has a target. If not an error is raised and
-/// TRUE is returned.
-bool checkPtr(void* arg)
-{
-    return Esys_checkPtr(arg);
 }
 
 /// resets the error to NO_ERROR
@@ -51,12 +44,6 @@ bool noError()
     return Esys_noError();
 }
 
-/// returns the error code
-ErrorCodeType getErrorType()
-{
-    return Esys_getErrorType();
-}
-
 /// returns the error message
 char* getErrorMessage(void)
 {
@@ -66,10 +53,7 @@ char* getErrorMessage(void)
 void checkFinleyError() 
 {
     if (!noError()) {
-        // reset the error code to no error otherwise the next call to
-        // this function may resurrect a previous error
-        resetError();
-        throw FinleyAdapterException(getErrorMessage());
+        throw FinleyException(getErrorMessage());
     }
 }
 

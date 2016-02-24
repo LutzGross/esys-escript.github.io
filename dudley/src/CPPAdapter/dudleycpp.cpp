@@ -44,7 +44,9 @@ BOOST_PYTHON_MODULE(dudleycpp)
 
   scope().attr("__doc__") = "To use this module, please import esys.dudley";  
   
-  register_exception_translator<dudley::DudleyAdapterException>(&escript::RuntimeErrorTranslator);
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
+    register_exception_translator<dudley::DudleyAdapterException>(&escript::RuntimeErrorTranslator);
 
   //
   // NOTE: The return_value_policy is necessary for functions that

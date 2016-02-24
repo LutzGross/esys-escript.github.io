@@ -17,11 +17,14 @@
 
 #if !defined escript_LocalOps_H
 #define escript_LocalOps_H
+
+#include "DataException.h"
+#include "DataTypes.h"
+#include "UnaryFuncs.h"
+
 #include <cmath>
 #include <complex>
-#include "UnaryFuncs.h"
-#include "DataTypes.h"
-#include "DataException.h"
+
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif

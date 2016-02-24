@@ -35,7 +35,6 @@ sources = """
     DataC.cpp
     DataConstant.cpp
     DataEmpty.cpp
-    DataException.cpp
     DataExpanded.cpp
     DataFactory.cpp
     DataLazy.cpp
@@ -46,11 +45,9 @@ sources = """
     DataVector.cpp
     DataVectorAlt.cpp
     DataVectorTaipan.cpp    
-    DomainException.cpp
     EscriptParams.cpp
     ExceptionTranslators.cpp
     FunctionSpace.cpp
-    FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     LocalOps.cpp
@@ -60,16 +57,12 @@ sources = """
     MPIScalarReducer.cpp
     Random.cpp
     SplitWorld.cpp
-    SplitWorldException.cpp
     SubWorld.cpp
-    SystemMatrixException.cpp
     Taipan.cpp
     TestDomain.cpp
-    TransportProblemException.cpp
     Utils.cpp
     WrappedArray.cpp
     SolverOptions.cpp
-    SolverOptionsException.cpp
 """.split()
 
 headers = """
@@ -78,6 +71,7 @@ headers = """
     AbstractReducer.h
     AbstractSystemMatrix.h
     AbstractTransportProblem.h
+    Assert.h
     BinaryOp.h
     Data.h
     DataAbstract.h
@@ -99,6 +93,7 @@ headers = """
     Dodgy.h
     DomainException.h
     EscriptParams.h
+    EsysException.h
     ExceptionTranslators.h
     FileWriter.h
     FunctionSpace.h
@@ -112,6 +107,7 @@ headers = """
     MPIScalarReducer.h
     Pointers.h
     Random.h
+    SolverOptions.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h
@@ -125,8 +121,6 @@ headers = """
     Utils.h
     WrappedArray.h
     system_dep.h
-    SolverOptions.h
-    SolverOptionsException.h
 """.split()
 
 dodgy_sources = """

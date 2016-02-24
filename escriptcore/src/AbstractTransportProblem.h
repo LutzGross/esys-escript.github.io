@@ -23,8 +23,6 @@
 #include "TransportProblemException.h"
 #include <boost/python/object.hpp>
 
-
-
 namespace escript {
 
 //
@@ -42,9 +40,9 @@ class Data;
    For templates describe any conditions that the parameters used in the
    template must satisfy
 */
-class AbstractTransportProblem {
-
- public:
+class AbstractTransportProblem
+{
+public:
 
   /**
      \brief
@@ -159,8 +157,9 @@ class AbstractTransportProblem {
 
 };
 
-
 typedef boost::shared_ptr<AbstractTransportProblem> ATP_ptr;
 
 } // end of namespace
+
 #endif
+

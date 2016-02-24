@@ -95,7 +95,6 @@ sources = """
 	ShapeTable.cpp
 	TagMap.cpp
 	Util.cpp
-	CPPAdapter/DudleyAdapterException.cpp
 	CPPAdapter/DudleyError.cpp
 	CPPAdapter/MeshAdapter.cpp
 	CPPAdapter/MeshAdapterFactory.cpp
