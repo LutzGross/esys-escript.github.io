@@ -14,11 +14,8 @@
 *
 *****************************************************************************/
 
-
 #ifndef INC_ESYS_MPI
 #define INC_ESYS_MPI
-
-#include "system_dep.h"
 
 #include <escript/DataTypes.h>
 
@@ -48,13 +45,13 @@
    #define MPI_COMM_WORLD 91
    #define MPI_COMM_NULL 0
 
-// MPI_Op replacements for non-MPI - these values are arbitrary
+   // MPI_Op replacements for non-MPI - these values are arbitrary
    #define MPI_SUM 100
    #define MPI_MIN 101
    #define MPI_MAX 102
 
    #define MPI_OP_NULL 17
-// end MPI_op
+   // end MPI_op
 
 #endif // ESYS_MPI
 
@@ -184,8 +181,7 @@ public:
     static bool active();
 };
 
-
 } // namespace esysUtils
 
-#endif /* INC_ESYS_MPI */
+#endif // INC_ESYS_MPI
 

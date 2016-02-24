@@ -29,14 +29,10 @@ headers = """
     error.h
     index.h
     pyerr.h
-    system_dep.h
     first.h
 """.split()
 
 lib_name = 'esysUtils'
-
-if IS_WINDOWS:
-    local_env.Append(CPPDEFINES = ['ESYSUTILS_EXPORTS'])
 
 include_path = Dir(lib_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)

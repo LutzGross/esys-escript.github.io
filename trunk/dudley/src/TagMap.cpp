@@ -21,9 +21,6 @@
 /************************************************************************************/
 
 #include "TagMap.h"
-#include <cstring>
-
-/************************************************************************************/
 
 void Dudley_TagMap_insert(Dudley_TagMap** tag_map, const char* name, index_t tag_key)
 {
@@ -41,20 +38,11 @@ void Dudley_TagMap_insert(Dudley_TagMap** tag_map, const char* name, index_t tag
     if (*tag_map == NULL)
     {
         map = new Dudley_TagMap;
-        if (Dudley_checkPtr(map))
-            return;
         map->name = new char[strlen(name) + 1];
-        if (Dudley_checkPtr(map->name))
-        {
-            delete map;
-        }
-        else
-        {
-            strcpy(map->name, name);
-            map->tag_key = tag_key;
-            map->next = NULL;
-            *tag_map = map;
-        }
+        strcpy(map->name, name);
+        map->tag_key = tag_key;
+        map->next = NULL;
+        *tag_map = map;
     }
     else
     {

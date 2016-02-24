@@ -27,8 +27,6 @@
 #include "ShapeTable.h"
 #include "Util.h"
 
-/************************************************************************************/
-
 void Dudley_Assemble_interpolate(Dudley_NodeFile* nodes,
                                  Dudley_ElementFile* elements,
                                  const escript::Data* data,
@@ -127,25 +125,23 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile* nodes,
             local_data = NULL;
             /* allocation of work arrays */
             local_data = new double[NS_DOF * numComps];
-            if (!Dudley_checkPtr(local_data))
-            {
-                numComps_size = (size_t) numComps *sizeof(double);
-                /* open the element loop */
+            numComps_size = (size_t) numComps *sizeof(double);
+            /* open the element loop */
 #pragma omp for private(e,q,i,data_array) schedule(static)
-                for (e = 0; e < elements->numElements; e++)
+            for (e = 0; e < elements->numElements; e++)
+            {
+                for (q = 0; q < NS_DOF; q++)
                 {
-                    for (q = 0; q < NS_DOF; q++)
-                    {
-                        i = elements->Nodes[INDEX2(q, e, NN)];
-                        data_array = getSampleDataRO(data, map[i]);
-                        memcpy(&(local_data[INDEX3(0, q, 0, numComps, NS_DOF)]), data_array, numComps_size);
-                    }
-                    /*  calculate interpolated_data=local_data*S */
-                    Dudley_Util_SmallMatSetMult1(1, numComps, numQuad, getSampleDataRW(interpolated_data, e),
-                                                 NS_DOF, local_data, /*basis->S */ shapeFns);
-                }               /* end of element loop */
-            }
+                    i = elements->Nodes[INDEX2(q, e, NN)];
+                    data_array = getSampleDataRO(data, map[i]);
+                    memcpy(&(local_data[INDEX3(0, q, 0, numComps, NS_DOF)]), data_array, numComps_size);
+                }
+                /*  calculate interpolated_data=local_data*S */
+                Dudley_Util_SmallMatSetMult1(1, numComps, numQuad, getSampleDataRW(interpolated_data, e),
+                                             NS_DOF, local_data, /*basis->S */ shapeFns);
+            } /* end of element loop */
             delete[] local_data;
-        }                       /* end of parallel region */
+        } /* end of parallel region */
     }
 }
+

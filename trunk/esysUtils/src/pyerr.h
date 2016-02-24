@@ -17,8 +17,6 @@
 #ifndef ESPYERR_H
 #define ESPYERR_H
 
-#include "system_dep.h"
-
 #include <boost/python/errors.hpp>
 
 #include <string>

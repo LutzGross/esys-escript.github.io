@@ -30,51 +30,49 @@
 
 /************************************************************************************/
 
-void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in)
+void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile** in)
 {
-    Dudley_Util_ValueAndIndex *item_list = NULL;
-    Dudley_ElementFile *out = NULL;
-    dim_t e, i, NN;
-    index_t *index = NULL;
     if (*in != NULL)
     {
-	if ((*in)->numElements < 1)
-	    return;
-	NN = (*in)-> /*referenceElementSet-> */ numNodes;
-	item_list = new  Dudley_Util_ValueAndIndex[(*in)->numElements];
-	index = new  index_t[(*in)->numElements];
-	if (!(Dudley_checkPtr(item_list) || Dudley_checkPtr(index)))
-	{
+        if ((*in)->numElements < 1)
+            return;
 
-	    out = Dudley_ElementFile_alloc((*in)->etype /*referenceElementSet */ , (*in)->MPIInfo);
-	    if (Dudley_noError())
-	    {
-		Dudley_ElementFile_allocTable(out, (*in)->numElements);
-		if (Dudley_noError())
-		{
+        Dudley_Util_ValueAndIndex *item_list = NULL;
+        Dudley_ElementFile *out = NULL;
+        dim_t e, i, NN;
+        index_t *index = NULL;
+        NN = (*in)->numNodes;
+        item_list = new Dudley_Util_ValueAndIndex[(*in)->numElements];
+        index = new index_t[(*in)->numElements];
+        out = Dudley_ElementFile_alloc((*in)->etype, (*in)->MPIInfo);
+        if (Dudley_noError())
+        {
+            Dudley_ElementFile_allocTable(out, (*in)->numElements);
+            if (Dudley_noError())
+            {
 #pragma omp parallel for private(e,i) schedule(static)
-		    for (e = 0; e < (*in)->numElements; e++)
-		    {
-			item_list[e].index = e;
-			item_list[e].value = (*in)->Nodes[INDEX2(0, e, NN)];
-			for (i = 1; i < NN; i++)
-			    item_list[e].value = MIN(item_list[e].value, (*in)->Nodes[INDEX2(i, e, NN)]);
-		    }
-		    Dudley_Util_sortValueAndIndex((*in)->numElements, item_list);
+                for (e = 0; e < (*in)->numElements; e++)
+                {
+                    item_list[e].index = e;
+                    item_list[e].value = (*in)->Nodes[INDEX2(0, e, NN)];
+                    for (i = 1; i < NN; i++)
+                        item_list[e].value = MIN(item_list[e].value, (*in)->Nodes[INDEX2(i, e, NN)]);
+                }
+                Dudley_Util_sortValueAndIndex((*in)->numElements, item_list);
 #pragma omp parallel for private(e) schedule(static)
-		    for (e = 0; e < (*in)->numElements; e++)
-			index[e] = item_list[e].index;
-		    Dudley_ElementFile_gather(index, *in, out);
-		    Dudley_ElementFile_free(*in);
-		    *in = out;
-		}
-		else
-		{
-		    Dudley_ElementFile_free(out);
-		}
-	    }
-	}
-	delete[] item_list;
-	delete[] index;
+                for (e = 0; e < (*in)->numElements; e++)
+                    index[e] = item_list[e].index;
+                Dudley_ElementFile_gather(index, *in, out);
+                Dudley_ElementFile_free(*in);
+                *in = out;
+            }
+            else
+            {
+                Dudley_ElementFile_free(out);
+            }
+        }
+        delete[] item_list;
+        delete[] index;
     }
 }
+

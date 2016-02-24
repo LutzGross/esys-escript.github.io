@@ -29,20 +29,16 @@
 #include "ElementFile.h"
 #include "ShapeTable.h"
 
-/************************************************************************************/
-
 Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUtils::JMPI& MPIInfo)
 {
     Dudley_ElementFile *out;
 
     if (!Dudley_noError())
-	return NULL;
+        return NULL;
 
     /*  allocate the return value */
 
     out = new Dudley_ElementFile;
-    if (Dudley_checkPtr(out))
-	return NULL;
     out->numElements = 0;
     out->Id = NULL;
     out->Nodes = NULL;
@@ -64,8 +60,8 @@ Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUti
 
     if (!Dudley_noError())
     {
-	Dudley_ElementFile_free(out);
-	return NULL;
+        Dudley_ElementFile_free(out);
+        return NULL;
     }
     out->etype = etype;
     out->numDim = Dims[out->etype];
@@ -82,10 +78,10 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 {
     if (in != NULL)
     {
-	Dudley_ElementFile_freeTable(in);
-	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
-	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
-	delete in;
+        Dudley_ElementFile_freeTable(in);
+        Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
+        Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
+        delete in;
     }
 }
 
@@ -95,36 +91,36 @@ void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * 
     int myRank;
     if (in == NULL)
     {
-	distribution[0] = num_elements;
+        distribution[0] = num_elements;
     }
     else
     {
-	if (in->MPIInfo->size > 1)
-	{
-	    num_elements = 0;
-	    myRank = in->MPIInfo->rank;
+        if (in->MPIInfo->size > 1)
+        {
+            num_elements = 0;
+            myRank = in->MPIInfo->rank;
 #pragma omp parallel private(local_num_elements)
-	    {
-		local_num_elements = 0;
+            {
+                local_num_elements = 0;
 #pragma omp for private(e)
-		for (e = 0; e < in->numElements; e++)
-		{
-		    if (in->Owner[e] == myRank)
-			local_num_elements++;
-		}
+                for (e = 0; e < in->numElements; e++)
+                {
+                    if (in->Owner[e] == myRank)
+                        local_num_elements++;
+                }
 #pragma omp critical
-		num_elements += local_num_elements;
-	    }
+                num_elements += local_num_elements;
+            }
 #ifdef ESYS_MPI
-	    MPI_Allgather(&num_elements, 1, MPI_INT, distribution, 1, MPI_INT, in->MPIInfo->comm);
+            MPI_Allgather(&num_elements, 1, MPI_INT, distribution, 1, MPI_INT, in->MPIInfo->comm);
 #else
-	    distribution[0] = num_elements;
+            distribution[0] = num_elements;
 #endif
-	}
-	else
-	{
-	    distribution[0] = in->numElements;
-	}
+        }
+        else
+        {
+            distribution[0] = in->numElements;
+        }
     }
 }
 
@@ -133,18 +129,18 @@ dim_t Dudley_ElementFile_getGlobalNumElements(Dudley_ElementFile * in)
     dim_t size, *distribution = NULL, out, p;
     if (in == NULL)
     {
-	return 0;
+        return 0;
     }
     else
     {
-	size = in->MPIInfo->size;
-	distribution = new  dim_t[size];
-	Dudley_ElementFile_setElementDistribution(in, distribution);
-	out = 0;
-	for (p = 0; p < size; ++p)
-	    out += distribution[p];
-	delete[] distribution;
-	return out;
+        size = in->MPIInfo->size;
+        distribution = new  dim_t[size];
+        Dudley_ElementFile_setElementDistribution(in, distribution);
+        out = 0;
+        for (p = 0; p < size; ++p)
+            out += distribution[p];
+        delete[] distribution;
+        return out;
     }
 }
 
@@ -153,16 +149,16 @@ dim_t Dudley_ElementFile_getMyNumElements(Dudley_ElementFile * in)
     dim_t size, *distribution = NULL, out;
     if (in == NULL)
     {
-	return 0;
+        return 0;
     }
     else
     {
-	size = in->MPIInfo->size;
-	distribution = new  dim_t[size];
-	Dudley_ElementFile_setElementDistribution(in, distribution);
-	out = distribution[in->MPIInfo->rank];
-	delete[] distribution;
-	return out;
+        size = in->MPIInfo->size;
+        distribution = new  dim_t[size];
+        Dudley_ElementFile_setElementDistribution(in, distribution);
+        out = distribution[in->MPIInfo->rank];
+        delete[] distribution;
+        return out;
     }
 
 }
@@ -172,17 +168,18 @@ index_t Dudley_ElementFile_getFirstElement(Dudley_ElementFile * in)
     dim_t size, *distribution = NULL, out, p;
     if (in == NULL)
     {
-	return 0;
+        return 0;
     }
     else
     {
-	size = in->MPIInfo->size;
-	distribution = new  dim_t[size];
-	Dudley_ElementFile_setElementDistribution(in, distribution);
-	out = 0;
-	for (p = 0; p < in->MPIInfo->rank; ++p)
-	    out += distribution[p];
-	delete[] distribution;
-	return out;
+        size = in->MPIInfo->size;
+        distribution = new  dim_t[size];
+        Dudley_ElementFile_setElementDistribution(in, distribution);
+        out = 0;
+        for (p = 0; p < in->MPIInfo->rank; ++p)
+            out += distribution[p];
+        delete[] distribution;
+        return out;
     }
 }
+
