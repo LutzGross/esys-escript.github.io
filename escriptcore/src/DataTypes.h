@@ -17,13 +17,15 @@
 
 #if !defined escript_DataTypes_20080811_H
 #define escript_DataTypes_20080811_H
-#include <esysUtils/first.h>
 #include "system_dep.h"
 #include "Assert.h"
 
-#include <vector>
+#include <complex>
+#include <limits>
 #include <string>
-#include <boost/python/object.hpp>
+#include <vector>
+
+#include <boost/python/object_fwd.hpp>
 
 namespace escript {
 

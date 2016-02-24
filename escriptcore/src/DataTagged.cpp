@@ -1099,9 +1099,9 @@ DataTagged::dump(const std::string fileName) const
    const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
    esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+#ifdef ESYS_MPI
    const int mpi_iam = mpiInfo->rank;
    const int mpi_num = mpiInfo->size;
-#ifdef ESYS_MPI
    MPI_Status status;
 
    /* Serialize NetCDF I/O */
