@@ -95,7 +95,7 @@ mpi_prefix = '/sw/intel/impi/5.1.1.109/intel64'
 # MPI libraries to link against
 #mpi_libs = ['mpi']
 
-cuda = True
+#cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
 
 # Prefix or paths to NVidia CUDA installation. See note above. [new in 202]
