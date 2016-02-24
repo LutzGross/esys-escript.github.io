@@ -29,20 +29,20 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
 {
     if (self == NULL)
         return;
-    size_t size_size;
-    int myRank, p, *Owner_buffer = NULL, loc_proc_mask_max;
-    dim_t e, j, i, size, *send_count = NULL, *recv_count = NULL, *newOwner = NULL, *loc_proc_mask =
-        NULL, *loc_send_count = NULL, newNumElements, numElementsInBuffer, numNodes, NN;
-    index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
-    bool *proc_mask = NULL;
-    myRank = self->MPIInfo->rank;
-    size = self->MPIInfo->size;
-    size_size = size * sizeof(dim_t);
-    numNodes = self->numNodes;
-    NN = self->numNodes;
+    dim_t e, i;
+    int myRank = self->MPIInfo->rank;
+    dim_t NN = self->numNodes;
+    dim_t size = self->MPIInfo->size;
     if (size > 1)
     {
 #ifdef ESYS_MPI
+        int p, *Owner_buffer = NULL, loc_proc_mask_max;
+        dim_t j, *send_count = NULL, *recv_count = NULL, *newOwner = NULL;
+        dim_t *loc_proc_mask = NULL, *loc_send_count = NULL;
+        dim_t newNumElements, numElementsInBuffer;
+        index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
+        bool *proc_mask = NULL;
+        size_t size_size = size * sizeof(dim_t);
         dim_t numRequests = 0;
         MPI_Request *mpi_requests = NULL;
         MPI_Status *mpi_stati = NULL;
@@ -67,7 +67,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
                 {
                     newOwner[e] = myRank;
                     memset(loc_proc_mask, 0, size_size);
-                    for (j = 0; j < numNodes; j++)
+                    for (j = 0; j < NN; j++)
                     {
                         p = mpiRankOfDOF[self->Nodes[INDEX2(j, e, NN)]];
                         loc_proc_mask[p]++;
@@ -132,7 +132,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
             if (self->Owner[e] == myRank)
             {
                 memset(proc_mask, TRUE, size*sizeof(bool));
-                for (j = 0; j < numNodes; j++)
+                for (j = 0; j < NN; j++)
                 {
                     p = mpiRankOfDOF[self->Nodes[INDEX2(j, e, NN)]];
                     if (proc_mask[p])
@@ -141,7 +141,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
                         Id_buffer[k] = self->Id[e];
                         Tag_buffer[k] = self->Tag[e];
                         Owner_buffer[k] = newOwner[e];
-                        for (i = 0; i < numNodes; i++)
+                        for (i = 0; i < NN; i++)
                             Nodes_buffer[INDEX2(i, k, NN)] = Id[self->Nodes[INDEX2(i, e, NN)]];
                         send_count[p]++;
                         proc_mask[p] = FALSE;
@@ -220,7 +220,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
         for (e = 0; e < self->numElements; e++)
         {
             self->Owner[e] = myRank;
-            for (i = 0; i < numNodes; i++)
+            for (i = 0; i < NN; i++)
                 self->Nodes[INDEX2(i, e, NN)] = Id[self->Nodes[INDEX2(i, e, NN)]];
         }
     }
