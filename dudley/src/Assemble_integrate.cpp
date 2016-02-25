@@ -14,11 +14,11 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: integrates data on quadrature points   */
+  Assemblage routines: integrates data on quadrature points
 
-/************************************************************************************/
+*****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -26,84 +26,69 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Dudley_Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, const escript::Data* data, double* out)
+namespace dudley {
+
+void Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, const escript::Data* data, double* out)
 {
     Dudley_resetError();
-    if (nodes == NULL || elements == NULL)
+    if (!nodes || !elements)
         return;
 
-    dim_t numQuadTotal;
-    dim_t numComps = getDataPointSize(data);
-    int my_mpi_rank = nodes->MPIInfo->rank;
-    Dudley_ElementFile_Jacobeans *jac = Dudley_ElementFile_borrowJacobeans(
-            elements, nodes, Dudley_Assemble_reducedIntegrationOrder(data));
-    if (Dudley_noError())
-    {
-        numQuadTotal = jac->numQuad;
-        /* check the shape of the data  */
-        if (!numSamplesEqual(data, numQuadTotal, elements->numElements))
-        {
+    const int my_mpi_rank = nodes->MPIInfo->rank;
+    Dudley_ElementFile_Jacobians* jac = Dudley_ElementFile_borrowJacobians(
+            elements, nodes, Assemble_reducedIntegrationOrder(data));
+
+    if (Dudley_noError()) {
+        const dim_t numQuadTotal = jac->numQuad;
+        // check the shape of the data
+        if (!data->numSamplesEqual(numQuadTotal, elements->numElements)) {
             Dudley_setError(TYPE_ERROR,
-                            "Dudley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
+                            "Assemble_integrate: illegal number of samples of integrant kernel Data object");
+            return;
         }
 
-        /* now we can start */
-        if (Dudley_noError())
-        {
-            dim_t q, e, i;
-            const double *data_array = NULL;
-            double *out_local = NULL, rtmp;
-            for (q = 0; q < numComps; q++)
-                out[q] = 0;
-#pragma omp parallel private(q,i,rtmp,data_array,out_local)
-            {
-                out_local = new double[numComps];
-                // initialize local result
-                for (i = 0; i < numComps; i++)
-                    out_local[i] = 0;
+        const int numComps = data->getDataPointSize();
 
-                // open the element loop
-                if (isExpanded(data))
-                {
-#pragma omp for private(e) schedule(static)
-                    for (e = 0; e < elements->numElements; e++)
-                    {
-                        if (elements->Owner[e] == my_mpi_rank)
-                        {
-                            double vol = jac->absD[e] * jac->quadweight;
-                            data_array = getSampleDataRO(data, e);
-                            for (q = 0; q < numQuadTotal; q++)
-                            {
-                                for (i = 0; i < numComps; i++)
-                                    out_local[i] += data_array[INDEX2(i, q, numComps)] * vol;
-                            }
+        for (int q = 0; q < numComps; q++)
+            out[q] = 0;
+
+#pragma omp parallel
+        {
+            std::vector<double> out_local(numComps);
+
+            if (data->actsExpanded()) {
+#pragma omp for
+                for (index_t e = 0; e < elements->numElements; e++) {
+                    if (elements->Owner[e] == my_mpi_rank) {
+                        const double vol = jac->absD[e] * jac->quadweight;
+                        const double* data_array = data->getSampleDataRO(e);
+                        for (int q = 0; q < numQuadTotal; q++) {
+                            for (int i = 0; i < numComps; i++)
+                                out_local[i] += data_array[INDEX2(i, q, numComps)] * vol;
                         }
                     }
                 }
-                else
-                {
-#pragma omp for private(e) schedule(static)
-                    for (e = 0; e < elements->numElements; e++)
-                    {
-                        if (elements->Owner[e] == my_mpi_rank)
-                        {
-                            double vol = jac->absD[e] * jac->quadweight;
-                            data_array = getSampleDataRO(data, e);
-                            rtmp = 0.;
-                            for (q = 0; q < numQuadTotal; q++)
-                                rtmp += vol;
-                            for (i = 0; i < numComps; i++)
-                                out_local[i] += data_array[i] * rtmp;
-                        }
+            } else {
+#pragma omp for
+                for (index_t e = 0; e < elements->numElements; e++) {
+                    if (elements->Owner[e] == my_mpi_rank) {
+                        const double vol = jac->absD[e] * jac->quadweight;
+                        const double* data_array = data->getSampleDataRO(e);
+                        double rtmp = 0.;
+                        for (int q = 0; q < numQuadTotal; q++)
+                            rtmp += vol;
+                        for (int i = 0; i < numComps; i++)
+                            out_local[i] += data_array[i] * rtmp;
                     }
                 }
-                /* add local results to global result */
-#pragma omp critical
-                for (i = 0; i < numComps; i++)
-                    out[i] += out_local[i];
-                delete[] out_local;
             }
+            // add local results to global result
+#pragma omp critical
+            for (int i = 0; i < numComps; i++)
+                out[i] += out_local[i];
         }
     }
 }
+
+} // namespace dudley
 

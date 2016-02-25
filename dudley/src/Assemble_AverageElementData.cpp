@@ -14,129 +14,88 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: copies data between elements       */
+  Assemblage routines: averages data
 
-/************************************************************************************/
+*****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Assemble.h"
-#include "Util.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-/****************************************************************************************************************************/
-
 #include "ShapeTable.h"
+#include "Util.h"
 
-void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in)
+namespace dudley {
+
+void Assemble_AverageElementData(Dudley_ElementFile* elements, escript::Data* out, const escript::Data* in)
 {
-    dim_t n, q, numElements, numQuad_in, numQuad_out, i;
-    __const double *in_array;
-    double *out_array, vol, volinv, wq;
-    double rtmp;
-    dim_t numComps = getDataPointSize(out);
-    size_t numComps_size;
-
     Dudley_resetError();
-    if (elements == NULL)
-    {
-	return;
+    if (!elements)
+        return;
+
+    double wq;
+    int numQuad_in, numQuad_out;
+    if (Assemble_reducedIntegrationOrder(in)) {
+        numQuad_in = QuadNums[elements->numDim][0];
+        wq = QuadWeight[elements->numDim][0];
+    } else {
+        numQuad_in = QuadNums[elements->numDim][1];
+        wq = QuadWeight[elements->numDim][1];
+    }
+    if (Assemble_reducedIntegrationOrder(out)) {
+        numQuad_out = QuadNums[elements->numDim][0];
+    } else {
+        numQuad_out = QuadNums[elements->numDim][1];
     }
 
-    numElements = elements->numElements;
-    if (Dudley_Assemble_reducedIntegrationOrder(in))
-    {
-	numQuad_in = QuadNums[elements->numDim][0];
-	wq = QuadWeight[elements->numDim][0];
+    const int numComps = out->getDataPointSize();
+    const dim_t numElements = elements->numElements;
 
+    // check out and in
+    if (numComps != in->getDataPointSize()) {
+        Dudley_setError(TYPE_ERROR,
+                        "Assemble_AverageElementData: number of components of input and output Data do not match.");
+    } else if (!in->numSamplesEqual(numQuad_in, numElements)) {
+        Dudley_setError(TYPE_ERROR,
+                        "Assemble_AverageElementData: illegal number of samples of input Data object");
+    } else if (!out->numSamplesEqual(numQuad_out, numElements)) {
+        Dudley_setError(TYPE_ERROR,
+                        "Assemble_AverageElementData: illegal number of samples of output Data object");
+    } else if (!out->actsExpanded()) {
+        Dudley_setError(TYPE_ERROR,
+                        "Assemble_AverageElementData: expanded Data object is expected for output data.");
+    } else {
+        out->requireWrite();
+        if (in->actsExpanded()) {
+            const double vol = wq * numQuad_in;
+            const double volinv = 1. / vol;
+#pragma omp parallel for
+            for (index_t n = 0; n < numElements; n++) {
+                const double* in_array = in->getSampleDataRO(n);
+                double* out_array = out->getSampleDataRW(n);
+                for (int i = 0; i < numComps; ++i) {
+                    double rtmp = 0.;
+                    for (int q = 0; q < numQuad_in; ++q)
+                        rtmp += in_array[INDEX2(i, q, numComps)] * wq;
+                    rtmp *= volinv;
+                    for (int q = 0; q < numQuad_out; ++q)
+                        out_array[INDEX2(i, q, numComps)] = rtmp;
+                }
+            }
+        } else { // constant data
+            const size_t numComps_size = numComps * sizeof(double);
+#pragma omp parallel for
+            for (index_t n = 0; n < numElements; n++) {
+                const double* in_array = in->getSampleDataRO(n);
+                double* out_array = out->getSampleDataRW(n);
+                for (int q = 0; q < numQuad_out; q++)
+                    memcpy(out_array + q * numComps, in_array, numComps_size);
+            }
+        }
     }
-    else
-    {
-	numQuad_in = QuadNums[elements->numDim][1];
-	wq = QuadWeight[elements->numDim][1];
-    }
-    if (Dudley_Assemble_reducedIntegrationOrder(out))
-    {
-	numQuad_out = QuadNums[elements->numDim][0];
-    }
-    else
-    {
-	numQuad_out = QuadNums[elements->numDim][1];
-
-    }
-
-    /* check out and in */
-    if (numComps != getDataPointSize(in))
-    {
-	Dudley_setError(TYPE_ERROR,
-			"Dudley_Assemble_AverageElementData: number of components of input and output Data do not match.");
-    }
-    else if (!numSamplesEqual(in, numQuad_in, numElements))
-    {
-	Dudley_setError(TYPE_ERROR,
-			"Dudley_Assemble_AverageElementData: illegal number of samples of input Data object");
-    }
-    else if (!numSamplesEqual(out, numQuad_out, numElements))
-    {
-	Dudley_setError(TYPE_ERROR,
-			"Dudley_Assemble_AverageElementData: illegal number of samples of output Data object");
-    }
-    else if (!isExpanded(out))
-    {
-	Dudley_setError(TYPE_ERROR,
-			"Dudley_Assemble_AverageElementData: expanded Data object is expected for output data.");
-    }
-
-    /* now we can start */
-
-    if (Dudley_noError())
-    {
-	if (isExpanded(in))
-	{
-	    vol = 0;
-	    for (q = 0; q < numQuad_in; ++q)
-		vol += wq;
-	    volinv = 1. / vol;
-	    requireWrite(out);
-#pragma omp parallel private(n, i, rtmp, q, in_array, out_array)
-	    {
-# pragma omp for schedule(static)
-		for (n = 0; n < numElements; n++)
-		{
-		    in_array = getSampleDataRO(in, n);
-		    out_array = getSampleDataRW(out, n);
-		    for (i = 0; i < numComps; ++i)
-		    {
-			rtmp = 0;
-			for (q = 0; q < numQuad_in; ++q)
-			    rtmp += in_array[INDEX2(i, q, numComps)] * wq;
-			rtmp *= volinv;
-			for (q = 0; q < numQuad_out; ++q)
-			    out_array[INDEX2(i, q, numComps)] = rtmp;
-		    }
-		}
-	    }
-	}
-	else
-	{
-	    numComps_size = numComps * sizeof(double);
-	    requireWrite(out);
-#pragma omp parallel private(q,n,out_array,in_array)
-	    {
-# pragma omp for schedule(static)
-		for (n = 0; n < numElements; n++)
-		{
-		    in_array = getSampleDataRO(in, n);
-		    out_array = getSampleDataRW(out, n);
-		    for (q = 0; q < numQuad_out; q++)
-			memcpy(out_array + q * numComps, in_array, numComps_size);
-		}
-	    }
-	}
-    }
-    return;
 }
+
+} // namespace dudley
+

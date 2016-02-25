@@ -14,94 +14,116 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: header file */
+  Assemblage routines: header file
 
-/************************************************************************************/
+*****************************************************************************/
 
-#ifndef INC_DUDLEY_ASSEMBLE
-#define INC_DUDLEY_ASSEMBLE
-
-/************************************************************************************/
+#ifndef __DUDLEY_ASSEMBLE_H__
+#define __DUDLEY_ASSEMBLE_H__
 
 #include "Dudley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
 #include "escript/AbstractSystemMatrix.h"
-#include "escript/Data.h"
 
-struct Dudley_Assemble_Parameters {
-    dim_t numQuad;		/* number of quadrature nodes */
-    dim_t numDim;		/* spatial dimension */
-    dim_t NN;			/* leading dimension of element node table */
-    dim_t numElements;		/* number of elements */
+namespace dudley {
 
-    dim_t numEqu;
-    index_t *row_DOF;
+struct Assemble_Parameters {
+    // number of quadrature nodes
+    int numQuad;
+    // number of spatial dimensions
+    int numDim;
+    // leading dimension of element node table
+    int NN;
+    // number of elements
+    dim_t numElements;
+
+    int numEqu;
+    const index_t* row_DOF;
     dim_t row_DOF_UpperBound;
-    Dudley_ElementFile_Jacobeans *row_jac;
-    dim_t numShapes;
+    Dudley_ElementFile_Jacobians* row_jac;
+    int numShapes;
 
-    dim_t numComp;
-    index_t *col_DOF;
+    int numComp;
+    const index_t* col_DOF;
     dim_t col_DOF_UpperBound;
 
-    const double *shapeFns;
+    const double* shapeFns;
 };
 
-typedef struct Dudley_Assemble_Parameters Dudley_Assemble_Parameters;
+inline bool Assemble_reducedIntegrationOrder(const escript::Data* in)
+{
+    const int fs = in->getFunctionSpace().getTypeCode();
+    return (fs == DUDLEY_REDUCED_ELEMENTS || fs == DUDLEY_REDUCED_FACE_ELEMENTS);
+}
 
-#define Dudley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_FACE_ELEMENTS) )
+void Assemble_getAssembleParameters(const Dudley_NodeFile*, const Dudley_ElementFile*,
+                                    escript::ASM_ptr, const escript::Data&,
+                                    bool, Assemble_Parameters*);
 
-void Dudley_Assemble_PDE(Dudley_NodeFile*, Dudley_ElementFile*, escript::ASM_ptr, escript::Data*,
-			 const escript::Data*, const escript::Data*, const escript::Data*, const escript::Data*, const escript::Data*,
-			 const escript::Data*);
+void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elements,
+                  escript::ASM_ptr S, escript::Data& F,
+                  const escript::Data& A, const escript::Data& B,
+                  const escript::Data& C, const escript::Data& D,
+                  const escript::Data& X, const escript::Data& Y);
 
-void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile*, Dudley_ElementFile*, escript::ASM_ptr, const escript::Data*,
-				    bool, Dudley_Assemble_Parameters*);
-void Dudley_Assemble_PDE_System2_3D(Dudley_Assemble_Parameters, Dudley_ElementFile*, escript::ASM_ptr, escript::Data*,
-				    const escript::Data*, const escript::Data*, const escript::Data*, const escript::Data*, const escript::Data*,
-				    const escript::Data *);
-void Dudley_Assemble_PDE_System2_2D(Dudley_Assemble_Parameters, Dudley_ElementFile*, escript::ASM_ptr, escript::Data*,
-				    const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data*,
-				    const escript::Data*);
-void Dudley_Assemble_PDE_System2_1D(Dudley_Assemble_Parameters, Dudley_ElementFile *, escript::ASM_ptr, const escript::Data *,
-				    escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *,
-				    const escript::Data *);
+void Assemble_PDE_Points(const Assemble_Parameters& p, const Dudley_ElementFile*,
+                         escript::ASM_ptr S, escript::Data& F,
+                         const escript::Data& d_dirac,
+                         const escript::Data& y_dirac);
 
-void Dudley_Assemble_PDE_Single2_3D(Dudley_Assemble_Parameters, Dudley_ElementFile *, escript::ASM_ptr, escript::Data *,
-				    const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *,
-				    const escript::Data *);
-void Dudley_Assemble_PDE_Single2_2D(Dudley_Assemble_Parameters, Dudley_ElementFile *, escript::ASM_ptr, escript::Data *,
-				    const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *,
-				    const escript::Data *);
-void Dudley_Assemble_PDE_Single2_1D(Dudley_Assemble_Parameters, Dudley_ElementFile *, escript::ASM_ptr, const escript::Data *,
-				    const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *, const escript::Data *,
-				    const escript::Data *);
-void Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters, Dudley_ElementFile *, escript::ASM_ptr, escript::Data *, const escript::Data *, const escript::Data *);
+void Assemble_PDE_Single_2D(const Assemble_Parameters& p, const Dudley_ElementFile*,
+                            escript::ASM_ptr S, escript::Data& F,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile *, escript::Data *);
-void Dudley_Assemble_setNormal(Dudley_NodeFile *, Dudley_ElementFile *, escript::Data *);
-void Dudley_Assemble_interpolate(Dudley_NodeFile *, Dudley_ElementFile *, const escript::Data *, escript::Data *);
-void Dudley_Assemble_gradient(Dudley_NodeFile *, Dudley_ElementFile *, escript::Data *, const escript::Data *);
-void Dudley_Assemble_integrate(Dudley_NodeFile *, Dudley_ElementFile *, const escript::Data *, double *);
-void Dudley_Assemble_getSize(Dudley_NodeFile *, Dudley_ElementFile *, escript::Data *);
-void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out, const escript::Data * in);
-void Dudley_Assemble_CopyElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in);
-void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in);
-void Dudley_Assemble_addToSystemMatrix(escript::ASM_ptr in, const dim_t NN_Equa, const index_t * Nodes_Equa, const dim_t num_Equa,
-				       const dim_t NN_Sol, const index_t * Nodes_Sol, const dim_t num_Sol, const double *array);
+void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFile*,
+                            escript::ASM_ptr S, escript::Data& F,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Dudley_Assemble_jacobeans_2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
-			   index_t *);
-void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
-				   double *quadweight, index_t *);
-void Dudley_Assemble_jacobeans_3D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
-			   index_t *);
-void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
-				   double *quadweight, index_t *);
+void Assemble_PDE_System_2D(const Assemble_Parameters& p, const Dudley_ElementFile*,
+                            escript::ASM_ptr S, escript::Data& F,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escript::Data * lumpedMat,
-				  const escript::Data * D, const bool useHRZ);
-#endif				/* #ifndef INC_DUDLEY_ASSEMBLE */
+void Assemble_PDE_System_3D(const Assemble_Parameters& p, const Dudley_ElementFile*,
+                            escript::ASM_ptr S, escript::Data& F,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
+
+void Assemble_NodeCoordinates(Dudley_NodeFile *, escript::Data *);
+void Assemble_setNormal(Dudley_NodeFile *, Dudley_ElementFile *, escript::Data *);
+void Assemble_interpolate(Dudley_NodeFile *, Dudley_ElementFile *, const escript::Data *, escript::Data *);
+void Assemble_gradient(Dudley_NodeFile *, Dudley_ElementFile *, escript::Data *, const escript::Data *);
+void Assemble_integrate(Dudley_NodeFile *, Dudley_ElementFile *, const escript::Data *, double *);
+void Assemble_getSize(Dudley_NodeFile *, Dudley_ElementFile *, escript::Data *);
+void Assemble_CopyNodalData(Dudley_NodeFile * nodes, escript::Data * out, const escript::Data * in);
+void Assemble_CopyElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in);
+void Assemble_AverageElementData(Dudley_ElementFile * elements, escript::Data * out, const escript::Data * in);
+void Assemble_addToSystemMatrix(escript::ASM_ptr in, const dim_t NN_Equa, const index_t * Nodes_Equa, const dim_t num_Equa,
+                                       const dim_t NN_Sol, const index_t * Nodes_Sol, const dim_t num_Sol, const double *array);
+
+void Assemble_jacobians_2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
+                           index_t *);
+void Assemble_jacobians_2D_M1D_E1D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
+                                   double *quadweight, index_t *);
+void Assemble_jacobians_3D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
+                           index_t *);
+void Assemble_jacobians_3D_M2D_E2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
+                                   double *quadweight, index_t *);
+
+void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
+                           escript::Data& lumpedMat, const escript::Data& D,
+                           bool useHRZ);
+
+} // namespace dudley
+
+#endif // __DUDLEY_ASSEMBLE_H__
+

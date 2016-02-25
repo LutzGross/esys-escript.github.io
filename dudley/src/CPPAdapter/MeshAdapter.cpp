@@ -701,13 +701,16 @@ void MeshAdapter::addPDEToSystem(AbstractSystemMatrix& mat, escript::Data& rhs,
         paso::SystemMatrix_ptr S(smat->shared_from_this());
         Dudley_Mesh* mesh = m_dudleyMesh.get();
 
-        Dudley_Assemble_PDE(mesh->Nodes, mesh->Elements, S, &rhs, &A, &B, &C, &D, &X, &Y);
+        Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
         checkDudleyError();
 
-        Dudley_Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, &rhs, 0, 0, 0, &d, 0, &y);
+        Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs, escript::Data(),
+                     escript::Data(), escript::Data(), d, escript::Data(), y);
         checkDudleyError();
 
-        Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, S, &rhs, 0, 0, 0, &d_dirac, 0, &y_dirac);
+        Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
+                     escript::Data(), escript::Data(), d_dirac,
+                     escript::Data(), y_dirac);
         checkDudleyError();
         return;
     }
@@ -722,13 +725,13 @@ void  MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements, &mat, &D, useHRZ);
+   Assemble_LumpedSystem(mesh->Nodes,mesh->Elements, mat, D, useHRZ);
    checkDudleyError();
    
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, &mat, &d, useHRZ);
+   Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, mat, d, useHRZ);
    checkDudleyError();
 
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, &mat, &d_dirac, useHRZ);
+   Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, mat, d_dirac, useHRZ);
    checkDudleyError();
 
 }
@@ -737,7 +740,7 @@ void  MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs, const escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
+void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
    if (!y_contact.isEmpty())
    {
@@ -745,16 +748,19 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const escript::Data& X,const 
    }
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, escript::ASM_ptr(), &rhs,
-                       NULL, NULL, NULL, NULL, &X, &Y);
+   Assemble_PDE(mesh->Nodes, mesh->Elements, escript::ASM_ptr(), rhs,
+                escript::Data(), escript::Data(), escript::Data(),
+                escript::Data(), X, Y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, escript::ASM_ptr(),
-                       &rhs, NULL, NULL, NULL, NULL, NULL, &y);
+   Assemble_PDE(mesh->Nodes, mesh->FaceElements, escript::ASM_ptr(), rhs,
+                escript::Data(), escript::Data(), escript::Data(),
+                escript::Data(), escript::Data(), y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, escript::ASM_ptr(), &rhs,
-                       NULL, NULL, NULL, NULL, NULL, &y_dirac);
+   Assemble_PDE(mesh->Nodes, mesh->Points, escript::ASM_ptr(), rhs,
+                escript::Data(), escript::Data(), escript::Data(),
+                escript::Data(), escript::Data(), y_dirac);
    checkDudleyError();
 }
 //
@@ -786,21 +792,23 @@ void MeshAdapter::addPDEToTransportProblem(
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Dudley_Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(),
-                       &source, 0, 0, 0, &M, 0, 0);
+   Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(), source,
+                escript::Data(), escript::Data(), escript::Data(), M,
+                escript::Data(), escript::Data());
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
-                       &source, &A, &B, &C, &D, &X, &Y);
+   Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
+                source, A, B, C, D, X, Y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes, mesh->FaceElements,
-                       ptp->borrowTransportMatrix(), &source, NULL, NULL, NULL,
-                       &d, NULL, &y);
+   Assemble_PDE(mesh->Nodes, mesh->FaceElements, ptp->borrowTransportMatrix(),
+                source, escript::Data(), escript::Data(), escript::Data(), d,
+                escript::Data(), y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
-                       &source, NULL, NULL, NULL, &d_dirac, NULL, &y_dirac);
+   Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
+                source, escript::Data(), escript::Data(), escript::Data(),
+                d_dirac, escript::Data(), y_dirac);
    checkDudleyError();
 }
 
@@ -824,18 +832,18 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(ReducedNodes):
       case(DegreesOfFreedom):
       case(ReducedDegreesOfFreedom):
-      Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&in);
+      Assemble_CopyNodalData(mesh->Nodes,&target,&in);
       break;
       case(Elements):
       case(ReducedElements):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
+      Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
       break;
       case(FaceElements):
       case(ReducedFaceElements):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
+      Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
       break;
       case(Points):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
+      Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
       break;
       default:
          stringstream temp;
@@ -850,18 +858,18 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(ReducedNodes):
       case(DegreesOfFreedom):
       case(ReducedDegreesOfFreedom):
-      Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&in);
+      Assemble_CopyNodalData(mesh->Nodes,&target,&in);
       break;
       case(Elements):
       case(ReducedElements):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
+      Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
       break;
       case(FaceElements):
       case(ReducedFaceElements):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
+      Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
       break;
       case(Points):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
+      Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
       break;
       default:
          stringstream temp;
@@ -872,39 +880,39 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
    case(Elements):
       if (target.getFunctionSpace().getTypeCode()==Elements) {
-         Dudley_Assemble_CopyElementData(mesh->Elements,&target,&in);
+         Assemble_CopyElementData(mesh->Elements,&target,&in);
       } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-         Dudley_Assemble_AverageElementData(mesh->Elements,&target,&in);
+         Assemble_AverageElementData(mesh->Elements,&target,&in);
       } else {
          throw DudleyAdapterException("Error - No interpolation with data on elements possible.");
       }
       break;
    case(ReducedElements):
       if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-         Dudley_Assemble_CopyElementData(mesh->Elements,&target,&in);
+         Assemble_CopyElementData(mesh->Elements,&target,&in);
       } else {
          throw DudleyAdapterException("Error - No interpolation with data on elements with reduced integration order possible.");
       }
       break;
    case(FaceElements):
       if (target.getFunctionSpace().getTypeCode()==FaceElements) {
-         Dudley_Assemble_CopyElementData(mesh->FaceElements,&target,&in);
+         Assemble_CopyElementData(mesh->FaceElements,&target,&in);
       } else if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
-         Dudley_Assemble_AverageElementData(mesh->FaceElements,&target,&in);
+         Assemble_AverageElementData(mesh->FaceElements,&target,&in);
       } else {
          throw DudleyAdapterException("Error - No interpolation with data on face elements possible.");
       }
       break;
    case(ReducedFaceElements):
       if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
-         Dudley_Assemble_CopyElementData(mesh->FaceElements,&target,&in);
+         Assemble_CopyElementData(mesh->FaceElements,&target,&in);
       } else {
          throw DudleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
       }
       break;
    case(Points):
       if (target.getFunctionSpace().getTypeCode()==Points) {
-         Dudley_Assemble_CopyElementData(mesh->Points,&target,&in);
+         Assemble_CopyElementData(mesh->Points,&target,&in);
       } else {
          throw DudleyAdapterException("Error - No interpolation with data on points possible.");
       }
@@ -913,7 +921,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       switch(target.getFunctionSpace().getTypeCode()) {
       case(ReducedDegreesOfFreedom):
       case(DegreesOfFreedom):
-      Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&in);
+      Assemble_CopyNodalData(mesh->Nodes,&target,&in);
       break;
    
       case(Nodes):
@@ -921,28 +929,28 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       if (getMPISize()>1) {
          escript::Data temp=escript::Data(in);
          temp.expand();
-         Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&temp);
+         Assemble_CopyNodalData(mesh->Nodes,&target,&temp);
       } else {
-         Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&in);
+         Assemble_CopyNodalData(mesh->Nodes,&target,&in);
       }
       break;
       case(Elements):
       case(ReducedElements):
       if (getMPISize()>1) {
          escript::Data temp=escript::Data( in,  continuousFunction(*this) );
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&temp,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Elements,&temp,&target);
       } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
       }
       break;
       case(FaceElements):
       case(ReducedFaceElements):
       if (getMPISize()>1) {
          escript::Data temp=escript::Data( in,  continuousFunction(*this) );
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&temp,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&temp,&target);
    
       } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
       }
       break;
       case(Points):
@@ -950,7 +958,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
          //escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          //escriptDataC _in2 = temp.getDataC();
       } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
       }
       break;
       default:
@@ -969,41 +977,41 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       if (getMPISize()>1) {
          escript::Data temp=escript::Data(in);
          temp.expand();
-         Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&temp);
+         Assemble_CopyNodalData(mesh->Nodes,&target,&temp);
       } else {
-         Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&in);
+         Assemble_CopyNodalData(mesh->Nodes,&target,&in);
       }
       break;
       case(DegreesOfFreedom):
       throw DudleyAdapterException("Error - Dudley does not support interpolation from reduced degrees of freedom to degrees of freedom");
       break;
       case(ReducedDegreesOfFreedom):
-      Dudley_Assemble_CopyNodalData(mesh->Nodes,&target,&in);
+      Assemble_CopyNodalData(mesh->Nodes,&target,&in);
       break;
       case(Elements):
       case(ReducedElements):
       if (getMPISize()>1) {
          escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&temp,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Elements,&temp,&target);
       } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Elements,&in,&target);
       }
       break;
       case(FaceElements):
       case(ReducedFaceElements):
       if (getMPISize()>1) {
          escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&temp,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&temp,&target);
       } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&in,&target);
       }
       break;
       case(Points):
       if (getMPISize()>1) {
          escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&temp,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Points,&temp,&target);
       } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
+         Assemble_interpolate(mesh->Nodes,mesh->Points,&in,&target);
       }
       break;
       default:
@@ -1033,10 +1041,10 @@ void MeshAdapter::setToX(escript::Data& arg) const
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    // in case of values node coordinates we can do the job directly:
    if (arg.getFunctionSpace().getTypeCode()==Nodes) {
-      Dudley_Assemble_NodeCoordinates(mesh->Nodes,&arg);
+      Assemble_NodeCoordinates(mesh->Nodes,&arg);
    } else {
       escript::Data tmp_data=Vector(0.0,continuousFunction(*this),true);
-      Dudley_Assemble_NodeCoordinates(mesh->Nodes,&tmp_data);
+      Assemble_NodeCoordinates(mesh->Nodes,&tmp_data);
       // this is then interpolated onto arg:
       interpolateOnDomain(arg,tmp_data);
    }
@@ -1067,10 +1075,10 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
    throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for elements with reduced integration order");
    break;
    case (FaceElements):
-   Dudley_Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&normal);
+   Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&normal);
    break;
    case (ReducedFaceElements):
-   Dudley_Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&normal);
+   Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&normal);
    break;
    case(Points):
    throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for point elements");
@@ -1117,34 +1125,34 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    switch(arg.getFunctionSpace().getTypeCode()) {
    case(Nodes):
    temp=escript::Data( arg, escript::function(*this) );
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
    break;
    case(ReducedNodes):
    temp=escript::Data( arg, escript::function(*this) );
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
    break;
    case(Elements):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&arg,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->Elements,&arg,&integrals[0]);
    break;
    case(ReducedElements):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&arg,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->Elements,&arg,&integrals[0]);
    break;
    case(FaceElements):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->FaceElements,&arg,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->FaceElements,&arg,&integrals[0]);
    break;
    case(ReducedFaceElements):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->FaceElements,&arg,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->FaceElements,&arg,&integrals[0]);
    break;
    case(Points):
    throw DudleyAdapterException("Error - Integral of data on points is not supported.");
    break;
    case(DegreesOfFreedom):
    temp=escript::Data( arg, escript::function(*this) );
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
    break;
    case(ReducedDegreesOfFreedom):
    temp=escript::Data( arg, escript::function(*this) );
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
+   Assemble_integrate(mesh->Nodes,mesh->Elements,&temp,&integrals[0]);
    break;
    default:
       stringstream temp;
@@ -1191,16 +1199,16 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
    throw DudleyAdapterException("Error - Gradient at reduced nodes is not supported.");
    break;
    case(Elements):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->Elements,&grad, nodeData);
+   Assemble_gradient(mesh->Nodes,mesh->Elements,&grad, nodeData);
    break;
    case(ReducedElements):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->Elements,&grad, nodeData);
+   Assemble_gradient(mesh->Nodes,mesh->Elements,&grad, nodeData);
    break;
    case(FaceElements):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,&grad, nodeData);
+   Assemble_gradient(mesh->Nodes,mesh->FaceElements,&grad, nodeData);
    break;
    case(ReducedFaceElements):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,&grad, nodeData);
+   Assemble_gradient(mesh->Nodes,mesh->FaceElements,&grad, nodeData);
    break;
    case(Points):
    throw DudleyAdapterException("Error - Gradient at points is not supported.");
@@ -1234,16 +1242,16 @@ void MeshAdapter::setToSize(escript::Data& size) const
    throw DudleyAdapterException("Error - Size of reduced nodes is not supported.");
    break;
    case(Elements):
-   Dudley_Assemble_getSize(mesh->Nodes,mesh->Elements,&size);
+   Assemble_getSize(mesh->Nodes,mesh->Elements,&size);
    break;
    case(ReducedElements):
-   Dudley_Assemble_getSize(mesh->Nodes,mesh->Elements,&size);
+   Assemble_getSize(mesh->Nodes,mesh->Elements,&size);
    break;
    case(FaceElements):
-   Dudley_Assemble_getSize(mesh->Nodes,mesh->FaceElements,&size);
+   Assemble_getSize(mesh->Nodes,mesh->FaceElements,&size);
    break;
    case(ReducedFaceElements):
-   Dudley_Assemble_getSize(mesh->Nodes,mesh->FaceElements,&size);
+   Assemble_getSize(mesh->Nodes,mesh->FaceElements,&size);
    break;
    case(Points):
    throw DudleyAdapterException("Error - Size of point elements is not supported.");
@@ -1870,7 +1878,6 @@ void MeshAdapter::setTagMap(const string& name,  int tag)
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    Dudley_Mesh_addTagMap(mesh, name.c_str(),tag);
    checkDudleyError();
-   // throwStandardException("MeshAdapter::set TagMap is not implemented.");
 }
 
 int MeshAdapter::getTag(const string& name) const
@@ -1879,7 +1886,6 @@ int MeshAdapter::getTag(const string& name) const
    int tag=0;
    tag=Dudley_Mesh_getTag(mesh, name.c_str());
    checkDudleyError();
-   // throwStandardException("MeshAdapter::getTag is not implemented.");
    return tag;
 }
 
