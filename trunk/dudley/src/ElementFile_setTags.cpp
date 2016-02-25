@@ -14,77 +14,54 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
-/*	 Dudley: Mesh: ElementFile */
+/*       Dudley: Mesh: ElementFile */
 
-/*	set tags to newTag where mask>0 */
+/*      set tags to newTag where mask>0 */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "ElementFile.h"
-#include "Util.h"
 #include "Assemble.h"
+#include "Util.h"
 
-/************************************************************************************/
-
-void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, const escript::Data* mask)
+void Dudley_ElementFile_setTags(Dudley_ElementFile * self, int newTag, const escript::Data* mask)
 {
-    dim_t n, q;
-    dim_t numElements, numQuad;
-    __const double *mask_array;
-    bool check;
     Dudley_resetError();
-    if (self == NULL)
-	return;
-    numElements = self->numElements;
+    const dim_t numElements = self->numElements;
+    const int numQuad = dudley::Assemble_reducedIntegrationOrder(mask) ? 1 : (self->numDim + 1);
 
-    numQuad = Dudley_Assemble_reducedIntegrationOrder(mask) ? 1 : (self->numDim + 1);
-    if (1 != getDataPointSize(mask))
-    {
-	Dudley_setError(TYPE_ERROR, "Dudley_ElementFile_setTags: number of components of mask is 1.");
+    if (1 != mask->getDataPointSize()) {
+        Dudley_setError(TYPE_ERROR, "Dudley_ElementFile_setTags: number of components of mask is 1.");
+    } else if (!mask->numSamplesEqual(numQuad, numElements)) {
+        Dudley_setError(TYPE_ERROR, "Dudley_ElementFile_setTags: illegal number of samples of mask Data object");
     }
-    else if (!numSamplesEqual(mask, numQuad, numElements))
-    {
-	Dudley_setError(TYPE_ERROR, "Dudley_ElementFile_setTags: illegal number of samples of mask Data object");
-    }
-
-    /* now we can start */
 
     if (Dudley_noError())
     {
-	if (isExpanded(mask))
-	{
-#pragma omp parallel private(n,check,mask_array)
-	    {
-#pragma omp for schedule(static)
-		for (n = 0; n < numElements; n++)
-		{
-		    mask_array = getSampleDataRO(mask, n);
-		    if (mask_array[0] > 0)
-			self->Tag[n] = newTag;
-		}
-	    }
-	}
-	else
-	{
-#pragma omp parallel private(q,n,check,mask_array)
-	    {
-#pragma omp for schedule(static)
-		for (n = 0; n < numElements; n++)
-		{
-		    mask_array = getSampleDataRO(mask, n);
-		    check = FALSE;
-		    for (q = 0; q < numQuad; q++)
-			check = check || mask_array[q];
-		    if (check)
-			self->Tag[n] = newTag;
-		}
-	    }
-	}
-	Dudley_ElementFile_setTagsInUse(self);
+        if (mask->actsExpanded()) {
+#pragma omp parallel for
+            for (index_t n = 0; n < numElements; n++) {
+                const double* mask_array = mask->getSampleDataRO(n);
+                if (mask_array[0] > 0)
+                    self->Tag[n] = newTag;
+            }
+        } else {
+#pragma omp parallel for
+            for (index_t n = 0; n < numElements; n++) {
+                const double* mask_array = mask->getSampleDataRO(n);
+                bool check = false;
+                for (int q = 0; q < numQuad; q++)
+                    check = check || mask_array[q];
+                if (check)
+                    self->Tag[n] = newTag;
+            }
+        }
+        Dudley_ElementFile_setTagsInUse(self);
     }
 }
+

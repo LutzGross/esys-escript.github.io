@@ -36,10 +36,10 @@ sources = """
 	Assemble_NodeCoordinates.cpp
 	Assemble_PDE.cpp
     Assemble_PDE_Points.cpp
-	Assemble_PDE_Single2_2D.cpp
-	Assemble_PDE_Single2_3D.cpp
-	Assemble_PDE_System2_2D.cpp
-	Assemble_PDE_System2_3D.cpp
+	Assemble_PDE_Single_2D.cpp
+	Assemble_PDE_Single_3D.cpp
+	Assemble_PDE_System_2D.cpp
+	Assemble_PDE_System_3D.cpp
 	Assemble_addToSystemMatrix.cpp
 	Assemble_getAssembleParameters.cpp
 	Assemble_getSize.cpp
@@ -52,7 +52,7 @@ sources = """
 	ElementFile_createColoring.cpp
 	ElementFile_distributeByRankOfDOF.cpp
 	ElementFile_gather.cpp
-	ElementFile_jacobeans.cpp
+	ElementFile_jacobians.cpp
 	ElementFile_markNodes.cpp
 	ElementFile_optimizeOrdering.cpp
 	ElementFile_relableNodes.cpp
@@ -101,7 +101,7 @@ sources = """
 """.split()
 unroll_sources= """
 	Assemble_gradient.cpp
-	Assemble_jacobeans.cpp
+	Assemble_jacobians.cpp
 """.split()
 
 

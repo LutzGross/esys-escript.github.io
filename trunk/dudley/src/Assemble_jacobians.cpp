@@ -47,11 +47,13 @@ double* volume[numQuad*numElements]
 
 #define SCALING(_nsub_,_dim_) pow(1./(double)(_nsub_),1./(double)(_dim_))
 
-/************************************************************************************/
+namespace dudley {
+
+/****************************************************************************/
 /*                                                            */
 /*  Jacobian 2D with area element                             */
 /*                                                            */
-void Dudley_Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,
+void Assemble_jacobians_2D(double* coordinates, dim_t numQuad,
                          dim_t numElements, dim_t numNodes, index_t* nodes,
                          double* dTdX, double* absD, double* quadweight,
                          index_t* element_id)
@@ -87,7 +89,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
             if (D == 0.)
             {
                 std::stringstream ss;
-                ss << "Dudley_Assemble_jacobians_2D: element " << e
+                ss << "Assemble_jacobians_2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 const std::string msg(ss.str());
                 Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
@@ -142,7 +144,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements                */
 /*                                                            */
-void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
+void Assemble_jacobians_2D_M1D_E1D(double *coordinates, dim_t numQuad,
                                    dim_t numElements, dim_t numNodes, index_t * nodes,
                                    double *dTdX, double *absD, double *quadweight, index_t * element_id)
 {
@@ -169,7 +171,7 @@ void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
             if (D == 0.)
             {
                 std::stringstream ss;
-                ss << "Dudley_Assemble_jacobians_2D_M1D_E1D: element " << e
+                ss << "Assemble_jacobians_2D_M1D_E1D: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 const std::string msg(ss.str());
                 Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
@@ -201,7 +203,7 @@ void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 /*                                                            */
 /*  Jacobian 3D                                               */
 /*                                                            */
-void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t * nodes,
+void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t * nodes,
                            double *dTdX, double *absD, double *quadweight, index_t * element_id)
 {
     const int DIM = 3;
@@ -247,7 +249,7 @@ void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numE
             if (D == 0.)
             {
                 std::stringstream ss;
-                ss << "Dudley_Assemble_jacobians_3D: element " << e
+                ss << "Assemble_jacobians_3D: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 const std::string msg(ss.str());
                 Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
@@ -285,7 +287,7 @@ void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numE
 /*                                                            */
 /*  Jacobian 2D manifold in 3D with 2D elements               */
 /*                                                            */
-void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes,
+void Assemble_jacobians_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes,
                                    index_t * nodes, double *dTdX, double *absD, double *quadweight,
                                    index_t * element_id)
 {
@@ -328,7 +330,7 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, di
             if (D == 0.)
             {
                 std::stringstream ss;
-                ss << "Dudley_Assemble_jacobians_3D_M2D: element " << e
+                ss << "Assemble_jacobians_3D_M2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 const std::string msg(ss.str());
                 Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
@@ -355,4 +357,6 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, di
         }
     }                           /* end parallel section */
 }
+
+} // namespace dudley
 

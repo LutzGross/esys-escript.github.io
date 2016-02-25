@@ -15,78 +15,69 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assembles the system of numEq PDEs into the stiffness matrix S right hand side F  */
-/*    the shape functions for test and solution must be identical */
+  Assembles the system of numEqu PDEs into the stiffness matrix S right hand
+  side F
+
+      d_dirac_{k,m} u_m and y_dirac_k
+
+  u has p.numComp components in a 3D domain.
+  The shape functions for test and solution must be identical and
+  row_NS == row_NN.
+
+  Shape of the coefficients:
+
+      d_dirac = p.numEqu x p.numComp
+      y_dirac = p.numEqu
 
 
-/*      d_dirac_{k,m} u_m yand _dirac_k */
-
-/*    u has p.numComp components in a 3D domain. The shape functions for test and solution must be identical  */
-/*    and row_NS == row_NN                                                                                  */
-
-/*    Shape of the coefficients: */
-
-/*      d_dirac = p.numEqu x p.numComp  */
-/*      y_dirac = p.numEqu   */
-
-
-/************************************************************************************/
+*****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Assemble.h"
 #include "Util.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
+namespace dudley {
 
-/************************************************************************************/
+void Assemble_PDE_Points(const Assemble_Parameters& p,
+                         const Dudley_ElementFile* elements,
+                         escript::ASM_ptr mat, escript::Data& F,
+                         const escript::Data& d_dirac,
+                         const escript::Data& y_dirac)
+{
+    double* F_p = NULL;
+    if (!F.isEmpty()) {
+        F.requireWrite();
+        F_p = F.getSampleDataRW(0);
+    }
 
-void  Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters p,
-                                 Dudley_ElementFile* elements,
-                                 escript::ASM_ptr mat, escript::Data* F,
-                                 const escript::Data* d_dirac, const escript::Data* y_dirac) {
-
-    index_t color, e, row_index;
-    __const double  *d_dirac_p, *y_dirac_p;
-    
-    double *F_p=(requireWrite(F), getSampleDataRW(F,0));	/* use comma, to get around the mixed code and declarations thing */
-
-    #pragma omp parallel private(color, d_dirac_p, y_dirac_p)
+#pragma omp parallel
     {
-          for (color=elements->minColor;color<=elements->maxColor;color++) {
-             /*  open loop over all elements: */
-             #pragma omp for private(e) schedule(static)
-             for(e=0;e<elements->numElements;e++){
+        for (int color=elements->minColor;color<=elements->maxColor;color++) {
+            // loop over all elements
+#pragma omp for
+            for(index_t e=0; e<elements->numElements; e++) {
                 if (elements->Color[e]==color) {
+                    const index_t row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
+                    if (!y_dirac.isEmpty()) {
+                        const double* y_dirac_p=y_dirac.getSampleDataRO(e);
+                        Dudley_Util_AddScatter(1, &row_index, p.numEqu,
+                                        y_dirac_p, F_p, p.row_DOF_UpperBound);
+                    }
                    
-		   d_dirac_p=getSampleDataRO(d_dirac, e);
-                   y_dirac_p=getSampleDataRO(y_dirac, e);
-		   
-                   row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
-		   
-		   if (NULL!=y_dirac_p)  Dudley_Util_AddScatter(1,
-                                                        &row_index,
-                                                        p.numEqu,
-                                                        y_dirac_p,
-                                                        F_p, 
-                                                        p.row_DOF_UpperBound);
-		   
-                   if (NULL!=d_dirac_p) Dudley_Assemble_addToSystemMatrix(mat,
-                                                                   1,
-                                                                   &row_index,
-                                                                   p.numEqu,
-                                                                   1,
-                                                                   &row_index,
-                                                                   p.numComp,
-                                                                   d_dirac_p);
-                } /* end color check */
-             } /* end element loop */
-         } /* end color loop */
-   } /* end parallel region */
+                    if (!d_dirac.isEmpty()) {
+                        const double* d_dirac_p=d_dirac.getSampleDataRO(e);
+                        Assemble_addToSystemMatrix(mat, 1, &row_index,
+                               p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
+                    }
+                } // end color check
+            } // end element loop
+        } // end color loop
+    } // end parallel region
 }
+
+} // namespace dudley
 

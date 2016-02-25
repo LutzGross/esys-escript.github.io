@@ -14,14 +14,12 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: */
+  Assemblage routines: calculates the minimum distance between two vertices
+  of elements and assigns the value to each quadrature point in out
 
-/*    calculates the minimum distance between two vertices of elements and assigns the value to each  */
-/*    quadrature point in element_size                                                                         */
-
-/************************************************************************************/
+*****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -29,92 +27,72 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* element_size)
+namespace dudley {
+
+void Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* out)
 {
-
-    double *local_X = NULL, *element_size_array;
-    dim_t e, n0, n1, q, i, NVertices, NN, NS, numQuad, numDim;
-    double d, diff, max_diff;
     Dudley_resetError();
-
-    if (nodes == NULL || elements == NULL)
-    {
+    if (!nodes || !elements)
         return;
-    }
 
-    numDim = nodes->numDim;
+    const int numDim = nodes->numDim;
 
-    /* now we look up what type of elements we need based on the function space of element_size */
-    /* if it is DUDLEY_REDUCED_ELEMENTS or DUDLEY_REDUCED_FACE_ELEMENTS then we have single quad point */
-
-    if (Dudley_Assemble_reducedIntegrationOrder(element_size))
-    {
+    // now we look up what type of elements we need based on the function space
+    // of out. If it is DUDLEY_REDUCED_ELEMENTS or
+    // DUDLEY_REDUCED_FACE_ELEMENTS then we have single quad point
+    int numQuad;
+    if (Assemble_reducedIntegrationOrder(out)) {
         numQuad = 1;
-    }
-    else
-    {
+    } else {
         numQuad = elements->numDim + 1;
     }
+    const int NN = elements->numNodes;
+    const int NS = elements->numDim + 1;
+    const int NVertices = elements->numDim + 1;
 
-    NN = elements->numNodes;
-    NS = elements->numDim + 1;
-    NVertices = elements->numDim + 1;
-
-    /* check the dimensions of element_size */
-
-    if (!numSamplesEqual(element_size, numQuad, elements->numElements))
-    {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: illegal number of samples of element size Data object");
+    // check the dimensions of out
+    if (!out->numSamplesEqual(numQuad, elements->numElements)) {
+        Dudley_setError(TYPE_ERROR, "Assemble_getSize: illegal number of samples of element size Data object");
+    } else if (!out->isDataPointShapeEqual(0, &numDim)) {
+        Dudley_setError(TYPE_ERROR, "Assemble_getSize: illegal data point shape of element size Data object");
+    } else if (!out->actsExpanded()) {
+        Dudley_setError(TYPE_ERROR, "Assemble_getSize: expanded Data object is expected for element size.");
     }
-    else if (!isDataPointShapeEqual(element_size, 0, &(numDim)))
-    {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: illegal data point shape of element size Data object");
-    }
-    else if (!isExpanded(element_size))
-    {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getSize: expanded Data object is expected for element size.");
-    }
-    /* now we can start: */
 
-    if (Dudley_noError())
-    {
-        requireWrite(element_size);
-#pragma omp parallel private(local_X)
-        {
-            /* allocation of work arrays */
-            local_X = new double[NN * numDim];
-            /* open the element loop */
-#pragma omp for private(e,max_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
-            for (e = 0; e < elements->numElements; e++)
-            {
-                /* gather local coordinates of nodes into local_X(numDim,NN): */
-                Dudley_Util_Gather_double(NS, &(elements->Nodes[INDEX2(0, e, NN)]), numDim, nodes->Coordinates,
-                                          local_X);
-                /* calculate minimal differences */
-                max_diff = 0;
-                for (n0 = 0; n0 < NVertices; n0++)
-                {
-                    for (n1 = n0 + 1; n1 < NVertices; n1++)
-                    {
-                        diff = 0;
-                        for (i = 0; i < numDim; i++)
-                        {
-                            d = local_X[INDEX2(i, n0, numDim)] - local_X[INDEX2(i, n1, numDim)];
-                            diff += d * d;
-                        }
+    if (!Dudley_noError())
+        return;
 
-                        max_diff = MAX(max_diff, diff);
-                        
+    // now we can start
+    out->requireWrite();
+#pragma omp parallel
+    {
+        std::vector<double> local_X(NN * numDim);
+#pragma omp for
+        for (index_t e = 0; e < elements->numElements; e++) {
+            // gather local coordinates of nodes into local_X(numDim,NN)
+            Dudley_Util_Gather_double(NS, &elements->Nodes[INDEX2(0, e, NN)],
+                                      numDim, nodes->Coordinates, &local_X[0]);
+            // calculate minimal differences
+            double max_diff = 0;
+            for (int n0 = 0; n0 < NVertices; n0++) {
+                for (int n1 = n0 + 1; n1 < NVertices; n1++) {
+                    double diff = 0;
+                    for (int i = 0; i < numDim; i++) {
+                        const double d = local_X[INDEX2(i, n0, numDim)] - local_X[INDEX2(i, n1, numDim)];
+                        diff += d * d;
                     }
+
+                    max_diff = std::max(max_diff, diff);
                 }
-                max_diff = sqrt(max_diff);
-                /* set all values to max_diff */
-                element_size_array = getSampleDataRW(element_size, e);
-                for (q = 0; q < numQuad; q++)
-                    element_size_array[q] = max_diff;
             }
-            delete[] local_X;
-        } /* end of parallel region */
-    }
+            max_diff = sqrt(max_diff);
+            // set all values to max_diff
+            double* out_array = out->getSampleDataRW(e);
+            for (int q = 0; q < numQuad; q++)
+                out_array[q] = max_diff;
+        }
+    } // end of parallel region
 }
+
+} // namespace dudley
 

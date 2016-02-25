@@ -14,11 +14,11 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: prepares the assemble parameter set */
+  Assemblage routines: prepares the assemble parameter set
 
-/************************************************************************************/
+*****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -28,70 +28,58 @@
 
 #include <paso/SystemMatrix.h>
 
-/************************************************************************************/
+namespace dudley {
 
-void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile* nodes,
-        Dudley_ElementFile* elements, escript::ASM_ptr mat,
-        const escript::Data* F, bool reducedIntegrationOrder,
-        Dudley_Assemble_Parameters* parm)
+void Assemble_getAssembleParameters(const Dudley_NodeFile* nodes,
+        const Dudley_ElementFile* elements, escript::ASM_ptr mat,
+        const escript::Data& F, bool reducedIntegrationOrder,
+        Assemble_Parameters* parm)
 {
     paso::SystemMatrix* S = dynamic_cast<paso::SystemMatrix*>(mat.get());
     if (mat && !S) {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getAssembleParameters: Unknown matrix type.");
+        Dudley_setError(TYPE_ERROR, "Assemble_getAssembleParameters: Unknown matrix type.");
         return;
     }
     Dudley_resetError();
     parm->shapeFns = NULL;
-    if (!isEmpty(F) && !isExpanded(F))
+    if (!F.isEmpty() && !F.actsExpanded())
     {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getAssembleParameters: Right hand side is not expanded.");
+        Dudley_setError(TYPE_ERROR, "Assemble_getAssembleParameters: Right hand side is not expanded.");
         return;
     }
 
     if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &parm->shapeFns))
     {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getAssembleParameters: Can not locate shape functions.");
+        Dudley_setError(TYPE_ERROR, "Assemble_getAssembleParameters: Can not locate shape functions.");
     }
     /*  check the dimensions of S and F */
-    if (S != NULL && !isEmpty(F))
+    if (S != NULL && !F.isEmpty())
     {
-        if (!numSamplesEqual
-            (F, 1,
-             (S->row_distribution->getMyNumComponents() * S->row_block_size) /
+        if (!F.numSamplesEqual(1, (S->row_distribution->getMyNumComponents()*S->row_block_size) /
              S->logical_row_block_size))
         {
             Dudley_setError(TYPE_ERROR,
-                            "Dudley_Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
+                            "Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
             return;
         }
     }
     /* get the number of equations and components */
-    if (S == NULL)
-    {
-        if (isEmpty(F))
-        {
+    if (S == NULL) {
+        if (F.isEmpty()) {
             parm->numEqu = 1;
             parm->numComp = 1;
-        }
-        else
-        {
-            parm->numEqu = getDataPointSize(F);
+        } else {
+            parm->numEqu = F.getDataPointSize();
             parm->numComp = parm->numEqu;
         }
-    }
-    else
-    {
-        if (isEmpty(F))
-        {
+    } else {
+        if (F.isEmpty()) {
             parm->numEqu = S->logical_row_block_size;
             parm->numComp = S->logical_col_block_size;
-        }
-        else
-        {
-            if (getDataPointSize(F) != S->logical_row_block_size)
-            {
+        } else {
+            if (F.getDataPointSize() != S->logical_row_block_size) {
                 Dudley_setError(TYPE_ERROR,
-                                "Dudley_Assemble_getAssembleParameters: matrix row block size and number of components of right hand side don't match.");
+                                "Assemble_getAssembleParameters: matrix row block size and number of components of right hand side don't match.");
                 return;
             }
             parm->numEqu = S->logical_row_block_size;
@@ -101,93 +89,74 @@ void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile* nodes,
     parm->col_DOF = nodes->degreesOfFreedomMapping->target;
     parm->row_DOF = nodes->degreesOfFreedomMapping->target;
     /* get the information for the labeling of the degrees of freedom from matrix */
-    if (S != NULL)
-    {
-        /* Make sure # rows in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
+    if (S != NULL) {
+        // Make sure # rows in matrix == num DOF for one of:
+        // full or reduced (use numLocalDOF for MPI)
         if (S->row_distribution->getMyNumComponents() * S->row_block_size ==
-            parm->numEqu * nodes->degreesOfFreedomDistribution->getMyNumComponents())
-        {
+            parm->numEqu * nodes->degreesOfFreedomDistribution->getMyNumComponents()) {
             parm->row_DOF_UpperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
             parm->row_DOF = nodes->degreesOfFreedomMapping->target;
-            parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
-        }
-        else if (S->row_distribution->getMyNumComponents() * S->row_block_size ==
-                 parm->numEqu * nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents())
-        {
+            parm->row_jac = Dudley_ElementFile_borrowJacobians(elements, nodes, reducedIntegrationOrder);
+        } else if (S->row_distribution->getMyNumComponents() * S->row_block_size ==
+                 parm->numEqu * nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents()) {
             parm->row_DOF_UpperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
             parm->row_DOF = nodes->reducedDegreesOfFreedomMapping->target;
-            parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
-        }
-        else
-        {
+            parm->row_jac = Dudley_ElementFile_borrowJacobians(elements, nodes, reducedIntegrationOrder);
+        } else {
             Dudley_setError(TYPE_ERROR,
-                            "Dudley_Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
+                            "Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
         }
-        /* Make sure # cols in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
+        // Make sure # cols in matrix == num DOF for one of:
+        // full or reduced (use numLocalDOF for MPI)
         if (S->col_distribution->getMyNumComponents() * S->col_block_size ==
-            parm->numComp * nodes->degreesOfFreedomDistribution->getMyNumComponents())
-        {
+            parm->numComp * nodes->degreesOfFreedomDistribution->getMyNumComponents()) {
             parm->col_DOF_UpperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
             parm->col_DOF = nodes->degreesOfFreedomMapping->target;
-            parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
-        }
-        else if (S->col_distribution->getMyNumComponents() * S->col_block_size ==
-                 parm->numComp * nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents())
-        {
+            parm->row_jac = Dudley_ElementFile_borrowJacobians(elements, nodes, reducedIntegrationOrder);
+        } else if (S->col_distribution->getMyNumComponents() * S->col_block_size ==
+                 parm->numComp * nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents()) {
             parm->col_DOF_UpperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
             parm->col_DOF = nodes->reducedDegreesOfFreedomMapping->target;
-            parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
-        }
-        else
-        {
+            parm->row_jac = Dudley_ElementFile_borrowJacobians(elements, nodes, reducedIntegrationOrder);
+        } else {
             Dudley_setError(TYPE_ERROR,
-                            "Dudley_Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
+                            "Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
         }
     }
     if (!Dudley_noError())
         return;
-    /* get the information from right hand side */
-    if (!isEmpty(F))
-    {
-        if (numSamplesEqual(F, 1, nodes->degreesOfFreedomDistribution->getMyNumComponents()))
-        {
+
+    // get the information from right hand side
+    if (!F.isEmpty()) {
+        if (F.numSamplesEqual(1, nodes->degreesOfFreedomDistribution->getMyNumComponents())) {
             parm->row_DOF_UpperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
             parm->row_DOF = nodes->degreesOfFreedomMapping->target;
-            parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
-        }
-        else if (numSamplesEqual
-                 (F, 1, nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents()))
-        {
+            parm->row_jac = Dudley_ElementFile_borrowJacobians(elements, nodes, reducedIntegrationOrder);
+        } else if (F.numSamplesEqual(1, nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents())) {
             parm->row_DOF_UpperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
             parm->row_DOF = nodes->reducedDegreesOfFreedomMapping->target;
-            parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
-        }
-        else
-        {
+            parm->row_jac = Dudley_ElementFile_borrowJacobians(elements, nodes, reducedIntegrationOrder);
+        } else {
             Dudley_setError(TYPE_ERROR,
-                            "Dudley_Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
+                            "Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
         }
-        if (S == NULL)
-        {
+        if (S == NULL) {
             parm->col_DOF_UpperBound = parm->row_DOF_UpperBound;
             parm->col_DOF = parm->row_DOF;
             parm->row_jac = parm->row_jac;
         }
     }
 
-    if (parm->row_jac->numDim != parm->row_jac->numDim)
-    {
+    if (parm->row_jac->numDim != parm->row_jac->numDim) {
         Dudley_setError(TYPE_ERROR,
-                        "Dudley_Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
+                        "Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
     }
 
-    if (elements->numNodes < parm->row_jac->numShapes)
-    {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getAssembleParameters: too many nodes are expected by row.");
+    if (elements->numNodes < parm->row_jac->numShapes) {
+        Dudley_setError(TYPE_ERROR, "Assemble_getAssembleParameters: too many nodes are expected by row.");
     }
-    if (parm->row_jac->numElements != elements->numElements)
-    {
-        Dudley_setError(TYPE_ERROR, "Dudley_Assemble_getAssembleParameters: number of elements for row is wrong.");
+    if (parm->row_jac->numElements != elements->numElements) {
+        Dudley_setError(TYPE_ERROR, "Assemble_getAssembleParameters: number of elements for row is wrong.");
     }
 
     parm->numQuad = parm->row_jac->numQuad;
@@ -196,4 +165,6 @@ void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile* nodes,
     parm->numDim = parm->row_jac->numDim;
     parm->numShapes = parm->row_jac->numShapes;
 }
+
+} // namespace dudley
 

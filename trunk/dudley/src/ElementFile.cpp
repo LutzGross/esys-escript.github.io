@@ -46,8 +46,8 @@ Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUti
     out->Color = NULL;
     out->minColor = 0;
     out->maxColor = -1;
-    out->jacobeans = NULL;
-    out->jacobeans_reducedQ = NULL;
+    out->jacobians = NULL;
+    out->jacobians_reducedQ = NULL;
 
     out->Owner = NULL;
     out->numTagsInUse = 0;
@@ -55,8 +55,8 @@ Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUti
 
     out->MPIInfo = MPIInfo;
 
-    out->jacobeans = Dudley_ElementFile_Jacobeans_alloc();
-    out->jacobeans_reducedQ = Dudley_ElementFile_Jacobeans_alloc();
+    out->jacobians = Dudley_ElementFile_Jacobians_alloc();
+    out->jacobians_reducedQ = Dudley_ElementFile_Jacobians_alloc();
 
     if (!Dudley_noError())
     {
@@ -79,8 +79,8 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
     if (in != NULL)
     {
         Dudley_ElementFile_freeTable(in);
-        Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
-        Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
+        Dudley_ElementFile_Jacobians_dealloc(in->jacobians);
+        Dudley_ElementFile_Jacobians_dealloc(in->jacobians_reducedQ);
         delete in;
     }
 }
