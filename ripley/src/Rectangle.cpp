@@ -68,7 +68,6 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                      escript::SubWorld_ptr w) :
     RipleyDomain(2, w)
 {
-    ESYS_ASSERT(n0<1, "n0 must be less than 1");
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             > std::numeric_limits<dim_t>::max())
         throw RipleyException("The number of elements has overflowed, this "
