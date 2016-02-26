@@ -69,7 +69,7 @@ escript_opts_version = 203
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = '-Wextra -Wno-unused-parameter'
-cxx_extra = '-std=c++11'
+cxx_extra = '-std=c++11 -Wno-literal-suffix'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
