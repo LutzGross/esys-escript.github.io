@@ -623,8 +623,7 @@ int Mesh::getTag(const char* name) const
         std::stringstream ss;
         ss << "getTag: unknown tag name " << name << ".";
         const std::string errorMsg(ss.str());
-        setError(VALUE_ERROR, errorMsg.c_str());
-        return -1;
+        throw escript::ValueError(errorMsg);
     }
     return it->second;
 }

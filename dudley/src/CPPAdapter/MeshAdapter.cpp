@@ -18,6 +18,8 @@
 #include "esysUtils/first.h"
 
 #include "MeshAdapter.h"
+#include "DudleyError.h"
+
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
 #include <escript/Random.h>
@@ -559,22 +561,22 @@ int MeshAdapter::getReducedFunctionOnBoundaryCode() const
 
 int MeshAdapter::getFunctionOnContactZeroCode() const
 {
-   throw DudleyAdapterException("Dudley does not support contact elements.");
+   throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getReducedFunctionOnContactZeroCode() const
 {
-   throw DudleyAdapterException("Dudley does not support contact elements.");
+   throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getFunctionOnContactOneCode() const
 {
-   throw DudleyAdapterException("Dudley does not support contact elements.");
+   throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getReducedFunctionOnContactOneCode() const
 {
-   throw DudleyAdapterException("Dudley does not support contact elements.");
+   throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getSolutionCode() const
@@ -674,7 +676,7 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
    default:
       stringstream temp;
       temp << "Error - Invalid function space type: " << functionSpaceCode << " for domain: " << getDescription();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    return pair<int,int>(numDataPointsPerSample,numSamples);
@@ -694,7 +696,7 @@ void MeshAdapter::addPDEToSystem(AbstractSystemMatrix& mat, escript::Data& rhs,
                                  const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty() || !y_contact.isEmpty())
-        throw DudleyAdapterException("Dudley does not support contact elements");
+        throw DudleyException("Dudley does not support contact elements");
 
     paso::SystemMatrix* smat = dynamic_cast<paso::SystemMatrix*>(&mat);
     if (smat) {
@@ -714,7 +716,7 @@ void MeshAdapter::addPDEToSystem(AbstractSystemMatrix& mat, escript::Data& rhs,
         checkDudleyError();
         return;
     }
-    throw DudleyAdapterException("Dudley only accepts Paso system matrices");
+    throw DudleyException("Dudley only accepts Paso system matrices");
 }
 
 void  MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
@@ -744,7 +746,7 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,const  
 {
    if (!y_contact.isEmpty())
    {
-        throw DudleyAdapterException("Dudley does not support y_contact");
+        throw DudleyException("Dudley does not support y_contact");
    }
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
@@ -776,16 +778,16 @@ void MeshAdapter::addPDEToTransportProblem(
 {
     if (!d_contact.isEmpty())
     {
-        throw DudleyAdapterException("Dudley does not support d_contact");
+        throw DudleyException("Dudley does not support d_contact");
     }
     if (!y_contact.isEmpty())
     {
-        throw DudleyAdapterException("Dudley does not support y_contact");
+        throw DudleyException("Dudley does not support y_contact");
     }   
     paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
     {
-        throw DudleyAdapterException("Dudley only accepts Paso transport problems");
+        throw DudleyException("Dudley only accepts Paso transport problems");
     }
     DataTypes::ShapeType shape;
     source.expand();
@@ -820,9 +822,9 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
    const MeshAdapter& inDomain=dynamic_cast<const MeshAdapter&>(*(in.getFunctionSpace().getDomain()));
    const MeshAdapter& targetDomain=dynamic_cast<const MeshAdapter&>(*(target.getFunctionSpace().getDomain()));
    if (inDomain!=*this)  
-      throw DudleyAdapterException("Error - Illegal domain of interpolant.");
+      throw DudleyException("Error - Illegal domain of interpolant.");
    if (targetDomain!=*this) 
-      throw DudleyAdapterException("Error - Illegal domain of interpolation target.");
+      throw DudleyException("Error - Illegal domain of interpolation target.");
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    switch(in.getFunctionSpace().getTypeCode()) {
@@ -848,7 +850,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       default:
          stringstream temp;
          temp << "Error - Interpolation on Domain: Dudley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-         throw DudleyAdapterException(temp.str());
+         throw DudleyException(temp.str());
          break;
       }
       break;
@@ -874,7 +876,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       default:
          stringstream temp;
          temp << "Error - Interpolation on Domain: Dudley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-         throw DudleyAdapterException(temp.str());
+         throw DudleyException(temp.str());
          break;
       }
       break;
@@ -884,14 +886,14 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
          Assemble_AverageElementData(mesh->Elements,&target,&in);
       } else {
-         throw DudleyAdapterException("Error - No interpolation with data on elements possible.");
+         throw DudleyException("Error - No interpolation with data on elements possible.");
       }
       break;
    case(ReducedElements):
       if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
          Assemble_CopyElementData(mesh->Elements,&target,&in);
       } else {
-         throw DudleyAdapterException("Error - No interpolation with data on elements with reduced integration order possible.");
+         throw DudleyException("Error - No interpolation with data on elements with reduced integration order possible.");
       }
       break;
    case(FaceElements):
@@ -900,21 +902,21 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       } else if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
          Assemble_AverageElementData(mesh->FaceElements,&target,&in);
       } else {
-         throw DudleyAdapterException("Error - No interpolation with data on face elements possible.");
+         throw DudleyException("Error - No interpolation with data on face elements possible.");
       }
       break;
    case(ReducedFaceElements):
       if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
          Assemble_CopyElementData(mesh->FaceElements,&target,&in);
       } else {
-         throw DudleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
+         throw DudleyException("Error - No interpolation with data on face elements with reduced integration order possible.");
       }
       break;
    case(Points):
       if (target.getFunctionSpace().getTypeCode()==Points) {
          Assemble_CopyElementData(mesh->Points,&target,&in);
       } else {
-         throw DudleyAdapterException("Error - No interpolation with data on points possible.");
+         throw DudleyException("Error - No interpolation with data on points possible.");
       }
       break;
    case(DegreesOfFreedom):      
@@ -964,14 +966,14 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       default:
          stringstream temp;
          temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-         throw DudleyAdapterException(temp.str());
+         throw DudleyException(temp.str());
          break;
       }
       break;
    case(ReducedDegreesOfFreedom):
       switch(target.getFunctionSpace().getTypeCode()) {
       case(Nodes):
-      throw DudleyAdapterException("Error - Dudley does not support interpolation from reduced degrees of freedom to mesh nodes.");
+      throw DudleyException("Error - Dudley does not support interpolation from reduced degrees of freedom to mesh nodes.");
       break;
       case(ReducedNodes):
       if (getMPISize()>1) {
@@ -983,7 +985,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       }
       break;
       case(DegreesOfFreedom):
-      throw DudleyAdapterException("Error - Dudley does not support interpolation from reduced degrees of freedom to degrees of freedom");
+      throw DudleyException("Error - Dudley does not support interpolation from reduced degrees of freedom to degrees of freedom");
       break;
       case(ReducedDegreesOfFreedom):
       Assemble_CopyNodalData(mesh->Nodes,&target,&in);
@@ -1017,14 +1019,14 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       default:
          stringstream temp;
          temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
-         throw DudleyAdapterException(temp.str());
+         throw DudleyException(temp.str());
          break;
       }
       break;
    default:
       stringstream temp;
       temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type %d" << in.getFunctionSpace().getTypeCode();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1037,7 +1039,7 @@ void MeshAdapter::setToX(escript::Data& arg) const
 {
    const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this) 
-      throw DudleyAdapterException("Error - Illegal domain of data point locations");
+      throw DudleyException("Error - Illegal domain of data point locations");
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    // in case of values node coordinates we can do the job directly:
    if (arg.getFunctionSpace().getTypeCode()==Nodes) {
@@ -1059,20 +1061,20 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 /*   const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(normal.getFunctionSpace().getDomain());*/
    const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(*(normal.getFunctionSpace().getDomain()));
    if (normalDomain!=*this) 
-      throw DudleyAdapterException("Error - Illegal domain of normal locations");
+      throw DudleyException("Error - Illegal domain of normal locations");
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    switch(normal.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for nodes");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for nodes");
    break;
    case(ReducedNodes):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for reduced nodes");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for reduced nodes");
    break;
    case(Elements):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for elements");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for elements");
    break;
    case(ReducedElements):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for elements with reduced integration order");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for elements with reduced integration order");
    break;
    case (FaceElements):
    Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&normal);
@@ -1081,18 +1083,18 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
    Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&normal);
    break;
    case(Points):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for point elements");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for point elements");
    break;
    case(DegreesOfFreedom):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for degrees of freedom.");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for degrees of freedom.");
    break;
    case(ReducedDegreesOfFreedom):
-   throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for reduced degrees of freedom.");
+   throw DudleyException("Error - Dudley does not support surface normal vectors for reduced degrees of freedom.");
    break;
    default:
       stringstream temp;
       temp << "Error - Normal Vectors: Dudley does not know anything about function space type " << normal.getFunctionSpace().getTypeCode();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1106,9 +1108,9 @@ void MeshAdapter::interpolateAcross(escript::Data& target,const escript::Data& s
    const_Domain_ptr targetDomain_p=target.getFunctionSpace().getDomain();
    const MeshAdapter* targetDomain=dynamic_cast<const MeshAdapter*>(targetDomain_p.get());
    if (targetDomain!=this) 
-      throw DudleyAdapterException("Error - Illegal domain of interpolation target");
+      throw DudleyException("Error - Illegal domain of interpolation target");
 
-   throw DudleyAdapterException("Error - Dudley does not allow interpolation across domains yet.");
+   throw DudleyException("Error - Dudley does not allow interpolation across domains yet.");
 }
 
 //
@@ -1118,7 +1120,7 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
 {
    const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this) 
-      throw DudleyAdapterException("Error - Illegal domain of integration kernel");
+      throw DudleyException("Error - Illegal domain of integration kernel");
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    escript::Data temp;
@@ -1144,7 +1146,7 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    Assemble_integrate(mesh->Nodes,mesh->FaceElements,&arg,&integrals[0]);
    break;
    case(Points):
-   throw DudleyAdapterException("Error - Integral of data on points is not supported.");
+   throw DudleyException("Error - Integral of data on points is not supported.");
    break;
    case(DegreesOfFreedom):
    temp=escript::Data( arg, escript::function(*this) );
@@ -1157,7 +1159,7 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    default:
       stringstream temp;
       temp << "Error - Integrals: Dudley does not know anything about function space type " << arg.getFunctionSpace().getTypeCode();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1170,10 +1172,10 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
 {
    const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
    if (argDomain!=*this)
-      throw DudleyAdapterException("Error - Illegal domain of gradient argument");
+      throw DudleyException("Error - Illegal domain of gradient argument");
    const MeshAdapter& gradDomain=dynamic_cast<const MeshAdapter&>(*(grad.getFunctionSpace().getDomain()));
    if (gradDomain!=*this)
-      throw DudleyAdapterException("Error - Illegal domain of gradient");
+      throw DudleyException("Error - Illegal domain of gradient");
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    const escript::Data* nodeData=0;
@@ -1193,10 +1195,10 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
    }
    switch(grad.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   throw DudleyAdapterException("Error - Gradient at nodes is not supported.");
+   throw DudleyException("Error - Gradient at nodes is not supported.");
    break;
    case(ReducedNodes):
-   throw DudleyAdapterException("Error - Gradient at reduced nodes is not supported.");
+   throw DudleyException("Error - Gradient at reduced nodes is not supported.");
    break;
    case(Elements):
    Assemble_gradient(mesh->Nodes,mesh->Elements,&grad, nodeData);
@@ -1211,18 +1213,18 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
    Assemble_gradient(mesh->Nodes,mesh->FaceElements,&grad, nodeData);
    break;
    case(Points):
-   throw DudleyAdapterException("Error - Gradient at points is not supported.");
+   throw DudleyException("Error - Gradient at points is not supported.");
    break;
    case(DegreesOfFreedom):
-   throw DudleyAdapterException("Error - Gradient at degrees of freedom is not supported.");
+   throw DudleyException("Error - Gradient at degrees of freedom is not supported.");
    break;
    case(ReducedDegreesOfFreedom):
-   throw DudleyAdapterException("Error - Gradient at reduced degrees of freedom is not supported.");
+   throw DudleyException("Error - Gradient at reduced degrees of freedom is not supported.");
    break;
    default:
       stringstream temp;
       temp << "Error - Gradient: Dudley does not know anything about function space type " << arg.getFunctionSpace().getTypeCode();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1236,10 +1238,10 @@ void MeshAdapter::setToSize(escript::Data& size) const
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    switch(size.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   throw DudleyAdapterException("Error - Size of nodes is not supported.");
+   throw DudleyException("Error - Size of nodes is not supported.");
    break;
    case(ReducedNodes):
-   throw DudleyAdapterException("Error - Size of reduced nodes is not supported.");
+   throw DudleyException("Error - Size of reduced nodes is not supported.");
    break;
    case(Elements):
    Assemble_getSize(mesh->Nodes,mesh->Elements,&size);
@@ -1254,18 +1256,18 @@ void MeshAdapter::setToSize(escript::Data& size) const
    Assemble_getSize(mesh->Nodes,mesh->FaceElements,&size);
    break;
    case(Points):
-   throw DudleyAdapterException("Error - Size of point elements is not supported.");
+   throw DudleyException("Error - Size of point elements is not supported.");
    break;
    case(DegreesOfFreedom):
-   throw DudleyAdapterException("Error - Size of degrees of freedom is not supported.");
+   throw DudleyException("Error - Size of degrees of freedom is not supported.");
    break;
    case(ReducedDegreesOfFreedom):
-   throw DudleyAdapterException("Error - Size of reduced degrees of freedom is not supported.");
+   throw DudleyException("Error - Size of reduced degrees of freedom is not supported.");
    break;
    default:
       stringstream temp;
       temp << "Error - Element size: Dudley does not know anything about function space type " << size.getFunctionSpace().getTypeCode();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1279,11 +1281,11 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));
    if (newDomain!=*this) 
-      throw DudleyAdapterException("Error - Illegal domain of new point locations");
+      throw DudleyException("Error - Illegal domain of new point locations");
    if ( new_x.getFunctionSpace() == continuousFunction(*this) ) {
        Dudley_Mesh_setCoordinates(mesh,&new_x);
    } else {
-       throw DudleyAdapterException("As of version escript3.3 - SetNewX only accepts ContinuousFunction arguments please interpolate.");      
+       throw DudleyException("As of version escript3.3 - SetNewX only accepts ContinuousFunction arguments please interpolate.");      
 
    }
    checkDudleyError();
@@ -1310,7 +1312,7 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
         }
         else
         {
-            throw DudleyAdapterException("unsupported function space type for ownSample()");
+            throw DudleyException("unsupported function space type for ownSample()");
         }
         k=globalNodeIndex[id];
         return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
@@ -1335,24 +1337,24 @@ ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
    // is the domain right?
    const MeshAdapter& row_domain=dynamic_cast<const MeshAdapter&>(*(row_functionspace.getDomain()));
    if (row_domain!=*this) 
-      throw DudleyAdapterException("Error - domain of row function space does not match the domain of matrix generator.");
+      throw DudleyException("Error - domain of row function space does not match the domain of matrix generator.");
    const MeshAdapter& col_domain=dynamic_cast<const MeshAdapter&>(*(column_functionspace.getDomain()));
    if (col_domain!=*this) 
-      throw DudleyAdapterException("Error - domain of column function space does not match the domain of matrix generator.");
+      throw DudleyException("Error - domain of column function space does not match the domain of matrix generator.");
    // is the function space type right 
    if (row_functionspace.getTypeCode()==DegreesOfFreedom) {
       reduceRowOrder=0;
    } else if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
       reduceRowOrder=1;
    } else {
-      throw DudleyAdapterException("Error - illegal function space type for system matrix rows.");
+      throw DudleyException("Error - illegal function space type for system matrix rows.");
    }
    if (column_functionspace.getTypeCode()==DegreesOfFreedom) {
       reduceColOrder=0;
    } else if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
       reduceColOrder=1;
    } else {
-      throw DudleyAdapterException("Error - illegal function space type for system matrix columns.");
+      throw DudleyException("Error - illegal function space type for system matrix columns.");
    }
    // generate matrix:
  
@@ -1385,14 +1387,14 @@ ATP_ptr MeshAdapter::newTransportProblem(int blocksize,
    // is the domain right?
    const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(fs.getDomain()));
    if (domain!=*this) 
-      throw DudleyAdapterException("Error - domain of function space does not match the domain of transport problem generator.");
+      throw DudleyException("Error - domain of function space does not match the domain of transport problem generator.");
    // is the function space type right 
    if (fs.getTypeCode()==DegreesOfFreedom) {
       reduceOrder=0;
    } else if (fs.getTypeCode()==ReducedDegreesOfFreedom) {
       reduceOrder=1;
    } else {
-      throw DudleyAdapterException("Error - illegal function space type for system matrix rows.");
+      throw DudleyException("Error - illegal function space type for system matrix rows.");
    }
    // generate matrix:
  
@@ -1431,7 +1433,7 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
    default:
       stringstream temp;
       temp << "Error - Cell: Dudley does not know anything about function space type " << functionSpaceCode;
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1544,7 +1546,7 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
         else    // so we must be in line3
         {
 
-            throw DudleyAdapterException("Programmer Error - choosing between contact elements - we should never get here.");
+            throw DudleyException("Programmer Error - choosing between contact elements - we should never get here.");
 
         }
     }
@@ -1596,7 +1598,7 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
         default:
               stringstream temp;
               temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-              throw DudleyAdapterException(temp.str());
+              throw DudleyException(temp.str());
    }
    break;
    case(ReducedNodes):
@@ -1615,7 +1617,7 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
         default:
                 stringstream temp;
                 temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-                throw DudleyAdapterException(temp.str());
+                throw DudleyException(temp.str());
    }
    break;
    case(Elements):
@@ -1667,7 +1669,7 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
         default:
                 stringstream temp;
                 temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-                throw DudleyAdapterException(temp.str());
+                throw DudleyException(temp.str());
         }
         break;
    case(ReducedDegreesOfFreedom):
@@ -1686,13 +1688,13 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
         default:
                 stringstream temp;
                 temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_target;
-                throw DudleyAdapterException(temp.str());
+                throw DudleyException(temp.str());
         }
         break;
    default:
       stringstream temp;
       temp << "Error - Interpolation On Domain: Dudley does not know anything about function space type " << functionSpaceType_source;
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    checkDudleyError();
@@ -1786,7 +1788,7 @@ const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
    default:
       stringstream temp;
       temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    return out;
@@ -1800,7 +1802,7 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
    out=mesh->Nodes->Tag[sampleNo];
    break;
    case(ReducedNodes):
-   throw DudleyAdapterException(" Error - ReducedNodes does not support tags.");
+   throw DudleyException(" Error - ReducedNodes does not support tags.");
    break;
    case(Elements):
    out=mesh->Elements->Tag[sampleNo];
@@ -1818,15 +1820,15 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
    out=mesh->Points->Tag[sampleNo];
    break;
    case(DegreesOfFreedom):
-   throw DudleyAdapterException(" Error - DegreesOfFreedom does not support tags.");
+   throw DudleyException(" Error - DegreesOfFreedom does not support tags.");
    break;
    case(ReducedDegreesOfFreedom):
-   throw DudleyAdapterException(" Error - ReducedDegreesOfFreedom does not support tags.");
+   throw DudleyException(" Error - ReducedDegreesOfFreedom does not support tags.");
    break;
    default:
       stringstream temp;
       temp << "Error - Invalid function space type: " << functionSpaceType << " for domain: " << getDescription();
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
       break;
    }
    return out;
@@ -1841,13 +1843,13 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
    Dudley_NodeFile_setTags(mesh->Nodes,newTag,&mask);
    break;
    case(ReducedNodes):
-   throw DudleyAdapterException("Error - ReducedNodes does not support tags");
+   throw DudleyException("Error - ReducedNodes does not support tags");
    break;
    case(DegreesOfFreedom):
-   throw DudleyAdapterException("Error - DegreesOfFreedom does not support tags");
+   throw DudleyException("Error - DegreesOfFreedom does not support tags");
    break;
    case(ReducedDegreesOfFreedom):
-   throw DudleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+   throw DudleyException("Error - ReducedDegreesOfFreedom does not support tags");
    break;
    case(Elements):
    Dudley_ElementFile_setTags(mesh->Elements,newTag,&mask);
@@ -1867,7 +1869,7 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
    default:
       stringstream temp;
       temp << "Error - Dudley does not know anything about function space type " << functionSpaceType;
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
    }
    checkDudleyError();
    return;
@@ -1917,13 +1919,13 @@ int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
           numTags=mesh->Nodes->numTagsInUse;
           break;
    case(ReducedNodes):
-          throw DudleyAdapterException("Error - ReducedNodes does not support tags");
+          throw DudleyException("Error - ReducedNodes does not support tags");
           break;
    case(DegreesOfFreedom):
-          throw DudleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          throw DudleyException("Error - DegreesOfFreedom does not support tags");
           break;
    case(ReducedDegreesOfFreedom):
-          throw DudleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          throw DudleyException("Error - ReducedDegreesOfFreedom does not support tags");
           break;
    case(Elements):
    case(ReducedElements):
@@ -1939,7 +1941,7 @@ int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
    default:
       stringstream temp;
       temp << "Error - Dudley does not know anything about function space type " << functionSpaceCode;
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
   }
   return numTags;
 }
@@ -1953,13 +1955,13 @@ const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
           tags=mesh->Nodes->tagsInUse;
           break;
    case(ReducedNodes):
-          throw DudleyAdapterException("Error - ReducedNodes does not support tags");
+          throw DudleyException("Error - ReducedNodes does not support tags");
           break;
    case(DegreesOfFreedom):
-          throw DudleyAdapterException("Error - DegreesOfFreedom does not support tags");
+          throw DudleyException("Error - DegreesOfFreedom does not support tags");
           break;
    case(ReducedDegreesOfFreedom):
-          throw DudleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
+          throw DudleyException("Error - ReducedDegreesOfFreedom does not support tags");
           break;
    case(Elements):
    case(ReducedElements):
@@ -1975,7 +1977,7 @@ const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
    default:
       stringstream temp;
       temp << "Error - Dudley does not know anything about function space type " << functionSpaceCode;
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
   }
   return tags;
 }
@@ -2032,7 +2034,7 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
    default:
       stringstream temp;
       temp << "Error - Dudley does not know anything about function space type " << functionSpaceCode;
-      throw DudleyAdapterException(temp.str());
+      throw DudleyException(temp.str());
   }
   return order;
 }
@@ -2056,5 +2058,5 @@ escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape
     return towipe;       
 }
 
+} // end of namespace
 
-}  // end of namespace

@@ -108,6 +108,7 @@ unroll_sources= """
 headers = """
 	Assemble.h
 	Dudley.h
+	DudleyException.h
 	DudleyVersion.h
 	ElementFile.h
 	ElementType.h
@@ -121,7 +122,6 @@ headers = """
 	Util.h
 """.split()
 cppadapter_headers = """
-	CPPAdapter/DudleyAdapterException.h
 	CPPAdapter/DudleyError.h
 	CPPAdapter/MeshAdapter.h
 	CPPAdapter/MeshAdapterFactory.h

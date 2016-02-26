@@ -50,7 +50,7 @@ T ncReadAtt(NcFile* dataFile, const string& fName, const string& attrName)
         stringstream msg;
         msg << "loadMesh: Error retrieving integer attribute '" << attrName
             << "' from NetCDF file '" << fName << "'";
-        throw DudleyAdapterException(msg.str());
+        throw escript::IOError(msg.str());
     }
     T value = (sizeof(T) > 4 ? attr->as_long(0) : attr->as_int(0));
     delete attr;
@@ -62,7 +62,7 @@ inline void cleanupAndThrow(Dudley_Mesh* mesh, string msg)
 {
     Dudley_Mesh_free(mesh);
     string msgPrefix("loadMesh: NetCDF operation failed - ");
-    throw DudleyAdapterException(msgPrefix+msg);
+    throw escript::IOError(msgPrefix+msg);
 }
 
 Domain_ptr loadMesh(const std::string& fileName)
@@ -85,7 +85,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     if (!dataFile.is_valid()) {
         stringstream msg;
         msg << "loadMesh: Opening NetCDF file '" << fName << "' for reading failed.";
-        throw DudleyAdapterException(msg.str());
+        throw escript::IOError(msg.str());
     }
 
     // Read NetCDF integer attributes
@@ -95,13 +95,13 @@ Domain_ptr loadMesh(const std::string& fileName)
     int index_size;
     try {
         index_size = ncReadAtt<int>(&dataFile, fName, "index_size");
-    } catch (DudleyAdapterException& e) {
+    } catch (escript::IOError& e) {
         index_size = 4;
     }
     // technically we could cast if reading 32-bit data on 64-bit escript
     // but cost-benefit analysis clearly favours this implementation for now
     if (sizeof(index_t) != index_size) {
-        throw DudleyAdapterException("loadMesh: size of index types at runtime differ from dump file");
+        throw escript::IOError("loadMesh: size of index types at runtime differ from dump file");
     }
 
     int mpi_size = ncReadAtt<int>(&dataFile, fName, "mpi_size");
@@ -124,14 +124,14 @@ Domain_ptr loadMesh(const std::string& fileName)
         msg << "loadMesh: The NetCDF file '" << fName
             << "' can only be read on " << mpi_size
             << " CPUs. Currently running: " << mpi_info->size;
-        throw DudleyAdapterException(msg.str());
+        throw DudleyException(msg.str());
     }
     if (mpi_info->rank != mpi_rank) {
         stringstream msg;
         msg << "loadMesh: The NetCDF file '" << fName
             << "' should be read on CPU #" << mpi_rank
             << " and NOT on #" << mpi_info->rank;
-        throw DudleyAdapterException(msg.str());
+        throw DudleyException(msg.str());
     }
 
     // Read mesh name
@@ -139,7 +139,7 @@ Domain_ptr loadMesh(const std::string& fileName)
         stringstream msg;
         msg << "loadMesh: Error retrieving mesh name from NetCDF file '"
             << fName << "'";
-        throw DudleyAdapterException(msg.str());
+        throw escript::IOError(msg.str());
     }
     boost::scoped_array<char> name(attr->as_string(0));
     delete attr;
@@ -491,19 +491,19 @@ Domain_ptr loadMesh(const std::string& fileName)
 
     if (periodic0 || periodic1) // we don't support periodic boundary conditions
     {
-        throw DudleyAdapterException("Dudley does not support periodic boundary conditions.");
+        throw DudleyException("Dudley does not support periodic boundary conditions.");
     }
     else if (integrationOrder>3 || reducedIntegrationOrder>1)
     {
-        throw DudleyAdapterException("Dudley does not support the requested integrationOrders.");
+        throw DudleyException("Dudley does not support the requested integrationOrders.");
     }
     else if (useElementsOnFace || useFullElementOrder)
     {
-        throw DudleyAdapterException("Dudley does not support useElementsOnFace or useFullElementOrder.");
+        throw DudleyException("Dudley does not support useElementsOnFace or useFullElementOrder.");
     }
     if (order>1)
     {
-        throw DudleyAdapterException("Dudley does not support element order greater than 1.");
+        throw DudleyException("Dudley does not support element order greater than 1.");
     }
 
     //
@@ -562,7 +562,7 @@ Domain_ptr loadMesh(const std::string& fileName)
 //                   curmax++;
 //               }
 //           } else {
-//               throw DudleyAdapterException("Error - Unable to extract tag value.");
+//               throw DudleyException("Error - Unable to extract tag value.");
 //           }
 //         
 //       }
@@ -573,7 +573,7 @@ Domain_ptr loadMesh(const std::string& fileName)
 	  extract<SubWorld_ptr> ex(pworld);
 	  if (!ex.check())
 	  {	  
-	      throw DudleyAdapterException("Invalid escriptworld parameter.");
+	      throw DudleyException("Invalid escriptworld parameter.");
 	  }
 	  info=ex()->getMPI();
       }
@@ -649,7 +649,7 @@ Domain_ptr loadMesh(const std::string& fileName)
           }
           else
           {
-              throw DudleyAdapterException("Error - Unable to extract tag value.");
+              throw DudleyException("Error - Unable to extract tag value.");
           }
       }*/
       boost::python::object pworld=args[12];
@@ -659,7 +659,7 @@ Domain_ptr loadMesh(const std::string& fileName)
           extract<SubWorld_ptr> ex(pworld);
 	  if (!ex.check())
 	  {
-	      throw DudleyAdapterException("Invalid escriptworld parameter.");
+	      throw DudleyException("Invalid escriptworld parameter.");
           }
           info=ex()->getMPI();
       }
@@ -694,20 +694,20 @@ Domain_ptr loadMesh(const std::string& fileName)
 
     if (periodic0 || periodic1) // we don't support periodic boundary conditions
     {
-        throw DudleyAdapterException("Dudley does not support periodic boundary conditions.");
+        throw DudleyException("Dudley does not support periodic boundary conditions.");
     }
     else if (integrationOrder>3 || reducedIntegrationOrder>1)
     {
-        throw DudleyAdapterException("Dudley does not support the requested integrationOrders.");
+        throw DudleyException("Dudley does not support the requested integrationOrders.");
     }
     else if (useElementsOnFace || useFullElementOrder)
     {
-        throw DudleyAdapterException("Dudley does not support useElementsOnFace or useFullElementOrder.");
+        throw DudleyException("Dudley does not support useElementsOnFace or useFullElementOrder.");
     }
 
     if (order>1)
     {
-        throw DudleyAdapterException("Dudley does not support element order greater than 1.");
+        throw DudleyException("Dudley does not support element order greater than 1.");
     }
     Dudley_Mesh* fMesh=Dudley_TriangularMesh_Tri3(numElements, length,
           integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE),

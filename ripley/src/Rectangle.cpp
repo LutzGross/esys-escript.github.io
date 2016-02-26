@@ -50,6 +50,9 @@ namespace bp = boost::python;
 namespace bm = boost::math;
 using escript::AbstractSystemMatrix;
 using escript::FileWriter;
+using escript::IOError;
+using escript::NotImplementedError;
+using escript::ValueError;
 using std::vector;
 using std::string;
 using std::min;
@@ -74,7 +77,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                 "limit may be raised in future releases.");
 
     if (n0 <= 0 || n1 <= 0)
-        throw RipleyException("Number of elements in each spatial dimension "
+        throw ValueError("Number of elements in each spatial dimension "
                 "must be positive");
 
     // ignore subdivision parameters for serial run
@@ -97,7 +100,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
             epr[i] = -1; // can no longer be max
             //remove
             if (ranks % d[i] != 0) {
-                throw RipleyException("Invalid number of spatial subdivisions");
+                throw ValueError("Invalid number of spatial subdivisions");
             }
             ranks /= d[i];
         }
@@ -119,7 +122,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
     if (d0*d1 != m_mpiInfo->size)
-        throw RipleyException("Invalid number of spatial subdivisions");
+        throw ValueError("Invalid number of spatial subdivisions");
 
     if (warn) {
         std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
@@ -145,7 +148,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2))
-        throw RipleyException("Too few elements for the number of ranks");
+        throw ValueError("Too few elements for the number of ranks");
 
     m_gNE[0] = n0;
     m_gNE[1] = n1;
@@ -227,35 +230,35 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
         myN0 = m_NE[0];
         myN1 = m_NE[1];
     } else
-        throw RipleyException("readNcGrid(): invalid function space for output data object");
+        throw ValueError("readNcGrid(): invalid function space for output data object");
 
     if (params.first.size() != 2)
-        throw RipleyException("readNcGrid(): argument 'first' must have 2 entries");
+        throw ValueError("readNcGrid(): argument 'first' must have 2 entries");
 
     if (params.numValues.size() != 2)
-        throw RipleyException("readNcGrid(): argument 'numValues' must have 2 entries");
+        throw ValueError("readNcGrid(): argument 'numValues' must have 2 entries");
 
     if (params.multiplier.size() != 2)
-        throw RipleyException("readNcGrid(): argument 'multiplier' must have 2 entries");
+        throw ValueError("readNcGrid(): argument 'multiplier' must have 2 entries");
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
-            throw RipleyException("readNcGrid(): all multipliers must be positive");
+            throw ValueError("readNcGrid(): all multipliers must be positive");
     if (params.reverse.size() != 2)
-        throw RipleyException("readNcGrid(): argument 'reverse' must have 2 entries");
+        throw ValueError("readNcGrid(): argument 'reverse' must have 2 entries");
 
     // check file existence and size
     NcFile f(filename.c_str(), NcFile::ReadOnly);
     if (!f.is_valid())
-        throw RipleyException("readNcGrid(): cannot open file");
+        throw IOError("readNcGrid(): cannot open file");
 
     NcVar* var = f.get_var(varname.c_str());
     if (!var)
-        throw RipleyException("readNcGrid(): invalid variable");
+        throw IOError("readNcGrid(): invalid variable");
 
     // TODO: rank>0 data support
     const int numComp = out.getDataPointSize();
     if (numComp > 1)
-        throw RipleyException("readNcGrid(): only scalar data supported");
+        throw NotImplementedError("readNcGrid(): only scalar data supported");
 
     const int dims = var->num_dims();
     boost::scoped_array<long> edges(var->edges());
@@ -264,7 +267,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     // note the expected ordering of edges (as in numpy: y,x)
     if ( (dims==2 && (params.numValues[1] > edges[0] || params.numValues[0] > edges[1]))
             || (dims==1 && params.numValues[1]>1) ) {
-        throw RipleyException("readNcGrid(): not enough data in file");
+        throw IOError("readNcGrid(): not enough data in file");
     }
 
     // check if this rank contributes anything
@@ -350,7 +353,7 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
             readBinaryGridImpl<double>(out, filename, params);
             break;
         default:
-            throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
+            throw ValueError("readBinaryGrid(): invalid or unsupported datatype");
     }
 }
 
@@ -371,7 +374,7 @@ void Rectangle::readBinaryGridFromZipped(escript::Data& out, string filename,
             readBinaryGridZippedImpl<double>(out, filename, params);
             break;
         default:
-            throw RipleyException("readBinaryGridFromZipped(): invalid or unsupported datatype");
+            throw ValueError("readBinaryGridFromZipped(): invalid or unsupported datatype");
     }
 }
 #endif
@@ -390,26 +393,26 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
         myN0 = m_NE[0];
         myN1 = m_NE[1];
     } else
-        throw RipleyException("readBinaryGrid(): invalid function space for output data object");
+        throw ValueError("readBinaryGrid(): invalid function space for output data object");
 
     if (params.first.size() != 2)
-        throw RipleyException("readBinaryGrid(): argument 'first' must have 2 entries");
+        throw ValueError("readBinaryGrid(): argument 'first' must have 2 entries");
 
     if (params.numValues.size() != 2)
-        throw RipleyException("readBinaryGrid(): argument 'numValues' must have 2 entries");
+        throw ValueError("readBinaryGrid(): argument 'numValues' must have 2 entries");
 
     if (params.multiplier.size() != 2)
-        throw RipleyException("readBinaryGrid(): argument 'multiplier' must have 2 entries");
+        throw ValueError("readBinaryGrid(): argument 'multiplier' must have 2 entries");
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
-            throw RipleyException("readBinaryGrid(): all multipliers must be positive");
+            throw ValueError("readBinaryGrid(): all multipliers must be positive");
     if (params.reverse[0] != 0 || params.reverse[1] != 0)
-        throw RipleyException("readBinaryGrid(): reversing not supported yet");
+        throw NotImplementedError("readBinaryGrid(): reversing not supported yet");
 
     // check file existence and size
     std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
-        throw RipleyException("readBinaryGrid(): cannot open file");
+        throw IOError("readBinaryGrid(): cannot open file");
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
@@ -417,7 +420,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     const dim_t reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
-        throw RipleyException("readBinaryGrid(): not enough data in file");
+        throw IOError("readBinaryGrid(): not enough data in file");
     }
 
     // check if this rank contributes anything
@@ -515,12 +518,12 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
         myN0 = m_NE[0];
         myN1 = m_NE[1];
     } else
-        throw RipleyException("readBinaryGrid(): invalid function space for output data object");
+        throw ValueError("readBinaryGrid(): invalid function space for output data object");
 
     // check file existence and size
     std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
-        throw RipleyException("readBinaryGridFromZipped(): cannot open file");
+        throw IOError("readBinaryGridFromZipped(): cannot open file");
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
@@ -533,7 +536,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
     filesize = decompressed.size();
     const dim_t reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
-        throw RipleyException("readBinaryGridFromZipped(): not enough data in file");
+        throw IOError("readBinaryGridFromZipped(): not enough data in file");
     }
 
     // check if this rank contributes anything
@@ -610,7 +613,7 @@ void Rectangle::writeBinaryGrid(const escript::Data& in, string filename,
             writeBinaryGridImpl<double>(in, filename, byteOrder);
             break;
         default:
-            throw RipleyException("writeBinaryGrid(): invalid or unsupported datatype");
+            throw ValueError("writeBinaryGrid(): invalid or unsupported datatype");
     }
 }
 
@@ -646,13 +649,13 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
         offset0 = m_offset[0];
         offset1 = m_offset[1];
     } else
-        throw RipleyException("writeBinaryGrid(): unsupported function space");
+        throw ValueError("writeBinaryGrid(): unsupported function space");
 
     const int numComp = in.getDataPointSize();
     const int dpp = in.getNumDataPointsPerSample();
 
     if (numComp > 1 || dpp > 1)
-        throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
+        throw NotImplementedError("writeBinaryGrid(): only scalar, single-value data supported");
 
     const dim_t fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1;
 
@@ -687,7 +690,7 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
 
 void Rectangle::write(const std::string& filename) const
 {
-    throw RipleyException("write: not supported");
+    throw NotImplementedError("write: not supported");
 }
 
 void Rectangle::dump(const string& fileName) const
@@ -741,7 +744,7 @@ void Rectangle::dump(const string& fileName) const
     }
 
     if (!dbfile)
-        throw RipleyException("dump: Could not create Silo file");
+        throw IOError("dump: Could not create Silo file");
 
     /*
     if (driver==DB_HDF5) {
@@ -859,7 +862,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 
     std::stringstream msg;
     msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
-    throw RipleyException(msg.str());
+    throw ValueError(msg.str());
 }
 
 bool Rectangle::ownSample(int fsType, index_t id) const
@@ -907,7 +910,7 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 
     std::stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
-    throw RipleyException(msg.str());
+    throw ValueError(msg.str());
 }
 
 RankVector Rectangle::getOwnerVector(int fsType) const
@@ -944,7 +947,7 @@ RankVector Rectangle::getOwnerVector(int fsType) const
         }
 
     } else {
-        throw RipleyException("getOwnerVector: only valid for element types");
+        throw ValueError("getOwnerVector: only valid for element types");
     }
 
     return owner;
@@ -1051,7 +1054,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
-        throw RipleyException(msg.str());
+        throw ValueError(msg.str());
     }
 }
 
@@ -1113,7 +1116,7 @@ void Rectangle::setToSize(escript::Data& out) const
         std::stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
-        throw RipleyException(msg.str());
+        throw ValueError(msg.str());
     }
 }
 
@@ -1138,9 +1141,9 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 {
     int numDim = m_numDim;
     if (!arg.isDataPointShapeEqual(1, &numDim))
-        throw RipleyException("setToX: Invalid Data object shape");
+        throw ValueError("setToX: Invalid Data object shape");
     if (!arg.numSamplesEqual(1, getNumNodes()))
-        throw RipleyException("setToX: Illegal number of samples in Data object");
+        throw ValueError("setToX: Illegal number of samples in Data object");
 
     const dim_t NN0 = m_NN[0];
     const dim_t NN1 = m_NN[1];
@@ -2240,7 +2243,7 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
 {
     int numvals=escript::DataTypes::noValues(shape);
     if (len(filter) > 0 && numvals != 1)
-        throw RipleyException("Ripley only supports filters for scalar data.");
+        throw NotImplementedError("Ripley only supports filters for scalar data.");
 
     escript::Data res = randomFillWorker(shape, seed, filter);
     if (res.getFunctionSpace() != what) {
@@ -2300,20 +2303,20 @@ escript::Data Rectangle::randomFillWorker(
     } else if (len(filter) == 3) {
         bp::extract<string> ex(filter[0]);
         if (!ex.check() || (ex()!="gaussian")) {
-            throw RipleyException("Unsupported random filter");
+            throw ValueError("Unsupported random filter");
         }
         bp::extract<unsigned int> ex1(filter[1]);
         if (!ex1.check()) {
-            throw RipleyException("Radius of Gaussian filter must be a positive integer.");
+            throw ValueError("Radius of Gaussian filter must be a positive integer.");
         }
         radius = ex1();
         sigma = 0.5;
         bp::extract<double> ex2(filter[2]);
         if (!ex2.check() || (sigma=ex2()) <= 0) {
-            throw RipleyException("Sigma must be a positive floating point number.");
+            throw ValueError("Sigma must be a positive floating point number.");
         }
     } else {
-        throw RipleyException("Unsupported random filter for Rectangle.");
+        throw ValueError("Unsupported random filter for Rectangle.");
     }
 
     // number of points in the internal region
@@ -2327,10 +2330,10 @@ escript::Data Rectangle::randomFillWorker(
     // That is, would not cross multiple ranks in MPI
 
     if (2*radius >= internal[0]-4) {
-        throw RipleyException("Radius of gaussian filter is too large for X dimension of a rank");
+        throw ValueError("Radius of gaussian filter is too large for X dimension of a rank");
     }
     if (2*radius >= internal[1]-4) {
-        throw RipleyException("Radius of gaussian filter is too large for Y dimension of a rank");
+        throw ValueError("Radius of gaussian filter is too large for Y dimension of a rank");
     }
 
     double* src = new double[ext[0]*ext[1]*numvals];
@@ -2510,8 +2513,8 @@ Assembler_ptr Rectangle::createAssembler(string type,
     } else if (type.compare("LameAssembler") == 0) {
         return Assembler_ptr(new LameAssembler2D(shared_from_this(), m_dx, m_NE, m_NN));
     }
-    throw RipleyException("Ripley::Rectangle does not support the"
-            " requested assembler");
+    throw NotImplementedError("Ripley::Rectangle does not support the"
+                              " requested assembler");
 }
 
 } // end of namespace ripley

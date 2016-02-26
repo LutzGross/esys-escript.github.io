@@ -63,6 +63,16 @@ public:
 
 /**
   \brief
+  An exception class for Input/Output errors
+*/
+class IOError : public EsysException
+{
+public:
+    IOError(const std::string& str) : EsysException(str) {}
+};
+
+/**
+  \brief
   An exception class for features which are not (yet) implemented
 */
 class NotImplementedError : public EsysException

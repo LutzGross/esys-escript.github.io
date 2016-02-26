@@ -44,7 +44,7 @@ struct ReferenceElementSet {
 
         if (noError()) {
             if (referenceElement->getNumNodes() != referenceElementReducedQuadrature->getNumNodes()) {
-                setError(VALUE_ERROR, "ReferenceElementSet: numNodes in referenceElement and referenceElementReducedQuadrature don't match.");
+                throw escript::ValueError("ReferenceElementSet: numNodes in referenceElement and referenceElementReducedQuadrature don't match.");
             }
         }
     }

@@ -15,23 +15,19 @@
 *****************************************************************************/
 
 
-#if !defined  dudley_DudleyAdapterException_20040526_H
-#define dudley_DudleyAdapterException_20040526_H
-#include "system_dep.h"
+#ifndef __DUDLEY_EXCEPTION_H__
+#define __DUDLEY_EXCEPTION_H__
 
-#include "escript/EsysException.h"
+#include <escript/EsysException.h>
 
-namespace dudley
-{
+namespace dudley {
 
-class DudleyAdapterException : public escript::EsysException
+class DudleyException : public escript::EsysException
 {
 public:
-    DudleyAdapterException(const std::string& str) :
-        escript::EsysException(str) {}
+    DudleyException(const std::string& str) : escript::EsysException(str) {}
 };
 
 } // end of namespace
 
-#endif
-
+#endif // __DUDLEY_EXCEPTION_H__

@@ -23,6 +23,7 @@
 // properly
 #define REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS \
     register_exception_translator<escript::AssertException>(&escript::AssertionErrorTranslator);\
+    register_exception_translator<escript::IOError>(&escript::IOErrorTranslator);\
     register_exception_translator<escript::NotImplementedError>(&escript::NotImplementedErrorTranslator);\
     register_exception_translator<escript::ValueError>(&escript::ValueErrorTranslator)
 
@@ -33,6 +34,12 @@ namespace escript {
      Function which translates an EsysException into a python AssertionError
   */
   void AssertionErrorTranslator(const EsysException& e);
+
+  /**
+     \brief
+     Function which translates an EsysException into a python IOError
+  */
+  void IOErrorTranslator(const EsysException& e);
 
   /**
      \brief

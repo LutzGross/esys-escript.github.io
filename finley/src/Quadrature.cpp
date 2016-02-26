@@ -50,7 +50,7 @@ const QuadInfo* QuadInfo_getInfo(QuadTypeId id)
        idx++;
     }
     if (out==NULL) {
-        setError(VALUE_ERROR,"QuadInfo_getInfo: cannot find requested quadrature scheme.");
+        throw escript::ValueError("QuadInfo_getInfo: cannot find requested quadrature scheme.");
     }
     return out;
 }
@@ -1023,7 +1023,7 @@ void Quad_getNodesRec(int numQuadNodes, std::vector<double>& quadNodes, std::vec
         ss << "Quad_getNodesRec: Illegal number of quadrature nodes "
            << numQuadNodes << " on hexahedron.";
         const std::string msg(ss.str());
-        setError(VALUE_ERROR, msg.c_str());
+        throw escript::ValueError(msg);
     }
 #undef DIM
 }
@@ -1067,7 +1067,7 @@ void Quad_getNodesHex(int numQuadNodes, std::vector<double>& quadNodes, std::vec
         ss << "Quad_getNodesHex: Illegal number of quadrature nodes "
            << numQuadNodes << " on hexahedron.";
         const std::string msg(ss.str());
-        setError(VALUE_ERROR, msg.c_str());
+        throw escript::ValueError(msg);
     }
 #undef DIM
 }
@@ -1078,7 +1078,7 @@ void Quad_getNodesHex(int numQuadNodes, std::vector<double>& quadNodes, std::vec
 void Quad_getNodesPoint(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
     if (numQuadNodes<0)
-        setError(VALUE_ERROR,
+        throw escript::ValueError(
                 "Quad_getNodesPoint: Illegal number of quadrature nodes.");
 }
 
@@ -1228,8 +1228,7 @@ void Quad_getNodesLine(int numQuadNodes, std::vector<double>& quadNodes, std::ve
             break;
 
         default:
-            setError(VALUE_ERROR,"Quad_getNodesLine: Invalid integration order.");
-            break;
+            throw escript::ValueError("Quad_getNodesLine: Invalid integration order.");
     }
 }
 
@@ -1247,18 +1246,15 @@ int Quad_getNumNodesPoint(int order)
 int Quad_getNumNodesLine(int order)
 {
     if (order < 0) {
-        setError(VALUE_ERROR, "Quad_getNumNodesLine: Negative integration order.");
-        return -1;
+        throw escript::ValueError("Quad_getNumNodesLine: Negative integration order.");
     } else if (order > 2*MAX_numQuadNodesLine-1) {
         std::stringstream ss;
         ss << "Quad_getNumNodesLine: requested integration order "
            << order << " on line is too large (>"
            << 2*MAX_numQuadNodesLine-1 << ").";
         const std::string msg(ss.str());
-        setError(VALUE_ERROR, msg.c_str());
-        return -1;
+        throw escript::ValueError(msg);
     } else {
-        resetError();
         return order/2+1;
     }
 }
@@ -1358,7 +1354,7 @@ int Quad_MacroLine(int numSubElements, int numQuadNodes,
 {
 #define DIM 1
     if (new_len < numSubElements*numQuadNodes) {
-        setError(MEMORY_ERROR, "Quad_MacroLine: array for new quadrature scheme is too small");
+        throw FinleyException("Quad_MacroLine: array for new quadrature scheme is too small");
     }
     const double f=1./((double)numSubElements);
 

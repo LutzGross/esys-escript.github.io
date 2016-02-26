@@ -20,12 +20,6 @@
 
 namespace dudley {
 
-  void setDudleyError(Dudley_ErrorCodeType errorCode, 
-		      const std::string& errMess) 
-  {
-    Dudley_setError(errorCode,(__const char*)(errMess.c_str()));
-  }
-
   void checkDudleyError() 
   {
     if (Dudley_noError()) {
@@ -35,7 +29,7 @@ namespace dudley {
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
       Dudley_resetError();
-      throw DudleyAdapterException(Dudley_getErrorMessage());
+      throw DudleyException(Dudley_getErrorMessage());
     }
   }
   void checkPasoError() 
@@ -47,7 +41,7 @@ namespace dudley {
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
       Esys_resetError();
-      throw DudleyAdapterException(Esys_getErrorMessage());
+      throw DudleyException(Esys_getErrorMessage());
     }
   }
 

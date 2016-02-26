@@ -25,6 +25,11 @@ void AssertionErrorTranslator(const EsysException& e)
     PyErr_SetString(PyExc_AssertionError, e.what());
 }
 
+void IOErrorTranslator(const EsysException& e) 
+{
+    PyErr_SetString(PyExc_IOError, e.what());
+}
+
 void NotImplementedErrorTranslator(const EsysException& e) 
 {
     PyErr_SetString(PyExc_NotImplementedError, e.what());

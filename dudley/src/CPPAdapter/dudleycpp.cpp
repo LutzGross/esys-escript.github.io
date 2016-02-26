@@ -17,8 +17,7 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include "../Dudley.h"
-#include "DudleyAdapterException.h"
+#include "dudley/Dudley.h"
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
@@ -46,7 +45,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
   
     // register escript's default translators
     REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
-    register_exception_translator<dudley::DudleyAdapterException>(&escript::RuntimeErrorTranslator);
+    register_exception_translator<dudley::DudleyException>(&escript::RuntimeErrorTranslator);
 
   //
   // NOTE: The return_value_policy is necessary for functions that

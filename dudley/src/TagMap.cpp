@@ -25,33 +25,23 @@
 void Dudley_TagMap_insert(Dudley_TagMap** tag_map, const char* name, index_t tag_key)
 {
     Dudley_TagMap *map = NULL;
-    if (strlen(name) < 1)
-    {
-        Dudley_setError(VALUE_ERROR, "empty tag name.");
-        return;
+    if (strlen(name) < 1) {
+        throw escript::ValueError("TagMap_insert: empty tag name.");
     }
-    if (strchr(name, 32) != NULL)
-    {   /* check for space */
-        Dudley_setError(VALUE_ERROR, "tag name may not contain a space.");
-        return;
+    if (strchr(name, 32) != NULL) {
+        throw escript::ValueError("TagMap_insert: tag name may not contain a space.");
     }
-    if (*tag_map == NULL)
-    {
+    if (*tag_map == NULL) {
         map = new Dudley_TagMap;
         map->name = new char[strlen(name) + 1];
         strcpy(map->name, name);
         map->tag_key = tag_key;
         map->next = NULL;
         *tag_map = map;
-    }
-    else
-    {
-        if (strcmp((*tag_map)->name, name) == 0)
-        {
+    } else {
+        if (strcmp((*tag_map)->name, name) == 0) {
             (*tag_map)->tag_key = tag_key;
-        }
-        else
-        {
+        } else {
             Dudley_TagMap_insert(&((*tag_map)->next), name, tag_key);
         }
     }
@@ -59,22 +49,15 @@ void Dudley_TagMap_insert(Dudley_TagMap** tag_map, const char* name, index_t tag
 
 index_t Dudley_TagMap_getTag(Dudley_TagMap * tag_map, const char *name)
 {
-    if (tag_map == NULL)
-    {
+    if (tag_map == NULL) {
         std::stringstream ss;
         ss << "getTag: unknown tag name " << name << ".";
         const std::string errorMsg(ss.str());
-        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
-        return -1;
-    }
-    else
-    {
-        if (strcmp(tag_map->name, name) == 0)
-        {
+        throw escript::ValueError(errorMsg);
+    } else {
+        if (strcmp(tag_map->name, name) == 0) {
             return tag_map->tag_key;
-        }
-        else
-        {
+        } else {
             return Dudley_TagMap_getTag(tag_map->next, name);
         }
     }

@@ -367,7 +367,7 @@ class Test_Domain(unittest.TestCase):
         self.assertTrue(not self.domain.isValidTagName(tag3))
         self.assertTrue(self.domain.getTag(tag1)==1)
         self.assertTrue(self.domain.getTag(tag2)==2)
-        self.assertRaises(RuntimeError,self.domain.getTag,tag3)
+        self.assertRaises(ValueError,self.domain.getTag,tag3)
 
         # set tag:
         s=Scalar(0,Function(self.domain))
