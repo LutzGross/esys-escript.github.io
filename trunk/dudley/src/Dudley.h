@@ -17,11 +17,13 @@
 #ifndef INC_DUDLEY
 #define INC_DUDLEY
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*    Dudley finite element solver */
 
-/************************************************************************************/
+/****************************************************************************/
+
+#include <dudley/DudleyException.h>
 
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
@@ -69,3 +71,4 @@ bool Dudley_MPI_noError(esysUtils::JMPI& mpi_info);
 // 			 esysUtils::JMPI& mpiinfo);
 
 #endif				/* #ifndef INC_DUDLEY */
+

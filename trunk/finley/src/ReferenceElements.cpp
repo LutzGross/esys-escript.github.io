@@ -580,13 +580,11 @@ ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
 {
     Type = getInfo(id);
     if (!Type) {
-        setError(VALUE_ERROR, "ReferenceElement: unable to identify element type.");
-        return;
+        throw escript::ValueError("ReferenceElement: unable to identify element type.");
     }
     LinearType = getInfo(Type->LinearTypeId);
     if (!LinearType) {
-        setError(VALUE_ERROR, "ReferenceElement: unable to identify linear element type.");
-        return;
+        throw escript::ValueError("ReferenceElement: unable to identify linear element type.");
     }
 
     const QuadInfo* quadscheme=QuadInfo_getInfo(Type->Quadrature);
@@ -673,7 +671,7 @@ const ReferenceElementInfo* ReferenceElement::getInfo(ElementTypeId id)
         ptr++;
     }
     if (out==NULL) {
-        setError(VALUE_ERROR, "ReferenceElement::getInfo: cannot find requested reference element.");
+        throw escript::ValueError("ReferenceElement::getInfo: cannot find requested reference element.");
     }
     return out;
 }

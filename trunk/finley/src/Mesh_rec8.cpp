@@ -67,7 +67,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
             refElements.reset(new ReferenceElementSet(Rec9, order, reduced_order));
         }
         if (useElementsOnFace) {
-            setError(SYSTEM_ERROR, "rich elements for Rec9 elements are not supported yet.");
+            throw escript::NotImplementedError("rich elements for Rec9 elements are not supported yet.");
         } else {
             if (useMacroElements) {
                 refFaceElements.reset(new ReferenceElementSet(Line3Macro, order, reduced_order));
@@ -88,6 +88,8 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
     }
     refPoints.reset(new ReferenceElementSet(Point1, order, reduced_order));
 
+    if (!refPoints->referenceElement)
+        throw escript::ValueError("ERRRRORRRRR!!");
     out->setPoints(new ElementFile(refPoints, mpiInfo));
     out->setContactElements(new ElementFile(refContactElements, mpiInfo));
     out->setFaceElements(new ElementFile(refFaceElements, mpiInfo));

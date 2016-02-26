@@ -142,7 +142,7 @@ class Test_InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('tag1'),1,'error with tag1')
         self.assertEqual(dom.getTag('tag2'),2,'error with tag2')
         self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
-        self.assertRaises(RuntimeError, dom.getTag, 'tag4')
+        self.assertRaises(ValueError, dom.getTag, 'tag4')
 
      def test_flyTags(self):
         dom=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest2.fly"))
@@ -153,7 +153,7 @@ class Test_InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('tag3'),6,'error with tag3')
         self.assertEqual(dom.getTag('tag4'),7,'error with tag4')
         self.assertEqual(dom.getTag('All'),10,'error with All')
-        self.assertRaises(RuntimeError, dom.getTag, 'tag6')
+        self.assertRaises(ValueError, dom.getTag, 'tag6')
 
      @unittest.skipIf(not loadIsConfigured(), "loading not configured")
      def test_mesh_dump_to_NetCDF_brick(self):

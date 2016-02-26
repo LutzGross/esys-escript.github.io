@@ -21,8 +21,6 @@
 #include "dudley/Mesh.h"
 #include "dudley/Dudley.h"
 #include "dudley/Assemble.h"
-#include "DudleyError.h"
-#include "DudleyAdapterException.h"
 
 #include "esysUtils/Esys_MPI.h"
 #include "escript/AbstractContinuousDomain.h"
