@@ -71,9 +71,7 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
             refElements.reset(new ReferenceElementSet(Hex27, order, reduced_order));
         }
         if (useElementsOnFace) {
-            setError(SYSTEM_ERROR, "rich elements for Hex27 elements are not supported.");
-            delete out;
-            return NULL;
+            throw escript::NotImplementedError("rich elements for Hex27 elements are not supported.");
         } else {
             if (useMacroElements) {
                 refFaceElements.reset(new ReferenceElementSet(Rec9Macro, order, reduced_order));
@@ -604,14 +602,7 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
-    if (noError()) {
-        out->prepare(optimize);
-    }
-
-    if (!noError()) {
-        delete out;
-        out=NULL;
-    }
+    out->prepare(optimize);
     return out;
 }
 

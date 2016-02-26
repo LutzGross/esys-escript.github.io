@@ -35,7 +35,6 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                           const escript::Data& data,
                           escript::Data& interpolated_data)
 {
-    resetError();
     if (!nodes || !elements)
         return;
 
@@ -75,8 +74,7 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
         }
     } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            setError(TYPE_ERROR,"Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
-            return;
+            throw escript::ValueError("Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
         }
         numSub=refElement->Type->numSubElements;
         resort_nodes=refElement->Type->subElementNodes;
@@ -90,8 +88,7 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
         }
     } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            setError(TYPE_ERROR, "Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
-            return;
+            throw escript::ValueError("Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
         }
         numSub=1;
         resort_nodes=refElement->Type->linearNodes;
@@ -104,8 +101,7 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
             dof_offset=refElement->LinearType->offsets[0];
         }
     } else {
-        setError(TYPE_ERROR,"Assemble_interpolate: Cannot interpolate data");
-        return;
+        throw escript::ValueError("Assemble_interpolate: invalid functionspace");
     }
 
     const int numComps=data.getDataPointSize();
@@ -116,39 +112,37 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
 
     // check the dimensions of interpolated_data and data
     if (!interpolated_data.numSamplesEqual(numQuad*numSub, elements->numElements)) {
-        setError(TYPE_ERROR, "Assemble_interpolate: illegal number of samples of output Data object");
+        throw escript::ValueError("Assemble_interpolate: illegal number of samples of output Data object");
     } else if (!data.numSamplesEqual(1,numNodes)) {
-        setError(TYPE_ERROR, "Assemble_interpolate: illegal number of samples of input Data object");
+        throw escript::ValueError("Assemble_interpolate: illegal number of samples of input Data object");
     } else if (numComps != interpolated_data.getDataPointSize()) {
-        setError(TYPE_ERROR, "Assemble_interpolate: number of components of input and interpolated Data do not match.");
+        throw escript::ValueError("Assemble_interpolate: number of components of input and interpolated Data do not match.");
     }  else if (!interpolated_data.actsExpanded()) {
-        setError(TYPE_ERROR, "Assemble_interpolate: expanded Data object is expected for output data.");
+        throw escript::ValueError("Assemble_interpolate: expanded Data object is expected for output data.");
     }
 
-    if (noError()) {
-        interpolated_data.requireWrite();
+    interpolated_data.requireWrite();
 #pragma omp parallel
-        {
-            // allocation of work array
-            std::vector<double> local_data(NS_DOF*numComps*numSub);
-            const size_t numComps_size=numComps*sizeof(double);
-            // open the element loop
+    {
+        // allocation of work array
+        std::vector<double> local_data(NS_DOF*numComps*numSub);
+        const size_t numComps_size=numComps*sizeof(double);
+        // open the element loop
 #pragma omp for
-            for (index_t e=0; e<elements->numElements; e++) {
-                for (int isub=0; isub<numSub; isub++) {
-                    for (int q=0; q<NS_DOF; q++) {
-                        const index_t i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
-                        const double *data_array=data.getSampleDataRO(map[i]);
-                        memcpy(&local_data[INDEX3(0,q,isub, numComps,NS_DOF)], data_array, numComps_size);
-                    }
+        for (index_t e=0; e<elements->numElements; e++) {
+            for (int isub=0; isub<numSub; isub++) {
+                for (int q=0; q<NS_DOF; q++) {
+                    const index_t i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
+                    const double *data_array=data.getSampleDataRO(map[i]);
+                    memcpy(&local_data[INDEX3(0,q,isub, numComps,NS_DOF)], data_array, numComps_size);
                 }
-                // calculate interpolated_data=local_data*S
-                util::smallMatSetMult1(numSub, numComps, numQuad,
-                      interpolated_data.getSampleDataRW(e), NS_DOF,
-                      local_data, basis->S);
-            } // end of element loop
-        } // end of parallel region
-    } // no error
+            }
+            // calculate interpolated_data=local_data*S
+            util::smallMatSetMult1(numSub, numComps, numQuad,
+                  interpolated_data.getSampleDataRW(e), NS_DOF,
+                  local_data, basis->S);
+        } // end of element loop
+    } // end of parallel region
 }
 
 } // namespace finley

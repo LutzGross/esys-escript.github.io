@@ -36,13 +36,11 @@ namespace finley {
 Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
 {
     if (msh.size()==0) {
-        setError(VALUE_ERROR, "Mesh_merge: Empty mesh list");
-        return NULL;
+        throw escript::ValueError("Mesh_merge: Empty mesh list");
     }
     for (int i=0; i<msh.size(); i++) {
         if (msh[i]->MPIInfo->size > 1) {
-            setError(TYPE_ERROR, "Mesh_merge: more than 1 processor is not supported yet.");
-            return NULL;
+            throw escript::NotImplementedError("Mesh_merge: more than 1 processor is not supported yet.");
         }
     }
 
@@ -73,12 +71,10 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
         reduced_order=std::min(reduced_order, msh[i]->reducedIntegrationOrder);
         numNodes+=msh[i]->Nodes->numNodes;
         if (mpiInfo->comm != msh[i]->MPIInfo->comm) {
-            setError(TYPE_ERROR, "Mesh_merge: MPI communicators of meshes don't match.");
-            break;
+            throw escript::ValueError("Mesh_merge: MPI communicators of meshes don't match.");
         }
         if (numDim != msh[i]->Nodes->numDim) {
-            setError(TYPE_ERROR, "Mesh_merge: Spatial dimensions of meshes don't match.");
-            break;
+            throw escript::ValueError("Mesh_merge: Spatial dimensions of meshes don't match.");
         }
 
         if (msh[i]->Elements) {
@@ -87,8 +83,7 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
                 elementTypeId=msh[i]->Elements->referenceElementSet->referenceElement->Type->TypeId;
             } else {
                 if (elementTypeId != msh[i]->Elements->referenceElementSet->referenceElement->Type->TypeId) {
-                    setError(TYPE_ERROR, "Mesh_merge: element types of meshes don't match.");
-                    break;
+                    throw escript::ValueError("Mesh_merge: element types of meshes don't match.");
                 }
             }
         }
@@ -99,8 +94,7 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
                 faceElementTypeId=msh[i]->FaceElements->referenceElementSet->referenceElement->Type->TypeId;
             } else {
                 if (faceElementTypeId != msh[i]->FaceElements->referenceElementSet->referenceElement->Type->TypeId) {
-                    setError(TYPE_ERROR, "Mesh_merge: face element types of meshes don't match.");
-                    break;
+                    throw escript::ValueError("Mesh_merge: face element types of meshes don't match.");
                 }
             }
         }
@@ -111,8 +105,7 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
                 contactTypeId=msh[i]->ContactElements->referenceElementSet->referenceElement->Type->TypeId;
             } else {
                 if (contactTypeId != msh[i]->ContactElements->referenceElementSet->referenceElement->Type->TypeId) {
-                    setError(TYPE_ERROR, "Mesh_merge: contact element types of meshes don't match.");
-                    break;
+                    throw escript::ValueError("Mesh_merge: contact element types of meshes don't match.");
                 }
             }
         }
@@ -123,8 +116,7 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
                 pointTypeId=msh[i]->Points->referenceElementSet->referenceElement->Type->TypeId;
             } else {
                 if (pointTypeId != msh[i]->Points->referenceElementSet->referenceElement->Type->TypeId ) {
-                    setError(TYPE_ERROR, "Mesh_merge: point element types of meshes don't match.");
-                    break;
+                    throw escript::ValueError("Mesh_merge: point element types of meshes don't match.");
                 }
             }
         }
@@ -136,72 +128,60 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
 
     // allocate
     Mesh* out=NULL;
-    if (noError()) {
-        out=new Mesh(newName.str(), numDim, mpiInfo);
-        refElements.reset(new ReferenceElementSet(elementTypeId, order, reduced_order));
-        refFaceElements.reset(new ReferenceElementSet(faceElementTypeId, order, reduced_order));
-        refContactElements.reset(new ReferenceElementSet(contactTypeId, order, reduced_order));
-        refPoints.reset(new ReferenceElementSet(pointTypeId, order, reduced_order));
-    }
-    if (noError()) {
-        out->Elements=new ElementFile(refElements, mpiInfo);
-        out->FaceElements=new ElementFile(refFaceElements, mpiInfo);
-        out->Points=new ElementFile(refPoints, mpiInfo);
-        out->ContactElements=new ElementFile(refContactElements, mpiInfo);
+    out=new Mesh(newName.str(), numDim, mpiInfo);
+    refElements.reset(new ReferenceElementSet(elementTypeId, order, reduced_order));
+    refFaceElements.reset(new ReferenceElementSet(faceElementTypeId, order, reduced_order));
+    refContactElements.reset(new ReferenceElementSet(contactTypeId, order, reduced_order));
+    refPoints.reset(new ReferenceElementSet(pointTypeId, order, reduced_order));
+    out->Elements=new ElementFile(refElements, mpiInfo);
+    out->FaceElements=new ElementFile(refFaceElements, mpiInfo);
+    out->Points=new ElementFile(refPoints, mpiInfo);
+    out->ContactElements=new ElementFile(refContactElements, mpiInfo);
 
-    }
     // allocate new tables
-    if (noError()) {
-        out->Nodes->allocTable(numNodes);
-        out->Elements->allocTable(numElements);
-        out->FaceElements->allocTable(numFaceElements);
-        out->ContactElements->allocTable(numContactElements);
-        out->Points->allocTable(numPoints);
-    }
+    out->Nodes->allocTable(numNodes);
+    out->Elements->allocTable(numElements);
+    out->FaceElements->allocTable(numFaceElements);
+    out->ContactElements->allocTable(numContactElements);
+    out->Points->allocTable(numPoints);
 
     // copy tables
-    if (noError()) {
-        numNodes=0;
-        numElements=0;
-        numFaceElements=0;
-        numContactElements=0;
-        numPoints=0;
+    numNodes=0;
+    numElements=0;
+    numFaceElements=0;
+    numContactElements=0;
+    numPoints=0;
 
-        for (int i=0; i<msh.size(); i++) {
-            out->Nodes->copyTable(numNodes, maxNodeID, maxDOF, msh[i]->Nodes);
-            out->Elements->copyTable(numElements,numNodes,maxElementID,msh[i]->Elements);
-            out->FaceElements->copyTable(numFaceElements,numNodes,maxElementID,msh[i]->FaceElements);
-            out->ContactElements->copyTable(numContactElements,numNodes,maxElementID,msh[i]->ContactElements);
-            out->Points->copyTable(numPoints,numNodes,maxElementID,msh[i]->Points);
+    for (int i=0; i<msh.size(); i++) {
+        out->Nodes->copyTable(numNodes, maxNodeID, maxDOF, msh[i]->Nodes);
+        out->Elements->copyTable(numElements,numNodes,maxElementID,msh[i]->Elements);
+        out->FaceElements->copyTable(numFaceElements,numNodes,maxElementID,msh[i]->FaceElements);
+        out->ContactElements->copyTable(numContactElements,numNodes,maxElementID,msh[i]->ContactElements);
+        out->Points->copyTable(numPoints,numNodes,maxElementID,msh[i]->Points);
 
-            numNodes=+msh[i]->Nodes->numNodes;
-            numElements=+msh[i]->Elements->numElements;
-            numFaceElements=+msh[i]->FaceElements->numElements;
-            numContactElements=+msh[i]->ContactElements->numElements;
-            numPoints=+msh[i]->Points->numElements;
+        numNodes=+msh[i]->Nodes->numNodes;
+        numElements=+msh[i]->Elements->numElements;
+        numFaceElements=+msh[i]->FaceElements->numElements;
+        numContactElements=+msh[i]->ContactElements->numElements;
+        numPoints=+msh[i]->Points->numElements;
 
-            if (msh[i]->Nodes->numNodes>0)
-                maxNodeID+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->Id)+1;
-            maxDOF+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->globalDegreesOfFreedom)+1;
-            maxElementID2=0;
-            if (msh[i]->Elements->numElements>0)
-                maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
-            if (msh[i]->FaceElements->numElements>0)
-                maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->FaceElements->numElements,msh[i]->FaceElements->Id));
-            if (msh[i]->ContactElements->numElements>0)
-                maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->ContactElements->numElements,msh[i]->ContactElements->Id));
-            if (msh[i]->Points->numElements)
-                maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Points->numElements,msh[i]->Points->Id));
-                maxElementID+=maxElementID2+1;
-        }
+        if (msh[i]->Nodes->numNodes>0)
+            maxNodeID+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->Id)+1;
+        maxDOF+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->globalDegreesOfFreedom)+1;
+        maxElementID2=0;
+        if (msh[i]->Elements->numElements>0)
+            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
+        if (msh[i]->FaceElements->numElements>0)
+            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->FaceElements->numElements,msh[i]->FaceElements->Id));
+        if (msh[i]->ContactElements->numElements>0)
+            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->ContactElements->numElements,msh[i]->ContactElements->Id));
+        if (msh[i]->Points->numElements)
+            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Points->numElements,msh[i]->Points->Id));
+            maxElementID+=maxElementID2+1;
     }
+
     // all done
-    if (!noError()) {
-        delete out;
-        out=NULL;
-    } else {
-        out->prepare(false);
-    }
+    out->prepare(false);
     return out;
 }
 

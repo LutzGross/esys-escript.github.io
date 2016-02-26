@@ -34,23 +34,22 @@ namespace finley {
 
 void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
 {
-    resetError();
     if (!nodes) return;
 
     const escript::DataTypes::ShapeType expectedShape(1, nodes->numDim);
 
     if (!x.numSamplesEqual(1, nodes->numNodes)) {
-        setError(TYPE_ERROR, "Assemble_NodeCoordinates: illegal number of samples of Data object");
+        throw escript::ValueError("Assemble_NodeCoordinates: illegal number of samples of Data object");
     } else if (x.getFunctionSpace().getTypeCode() != FINLEY_NODES) {
-        setError(TYPE_ERROR, "Assemble_NodeCoordinates: Data object is not defined on nodes.");
+        throw escript::ValueError("Assemble_NodeCoordinates: Data object is not defined on nodes.");
     } else if (!x.actsExpanded()) {
-        setError(TYPE_ERROR, "Assemble_NodeCoordinates: expanded Data object expected");
+        throw escript::ValueError("Assemble_NodeCoordinates: expanded Data object expected");
     } else if (x.getDataPointShape() != expectedShape) {
         std::stringstream ss;
         ss << "Assemble_NodeCoordinates: Data object of shape ("
             << nodes->numDim << ",) expected.";
-        std::string errorMsg = ss.str();
-        setError(TYPE_ERROR, errorMsg.c_str());
+        const std::string errorMsg = ss.str();
+        throw escript::ValueError(errorMsg);
     } else {
         const size_t dim_size = nodes->numDim*sizeof(double);
         x.requireWrite();

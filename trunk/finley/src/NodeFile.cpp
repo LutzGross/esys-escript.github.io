@@ -201,14 +201,14 @@ void NodeFile::setCoordinates(const escript::Data& newX)
         ss << "NodeFile::setCoordinates: number of dimensions of new "
             "coordinates has to be " << numDim;
         const std::string errorMsg(ss.str());
-        setError(VALUE_ERROR, errorMsg.c_str());
+        throw escript::ValueError(errorMsg);
     } else if (newX.getNumDataPointsPerSample() != 1 ||
             newX.getNumSamples() != numNodes) {
         std::stringstream ss;
         ss << "NodeFile::setCoordinates: number of given nodes must be "
             << numNodes;
         const std::string errorMsg(ss.str());
-        setError(VALUE_ERROR, errorMsg.c_str());
+        throw escript::ValueError(errorMsg);
     } else {
         const size_t numDim_size=numDim*sizeof(double);
         ++status;
@@ -222,15 +222,11 @@ void NodeFile::setCoordinates(const escript::Data& newX)
 /// sets tags to newTag where mask>0
 void NodeFile::setTags(int newTag, const escript::Data& mask)
 {
-    resetError();
-
     if (1 != mask.getDataPointSize()) {
-       setError(TYPE_ERROR, "NodeFile::setTags: number of components of mask must be 1.");
-       return;
+        throw escript::ValueError("NodeFile::setTags: number of components of mask must be 1.");
     } else if (mask.getNumDataPointsPerSample() != 1 ||
             mask.getNumSamples() != numNodes) {
-       setError(TYPE_ERROR, "NodeFile::setTags: illegal number of samples of mask Data object");
-       return;
+        throw escript::ValueError("NodeFile::setTags: illegal number of samples of mask Data object");
     }
 
 #pragma omp parallel for
@@ -312,12 +308,10 @@ void NodeFile::copyTable(index_t offset, index_t idOffset, index_t dofOffset,
 {
     // check number of dimensions and table size
     if (numDim != in->numDim) {
-        setError(TYPE_ERROR, "NodeFile::copyTable: dimensions of node files don't match");
-        return;
+        throw escript::ValueError("NodeFile::copyTable: dimensions of node files don't match");
     }
     if (numNodes < in->numNodes+offset) {
-        setError(MEMORY_ERROR, "NodeFile::copyTable: node table is too small.");
-        return;
+        throw escript::ValueError("NodeFile::copyTable: node table is too small.");
     }
 
 #pragma omp parallel for
@@ -437,23 +431,28 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
         }
         buffer_rank=in->MPIInfo->mod_rank(buffer_rank-1);
     }
+#if DOASSERT
     // check if all nodes are set:
+    index_t err=-1;
 #pragma omp parallel for
     for (index_t n=0; n<numNodes; ++n) {
         if (Id[n] == undefined_node) {
-            std::stringstream ss;
-            ss << "NodeFile::gather_global: Node id " << Id[n]
-                << " at position " << n << " is referenced but not defined.";
-            const std::string errorMsg(ss.str());
-            setError(VALUE_ERROR, errorMsg.c_str());
+#pragma omp critical
+            err=n;
         }
     }
+    if (err>=0) {
+        std::stringstream ss;
+        ss << "NodeFile::gather_global: Node id " << Id[err]
+            << " at position " << err << " is referenced but not defined.";
+        const std::string errorMsg(ss.str());
+        throw escript::AssertException(errorMsg);
+    }
+#endif // DOASSERT
     delete[] Id_buffer;
     delete[] Tag_buffer;
     delete[] globalDegreesOfFreedom_buffer;
     delete[] Coordinates_buffer;
-    // make sure that the error is global
-    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
 }
 
 void NodeFile::assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF,
@@ -826,8 +825,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     }
 
     if (!((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF))) {
-        setError(SYSTEM_ERROR, "Local elements do not span local degrees of freedom.");
-        return;
+        throw FinleyException("Local elements do not span local degrees of freedom.");
     }
     const index_t UNUSED = -1;
     const index_t len_loc_dof=max_DOF-min_DOF+1;
@@ -995,12 +993,10 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], p,
             &offsetInShared[0], 1, 0, MPIInfo));
 
-    if (noError()) {
-        if (use_reduced_elements) {
-            reducedDegreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-        } else {
-            degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-        }
+    if (use_reduced_elements) {
+        reducedDegreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+    } else {
+        degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
     }
 }
 
@@ -1074,54 +1070,42 @@ void NodeFile::createNodeMappings(const std::vector<index_t>& indexReducedNodes,
 
     std::vector<index_t> nodeMask(numNodes);
 
-    if (noError()) {
-        const index_t UNUSED = -1;
-        // ==== nodes mapping which is a dummy structure ========
+    const index_t UNUSED = -1;
+    // ==== nodes mapping which is a dummy structure ========
 #pragma omp parallel for
-        for (index_t i=0; i<numNodes; ++i)
-            nodeMask[i]=i;
-        nodesMapping.assign(nodeMask, UNUSED);
+    for (index_t i=0; i<numNodes; ++i)
+        nodeMask[i]=i;
+    nodesMapping.assign(nodeMask, UNUSED);
 
-        // ==== mapping between nodes and reduced nodes ==========
+    // ==== mapping between nodes and reduced nodes ==========
 #pragma omp parallel for
-        for (index_t i=0; i<numNodes; ++i)
-            nodeMask[i]=UNUSED;
+    for (index_t i=0; i<numNodes; ++i)
+        nodeMask[i]=UNUSED;
 #pragma omp parallel for
-        for (index_t i=0; i<iRNsize; ++i)
-            nodeMask[indexReducedNodes[i]]=i;
-        reducedNodesMapping.assign(nodeMask, UNUSED);
-    }
+    for (index_t i=0; i<iRNsize; ++i)
+        nodeMask[indexReducedNodes[i]]=i;
+    reducedNodesMapping.assign(nodeMask, UNUSED);
+
     // ==== mapping between nodes and DOFs + DOF connector
-    if (noError())
-        createDOFMappingAndCoupling(false);
+    createDOFMappingAndCoupling(false);
     // ==== mapping between nodes and reduced DOFs + reduced DOF connector
-    if (noError())
-        createDOFMappingAndCoupling(true);
+    createDOFMappingAndCoupling(true);
 
     // get the Ids for DOFs and reduced nodes
-    if (noError()) {
-        const index_t rnTargets = reducedNodesMapping.getNumTargets();
-        const index_t dofTargets = degreesOfFreedomMapping.getNumTargets();
-        const index_t rdofTargets = reducedDegreesOfFreedomMapping.getNumTargets();
+    const index_t rnTargets = reducedNodesMapping.getNumTargets();
+    const index_t dofTargets = degreesOfFreedomMapping.getNumTargets();
+    const index_t rdofTargets = reducedDegreesOfFreedomMapping.getNumTargets();
 #pragma omp parallel
-        {
+    {
+#pragma omp for nowait
+        for (index_t i=0; i<rnTargets; ++i)
+            reducedNodesId[i]=Id[reducedNodesMapping.map[i]];
+#pragma omp for nowait
+        for (index_t i=0; i<dofTargets; ++i)
+            degreesOfFreedomId[i]=Id[degreesOfFreedomMapping.map[i]];
 #pragma omp for
-         for (index_t i=0; i<rnTargets; ++i)
-             reducedNodesId[i]=Id[reducedNodesMapping.map[i]];
-#pragma omp for
-         for (index_t i=0; i<dofTargets; ++i)
-             degreesOfFreedomId[i]=Id[degreesOfFreedomMapping.map[i]];
-#pragma omp for
-         for (index_t i=0; i<rdofTargets; ++i)
-             reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
-        }
-    } else {
-        nodesDistribution.reset();
-        reducedNodesDistribution.reset();
-        degreesOfFreedomDistribution.reset();
-        reducedDegreesOfFreedomDistribution.reset();
-        degreesOfFreedomConnector.reset();
-        reducedDegreesOfFreedomConnector.reset();
+        for (index_t i=0; i<rdofTargets; ++i)
+            reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
     }
 }
 

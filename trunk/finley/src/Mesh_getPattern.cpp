@@ -35,8 +35,7 @@ namespace finley {
 paso::SystemMatrixPattern_ptr Mesh::getPattern(bool reduce_row_order, bool reduce_col_order)
 {
     paso::SystemMatrixPattern_ptr out;
-    resetError();
-    /* make sure that the requested pattern is available */
+    // make sure that the requested pattern is available
     if (reduce_row_order) {
         if (reduce_col_order) {
             if (ReducedReducedPattern==NULL)
@@ -54,19 +53,17 @@ paso::SystemMatrixPattern_ptr Mesh::getPattern(bool reduce_row_order, bool reduc
                 FullFullPattern=makePattern(reduce_row_order,reduce_col_order);
         }
     }
-    if (noError()) {
-        if (reduce_row_order) {
-            if (reduce_col_order) {
-                out = ReducedReducedPattern;
-            } else {
-                out = ReducedFullPattern;
-            }
+    if (reduce_row_order) {
+        if (reduce_col_order) {
+            out = ReducedReducedPattern;
         } else {
-            if (reduce_col_order) {
-                out = FullReducedPattern;
-            } else {
-                out = FullFullPattern;
-            }
+            out = ReducedFullPattern;
+        }
+    } else {
+        if (reduce_col_order) {
+            out = FullReducedPattern;
+        } else {
+            out = FullFullPattern;
         }
     }  
     return out;
@@ -78,8 +75,6 @@ paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool redu
     paso::Connector_ptr col_connector, row_connector;
     paso::Distribution_ptr colDistribution, rowDistribution;
   
-    resetError();
-
     int myNumColTargets, myNumRowTargets;
     int numColTargets, numRowTargets;
     const index_t *colTarget, *rowTarget;
@@ -139,13 +134,10 @@ paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool redu
             myNumRowTargets, numRowTargets, index_list.get(), 0, myNumColTargets, 0);
 
     // if everything is in order we can create the return value
-    if (noError()) {
-        out.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-                rowDistribution, colDistribution, main_pattern,
-                col_couple_pattern, row_couple_pattern,
-                col_connector, row_connector));
-    }
-    Esys_MPIInfo_noError(MPIInfo);
+    out.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            rowDistribution, colDistribution, main_pattern,
+            col_couple_pattern, row_couple_pattern,
+            col_connector, row_connector));
     return out;
 }
 

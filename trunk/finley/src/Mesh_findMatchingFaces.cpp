@@ -76,8 +76,7 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
         ss << "Mesh::findMatchingFaces: matching faces cannot be applied to "
             "face elements of type " << refElement->Type->Name;
         const std::string msg(ss.str());
-        setError(TYPE_ERROR, msg.c_str());
-        return;
+        throw escript::ValueError(msg);
     }
     double* X = new double[NN*numDim*FaceElements->numElements];
     std::vector<FaceCenter> center(FaceElements->numElements);
@@ -118,7 +117,7 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
     *numPairs=0;
 
     // TODO: OMP
-    for (int e=0; e<FaceElements->numElements-1 && noError(); e++) {
+    for (int e=0; e<FaceElements->numElements-1; e++) {
         double dist=0.;
         for (int i=0; i<numDim; i++)
             dist=std::max(dist, std::abs(center[e].x[i]-center[e+1].x[i]));
@@ -133,7 +132,7 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
             int* perm_tmp=a2;
             for (int i=0; i<NN; i++)
                 perm[i]=i;
-            while (noError()) {
+            while (1) {
                 // if node 0 and perm[0] are the same we are ready
                 dist=getDist(e_0, 0, e_1, perm[0], numDim, NN, X);
                 if (dist <= h*tolerance)
@@ -154,65 +153,58 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
                     ss << "Mesh::findMatchingFaces: couldn't match first node "
                         "of element " << e_0 << " to touching element " << e_1;
                     const std::string msg(ss.str());
-                    setError(VALUE_ERROR, msg.c_str());
+                    throw escript::ValueError(msg);
                 }
             }
             // now we check if the second nodes match
-            if (noError()) {
-                if (numNodesOnFace > 1) {
-                    dist=getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
-                    // if the second node does not match we reverse the
-                    // direction of the nodes
-                    if (dist > h*tolerance) {
-                        // rotate the nodes
-                        if (reverseNodes[0] < 0) {
+            if (numNodesOnFace > 1) {
+                dist=getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
+                // if the second node does not match we reverse the
+                // direction of the nodes
+                if (dist > h*tolerance) {
+                    // rotate the nodes
+                    if (reverseNodes[0] < 0) {
+                        std::stringstream ss;
+                        ss << "Mesh::findMatchingFaces: couldn't match the"
+                            " second node of element " << e_0
+                            << " to touching element " << e_1;
+                        const std::string msg(ss.str());
+                        throw escript::ValueError(msg);
+                    } else {
+                        int* itmp_ptr=perm;
+                        perm=perm_tmp;
+                        perm_tmp=itmp_ptr;
+                        #pragma ivdep
+                        for (int i=0; i<NN; i++)
+                            perm[i]=perm_tmp[reverseNodes[i]];
+                        dist=getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
+                        if (dist > h*tolerance) {
                             std::stringstream ss;
                             ss << "Mesh::findMatchingFaces: couldn't match the"
                                 " second node of element " << e_0
                                 << " to touching element " << e_1;
                             const std::string msg(ss.str());
-                            setError(VALUE_ERROR, msg.c_str());
-                        } else {
-                            int* itmp_ptr=perm;
-                            perm=perm_tmp;
-                            perm_tmp=itmp_ptr;
-                            #pragma ivdep
-                            for (int i=0; i<NN; i++)
-                                perm[i]=perm_tmp[reverseNodes[i]];
-                            dist=getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
-                            if (dist > h*tolerance) {
-                                std::stringstream ss;
-                                ss << "Mesh::findMatchingFaces: couldn't match the"
-                                    " second node of element " << e_0
-                                    << " to touching element " << e_1;
-                                const std::string msg(ss.str());
-                                setError(VALUE_ERROR, msg.c_str());
-                            }
+                            throw escript::ValueError(msg);
                         }
                     }
                 }
             }
             // we check if the rest of the face nodes match
-            if (noError()) {
-                for (int i=2; i<numNodesOnFace; i++) {
-                    const int n=faceNodes[i];
-                    dist=getDist(e_0, n, e_1, perm[n], numDim, NN, X);
-                    if (dist > h*tolerance) {
-                        std::stringstream ss;
-                        ss << "Mesh::findMatchingFaces: couldn't match the "
-                            << i << "-th node of element " << e_0
-                            << " to touching element " << e_1;
-                        const std::string msg(ss.str());
-                        setError(VALUE_ERROR, msg.c_str());
-                        break;
-                    }
+            for (int i=2; i<numNodesOnFace; i++) {
+                const int n=faceNodes[i];
+                dist=getDist(e_0, n, e_1, perm[n], numDim, NN, X);
+                if (dist > h*tolerance) {
+                    std::stringstream ss;
+                    ss << "Mesh::findMatchingFaces: couldn't match the "
+                        << i << "-th node of element " << e_0
+                        << " to touching element " << e_1;
+                    const std::string msg(ss.str());
+                    throw escript::ValueError(msg);
                 }
             }
             // copy over the permuted nodes of e_1 into matching_nodes_in_elem1
-            if (noError()) {
-                for (int i=0; i<NN; i++)
-                    matching_nodes_in_elem1[INDEX2(i,*numPairs,NN)]=FaceElements->Nodes[INDEX2(perm[i],e_1,NN)];
-            }
+            for (int i=0; i<NN; i++)
+                matching_nodes_in_elem1[INDEX2(i,*numPairs,NN)]=FaceElements->Nodes[INDEX2(perm[i],e_1,NN)];
             (*numPairs)++;
         }
     }

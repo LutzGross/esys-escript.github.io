@@ -87,12 +87,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
         }
      
         if (out->numQuadTotal != out->numSub*basis->numQuadNodes) {
-            setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: Incorrect total number of quadrature points.");
-            return NULL;
+            throw FinleyException("ElementFile::borrowJacobians: Incorrect total number of quadrature points.");
         }
         if (refElement->numNodes > numNodes) {
-            setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: Too many nodes expected.");
-            return NULL;
+            throw FinleyException("ElementFile::borrowJacobians: Too many nodes expected.");
         }
 
         if (out->volume==NULL)
@@ -115,10 +113,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                             Nodes, &shape->dSdv[0], basis->Type->numShapes,
                             dBdv, out->DSDX, out->volume, Id);
                 } else {
-                    setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: only one-sided elements supported in 1D.");
+                    throw FinleyException("ElementFile::borrowJacobians: only one-sided elements supported in 1D.");
                 }
             } else {
-                setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: local dimension in a 1D domain has to be 0 or 1.");
+                throw escript::ValueError("ElementFile::borrowJacobians: local dimension in a 1D domain has to be 0 or 1.");
             }
         /*========================== dim = 2 ============================== */
         } else if (out->numDim==2) {
@@ -141,7 +139,7 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
-                        setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: elements must be one- or two-sided.");
+                        throw escript::ValueError("ElementFile::borrowJacobians: elements must be one- or two-sided.");
                     }
                 } else if (out->BasisFunctions->Type->numDim==1) {
                     if (out->numSides==1) {
@@ -159,10 +157,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
-                        setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: elements must be one- or two-sided.");
+                        throw escript::ValueError("ElementFile::borrowJacobians: elements must be one- or two-sided.");
                     }
                 } else {
-                    setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: element dimension for local dimension 1 in a 2D domain has to be 1 or 2.");
+                    throw escript::ValueError("ElementFile::borrowJacobians: element dimension for local dimension 1 in a 2D domain has to be 1 or 2.");
                 }
             } else if (refElement->numLocalDim==2) {
                 if (out->numSides==1) {
@@ -172,10 +170,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                             Nodes, &shape->dSdv[0], basis->Type->numShapes,
                             dBdv, out->DSDX, out->volume, Id);
                 } else {
-                    setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: 2D volume supports one-sided elements only.");
+                    throw escript::ValueError("ElementFile::borrowJacobians: 2D volume supports one-sided elements only.");
                 }
             } else {
-                setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: local dimension in a 2D domain has to be 1 or 2.");
+                throw escript::ValueError("ElementFile::borrowJacobians: local dimension in a 2D domain has to be 1 or 2.");
             }
         /*========================== dim = 3 ============================== */
         } else if (out->numDim==3) {
@@ -198,7 +196,7 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
-                        setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: elements must be one- or two-sided.");
+                        throw escript::ValueError("ElementFile::borrowJacobians: elements must be one- or two-sided.");
                     }
                 } else if (out->BasisFunctions->Type->numDim==2) {
                     if (out->numSides==1) {
@@ -216,10 +214,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
-                        setError(SYSTEM_ERROR,"ElementFile::borrowJacobians: elements must be one- or two-sided.");
+                        throw escript::ValueError("ElementFile::borrowJacobians: elements must be one- or two-sided.");
                     }
                 } else {
-                    setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: element dimension for local dimension 2 in a 3D domain has to be 2 or 3.");
+                    throw escript::ValueError("ElementFile::borrowJacobians: element dimension for local dimension 2 in a 3D domain has to be 2 or 3.");
                 }
             } else if (refElement->numLocalDim==3) {
                 if (out->numSides==1) {
@@ -229,20 +227,16 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                             Nodes, &shape->dSdv[0], basis->Type->numShapes,
                             dBdv, out->DSDX, out->volume, Id);
                 } else {
-                    setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: 3D volume supports one sided elements only..");
+                    throw escript::ValueError("ElementFile::borrowJacobians: 3D volume supports one sided elements only..");
                 }
             } else {
-                setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: local dimension in a 3D domain has to be 2 or 3.");
+                throw escript::ValueError("ElementFile::borrowJacobians: local dimension in a 3D domain has to be 2 or 3.");
             }
         } else {
-            setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: number of spatial dimensions has to be 1, 2 or 3.");
+            throw escript::ValueError("ElementFile::borrowJacobians: number of spatial dimensions has to be 1, 2 or 3.");
         }
 
-        if (noError()) {
-            out->status = nodefile->status;
-        } else {
-            out=NULL;
-        }
+        out->status = nodefile->status;
     }
     return out;
 }
