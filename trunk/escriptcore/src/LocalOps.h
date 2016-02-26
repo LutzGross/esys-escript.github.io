@@ -43,6 +43,7 @@ namespace escript {
 
 typedef enum
 {
+NEGF,
 SINF,
 COSF,
 TANF,
@@ -1042,6 +1043,11 @@ inline void tensor_unary_array_operation(const size_t size,
 {
   switch (operation)
   {
+    case NEGF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = -arg1[i];
+          }
+          break;
     case SINF: tensor_unary_operation_helper(size, arg1, argRes, sin_func<IN>()); break;
     case COSF: tensor_unary_operation_helper(size, arg1, argRes, cos_func<IN>()); break;
     case TANF: tensor_unary_operation_helper(size, arg1, argRes, tan_func<IN>()); break;
