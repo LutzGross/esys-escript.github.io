@@ -1002,8 +1002,6 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
         // find line starting with $
         logicFlag=0;
         errorFlag = get_next_state(fileHandle_p, nodesRead, elementsRead, &logicFlag);
-        if (!errorFlag)
-            errorFlag = ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
         //pre-logic error check
         if (check_error(errorFlag, fileHandle_p, errorMsg) == SUCCESS)
