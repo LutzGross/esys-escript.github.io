@@ -151,8 +151,8 @@ class Test_randomOnMultiRipley(unittest.TestCase):
         fs=ContinuousFunction(Rectangle(n0=5*(int(sqrt(mpiSize)+1)),n1=5*(int(sqrt(mpiSize)+1))))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
-        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
+        self.assertRaises(NotImplementedError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
+        self.assertRaises(ValueError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
         RandomData((2,3),fs)
 
     @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
@@ -161,8 +161,8 @@ class Test_randomOnMultiRipley(unittest.TestCase):
         fs=ContinuousFunction(Brick(n0=5*mpiSize, n1=5*mpiSize, n2=5*mpiSize))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
-        self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
-        self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
+        self.assertRaises(NotImplementedError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
+        self.assertRaises(ValueError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
         RandomData((2,3),fs)
 
 class Test_multiResolution(unittest.TestCase):

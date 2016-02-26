@@ -203,7 +203,7 @@ public:
         if (m_tagMap.find(name) != m_tagMap.end()) {
             return m_tagMap.find(name)->second;
         } else {
-            throw RipleyException("getTag: invalid tag name");
+            throw escript::ValueError("getTag: invalid tag name");
         }
     }
 
@@ -402,7 +402,7 @@ public:
        return a FunctionOnContactZero code
     */
     virtual int getFunctionOnContactZeroCode() const {
-        throw RipleyException("Ripley does not support contact elements");
+        throw escript::NotImplementedError("Ripley does not support contact elements");
     }
 
     /**
@@ -410,7 +410,7 @@ public:
        returns a FunctionOnContactZero code with reduced integration order
     */
     virtual int getReducedFunctionOnContactZeroCode() const {
-        throw RipleyException("Ripley does not support contact elements");
+        throw escript::NotImplementedError("Ripley does not support contact elements");
     }
 
     /**
@@ -418,7 +418,7 @@ public:
        returns a FunctionOnContactOne code
     */
     virtual int getFunctionOnContactOneCode() const {
-        throw RipleyException("Ripley does not support contact elements");
+        throw escript::NotImplementedError("Ripley does not support contact elements");
     }
 
     /**
@@ -426,7 +426,7 @@ public:
        returns a FunctionOnContactOne code with reduced integration order
     */
     virtual int getReducedFunctionOnContactOneCode() const {
-        throw RipleyException("Ripley does not support contact elements");
+        throw escript::NotImplementedError("Ripley does not support contact elements");
     }
 
     /**
@@ -723,7 +723,7 @@ public:
     */
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const {
-        throw RipleyException("Domain does not support custom assemblers");
+        throw escript::NotImplementedError("Domain does not support custom assemblers");
     }
 
     /**
