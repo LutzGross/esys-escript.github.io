@@ -50,7 +50,6 @@ sources = """
     Assemble_jacobians.cpp
     ElementFile.cpp
     ElementFile_jacobians.cpp
-    Finley.cpp
     IndexList.cpp
     Mesh.cpp
     Mesh_addPoints.cpp

@@ -271,14 +271,7 @@ Mesh* RectangularMesh_Rec4(const dim_t* numElements, const double* Length,
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
-    if (noError()) {
-        out->prepare(optimize);
-    }
-    if (!noError()) {
-        delete out;
-        out=NULL;
-    }
-
+    out->prepare(optimize);
     return out;
 }
 

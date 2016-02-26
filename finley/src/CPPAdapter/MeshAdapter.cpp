@@ -120,7 +120,6 @@ Mesh* MeshAdapter::getFinley_Mesh() const
 void MeshAdapter::write(const string& fileName) const
 {
     m_finleyMesh.get()->write(fileName);
-    checkFinleyError();
 }
 
 void MeshAdapter::Print_Mesh_Info(const bool full) const
@@ -491,9 +490,8 @@ void MeshAdapter::dump(const string& fileName) const
    // NetCDF file is closed by destructor of NcFile object
 
 #else // USE_NETCDF
-    setError(IO_ERROR, "MeshAdapter::dump: not configured with netCDF. Please contact your installation manager.");
+    throw FinleyException("MeshAdapter::dump: not configured with netCDF. Please contact your installation manager.");
 #endif // USE_NETCDF
-    checkFinleyError();
 }
 
 string MeshAdapter::getDescription() const
@@ -741,21 +739,17 @@ void MeshAdapter::addPDEToSystem(
         paso::SystemMatrix_ptr S(smat->shared_from_this());
         Mesh* mesh=m_finleyMesh.get();
         Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
-        checkFinleyError();
 
         Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs,
                 escript::Data(), escript::Data(), escript::Data(), d,
                 escript::Data(), y);
-        checkFinleyError();
 
         Assemble_PDE(mesh->Nodes, mesh->ContactElements, S, rhs,
                 escript::Data(), escript::Data(), escript::Data(), d_contact,
                 escript::Data(), y_contact);
-        checkFinleyError();
 
         Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
                 escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
-        checkFinleyError();
         return;
     }
     throw ValueError("finley only supports Paso system matrices.");
@@ -767,13 +761,10 @@ void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
 {
     Mesh* mesh=m_finleyMesh.get();
     Assemble_LumpedSystem(mesh->Nodes, mesh->Elements, mat, D, useHRZ);
-    checkFinleyError();
 
     Assemble_LumpedSystem(mesh->Nodes, mesh->FaceElements, mat, d, useHRZ);
-    checkFinleyError();
 
     Assemble_LumpedSystem(mesh->Nodes, mesh->Points, mat, d_dirac, useHRZ);
-    checkFinleyError();
 }
 
 //
@@ -787,22 +778,18 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
     Assemble_PDE(mesh->Nodes, mesh->Elements, paso::SystemMatrix_ptr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             X, Y);
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->FaceElements, paso::SystemMatrix_ptr(),
             rhs, escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), escript::Data(), y);
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->ContactElements, paso::SystemMatrix_ptr(),
             rhs, escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), escript::Data(), y_contact);
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->Points, paso::SystemMatrix_ptr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), y_dirac);
-    checkFinleyError();
 }
 
 //
@@ -826,27 +813,22 @@ void MeshAdapter::addPDEToTransportProblem(
     Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(), source,
                         escript::Data(), escript::Data(), escript::Data(),
                         M, escript::Data(), escript::Data());
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
                  source, A, B, C, D, X, Y);
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->FaceElements, ptp->borrowTransportMatrix(),
                  source, escript::Data(), escript::Data(), escript::Data(),
                  d, escript::Data(), y);
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->ContactElements,
                  ptp->borrowTransportMatrix(), source, escript::Data(),
                  escript::Data(), escript::Data(), d_contact, escript::Data(),
                  y_contact);
-    checkFinleyError();
 
     Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
                  source, escript::Data(), escript::Data(), escript::Data(),
                  d_dirac, escript::Data(), y_dirac);
-    checkFinleyError();
 }
 
 //
@@ -1112,7 +1094,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
             throw ValueError(temp.str());
             break;
     }
-    checkFinleyError();
 }
 
 //
@@ -1133,7 +1114,6 @@ void MeshAdapter::setToX(escript::Data& arg) const
         // this is then interpolated onto arg:
         interpolateOnDomain(arg, tmp_data);
     }
-    checkFinleyError();
 }
 
 //
@@ -1183,7 +1163,6 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
             throw ValueError(temp.str());
             break;
     }
-    checkFinleyError();
 }
 
 //
@@ -1248,7 +1227,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
             throw ValueError(temp.str());
             break;
     }
-    checkFinleyError();
 }
 
 //
@@ -1312,7 +1290,6 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
             throw ValueError(temp.str());
             break;
     }
-    checkFinleyError();
 }
 
 //
@@ -1357,7 +1334,6 @@ void MeshAdapter::setToSize(escript::Data& size) const
             throw ValueError(temp.str());
             break;
     }
-    checkFinleyError();
 }
 
 //
@@ -1374,7 +1350,6 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
     } else {
         throw ValueError("As of escript version 3.3 SetX() only accepts ContinuousFunction arguments. Please interpolate.");
     }
-    checkFinleyError();
 }
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
@@ -1444,7 +1419,6 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
     // generate matrix:
     paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
             reduceRowOrder, reduceColOrder);
-    checkFinleyError();
     paso::SystemMatrix_ptr sm;
     const int trilinos = 0;
     if (trilinos) {
@@ -1481,7 +1455,6 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
     // generate transport problem:
     paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
             reduceOrder, reduceOrder);
-    checkFinleyError();
     paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
                                         pattern, blocksize, functionspace));
     return transportProblem;
@@ -1978,21 +1951,18 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
             temp << "Error - Finley does not know anything about function space type " << functionSpaceType;
             throw ValueError(temp.str());
     }
-    checkFinleyError();
 }
 
 void MeshAdapter::setTagMap(const string& name, int tag)
 {
     Mesh* mesh=m_finleyMesh.get();
     mesh->addTagMap(name.c_str(), tag);
-    checkFinleyError();
 }
 
 int MeshAdapter::getTag(const string& name) const
 {
     Mesh* mesh=m_finleyMesh.get();
     int tag = mesh->getTag(name.c_str());
-    checkFinleyError();
     return tag;
 }
 
@@ -2199,7 +2169,6 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 
     if (numPoints > 0) {
         mesh->addPoints(numPoints, &points[0], &tags[0]);
-        checkFinleyError();
     }
 }
 

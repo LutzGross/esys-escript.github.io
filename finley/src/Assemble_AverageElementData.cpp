@@ -33,7 +33,6 @@ namespace finley {
 void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in)
 {
-    resetError();
     if (!elements)
         return;
 
@@ -57,13 +56,13 @@ void Assemble_AverageElementData(const ElementFile* elements,
     const int numComps=out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
-        setError(TYPE_ERROR, "Assemble_AverageElementData: number of components of input and output data do not match.");
+        throw escript::ValueError("Assemble_AverageElementData: number of components of input and output data do not match.");
     } else if (!in.numSamplesEqual(numQuad_in,numElements)) {
-        setError(TYPE_ERROR, "Assemble_AverageElementData: illegal number of samples of input Data object");
+        throw escript::ValueError("Assemble_AverageElementData: illegal number of samples of input Data object");
     } else if (!out.numSamplesEqual(numQuad_out,numElements)) {
-        setError(TYPE_ERROR, "Assemble_AverageElementData: illegal number of samples of output Data object");
+        throw escript::ValueError("Assemble_AverageElementData: illegal number of samples of output Data object");
     } else if (!out.actsExpanded()) {
-        setError(TYPE_ERROR, "Assemble_AverageElementData: expanded Data object is expected for output data.");
+        throw escript::ValueError("Assemble_AverageElementData: expanded Data object is expected for output data.");
     } else {
         if (in.actsExpanded()) {
             double vol=0.;

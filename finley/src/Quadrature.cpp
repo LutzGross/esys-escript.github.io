@@ -349,8 +349,6 @@ void Quad_getNodesTri(int numQuadNodes, std::vector<double>& quadNodes, std::vec
     } else {
         // get scheme on [0.1]^2
         Quad_getNodesRec(numQuadNodes, quadNodes, quadWeights);
-        if (!noError())
-            return;
 
         // squeeze it:
         for (int i=0; i<numQuadNodes; i++) {
@@ -958,8 +956,6 @@ void Quad_getNodesTet(int numQuadNodes, std::vector<double>& quadNodes, std::vec
     } else {
         // get scheme on [0.1]^3
         Quad_getNodesHex(numQuadNodes, quadNodes, quadWeights);
-        if (!noError())
-            return;
 
         // squeeze it:
         for (int i=0; i<numQuadNodes; i++) {
@@ -1003,19 +999,17 @@ void Quad_getNodesRec(int numQuadNodes, std::vector<double>& quadNodes, std::vec
             Quad_getNodesLine(numQuadNodes1d, quadNodes1d, quadWeights1d);
 
             // make 2D scheme:
-            if (noError()) {
-                int l=0;
-                for (int i=0; i<numQuadNodes1d; i++) {
-                    for (int j=0; j<numQuadNodes1d; j++) {
-                        QUADNODES(0,l)=quadNodes1d[i];
-                        QUADNODES(1,l)=quadNodes1d[j];
-                        QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j];
-                        l++;
-                    }
+            int l=0;
+            for (int i=0; i<numQuadNodes1d; i++) {
+                for (int j=0; j<numQuadNodes1d; j++) {
+                    QUADNODES(0,l)=quadNodes1d[i];
+                    QUADNODES(1,l)=quadNodes1d[j];
+                    QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j];
+                    l++;
                 }
-                set=true;
-                break;
             }
+            set=true;
+            break;
         }
     }
     if (!set) {
@@ -1044,22 +1038,20 @@ void Quad_getNodesHex(int numQuadNodes, std::vector<double>& quadNodes, std::vec
             Quad_getNodesLine(numQuadNodes1d, quadNodes1d, quadWeights1d);
 
             // make 3D scheme:
-            if (noError()) {
-                int l=0;
-                for (int i=0; i<numQuadNodes1d; i++) {
-                    for (int j=0; j<numQuadNodes1d; j++) {
-                        for (int k=0; k<numQuadNodes1d; k++) {
-                            QUADNODES(0,l)=quadNodes1d[i];
-                            QUADNODES(1,l)=quadNodes1d[j];
-                            QUADNODES(2,l)=quadNodes1d[k];
-                            QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j]*quadWeights1d[k];
-                            l++;
-                        }
+            int l=0;
+            for (int i=0; i<numQuadNodes1d; i++) {
+                for (int j=0; j<numQuadNodes1d; j++) {
+                    for (int k=0; k<numQuadNodes1d; k++) {
+                        QUADNODES(0,l)=quadNodes1d[i];
+                        QUADNODES(1,l)=quadNodes1d[j];
+                        QUADNODES(2,l)=quadNodes1d[k];
+                        QUADWEIGHTS(l)=quadWeights1d[i]*quadWeights1d[j]*quadWeights1d[k];
+                        l++;
                     }
                 }
-                set=true;
-                break;
             }
+            set=true;
+            break;
         }
     }
     if (!set) {
@@ -1281,22 +1273,14 @@ int Quad_getNumNodesTri(int order)
         return 19;
     } else {
         const int numQuadNodesLine=Quad_getNumNodesLine(order+1);
-        if (noError()) {
-            return numQuadNodesLine*numQuadNodesLine;
-        } else {
-            return -1;
-        }
+        return numQuadNodesLine*numQuadNodesLine;
     }
 }
 
 int Quad_getNumNodesRec(int order)
 {
     const int numQuadNodesLine=Quad_getNumNodesLine(order);
-    if (noError()) {
-        return numQuadNodesLine*numQuadNodesLine;
-    } else {
-        return -1;
-    }
+    return numQuadNodesLine*numQuadNodesLine;
 }
 
 int Quad_getNumNodesTet(int order)
@@ -1319,22 +1303,14 @@ int Quad_getNumNodesTet(int order)
         return 45;
     } else {
         const int numQuadNodesLine=Quad_getNumNodesLine(order+2);
-        if (noError()) {
-            return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
-        } else {
-            return -1;
-        }
+        return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
     }
 }
 
 int Quad_getNumNodesHex(int order)
 {
     const int numQuadNodesLine=Quad_getNumNodesLine(order);
-    if (noError()) {
-        return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
-    } else {
-        return -1;
-    }
+    return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
 }
 
 int Quad_MacroPoint(int numSubElements, int numQuadNodes,
@@ -1383,8 +1359,7 @@ int Quad_MacroTri(int numSubElements, int numQuadNodes,
 {
 #define DIM 2
     if (new_len < numSubElements*numQuadNodes) {
-        setError(MEMORY_ERROR, "Quad_MacroTri: array for new quadrature scheme is too small");
-        return -1;
+        throw FinleyException("Quad_MacroTri: array for new quadrature scheme is too small");
     }
 
     if (numSubElements==1) {
@@ -1442,8 +1417,7 @@ int Quad_MacroTri(int numSubElements, int numQuadNodes,
             }
         }
     } else {
-        setError(VALUE_ERROR,"Quad_MacroTri: unable to create quadrature scheme for macro element.");
-        return -1;
+        throw escript::ValueError("Quad_MacroTri: unable to create quadrature scheme for macro element.");
     }
     return numSubElements*numQuadNodes;
 #undef DIM
@@ -1457,8 +1431,7 @@ int Quad_MacroRec(int numSubElements, int numQuadNodes,
 {
 #define DIM 2
     if (new_len < numSubElements*numQuadNodes) {
-        setError(MEMORY_ERROR, "Quad_MacroRec: array for new quadrature scheme is too small");
-        return -1;
+        throw FinleyException("Quad_MacroRec: array for new quadrature scheme is too small");
     }
 
     if (numSubElements==1) {
@@ -1516,8 +1489,7 @@ int Quad_MacroRec(int numSubElements, int numQuadNodes,
             }
         }
     } else {
-        setError(VALUE_ERROR, "Quad_MacroRec: unable to create quadrature scheme for macro element.");
-        return -1;
+        throw escript::ValueError("Quad_MacroRec: unable to create quadrature scheme for macro element.");
     }
     return numSubElements*numQuadNodes;
 #undef DIM
@@ -1530,8 +1502,7 @@ int Quad_MacroTet(int numSubElements, int numQuadNodes, const double* quadNodes,
 {
 #define DIM 3
     if (new_len < numSubElements*numQuadNodes) {
-        setError(MEMORY_ERROR, "Quad_MacroTet: array for new quadrature scheme is too small");
-        return -1;
+        throw FinleyException("Quad_MacroTet: array for new quadrature scheme is too small");
     }
 
     if (numSubElements==1) {
@@ -1639,8 +1610,7 @@ int Quad_MacroTet(int numSubElements, int numQuadNodes, const double* quadNodes,
             }
         }
     } else {
-        setError(VALUE_ERROR, "Quad_MacroTet: unable to create quadrature scheme for macro element.");
-        return -1;
+        throw escript::ValueError("Quad_MacroTet: unable to create quadrature scheme for macro element.");
     }
     return numSubElements*numQuadNodes;
 #undef DIM
@@ -1653,8 +1623,7 @@ int Quad_MacroHex(int numSubElements, int numQuadNodes, const double* quadNodes,
 {
 #define DIM 3
     if (new_len < numSubElements*numQuadNodes) {
-        setError(MEMORY_ERROR, "Quad_MacroHex: array for new quadrature scheme is too small");
-        return -1;
+        throw FinleyException("Quad_MacroHex: array for new quadrature scheme is too small");
     }
 
     if (numSubElements==1) {
@@ -1762,8 +1731,7 @@ int Quad_MacroHex(int numSubElements, int numQuadNodes, const double* quadNodes,
             }
         }
     } else {
-        setError(VALUE_ERROR, "Quad_MacroHex: unable to create quadrature scheme for macro element.");
-        return -1;
+        throw escript::ValueError("Quad_MacroHex: unable to create quadrature scheme for macro element.");
     }
     return numSubElements*numQuadNodes;
 #undef DIM

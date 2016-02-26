@@ -39,8 +39,6 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
                            bool useHRZ)
 {
-    resetError();
-
     if (!nodes || !elements || lumpedMat.isEmpty() || D.isEmpty())
         return;
 
@@ -58,15 +56,12 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
     } else if (funcspace==FINLEY_POINTS)  {
         reducedOrder=true;
     } else {
-        setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
-        return;
+        throw escript::ValueError("Assemble_LumpedSystem: assemblage failed because of illegal function space.");
     }
 
     // initialize parameters
     AssembleParameters p(nodes, elements, paso::SystemMatrix_ptr(), lumpedMat,
                          reducedOrder);
-    if (!noError())
-        return;
 
     // check if all function spaces are the same
     if (!D.numSamplesEqual(p.numQuadTotal, elements->numElements) ) {
@@ -74,17 +69,15 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
         ss << "Assemble_LumpedSystem: sample points of coefficient D "
             "don't match (" << p.numQuadSub << "," << elements->numElements
             << ").";
-        std::string errorMsg = ss.str();
-        setError(TYPE_ERROR, errorMsg.c_str());
-        return;
+        const std::string errorMsg = ss.str();
+        throw escript::ValueError(errorMsg);
     }
 
     // check the dimensions:
     if (p.numEqu==1) {
         const escript::DataTypes::ShapeType dimensions; //dummy
         if (D.getDataPointShape() != dimensions) {
-            setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficient D, rank 0 expected.");
-            return;
+            throw escript::ValueError("Assemble_LumpedSystem: coefficient D, rank 0 expected.");
         }
     } else {
         const escript::DataTypes::ShapeType dimensions(1, p.numEqu);
@@ -92,9 +85,8 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
             std::stringstream ss;
             ss << "Assemble_LumpedSystem: coefficient D does not have "
                 "expected shape (" << p.numEqu << ",).";
-            std::string errorMsg = ss.str();
-            setError(TYPE_ERROR, errorMsg.c_str());
-            return;
+            const std::string errorMsg = ss.str();
+            throw escript::ValueError(errorMsg);
         }
     }
 

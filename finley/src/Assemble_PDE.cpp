@@ -61,8 +61,8 @@ inline void setNumSamplesError(const char* c, int n0, int n1)
     std::stringstream ss;
     ss << "Assemble_PDE: number of sample points of coefficient " << c
         << " don't match (" << n0 << "," << n1 << ").";
-    std::string errorMsg(ss.str());
-    setError(TYPE_ERROR, errorMsg.c_str());
+    const std::string errorMsg(ss.str());
+    throw escript::ValueError(errorMsg);
 }
 
 inline void setShapeError(const char* c, int num, const int *dims)
@@ -80,8 +80,8 @@ inline void setShapeError(const char* c, int num, const int *dims)
        }
     }
     ss << ").";
-    std::string errorMsg(ss.str());
-    setError(TYPE_ERROR, errorMsg.c_str());
+    const std::string errorMsg(ss.str());
+    throw escript::ValueError(errorMsg);
 }
 
 void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
@@ -90,18 +90,15 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y)
 {
-    resetError();
     if (!nodes || !elements || (S.get()==NULL && F.isEmpty()))
         return;
 
     if (F.isEmpty() && (!X.isEmpty() || !Y.isEmpty())) {
-        setError(TYPE_ERROR, "Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
-        return;
+        throw escript::ValueError("Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
     }
 
     if (S==NULL && !A.isEmpty() && !B.isEmpty() && !C.isEmpty() && !D.isEmpty()) {
-        setError(TYPE_ERROR, "Assemble_PDE: coefficients are non-zero but no matrix is given.");
-        return;
+        throw escript::ValueError("Assemble_PDE: coefficients are non-zero but no matrix is given.");
     }
 
     // get the function space for this assemblage call
@@ -117,20 +114,18 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
 
     // check if all function spaces are the same
     if (!A.isEmpty() && A.getFunctionSpace().getTypeCode()!=funcspace) {
-        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient A");
+        throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient A");
     } else if (!B.isEmpty() && B.getFunctionSpace().getTypeCode()!=funcspace) {
-        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient B");
+        throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient B");
     } else if (!C.isEmpty() && C.getFunctionSpace().getTypeCode()!=funcspace) {
-        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient C");
+        throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient C");
     } else if (!D.isEmpty() && D.getFunctionSpace().getTypeCode()!=funcspace) {
-        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient D");
+        throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient D");
     } else if (!X.isEmpty() && X.getFunctionSpace().getTypeCode()!=funcspace) {
-        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient X");
+        throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient X");
     } else if (!Y.isEmpty() && Y.getFunctionSpace().getTypeCode()!=funcspace) {
-        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient Y");
+        throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient Y");
     }
-    if (!noError())
-        return;
 
     bool reducedIntegrationOrder;
     if (funcspace==FINLEY_ELEMENTS) {
@@ -152,14 +147,12 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     } else if (funcspace==FINLEY_POINTS)  {
        reducedIntegrationOrder=false;
     } else {
-       setError(TYPE_ERROR, "Assemble_PDE: assemblage failed because of illegal function space.");
+       throw escript::ValueError("Assemble_PDE: assemblage failed because of illegal function space.");
        return;
     }
 
     // get assemblage parameters
     AssembleParameters p(nodes, elements, S, F, reducedIntegrationOrder);
-    if (!noError())
-        return;
 
     // check if sample numbers are the same
     if (!A.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
@@ -175,12 +168,10 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     } else if (!Y.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("Y", p.numQuadTotal, elements->numElements);
     }
-    if (!noError())
-        return;
 
     // check the dimensions:
     if (p.numEqu != p. numComp) {
-        setError(VALUE_ERROR, "Assemble_PDE requires number of equations == number of solutions.");
+        throw escript::ValueError("Assemble_PDE requires number of equations == number of solutions.");
     } else if (p.numEqu==1) {
         const int dimensions[2] = { p.numDim, p.numDim };
         if (!A.isDataPointShapeEqual(2, dimensions)) {
@@ -190,11 +181,11 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
         } else if (!C.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("C", 1, dimensions);
         } else if (!D.isDataPointShapeEqual(0, dimensions)) {
-            setError(TYPE_ERROR, "Assemble_PDE: coefficient D must be rank 0.");
+            throw escript::ValueError("Assemble_PDE: coefficient D must be rank 0.");
         } else if (!X.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("X", 1, dimensions);
         } else if (!Y.isDataPointShapeEqual(0, dimensions)) {
-            setError(TYPE_ERROR, "Assemble_PDE: coefficient Y must be rank 0.");
+            throw escript::ValueError("Assemble_PDE: coefficient Y must be rank 0.");
         }
     } else {
         const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
@@ -213,13 +204,11 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             setShapeError("Y", 1, dimAB);
         }
     }
-    if (!noError())
-        return;
 
     if (p.numSides == 1) {
         if (funcspace==FINLEY_POINTS) {
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
-                setError(TYPE_ERROR, "Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                throw escript::ValueError("Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
                 Assemble_PDE_Points(p, D, Y);
             }
@@ -231,7 +220,7 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             } else if (p.numDim==1) {
                 Assemble_PDE_System_1D(p, A, B, C, D, X, Y);
             } else {
-                setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
+                throw escript::ValueError("Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         } else { // single PDE
             if (p.numDim==3) {
@@ -241,19 +230,19 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             } else if (p.numDim==1) {
                 Assemble_PDE_Single_1D(p, A, B, C, D, X, Y);
             } else {
-                setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
+                throw escript::ValueError("Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         }
     } else if (p.numSides == 2) {
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
-            setError(TYPE_ERROR, "Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+            throw escript::ValueError("Assemble_PDE: Contact elements require A, B, C and X to be empty.");
         } else if (p.numEqu > 1) { // system of PDEs
             Assemble_PDE_System_C(p, D, Y);
         } else { // single PDE
             Assemble_PDE_Single_C(p, D, Y);
         }
     } else {
-        setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+        throw escript::ValueError("Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
     }
 }
 

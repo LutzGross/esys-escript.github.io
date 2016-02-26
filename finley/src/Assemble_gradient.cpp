@@ -33,7 +33,6 @@ namespace finley {
 void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                        escript::Data& grad_data, const escript::Data& data)
 {
-    resetError();
     if (!nodes || !elements)
         return;
 
@@ -51,19 +50,18 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
         numNodes = nodes->getNumReducedNodes();
     } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            setError(TYPE_ERROR, "Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
-            return;
+            throw escript::ValueError("Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
         }
         numNodes = nodes->getNumDegreesOfFreedom();
     } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            setError(TYPE_ERROR, "Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
+            throw escript::ValueError("Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
         reducedShapefunction = true;
         numNodes = nodes->getNumReducedDegreesOfFreedom();
     } else {
-        setError(TYPE_ERROR, "Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
+        throw escript::ValueError("Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
         return;
     }
 
@@ -80,39 +78,34 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
     int s_offset=0;
     const int *nodes_selector=NULL;
   
-    if (noError()) {
-        const int grad_data_type=grad_data.getFunctionSpace().getTypeCode();
-        if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
-            s_offset=jac->offsets[1];
-            s_offset=jac->offsets[1];
-        } else {
-            s_offset=jac->offsets[0];
-            s_offset=jac->offsets[0];
-        }
-        if (data_type==FINLEY_REDUCED_NODES || data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-            nodes_selector=refElement->Type->linearNodes;
-            numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes * refElement->Type->numSides;
-        } else { 
-            nodes_selector=refElement->Type->subElementNodes;
-            numShapesTotal2=refElement->BasisFunctions->Type->numShapes * refElement->Type->numSides;
-        }
-
-        // check the dimensions of data
-        if (!grad_data.numSamplesEqual(numQuad*numSub, elements->numElements)) {
-            setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples in gradient Data object");
-        } else if (!data.numSamplesEqual(1, numNodes)) {
-            setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples of input Data object");
-        } else if (numDim*numComps != grad_data.getDataPointSize()) {
-            setError(TYPE_ERROR, "Assemble_gradient: illegal number of components in gradient data object.");
-        } else if (!grad_data.actsExpanded()) {
-            setError(TYPE_ERROR, "Assemble_gradient: expanded Data object is expected for output data.");
-        } else if (!(s_offset+numShapes <= numShapesTotal)) {
-            setError(SYSTEM_ERROR, "Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
-        }
+    const int grad_data_type=grad_data.getFunctionSpace().getTypeCode();
+    if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
+        s_offset=jac->offsets[1];
+        s_offset=jac->offsets[1];
+    } else {
+        s_offset=jac->offsets[0];
+        s_offset=jac->offsets[0];
+    }
+    if (data_type==FINLEY_REDUCED_NODES || data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+        nodes_selector=refElement->Type->linearNodes;
+        numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes * refElement->Type->numSides;
+    } else { 
+        nodes_selector=refElement->Type->subElementNodes;
+        numShapesTotal2=refElement->BasisFunctions->Type->numShapes * refElement->Type->numSides;
     }
 
-    if (!noError())
-        return;
+    // check the dimensions of data
+    if (!grad_data.numSamplesEqual(numQuad*numSub, elements->numElements)) {
+        throw escript::ValueError("Assemble_gradient: illegal number of samples in gradient Data object");
+    } else if (!data.numSamplesEqual(1, numNodes)) {
+        throw escript::ValueError("Assemble_gradient: illegal number of samples of input Data object");
+    } else if (numDim*numComps != grad_data.getDataPointSize()) {
+        throw escript::ValueError("Assemble_gradient: illegal number of components in gradient data object.");
+    } else if (!grad_data.actsExpanded()) {
+        throw escript::ValueError("Assemble_gradient: expanded Data object is expected for output data.");
+    } else if (!(s_offset+numShapes <= numShapesTotal)) {
+        throw escript::ValueError("Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
+    }
 
     const size_t localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
     grad_data.requireWrite();

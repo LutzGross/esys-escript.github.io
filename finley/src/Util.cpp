@@ -120,8 +120,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                     det[q]=D;
                     invA[q]=1./D;
                 } else {
-                    setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
-                    break;
+                    throw escript::ValueError("InvertSmallMat: Non-regular matrix");
                 }
             }
             break;
@@ -141,8 +140,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                     invA[INDEX3(0,1,q,2,2)]=-A12/D;
                     invA[INDEX3(1,1,q,2,2)]= A11/D;
                 } else {
-                    setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
-                    break;
+                    throw escript::ValueError("InvertSmallMat: Non-regular matrix");
                 }
             }
             break;
@@ -172,14 +170,13 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                     invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)/D;
                     invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)/D;
                 } else {
-                    setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
-                    break;
+                    throw escript::ValueError("InvertSmallMat: Non-regular matrix");
                 }
             }
             break;
 
         default:
-            setError(VALUE_ERROR, "InvertSmallMat: dim must be <=3");
+            throw escript::ValueError("InvertSmallMat: dim must be <=3");
             break;
     }
 }
@@ -201,8 +198,7 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
                 A21=A[INDEX3(1,0,q,2,dim1)];
                 length = sqrt(A11*A11+A21*A21);
                 if (length <= 0) {
-                    setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
-                    return;
+                    throw FinleyException("normalVector: area equals zero.");
                 } else {
                     invlength=1./length;
                     Normal[INDEX2(0,q,2)]=A21*invlength;
@@ -223,8 +219,7 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
                 CO_A33=A11*A22-A21*A12;
                 length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
                 if (length <= 0) {
-                    setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
-                    return;
+                    throw FinleyException("normalVector: area equals zero.");
                 } else {
                     invlength=1./length;
                     Normal[INDEX2(0,q,3)]=CO_A13*invlength;

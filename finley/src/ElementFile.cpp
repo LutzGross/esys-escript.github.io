@@ -116,8 +116,7 @@ void ElementFile::copyTable(index_t offset, index_t nodeOffset,
 {
     const int NN_in=in->numNodes;
     if (NN_in > numNodes) {
-        setError(TYPE_ERROR, "ElementFile::copyTable: dimensions of element files don't match.");
-        return;
+        throw escript::ValueError("ElementFile::copyTable: dimensions of element files don't match.");
     }
 
 #pragma omp parallel for
@@ -190,21 +189,19 @@ void ElementFile::optimizeOrdering()
     index_t *index=new index_t[numElements];
     ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
     out->allocTable(numElements);
-    if (noError()) {
 #pragma omp parallel for
-        for (index_t e=0; e<numElements; e++) {
-            std::pair<index_t,index_t> entry(Nodes[INDEX2(0,e,NN)], e);
-            for (int i=1; i<NN; i++)
-                entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
-            item_list[e] = entry;
-        }
-        util::sortValueAndIndex(item_list);
-#pragma omp parallel for
-        for (index_t e=0; e<numElements; e++)
-            index[e]=item_list[e].second;
-        out->gather(index, this);
-        swapTable(out);
+    for (index_t e=0; e<numElements; e++) {
+        std::pair<index_t,index_t> entry(Nodes[INDEX2(0,e,NN)], e);
+        for (int i=1; i<NN; i++)
+            entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
+        item_list[e] = entry;
     }
+    util::sortValueAndIndex(item_list);
+#pragma omp parallel for
+    for (index_t e=0; e<numElements; e++)
+        index[e]=item_list[e].second;
+    out->gather(index, this);
+    swapTable(out);
     delete out;
     delete[] index;
 }
@@ -224,18 +221,14 @@ void ElementFile::relabelNodes(const std::vector<index_t>& newNode, index_t offs
 
 void ElementFile::setTags(int newTag, const escript::Data& mask)
 {
-    resetError();
-
     const int numQuad=referenceElementSet->borrowReferenceElement(
             util::hasReducedIntegrationOrder(mask))
             ->Parametrization->numQuadNodes; 
     if (1 != mask.getDataPointSize()) {
-        setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
-        return;
+        throw escript::ValueError("ElementFile::setTags: number of components of mask must be 1.");
     } else if (mask.getNumDataPointsPerSample() != numQuad ||
             mask.getNumSamples() != numElements) {
-        setError(TYPE_ERROR, "ElementFile::setTags: illegal number of samples of mask Data object");
-        return;
+        throw escript::ValueError("ElementFile::setTags: illegal number of samples of mask Data object");
     }
 
     if (mask.actsExpanded()) {

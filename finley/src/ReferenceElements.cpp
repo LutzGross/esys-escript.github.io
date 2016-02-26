@@ -629,10 +629,8 @@ ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
                 &BasisFunctions->dSdv[0],
                 numQuadNodes*nsub, &quadNodes2[0], &quadWeights2[0],
                 DBasisFunctionDv);
-        if (noError()) {
-            Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
-            LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
-        }
+        Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
+        LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
     } else {
         Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes*nsub, quadNodes, quadWeights));
         BasisFunctions.reset(new ShapeFunction(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));

@@ -29,23 +29,17 @@ struct ReferenceElementSet {
         const ReferenceElementInfo* id_info = ReferenceElement::getInfo(id);
         const ShapeFunctionInfo* bf_info = ShapeFunction::getInfo(
                                                     id_info->BasisFunctions);
-        if (!noError()) return;
-
         if (order<0)
             order=std::max(2*bf_info->numOrder, 0);
 
         referenceElement.reset(new ReferenceElement(id, order));
-        if (noError()) {
-            if (reduced_order<0)
-                reduced_order=std::max(2*(bf_info->numOrder-1), 0);
-            referenceElementReducedQuadrature.reset(
-                    new ReferenceElement(id, reduced_order));
-        }
+        if (reduced_order<0)
+            reduced_order=std::max(2*(bf_info->numOrder-1), 0);
+        referenceElementReducedQuadrature.reset(new ReferenceElement(id,
+                                                             reduced_order));
 
-        if (noError()) {
-            if (referenceElement->getNumNodes() != referenceElementReducedQuadrature->getNumNodes()) {
-                throw escript::ValueError("ReferenceElementSet: numNodes in referenceElement and referenceElementReducedQuadrature don't match.");
-            }
+        if (referenceElement->getNumNodes() != referenceElementReducedQuadrature->getNumNodes()) {
+            throw escript::ValueError("ReferenceElementSet: numNodes in referenceElement and referenceElementReducedQuadrature don't match.");
         }
     }
 

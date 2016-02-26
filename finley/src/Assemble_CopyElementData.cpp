@@ -33,7 +33,6 @@ namespace finley {
 void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in)
 {
-    resetError();
     if (!elements)
         return;
 
@@ -48,13 +47,13 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
     const int numComps=out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
-        setError(TYPE_ERROR,"Assemble_CopyElementData: number of components of input and output Data do not match.");
+        throw escript::ValueError("Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!in.numSamplesEqual(numQuad,numElements)) {
-        setError(TYPE_ERROR,"Assemble_CopyElementData: illegal number of samples of input Data object");
+        throw escript::ValueError("Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!out.numSamplesEqual(numQuad,numElements)) {
-        setError(TYPE_ERROR,"Assemble_CopyElementData: illegal number of samples of output Data object");
+        throw escript::ValueError("Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!out.actsExpanded()) {
-        setError(TYPE_ERROR,"Assemble_CopyElementData: expanded Data object is expected for output data.");
+        throw escript::ValueError("Assemble_CopyElementData: expanded Data object is expected for output data.");
     } else {
         if (in.actsExpanded()) {
             const size_t len_size=numComps*numQuad*sizeof(double);

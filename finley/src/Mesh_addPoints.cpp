@@ -257,12 +257,8 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
     // all done, clean up
     delete[] node_id_p;
     delete[] point_index_p;
-    if (noError()) {
-        delete oldPoints;
-        Points=newPoints;
-    } else {
-        delete newPoints;
-    }
+    delete oldPoints;
+    Points=newPoints;
 }
 
 } // namespace finley
