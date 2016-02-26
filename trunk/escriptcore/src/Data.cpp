@@ -2067,7 +2067,6 @@ Data::lazyAlgWorker(real_t init)
 bool
 Data::hasNaN()
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -2079,7 +2078,6 @@ Data::hasNaN()
 void
 Data::replaceNaN(real_t value)
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -2087,8 +2085,29 @@ Data::replaceNaN(real_t value)
     getReady()->replaceNaN(value); 
 }
 
+void
+Data::replaceNaN(cplx_t value)
+{
+    if (isLazy())
+    {
+        resolve();
+    }
+    getReady()->replaceNaN(value); 
+}
 
-
+void
+Data::replaceNaNPython(boost::python::object obj)
+{
+    boost::python::extract<DataTypes::real_t> exr(obj);
+    if (exr.check())
+    {
+	replaceNaN(exr());
+    }
+    else
+    {
+	replaceNaN(boost::python::extract<DataTypes::cplx_t>(obj)());
+    }
+}
 
 // Do not call this on Lazy Data use the proper entry point
 real_t

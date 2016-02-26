@@ -700,7 +700,7 @@ DataTagged::hasNaN() const
   if (isComplex())
   {
       #pragma omp parallel for
-      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
       {
           if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
           {
@@ -734,7 +734,7 @@ DataTagged::replaceNaN(double value) {
   if (isComplex())
   {
       #pragma omp parallel for
-      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
       {
         if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
         {
@@ -761,7 +761,7 @@ DataTagged::replaceNaN(DataTypes::cplx_t value) {
   if (isComplex())
   {
       #pragma omp parallel for
-      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
       {
         if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag())) 
         {

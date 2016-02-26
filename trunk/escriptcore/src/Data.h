@@ -374,6 +374,23 @@ class Data {
   ESCRIPT_DLL_API
   void
   replaceNaN(DataTypes::real_t value);
+  
+  /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(DataTypes::cplx_t value);  
+  
+  /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceNaNPython(boost::python::object obj);  
+
+
+  
 
   /**
    \brief Ensures data is ready for write access.
