@@ -26,6 +26,7 @@ bool supports_cplx(escript::ESFunction operation)
 {
     switch (operation)
     {
+    case NEGF:
     case SINF: 
     case COSF: 
     case TANF: 

@@ -1851,9 +1851,8 @@ Data::abs() const
 Data
 Data::neg() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(NEG);
-    return C_TensorUnaryOperation(*this, negate<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::NEGF);
 }
 
 Data
@@ -1871,9 +1870,8 @@ Data::pos() const
 Data
 Data::exp() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(EXP);
-    return C_TensorUnaryOperation(*this, exp_func<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::EXPF);
 }
 
 Data
