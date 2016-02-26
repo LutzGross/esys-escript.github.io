@@ -68,7 +68,7 @@ public:
 
 private:
     DataMap c;
-    boost::shared_ptr<const Rectangle> domain;
+    POINTER_WRAPPER_CLASS(const Rectangle) domain;
     const double *m_dx;
     const dim_t *m_NE;
     const dim_t *m_NN;

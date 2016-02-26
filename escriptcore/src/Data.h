@@ -2042,7 +2042,7 @@ inline
 DataReady_ptr
 Data::getReadyPtr()
 {
-   DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
+   DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
    ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
 }
@@ -2052,7 +2052,7 @@ inline
 const_DataReady_ptr
 Data::getReadyPtr() const
 {
-   const_DataReady_ptr dr=boost::dynamic_pointer_cast<const DataReady>(m_data);
+   const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
    ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
 }

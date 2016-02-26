@@ -44,7 +44,7 @@ namespace escript
  *   world 2:  v+=1   --- local v=1+9
  * What is the value of v? 20, not 11
 */
-class SubWorld : public boost::enable_shared_from_this<SubWorld>
+class SubWorld : public REFCOUNT_BASE_CLASS(SubWorld)
 {
 public:
     SubWorld(esysUtils::JMPI& globalcom, esysUtils::JMPI& comm,

@@ -31,6 +31,8 @@
 
 #define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>
 
+#define REFCOUNTNS	boost
+
 
 #include REFCOUNT_BASE_FILE
 
