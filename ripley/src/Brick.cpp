@@ -50,6 +50,8 @@ namespace bp = boost::python;
 namespace bm = boost::math;
 using escript::AbstractSystemMatrix;
 using escript::FileWriter;
+using escript::NotImplementedError;
+using escript::ValueError;
 using std::vector;
 using std::string;
 using std::min;
@@ -85,7 +87,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
                 "limit may be raised in future releases.");
 
     if (n0 <= 0 || n1 <= 0 || n2 <= 0)
-        throw RipleyException("Number of elements in each spatial dimension "
+        throw ValueError("Number of elements in each spatial dimension "
                 "must be positive");
 
     // ignore subdivision parameters for serial run
@@ -108,7 +110,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
             }
             epr[i] = -1; // can no longer be max
             if (ranks % d[i] != 0) {
-                throw RipleyException("Invalid number of spatial subdivisions");
+                throw ValueError("Invalid number of spatial subdivisions");
             }
             //remove
             ranks /= d[i];
@@ -130,7 +132,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
     if (d0*d1*d2 != m_mpiInfo->size){
-        throw RipleyException("Invalid number of spatial subdivisions");
+        throw ValueError("Invalid number of spatial subdivisions");
     }
     if (warn) {
         std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
@@ -164,7 +166,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2) || (d2 > 1 && (n2+1)/d2<2))
-        throw RipleyException("Too few elements for the number of ranks");
+        throw ValueError("Too few elements for the number of ranks");
 
     m_gNE[0] = n0;
     m_gNE[1] = n1;
@@ -262,19 +264,19 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
         myN1 = m_NE[1];
         myN2 = m_NE[2];
     } else
-        throw RipleyException("readNcGrid(): invalid function space for output data object");
+        throw ValueError("readNcGrid(): invalid function space for output data object");
 
     if (params.first.size() != 3)
-        throw RipleyException("readNcGrid(): argument 'first' must have 3 entries");
+        throw ValueError("readNcGrid(): argument 'first' must have 3 entries");
 
     if (params.numValues.size() != 3)
-        throw RipleyException("readNcGrid(): argument 'numValues' must have 3 entries");
+        throw ValueError("readNcGrid(): argument 'numValues' must have 3 entries");
 
     if (params.multiplier.size() != 3)
-        throw RipleyException("readNcGrid(): argument 'multiplier' must have 3 entries");
+        throw ValueError("readNcGrid(): argument 'multiplier' must have 3 entries");
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
-            throw RipleyException("readNcGrid(): all multipliers must be positive");
+            throw ValueError("readNcGrid(): all multipliers must be positive");
 
     // check file existence and size
     NcFile f(filename.c_str(), NcFile::ReadOnly);
@@ -410,7 +412,7 @@ void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
             readBinaryGridZippedImpl<double>(out, filename, params);
             break;
         default:
-            throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
+            throw ValueError("readBinaryGrid(): invalid or unsupported datatype");
     }
 }
 #endif
@@ -431,7 +433,7 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
             readBinaryGridImpl<double>(out, filename, params);
             break;
         default:
-            throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
+            throw ValueError("readBinaryGrid(): invalid or unsupported datatype");
     }
 }
 
@@ -451,19 +453,19 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
         myN1 = m_NE[1];
         myN2 = m_NE[2];
     } else
-        throw RipleyException("readBinaryGrid(): invalid function space for output data object");
+        throw ValueError("readBinaryGrid(): invalid function space for output data object");
 
     if (params.first.size() != 3)
-        throw RipleyException("readBinaryGrid(): argument 'first' must have 3 entries");
+        throw ValueError("readBinaryGrid(): argument 'first' must have 3 entries");
 
     if (params.numValues.size() != 3)
-        throw RipleyException("readBinaryGrid(): argument 'numValues' must have 3 entries");
+        throw ValueError("readBinaryGrid(): argument 'numValues' must have 3 entries");
 
     if (params.multiplier.size() != 3)
-        throw RipleyException("readBinaryGrid(): argument 'multiplier' must have 3 entries");
+        throw ValueError("readBinaryGrid(): argument 'multiplier' must have 3 entries");
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
-            throw RipleyException("readBinaryGrid(): all multipliers must be positive");
+            throw ValueError("readBinaryGrid(): all multipliers must be positive");
     if (params.reverse[0] != 0 || params.reverse[1] != 0)
         throw RipleyException("readBinaryGrid(): reversing only supported in Z-direction currently");
 
@@ -608,19 +610,19 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
         myN1 = m_NE[1];
         myN2 = m_NE[2];
     } else
-        throw RipleyException("readBinaryGridFromZipped(): invalid function space for output data object");
+        throw ValueError("readBinaryGridFromZipped(): invalid function space for output data object");
 
     if (params.first.size() != 3)
-        throw RipleyException("readBinaryGridFromZipped(): argument 'first' must have 3 entries");
+        throw ValueError("readBinaryGridFromZipped(): argument 'first' must have 3 entries");
 
     if (params.numValues.size() != 3)
-        throw RipleyException("readBinaryGridFromZipped(): argument 'numValues' must have 3 entries");
+        throw ValueError("readBinaryGridFromZipped(): argument 'numValues' must have 3 entries");
 
     if (params.multiplier.size() != 3)
-        throw RipleyException("readBinaryGridFromZipped(): argument 'multiplier' must have 3 entries");
+        throw ValueError("readBinaryGridFromZipped(): argument 'multiplier' must have 3 entries");
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
-            throw RipleyException("readBinaryGridFromZipped(): all multipliers must be positive");
+            throw ValueError("readBinaryGridFromZipped(): all multipliers must be positive");
 
     // check file existence and size
     std::ifstream f(filename.c_str(), std::ifstream::binary);
@@ -726,7 +728,7 @@ void Brick::writeBinaryGrid(const escript::Data& in, string filename,
             writeBinaryGridImpl<double>(in, filename, byteOrder);
             break;
         default:
-            throw RipleyException("writeBinaryGrid(): invalid or unsupported datatype");
+            throw ValueError("writeBinaryGrid(): invalid or unsupported datatype");
     }
 }
 
@@ -990,7 +992,7 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
 
     std::stringstream msg;
     msg << "borrowSampleReferenceIDs: invalid function space type "<<fsType;
-    throw RipleyException(msg.str());
+    throw ValueError(msg.str());
 }
 
 bool Brick::ownSample(int fsType, index_t id) const
@@ -1043,7 +1045,7 @@ bool Brick::ownSample(int fsType, index_t id) const
 
     std::stringstream msg;
     msg << "ownSample: invalid function space type " << fsType;
-    throw RipleyException(msg.str());
+    throw ValueError(msg.str());
 }
 
 RankVector Brick::getOwnerVector(int fsType) const
@@ -1150,7 +1152,7 @@ RankVector Brick::getOwnerVector(int fsType) const
             }
         }
     } else {
-        throw RipleyException("getOwnerVector: only valid for element types");
+        throw ValueError("getOwnerVector: only valid for element types");
     }
 
     return owner;
@@ -1331,7 +1333,7 @@ void Brick::setToNormal(escript::Data& out) const
         std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
-        throw RipleyException(msg.str());
+        throw ValueError(msg.str());
     }
 }
 
@@ -1428,7 +1430,7 @@ void Brick::setToSize(escript::Data& out) const
         std::stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
-        throw RipleyException(msg.str());
+        throw ValueError(msg.str());
     }
 }
 
@@ -1454,9 +1456,9 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 {
     int numDim = m_numDim;
     if (!arg.isDataPointShapeEqual(1, &numDim))
-        throw RipleyException("setToX: Invalid Data object shape");
+        throw ValueError("setToX: Invalid Data object shape");
     if (!arg.numSamplesEqual(1, getNumNodes()))
-        throw RipleyException("setToX: Illegal number of samples in Data object");
+        throw ValueError("setToX: Illegal number of samples in Data object");
 
     const dim_t NN0 = m_NN[0];
     const dim_t NN1 = m_NN[1];
@@ -3350,7 +3352,7 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
 {
     int numvals=escript::DataTypes::noValues(shape);
     if (len(filter) > 0 && numvals != 1) {
-        throw RipleyException("Ripley only supports filters for scalar data.");
+        throw NotImplementedError("Ripley only supports filters for scalar data.");
     }
     escript::Data res = randomFillWorker(shape, seed, filter);
     if (res.getFunctionSpace()!=what) {
@@ -3411,20 +3413,20 @@ escript::Data Brick::randomFillWorker(
     } else if (len(filter) == 3) {
         bp::extract<string> ex(filter[0]);
         if (!ex.check() || (ex() != "gaussian")) {
-            throw RipleyException("Unsupported random filter for Brick.");
+            throw ValueError("Unsupported random filter for Brick.");
         }
         bp::extract<unsigned int> ex1(filter[1]);
         if (!ex1.check()) {
-            throw RipleyException("Radius of gaussian filter must be a positive integer.");
+            throw ValueError("Radius of gaussian filter must be a positive integer.");
         }
         radius=ex1();
         sigma=0.5;
         bp::extract<double> ex2(filter[2]);
         if (!ex2.check() || (sigma=ex2()) <= 0) {
-            throw RipleyException("Sigma must be a positive floating point number.");
+            throw ValueError("Sigma must be a positive floating point number.");
         }
     } else {
-        throw RipleyException("Unsupported random filter");
+        throw ValueError("Unsupported random filter");
     }
 
     // number of points in the internal region
@@ -3439,13 +3441,13 @@ escript::Data Brick::randomFillWorker(
     // That is, would not cross multiple ranks in MPI
 
     if (2*radius>=internal[0]-4) {
-        throw RipleyException("Radius of gaussian filter is too large for X dimension of a rank");
+        throw ValueError("Radius of gaussian filter is too large for X dimension of a rank");
     }
     if (2*radius>=internal[1]-4) {
-        throw RipleyException("Radius of gaussian filter is too large for Y dimension of a rank");
+        throw ValueError("Radius of gaussian filter is too large for Y dimension of a rank");
     }
     if (2*radius>=internal[2]-4) {
-        throw RipleyException("Radius of gaussian filter is too large for Z dimension of a rank");
+        throw ValueError("Radius of gaussian filter is too large for Z dimension of a rank");
     }
 
     double* src=new double[ext[0]*ext[1]*ext[2]*numvals];
@@ -3455,7 +3457,7 @@ escript::Data Brick::randomFillWorker(
     if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5)) {
         // since the dimensions are equal for all ranks, this exception
         // will be thrown on all ranks
-        throw RipleyException("Random Data in Ripley requires at least five elements per side per rank.");
+        throw ValueError("Random Data in Ripley requires at least five elements per side per rank.");
     }
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
