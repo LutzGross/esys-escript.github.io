@@ -63,7 +63,7 @@ bool supports_cplx(escript::ESFunction operation)
 
 bool always_real(escript::ESFunction operation)
 {
-    return ((operation==REALF) || (operation==IMAGF) || (operation==EQZEROF) || (operation==NEQZEROF));
+    return ((operation==REALF) || (operation==IMAGF) || (operation==EQZEROF) || (operation==NEQZEROF) || (operation==ABSF));
 }
 
 

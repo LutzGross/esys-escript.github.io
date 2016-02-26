@@ -3366,6 +3366,7 @@ C_TensorBinaryOperation(Data const &arg_0,
   return res;
 }
 
+/*
 template <typename UnaryFunction>
 Data
 C_TensorUnaryOperation(Data const &arg_0,
@@ -3452,7 +3453,7 @@ C_TensorUnaryOperation(Data const &arg_0,
 
   return res;
 }
-
+*/
 
 Data
 C_TensorUnaryOperation(Data const &arg_0,
