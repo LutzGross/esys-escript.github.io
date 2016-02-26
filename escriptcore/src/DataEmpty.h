@@ -150,10 +150,17 @@ typedef DataReady parent;
 
   ESCRIPT_DLL_API
   void
-  replaceNaN(double value)
+  replaceNaN(DataTypes::real_t value)
   {
   
   }
+  
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(DataTypes::cplx_t value)
+  {
+  
+  }  
 
  protected:
 
