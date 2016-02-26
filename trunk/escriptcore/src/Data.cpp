@@ -3541,7 +3541,7 @@ Data::borrowDataPtr() const
 DataReady_ptr
 Data::borrowReadyPtr() const
 {
-    DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
+    DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
     ESYS_ASSERT((dr!=0), "Error - casting to DataReady.");
     return dr;
 }

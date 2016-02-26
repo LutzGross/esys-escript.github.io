@@ -32,7 +32,7 @@ DataReady::DataReady(const FunctionSpace& what, const ShapeType& shape, bool isD
 DataReady_ptr 
 DataReady::resolve()
 {
-	return boost::dynamic_pointer_cast<DataReady>(this->getPtr());
+	return REFCOUNTNS::dynamic_pointer_cast<DataReady>(this->getPtr());
 }
 
 

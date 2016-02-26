@@ -36,7 +36,7 @@ public:
         m_NE(NE),
         m_NN(NN)
     {
-        domain = boost::static_pointer_cast<const Brick>(dom);
+        domain = REFCOUNTNS::static_pointer_cast<const Brick>(dom);
     }
 
     ~DefaultAssembler3D() {}
@@ -124,7 +124,7 @@ public:
                                    const DataMap& coefs) const;
 
 protected:
-    boost::shared_ptr<const Brick> domain;
+    POINTER_WRAPPER_CLASS(const Brick) domain;
     const double *m_dx;
     const dim_t *m_NE;
     const dim_t *m_NN;

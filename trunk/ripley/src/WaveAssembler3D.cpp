@@ -33,7 +33,7 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
     m_NE(NE),
     m_NN(NN)
 {
-    domain = boost::static_pointer_cast<const Brick>(dom);
+    domain = REFCOUNTNS::static_pointer_cast<const Brick>(dom);
     isHTI = isVTI = false;
     DataMap::const_iterator a = c.find("c12"), b = c.find("c23");
     if (c.find("c11") == c.end()
