@@ -981,6 +981,20 @@ inline void tensor_unary_operation_helper(const size_t size,
   }
 }
 
+template <typename IN>
+inline DataTypes::real_t abs_f(IN i)
+{
+    return fabs(i);
+}
+
+template <>
+inline DataTypes::real_t abs_f(DataTypes::cplx_t i)
+{
+    return abs(i);
+}
+
+
+
 
 // deals with unary operations which return real, regardless of
 // their input type
@@ -1012,11 +1026,18 @@ inline void tensor_unary_array_operation_real(const size_t size,
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = (fabs(arg1[i])>tol);
           }
-          break;          
+          break;
+    case ABSF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = abs_f(arg1[i]);
+          }
+          break;     	  
      default:
           throw DataException("Unsupported unary operation");      
    }  
 }
+
+
 
 template <typename OUT, typename IN>
 inline OUT conjugate(const IN i)
@@ -1064,7 +1085,6 @@ inline void tensor_unary_array_operation(const size_t size,
     case LOG10F: tensor_unary_operation_helper(size, arg1, argRes, log10_func<IN>()); break;
     case LOGF: tensor_unary_operation_helper(size, arg1, argRes, log_func<IN>()); break;
     case SIGNF: tensor_unary_operation_helper(size, arg1, argRes, sign_func<IN>()); break;
-    case ABSF: tensor_unary_operation_helper(size, arg1, argRes, abs_func<IN>()); break;
     case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
     case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
 

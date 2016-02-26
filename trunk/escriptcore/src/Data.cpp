@@ -1843,9 +1843,8 @@ Data::sign() const
 Data
 Data::abs() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ABS);
-    return C_TensorUnaryOperation(*this, abs_func<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ABSF);
 }
 
 Data
@@ -1877,9 +1876,8 @@ Data::exp() const
 Data
 Data::sqrt() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(SQRT);
-    return C_TensorUnaryOperation(*this, sqrt_func<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SQRTF);
 }
 
 real_t
