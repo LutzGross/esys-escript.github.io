@@ -16,11 +16,14 @@
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
-#include <esysUtils/index.h>
 #include <speckley/Brick.h>
 
+#include <escript/index.h>
+
 namespace speckley {
-void Brick::gradient_order2(escript::Data& out, const escript::Data& in) const {
+
+void Brick::gradient_order2(escript::Data& out, const escript::Data& in) const
+{
     const double lagrange_deriv_0[3] = {-1.50000000000000, -0.500000000000000, 0.500000000000000};
     const double lagrange_deriv_1[3] = {2.00000000000000, 0, -2.00000000000000};
     const double lagrange_deriv_2[3] = {-0.500000000000000, 0.500000000000000, 1.50000000000000};

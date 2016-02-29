@@ -95,10 +95,10 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     const double dt_T = dt_max_T;
     dt2 = dt;
     if (dt_R < LARGE_POSITIVE_FLOAT)
-        dt2 = MIN(dt_R*2, dt); // as we half the step size for the RT bit
+        dt2 = std::min(dt_R*2, dt); // as we half the step size for the RT bit
     if (dt_T < LARGE_POSITIVE_FLOAT) {
         if (options->ode_solver == PASO_LINEAR_CRANK_NICOLSON || options->ode_solver == PASO_CRANK_NICOLSON) {
-            dt2 = MIN(dt_T, dt);
+            dt2 = std::min(dt_T, dt);
         } // PASO_BACKWARD_EULER does not require a restriction
     }
 
@@ -215,7 +215,7 @@ double TransportProblem::getSafeTimeStepSize() const
             }
             #pragma omp critical
             {
-                fail = MAX(fail, fail_loc);
+                fail = std::max(fail, fail_loc);
             }
         }
 #ifdef ESYS_MPI
@@ -235,10 +235,10 @@ double TransportProblem::getSafeTimeStepSize() const
         dt_max_R = dt_R;
         dt_max_T = dt_T;
         valid_matrices = true;
-        dt_max = MIN(2*dt_R, dt_T);
+        dt_max = std::min(2*dt_R, dt_T);
     } else {
         // factor 2 as we use operator splitting
-        dt_max = MIN(2*dt_max_R, dt_max_T);
+        dt_max = std::min(2*dt_max_R, dt_max_T);
     }
     return dt_max;
 }

@@ -45,14 +45,14 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in)
     min_id = escript::DataTypes::index_t_max();
     max_id = -escript::DataTypes::index_t_max();
     Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->Elements);
-    max_id = MAX(max_id, max_id2);
-    min_id = MIN(min_id, min_id2);
+    max_id = std::max(max_id, max_id2);
+    min_id = std::min(min_id, min_id2);
     Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->FaceElements);
-    max_id = MAX(max_id, max_id2);
-    min_id = MIN(min_id, min_id2);
+    max_id = std::max(max_id, max_id2);
+    min_id = std::min(min_id, min_id2);
     Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->Points);
-    max_id = MAX(max_id, max_id2);
-    min_id = MIN(min_id, min_id2);
+    max_id = std::max(max_id, max_id2);
+    min_id = std::min(min_id, min_id2);
 #ifdef ESYS_MPI
     index_t id_range[2], global_id_range[2];
     id_range[0] = -min_id;
@@ -95,7 +95,7 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in)
     }
 
     /*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
-    Dudley_Mesh_markNodes(globalToNewLocalNodeLabels, min_id, in, FALSE);
+    Dudley_Mesh_markNodes(globalToNewLocalNodeLabels, min_id, in, false);
 
     /* create a local labelling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels */
 

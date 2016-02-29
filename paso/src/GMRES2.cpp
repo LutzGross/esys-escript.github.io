@@ -55,7 +55,7 @@ SolverResult Solver_GMRES2(Function* F, const double* f0, const double* x0,
      */
     normf0 = util::l2(n, f0, F->mpi_info);
     k = 0;
-    convergeFlag = (ABS(normf0)<=0);
+    convergeFlag = (std::abs(normf0)<=0);
     if (!convergeFlag) {
         abs_tol = rel_tol*normf0;
         std::cout << "GMRES2 initial residual norm " << normf0

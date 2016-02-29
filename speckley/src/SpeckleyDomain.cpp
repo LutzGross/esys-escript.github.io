@@ -17,11 +17,12 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include <speckley/SpeckleyDomain.h>
+#include <speckley/domainhelpers.h>
+
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
-#include <speckley/domainhelpers.h>
+#include <escript/index.h>
 
 #include <iomanip>
 

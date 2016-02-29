@@ -85,7 +85,7 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
     for (i = 0; i < in->Nodes->numNodes; ++i)
         maskReducedNodes[i] = -1;
 
-    Dudley_Mesh_markNodes(maskReducedNodes, 0, in, TRUE);
+    Dudley_Mesh_markNodes(maskReducedNodes, 0, in, true);
 
     numReducedNodes = Dudley_Util_packMask(in->Nodes->numNodes, maskReducedNodes, indexReducedNodes);
 

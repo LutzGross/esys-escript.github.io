@@ -169,13 +169,13 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
         maxDOF+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->globalDegreesOfFreedom)+1;
         maxElementID2=0;
         if (msh[i]->Elements->numElements>0)
-            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
+            maxElementID2=std::max(maxElementID2, util::getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
         if (msh[i]->FaceElements->numElements>0)
-            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->FaceElements->numElements,msh[i]->FaceElements->Id));
+            maxElementID2=std::max(maxElementID2, util::getMaxInt(1,msh[i]->FaceElements->numElements,msh[i]->FaceElements->Id));
         if (msh[i]->ContactElements->numElements>0)
-            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->ContactElements->numElements,msh[i]->ContactElements->Id));
+            maxElementID2=std::max(maxElementID2, util::getMaxInt(1,msh[i]->ContactElements->numElements,msh[i]->ContactElements->Id));
         if (msh[i]->Points->numElements)
-            maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Points->numElements,msh[i]->Points->Id));
+            maxElementID2=std::max(maxElementID2, util::getMaxInt(1,msh[i]->Points->numElements,msh[i]->Points->Id));
             maxElementID+=maxElementID2+1;
     }
 

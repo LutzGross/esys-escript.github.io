@@ -22,7 +22,7 @@
 *****************************************************************************/
 
 #include "ShapeFunctions.h"
-#include "esysUtils/index.h"
+#include <escript/index.h>
 #include <cstring>
 
 namespace finley {

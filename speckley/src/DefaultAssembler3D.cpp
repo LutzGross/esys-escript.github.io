@@ -20,7 +20,7 @@
 
 #include <speckley/DefaultAssembler3D.h>
 #include <speckley/domainhelpers.h>
-#include <esysUtils/index.h>
+#include <escript/index.h>
 
 const double all_weights[][11] = {
     {0.333333333333, 1.33333333333, 0.333333333333},

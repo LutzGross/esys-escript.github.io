@@ -460,7 +460,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         // copied once only for each processor
         for (index_t e=0; e<numElements; e++) {
             if (Owner[e] == myRank) {
-                proc_mask.assign(size, TRUE);
+                proc_mask.assign(size, true);
                 for (int j=0; j<numNodes; j++) {
                     const int p=mpiRankOfDOF[Nodes[INDEX2(j,e,numNodes)]];
                     if (proc_mask[p]) {
@@ -472,7 +472,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                             Nodes_buffer[INDEX2(i,k,numNodes)]=
                                     index[Nodes[INDEX2(i,e,numNodes)]];
                         send_count[p]++;
-                        proc_mask[p]=FALSE;
+                        proc_mask[p]=false;
                     }
                 }
             }

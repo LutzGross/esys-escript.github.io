@@ -122,7 +122,7 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
         col_distribution = pattern->input_distribution;
     }
     if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-        block_size = MIN(row_block_size, col_block_size);
+        block_size = std::min(row_block_size, col_block_size);
     } else {
         block_size = row_block_size*col_block_size;
     }
@@ -131,7 +131,7 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
     col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
     row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
-    const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
+    const dim_t n_norm = std::max(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
     balance_vector = new double[n_norm];
 #pragma omp parallel for
     for (dim_t i=0; i<n_norm; ++i)

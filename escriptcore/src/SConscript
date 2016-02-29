@@ -120,6 +120,7 @@ headers = """
     UtilC.h
     Utils.h
     WrappedArray.h
+    index.h
     system_dep.h
 """.split()
 

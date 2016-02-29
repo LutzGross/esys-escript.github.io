@@ -133,7 +133,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
         {
             if (self->Owner[e] == myRank)
             {
-                memset(proc_mask, TRUE, size*sizeof(bool));
+                memset(proc_mask, true, size*sizeof(bool));
                 for (j = 0; j < NN; j++)
                 {
                     p = mpiRankOfDOF[self->Nodes[INDEX2(j, e, NN)]];
@@ -146,7 +146,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
                         for (i = 0; i < NN; i++)
                             Nodes_buffer[INDEX2(i, k, NN)] = Id[self->Nodes[INDEX2(i, e, NN)]];
                         send_count[p]++;
-                        proc_mask[p] = FALSE;
+                        proc_mask[p] = false;
                     }
                 }
             }

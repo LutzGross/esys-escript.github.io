@@ -47,11 +47,11 @@ void Dudley_ElementFile_scatter(index_t* index, Dudley_ElementFile* in, Dudley_E
             out->Id[k] = in->Id[e];
             out->Tag[k] = in->Tag[e];
             out->Color[k] = in->Color[e] + out->maxColor + 1;
-            for (j = 0; j < MIN(NN_out, NN_in); j++)
+            for (j = 0; j < std::min(NN_out, NN_in); j++)
                 out->Nodes[INDEX2(j, k, NN_out)] = in->Nodes[INDEX2(j, e, NN_in)];
         }
-        out->minColor = MIN(out->minColor, in->minColor + out->maxColor + 1);
-        out->maxColor = MAX(out->maxColor, in->maxColor + out->maxColor + 1);
+        out->minColor = std::min(out->minColor, in->minColor + out->maxColor + 1);
+        out->maxColor = std::max(out->maxColor, in->maxColor + out->maxColor + 1);
     }
 }
 

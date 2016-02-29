@@ -50,7 +50,7 @@ void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile** in)
             item_list[e].index = e;
             item_list[e].value = (*in)->Nodes[INDEX2(0, e, NN)];
             for (i = 1; i < NN; i++)
-                item_list[e].value = MIN(item_list[e].value, (*in)->Nodes[INDEX2(i, e, NN)]);
+                item_list[e].value = std::min(item_list[e].value, (*in)->Nodes[INDEX2(i, e, NN)]);
         }
         Dudley_Util_sortValueAndIndex((*in)->numElements, item_list);
 #pragma omp parallel for private(e) schedule(static)

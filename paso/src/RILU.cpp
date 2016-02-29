@@ -140,7 +140,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
             iPtr+=(index_t)(where_p-index);
             /* get inverse of A_FF block: */
             if (n_block==1) {
-               if (ABS(A_p->val[iPtr])>0.) {
+               if (std::abs(A_p->val[iPtr])>0.) {
                     out->inv_A_FF[i]=1./A_p->val[iPtr];
                } else {
                     throw PasoException("Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
@@ -151,7 +151,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
                A12=A_p->val[iPtr*4+2];
                A22=A_p->val[iPtr*4+3];
                D = A11*A22-A12*A21;
-               if (ABS(D) > 0 ){
+               if (std::abs(D) > 0 ){
                     D=1./D;
                     out->inv_A_FF[i*4]= A22*D;
                     out->inv_A_FF[i*4+1]=-A21*D;
@@ -171,7 +171,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
                A23=A_p->val[iPtr*9+7];
                A33=A_p->val[iPtr*9+8];
                D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-               if (ABS(D) > 0 ){
+               if (std::abs(D) > 0) {
                     D=1./D;
                     out->inv_A_FF[i*9  ]=(A22*A33-A23*A32)*D;
                     out->inv_A_FF[i*9+1]=(A31*A23-A21*A33)*D;

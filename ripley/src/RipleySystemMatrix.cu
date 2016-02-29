@@ -17,7 +17,7 @@
 #include "RipleySystemMatrix.h" 
 #include "RipleyException.h" 
 
-#include <esysUtils/index.h>
+#include <escript/index.h>
 #include <escript/Data.h>
 #include <escript/SolverOptions.h>
 

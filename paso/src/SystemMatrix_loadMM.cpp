@@ -70,7 +70,7 @@ void q_sort(index_t *row, index_t *col, double *val, int begin, int end)
             /* This whole section is for checking lval<pivot, where
             pivot=N*row[begin]+col[begin] and lval=N*row[l]+col[l]. */
             if (row[l]<row[begin]) {
-                if (ABS(row[l]-row[begin])==1 && ABS(col[l]-col[begin])==N)
+                if (std::abs(row[l]-row[begin])==1 && std::abs(col[l]-col[begin])==N)
                     flag=0;
                 else
                     flag=1;
@@ -80,7 +80,7 @@ void q_sort(index_t *row, index_t *col, double *val, int begin, int end)
                 else
                     flag=0;
             } else {
-                if (ABS(row[l]-row[begin])==1 && ABS(col[l]-col[begin])==N)
+                if (std::abs(row[l]-row[begin])==1 && std::abs(col[l]-col[begin])==N)
                     flag=1;
                 else
                     flag=0;

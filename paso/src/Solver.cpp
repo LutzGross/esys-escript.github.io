@@ -113,12 +113,12 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         #pragma omp for private(i) schedule(static)
         for (i = 0; i < numEqua ; ++i) {
             norm2_of_b_local += r[i] * r[i];
-            norm_max_of_b_local = MAX(ABS(r[i]),norm_max_of_b_local);
+            norm_max_of_b_local = std::max(std::abs(r[i]),norm_max_of_b_local);
         }
         #pragma omp critical
         {
             norm2_of_b += norm2_of_b_local;
-            norm_max_of_b = MAX(norm_max_of_b_local,norm_max_of_b);
+            norm_max_of_b = std::max(norm_max_of_b_local,norm_max_of_b);
         }
     }
 #ifdef ESYS_MPI
@@ -208,12 +208,12 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                 #pragma omp for private(i) schedule(static)
                 for (i = 0; i < numEqua; i++) {
                     norm2_of_residual_local+= r[i] * r[i];
-                    norm_max_of_residual_local=MAX(ABS(r[i]),norm_max_of_residual_local);
+                    norm_max_of_residual_local=std::max(std::abs(r[i]),norm_max_of_residual_local);
                 }
                 #pragma omp critical
                 {
                     norm2_of_residual += norm2_of_residual_local;
-                    norm_max_of_residual = MAX(norm_max_of_residual_local,norm_max_of_residual);
+                    norm_max_of_residual = std::max(norm_max_of_residual_local,norm_max_of_residual);
                 }
             }
 #ifdef ESYS_MPI
@@ -242,7 +242,7 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                 if (norm2_of_residual>tolerance*norm2_of_b ||
                         norm_max_of_residual>tolerance*norm_max_of_b ) {
 
-                    tol=tolerance*MIN(norm2_of_b,0.1*norm2_of_residual/norm_max_of_residual*norm_max_of_b);
+                    tol=tolerance*std::min(norm2_of_b,0.1*norm2_of_residual/norm_max_of_residual*norm_max_of_b);
                     if (options->verbose)
                         std::cout << " (new tolerance = " << tol << ").\n";
 

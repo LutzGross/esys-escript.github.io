@@ -26,7 +26,7 @@
 
 #include "Finley.h"
 #include "Util.h"
-#include "esysUtils/index.h"
+#include <escript/index.h>
 
 #include <algorithm> // std::sort
 #include <limits>
@@ -116,7 +116,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
         case 1:
             for (int q=0; q<len; q++) {
                 const double D=A[q];
-                if (ABS(D) > 0) {
+                if (std::abs(D) > 0) {
                     det[q]=D;
                     invA[q]=1./D;
                 } else {
@@ -133,7 +133,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                 const double A22=A[INDEX3(1,1,q,2,2)];
 
                 const double D = A11*A22-A12*A21;
-                if (ABS(D) > 0) {
+                if (std::abs(D) > 0) {
                     det[q]=D;
                     invA[INDEX3(0,0,q,2,2)]= A22/D;
                     invA[INDEX3(1,0,q,2,2)]=-A21/D;
@@ -158,7 +158,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                 const double A33=A[INDEX3(2,2,q,3,3)];
 
                 const double D = A11*(A22*A33-A23*A32) + A12*(A31*A23-A21*A33) + A13*(A21*A32-A31*A22);
-                if (ABS(D) > 0) {
+                if (std::abs(D) > 0) {
                     det[q]=D;
                     invA[INDEX3(0,0,q,3,3)]=(A22*A33-A23*A32)/D;
                     invA[INDEX3(1,0,q,3,3)]=(A31*A23-A21*A33)/D;

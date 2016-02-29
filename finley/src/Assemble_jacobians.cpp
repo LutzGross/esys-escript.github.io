@@ -76,7 +76,7 @@ void Assemble_jacobians_1D(const double* coordinates, int numQuad,
                      dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)] =
                          DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*invD;
             }
-            volume[INDEX2(q,e,numQuad)]=ABS(D)*QuadWeights[q];
+            volume[INDEX2(q,e,numQuad)]=std::abs(D)*QuadWeights[q];
         }
     }
 }
@@ -130,7 +130,7 @@ void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                         DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11;
                 }
             }
-            volume[INDEX2(q,e,numQuad)]=ABS(D)*QuadWeights[q];
+            volume[INDEX2(q,e,numQuad)]=std::abs(D)*QuadWeights[q];
         }
     }
 }
@@ -441,7 +441,7 @@ void Assemble_jacobians_3D(const double* coordinates, int numQuad,
                         DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX12 +
                         DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX22;
                 }
-                volume[INDEX2(q,e,numQuad)]=ABS(D)*QuadWeights[q];
+                volume[INDEX2(q,e,numQuad)]=std::abs(D)*QuadWeights[q];
             }
         }
     }

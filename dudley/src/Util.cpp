@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #include "Util.h"
-#include "esysUtils/index.h"
+#include <escript/index.h>
 
 #include <limits.h>
 #include <cstring>  /* for memcpy*/
@@ -27,7 +27,7 @@ bool Dudley_Util_anyNonZeroDouble(dim_t N, double *values)
 {
     dim_t q;
     for (q = 0; q < N; ++q)
-        if (ABS(values[q]) > 0)
+        if (std::abs(values[q]) > 0)
             return true;
     return false;
 }
@@ -135,7 +135,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
     case 1:
         for (q = 0; q < len; q++) {
             D = A[q];
-            if (ABS(D) > 0) {
+            if (std::abs(D) > 0) {
                 det[q] = D;
                 D = 1. / D;
                 invA[q] = D;
@@ -153,7 +153,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
             A22 = A[INDEX3(1, 1, q, 2, 2)];
 
             D = A11 * A22 - A12 * A21;
-            if (ABS(D) > 0) {
+            if (std::abs(D) > 0) {
                 det[q] = D;
                 D = 1. / D;
                 invA[INDEX3(0, 0, q, 2, 2)] = A22 * D;
@@ -179,7 +179,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
             A33 = A[INDEX3(2, 2, q, 3, 3)];
 
             D = A11 * (A22 * A33 - A23 * A32) + A12 * (A31 * A23 - A21 * A33) + A13 * (A21 * A32 - A31 * A22);
-            if (ABS(D) > 0) {
+            if (std::abs(D) > 0) {
                 det[q] = D;
                 D = 1. / D;
                 invA[INDEX3(0, 0, q, 3, 3)] = (A22 * A33 - A23 * A32) * D;
@@ -383,10 +383,10 @@ index_t Dudley_Util_getMinInt(dim_t dim, dim_t N, index_t * values)
 #pragma omp for private(i,j) schedule(static)
             for (j = 0; j < N; j++) {
                 for (i = 0; i < dim; i++)
-                    out_local = MIN(out_local, values[INDEX2(i, j, dim)]);
+                    out_local = std::min(out_local, values[INDEX2(i, j, dim)]);
             }
 #pragma omp critical
-            out = MIN(out_local, out);
+            out = std::min(out_local, out);
         }
     }
     return out;
@@ -406,11 +406,11 @@ index_t Dudley_Util_getMaxInt(dim_t dim, dim_t N, index_t* values)
 #pragma omp for private(i,j) schedule(static)
             for (j = 0; j < N; j++) {
                 for (i = 0; i < dim; i++) {
-                    out_local = MAX(out_local, values[INDEX2(i, j, dim)]);
+                    out_local = std::max(out_local, values[INDEX2(i, j, dim)]);
                 }
             }
 #pragma omp critical
-            out = MAX(out_local, out);
+            out = std::max(out_local, out);
         }
     }
     return out;
@@ -432,10 +432,10 @@ index_t Dudley_Util_getFlaggedMinInt(dim_t dim, dim_t N, index_t* values, index_
             for (j = 0; j < N; j++) {
                 for (i = 0; i < dim; i++)
                     if (values[INDEX2(i, j, dim)] != ignore)
-                        out_local = MIN(out_local, values[INDEX2(i, j, dim)]);
+                        out_local = std::min(out_local, values[INDEX2(i, j, dim)]);
             }
 #pragma omp critical
-            out = MIN(out_local, out);
+            out = std::min(out_local, out);
         }
     }
     return out;
@@ -456,10 +456,10 @@ index_t Dudley_Util_getFlaggedMaxInt(dim_t dim, dim_t N, index_t* values, index_
             for (j = 0; j < N; j++) {
                 for (i = 0; i < dim; i++)
                     if (values[INDEX2(i, j, dim)] != ignore)
-                        out_local = MAX(out_local, values[INDEX2(i, j, dim)]);
+                        out_local = std::max(out_local, values[INDEX2(i, j, dim)]);
             }
 #pragma omp critical
-            out = MAX(out_local, out);
+            out = std::max(out_local, out);
         }
     }
     return out;

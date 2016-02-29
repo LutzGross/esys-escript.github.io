@@ -90,7 +90,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
     dim_t globalNumVertices = distribution[mpiSize];
     dim_t len = 0;
     for (dim_t p = 0; p < mpiSize; ++p)
-        len = MAX(len, distribution[p + 1] - distribution[p]);
+        len = std::max(len, distribution[p + 1] - distribution[p]);
 
     index_t* partition = new index_t[len];
     dim_t* partition_count = new dim_t[mpiSize + 1];
@@ -165,7 +165,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in, dim_t* distribution)
                 xyz, &ncon, &mpiSize, tpwgts, ubvec, options, &edgecut,
                 partition, /* new CPU ownership of elements */
                 &in->MPIInfo->comm);
-        //printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1));
+        //printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/std::max(in->MPIInfo->size,1));
         delete[] xyz;
         delete[] ubvec;
         delete[] tpwgts;

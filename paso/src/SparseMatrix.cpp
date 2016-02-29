@@ -170,7 +170,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
         numCols = pattern->numInput;
     }
     if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-        block_size = MIN(row_block_size, col_block_size);
+        block_size = std::min(row_block_size, col_block_size);
     } else {
         block_size = row_block_size*col_block_size;
     }
@@ -350,7 +350,7 @@ void SparseMatrix::addAbsRow_CSR_OFFSET0(double* array) const
             for (index_t iptr=pattern->ptr[ir]; iptr < pattern->ptr[ir+1]; iptr++) {
                 for (dim_t icb=0; icb < col_block_size; icb++) {
                     const index_t idx = iptr*block_size+irb+row_block_size*icb;
-                    fac += ABS(val[idx]);
+                    fac += std::abs(val[idx]);
                 }
             }
             array[irow]+=fac;
@@ -369,10 +369,10 @@ void SparseMatrix::maxAbsRow_CSR_OFFSET0(double* array) const
             for (index_t iptr=pattern->ptr[ir]; iptr < pattern->ptr[ir+1]; iptr++) {
                 for (dim_t icb=0; icb < col_block_size; icb++) {
                     const index_t idx = iptr*block_size+irb+row_block_size*icb;
-                    fac=MAX(fac, std::abs(val[idx]));
+                    fac=std::max(fac, std::abs(val[idx]));
                 }
             }
-            array[irow]=MAX(array[irow], fac);
+            array[irow]=std::max(array[irow], fac);
         }
     }
 }
@@ -423,7 +423,7 @@ void SparseMatrix::copyFromMainDiagonal(double* out) const
 {
     const dim_t n = pattern->numOutput;
     const dim_t nblk = block_size;
-    const dim_t blk = MIN(row_block_size, col_block_size);
+    const dim_t blk = std::min(row_block_size, col_block_size);
     const index_t* main_ptr = borrowMainDiagonalPointer();
 #pragma omp parallel for
     for (index_t ir=0; ir < n; ir++) {
@@ -437,7 +437,7 @@ void SparseMatrix::copyToMainDiagonal(const double* in)
 {
     const dim_t n = pattern->numOutput;
     const dim_t nblk = block_size;
-    const dim_t blk = MIN(row_block_size, col_block_size);
+    const dim_t blk = std::min(row_block_size, col_block_size);
     const index_t* main_ptr = borrowMainDiagonalPointer();
 #pragma omp parallel for
     for (index_t ir=0; ir < n; ir++) {
@@ -506,7 +506,7 @@ void SparseMatrix::invMain(double* inv_diag, index_t* pivot) const
         for (i = 0; i < n; i++) {
             iPtr = main_ptr[i];
             A11 = val[iPtr];
-            if (ABS(A11) > 0.) {
+            if (std::abs(A11) > 0.) {
                 inv_diag[i]=1./A11;
             } else {
                 failed=1;

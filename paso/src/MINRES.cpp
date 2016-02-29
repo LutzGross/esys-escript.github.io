@@ -90,7 +90,7 @@ SolverResult Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
     dp0 = dp;
     if (dp < 0) {
         status = NegativeNormError;
-    } else if (ABS(dp) <= 0) {
+    } else if (std::abs(dp) <= 0) {
         // happy break down
         convergeFlag = true;
     } else {
@@ -129,10 +129,10 @@ SolverResult Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
         dp = util::innerProduct(n, R, ZNEW, A->mpi_info);
         if (dp < 0.) {
             status = NegativeNormError;
-        } else if (ABS(dp) == 0.) {
+        } else if (std::abs(dp) == 0.) {
             // happy break down
             convergeFlag = true;
-        } else if (ABS(dp) > 0.e-13 * ABS(dp0)) {
+        } else if (std::abs(dp) > 0.e-13 * std::abs(dp0)) {
             //  gamma <- sqrt(r'*z)
             gamma_old = gamma;
             gamma = sqrt(dp);

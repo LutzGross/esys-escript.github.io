@@ -93,7 +93,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
                     }
                     iptr_main=ptr_main[i];
                     D=out->factors[iptr_main];
-                    if (ABS(D)>0.) {
+                    if (std::abs(D)>0.) {
                         D=1./D;
                         out->factors[iptr_main]=D;
                         /* a_ik=a_ii^{-1}*a_ik */
@@ -149,7 +149,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
                     A12=out->factors[iptr_main*4+2];
                     A22=out->factors[iptr_main*4+3];
                     D = A11*A22-A12*A21;
-                    if (ABS(D)>0.) {
+                    if (std::abs(D)>0.) {
                         D=1./D;
                         S11= A22*D;
                         S21=-A21*D;
@@ -238,7 +238,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
                     A23=out->factors[iptr_main*9+7];
                     A33=out->factors[iptr_main*9+8];
                     D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-                    if (ABS(D)>0.) {
+                    if (std::abs(D)>0.) {
                         D=1./D;
                         S11=(A22*A33-A23*A32)*D;
                         S21=(A31*A23-A21*A33)*D;

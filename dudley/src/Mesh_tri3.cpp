@@ -56,8 +56,8 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
 
     /* set up the global dimensions of the mesh */
 
-    NE0 = MAX(1, numElements[0]);
-    NE1 = MAX(1, numElements[1]);
+    NE0 = std::max(1, numElements[0]);
+    NE1 = std::max(1, numElements[1]);
     N0 = N_PER_E * NE0 + 1;
     N1 = N_PER_E * NE1 + 1;
 
@@ -76,7 +76,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
     Dudley_Mesh_setElements(out, Dudley_ElementFile_alloc(Dudley_Tri3, mpi_info));
     Nstride0 = 1;
     Nstride1 = N0;
-    if (N1 == MAX(N0, N1)) {
+    if (N1 == std::max(N0, N1)) {
         local_NE0 = NE0;
         e_offset0 = 0;
         mpi_info->split(NE1, &local_NE1, &e_offset1);

@@ -37,7 +37,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
         return;
 
     const int my_mpi_rank = nodes->MPIInfo->rank;
-    ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, FALSE,
+    ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, false,
                                     util::hasReducedIntegrationOrder(data));
 
     const int numQuadTotal = jac->numQuadTotal;
