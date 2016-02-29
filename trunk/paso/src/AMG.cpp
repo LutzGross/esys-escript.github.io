@@ -27,13 +27,14 @@
 
 #define SHOW_TIMING 0
 
-#include <iostream>
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "MergedSolver.h"
 #include "Options.h"
 #include "PasoUtil.h"
 #include "MKL.h"
+
+#include <iostream>
 
 namespace paso {
 

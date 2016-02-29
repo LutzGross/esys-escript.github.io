@@ -15,17 +15,17 @@
 *****************************************************************************/
 
 
-#if !defined escript_DataTypes_20080811_H
-#define escript_DataTypes_20080811_H
-#include "system_dep.h"
+#ifndef __ESCRIPT_DATATYPES_H__
+#define __ESCRIPT_DATATYPES_H__
+
+#include <boost/python/object_fwd.hpp>
+
 #include "Assert.h"
 
 #include <complex>
 #include <limits>
 #include <string>
 #include <vector>
-
-#include <boost/python/object_fwd.hpp>
 
 namespace escript {
 
@@ -102,7 +102,6 @@ namespace DataTypes {
      \brief
      Calculate the number of values in a datapoint with the given shape.
   */
-  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::ShapeType& shape);
 
@@ -110,7 +109,6 @@ namespace DataTypes {
      \brief
      Calculate the number of values for the given region.
   */
-  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::RegionLoopRangeType& region);
 
@@ -120,7 +118,6 @@ namespace DataTypes {
 
      \param shape - Input.
   */
-  ESCRIPT_DLL_API
   std::string
   shapeToString(const DataTypes::ShapeType& shape);
 
@@ -130,7 +127,6 @@ namespace DataTypes {
 
      \param region - Input - Slice region
   */
-  ESCRIPT_DLL_API
   DataTypes::ShapeType
   getResultSliceShape(const DataTypes::RegionType& region);
 
@@ -192,7 +188,6 @@ namespace DataTypes {
 
      Note: Not unit tested in c++.
   */
-   ESCRIPT_DLL_API
    DataTypes::RegionType
    getSliceRegion(const DataTypes::ShapeType& shape, const boost::python::object& key);
 
@@ -208,7 +203,6 @@ namespace DataTypes {
    the slice region is of size 1. So in the above example, we modify the above
    region like so: <<1,2><0,3><0,3>> and take this slice.
   */
-  ESCRIPT_DLL_API
   DataTypes::RegionLoopRangeType
   getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
@@ -218,7 +212,6 @@ namespace DataTypes {
    \param shape
    \return the rank.
   */
-  ESCRIPT_DLL_API
   inline
   int
   getRank(const DataTypes::ShapeType& shape)
@@ -234,7 +227,6 @@ namespace DataTypes {
   \param i - Input - subscript to locate.
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i)
@@ -252,7 +244,6 @@ namespace DataTypes {
   \param j - Input - column
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i,
@@ -272,7 +263,6 @@ namespace DataTypes {
   \param i,j,k - Input - subscripts to locate.
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i,
@@ -292,7 +282,6 @@ namespace DataTypes {
   \param i,j,k,m - Input - subscripts to locate.
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i,
@@ -309,7 +298,6 @@ namespace DataTypes {
   /**
      \brief Test if two shapes are equal.
   */
-  ESCRIPT_DLL_API
   inline
   bool
   checkShape(const ShapeType& s1, const ShapeType& s2)
@@ -324,7 +312,6 @@ namespace DataTypes {
    \param other - displayed in the message as "Other shape"
    \param thisShape - displayed in the message as "This shape"
   */
-   ESCRIPT_DLL_API
    std::string 
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,
@@ -339,8 +326,7 @@ namespace DataTypes {
 
  }   // End of namespace DataTypes
 
-
 } // End of namespace escript
 
-#endif
+#endif // __ESCRIPT_DATATYPES_H__
 
