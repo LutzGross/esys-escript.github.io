@@ -18,12 +18,10 @@ Import('*')
 local_env = env.Clone()
 
 sources = """
-    Esys_MPI.cpp
     pyerr.cpp
 """.split()
 
 headers = """
-    Esys_MPI.h
     IndexList.h
     index.h
     pyerr.h

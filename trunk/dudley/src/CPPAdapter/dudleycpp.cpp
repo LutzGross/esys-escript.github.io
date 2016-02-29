@@ -21,9 +21,8 @@
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
-#include "esysUtils/Esys_MPI.h"
-#include <escript/ExceptionTranslators.h>
 #include <escript/AbstractContinuousDomain.h>
+#include <escript/ExceptionTranslators.h>
 
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>

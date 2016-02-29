@@ -18,21 +18,19 @@
 #define dudley_MeshAdapter_20040526_H
 #include "system_dep.h"
 
-#include "dudley/Mesh.h"
-#include "dudley/Dudley.h"
 #include "dudley/Assemble.h"
+#include "dudley/Dudley.h"
+#include "dudley/Mesh.h"
 
-#include "esysUtils/Esys_MPI.h"
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"
 
-#include <boost/shared_ptr.hpp>
 #include <boost/python/dict.hpp>
 
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace dudley {
 
@@ -111,7 +109,7 @@ public:
      \brief
      returns a reference to the MPI information wrapper for this domain
     */
-    virtual esysUtils::JMPI getMPI() const;
+    virtual escript::JMPI getMPI() const;
 
     /**
      \brief

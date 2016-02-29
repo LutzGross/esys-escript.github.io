@@ -41,7 +41,7 @@ typedef boost::shared_ptr<const Distribution> const_Distribution_ptr;
 PASO_DLL_API
 struct Distribution
 {
-    Distribution(const esysUtils::JMPI& mpiInfo, const index_t* firstComponent,
+    Distribution(const escript::JMPI& mpiInfo, const index_t* firstComponent,
                  index_t m, index_t b) :
         mpi_info(mpiInfo)
     {
@@ -125,7 +125,7 @@ struct Distribution
     // first_component[i+1].
     index_t* first_component;
     dim_t reference_counter;
-    const esysUtils::JMPI mpi_info;
+    const escript::JMPI mpi_info;
     static double random_seed;
 };
 

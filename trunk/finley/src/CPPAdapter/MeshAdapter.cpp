@@ -80,7 +80,7 @@ MeshAdapter::~MeshAdapter()
     }
 }
 
-esysUtils::JMPI MeshAdapter::getMPI() const
+escript::JMPI MeshAdapter::getMPI() const
 {
     return m_finleyMesh.get()->MPIInfo;
 }

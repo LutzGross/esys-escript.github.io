@@ -16,7 +16,6 @@
 
 #define ESNEEDPYTHON
 #include <esysUtils/first.h>
-#include <esysUtils/Esys_MPI.h>
 
 #include "Data.h"
 #include "DataConstant.h"
@@ -890,7 +889,7 @@ void DataExpanded::dump(const std::string fileName) const
     long dims[ldims];
     const double* d_ptr=&(m_data_r[0]);
     const DataTypes::ShapeType& shape = getShape();
-    esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
     const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     // netCDF error handler
     NcError err(NcError::verbose_nonfatal);
@@ -1096,7 +1095,7 @@ const DataTypes::CplxVectorType& DataExpanded::getTypedVectorRO(DataTypes::cplx_
 //
 //    DataVector&  dv=getVectorRW();
 //    const size_t dvsize=dv.size();
-//    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+//    randomFillArray(seed, &(dv[0]), dvsize);
 //}
 
 }  // end of namespace

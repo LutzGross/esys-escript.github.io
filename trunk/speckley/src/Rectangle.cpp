@@ -24,7 +24,6 @@
 #include <speckley/CrossDomainCoupler.h>
 #endif
 
-#include <esysUtils/Esys_MPI.h>
 #include <esysUtils/index.h>
 #include <escript/FileWriter.h>
 #include <escript/FunctionSpaceFactory.h>

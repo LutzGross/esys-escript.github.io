@@ -16,21 +16,19 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#include <sstream>
-#include <limits>
-#include <boost/python/extract.hpp>
-#include <boost/scoped_array.hpp>
-
 #include "MPIScalarReducer.h"
 #include "SplitWorldException.h"
+
+#include <limits>
+#include <sstream>
+#include <boost/python/extract.hpp>
+#include <boost/scoped_array.hpp>
 
 using namespace boost::python;
 using namespace escript;
 
 
-namespace escript
-{
+namespace escript {
 
 Reducer_ptr makeScalarReducer(std::string type)
 {
@@ -60,10 +58,9 @@ Reducer_ptr makeScalarReducer(std::string type)
 }
 
 
-}
+} // namespace escript
 
-namespace
-{
+namespace {
 
 void combineDouble(double& d1, const double d2, MPI_Op op)
 {
@@ -84,7 +81,8 @@ void combineDouble(double& d1, const double d2, MPI_Op op)
         throw SplitWorldException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
     }    
 }
-}
+
+} // anonymous namespace
 
 
 MPIScalarReducer::MPIScalarReducer(MPI_Op op)
@@ -155,7 +153,6 @@ bool MPIScalarReducer::valueCompatible(boost::python::object v)
     return true;
 }
 
-
 bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& errstring)
 {
     extract<double> ex(v);
@@ -164,8 +161,9 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
         errstring="reduceLocalValue: expected double value. Got something else.";
         return false;
     }
-    if (!valueadded || !had_an_export_this_round)       // first value so answer becomes this one
+    if (!valueadded || !had_an_export_this_round)
     {
+        // first value so answer becomes this one
         value=ex();
         valueadded=true;
         had_an_export_this_round=true;
@@ -198,7 +196,7 @@ void MPIScalarReducer::reset()
     value=0;
 }
 
-bool MPIScalarReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)
+bool MPIScalarReducer::checkRemoteCompatibility(JMPI& mpi_info, std::string& errstring)
 {
     return true;
 }
@@ -238,38 +236,33 @@ void MPIScalarReducer::getCompatibilityInfo(std::vector<unsigned>& params)
 }
 
 
-        // Get a value for this variable from another process
-        // This is not a reduction and will replace any existing value
-bool MPIScalarReducer::recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo)
+// Get a value for this variable from another process
+// This is not a reduction and will replace any existing value
+bool MPIScalarReducer::recvFrom(int localid, int source, JMPI& mpiinfo)
 {
 #ifdef ESYS_MPI  
     MPI_Status stat;
     if (MPI_Recv(&value, 1, MPI_DOUBLE, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
-    {
         return false;
-    }
 #endif    
     return true;
 }
 
-        // Send a value to this variable to another process
-        // This is not a reduction and will replace any existing value    
-bool MPIScalarReducer::sendTo(int localid, int target, esysUtils::JMPI& mpiinfo)
+// Send a value to this variable to another process
+// This is not a reduction and will replace any existing value    
+bool MPIScalarReducer::sendTo(int localid, int target, JMPI& mpiinfo)
 {
 #ifdef ESYS_MPI  
-      if (MPI_Send(&value, 1, MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
-      {
-          return false;
-      }
+    if (MPI_Send(&value, 1, MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+        return false;
 #endif      
-      return true;
+    return true;
 }
 
 double MPIScalarReducer::getDouble()
 {
     return value;
 }
-
 
 boost::python::object MPIScalarReducer::getPyObj()
 {
@@ -278,8 +271,7 @@ boost::python::object MPIScalarReducer::getPyObj()
 }
 
 #ifdef ESYS_MPI
-
-        // send from proc 0 in the communicator to all others
+// send from proc 0 in the communicator to all others
 bool MPIScalarReducer::groupSend(MPI_Comm& com, bool imsending)
 {
     if (MPI_Bcast(&value, 1, MPI_DOUBLE, 0, com)==MPI_SUCCESS)
@@ -294,9 +286,8 @@ bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
 {
     double answer=0;
     if (reduceop==MPI_OP_NULL)
-    {
         return false;
-    }
+
     if (MPI_Allreduce((mystate==reducerstatus::NEW)?&value:&identity, &answer, 1, MPI_DOUBLE, reduceop, com)==MPI_SUCCESS)
     {
         value=answer;
@@ -305,8 +296,7 @@ bool MPIScalarReducer::groupReduce(MPI_Comm& com, char mystate)
     }
     return false;
 }
-
-#endif
+#endif // ESYS_MPI
 
 void MPIScalarReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
 {

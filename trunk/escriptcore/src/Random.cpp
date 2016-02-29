@@ -13,7 +13,7 @@
 *
 *****************************************************************************/
 
-#include <esysUtils/Esys_MPI.h>
+#include <escript/EsysMPI.h>
 
 #include <algorithm>
 #include <vector>

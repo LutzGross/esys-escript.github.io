@@ -29,10 +29,9 @@
 #ifndef __PASO_H__
 #define __PASO_H__
 
-#include <esysUtils/Esys_MPI.h>
 #include <esysUtils/index.h>
-
 #include <escript/DataTypes.h>
+#include <escript/EsysMPI.h>
 
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>

@@ -30,7 +30,7 @@ namespace finley {
 class NodeFile
 {
 public:
-    NodeFile(int nDim, esysUtils::JMPI& mpiInfo);
+    NodeFile(int nDim, escript::JMPI& mpiInfo);
     ~NodeFile();
 
     void allocTable(dim_t numNodes);
@@ -105,7 +105,7 @@ public:
     NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
-    esysUtils::JMPI MPIInfo;
+    escript::JMPI MPIInfo;
     /// number of nodes
     dim_t numNodes;
     /// number of spatial dimensions

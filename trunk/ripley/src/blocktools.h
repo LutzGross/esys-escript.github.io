@@ -17,10 +17,6 @@
 #ifndef __RIPLEY_BLOCKTOOLS_H__
 #define __RIPLEY_BLOCKTOOLS_H__
 
-
-#include <vector>
-
-
 /* This file contains two main classes for dealing with a large 3D region which
  * has been divided into a 3D Grid of Blocks (usually to be distributed).
  * Each block is divided into 27 subblocks. The first and last subblocks in
@@ -58,7 +54,10 @@
  *                     an integral type.
  */
 
-#include <esysUtils/Esys_MPI.h>
+#include <escript/EsysMPI.h>
+
+#include <vector>
+
 typedef int neighbourID_t; // This should be the MPI_rank type
 typedef unsigned coord_t;            // if we ever get more than 2^32 ranks, we have other problems
 

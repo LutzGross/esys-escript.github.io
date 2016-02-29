@@ -17,10 +17,9 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#include "DomainException.h"
 #include "NullDomain.h" 
 #include "Data.h"
+#include "DomainException.h"
 
 namespace escript {
 
@@ -43,7 +42,7 @@ std::string NullDomain::functionSpaceTypeAsString(int functionSpaceType) const
     return "Default_FunctionSpace";
 }
 
-esysUtils::JMPI NullDomain::getMPI() const
+JMPI NullDomain::getMPI() const
 {
     throw DomainException("NullDomain::getMPI() not supported.");
 }

@@ -286,7 +286,7 @@ const char* Options::name(int key)
 }
 
 int Options::getSolver(int solver, int pack, bool symmetry,
-                       const esysUtils::JMPI& mpi_info)
+                       const escript::JMPI& mpi_info)
 {
     int out = PASO_DEFAULT;
     // PASO //
@@ -377,7 +377,7 @@ int Options::getSolver(int solver, int pack, bool symmetry,
 }
 
 int Options::getPackage(int solver, int pack, bool symmetry,
-                        const esysUtils::JMPI& mpi_info)
+                        const escript::JMPI& mpi_info)
 {
     int out = PASO_PASO;
 

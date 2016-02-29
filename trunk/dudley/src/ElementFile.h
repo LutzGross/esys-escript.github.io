@@ -35,7 +35,7 @@ typedef struct {
 } Dudley_ElementFile_Jacobians;
 
 struct Dudley_ElementFile {
-    esysUtils::JMPI MPIInfo;
+    escript::JMPI MPIInfo;
     int *Owner;
 
     dim_t numElements;          /* number of elements. */
@@ -82,7 +82,7 @@ struct Dudley_ElementFile {
 };
 
 typedef struct Dudley_ElementFile Dudley_ElementFile;
-Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUtils::JMPI& MPIInfo);
+Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, escript::JMPI& MPIInfo);
 void Dudley_ElementFile_free(Dudley_ElementFile *);
 void Dudley_ElementFile_allocTable(Dudley_ElementFile *, dim_t);
 void Dudley_ElementFile_freeTable(Dudley_ElementFile *);

@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-#ifndef INC_ESYS_MPI
-#define INC_ESYS_MPI
+#ifndef __ESCRIPT_ESYSMPI_H__
+#define __ESCRIPT_ESYSMPI_H__
 
 #include <escript/DataTypes.h>
 
-#include <sstream>
 #include <ctime>
+#include <sstream>
 
 #include <boost/shared_ptr.hpp>
 
@@ -57,10 +57,7 @@
 
 #endif // ESYS_MPI
 
-namespace esysUtils {
-
-using escript::DataTypes::index_t;
-using escript::DataTypes::dim_t;
+namespace escript {
 
 /** \brief tag reserved for use by SubWorld code
     This value should be higher than the modulus used in JMPI_::setCounter.
@@ -84,9 +81,14 @@ class JMPI_
 public:
     ~JMPI_();
 
-    dim_t setDistribution(index_t min_id, index_t max_id, index_t* distribution);
+    ///
+    DataTypes::dim_t setDistribution(DataTypes::index_t min_id,
+                                     DataTypes::index_t max_id,
+                                     DataTypes::index_t* distribution);
 
-    void split(dim_t N, dim_t* local_N,index_t* offset);
+    ///
+    void split(DataTypes::dim_t N, DataTypes::dim_t* local_N,
+               DataTypes::index_t* offset);
 
     /// N = #CPUs, k is a CPU number but out of range or even negative.
     /// Return a CPU number in 0...N-1.
@@ -170,15 +172,15 @@ public:
     static bool active();
 };
 
-// Everyone puts in their error code and everyone gets the largest one
+/// Everyone puts in their error code and everyone gets the largest one
 bool checkResult(int input, int& output, const JMPI& comm);
 
-// ensure that the any ranks with an empty src argument end up with the string from
-// one of the other ranks
-// with no-mpi, it makes dest point at a copy of src
+/// ensure that the any ranks with an empty src argument end up with the
+/// string from one of the other ranks.
+/// With no MPI, it makes dest point at a copy of src.
 bool shipString(const char* src, char** dest, MPI_Comm& comm);
 
-/// This function returns the current ticks for timing
+/// returns the current ticks for timing
 inline double gettime()
 {
     double out;
@@ -194,7 +196,7 @@ inline double gettime()
     return out;
 }
 
-} // namespace esysUtils
+} // namespace escript
 
-#endif // INC_ESYS_MPI
+#endif // __ESCRIPT_ESYSMPI_H__
 

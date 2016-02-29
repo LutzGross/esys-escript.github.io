@@ -25,16 +25,11 @@
 #include "UnaryFuncs.h"    // for escript::fsign
 #include "Utils.h"
 
-#include "esysUtils/Esys_MPI.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#include <iomanip>              // for some fancy formatting in debug
+#include <iomanip> // for some fancy formatting in debug
 
 using namespace escript::DataTypes;
 
@@ -2111,5 +2106,5 @@ DataLazy::actsExpanded() const
         return (m_readytype=='E');
 }
 
-}       // end namespace
+} // end namespace
 

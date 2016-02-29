@@ -38,7 +38,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     int scan_ret;
 
     /* No! Bad! take a parameter for this */
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
+    escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_WORLD);
 
     if (mpi_info->rank == 0)
     {

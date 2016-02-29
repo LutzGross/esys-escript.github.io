@@ -34,7 +34,7 @@ namespace finley {
 
 /// Constructor.
 /// Allocates a Mesh with given name and dimensionality
-Mesh::Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info) :
+Mesh::Mesh(const std::string name, int numDim, escript::JMPI& mpi_info) :
     m_name(name),
     approximationOrder(-1),
     reducedApproximationOrder(-1),

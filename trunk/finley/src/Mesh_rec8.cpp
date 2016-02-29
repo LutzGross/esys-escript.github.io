@@ -38,7 +38,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
                            bool useMacroElements, bool optimize,
-                           esysUtils::JMPI& mpiInfo)
+                           escript::JMPI& mpiInfo)
 {
     const int N_PER_E = 2;
     const int DIM = 2;

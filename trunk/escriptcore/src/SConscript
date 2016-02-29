@@ -45,6 +45,7 @@ sources = """
     DataVectorAlt.cpp
     DataVectorTaipan.cpp    
     EscriptParams.cpp
+    EsysMPI.cpp
     ExceptionTranslators.cpp
     FunctionSpace.cpp
     FunctionSpaceFactory.cpp
@@ -92,6 +93,7 @@ headers = """
     DomainException.h
     EscriptParams.h
     EsysException.h
+    EsysMPI.h
     ExceptionTranslators.h
     FileWriter.h
     FunctionSpace.h

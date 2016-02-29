@@ -61,13 +61,13 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
                 throw PasoException("solve: MKL package does not support MPI.");
             }
             options->converged = false;
-            options->time = esysUtils::gettime();
+            options->time = escript::gettime();
             Performance_startMonitor(&pp, PERFORMANCE_ALL);
             MKL_solve(mainBlock, out, in, options->reordering,
                       options->refinements, options->verbose);
             solver_package = PASO_MKL;
             Performance_stopMonitor(&pp, PERFORMANCE_ALL);
-            options->time = esysUtils::gettime()-options->time;
+            options->time = escript::gettime()-options->time;
             options->set_up_time = 0;
             options->residual_norm = 0.;
             options->num_iter = 0;
@@ -79,12 +79,12 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
                 throw PasoException("solve: UMFPACK package does not support MPI.");
             }
             options->converged = false;
-            options->time = esysUtils::gettime();
+            options->time = escript::gettime();
             Performance_startMonitor(&pp, PERFORMANCE_ALL);
             UMFPACK_solve(mainBlock, out, in, options->refinements, options->verbose);
             solver_package = PASO_UMFPACK;
             Performance_stopMonitor(&pp, PERFORMANCE_ALL);
-            options->time = esysUtils::gettime()-options->time;
+            options->time = escript::gettime()-options->time;
             options->set_up_time = 0;
             options->residual_norm = 0.;
             options->num_iter = 0;

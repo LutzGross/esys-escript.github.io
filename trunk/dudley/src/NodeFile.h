@@ -26,7 +26,7 @@
 namespace dudley {
 
 struct Dudley_NodeFile {
-    esysUtils::JMPI MPIInfo;    /* MPI information */
+    escript::JMPI MPIInfo;    /* MPI information */
 
     dim_t numNodes;             /* number of nodes */
     int numDim;         /* spatial dimension */
@@ -72,7 +72,7 @@ struct Dudley_NodeFile {
 typedef struct Dudley_NodeFile Dudley_NodeFile;
 
 
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, esysUtils::JMPI& MPIInfo);
+Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, escript::JMPI& MPIInfo);
 index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile * in);
 index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile * in);
 dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile * in);

@@ -16,15 +16,11 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#include "esysUtils/Esys_MPI.h"
 #include "SplitWorld.h"
 #include "AbstractDomain.h"
 #include "SplitWorldException.h"
-#include "SplitWorldException.h"
 #include "esysUtils/pyerr.h"
 
-#include <iostream>
 #include <sstream>
 
 using namespace boost::python;
@@ -49,12 +45,12 @@ boost::python::object SplitWorld::getLocalObjectVariable(const std::string& name
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
     :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1), manualimport(false)
 {
-    globalcom=esysUtils::makeInfo(global);
+    globalcom = makeInfo(global);
     
     int grank=0;
     int wsize=1;		// each world has this many processes
-    esysUtils::JMPI subcom;	// communicator linking other processes in this subworld
-    esysUtils::JMPI corrcom;	// communicator linking corresponding processes in different subworlds
+    JMPI subcom;	// communicator linking other processes in this subworld
+    JMPI corrcom;	// communicator linking corresponding processes in different subworlds
     #ifdef ESYS_MPI
 	int gsize=globalcom->size;
 	grank=globalcom->rank;
@@ -69,7 +65,7 @@ SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
 	{
 	    throw SplitWorldException("SplitWorld error: Unable to form communicator.");
 	}
-	subcom=esysUtils::makeInfo(sub,true);
+	subcom=makeInfo(sub,true);
 	
 	
 	MPI_Comm corrsub;
@@ -78,7 +74,7 @@ SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
 	{
 	    throw SplitWorldException("SplitWorld error: Unable to form communicator.");
 	}
-	corrcom=esysUtils::makeInfo(corrsub,true);
+	corrcom=makeInfo(corrsub,true);
 	
     #else
 	if (numgroups!=1)
@@ -86,8 +82,8 @@ SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
 	    throw SplitWorldException("SplitWorld error: non-MPI builds can only create 1 subworld.");
 	  
 	}
-	subcom=esysUtils::makeInfo(0);
-	corrcom=esysUtils::makeInfo(0);
+	subcom=makeInfo(0);
+	corrcom=makeInfo(0);
     #endif
     localworld=SubWorld_ptr(new SubWorld(globalcom, subcom,corrcom, swcount, grank/wsize,manualimport));
     localid=grank/wsize;
@@ -128,7 +124,7 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
 // Executes all pending jobs on all subworlds
 void SplitWorld::runJobs()
 {
-    esysUtils::NoCOMM_WORLD ncw;	// it's destructor will unset the flag
+    NoCOMM_WORLD ncw;	// it's destructor will unset the flag
     localworld->resetInterest();  
     localworld->newRunJobs();
     try 
@@ -172,7 +168,7 @@ void SplitWorld::runJobs()
 	} while (false);
         int res=mres;
         // now we find out about the other worlds
-        if (!esysUtils::checkResult(res, mres, globalcom))
+        if (!checkResult(res, mres, globalcom))
         {
 	    throw SplitWorldException("MPI appears to have failed.");
         }
@@ -197,7 +193,7 @@ void SplitWorld::runJobs()
 	    char* resultstr=0;
 	    // now we ship around the error message - This should be safe since
 	    // eveyone must have finished their Jobs to get here
-	    if (!esysUtils::shipString(err.c_str(), &resultstr, globalcom->comm))
+	    if (!shipString(err.c_str(), &resultstr, globalcom->comm))
 	    {
 		throw SplitWorldException("MPI appears to have failed.");
 	    }
@@ -261,13 +257,13 @@ void SplitWorld::addJobPerWorld(boost::python::object creator, boost::python::tu
     
     // MPI check to ensure that it worked for everybody
     int mstat=0;
-    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    if (!checkResult(errstat, mstat, globalcom))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }
     
       // Now we need to find out if anyone else had an error      
-    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    if (!checkResult(errstat, mstat, globalcom))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }
@@ -278,7 +274,7 @@ void SplitWorld::addJobPerWorld(boost::python::object creator, boost::python::tu
 	char* resultstr=0;
 	// now we ship around the error message - This should be safe since
 	// eveyone must have finished their Jobs to get here
-	if (!esysUtils::shipString(errmsg.c_str(), &resultstr, globalcom->comm))
+	if (!shipString(errmsg.c_str(), &resultstr, globalcom->comm))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}      
@@ -405,13 +401,13 @@ void SplitWorld::distributeJobs()
     
     // MPI check to ensure that it worked for everybody
     int mstat=0;
-    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    if (!checkResult(errstat, mstat, globalcom))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }
     
       // Now we need to find out if anyone else had an error      
-    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    if (!checkResult(errstat, mstat, globalcom))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }
@@ -422,7 +418,7 @@ void SplitWorld::distributeJobs()
 	char* resultstr=0;
 	// now we ship around the error message - This should be safe since
 	// eveyone must have finished their Jobs to get here
-	if (!esysUtils::shipString(errmsg.c_str(), &resultstr, globalcom->comm))
+	if (!shipString(errmsg.c_str(), &resultstr, globalcom->comm))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}      
@@ -541,6 +537,5 @@ boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dic
     return object();
 }
 
-
-
 }
+

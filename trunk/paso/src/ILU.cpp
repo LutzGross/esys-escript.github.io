@@ -54,7 +54,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
     Solver_ILU* out=new Solver_ILU;
     out->factors=new double[A->len];
 
-    double time0 = esysUtils::gettime();
+    double time0 = escript::gettime();
 
 #pragma omp parallel for schedule(static) private(i,iptr,k)
     for (i = 0; i < n; ++i) {
@@ -296,7 +296,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
     }
 
     if (verbose) {
-        const double time_fac=esysUtils::gettime()-time0;
+        const double time_fac=escript::gettime()-time0;
         printf("timing: ILU: coloring/elimination: %e sec\n",time_fac);
     }
     return out;

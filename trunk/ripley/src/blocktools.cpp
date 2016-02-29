@@ -436,4 +436,3 @@ unsigned char getSrcBuffID(unsigned char destx, unsigned char desty, unsigned ch
     return sourcex+sourcey*3+sourcez*9;
 }
 
-

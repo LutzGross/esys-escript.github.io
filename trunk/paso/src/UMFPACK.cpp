@@ -77,7 +77,7 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
         pt = new UMFPACK_Handler;
         A->solver_p = (void*) pt;
         A->solver_package = PASO_UMFPACK;
-        time0=esysUtils::gettime();
+        time0=escript::gettime();
 
         // call LDU symbolic factorization:
 #ifdef ESYS_INDEXTYPE_LONG
@@ -125,7 +125,7 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
         if (error == UMFPACK_OK) {
             if (verbose) {
                 std::cout << "UMFPACK: LDU factorization completed (time = "
-                    << esysUtils::gettime()-time0 << ")." << std::endl;
+                    << escript::gettime()-time0 << ")." << std::endl;
             }
         } else if (error == UMFPACK_ERROR_out_of_memory) {
             if (verbose) {
@@ -157,7 +157,7 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
 
     // call forward backward substitution
     control[UMFPACK_IRSTEP] = numRefinements; // number of refinement steps
-    time0 = esysUtils::gettime();
+    time0 = escript::gettime();
 #ifdef ESYS_INDEXTYPE_LONG
     error = umfpack_dl_solve(UMFPACK_A, A->pattern->ptr, A->pattern->index,
                              A->val, out, in, pt->numeric, control, info);
@@ -169,7 +169,7 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
     if (error == UMFPACK_OK) {
         if (verbose) {
             std::cout << "UMFPACK: forward/backward substitution completed "
-                "(time = " << esysUtils::gettime()-time0 << ")." << std::endl;
+                "(time = " << escript::gettime()-time0 << ")." << std::endl;
         }
     } else if (error == UMFPACK_ERROR_out_of_memory) {
         if (verbose) {

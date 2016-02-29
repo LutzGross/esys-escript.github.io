@@ -20,10 +20,9 @@
 
 #include "EscriptParams.h"
 #include "EsysException.h"
-#include "esysUtils/Esys_MPI.h"
 
 #include <cstring>
-#include <cmath>                        // to test if we know how to check for nan
+#include <cmath> // to test if we know how to check for nan
 #include <boost/python/tuple.hpp>
 
 namespace escript
@@ -227,7 +226,5 @@ EscriptParams::listEscriptParams()
    return l;
 }
 
+} // end namespace
 
-
-
-}        // end namespace

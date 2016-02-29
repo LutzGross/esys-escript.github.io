@@ -17,7 +17,7 @@
 #ifndef __ESCRIPT_FILEWRITER_H__
 #define __ESCRIPT_FILEWRITER_H__
 
-#include <esysUtils/Esys_MPI.h>
+#include <escript/EsysMPI.h>
 
 #include <fstream>
 #include <iostream>

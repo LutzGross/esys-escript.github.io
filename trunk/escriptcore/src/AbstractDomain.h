@@ -19,9 +19,9 @@
 #define __ESCRIPT_ABSTRACTDOMAIN_H__
 
 #include "system_dep.h"
-#include "Pointers.h"
 #include "DataTypes.h"
-#include <esysUtils/Esys_MPI.h>
+#include "EsysMPI.h"
+#include "Pointers.h"
 
 #include <boost/python/tuple.hpp>
 
@@ -67,7 +67,7 @@ public:
      \brief
      returns a shared pointer to the MPI information wrapper for this domain
     */
-    virtual esysUtils::JMPI getMPI() const = 0;
+    virtual JMPI getMPI() const = 0;
 
     /**
      \brief

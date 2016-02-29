@@ -146,7 +146,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
     /*
          set splitting of unknowns:
     */
-    time0=esysUtils::gettime();
+    time0=escript::gettime();
     if (n_block>1) {
         Preconditioner_LocalAMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
     } else {
@@ -158,7 +158,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
     /* in BoomerAMG if interpolation is used FF connectivity is required: */
     if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
         Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);
-    options->coarsening_selection_time=esysUtils::gettime()-time0 + std::max(0., options->coarsening_selection_time);
+    options->coarsening_selection_time=escript::gettime()-time0 + std::max(0., options->coarsening_selection_time);
 
     #pragma omp parallel for private(i) schedule(static)
     for (i = 0; i < n; ++i) F_marker[i]=((F_marker[i] ==  PASO_AMG_IN_F) ? PASO_AMG_IN_C : PASO_AMG_IN_F);
@@ -221,26 +221,26 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
             /*
               get Prolongation :
             */
-            time0=esysUtils::gettime();
+            time0=escript::gettime();
             out->P=Preconditioner_LocalAMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
             if (SHOW_TIMING)
                 std::cout << "timing: level " << level <<
-                   ": getProlongation: " << esysUtils::gettime()-time0
+                   ": getProlongation: " << escript::gettime()-time0
                    << std::endl;
             /*
                construct Restriction operator as transposed of Prolongation operator:
             */
-            time0=esysUtils::gettime();
+            time0=escript::gettime();
             out->R = out->P->getTranspose();
             if (SHOW_TIMING)
                 std::cout << "timing: level " << level
                     << ": SparseMatrix::getTranspose: "
-                    << esysUtils::gettime()-time0 << std::endl;
+                    << escript::gettime()-time0 << std::endl;
             /*
             construct coarse level matrix:
             */
             SparseMatrix_ptr Atemp;
-            time0=esysUtils::gettime();
+            time0=escript::gettime();
             if (USE_TRANSPOSE)
                 Atemp = SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
             else
@@ -249,7 +249,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
             if (SHOW_TIMING)
                 std::cout << "timing: level " << level
                        << ": construct coarse matrix: "
-                       << esysUtils::gettime()-time0 << std::endl;
+                       << escript::gettime()-time0 << std::endl;
 
             /*
                construct coarser level:
@@ -314,22 +314,22 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
     const dim_t pre_sweeps=amg->pre_sweeps;
 
     // presmoothing
-    time0=esysUtils::gettime();
+    time0=escript::gettime();
     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, false);
-    time0=esysUtils::gettime()-time0;
+    time0=escript::gettime()-time0;
     if (SHOW_TIMING)
         std::cout << "timing: level " << amg->level << ": Presmoothing: "
              << time0 << std::endl;;
     // end of presmoothing
 
-    time0=esysUtils::gettime();
+    time0=escript::gettime();
     util::copy(n, amg->r, b);                            /*  r <- b */
     SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
     SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
-    time0=esysUtils::gettime()-time0;
+    time0=escript::gettime()-time0;
     /* coarse level solve */
     if (amg->AMG_C == NULL) {
-            time0=esysUtils::gettime();
+            time0=escript::gettime();
             /*  A_C is the coarsest level */
             switch (amg->A_C->solver_package) {
                case (PASO_MKL):
@@ -344,19 +344,19 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
             }
             if (SHOW_TIMING)
                 std::cout << "timing: level " << amg->level
-                    << ": DIRECT SOLVER: " << esysUtils::gettime()-time0 << std::endl;
+                    << ": DIRECT SOLVER: " << escript::gettime()-time0 << std::endl;
     } else {
             Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
     }
-    time0=time0+esysUtils::gettime();
+    time0=time0+escript::gettime();
     SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */
 
     /*postsmoothing*/
 
     /*solve Ax=b with initial guess x */
-    time0=esysUtils::gettime();
+    time0=escript::gettime();
     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, true);
-    time0=esysUtils::gettime()-time0;
+    time0=escript::gettime()-time0;
     if (SHOW_TIMING)
          std::cout << "timing: level " << amg->level << ": Postsmoothing: "
              << time0 << std::endl;

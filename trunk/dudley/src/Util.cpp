@@ -537,7 +537,7 @@ index_t Dudley_Util_cumsum(dim_t N, index_t* array)
 }
 
 void Dudley_Util_setValuesInUse(const index_t* values, dim_t numValues, dim_t* numValuesInUse,
-                                index_t** valuesInUse, esysUtils::JMPI& mpiinfo)
+                                index_t** valuesInUse, escript::JMPI& mpiinfo)
 {
     dim_t i;
     index_t lastFoundValue = escript::DataTypes::index_t_min(), minFoundValue, local_minFoundValue, *newValuesInUse = NULL;

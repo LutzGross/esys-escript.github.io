@@ -16,11 +16,8 @@
 #ifndef __ESCRIPT_NONREDUCEDVARIABLE_H__
 #define __ESCRIPT_NONREDUCEDVARIABLE_H__
 
-#include "esysUtils/Esys_MPI.h"
 #include "AbstractReducer.h"
 #include "Data.h"
-
-#include <boost/shared_ptr.hpp>
 
 namespace escript
 {
@@ -41,7 +38,7 @@ public:
     bool valueCompatible(boost::python::object v);
     bool reduceLocalValue(boost::python::object v, std::string& errstring);
     void reset();
-    bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring);
+    bool checkRemoteCompatibility(JMPI& mpi_info, std::string& errstring);
     
     void getCompatibilityInfo(std::vector<unsigned>& params);
     
@@ -53,11 +50,11 @@ public:
     
     // Get a value for this variable from another process
     // This is not a reduction and will replace any existing value
-    bool recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo);
+    bool recvFrom(int localid, int source, JMPI& mpiinfo);
 
     // Send a value to this variable to another process
     // This is not a reduction and will replace any existing value    
-    bool sendTo(int localid, int target, esysUtils::JMPI& mpiinfo);    
+    bool sendTo(int localid, int target, JMPI& mpiinfo);    
     double getDouble();
     virtual boost::python::object getPyObj(); 
     

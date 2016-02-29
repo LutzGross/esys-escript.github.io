@@ -16,7 +16,6 @@
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
-#include "esysUtils/Esys_MPI.h"
 
 #include "AbstractContinuousDomain.h"
 #include "AbstractReducer.h"
@@ -115,13 +114,15 @@ bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
-
-  #if BOOST_VERSION >= 103500
+#if BOOST_VERSION >= 103500
 // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  docstring_options docopt(true,true,false);
-  #endif
+    docstring_options docopt(true,true,false);
+#endif
 
-  scope().attr("__doc__") = "To use this module, please import esys.escript";      
+    scope().attr("__doc__") = "To use this module, please import esys.escript";
+
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
 
 /* begin SubWorld things */
 
@@ -1279,12 +1280,5 @@ args("source", "q", "r","factor"),
 #endif
 
   def("_condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
-
-  //
-  // Register exception translators
-  //
-  register_exception_translator<escript::AssertException>(&escript::AssertionErrorTranslator);
-  register_exception_translator<escript::EsysException>(&escript::RuntimeErrorTranslator);
-  register_exception_translator<escript::ValueError>(&escript::ValueErrorTranslator);
 }
 

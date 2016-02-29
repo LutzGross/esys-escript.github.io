@@ -22,9 +22,9 @@
 namespace dudley {
 
 Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-                    bool optimize, esysUtils::JMPI& mpi_info);
+                    bool optimize, escript::JMPI& mpi_info);
 Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-                    bool optimize, esysUtils::JMPI& mpi_info);
+                    bool optimize, escript::JMPI& mpi_info);
 
 } // namespace dudley
 

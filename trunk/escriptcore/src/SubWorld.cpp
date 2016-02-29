@@ -32,14 +32,15 @@
 #include <iostream>
 
 using namespace escript;
-namespace bp=boost::python;
-using namespace esysUtils;
-namespace rs=escript::reducerstatus;
+namespace bp = boost::python;
+namespace rs = escript::reducerstatus;
 
 using namespace std;
 
-SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr, unsigned int subworldcount, unsigned int local_id, bool manualimport)
-    :everyone(global), swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0), 
+SubWorld::SubWorld(JMPI& global, JMPI& comm, JMPI& corr,
+                   unsigned int subworldcount, unsigned int local_id,
+                   bool manualimport)
+    : everyone(global), swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0),
     swcount(subworldcount), localid(local_id), manualimports(manualimport)
 #ifdef ESYS_MPI    
     ,globalinfoinvalid(true)
@@ -72,7 +73,7 @@ Domain_ptr SubWorld::getDomain()
     return domain;
 }
 
-void SubWorld::addJob(boost::python::object j)
+void SubWorld::addJob(bp::object j)
 {
     jobvec.push_back(j);
 }
@@ -184,7 +185,7 @@ bool SubWorld::deliverImports(std::string& errmsg)
 		{
 		    jobvec[i].attr("setImportValue")(it->first, reducemap[it->first]->getPyObj());
 		}
-		catch (boost::python::error_already_set e)
+		catch (bp::error_already_set e)
 		{
 		    getStringFromPyException(e, errmsg);   	      
 		    return false;
@@ -203,7 +204,7 @@ bool SubWorld::deliverImports(std::string& errmsg)
 		    {
 			jobvec[i].attr("setImportValue")(it->first, it->second->getPyObj());
 		    }
-		    catch (boost::python::error_already_set e)
+		    catch (bp::error_already_set e)
 		    {
 			getStringFromPyException(e, errmsg);   	      
 			return false;
@@ -372,7 +373,7 @@ DataTypes::real_t SubWorld::getScalarVariable(const std::string& name)
     }
     if (dynamic_cast<NonReducedVariable*>(it->second.get()))
     {
-	boost::python::extract<DataTypes::real_t> ex(it->second->getPyObj());
+	bp::extract<DataTypes::real_t> ex(it->second->getPyObj());
 	if (!ex.check())
 	{
 	    throw SplitWorldException("Variable is not scalar.");
@@ -386,7 +387,7 @@ DataTypes::real_t SubWorld::getScalarVariable(const std::string& name)
 // not to be called while running jobs
 // The tricky bit, is that this could be be called between job runs
 // this means that the values of variables may not have been synched yet
-boost::python::object SubWorld::getLocalObjectVariable(const std::string& name)
+bp::object SubWorld::getLocalObjectVariable(const std::string& name)
 {
     str2reduce::iterator it=reducemap.find(name);
     if (it==reducemap.end())
@@ -971,8 +972,8 @@ char SubWorld::runJobs(std::string& errormsg)
     {
 	for (size_t i=0;i<jobvec.size();++i)
 	{
-	    boost::python::object result=jobvec[i].attr("work")();
-	    boost::python::extract<bool> ex(result);
+	    bp::object result=jobvec[i].attr("work")();
+	    bp::extract<bool> ex(result);
 	    if (!ex.check() || (result.is_none()))
 	    {
 		return 2;	
@@ -985,7 +986,7 @@ char SubWorld::runJobs(std::string& errormsg)
 
 	}
     } 
-    catch (boost::python::error_already_set e)
+    catch (bp::error_already_set e)
     {
 	getStringFromPyException(e, errormsg);      
 	return 3;

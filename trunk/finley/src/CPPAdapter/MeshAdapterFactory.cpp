@@ -20,8 +20,6 @@
 #include "MeshAdapterFactory.h"
 #include "finley/FinleyException.h"
 
-#include <esysUtils/Esys_MPI.h>
-
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -64,7 +62,7 @@ inline void cleanupAndThrow(Mesh* mesh, string msg)
 Domain_ptr loadMesh(const std::string& fileName)
 {
 #ifdef USE_NETCDF
-    esysUtils::JMPI mpiInfo = esysUtils::makeInfo( MPI_COMM_WORLD );
+    escript::JMPI mpiInfo = escript::makeInfo( MPI_COMM_WORLD );
 
     const string fName(mpiInfo->appendRankToFileName(fileName));
 
@@ -470,7 +468,7 @@ Domain_ptr loadMesh(const std::string& fileName)
 #endif // USE_NETCDF
 }
 
-Domain_ptr readMesh(esysUtils::JMPI& info, const std::string& fileName,
+Domain_ptr readMesh(escript::JMPI& info, const std::string& fileName,
                     int integrationOrder, int reducedIntegrationOrder,
                     bool optimize, const std::vector<double>& points,
                     const std::vector<int>& tags)
@@ -506,7 +504,7 @@ Domain_ptr readMesh_driver(const boost::python::list& args)
     int numtags=extract<int>(pytags.attr("__len__")());
 
     boost::python::object pworld=args[6];
-    esysUtils::JMPI info;
+    escript::JMPI info;
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check()) {
@@ -514,7 +512,7 @@ Domain_ptr readMesh_driver(const boost::python::list& args)
         }
         info=ex()->getMPI();
     } else {
-        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+        info=escript::makeInfo(MPI_COMM_WORLD);
     }
     Domain_ptr result=readMesh(info, fileName, integrationOrder,
                                reducedIntegrationOrder, optimize, points, tags);
@@ -565,7 +563,7 @@ Domain_ptr readMesh_driver(const boost::python::list& args)
     return result;
 }  
   
-Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
+Domain_ptr readGmsh(escript::JMPI& info, const std::string& fileName,
                     int numDim, int integrationOrder,
                     int reducedIntegrationOrder, bool optimize,
                     bool useMacroElements, const std::vector<double>& points,
@@ -602,7 +600,7 @@ Domain_ptr readGmsh_driver(const boost::python::list& args)
     int numpts=extract<int>(pypoints.attr("__len__")());
     int numtags=extract<int>(pytags.attr("__len__")());
     boost::python::object pworld=args[8];
-    esysUtils::JMPI info;
+    escript::JMPI info;
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check()) {
@@ -610,7 +608,7 @@ Domain_ptr readGmsh_driver(const boost::python::list& args)
         }
         info=ex()->getMPI();
     } else {
-        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+        info=escript::makeInfo(MPI_COMM_WORLD);
     }
     Domain_ptr result = readGmsh(info, fileName, numDim, integrationOrder,
                                  reducedIntegrationOrder, optimize,
@@ -661,7 +659,7 @@ Domain_ptr readGmsh_driver(const boost::python::list& args)
     return result;
 }   
   
-Domain_ptr brick(esysUtils::JMPI& info, dim_t n0, dim_t n1, dim_t n2, int order,
+Domain_ptr brick(escript::JMPI& info, dim_t n0, dim_t n1, dim_t n2, int order,
                  double l0, double l1, double l2,
                  bool periodic0, bool periodic1, bool periodic2,
                  int integrationOrder, int reducedIntegrationOrder,
@@ -749,7 +747,7 @@ Domain_ptr brick_driver(const boost::python::list& args)
         }
     }
     boost::python::object pworld=args[17];
-    esysUtils::JMPI info;
+    escript::JMPI info;
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check())
@@ -758,7 +756,7 @@ Domain_ptr brick_driver(const boost::python::list& args)
         }
         info=ex()->getMPI();
     } else {
-        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+        info=escript::makeInfo(MPI_COMM_WORLD);
     }
     return brick(info, static_cast<dim_t>(extract<float>(args[0])),
                    static_cast<dim_t>(extract<float>(args[1])),
@@ -772,7 +770,7 @@ Domain_ptr brick_driver(const boost::python::list& args)
                    points, tags, namestonums);
 }
 
-Domain_ptr rectangle(esysUtils::JMPI& info, dim_t n0, dim_t n1, int order,
+Domain_ptr rectangle(escript::JMPI& info, dim_t n0, dim_t n1, int order,
                      double l0, double l1, bool periodic0, bool periodic1,
                      int integrationOrder, int reducedIntegrationOrder,
                      bool useElementsOnFace, bool useFullElementOrder,
@@ -878,7 +876,7 @@ Domain_ptr rectangle_driver(const boost::python::list& args)
         }
     }
     boost::python::object pworld=args[14];
-    esysUtils::JMPI info;
+    escript::JMPI info;
     if (!pworld.is_none()) {
         extract<SubWorld_ptr> ex(pworld);
         if (!ex.check()) {
@@ -886,7 +884,7 @@ Domain_ptr rectangle_driver(const boost::python::list& args)
         }
         info=ex()->getMPI();
     } else {
-        info=esysUtils::makeInfo(MPI_COMM_WORLD);
+        info=escript::makeInfo(MPI_COMM_WORLD);
     }
 
     return rectangle(info, static_cast<dim_t>(extract<float>(args[0])),

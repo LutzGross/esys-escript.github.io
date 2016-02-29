@@ -159,7 +159,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
     A->copyRemoteCoupleBlock(false);
 
     // set splitting of unknowns
-    time0 = esysUtils::gettime();
+    time0 = escript::gettime();
     if (n_block > 1) {
         Preconditioner_AMG_setStrongConnections_Block(A, degree_S, offset_S,
                                                       S, theta, tau);
@@ -180,7 +180,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
     //if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
     //    Preconditioner_AMG_enforceFFConnectivity(n, A->pattern->ptr, degree_S, S, F_marker);
 
-    options->coarsening_selection_time = esysUtils::gettime()-time0 +
+    options->coarsening_selection_time = escript::gettime()-time0 +
                                std::max(0., options->coarsening_selection_time);
 #pragma omp parallel for
     for (dim_t i = 0; i < n; ++i)
@@ -246,27 +246,27 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
                     rows_in_F[counter[i]] = i;
             }
             // get Prolongation
-            time0 = esysUtils::gettime();
+            time0 = escript::gettime();
             out->P = Preconditioner_AMG_getProlongation(A,
                     offset_S, degree_S, S, n_C, mask_C,
                     options->interpolation_method);
 
             // construct Restriction operator as transposed of
             // Prolongation operator:
-            time0 = esysUtils::gettime();
+            time0 = escript::gettime();
             out->R = Preconditioner_AMG_getRestriction(out->P);
             if (SHOW_TIMING)
                 std::cout << "timing: level " << level
-                    << ": getTranspose: " << esysUtils::gettime()-time0
+                    << ": getTranspose: " << escript::gettime()-time0
                     << std::endl;
             // construct coarse level matrix
             SystemMatrix_ptr A_C;
-            time0 = esysUtils::gettime();
+            time0 = escript::gettime();
             A_C = Preconditioner_AMG_buildInterpolationOperator(A, out->P, out->R);
             if (SHOW_TIMING)
                 std::cout << "timing: level " << level
                     << ": construct coarse matrix: "
-                    << esysUtils::gettime()-time0 << std::endl;
+                    << escript::gettime()-time0 << std::endl;
 
             out->AMG_C = Preconditioner_AMG_alloc(A_C, level+1, options);
             out->A_C = A_C;
@@ -301,45 +301,45 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
     const dim_t pre_sweeps=amg->pre_sweeps;
 
     // presmoothing
-    double time0 = esysUtils::gettime();
+    double time0 = escript::gettime();
     Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, false);
-    time0 = esysUtils::gettime()-time0;
+    time0 = escript::gettime()-time0;
     if (SHOW_TIMING)
         std::cout << "timing: level " << amg->level << ": Presmoothing: "
             << time0 << std::endl;
     // end of presmoothing
 
-    time0=esysUtils::gettime();
+    time0=escript::gettime();
     // r <- b
     util::copy(n, amg->r, b);
     // r = r-Ax
     A->MatrixVector_CSR_OFFSET0(-1., x, 1., amg->r);
     // b_C = R*r
     amg->R->MatrixVector_CSR_OFFSET0(1., amg->r, 0., amg->b_C);
-    time0 = esysUtils::gettime()-time0;
+    time0 = escript::gettime()-time0;
 
     // coarse level solve
     if (amg->AMG_C == NULL) {
-        time0 = esysUtils::gettime();
+        time0 = escript::gettime();
         // A_C is the coarsest level
         amg->merged_solver->solve(amg->x_C, amg->b_C);
         if (SHOW_TIMING)
             std::cout << "timing: level " << amg->level << ": DIRECT SOLVER: "
-                << esysUtils::gettime()-time0 << std::endl;
+                << escript::gettime()-time0 << std::endl;
     } else {
         // x_C = AMG(b_C)
         Preconditioner_AMG_solve(amg->A_C, amg->AMG_C, amg->x_C, amg->b_C);
     }
 
-    time0 = time0+esysUtils::gettime();
+    time0 = time0+escript::gettime();
     // x = x + P*x_c
     amg->P->MatrixVector_CSR_OFFSET0(1., amg->x_C, 1., x);
 
     // postsmoothing:
     // solve Ax=b with initial guess x
-    time0 = esysUtils::gettime();
+    time0 = escript::gettime();
     Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, true);
-    time0 = esysUtils::gettime()-time0;
+    time0 = escript::gettime()-time0;
     if (SHOW_TIMING)
         std::cout << "timing: level " << amg->level << ": Postsmoothing: "
             << time0 << std::endl;
