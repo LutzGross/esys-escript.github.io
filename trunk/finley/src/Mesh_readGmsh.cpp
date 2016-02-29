@@ -971,9 +971,6 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     int format = 0, size = sizeof(double), scan_ret,  errorFlag=0, logicFlag=0;
     std::vector<char> line;
     std::map<int,int> nodeTags;
-#ifdef Finley_TRACE
-    double time0=timer();
-#endif
     FILE* fileHandle_p = NULL;
     std::string errorMsg;
 
@@ -1133,9 +1130,6 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
     char name[1024];
     std::string errorMsg;
     std::map<int,int> nodeTags;
-#ifdef Finley_TRACE
-    double time0=timer();
-#endif
     FILE * fileHandle_p = NULL;
 
     // allocate mesh

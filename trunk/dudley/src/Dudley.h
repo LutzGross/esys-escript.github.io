@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef INC_DUDLEY
-#define INC_DUDLEY
+#ifndef __DUDLEY_H__
+#define __DUDLEY_H__
 
 /****************************************************************************/
 
@@ -26,17 +26,14 @@
 #include <dudley/DudleyException.h>
 
 #include "esysUtils/Esys_MPI.h"
-#include "esysUtils/error.h"
-
 #include <escript/DataTypes.h>
 #include <cstring>
 
-//FIXME: this is evil! Fix by putting all of dudley into its own namespace!
+namespace dudley {
+
 using escript::DataTypes::index_t;
 using escript::DataTypes::dim_t;
 
-/************************************************************************************/
-/*#define Dudley_TRACE */
 #define DUDLEY_UNKNOWN -1
 #define DUDLEY_DEGREES_OF_FREEDOM 1
 #define DUDLEY_NODES 3
@@ -53,22 +50,7 @@ typedef int Dudley_Status_t;
 #define Dudley_increaseStatus(self) ((self)->status)++
 #define DUDLEY_INITIAL_STATUS 0
 
-/* error codes */
+} // namespace dudley
 
-typedef Esys_ErrorCodeType Dudley_ErrorCodeType;
-
-/* interfaces */
-
-double Dudley_timer(void);
-void Dudley_resetError(void);
-void Dudley_setError(Dudley_ErrorCodeType err, __const char *msg);
-bool Dudley_noError(void);
-Dudley_ErrorCodeType Dudley_getErrorType(void);
-char *Dudley_getErrorMessage(void);
-void Dudley_convertPasoError(void);
-bool Dudley_MPI_noError(esysUtils::JMPI& mpi_info);
-// void Dudley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t * numTagsInUse, index_t ** tagsInUse,
-// 			 esysUtils::JMPI& mpiinfo);
-
-#endif				/* #ifndef INC_DUDLEY */
+#endif // __DUDLEY_H__
 

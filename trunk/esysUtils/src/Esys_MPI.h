@@ -20,6 +20,8 @@
 #include <escript/DataTypes.h>
 
 #include <sstream>
+#include <ctime>
+
 #include <boost/shared_ptr.hpp>
 
 #ifdef _OPENMP
@@ -159,19 +161,6 @@ private:
     int msg_tag_counter;
 };
 
-
-bool Esys_MPIInfo_noError(const JMPI& mpi_info);
-
-// ensure that the any ranks with an empty src argument end up with the string from
-// one of the other ranks
-// with no-mpi, it makes dest point at a copy of src
-bool shipString(const char* src, char** dest, MPI_Comm& comm);
-
-
-// Everyone puts in their error code and everyone gets the largest one
-bool checkResult(int input, int& output, const JMPI& comm);
-
-
 // Does not cope with nested calls
 class NoCOMM_WORLD
 {
@@ -180,6 +169,30 @@ public:
     ~NoCOMM_WORLD();
     static bool active();
 };
+
+// Everyone puts in their error code and everyone gets the largest one
+bool checkResult(int input, int& output, const JMPI& comm);
+
+// ensure that the any ranks with an empty src argument end up with the string from
+// one of the other ranks
+// with no-mpi, it makes dest point at a copy of src
+bool shipString(const char* src, char** dest, MPI_Comm& comm);
+
+/// This function returns the current ticks for timing
+inline double gettime()
+{
+    double out;
+#ifdef ESYS_MPI
+    out = MPI_Wtime();
+#else
+#ifdef _OPENMP 
+    out=omp_get_wtime();
+#else
+    out=((double) clock())/CLOCKS_PER_SEC;
+#endif
+#endif
+    return out;
+}
 
 } // namespace esysUtils
 

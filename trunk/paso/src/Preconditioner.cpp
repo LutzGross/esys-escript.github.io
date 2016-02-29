@@ -97,14 +97,12 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
                 printf("Preconditioner: ILU preconditioner is used.\n");
             prec->ilu = Solver_getILU(A->mainBlock, options->verbose);
             prec->type = PASO_ILU0;
-            Esys_MPIInfo_noError(A->mpi_info);
             break;
 
         case PASO_RILU:
             if (options->verbose)
                 printf("Preconditioner: RILU preconditioner is used.\n");
             prec->rilu = Solver_getRILU(A->mainBlock,options->verbose);
-            Esys_MPIInfo_noError(A->mpi_info);
             prec->type=PASO_RILU;
             break;
 
@@ -113,10 +111,6 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
                 printf("Preconditioner: no preconditioner is applied.\n");
             prec->type=PASO_NO_PRECONDITIONER;
             break;
-    }
-    if (!Esys_noError()) {
-        Preconditioner_free(prec);
-        return NULL;
     }
     return prec;
 }

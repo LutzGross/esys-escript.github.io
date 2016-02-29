@@ -14,21 +14,16 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
-
-/*   Dudley: Mesh: NodeFile */
-
-/************************************************************************************/
-
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "NodeFile.h"
 #include "Util.h"
 
+namespace dudley {
+
 /*  allocates the node table within an node file to hold numNodes of nodes. The LinearTo mapping, if it exists, */
 /*  is frees. use Dudley_Mesh_setLinearMesh to create a new one. */
-
 void Dudley_NodeFile_allocTable(Dudley_NodeFile* in, dim_t numNodes)
 {
     index_t *Id2 = NULL, *Tag2 = NULL, *globalDegreesOfFreedom2 = NULL, *globalReducedDOFIndex2 = NULL,
@@ -124,12 +119,11 @@ void Dudley_NodeFile_setTagsInUse(Dudley_NodeFile * in)
     if (in != NULL)
     {
         Dudley_Util_setValuesInUse(in->Tag, in->numNodes, &numTagsInUse, &tagsInUse, in->MPIInfo);
-        if (Dudley_noError())
-        {
-            delete[] in->tagsInUse;
-            in->tagsInUse = tagsInUse;
-            in->numTagsInUse = numTagsInUse;
-        }
+        delete[] in->tagsInUse;
+        in->tagsInUse = tagsInUse;
+        in->numTagsInUse = numTagsInUse;
     }
 }
+
+} // namespace dudley
 

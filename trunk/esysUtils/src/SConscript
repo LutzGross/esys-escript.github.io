@@ -19,14 +19,12 @@ local_env = env.Clone()
 
 sources = """
     Esys_MPI.cpp
-    error.cpp
     pyerr.cpp
 """.split()
 
 headers = """
     Esys_MPI.h
     IndexList.h
-    error.h
     index.h
     pyerr.h
     first.h

@@ -14,13 +14,14 @@
 *
 *****************************************************************************/
 
-#ifndef INC_DUDLEY_ELEMENTFILE
-#define INC_DUDLEY_ELEMENTFILE
+#ifndef __DUDLEY_ELEMENTFILE_H__
+#define __DUDLEY_ELEMENTFILE_H__
 
 #include "Dudley.h"
 #include "NodeFile.h"
 #include "ElementType.h"
-#include "esysUtils/Esys_MPI.h"
+
+namespace dudley {
 
 typedef struct {
     Dudley_Status_t status;     /* status of mesh when jacobians where updated last time */
@@ -109,5 +110,7 @@ void Dudley_ElementFile_Jacobians_dealloc(Dudley_ElementFile_Jacobians *);
 Dudley_ElementFile_Jacobians *Dudley_ElementFile_borrowJacobians(const Dudley_ElementFile*, const Dudley_NodeFile*, bool);
 void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in);
 
-#endif /* #ifndef INC_DUDLEY_ELEMENTFILE */
+} // namespace dudley
+
+#endif // __DUDLEY_ELEMENTFILE_H__
 

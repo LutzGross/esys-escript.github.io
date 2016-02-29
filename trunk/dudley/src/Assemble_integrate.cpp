@@ -30,7 +30,6 @@ namespace dudley {
 
 void Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, const escript::Data* data, double* out)
 {
-    Dudley_resetError();
     if (!nodes || !elements)
         return;
 
@@ -38,55 +37,51 @@ void Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, co
     Dudley_ElementFile_Jacobians* jac = Dudley_ElementFile_borrowJacobians(
             elements, nodes, Assemble_reducedIntegrationOrder(data));
 
-    if (Dudley_noError()) {
-        const dim_t numQuadTotal = jac->numQuad;
-        // check the shape of the data
-        if (!data->numSamplesEqual(numQuadTotal, elements->numElements)) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_integrate: illegal number of samples of integrant kernel Data object");
-            return;
-        }
+    const dim_t numQuadTotal = jac->numQuad;
+    // check the shape of the data
+    if (!data->numSamplesEqual(numQuadTotal, elements->numElements)) {
+        throw DudleyException("Assemble_integrate: illegal number of samples of integrant kernel Data object");
+    }
 
-        const int numComps = data->getDataPointSize();
+    const int numComps = data->getDataPointSize();
 
-        for (int q = 0; q < numComps; q++)
-            out[q] = 0;
+    for (int q = 0; q < numComps; q++)
+        out[q] = 0;
 
 #pragma omp parallel
-        {
-            std::vector<double> out_local(numComps);
+    {
+        std::vector<double> out_local(numComps);
 
-            if (data->actsExpanded()) {
+        if (data->actsExpanded()) {
 #pragma omp for
-                for (index_t e = 0; e < elements->numElements; e++) {
-                    if (elements->Owner[e] == my_mpi_rank) {
-                        const double vol = jac->absD[e] * jac->quadweight;
-                        const double* data_array = data->getSampleDataRO(e);
-                        for (int q = 0; q < numQuadTotal; q++) {
-                            for (int i = 0; i < numComps; i++)
-                                out_local[i] += data_array[INDEX2(i, q, numComps)] * vol;
-                        }
-                    }
-                }
-            } else {
-#pragma omp for
-                for (index_t e = 0; e < elements->numElements; e++) {
-                    if (elements->Owner[e] == my_mpi_rank) {
-                        const double vol = jac->absD[e] * jac->quadweight;
-                        const double* data_array = data->getSampleDataRO(e);
-                        double rtmp = 0.;
-                        for (int q = 0; q < numQuadTotal; q++)
-                            rtmp += vol;
+            for (index_t e = 0; e < elements->numElements; e++) {
+                if (elements->Owner[e] == my_mpi_rank) {
+                    const double vol = jac->absD[e] * jac->quadweight;
+                    const double* data_array = data->getSampleDataRO(e);
+                    for (int q = 0; q < numQuadTotal; q++) {
                         for (int i = 0; i < numComps; i++)
-                            out_local[i] += data_array[i] * rtmp;
+                            out_local[i] += data_array[INDEX2(i, q, numComps)] * vol;
                     }
                 }
             }
-            // add local results to global result
-#pragma omp critical
-            for (int i = 0; i < numComps; i++)
-                out[i] += out_local[i];
+        } else {
+#pragma omp for
+            for (index_t e = 0; e < elements->numElements; e++) {
+                if (elements->Owner[e] == my_mpi_rank) {
+                    const double vol = jac->absD[e] * jac->quadweight;
+                    const double* data_array = data->getSampleDataRO(e);
+                    double rtmp = 0.;
+                    for (int q = 0; q < numQuadTotal; q++)
+                        rtmp += vol;
+                    for (int i = 0; i < numComps; i++)
+                        out_local[i] += data_array[i] * rtmp;
+                }
+            }
         }
+        // add local results to global result
+#pragma omp critical
+        for (int i = 0; i < numComps; i++)
+            out[i] += out_local[i];
     }
 }
 

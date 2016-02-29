@@ -14,24 +14,22 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh: sets new coordinates for elements */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "ElementFile.h"
 
-/************************************************************************************/
+namespace dudley {
 
-void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escript::Data* newX)
+void Dudley_ElementFile_setCoordinates(Dudley_ElementFile* self, escript::Data* newX)
 {
-    /* self->volume_is_valid=FALSE;   
-       self->DSDV_is_valid=FALSE;    
-       self->DSLinearDV_is_valid=FALSE; 
-       self->X_is_valid=FALSE;          */
 }
+
+} // namespace dudley
 

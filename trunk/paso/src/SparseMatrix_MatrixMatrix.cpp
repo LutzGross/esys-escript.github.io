@@ -26,6 +26,7 @@
 *****************************************************************************/
 
 #include "SparseMatrix.h"
+#include "PasoException.h" // comparIndex
 #include "PasoUtil.h" // comparIndex
 
 namespace paso {
@@ -48,22 +49,18 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr A,
     if (!( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) ||
            (A->type & MATRIX_FORMAT_DEFAULT) ||
            (A->type & MATRIX_FORMAT_BLK1) )) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::MatrixMatrix: Unsupported matrix format of A.");
-        return out;
+        throw PasoException("SparseMatrix::MatrixMatrix: Unsupported matrix format of A.");
     }
     if (!( (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) ||
            (B->type & MATRIX_FORMAT_DEFAULT) ||
            (B->type & MATRIX_FORMAT_BLK1) )) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::MatrixMatrix: Unsupported matrix format of B.");
-        return out;
+        throw PasoException("SparseMatrix::MatrixMatrix: Unsupported matrix format of B.");
     }
     if (A->col_block_size != B->row_block_size) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::MatrixMatrix: Column block size of A and row block size of B must match.");
-        return out;
+        throw PasoException("SparseMatrix::MatrixMatrix: Column block size of A and row block size of B must match.");
     }
     if (A->numCols != B->numRows) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::MatrixMatrix: number of columns of A and number of rows of B must match.");
-        return out;
+        throw PasoException("SparseMatrix::MatrixMatrix: number of columns of A and number of rows of B must match.");
     }
 
     if ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) &&
@@ -75,30 +72,24 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr A,
 
     Pattern_ptr outpattern(A->pattern->multiply(MATRIX_FORMAT_DEFAULT, B->pattern));
 
-    if (Esys_noError()) {
-        out.reset(new SparseMatrix(C_type, outpattern, A->row_block_size, B->col_block_size, false));
-    }
+    out.reset(new SparseMatrix(C_type, outpattern, A->row_block_size, B->col_block_size, false));
 
-    if (Esys_noError()) {
-        if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {
-            SparseMatrix_MatrixMatrix_DD(out, A, B);
-        } else {
-            if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-                if (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-                    SparseMatrix_MatrixMatrix_DD(out, A, B);
-                } else {
-                    SparseMatrix_MatrixMatrix_DB(out, A, B);
-                }
+    if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {
+        SparseMatrix_MatrixMatrix_DD(out, A, B);
+    } else {
+        if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+            if (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+                SparseMatrix_MatrixMatrix_DD(out, A, B);
             } else {
-                if (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-                    SparseMatrix_MatrixMatrix_BD(out, A, B);
-                } else {
-                    SparseMatrix_MatrixMatrix_BB(out, A, B);
-                }
+                SparseMatrix_MatrixMatrix_DB(out, A, B);
+            }
+        } else {
+            if (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+                SparseMatrix_MatrixMatrix_BD(out, A, B);
+            } else {
+                SparseMatrix_MatrixMatrix_BB(out, A, B);
             }
         }
-    } else {
-        out.reset();
     }
     return out;
 }

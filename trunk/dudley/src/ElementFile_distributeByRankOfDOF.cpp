@@ -25,6 +25,8 @@
 
 #include "ElementFile.h"
 
+namespace dudley {
+
 void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpiRankOfDOF, index_t* Id)
 {
     if (self == NULL)
@@ -225,4 +227,6 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpi
         }
     }
 }
+
+} // namespace dudley
 

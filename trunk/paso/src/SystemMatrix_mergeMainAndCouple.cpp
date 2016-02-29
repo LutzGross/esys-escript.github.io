@@ -47,10 +47,10 @@ void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double**
         if (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) {
             mergeMainAndCouple_CSC_OFFSET1(p_ptr, p_idx, p_val);
         } else {
-            Esys_setError(SYSTEM_ERROR, "SystemMatrix::mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported.");
+            throw PasoException("SystemMatrix::mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported.");
         }
     } else {
-        Esys_setError(SYSTEM_ERROR,"SystemMatrix::mergeMainAndCouple: CRS is not supported.");
+        throw PasoException("SystemMatrix::mergeMainAndCouple: CRS is not supported.");
     }
 }
 
@@ -92,8 +92,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
     const index_t couple_num_rows = col_coupleBlock->numRows;
 
     if (main_num_rows != couple_num_rows) {
-        Esys_setError(TYPE_ERROR, "SystemMatrix::mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
-        return;
+        throw PasoException("SystemMatrix::mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
     }
 
     double* rows = NULL;
@@ -201,8 +200,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     const index_t couple_num_rows = col_coupleBlock->numRows;
 
     if (main_num_rows != couple_num_rows) {
-        Esys_setError(TYPE_ERROR, "SystemMatrix_mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
-        return;
+        throw PasoException("SystemMatrix_mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
     }
 
     double* rows = NULL;
@@ -280,7 +278,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
 
 void SystemMatrix::mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
-    Esys_setError(TYPE_ERROR, "SystemMatrix_mergeMainAndCouple_CSC_OFFSET1: not implemented.");
+    throw PasoException("SystemMatrix_mergeMainAndCouple_CSC_OFFSET1: not implemented.");
 }
 
 } // namespace paso

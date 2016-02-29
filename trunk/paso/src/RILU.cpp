@@ -96,188 +96,171 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
     out->b_C=NULL;
 
     /* identify independent set of rows/columns */
-    time0=Esys_timer();
+    time0=esysUtils::gettime();
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<n;++i) mis_marker[i]=-1;
     A_p->pattern->mis(mis_marker);
-    /*time2=Esys_timer()-time0;*/
-    if (Esys_noError()) {
+    /*time2=esysUtils::gettime()-time0;*/
+    #pragma omp parallel for private(i) schedule(static)
+    for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
+    out->n=n;
+    out->n_block=n_block;
+    out->n_F=util::cumsum(n,counter);
+    out->mask_F=new index_t[n];
+    out->rows_in_F=new index_t[out->n_F];
+    out->inv_A_FF=new double[n_block*n_block*out->n_F];
+    out->A_FF_pivot=NULL; /* later use for block size>3 */
+#pragma omp parallel
+    {
+      /* creates an index for F from mask */
+      #pragma omp for private(i) schedule(static)
+      for (i = 0; i < out->n_F; ++i) out->rows_in_F[i]=-1;
+      #pragma omp for private(i) schedule(static)
+      for (i = 0; i < n; ++i) {
+         if  (mis_marker[i]) {
+                out->rows_in_F[counter[i]]=i;
+                out->mask_F[i]=counter[i];
+         } else {
+                out->mask_F[i]=-1;
+         }
+      }
+      #pragma omp for private(i, where_p,iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D,index) schedule(static)
+      for (i = 0; i < out->n_F; i++) {
+        /* find main diagonal */
+        iPtr=A_p->pattern->ptr[out->rows_in_F[i]];
+        index=&(A_p->pattern->index[iPtr]);
+        where_p=(index_t*)bsearch(&out->rows_in_F[i],
+                                index,
+                                A_p->pattern->ptr[out->rows_in_F[i] + 1]-A_p->pattern->ptr[out->rows_in_F[i]],
+                                sizeof(index_t),
+                                util::comparIndex);
+        if (where_p==NULL) {
+            throw PasoException("Solver_getRILU: main diagonal element missing.");
+        } else {
+            iPtr+=(index_t)(where_p-index);
+            /* get inverse of A_FF block: */
+            if (n_block==1) {
+               if (ABS(A_p->val[iPtr])>0.) {
+                    out->inv_A_FF[i]=1./A_p->val[iPtr];
+               } else {
+                    throw PasoException("Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
+               }
+            } else if (n_block==2) {
+               A11=A_p->val[iPtr*4];
+               A21=A_p->val[iPtr*4+1];
+               A12=A_p->val[iPtr*4+2];
+               A22=A_p->val[iPtr*4+3];
+               D = A11*A22-A12*A21;
+               if (ABS(D) > 0 ){
+                    D=1./D;
+                    out->inv_A_FF[i*4]= A22*D;
+                    out->inv_A_FF[i*4+1]=-A21*D;
+                    out->inv_A_FF[i*4+2]=-A12*D;
+                    out->inv_A_FF[i*4+3]= A11*D;
+               } else {
+                    throw PasoException("Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
+               }
+            } else if (n_block==3) {
+               A11=A_p->val[iPtr*9  ];
+               A21=A_p->val[iPtr*9+1];
+               A31=A_p->val[iPtr*9+2];
+               A12=A_p->val[iPtr*9+3];
+               A22=A_p->val[iPtr*9+4];
+               A32=A_p->val[iPtr*9+5];
+               A13=A_p->val[iPtr*9+6];
+               A23=A_p->val[iPtr*9+7];
+               A33=A_p->val[iPtr*9+8];
+               D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
+               if (ABS(D) > 0 ){
+                    D=1./D;
+                    out->inv_A_FF[i*9  ]=(A22*A33-A23*A32)*D;
+                    out->inv_A_FF[i*9+1]=(A31*A23-A21*A33)*D;
+                    out->inv_A_FF[i*9+2]=(A21*A32-A31*A22)*D;
+                    out->inv_A_FF[i*9+3]=(A13*A32-A12*A33)*D;
+                    out->inv_A_FF[i*9+4]=(A11*A33-A31*A13)*D;
+                    out->inv_A_FF[i*9+5]=(A12*A31-A11*A32)*D;
+                    out->inv_A_FF[i*9+6]=(A12*A23-A13*A22)*D;
+                    out->inv_A_FF[i*9+7]=(A13*A21-A11*A23)*D;
+                    out->inv_A_FF[i*9+8]=(A11*A22-A12*A21)*D;
+               } else {
+                    throw PasoException("Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
+               }
+           }
+        }
+      }
+    } /* end parallel region */
+
+    // if there are no nodes in the coarse level there is no more
+    // work to do
+    out->n_C=n-out->n_F;
+    if (out->n_C > 0) {
+        out->rows_in_C = new index_t[out->n_C];
+        out->mask_C = new index_t[n];
+        /* creates an index for C from mask */
         #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
-        out->n=n;
-        out->n_block=n_block;
-        out->n_F=util::cumsum(n,counter);
-        out->mask_F=new index_t[n];
-        out->rows_in_F=new index_t[out->n_F];
-        out->inv_A_FF=new double[n_block*n_block*out->n_F];
-        out->A_FF_pivot=NULL; /* later use for block size>3 */
+        for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
+        util::cumsum(n,counter);
+        #pragma omp parallel
+        {
+              #pragma omp for private(i) schedule(static)
+              for (i = 0; i < out->n_C; ++i) out->rows_in_C[i]=-1;
+              #pragma omp for private(i) schedule(static)
+              for (i = 0; i < n; ++i) {
+                 if  (! mis_marker[i]) {
+                    out->rows_in_C[counter[i]]=i;
+                    out->mask_C[i]=counter[i];
+                 } else {
+                    out->mask_C[i]=-1;
+                 }
+              }
+        } /* end parallel region */
+        /* get A_CF block: */
+        out->A_CF=A_p->getSubmatrix(out->n_C, out->n_F, out->rows_in_C, out->mask_F);
+        /* get A_FC block: */
+        out->A_FC=A_p->getSubmatrix(out->n_F, out->n_C, out->rows_in_F, out->mask_C);
+        /* get A_FF block: */
+        schur = A_p->getSubmatrix(out->n_C, out->n_C, out->rows_in_C, out->mask_C);
+        time0=esysUtils::gettime()-time0;
+        time1=esysUtils::gettime();
+        /* update A_CC block to get Schur complement and then apply RILU to it */
+        Solver_updateIncompleteSchurComplement(schur, out->A_CF, out->inv_A_FF, out->A_FF_pivot, out->A_FC);
+        time1=esysUtils::gettime()-time1;
+        out->RILU_of_Schur = Solver_getRILU(schur, verbose);
+        schur.reset();
+        /* allocate work arrays for RILU application */
+        out->x_F=new double[n_block*out->n_F];
+        out->b_F=new double[n_block*out->n_F];
+        out->x_C=new double[n_block*out->n_C];
+        out->b_C=new double[n_block*out->n_C];
 #pragma omp parallel
         {
-          /* creates an index for F from mask */
-          #pragma omp for private(i) schedule(static)
-          for (i = 0; i < out->n_F; ++i) out->rows_in_F[i]=-1;
-          #pragma omp for private(i) schedule(static)
-          for (i = 0; i < n; ++i) {
-             if  (mis_marker[i]) {
-                    out->rows_in_F[counter[i]]=i;
-                    out->mask_F[i]=counter[i];
-             } else {
-                    out->mask_F[i]=-1;
-             }
-          }
-          #pragma omp for private(i, where_p,iPtr,A11,A12,A13,A21,A22,A23,A31,A32,A33,D,index) schedule(static)
-          for (i = 0; i < out->n_F; i++) {
-            /* find main diagonal */
-            iPtr=A_p->pattern->ptr[out->rows_in_F[i]];
-            index=&(A_p->pattern->index[iPtr]);
-            where_p=(index_t*)bsearch(&out->rows_in_F[i],
-                                    index,
-                                    A_p->pattern->ptr[out->rows_in_F[i] + 1]-A_p->pattern->ptr[out->rows_in_F[i]],
-                                    sizeof(index_t),
-                                    util::comparIndex);
-            if (where_p==NULL) {
-                Esys_setError(VALUE_ERROR, "Solver_getRILU: main diagonal element missing.");
-            } else {
-                iPtr+=(index_t)(where_p-index);
-                /* get inverse of A_FF block: */
-                if (n_block==1) {
-                   if (ABS(A_p->val[iPtr])>0.) {
-                        out->inv_A_FF[i]=1./A_p->val[iPtr];
-                   } else {
-                        Esys_setError(ZERO_DIVISION_ERROR, "Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
-                   }
-                } else if (n_block==2) {
-                   A11=A_p->val[iPtr*4];
-                   A21=A_p->val[iPtr*4+1];
-                   A12=A_p->val[iPtr*4+2];
-                   A22=A_p->val[iPtr*4+3];
-                   D = A11*A22-A12*A21;
-                   if (ABS(D) > 0 ){
-                        D=1./D;
-                        out->inv_A_FF[i*4]= A22*D;
-                        out->inv_A_FF[i*4+1]=-A21*D;
-                        out->inv_A_FF[i*4+2]=-A12*D;
-                        out->inv_A_FF[i*4+3]= A11*D;
-                   } else {
-                        Esys_setError(ZERO_DIVISION_ERROR, "Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
-                   }
-                } else if (n_block==3) {
-                   A11=A_p->val[iPtr*9  ];
-                   A21=A_p->val[iPtr*9+1];
-                   A31=A_p->val[iPtr*9+2];
-                   A12=A_p->val[iPtr*9+3];
-                   A22=A_p->val[iPtr*9+4];
-                   A32=A_p->val[iPtr*9+5];
-                   A13=A_p->val[iPtr*9+6];
-                   A23=A_p->val[iPtr*9+7];
-                   A33=A_p->val[iPtr*9+8];
-                   D  =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-                   if (ABS(D) > 0 ){
-                        D=1./D;
-                        out->inv_A_FF[i*9  ]=(A22*A33-A23*A32)*D;
-                        out->inv_A_FF[i*9+1]=(A31*A23-A21*A33)*D;
-                        out->inv_A_FF[i*9+2]=(A21*A32-A31*A22)*D;
-                        out->inv_A_FF[i*9+3]=(A13*A32-A12*A33)*D;
-                        out->inv_A_FF[i*9+4]=(A11*A33-A31*A13)*D;
-                        out->inv_A_FF[i*9+5]=(A12*A31-A11*A32)*D;
-                        out->inv_A_FF[i*9+6]=(A12*A23-A13*A22)*D;
-                        out->inv_A_FF[i*9+7]=(A13*A21-A11*A23)*D;
-                        out->inv_A_FF[i*9+8]=(A11*A22-A12*A21)*D;
-                   } else {
-                        Esys_setError(ZERO_DIVISION_ERROR, "Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
-                   }
-               }
-            }
-          }
-        } /* end parallel region */
-
-        if (Esys_noError()) {
-            // if there are no nodes in the coarse level there is no more
-            // work to do
-            out->n_C=n-out->n_F;
-            if (out->n_C > 0) {
-                out->rows_in_C = new index_t[out->n_C];
-                out->mask_C = new index_t[n];
-                /* creates an index for C from mask */
-                #pragma omp parallel for private(i) schedule(static)
-                for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
-                util::cumsum(n,counter);
-                #pragma omp parallel
-                {
-                      #pragma omp for private(i) schedule(static)
-                      for (i = 0; i < out->n_C; ++i) out->rows_in_C[i]=-1;
-                      #pragma omp for private(i) schedule(static)
-                      for (i = 0; i < n; ++i) {
-                         if  (! mis_marker[i]) {
-                            out->rows_in_C[counter[i]]=i;
-                            out->mask_C[i]=counter[i];
-                         } else {
-                            out->mask_C[i]=-1;
-                         }
-                      }
-                } /* end parallel region */
-                /* get A_CF block: */
-                out->A_CF=A_p->getSubmatrix(out->n_C, out->n_F, out->rows_in_C, out->mask_F);
-                if (Esys_noError()) {
-                    /* get A_FC block: */
-                    out->A_FC=A_p->getSubmatrix(out->n_F, out->n_C, out->rows_in_F, out->mask_C);
-                }
-                /* get A_FF block: */
-                if (Esys_noError()) {
-                    schur = A_p->getSubmatrix(out->n_C, out->n_C, out->rows_in_C, out->mask_C);
-                }
-                time0=Esys_timer()-time0;
-                if (Esys_noError()) {
-                    time1=Esys_timer();
-                    /* update A_CC block to get Schur complement and then apply RILU to it */
-                    Solver_updateIncompleteSchurComplement(schur, out->A_CF, out->inv_A_FF, out->A_FF_pivot, out->A_FC);
-                    time1=Esys_timer()-time1;
-                    out->RILU_of_Schur = Solver_getRILU(schur, verbose);
-                    schur.reset();
-                }
-                /* allocate work arrays for RILU application */
-                if (Esys_noError()) {
-                    out->x_F=new double[n_block*out->n_F];
-                    out->b_F=new double[n_block*out->n_F];
-                    out->x_C=new double[n_block*out->n_C];
-                    out->b_C=new double[n_block*out->n_C];
-                    #pragma omp parallel
-                    {
 #pragma omp for private(i,k) schedule(static)
-                        for (i = 0; i < out->n_F; ++i) {
-                            for (k=0; k<n_block;++k) {
-                                out->x_F[i*n_block+k]=0.;
-                                out->b_F[i*n_block+k]=0.;
-                            }
-                        }
-#pragma omp for private(i,k) schedule(static)
-                        for (i = 0; i < out->n_C; ++i) {
-                            for (k=0; k<n_block;++k) {
-                                out->x_C[i*n_block+k]=0.;
-                                out->b_C[i*n_block+k]=0.;
-                            }
-                        }
-                    } // end parallel region
+            for (i = 0; i < out->n_F; ++i) {
+                for (k=0; k<n_block;++k) {
+                    out->x_F[i*n_block+k]=0.;
+                    out->b_F[i*n_block+k]=0.;
                 }
             }
-        }
+#pragma omp for private(i,k) schedule(static)
+            for (i = 0; i < out->n_C; ++i) {
+                for (k=0; k<n_block;++k) {
+                    out->x_C[i*n_block+k]=0.;
+                    out->b_C[i*n_block+k]=0.;
+                }
+            }
+        } // end parallel region
     }
     delete[] mis_marker;
     delete[] counter;
-    if (Esys_noError()) {
-        //if (verbose) {
-        //    printf("RILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
-        //    if (out->n_C>0) {
-        //        printf("timing: RILU: MIS/reordering/elimination : %e/%e/%e\n",time2,time0,time1);
-        //    } else {
-        //        printf("timing: RILU: MIS: %e\n",time2);
-        //    }
-        //}
-        return out;
-    } else  {
-        Solver_RILU_free(out);
-        return NULL;
-    }
+    //if (verbose) {
+    //    printf("RILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
+    //    if (out->n_C>0) {
+    //        printf("timing: RILU: MIS/reordering/elimination : %e/%e/%e\n",time2,time0,time1);
+    //    } else {
+    //        printf("timing: RILU: MIS: %e\n",time2);
+    //    }
+    //}
+    return out;
 }
 
 /****************************************************************************/

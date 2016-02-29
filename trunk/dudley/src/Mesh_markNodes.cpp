@@ -14,20 +14,20 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh */
 
 /*   mark the used nodes with offset: */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
 
-/************************************************************************************/
+namespace dudley {
 
 void Dudley_Mesh_markNodes(index_t * mask, index_t offset, Dudley_Mesh * in, bool useLinear)
 {
@@ -37,21 +37,24 @@ void Dudley_Mesh_markNodes(index_t * mask, index_t offset, Dudley_Mesh * in, boo
 }
 
 void Dudley_Mesh_markDOFsConnectedToRange(index_t * mask, index_t offset, index_t marker,
-					  index_t firstDOF, index_t lastDOF, Dudley_Mesh * in, bool useLinear)
+                                          index_t firstDOF, index_t lastDOF, Dudley_Mesh * in, bool useLinear)
 {
     index_t *dofIndex;
     if (useLinear)
     {
-	dofIndex = in->Nodes->globalReducedDOFIndex;
+        dofIndex = in->Nodes->globalReducedDOFIndex;
     }
     else
     {
-	dofIndex = in->Nodes->globalDegreesOfFreedom;
+        dofIndex = in->Nodes->globalDegreesOfFreedom;
     }
     Dudley_ElementFile_markDOFsConnectedToRange(mask, offset, marker, firstDOF, lastDOF, dofIndex, in->Elements,
-						useLinear);
+                                                useLinear);
     Dudley_ElementFile_markDOFsConnectedToRange(mask, offset, marker, firstDOF, lastDOF, dofIndex, in->FaceElements,
-						useLinear);
+                                                useLinear);
     Dudley_ElementFile_markDOFsConnectedToRange(mask, offset, marker, firstDOF, lastDOF, dofIndex, in->Points,
-						useLinear);
+                                                useLinear);
 }
+
+} // namespace dudley
+

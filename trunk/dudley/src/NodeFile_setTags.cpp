@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh: NodeFile */
 
 /*  set tags to newTag where mask>0 */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -28,38 +28,32 @@
 #include "NodeFile.h"
 #include "Util.h"
 
+namespace dudley {
+
 void Dudley_NodeFile_setTags(Dudley_NodeFile * self, const int newTag, const escript::Data* mask)
 {
-    dim_t n;
-    dim_t numNodes;
-    const double *mask_array;
-    Dudley_resetError();
-
     if (self == NULL)
         return;
-    numNodes = self->numNodes;
+    dim_t n;
+    const double *mask_array;
+
+    dim_t numNodes = self->numNodes;
     if (1 != mask->getDataPointSize()) {
-        Dudley_setError(TYPE_ERROR, "Dudley_NodeFile_setTags: number of components of mask is 1.");
+        throw DudleyException("Dudley_NodeFile_setTags: number of components of mask is 1.");
     } else if (mask->getNumDataPointsPerSample() != 1 ||
             mask->getNumSamples() != numNodes) {
-        Dudley_setError(TYPE_ERROR, "Dudley_NodeFile_setTags: illegal number of samples of mask Data object");
+        throw DudleyException("Dudley_NodeFile_setTags: illegal number of samples of mask Data object");
     }
 
-    /* now we can start */
-
-    if (Dudley_noError())
+#pragma omp parallel for private(n,mask_array)
+    for (n = 0; n < numNodes; n++)
     {
-#pragma omp parallel private(n,mask_array)
-        {
-#pragma omp for schedule(static)
-            for (n = 0; n < numNodes; n++)
-            {
-                mask_array = mask->getSampleDataRO(n);
-                if (mask_array[0] > 0)
-                    self->Tag[n] = newTag;
-            }
-        }
-        Dudley_NodeFile_setTagsInUse(self);
+        mask_array = mask->getSampleDataRO(n);
+        if (mask_array[0] > 0)
+            self->Tag[n] = newTag;
     }
+    Dudley_NodeFile_setTagsInUse(self);
 }
+
+} // namespace dudley
 

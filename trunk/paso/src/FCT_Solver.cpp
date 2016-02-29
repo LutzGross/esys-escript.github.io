@@ -65,7 +65,7 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
     } else if (options->ode_solver == PASO_BACKWARD_EULER) {
         method = PASO_BACKWARD_EULER;
     } else {
-        Esys_setError(VALUE_ERROR, "FCT_Solver: unknown integration scheme.");
+        throw PasoException("FCT_Solver: unknown integration scheme.");
     }
 }
 
@@ -260,7 +260,7 @@ SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
     // u_old is an initial guess for u
     util::copy(n, u, u_old);
 
-    while (!converged && !diverged && !max_m_reached && Esys_noError()) {
+    while (!converged && !diverged && !max_m_reached) {
         u_coupler->startCollect(u);
         u_coupler->finishCollect();
 
@@ -548,33 +548,32 @@ double FCT_Solver::getSafeTimeStepSize(const_TransportProblem_ptr fctp)
     // set low order transport operator
     setLowOrderOperator(boost::const_pointer_cast<TransportProblem>(fctp));
 
-    if (Esys_noError()) {
-        // calculate time step size
-        dt_max = LARGE_POSITIVE_FLOAT;
+    // calculate time step size
+    dt_max = LARGE_POSITIVE_FLOAT;
 #pragma omp parallel
-        {
-            double dt_max_loc = LARGE_POSITIVE_FLOAT;
+    {
+        double dt_max_loc = LARGE_POSITIVE_FLOAT;
 #pragma omp for schedule(static)
-            for (dim_t i=0; i<n; ++i) {
-                const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
-                const double m_i = fctp->lumped_mass_matrix[i];
-                if (m_i > 0) {
-                    if (l_ii<0)
-                        dt_max_loc = std::min(dt_max_loc,m_i/(-l_ii));
-                }
-            }
-            #pragma omp critical
-            {
-                dt_max = std::min(dt_max,dt_max_loc);
+        for (dim_t i=0; i<n; ++i) {
+            const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
+            const double m_i = fctp->lumped_mass_matrix[i];
+            if (m_i > 0) {
+                if (l_ii<0)
+                    dt_max_loc = std::min(dt_max_loc,m_i/(-l_ii));
             }
         }
-#ifdef ESYS_MPI
-        double dt_max_loc = dt_max;
-        MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
-#endif
-        if (dt_max < LARGE_POSITIVE_FLOAT)
-            dt_max *= 2.;
+        #pragma omp critical
+        {
+            dt_max = std::min(dt_max,dt_max_loc);
+        }
     }
+#ifdef ESYS_MPI
+    double dt_max_loc = dt_max;
+    MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+#endif
+    if (dt_max < LARGE_POSITIVE_FLOAT)
+        dt_max *= 2.;
+
     return dt_max;
 }
 

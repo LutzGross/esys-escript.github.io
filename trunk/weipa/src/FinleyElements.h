@@ -30,7 +30,9 @@
 class DBfile;
 class NcFile;
 
-struct Dudley_ElementFile;
+namespace dudley {
+    struct Dudley_ElementFile;
+}
 
 namespace finley {
     class ElementFile;
@@ -75,10 +77,10 @@ public:
     /// \brief Destructor
     virtual ~FinleyElements() {}
 
-    /// \brief Initialises with data from a Dudley_ElementFile instance.
-    bool initFromDudley(const Dudley_ElementFile* dudleyFile);
+    /// \brief Initialises with data from a Dudley ElementFile instance.
+    bool initFromDudley(const dudley::Dudley_ElementFile* dudleyFile);
 
-    /// \brief Initialises with data from a Finley_ElementFile instance.
+    /// \brief Initialises with data from a Finley ElementFile instance.
     bool initFromFinley(const finley::ElementFile* finleyFile);
 
     /// \brief Reads element data from escript/finley NetCDF file.

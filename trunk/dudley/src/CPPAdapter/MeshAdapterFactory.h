@@ -70,16 +70,13 @@ namespace dudley {
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
      \param optimize Input - switches on the optimization of node labels 
-     \param useMacroElements
   */
   DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
   escript::Domain_ptr readGmsh(const std::string& fileName,
 				     int numDim, 
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
-				     int optimize=0,
-				     int useMacroElements=0);
+				     int optimize=0);
 				     
 				     
    /**

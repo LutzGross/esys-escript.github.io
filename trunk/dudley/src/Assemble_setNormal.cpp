@@ -32,7 +32,6 @@ namespace dudley {
 
 void Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* normal)
 {
-    Dudley_resetError();
     if (!nodes || !elements)
         return;
 
@@ -58,35 +57,33 @@ void Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, es
 
     // check the dimensions of normal
     if (!(numDim == numDim_local || numDim - 1 == numDim_local)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_setNormal: Cannot calculate normal vector");
+        throw DudleyException("Assemble_setNormal: Cannot calculate normal vector");
     } else if (!normal->isDataPointShapeEqual(1, &numDim)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_setNormal: illegal point data shape of normal Data object");
+        throw DudleyException("Assemble_setNormal: illegal point data shape of normal Data object");
     } else if (!normal->numSamplesEqual(numQuad, elements->numElements)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_setNormal: illegal number of samples of normal Data object");
+        throw DudleyException("Assemble_setNormal: illegal number of samples of normal Data object");
     } else if (!normal->actsExpanded()) {
-        Dudley_setError(TYPE_ERROR, "Assemble_setNormal: expanded Data object is expected for normal.");
+        throw DudleyException("Assemble_setNormal: expanded Data object is expected for normal.");
     }
 
-    if (Dudley_noError()) {
-        normal->requireWrite();
+    normal->requireWrite();
 #pragma omp parallel
-        {
-            std::vector<double> local_X(NS * numDim);
-            std::vector<double> dVdv(numQuad * numDim * numDim_local);
+    {
+        std::vector<double> local_X(NS * numDim);
+        std::vector<double> dVdv(numQuad * numDim * numDim_local);
 #pragma omp for
-            for (index_t e = 0; e < elements->numElements; e++) {
-                // gather local coordinates of nodes into local_X
-                Dudley_Util_Gather_double(NS,
-                        &elements->Nodes[INDEX2(0, e, NN)], numDim,
-                        nodes->Coordinates, &local_X[0]);
+        for (index_t e = 0; e < elements->numElements; e++) {
+            // gather local coordinates of nodes into local_X
+            Dudley_Util_Gather_double(NS,
+                    &elements->Nodes[INDEX2(0, e, NN)], numDim,
+                    nodes->Coordinates, &local_X[0]);
 
-                // calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q)
-                Dudley_Util_SmallMatMult(numDim, numDim_local * numQuad,
-                                         &dVdv[0], NS, &local_X[0], dSdv);
-                // get normalized vector
-                double* normal_array = normal->getSampleDataRW(e);
-                Dudley_NormalVector(numQuad, numDim, numDim_local, &dVdv[0], normal_array);
-            }
+            // calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q)
+            Dudley_Util_SmallMatMult(numDim, numDim_local * numQuad,
+                                     &dVdv[0], NS, &local_X[0], dSdv);
+            // get normalized vector
+            double* normal_array = normal->getSampleDataRW(e);
+            Dudley_NormalVector(numQuad, numDim, numDim_local, &dVdv[0], normal_array);
         }
     }
 }

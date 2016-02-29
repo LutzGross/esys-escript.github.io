@@ -14,16 +14,18 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh: prepares the mesh for further calculations  */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
+
+namespace dudley {
 
 void Dudley_Mesh_prepare(Dudley_Mesh* in, bool optimize)
 {
@@ -50,31 +52,25 @@ void Dudley_Mesh_prepare(Dudley_Mesh* in, bool optimize)
     /* now the mesh is re-distributed according to the mpiRankOfDOF vector */
     /* this will redistribute the Nodes and Elements including overlap and will create an element coloring 
        but will not create any mappings (see later in this function) */
-    if (Dudley_noError())
-        Dudley_Mesh_distributeByRankOfDOF(in, distribution);
+    Dudley_Mesh_distributeByRankOfDOF(in, distribution);
 
     /* at this stage we are able to start an optimization of the DOF distribution using ParaMetis */
     /* on return distribution is altered and new DOF ids have been assigned */
-    if (Dudley_noError() && optimize && in->MPIInfo->size > 1)
+    if (optimize && in->MPIInfo->size > 1)
     {
         Dudley_Mesh_optimizeDOFDistribution(in, distribution);
-        if (Dudley_noError())
-            Dudley_Mesh_distributeByRankOfDOF(in, distribution);
+        Dudley_Mesh_distributeByRankOfDOF(in, distribution);
     }
     /* the local labelling of the degrees of free is optimized */
-    if (Dudley_noError() && optimize)
-    {
+    if (optimize)
         Dudley_Mesh_optimizeDOFLabeling(in, distribution);
-    }
+
     /* rearrange elements with the attempt to bring elements closer to memory locations of the nodes (distributed shared memory!): */
-    if (Dudley_noError())
-        Dudley_Mesh_optimizeElementOrdering(in);
+    Dudley_Mesh_optimizeElementOrdering(in);
 
     /* create the global indices */
-    if (Dudley_noError())
-    {
-        maskReducedNodes = new index_t[in->Nodes->numNodes];
-        indexReducedNodes = new index_t[in->Nodes->numNodes];
+    maskReducedNodes = new index_t[in->Nodes->numNodes];
+    indexReducedNodes = new index_t[in->Nodes->numNodes];
 
 /* useful DEBUG:
 {index_t MIN_id,MAX_id;
@@ -86,25 +82,21 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 }
 */
 #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < in->Nodes->numNodes; ++i)
-            maskReducedNodes[i] = -1;
+    for (i = 0; i < in->Nodes->numNodes; ++i)
+        maskReducedNodes[i] = -1;
 
-        Dudley_Mesh_markNodes(maskReducedNodes, 0, in, TRUE);
+    Dudley_Mesh_markNodes(maskReducedNodes, 0, in, TRUE);
 
-        numReducedNodes = Dudley_Util_packMask(in->Nodes->numNodes, maskReducedNodes, indexReducedNodes);
+    numReducedNodes = Dudley_Util_packMask(in->Nodes->numNodes, maskReducedNodes, indexReducedNodes);
 
-        Dudley_NodeFile_createDenseNodeLabeling(in->Nodes, node_distribution, distribution);
-        Dudley_NodeFile_createDenseReducedDOFLabeling(in->Nodes, maskReducedNodes);
-        Dudley_NodeFile_createDenseReducedNodeLabeling(in->Nodes, maskReducedNodes);
-        /* create the missing mappings */
-        if (Dudley_noError())
-            Dudley_Mesh_createNodeFileMappings(in, numReducedNodes, indexReducedNodes, distribution,
-                                               node_distribution);
+    Dudley_NodeFile_createDenseNodeLabeling(in->Nodes, node_distribution, distribution);
+    Dudley_NodeFile_createDenseReducedDOFLabeling(in->Nodes, maskReducedNodes);
+    Dudley_NodeFile_createDenseReducedNodeLabeling(in->Nodes, maskReducedNodes);
+    /* create the missing mappings */
+    Dudley_Mesh_createNodeFileMappings(in, numReducedNodes, indexReducedNodes, distribution, node_distribution);
 
-        delete[] maskReducedNodes;
-        delete[] indexReducedNodes;
-    }
-
+    delete[] maskReducedNodes;
+    delete[] indexReducedNodes;
     delete[] distribution;
     delete[] node_distribution;
 
@@ -116,12 +108,9 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 /*                                                      */
 void Dudley_Mesh_createColoring(Dudley_Mesh* in, index_t* node_localDOF_map)
 {
-    if (Dudley_noError())
-        Dudley_ElementFile_createColoring(in->Elements, in->Nodes->numNodes, node_localDOF_map);
-    if (Dudley_noError())
-        Dudley_ElementFile_createColoring(in->FaceElements, in->Nodes->numNodes, node_localDOF_map);
-    if (Dudley_noError())
-        Dudley_ElementFile_createColoring(in->Points, in->Nodes->numNodes, node_localDOF_map);
+    Dudley_ElementFile_createColoring(in->Elements, in->Nodes->numNodes, node_localDOF_map);
+    Dudley_ElementFile_createColoring(in->FaceElements, in->Nodes->numNodes, node_localDOF_map);
+    Dudley_ElementFile_createColoring(in->Points, in->Nodes->numNodes, node_localDOF_map);
 }
 
 /*                                                                    */
@@ -129,25 +118,20 @@ void Dudley_Mesh_createColoring(Dudley_Mesh* in, index_t* node_localDOF_map)
 /*                                                                    */
 void Dudley_Mesh_optimizeElementOrdering(Dudley_Mesh * in)
 {
-    if (Dudley_noError())
-        Dudley_ElementFile_optimizeOrdering(&(in->Elements));
-    if (Dudley_noError())
-        Dudley_ElementFile_optimizeOrdering(&(in->FaceElements));
-    if (Dudley_noError())
-        Dudley_ElementFile_optimizeOrdering(&(in->Points));
+    Dudley_ElementFile_optimizeOrdering(&(in->Elements));
+    Dudley_ElementFile_optimizeOrdering(&(in->FaceElements));
+    Dudley_ElementFile_optimizeOrdering(&(in->Points));
 }
 
 /*                                                                    */
 /*  redistribute elements to minimize communication during assemblage */
 void Dudley_Mesh_setTagsInUse(Dudley_Mesh * in)
 {
-    if (Dudley_noError())
-        Dudley_NodeFile_setTagsInUse(in->Nodes);
-    if (Dudley_noError())
-        Dudley_ElementFile_setTagsInUse(in->Elements);
-    if (Dudley_noError())
-        Dudley_ElementFile_setTagsInUse(in->FaceElements);
-    if (Dudley_noError())
-        Dudley_ElementFile_setTagsInUse(in->Points);
+    Dudley_NodeFile_setTagsInUse(in->Nodes);
+    Dudley_ElementFile_setTagsInUse(in->Elements);
+    Dudley_ElementFile_setTagsInUse(in->FaceElements);
+    Dudley_ElementFile_setTagsInUse(in->Points);
 }
+
+} // namespace dudley
 

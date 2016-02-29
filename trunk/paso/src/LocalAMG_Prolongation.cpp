@@ -102,45 +102,30 @@ SparseMatrix_ptr Preconditioner_LocalAMG_getProlongation(SparseMatrix_ptr A_p,
         }
     }
     Pattern_ptr outpattern;
-    if (Esys_noError()) {
-        outpattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n, n_C,
-                                           ptr, index));
-    } else {
-        delete[] ptr;
-        delete[] index;
-    }
+    outpattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n, n_C, ptr, index));
     /* now we need to create a matrix and fill it */
     SparseMatrix_ptr out;
-    if (Esys_noError()) {
-        out.reset(new SparseMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK,
-                    outpattern, n_block, n_block, false));
-    }
+    out.reset(new SparseMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK,
+                               outpattern, n_block, n_block, false));
 
-    if (Esys_noError()) {
-        if ( (interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) || (interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
-            if (n_block == 1) {
-                Preconditioner_LocalAMG_setClassicProlongation(
-                        out, A_p, offset_S, degree_S, S, counter_C);
-            } else {
-                Preconditioner_LocalAMG_setClassicProlongation_Block(
-                        out, A_p, offset_S, degree_S, S, counter_C);
-            }
+    if ( (interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) || (interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
+        if (n_block == 1) {
+            Preconditioner_LocalAMG_setClassicProlongation(
+                    out, A_p, offset_S, degree_S, S, counter_C);
         } else {
-            if (n_block == 1) {
-                Preconditioner_LocalAMG_setDirectProlongation(
-                        out, A_p, counter_C);
-            } else {
-                Preconditioner_LocalAMG_setDirectProlongation_Block(
-                        out, A_p, counter_C);
-            }
+            Preconditioner_LocalAMG_setClassicProlongation_Block(
+                    out, A_p, offset_S, degree_S, S, counter_C);
+        }
+    } else {
+        if (n_block == 1) {
+            Preconditioner_LocalAMG_setDirectProlongation(
+                    out, A_p, counter_C);
+        } else {
+            Preconditioner_LocalAMG_setDirectProlongation_Block(
+                    out, A_p, counter_C);
         }
     }
-    if (Esys_noError()) {
-        return out;
-    } else {
-        out.reset();
-        return out;
-    }
+    return out;
 }
 
 /*
@@ -410,7 +395,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Preconditioner_LocalAMG_setClassicProlongation: Interpolation point is missing.");
+                                   throw PasoException("Preconditioner_LocalAMG_setClassicProlongation: Interpolation point is missing.");
                                } else {
                                     const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
                                     P_p->val[offset]+=A_ij;
@@ -510,7 +495,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Preconditioner_LocalAMG_setClassicProlongation_Block: Interpolation point is missing.");
+                                   throw PasoException("Preconditioner_LocalAMG_setClassicProlongation_Block: Interpolation point is missing.");
                                } else {
                                     const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
                                     for (ib=0; ib<row_block; ib++) P_p->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];

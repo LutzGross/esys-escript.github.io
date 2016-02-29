@@ -159,7 +159,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
     A->copyRemoteCoupleBlock(false);
 
     // set splitting of unknowns
-    time0 = Esys_timer();
+    time0 = esysUtils::gettime();
     if (n_block > 1) {
         Preconditioner_AMG_setStrongConnections_Block(A, degree_S, offset_S,
                                                       S, theta, tau);
@@ -180,114 +180,104 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
     //if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
     //    Preconditioner_AMG_enforceFFConnectivity(n, A->pattern->ptr, degree_S, S, F_marker);
 
-    options->coarsening_selection_time = Esys_timer()-time0 +
+    options->coarsening_selection_time = esysUtils::gettime()-time0 +
                                std::max(0., options->coarsening_selection_time);
-    if (Esys_noError()) {
 #pragma omp parallel for
-        for (dim_t i = 0; i < n; ++i)
-            F_marker[i] = (F_marker[i]==PASO_AMG_IN_F ? PASO_AMG_IN_C : PASO_AMG_IN_F);
+    for (dim_t i = 0; i < n; ++i)
+        F_marker[i] = (F_marker[i]==PASO_AMG_IN_F ? PASO_AMG_IN_C : PASO_AMG_IN_F);
 
-        // count number of unknowns to be eliminated:
-        dim_t my_n_F = util::cumsum_maskedTrue(my_n, counter, (int*)F_marker);
-        const dim_t n_F = util::cumsum_maskedTrue(n, counter, (int*)F_marker);
-        // collect my_n_F values on all processes, a direct solver should
-        // be used if any my_n_F value is 0
-        dim_t* F_set = new dim_t[A->mpi_info->size];
+    // count number of unknowns to be eliminated:
+    dim_t my_n_F = util::cumsum_maskedTrue(my_n, counter, (int*)F_marker);
+    const dim_t n_F = util::cumsum_maskedTrue(n, counter, (int*)F_marker);
+    // collect my_n_F values on all processes, a direct solver should
+    // be used if any my_n_F value is 0
+    dim_t* F_set = new dim_t[A->mpi_info->size];
 #ifdef ESYS_MPI
-        MPI_Allgather(&my_n_F, 1, MPI_INT, F_set, 1, MPI_INT, A->mpi_info->comm);
+    MPI_Allgather(&my_n_F, 1, MPI_INT, F_set, 1, MPI_INT, A->mpi_info->comm);
 #endif
-        dim_t global_n_F = 0;
-        bool F_flag = true;
-        for (dim_t i=0; i<A->mpi_info->size; i++) {
-            global_n_F += F_set[i];
-            if (F_set[i] == 0)
-                F_flag = false;
-        }
-        delete[] F_set;
+    dim_t global_n_F = 0;
+    bool F_flag = true;
+    for (dim_t i=0; i<A->mpi_info->size; i++) {
+        global_n_F += F_set[i];
+        if (F_set[i] == 0)
+            F_flag = false;
+    }
+    delete[] F_set;
 
-        const dim_t global_n_C = global_n-global_n_F;
-        if (verbose)
-            std::cout << "Preconditioner: AMG (non-local) level " << level
-                << ": " << global_n_F << " unknowns are flagged for"
-                << " elimination. " << global_n_C << " left." << std::endl;
+    const dim_t global_n_C = global_n-global_n_F;
+    if (verbose)
+        std::cout << "Preconditioner: AMG (non-local) level " << level
+            << ": " << global_n_F << " unknowns are flagged for"
+            << " elimination. " << global_n_C << " left." << std::endl;
 
-        //if (n_F == 0) { nasty case. a direct solver should be used!
-        if (F_flag) {
-            out = new Preconditioner_AMG;
-            out->level = level;
-            out->post_sweeps = options->post_sweeps;
-            out->pre_sweeps  = options->pre_sweeps;
-            out->r = NULL;
-            out->x_C = NULL;
-            out->b_C = NULL;
-            out->AMG_C = NULL;
-            out->Smoother = NULL;
-            out->merged_solver = NULL;
-            if (Esys_noError()) {
-                out->Smoother = Preconditioner_Smoother_alloc(A,
-                        (options->smoother == PASO_JACOBI), 0, verbose);
+    //if (n_F == 0) { nasty case. a direct solver should be used!
+    if (F_flag) {
+        out = new Preconditioner_AMG;
+        out->level = level;
+        out->post_sweeps = options->post_sweeps;
+        out->pre_sweeps  = options->pre_sweeps;
+        out->r = NULL;
+        out->x_C = NULL;
+        out->b_C = NULL;
+        out->AMG_C = NULL;
+        out->Smoother = NULL;
+        out->merged_solver = NULL;
+        out->Smoother = Preconditioner_Smoother_alloc(A,
+                (options->smoother == PASO_JACOBI), 0, verbose);
 
-                if (global_n_C != 0) {
-                    index_t* mask_C = new index_t[n];
-                    index_t* rows_in_F = new index_t[n_F];
-                    // create mask of C nodes with value >-1, gives new id
-                    const dim_t n_C = util::cumsum_maskedFalse(n, mask_C,
-                                                               (int*)F_marker);
-                    const dim_t my_n_C = my_n-my_n_F;
-                    // if nothing has been removed we have a diagonal dominant
-                    // matrix and we just run a few steps of the smoother
+        if (global_n_C != 0) {
+            index_t* mask_C = new index_t[n];
+            index_t* rows_in_F = new index_t[n_F];
+            // create mask of C nodes with value >-1, gives new id
+            const dim_t n_C = util::cumsum_maskedFalse(n, mask_C,
+                                                       (int*)F_marker);
+            const dim_t my_n_C = my_n-my_n_F;
+            // if nothing has been removed we have a diagonal dominant
+            // matrix and we just run a few steps of the smoother
 
-                    out->x_C = new double[n_block*my_n_C];
-                    out->b_C = new double[n_block*my_n_C];
-                    out->r = new double[n_block*my_n];
+            out->x_C = new double[n_block*my_n_C];
+            out->b_C = new double[n_block*my_n_C];
+            out->r = new double[n_block*my_n];
 
-                    if (Esys_noError()) {
-                        // creates index for F
+            // creates index for F
 #pragma omp parallel for
-                        for (dim_t i = 0; i < n; ++i) {
-                            if (F_marker[i])
-                                rows_in_F[counter[i]] = i;
-                        }
-                        // get Prolongation
-                        time0 = Esys_timer();
-                        out->P = Preconditioner_AMG_getProlongation(A,
-                                offset_S, degree_S, S, n_C, mask_C,
-                                options->interpolation_method);
-                    }
-
-                    // construct Restriction operator as transposed of
-                    // Prolongation operator:
-                    if (Esys_noError()) {
-                        time0 = Esys_timer();
-                        out->R = Preconditioner_AMG_getRestriction(out->P);
-                        if (SHOW_TIMING)
-                            std::cout << "timing: level " << level
-                                << ": getTranspose: " << Esys_timer()-time0
-                                << std::endl;
-                    }
-                    // construct coarse level matrix
-                    SystemMatrix_ptr A_C;
-                    if (Esys_noError()) {
-                        time0 = Esys_timer();
-                        A_C = Preconditioner_AMG_buildInterpolationOperator(A, out->P, out->R);
-                        if (SHOW_TIMING)
-                            std::cout << "timing: level " << level
-                                << ": construct coarse matrix: "
-                                << Esys_timer()-time0 << std::endl;
-
-                        out->AMG_C = Preconditioner_AMG_alloc(A_C, level+1, options);
-                        out->A_C = A_C;
-                        if (out->AMG_C == NULL) {
-                            // merge the system matrix into 1 rank when
-                            // it's not suitable coarsening due to the
-                            // total number of unknowns being too small
-                            out->merged_solver = new MergedSolver(A_C, options);
-                        }
-                    }
-                    delete[] mask_C;
-                    delete[] rows_in_F;
-                }
+            for (dim_t i = 0; i < n; ++i) {
+                if (F_marker[i])
+                    rows_in_F[counter[i]] = i;
             }
+            // get Prolongation
+            time0 = esysUtils::gettime();
+            out->P = Preconditioner_AMG_getProlongation(A,
+                    offset_S, degree_S, S, n_C, mask_C,
+                    options->interpolation_method);
+
+            // construct Restriction operator as transposed of
+            // Prolongation operator:
+            time0 = esysUtils::gettime();
+            out->R = Preconditioner_AMG_getRestriction(out->P);
+            if (SHOW_TIMING)
+                std::cout << "timing: level " << level
+                    << ": getTranspose: " << esysUtils::gettime()-time0
+                    << std::endl;
+            // construct coarse level matrix
+            SystemMatrix_ptr A_C;
+            time0 = esysUtils::gettime();
+            A_C = Preconditioner_AMG_buildInterpolationOperator(A, out->P, out->R);
+            if (SHOW_TIMING)
+                std::cout << "timing: level " << level
+                    << ": construct coarse matrix: "
+                    << esysUtils::gettime()-time0 << std::endl;
+
+            out->AMG_C = Preconditioner_AMG_alloc(A_C, level+1, options);
+            out->A_C = A_C;
+            if (out->AMG_C == NULL) {
+                // merge the system matrix into 1 rank when
+                // it's not suitable coarsening due to the
+                // total number of unknowns being too small
+                out->merged_solver = new MergedSolver(A_C, options);
+            }
+            delete[] mask_C;
+            delete[] rows_in_F;
         }
     }
     delete[] counter;
@@ -299,12 +289,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
     delete[] offset_ST;
     delete[] ST;
 
-    if (Esys_noError()) {
-        return out;
-    } else  {
-        Preconditioner_AMG_free(out);
-        return NULL;
-    }
+    return out;
 }
 
 
@@ -316,45 +301,45 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
     const dim_t pre_sweeps=amg->pre_sweeps;
 
     // presmoothing
-    double time0 = Esys_timer();
+    double time0 = esysUtils::gettime();
     Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, false);
-    time0 = Esys_timer()-time0;
+    time0 = esysUtils::gettime()-time0;
     if (SHOW_TIMING)
         std::cout << "timing: level " << amg->level << ": Presmoothing: "
             << time0 << std::endl;
     // end of presmoothing
 
-    time0=Esys_timer();
+    time0=esysUtils::gettime();
     // r <- b
     util::copy(n, amg->r, b);
     // r = r-Ax
     A->MatrixVector_CSR_OFFSET0(-1., x, 1., amg->r);
     // b_C = R*r
     amg->R->MatrixVector_CSR_OFFSET0(1., amg->r, 0., amg->b_C);
-    time0 = Esys_timer()-time0;
+    time0 = esysUtils::gettime()-time0;
 
     // coarse level solve
     if (amg->AMG_C == NULL) {
-        time0 = Esys_timer();
+        time0 = esysUtils::gettime();
         // A_C is the coarsest level
         amg->merged_solver->solve(amg->x_C, amg->b_C);
         if (SHOW_TIMING)
             std::cout << "timing: level " << amg->level << ": DIRECT SOLVER: "
-                << Esys_timer()-time0 << std::endl;
+                << esysUtils::gettime()-time0 << std::endl;
     } else {
         // x_C = AMG(b_C)
         Preconditioner_AMG_solve(amg->A_C, amg->AMG_C, amg->x_C, amg->b_C);
     }
 
-    time0 = time0+Esys_timer();
+    time0 = time0+esysUtils::gettime();
     // x = x + P*x_c
     amg->P->MatrixVector_CSR_OFFSET0(1., amg->x_C, 1., x);
 
     // postsmoothing:
     // solve Ax=b with initial guess x
-    time0 = Esys_timer();
+    time0 = esysUtils::gettime();
     Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, true);
-    time0 = Esys_timer()-time0;
+    time0 = esysUtils::gettime()-time0;
     if (SHOW_TIMING)
         std::cout << "timing: level " << amg->level << ": Postsmoothing: "
             << time0 << std::endl;
@@ -819,8 +804,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
         i = numUndefined;
         numUndefined = col_dist->numPositives(Status, 1);
         if (numUndefined == i) {
-            Esys_setError(SYSTEM_ERROR, "Can NOT reduce numUndefined.");
-            return;
+            throw PasoException("AMG: Can NOT reduce numUndefined.");
         }
 
         iter++;

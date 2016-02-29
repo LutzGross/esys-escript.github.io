@@ -28,6 +28,7 @@
 #ifndef __PASO_COUPLER_H__
 #define __PASO_COUPLER_H__
 
+#include "PasoException.h"
 #include "SharedComponents.h"
 
 namespace paso {
@@ -49,12 +50,11 @@ struct Connector
 
     Connector(SharedComponents_ptr s, SharedComponents_ptr r)
     {
-        Esys_resetError();
         if (s->mpi_info != r->mpi_info) {
-            Esys_setError(SYSTEM_ERROR,
+            throw PasoException(
                     "Connector: send and recv MPI communicators don't match.");
         } else if (s->local_length != r->local_length) {
-            Esys_setError(SYSTEM_ERROR,
+            throw PasoException(
                     "Connector: local length of send and recv SharedComponents must match.");
         }
         send = s;
@@ -86,8 +86,7 @@ struct Connector
             new_send_shcomp = send;
             new_recv_shcomp = recv;
         }
-        if (Esys_noError())
-            out.reset(new Connector(new_send_shcomp, new_recv_shcomp));
+        out.reset(new Connector(new_send_shcomp, new_recv_shcomp));
         return out;
     }
 

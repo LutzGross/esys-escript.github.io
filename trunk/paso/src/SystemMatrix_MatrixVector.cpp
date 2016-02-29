@@ -36,13 +36,11 @@ void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
                                 double* out) const
 {
     if (is_balanced) {
-        Esys_setError(VALUE_ERROR, "MatrixVector: balanced matrix is not supported.");
-        return;
+        throw PasoException("MatrixVector: balanced matrix is not supported.");
     }
     if (type & MATRIX_FORMAT_CSC) {
         if (mpi_info->size > 1) {
-            Esys_setError(SYSTEM_ERROR,"MatrixVector: CSC is not supported by MPI.");
-            return;
+            throw PasoException("MatrixVector: CSC is not supported by MPI.");
         } else {
             if (type & MATRIX_FORMAT_OFFSET1) {
                 SparseMatrix_MatrixVector_CSC_OFFSET1(alpha, mainBlock, in, beta, out);
@@ -53,15 +51,12 @@ void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
     } else {
         if (type & MATRIX_FORMAT_OFFSET1) {
             if (mpi_info->size > 1) {
-                Esys_setError(SYSTEM_ERROR,"MatrixVector: CSR with offset 1 is not supported in MPI.");
-                return;
+                throw PasoException("MatrixVector: CSR with offset 1 is not supported in MPI.");
             } else {
                 SparseMatrix_MatrixVector_CSR_OFFSET1(alpha, mainBlock, in, beta, out);
             }
         } else {
-            if (Esys_noError()) {
-                MatrixVector_CSR_OFFSET0(alpha, in, beta, out);
-            }
+            MatrixVector_CSR_OFFSET0(alpha, in, beta, out);
         }
     }
 }

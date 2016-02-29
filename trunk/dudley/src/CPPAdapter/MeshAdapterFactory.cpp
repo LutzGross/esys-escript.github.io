@@ -18,7 +18,6 @@
 #include "esysUtils/first.h"
 
 #include "MeshAdapterFactory.h"
-#include "DudleyError.h"
 #include "dudley/Dudley.h"
 #include "dudley/Mesh.h"
 #include "dudley/TriangularMesh.h"
@@ -72,7 +71,6 @@ Domain_ptr loadMesh(const std::string& fileName)
     Dudley_Mesh *mesh_p=NULL;
     const string fName(mpi_info->appendRankToFileName(fileName));
 
-    Dudley_resetError();
     int *first_DofComponent, *first_NodeComponent;
 
     // Open NetCDF file for reading
@@ -146,272 +144,244 @@ Domain_ptr loadMesh(const std::string& fileName)
 
     // allocate mesh
     mesh_p = Dudley_Mesh_alloc(name.get(), numDim, mpi_info);
-    if (Dudley_noError()) {
-        // read nodes
-        Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
-        // Nodes_Id
-        if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Id)");
-        if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Id)");
-        // Nodes_Tag
-        if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Tag)");
-        if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Tag)");
-        // Nodes_gDOF
-        if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_gDOF)");
-        if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_gDOF)");
-        // Nodes_gNI
-        if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_gNI)");
-        if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_gNI)");
-        // Nodes_grDfI
-        if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_grDfI)");
-        if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_grDfI)");
-        // Nodes_grNI
-        if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_grNI)");
-        if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_grNI)");
-        // Nodes_Coordinates
-        if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates")))
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Coordinates)");
-        if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
+    // read nodes
+    Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
+    // Nodes_Id
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
+        cleanupAndThrow(mesh_p, "get_var(Nodes_Id)");
+    if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) )
+        cleanupAndThrow(mesh_p, "get(Nodes_Id)");
+    // Nodes_Tag
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
+        cleanupAndThrow(mesh_p, "get_var(Nodes_Tag)");
+    if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) )
+        cleanupAndThrow(mesh_p, "get(Nodes_Tag)");
+    // Nodes_gDOF
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
+        cleanupAndThrow(mesh_p, "get_var(Nodes_gDOF)");
+    if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) )
+        cleanupAndThrow(mesh_p, "get(Nodes_gDOF)");
+    // Nodes_gNI
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
+        cleanupAndThrow(mesh_p, "get_var(Nodes_gNI)");
+    if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) )
+        cleanupAndThrow(mesh_p, "get(Nodes_gNI)");
+    // Nodes_grDfI
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
+        cleanupAndThrow(mesh_p, "get_var(Nodes_grDfI)");
+    if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) )
+        cleanupAndThrow(mesh_p, "get(Nodes_grDfI)");
+    // Nodes_grNI
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
+        cleanupAndThrow(mesh_p, "get_var(Nodes_grNI)");
+    if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) )
+        cleanupAndThrow(mesh_p, "get(Nodes_grNI)");
+    // Nodes_Coordinates
+    if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates")))
+        cleanupAndThrow(mesh_p, "get_var(Nodes_Coordinates)");
+    if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
+        cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
 
-        Dudley_NodeFile_setTagsInUse(mesh_p->Nodes);
+    Dudley_NodeFile_setTagsInUse(mesh_p->Nodes);
 
-        /* read elements */
-        if (Dudley_noError()) {
-            mesh_p->Elements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Elements_TypeId, mpi_info);
-            if (Dudley_noError())
-                Dudley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
-            if (Dudley_noError()) {
-                mesh_p->Elements->minColor=0;
-                mesh_p->Elements->maxColor=num_Elements-1;
-                if (num_Elements>0) {
-                   // Elements_Id
-                   if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Id)");
-                   if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Id)");
-                   // Elements_Tag
-                   if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Tag)");
-                   if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Tag)");
-                   // Elements_Owner
-                   if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Owner)");
-                   if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Owner)");
-                   // Elements_Color
-                   if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Color)");
-                   if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Color)");
-                   // Elements_Nodes
-                   int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
-                   if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
-                       delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
-                   }
-                   if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
-                       delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
-                   }
+    /* read elements */
+    mesh_p->Elements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Elements_TypeId, mpi_info);
+    Dudley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
+    mesh_p->Elements->minColor=0;
+    mesh_p->Elements->maxColor=num_Elements-1;
+    if (num_Elements>0) {
+       // Elements_Id
+       if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
+           cleanupAndThrow(mesh_p, "get_var(Elements_Id)");
+       if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) )
+           cleanupAndThrow(mesh_p, "get(Elements_Id)");
+       // Elements_Tag
+       if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
+           cleanupAndThrow(mesh_p, "get_var(Elements_Tag)");
+       if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) )
+           cleanupAndThrow(mesh_p, "get(Elements_Tag)");
+       // Elements_Owner
+       if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
+           cleanupAndThrow(mesh_p, "get_var(Elements_Owner)");
+       if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) )
+           cleanupAndThrow(mesh_p, "get(Elements_Owner)");
+       // Elements_Color
+       if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
+           cleanupAndThrow(mesh_p, "get_var(Elements_Color)");
+       if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
+           cleanupAndThrow(mesh_p, "get(Elements_Color)");
+       // Elements_Nodes
+       int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
+       if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
+           delete[] Elements_Nodes;
+           cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
+       }
+       if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
+           delete[] Elements_Nodes;
+           cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
+       }
 
-                   // Copy temp array into mesh_p->Elements->Nodes
-                   for (int i=0; i<num_Elements; i++) {
-                       for (int j=0; j<num_Elements_numNodes; j++) {
-                           mesh_p->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]
-                                = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
-                       }
-                   }
-                   delete[] Elements_Nodes;
-                   Dudley_ElementFile_setTagsInUse(mesh_p->Elements);
-                } /* num_Elements>0 */
-            }
-        }
+       // Copy temp array into mesh_p->Elements->Nodes
+       for (int i=0; i<num_Elements; i++) {
+           for (int j=0; j<num_Elements_numNodes; j++) {
+               mesh_p->Elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]
+                    = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
+           }
+       }
+       delete[] Elements_Nodes;
+       Dudley_ElementFile_setTagsInUse(mesh_p->Elements);
+    } /* num_Elements>0 */
 
-        /* get the face elements */
-        if (Dudley_noError()) {
-            mesh_p->FaceElements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)FaceElements_TypeId, mpi_info);
-            if (Dudley_noError())
-                Dudley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
-            if (Dudley_noError()) {
-                mesh_p->FaceElements->minColor=0;
-                mesh_p->FaceElements->maxColor=num_FaceElements-1;
-                if (num_FaceElements>0) {
-                   // FaceElements_Id
-                   if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Id)");
-                   if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Id)");
-                   // FaceElements_Tag
-                   if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Tag)");
-                   if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Tag)");
-                   // FaceElements_Owner
-                   if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Owner)");
-                   if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Owner)");
-                   // FaceElements_Color
-                   if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Color)");
-                   if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
-                   // FaceElements_Nodes
-                   int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
-                   if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
-                       delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
-                   }
-                   if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
-                       delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
-                   }
-                   // Copy temp array into mesh_p->FaceElements->Nodes
-                   for (int i=0; i<num_FaceElements; i++) {
-                       for (int j=0; j<num_FaceElements_numNodes; j++) {
-                           mesh_p->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
-                       }
-                   }
-                   delete[] FaceElements_Nodes;
-                   Dudley_ElementFile_setTagsInUse(mesh_p->FaceElements);
-                } /* num_FaceElements>0 */
-            }
-        }
+    /* get the face elements */
+    mesh_p->FaceElements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)FaceElements_TypeId, mpi_info);
+    Dudley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
+    mesh_p->FaceElements->minColor=0;
+    mesh_p->FaceElements->maxColor=num_FaceElements-1;
+    if (num_FaceElements>0) {
+       // FaceElements_Id
+       if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
+           cleanupAndThrow(mesh_p, "get_var(FaceElements_Id)");
+       if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) )
+           cleanupAndThrow(mesh_p, "get(FaceElements_Id)");
+       // FaceElements_Tag
+       if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
+           cleanupAndThrow(mesh_p, "get_var(FaceElements_Tag)");
+       if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) )
+           cleanupAndThrow(mesh_p, "get(FaceElements_Tag)");
+       // FaceElements_Owner
+       if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
+           cleanupAndThrow(mesh_p, "get_var(FaceElements_Owner)");
+       if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) )
+           cleanupAndThrow(mesh_p, "get(FaceElements_Owner)");
+       // FaceElements_Color
+       if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
+           cleanupAndThrow(mesh_p, "get_var(FaceElements_Color)");
+       if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
+           cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
+       // FaceElements_Nodes
+       int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
+       if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
+           delete[] FaceElements_Nodes;
+           cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
+       }
+       if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
+           delete[] FaceElements_Nodes;
+           cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
+       }
+       // Copy temp array into mesh_p->FaceElements->Nodes
+       for (int i=0; i<num_FaceElements; i++) {
+           for (int j=0; j<num_FaceElements_numNodes; j++) {
+               mesh_p->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
+           }
+       }
+       delete[] FaceElements_Nodes;
+       Dudley_ElementFile_setTagsInUse(mesh_p->FaceElements);
+    } /* num_FaceElements>0 */
 
-        /* get the Points (nodal elements) */
-        if (Dudley_noError()) {
-            mesh_p->Points=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Points_TypeId, mpi_info);
-            if (Dudley_noError())
-                Dudley_ElementFile_allocTable(mesh_p->Points, num_Points);
-            if (Dudley_noError()) {
-                mesh_p->Points->minColor=0;
-                mesh_p->Points->maxColor=num_Points-1;
-                if (num_Points>0) {
-                   // Points_Id
-                   if (! ( nc_var_temp = dataFile.get_var("Points_Id")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Id)");
-                   if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Id)");
-                   // Points_Tag
-                   if (! ( nc_var_temp = dataFile.get_var("Points_Tag")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Tag)");
-                   if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Tag)");
-                   // Points_Owner
-                   if (! ( nc_var_temp = dataFile.get_var("Points_Owner")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Owner)");
-                   if (!nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Owner)");
-                   // Points_Color
-                   if (! ( nc_var_temp = dataFile.get_var("Points_Color")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Color)");
-                   if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Color)");
-                   // Points_Nodes
-                   int *Points_Nodes = new int[num_Points];
-                   if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
-                       delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
-                   }
-                   if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
-                       delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, "get(Points_Nodes)");
-                   }
-                   // Copy temp array into mesh_p->Points->Nodes
-                   for (int i=0; i<num_Points; i++) {
-                       mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
-                   }
-                   delete[] Points_Nodes;
-                   Dudley_ElementFile_setTagsInUse(mesh_p->Points);
-                } /* num_Points>0 */
-            }
-        }
+    /* get the Points (nodal elements) */
+    mesh_p->Points=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Points_TypeId, mpi_info);
+    Dudley_ElementFile_allocTable(mesh_p->Points, num_Points);
+    mesh_p->Points->minColor=0;
+    mesh_p->Points->maxColor=num_Points-1;
+    if (num_Points>0) {
+       // Points_Id
+       if (! ( nc_var_temp = dataFile.get_var("Points_Id")))
+           cleanupAndThrow(mesh_p, "get_var(Points_Id)");
+       if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points))
+           cleanupAndThrow(mesh_p, "get(Points_Id)");
+       // Points_Tag
+       if (! ( nc_var_temp = dataFile.get_var("Points_Tag")))
+           cleanupAndThrow(mesh_p, "get_var(Points_Tag)");
+       if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points))
+           cleanupAndThrow(mesh_p, "get(Points_Tag)");
+       // Points_Owner
+       if (! ( nc_var_temp = dataFile.get_var("Points_Owner")))
+           cleanupAndThrow(mesh_p, "get_var(Points_Owner)");
+       if (!nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points))
+           cleanupAndThrow(mesh_p, "get(Points_Owner)");
+       // Points_Color
+       if (! ( nc_var_temp = dataFile.get_var("Points_Color")))
+           cleanupAndThrow(mesh_p, "get_var(Points_Color)");
+       if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
+           cleanupAndThrow(mesh_p, "get(Points_Color)");
+       // Points_Nodes
+       int *Points_Nodes = new int[num_Points];
+       if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
+           delete[] Points_Nodes;
+           cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
+       }
+       if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
+           delete[] Points_Nodes;
+           cleanupAndThrow(mesh_p, "get(Points_Nodes)");
+       }
+       // Copy temp array into mesh_p->Points->Nodes
+       for (int i=0; i<num_Points; i++) {
+           mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
+       }
+       delete[] Points_Nodes;
+       Dudley_ElementFile_setTagsInUse(mesh_p->Points);
+    } /* num_Points>0 */
 
-        /* get the tags */
-        if (Dudley_noError()) {
-          if (num_Tags>0) {
-            // Temp storage to gather node IDs
-            int *Tags_keys = new int[num_Tags];
-            char name_temp[4096];
-            int i;
+    /* get the tags */
+    if (num_Tags>0) {
+        // Temp storage to gather node IDs
+        int *Tags_keys = new int[num_Tags];
+        char name_temp[4096];
+        int i;
 
-            // Tags_keys
-            if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
-                delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
-            }
-            if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
-                delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, "get(Tags_keys)");
-            }
-            for (i=0; i<num_Tags; i++) {
-              // Retrieve tag name
-              sprintf(name_temp, "Tags_name_%d", i);
-              if (! (attr=dataFile.get_att(name_temp)) ) {
-                  delete[] Tags_keys;
-                  stringstream msg;
-                  msg << "get_att(" << name_temp << ")";
-                  cleanupAndThrow(mesh_p, msg.str());
-              }
-              boost::scoped_array<char> name(attr->as_string(0));
-              delete attr;
-              Dudley_Mesh_addTagMap(mesh_p, name.get(), Tags_keys[i]);
-            }
+        // Tags_keys
+        if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
             delete[] Tags_keys;
+            cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
+        }
+        if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
+            delete[] Tags_keys;
+            cleanupAndThrow(mesh_p, "get(Tags_keys)");
+        }
+        for (i=0; i<num_Tags; i++) {
+          // Retrieve tag name
+          sprintf(name_temp, "Tags_name_%d", i);
+          if (! (attr=dataFile.get_att(name_temp)) ) {
+              delete[] Tags_keys;
+              stringstream msg;
+              msg << "get_att(" << name_temp << ")";
+              cleanupAndThrow(mesh_p, msg.str());
           }
+          boost::scoped_array<char> name(attr->as_string(0));
+          delete attr;
+          Dudley_Mesh_addTagMap(mesh_p, name.get(), Tags_keys[i]);
         }
-   
-        if (Dudley_noError()) {
-            // Nodes_DofDistribution
-            first_DofComponent = new index_t[mpi_size+1];
-            if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
-                delete[] first_DofComponent;
-                cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
-            }
-            if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
-                delete[] first_DofComponent;
-                cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
-            }
-
-            // Nodes_NodeDistribution
-            first_NodeComponent = new index_t[mpi_size+1];
-            if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
-                delete[] first_DofComponent;
-                delete[] first_NodeComponent;
-                cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
-            }
-            if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
-                delete[] first_DofComponent;
-                delete[] first_NodeComponent;
-                cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
-            }
-            Dudley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
-            delete[] first_DofComponent;
-            delete[] first_NodeComponent;
-        }
-
-    } /* Dudley_noError() after Dudley_Mesh_alloc() */
-
-    checkDudleyError();
-    AbstractContinuousDomain* dom=new MeshAdapter(mesh_p);
-
-    if (! Dudley_noError()) {
-        Dudley_Mesh_free(mesh_p);
+        delete[] Tags_keys;
     }
 
+    // Nodes_DofDistribution
+    first_DofComponent = new index_t[mpi_size+1];
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
+        delete[] first_DofComponent;
+        cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
+    }
+    if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
+        delete[] first_DofComponent;
+        cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
+    }
+
+    // Nodes_NodeDistribution
+    first_NodeComponent = new index_t[mpi_size+1];
+    if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
+        delete[] first_DofComponent;
+        delete[] first_NodeComponent;
+        cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
+    }
+    if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
+        delete[] first_DofComponent;
+        delete[] first_NodeComponent;
+        cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
+    }
+    Dudley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
+    delete[] first_DofComponent;
+    delete[] first_NodeComponent;
+
+    AbstractContinuousDomain* dom=new MeshAdapter(mesh_p);
     return dom->getPtr();
 #else
     throw DataException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
@@ -437,8 +407,7 @@ Domain_ptr loadMesh(const std::string& fileName)
         
     strcpy(fName,fileName.c_str());
 
-    fMesh=Dudley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
-    checkDudleyError();
+    fMesh=Dudley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, optimize!=0);
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
     delete[] fName;
@@ -447,32 +416,23 @@ Domain_ptr loadMesh(const std::string& fileName)
   }
 
   Domain_ptr readGmsh(const std::string& fileName,
-                                     int numDim,
-                                     int integrationOrder,
-                                     int reducedIntegrationOrder,
-                                     int optimize,
-                                     int useMacroElements)
+                      int numDim,
+                      int integrationOrder,
+                      int reducedIntegrationOrder,
+                      int optimize)
   {
     //
     // create a copy of the filename to overcome the non-constness of call
     // to Dudley_Mesh_read
     Dudley_Mesh* fMesh=0;
-    // Win32 refactor
-    if( fileName.size() == 0 )
-    {
-       throw DataException("Null file name!");
-    }
+    if (fileName.size() == 0)
+       throw DudleyException("Null file name!");
 
     char *fName = new char[fileName.size()+1];
-        
     strcpy(fName,fileName.c_str());
-
-    fMesh=Dudley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE), (useMacroElements ? TRUE : FALSE));
-    checkDudleyError();
+    fMesh=Dudley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, optimize!=0);
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    
     delete[] fName;
-    
     return temp->getPtr();
   }
 
@@ -514,9 +474,6 @@ Domain_ptr loadMesh(const std::string& fileName)
                         reducedIntegrationOrder, (optimize ? TRUE : FALSE),
                         mpi_info);
 
-    //
-    // Convert any dudley errors into a C++ exception
-    checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp->getPtr();
   }
@@ -524,62 +481,16 @@ Domain_ptr loadMesh(const std::string& fileName)
   Domain_ptr brick_driver(const boost::python::list& args)
   {
       using boost::python::extract;
-
-//       // we need to convert lists to stl vectors
-//       boost::python::list pypoints=extract<boost::python::list>(args[15]);
-//       boost::python::list pytags=extract<boost::python::list>(args[16]);
-//       int numpts=extract<int>(pypoints.attr("__len__")());
-//       int numtags=extract<int>(pytags.attr("__len__")());
-//       vector<double> points;
-//       vector<int> tags;
-//       tags.resize(numtags, -1);
-//       for (int i=0;i<numpts;++i) {
-//           boost::python::object temp=pypoints[i];
-//           int l=extract<int>(temp.attr("__len__")());
-//           for (int k=0;k<l;++k) {
-//               points.push_back(extract<double>(temp[k]));           
-//           }
-//       }
-//       map<string, int> namestonums;
-//       int curmax=40; // bricks use up to 30
-//       for (int i=0;i<numtags;++i) {
-//           extract<int> ex_int(pytags[i]);
-//           extract<string> ex_str(pytags[i]);
-//           if (ex_int.check()) {
-//               tags[i]=ex_int();
-//               if (tags[i]>= curmax) {
-//                   curmax=tags[i]+1;
-//               }
-//           } else if (ex_str.check()) {
-//               string s=ex_str();
-//               map<string, int>::iterator it=namestonums.find(s);
-//               if (it!=namestonums.end()) {
-//                   // we have the tag already so look it up
-//                   tags[i]=it->second;
-//               } else {
-//                   namestonums[s]=curmax;
-//                   tags[i]=curmax;
-//                   curmax++;
-//               }
-//           } else {
-//               throw DudleyException("Error - Unable to extract tag value.");
-//           }
-//         
-//       }
       boost::python::object pworld=args[15];
       esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {	  
-	      throw DudleyException("Invalid escriptworld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+      if (!pworld.is_none()) {
+          extract<SubWorld_ptr> ex(pworld);
+          if (!ex.check()) {       
+              throw DudleyException("Invalid escriptworld parameter.");
+          }
+          info=ex()->getMPI();
+      } else {
+          info=esysUtils::makeInfo(MPI_COMM_WORLD);
 
       }
       return brick(info, static_cast<int>(extract<float>(args[0])),
@@ -598,73 +509,15 @@ Domain_ptr loadMesh(const std::string& fileName)
   Domain_ptr rectangle_driver(const boost::python::list& args)
   {
       using boost::python::extract;
-/*
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[12]);
-      boost::python::list pytags=extract<boost::python::list>(args[13]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-      vector<double> points;
-      vector<int> tags;
-      tags.resize(numtags, -1);
-      for (int i=0;i<numpts;++i)
-      {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k)
-          {
-              points.push_back(extract<double>(temp[k]));           
-          }
-      }
-      map<string, int> tagstonames;
-      int curmax=40;
-      // but which order to assign tags to names?????
-      for (int i=0;i<numtags;++i)
-      {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check())
-          {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax)
-              {
-                  curmax=tags[i]+1;
-              }
-          } 
-          else if (ex_str.check())
-          {
-              string s=ex_str();
-              map<string, int>::iterator it=tagstonames.find(s);
-              if (it!=tagstonames.end())
-              {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              }
-              else
-              {
-                  tagstonames[s]=curmax;
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          }
-          else
-          {
-              throw DudleyException("Error - Unable to extract tag value.");
-          }
-      }*/
       boost::python::object pworld=args[12];
       esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
+      if (!pworld.is_none()) {
           extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw DudleyException("Invalid escriptworld parameter.");
+          if (!ex.check()) {
+              throw DudleyException("Invalid escriptworld parameter.");
           }
           info=ex()->getMPI();
-      }
-      else
-      {
+      } else {
           info=esysUtils::makeInfo(MPI_COMM_WORLD);
       }
 
@@ -675,7 +528,7 @@ Domain_ptr loadMesh(const std::string& fileName)
                        extract<int>(args[6]), extract<int>(args[7]),
                        extract<int>(args[8]), extract<int>(args[9]),
                        extract<int>(args[10]), extract<int>(args[11]) 
-		       );
+                       );
   }  
   
   
@@ -714,12 +567,10 @@ Domain_ptr loadMesh(const std::string& fileName)
           mpi_info);
     //
     // Convert any dudley errors into a C++ exception
-    checkDudleyError();
     MeshAdapter* ma=new MeshAdapter(fMesh);
     return Domain_ptr(ma);
   }
 
-  // end of namespace
 
-}
+} // namespace dudley
 

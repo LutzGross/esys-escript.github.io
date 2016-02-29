@@ -28,6 +28,7 @@
 
 #include "MKL.h"
 #include "Options.h"
+#include "PasoException.h"
 
 namespace paso {
 
@@ -57,8 +58,7 @@ void MKL_free(SparseMatrix* A)
         delete[] A->solver_p;
         A->solver_p=NULL;
         if (error != MKL_ERROR_NO)
-            Esys_setError(SYSTEM_ERROR,
-                          "memory release in MKL library failed.");
+            throw PasoException("Memory release in MKL library failed.");
     }
 #endif
 }
@@ -68,15 +68,13 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
 {
 #ifdef MKL
     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Esys_setError(TYPE_ERROR, "Paso: MKL requires CSR format with index offset 1 and block size 1.");
-        return;
+        throw PasoException("Paso: MKL requires CSR format with index offset 1 and block size 1.");
     }
 
     // MKL uses 'long long int' in 64-bit version, escript 'long'. Make sure
     // they are compatible
     if (sizeof(ES_MKL_INT) != sizeof(index_t)) {
-        Esys_setError(TYPE_ERROR, "Paso: MKL index type is not compatible with this escript build. Check compile options.");
-        return;
+        throw PasoException("Paso: MKL index type is not compatible with this escript build. Check compile options.");
     }
 
     ES_MKL_INT* ptr = reinterpret_cast<ES_MKL_INT*>(A->pattern->ptr);
@@ -132,14 +130,14 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         A->solver_package = PASO_MKL;
         // symbolic factorization
         phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
-        time0 = Esys_timer();
+        time0 = esysUtils::gettime();
         ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
                    ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
              if (verbose)
                  printf("MKL: symbolic factorization failed.\n");
-             Esys_setError(VALUE_ERROR,"symbolic factorization in MKL library failed.");
              MKL_free(A.get());
+             throw PasoException("symbolic factorization in MKL library failed.");
         } else {
             // LDU factorization
             phase = MKL_PHASE_FACTORIZATION;
@@ -148,31 +146,29 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
             if (error != MKL_ERROR_NO) {
                 if (verbose)
                     printf("MKL: LDU factorization failed.\n");
-                Esys_setError(ZERO_DIVISION_ERROR, "factorization in MKL library failed. Most likely the matrix is singular.");
                 MKL_free(A.get());
+                throw PasoException("factorization in MKL library failed. Most likely the matrix is singular.");
            }
            if (verbose)
-               printf("MKL: LDU factorization completed (time = %e).\n", Esys_timer()-time0);
+               printf("MKL: LDU factorization completed (time = %e).\n", esysUtils::gettime()-time0);
         }
     }
     // forward backward substitution
-    if (Esys_noError())  {
-        time0 = Esys_timer();
-        phase = MKL_PHASE_SOLVE;
-        ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
-                   ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
-        if (verbose) printf("MKL: solve completed.\n");
-        if (error != MKL_ERROR_NO) {
-            if (verbose)
-                printf("MKL: forward/backward substitution failed.\n");
-            Esys_setError(ZERO_DIVISION_ERROR, "forward/backward substitution in MKL library failed. Most likely the matrix is singular.");
-        } else {
-            if (verbose)
-                printf("MKL: forward/backward substitution completed (time = %e).\n", Esys_timer()-time0);
-        }
+    time0 = esysUtils::gettime();
+    phase = MKL_PHASE_SOLVE;
+    ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
+               ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
+    if (verbose) printf("MKL: solve completed.\n");
+    if (error != MKL_ERROR_NO) {
+        if (verbose)
+            printf("MKL: forward/backward substitution failed.\n");
+        throw PasoException("forward/backward substitution in MKL library failed. Most likely the matrix is singular.");
+    } else {
+        if (verbose)
+            printf("MKL: forward/backward substitution completed (time = %e).\n", esysUtils::gettime()-time0);
     }
 #else
-    Esys_setError(SYSTEM_ERROR, "Paso: MKL is not available.");
+    throw PasoException("Paso: MKL is not available.");
 #endif
 }
 

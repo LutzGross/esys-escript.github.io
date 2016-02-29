@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh: NodeFile */
 
 /*   returns the maximum and minimum node id number of nodes: */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -28,7 +28,7 @@
 #include "NodeFile.h"
 #include "Util.h"
 
-/************************************************************************************/
+namespace dudley {
 
 void Dudley_NodeFile_setGlobalIdRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in)
 {
@@ -50,10 +50,9 @@ void Dudley_NodeFile_setGlobalIdRange(index_t * min_id, index_t * max_id, Dudley
     *min_id = min_id_local;
     *max_id = max_id_local;
 #endif
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -61,10 +60,9 @@ void Dudley_NodeFile_setIdRange(index_t * min_id, index_t * max_id, Dudley_NodeF
 {
     *min_id = Dudley_Util_getMinInt(1, in->numNodes, in->Id);
     *max_id = Dudley_Util_getMaxInt(1, in->numNodes, in->Id);
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -88,10 +86,9 @@ void Dudley_NodeFile_setGlobalDOFRange(index_t * min_id, index_t * max_id, Dudle
     *min_id = min_id_local;
     *max_id = max_id_local;
 #endif
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -99,10 +96,9 @@ void Dudley_NodeFile_setDOFRange(index_t * min_id, index_t * max_id, Dudley_Node
 {
     *min_id = Dudley_Util_getMinInt(1, in->numNodes, in->globalDegreesOfFreedom);
     *max_id = Dudley_Util_getMaxInt(1, in->numNodes, in->globalDegreesOfFreedom);
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -110,10 +106,9 @@ void Dudley_NodeFile_setReducedDOFRange(index_t * min_id, index_t * max_id, Dudl
 {
     *min_id = Dudley_Util_getFlaggedMinInt(1, in->numNodes, in->globalReducedDOFIndex, -1);
     *max_id = Dudley_Util_getFlaggedMaxInt(1, in->numNodes, in->globalReducedDOFIndex, -1);
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -151,10 +146,9 @@ void Dudley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t * min_id, inde
     *min_id = min_id_local;
     *max_id = max_id_local;
 #endif
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -185,10 +179,9 @@ void Dudley_NodeFile_setGlobalNodeIDIndexRange(index_t * min_id, index_t * max_i
     *min_id = min_id_local;
     *max_id = max_id_local;
 #endif
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
 
@@ -219,9 +212,11 @@ void Dudley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t * min_id, index_t 
     *min_id = min_id_local;
     *max_id = max_id_local;
 #endif
-    if (*max_id < *min_id)
-    {
-	*max_id = 0;
-	*min_id = -1;
+    if (*max_id < *min_id) {
+        *max_id = 0;
+        *min_id = -1;
     }
 }
+
+} // namespace dudley
+

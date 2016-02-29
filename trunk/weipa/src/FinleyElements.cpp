@@ -160,7 +160,7 @@ FinleyElements::FinleyElements(const FinleyElements& e)
 //
 //
 //
-bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
+bool FinleyElements::initFromDudley(const dudley::Dudley_ElementFile* dudleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numElements = dudleyFile->numElements;
@@ -221,7 +221,7 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
     if (numElements > 0) {
         nodesPerElement = finleyFile->numNodes;
 
-        index_t* idxPtr = finleyFile->Nodes;
+        escript::DataTypes::index_t* idxPtr = finleyFile->Nodes;
         nodes.clear();
         nodes.insert(nodes.end(), numElements*nodesPerElement, 0);
         copy(idxPtr, idxPtr+numElements*nodesPerElement, nodes.begin());

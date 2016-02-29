@@ -54,7 +54,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
     Solver_ILU* out=new Solver_ILU;
     out->factors=new double[A->len];
 
-    double time0 = Esys_timer();
+    double time0 = esysUtils::gettime();
 
 #pragma omp parallel for schedule(static) private(i,iptr,k)
     for (i = 0; i < n; ++i) {
@@ -65,7 +65,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
     }
 
     // start factorization
-    for (color=0;color<num_colors && Esys_noError();++color) {
+    for (color=0; color<num_colors; ++color) {
         if (n_block==1) {
 #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,j,iptr_ij,A11,iptr_main,D)
             for (i = 0; i < n; ++i) {
@@ -105,7 +105,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
                             }
                         }
                     } else {
-                        Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
+                        throw PasoException("Solver_getILU: non-regular main diagonal block.");
                     }
                 }
             }
@@ -174,7 +174,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
                             }
                         }
                     } else {
-                        Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
+                        throw PasoException("Solver_getILU: non-regular main diagonal block.");
                     }
                 }
             }
@@ -285,26 +285,21 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
                             }
                         }
                     } else {
-                        Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
+                        throw PasoException("Solver_getILU: non-regular main diagonal block.");
                     }
                 }
             }
         } else {
-            Esys_setError(VALUE_ERROR, "Solver_getILU: block size greater than 3 is not supported.");
+            throw PasoException("Solver_getILU: block size greater than 3 is not supported.");
         }
 #pragma omp barrier
     }
 
-    if (Esys_noError()) {
-        if (verbose) {
-            const double time_fac=Esys_timer()-time0;
-            printf("timing: ILU: coloring/elimination: %e sec\n",time_fac);
-        }
-        return out;
-    } else {
-        Solver_ILU_free(out);
-        return NULL;
+    if (verbose) {
+        const double time_fac=esysUtils::gettime()-time0;
+        printf("timing: ILU: coloring/elimination: %e sec\n",time_fac);
     }
+    return out;
 }
 
 /****************************************************************************/

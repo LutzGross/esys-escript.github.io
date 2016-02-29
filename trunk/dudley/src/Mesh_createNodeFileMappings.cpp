@@ -14,21 +14,23 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: NodeFile : creates the mappings using the indexReducedNodes */
 /*                 no distribution is happening                          */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
+
+namespace dudley {
+
 #define UNUSED -1
 
-
-void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_elements)
+void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh* in, bool use_reduced_elements)
 {
     index_t min_DOF, max_DOF, *shared = NULL, *offsetInShared = NULL, *locDOFMask =
         NULL, i, k, myFirstDOF, myLastDOF, *nodeMask = NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs = NULL;
@@ -88,8 +90,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
     len_loc_dof = max_DOF - min_DOF + 1;
     if (!((min_DOF <= myFirstDOF) && (myLastDOF - 1 <= max_DOF)))
     {
-        Dudley_setError(SYSTEM_ERROR, "Local elements do not span local degrees of freedom.");
-        return;
+        throw DudleyException("Local elements do not span local degrees of freedom.");
     }
     rcv_len = new  dim_t[mpiSize];
     snd_len = new  dim_t[mpiSize];
@@ -282,8 +283,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
             numNeighbors, neighbor, shared, offsetInShared, 1, 0,
             dof_distribution->mpi_info));
 
-    if (Dudley_noError())
-        this_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+    this_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
     /* assign new DOF labels to nodes */
     delete[] rcv_len;
@@ -296,26 +296,19 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
     delete[] shared;
     delete[] offsetInShared;
     delete[] locDOFMask;
-    if (Dudley_noError())
+    if (use_reduced_elements)
     {
-        if (use_reduced_elements)
-        {
-            in->Nodes->reducedDegreesOfFreedomMapping = this_mapping;
-            in->Nodes->reducedDegreesOfFreedomConnector = this_connector;
-        }
-        else
-        {
-            in->Nodes->degreesOfFreedomMapping = this_mapping;
-            in->Nodes->degreesOfFreedomConnector = this_connector;
-        }
+        in->Nodes->reducedDegreesOfFreedomMapping = this_mapping;
+        in->Nodes->reducedDegreesOfFreedomConnector = this_connector;
     }
     else
     {
-        Dudley_NodeMapping_free(this_mapping);
+        in->Nodes->degreesOfFreedomMapping = this_mapping;
+        in->Nodes->degreesOfFreedomConnector = this_connector;
     }
 }
 
-void Dudley_Mesh_createMappings(Dudley_Mesh * mesh, index_t * dof_distribution, index_t * node_distribution)
+void Dudley_Mesh_createMappings(Dudley_Mesh* mesh, index_t* dof_distribution, index_t* node_distribution)
 {
     int i;
     index_t *maskReducedNodes = NULL, *indexReducedNodes = NULL;
@@ -330,15 +323,14 @@ void Dudley_Mesh_createMappings(Dudley_Mesh * mesh, index_t * dof_distribution, 
     Dudley_Mesh_markNodes(maskReducedNodes, 0, mesh, TRUE);
 
     numReducedNodes = Dudley_Util_packMask(mesh->Nodes->numNodes, maskReducedNodes, indexReducedNodes);
-    if (Dudley_noError())
-        Dudley_Mesh_createNodeFileMappings(mesh, numReducedNodes,
-                indexReducedNodes, dof_distribution, node_distribution);
+    Dudley_Mesh_createNodeFileMappings(mesh, numReducedNodes,
+            indexReducedNodes, dof_distribution, node_distribution);
     delete[] maskReducedNodes;
     delete[] indexReducedNodes;
 }
 
-void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes, index_t * indexReducedNodes,
-                                        index_t * dof_first_component, index_t * nodes_first_component)
+void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh* in, dim_t numReducedNodes,
+        index_t* indexReducedNodes, index_t* dof_first_component, index_t* nodes_first_component)
 {
 
     index_t myFirstDOF, myLastDOF, myFirstNode, myLastNode, *reduced_dof_first_component = NULL, *nodeMask = NULL,
@@ -439,64 +431,41 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
     delete[] reduced_nodes_first_component;
 
     nodeMask = new index_t[in->Nodes->numNodes];
-    if (Dudley_noError())
-    {
-        /* ==== nodes mapping which is a dummy structure ======== */
+    /* ==== nodes mapping which is a dummy structure ======== */
 #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < in->Nodes->numNodes; ++i)
-            nodeMask[i] = i;
-        in->Nodes->nodesMapping = Dudley_NodeMapping_alloc(in->Nodes->numNodes, nodeMask, UNUSED);
+    for (i = 0; i < in->Nodes->numNodes; ++i)
+        nodeMask[i] = i;
+    in->Nodes->nodesMapping = Dudley_NodeMapping_alloc(in->Nodes->numNodes, nodeMask, UNUSED);
 
-        /* ==== mapping between nodes and reduced nodes ========== */
+    /* ==== mapping between nodes and reduced nodes ========== */
 #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < in->Nodes->numNodes; ++i)
-            nodeMask[i] = UNUSED;
+    for (i = 0; i < in->Nodes->numNodes; ++i)
+        nodeMask[i] = UNUSED;
 #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < numReducedNodes; ++i)
-            nodeMask[indexReducedNodes[i]] = i;
-        in->Nodes->reducedNodesMapping = Dudley_NodeMapping_alloc(in->Nodes->numNodes, nodeMask, UNUSED);
-    }
+    for (i = 0; i < numReducedNodes; ++i)
+        nodeMask[indexReducedNodes[i]] = i;
+    in->Nodes->reducedNodesMapping = Dudley_NodeMapping_alloc(in->Nodes->numNodes, nodeMask, UNUSED);
     delete[] nodeMask;
     /* ==== mapping between nodes and DOFs + DOF connector ========== */
-    if (Dudley_noError())
-        Dudley_Mesh_createDOFMappingAndCoupling(in, FALSE);
-    /* ==== mapping between nodes and reduced DOFs + reduced DOF connector ========== */
-    if (Dudley_noError())
-        Dudley_Mesh_createDOFMappingAndCoupling(in, TRUE);
+    Dudley_Mesh_createDOFMappingAndCoupling(in, FALSE);
+    /* == mapping between nodes and reduced DOFs + reduced DOF connector == */
+    Dudley_Mesh_createDOFMappingAndCoupling(in, TRUE);
 
     /* get the Ids for DOFs and reduced nodes */
-    if (Dudley_noError())
-    {
 #pragma omp parallel private(i)
-        {
-#pragma omp for
-            for (i = 0; i < in->Nodes->reducedNodesMapping->numTargets; ++i)
-                in->Nodes->reducedNodesId[i] = in->Nodes->Id[in->Nodes->reducedNodesMapping->map[i]];
-#pragma omp for
-            for (i = 0; i < in->Nodes->degreesOfFreedomMapping->numTargets; ++i)
-                in->Nodes->degreesOfFreedomId[i] = in->Nodes->Id[in->Nodes->degreesOfFreedomMapping->map[i]];
-#pragma omp for
-            for (i = 0; i < in->Nodes->reducedDegreesOfFreedomMapping->numTargets; ++i)
-                in->Nodes->reducedDegreesOfFreedomId[i] =
-                    in->Nodes->Id[in->Nodes->reducedDegreesOfFreedomMapping->map[i]];
-        }
-    }
-    else
     {
-        Dudley_NodeMapping_free(in->Nodes->nodesMapping);
-        Dudley_NodeMapping_free(in->Nodes->reducedNodesMapping);
-        Dudley_NodeMapping_free(in->Nodes->degreesOfFreedomMapping);
-        Dudley_NodeMapping_free(in->Nodes->reducedDegreesOfFreedomMapping);
-        in->Nodes->nodesDistribution.reset();
-        in->Nodes->reducedNodesDistribution.reset();
-        in->Nodes->degreesOfFreedomDistribution.reset();
-        in->Nodes->reducedDegreesOfFreedomDistribution.reset();
-        in->Nodes->degreesOfFreedomConnector.reset();
-        in->Nodes->reducedDegreesOfFreedomConnector.reset();
-        in->Nodes->nodesMapping = NULL;
-        in->Nodes->reducedNodesMapping = NULL;
-        in->Nodes->degreesOfFreedomMapping = NULL;
-        in->Nodes->reducedDegreesOfFreedomMapping = NULL;
+#pragma omp for
+        for (i = 0; i < in->Nodes->reducedNodesMapping->numTargets; ++i)
+            in->Nodes->reducedNodesId[i] = in->Nodes->Id[in->Nodes->reducedNodesMapping->map[i]];
+#pragma omp for
+        for (i = 0; i < in->Nodes->degreesOfFreedomMapping->numTargets; ++i)
+            in->Nodes->degreesOfFreedomId[i] = in->Nodes->Id[in->Nodes->degreesOfFreedomMapping->map[i]];
+#pragma omp for
+        for (i = 0; i < in->Nodes->reducedDegreesOfFreedomMapping->numTargets; ++i)
+            in->Nodes->reducedDegreesOfFreedomId[i] =
+                in->Nodes->Id[in->Nodes->reducedDegreesOfFreedomMapping->map[i]];
     }
 }
+
+} // namespace dudley
 

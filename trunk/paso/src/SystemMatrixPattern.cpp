@@ -42,43 +42,40 @@ SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
     output_distribution(outDist),
     input_distribution(inDist)
 {
-    Esys_resetError();
-
     if (outDist->mpi_info != inDist->mpi_info) {
-        Esys_setError(SYSTEM_ERROR, "SystemMatrixPattern: output distribution and input distribution MPI communicators don't match.");
+        throw PasoException("SystemMatrixPattern: output distribution and input distribution MPI communicators don't match.");
     }
     if (outDist->mpi_info != colConn->mpi_info) {
-        Esys_setError(SYSTEM_ERROR, "SystemMatrixPattern: output distribution and col connector MPI communicators don't match.");
+        throw PasoException("SystemMatrixPattern: output distribution and col connector MPI communicators don't match.");
     }
     if (outDist->mpi_info != rowConn->mpi_info ) {
-        Esys_setError(SYSTEM_ERROR, "SystemMatrixPattern: output distribution and row connector MPI communicators don't match.");
+        throw PasoException("SystemMatrixPattern: output distribution and row connector MPI communicators don't match.");
     }
     if (mainPat->type != patType)  {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: type of mainPattern does not match expected type.");
+        throw PasoException("SystemMatrixPattern: type of mainPattern does not match expected type.");
     }
     if (colPat->type != patType)  {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: type of col couplePattern does not match expected type.");
+        throw PasoException("SystemMatrixPattern: type of col couplePattern does not match expected type.");
     }
     if (rowPat->type != patType)  {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: type of row couplePattern does not match expected type.");
+        throw PasoException("SystemMatrixPattern: type of row couplePattern does not match expected type.");
     }
     if (colPat->numOutput != mainPat->numOutput) {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of outputs for couple and main pattern don't match.");
+        throw PasoException("SystemMatrixPattern: number of outputs for couple and main pattern don't match.");
     }
     if (mainPat->numOutput != outDist->getMyNumComponents()) {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of outputs and given distribution don't match.");
+        throw PasoException("SystemMatrixPattern: number of outputs and given distribution don't match.");
     }
     if (mainPat->numInput != inDist->getMyNumComponents()) {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of input for main pattern and number of send components in connector don't match.");
+        throw PasoException("SystemMatrixPattern: number of input for main pattern and number of send components in connector don't match.");
     }
     if (colPat->numInput != colConn->recv->numSharedComponents) {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of inputs for column couple pattern and number of received components in connector don't match.");
+        throw PasoException("SystemMatrixPattern: number of inputs for column couple pattern and number of received components in connector don't match.");
     }
     if (rowPat->numOutput != rowConn->recv->numSharedComponents) {
-        Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of inputs for row couple pattern and number of received components in connector don't match.");
+        throw PasoException("SystemMatrixPattern: number of inputs for row couple pattern and number of received components in connector don't match.");
     }
     mpi_info = outDist->mpi_info;
-
 }
 
 } // namespace paso

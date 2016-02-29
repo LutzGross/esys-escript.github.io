@@ -86,23 +86,19 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
             dXdv11 = COMPDXDV1(1);
             D = dXdv00 * dXdv11 - dXdv01 * dXdv10;
             absD[e] = ABS(D);
-            if (D == 0.)
-            {
+            if (D == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 const std::string msg(ss.str());
-                Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
-            }
-            else
-            {
+                throw DudleyException(msg);
+            } else {
                 invD = 1. / D;
                 dvdX00 = dXdv11 * invD;
                 dvdX10 = -dXdv10 * invD;
                 dvdX01 = -dXdv01 * invD;
                 dvdX11 = dXdv00 * invD;
-                if (numQuad == 1)
-                {
+                if (numQuad == 1) {
                     dTdX[INDEX4(0, 0, 0, e, numTest, DIM, numQuad)] = DTDV_2D[0][0] * dvdX00 + DTDV_2D[1][1] * dvdX10;
                     dTdX[INDEX4(1, 0, 0, e, numTest, DIM, numQuad)] = DTDV_2D[0][1] * dvdX00 + DTDV_2D[1][0] * dvdX10;
                     dTdX[INDEX4(2, 0, 0, e, numTest, DIM, numQuad)] = DTDV_2D[2][0] * dvdX00 + DTDV_2D[2][1] * dvdX10;
@@ -111,11 +107,9 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
                     dTdX[INDEX4(1, 1, 0, e, numTest, DIM, numQuad)] = DTDV_2D[0][1] * dvdX01 + DTDV_2D[1][0] * dvdX11;
                     dTdX[INDEX4(2, 1, 0, e, numTest, DIM, numQuad)] = DTDV_2D[2][0] * dvdX01 + DTDV_2D[2][1] * dvdX11;
 
-                }
-                else            /* numQuad==3 */
-                {
-                    for (q = 0; q < numTest; ++q)       /* relying on unroll loops to optimise this */
-                    {
+                } else { /* numQuad==3 */
+                    // relying on unroll loops to optimise this
+                    for (q = 0; q < numTest; ++q) {
                         dTdX[INDEX4(0, 0, q, e, numTest, DIM, numQuad)] =
                             DTDV_2D[0][0] * dvdX00 + DTDV_2D[1][1] * dvdX10;
                         dTdX[INDEX4(1, 0, q, e, numTest, DIM, numQuad)] =
@@ -134,13 +128,13 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
                 }
             }
         }
-    }                           /* end parallel */
+    } // end parallel
 #undef DTDXSET
 #undef COMPDXDV0
 #undef COMPDXDV1
 }
 
-/************************************************************************************/
+/****************************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements                */
 /*                                                            */
@@ -157,8 +151,7 @@ void Assemble_jacobians_2D_M1D_E1D(double *coordinates, dim_t numQuad,
     {
         double dXdv00, dXdv10, dvdX00, dvdX01, D, invD;
 #pragma omp for private(e,dXdv00,dXdv10,dvdX00,dvdX01,D,invD) schedule(static)
-        for (e = 0; e < numElements; e++)
-        {
+        for (e = 0; e < numElements; e++) {
             dXdv00 = 0;
             dXdv10 = 0;
             dXdv00 +=
@@ -168,16 +161,13 @@ void Assemble_jacobians_2D_M1D_E1D(double *coordinates, dim_t numQuad,
                 coordinates[INDEX2(1, nodes[INDEX2(0, e, numNodes)], DIM)] * (-1.) +
                 coordinates[INDEX2(1, nodes[INDEX2(1, e, numNodes)], DIM)];
             D = dXdv00 * dXdv00 + dXdv10 * dXdv10;
-            if (D == 0.)
-            {
+            if (D == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D_M1D_E1D: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 const std::string msg(ss.str());
-                Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
-            }
-            else
-            {
+                throw DudleyException(msg);
+            } else {
                 invD = 1. / D;
                 dvdX00 = dXdv00 * invD;
                 dvdX01 = dXdv10 * invD;
@@ -187,8 +177,7 @@ void Assemble_jacobians_2D_M1D_E1D(double *coordinates, dim_t numQuad,
                 dTdX[INDEX4(1, 0, 0, e, numTest, DIM, numQuad)] = -1 * dvdX00;
                 dTdX[INDEX4(1, 1, 0, e, numTest, DIM, numQuad)] = -1 * dvdX01;
                 absD[e] = sqrt(D);
-                if (numQuad == 2)
-                {
+                if (numQuad == 2) {
                     dTdX[INDEX4(0, 0, 1, e, numTest, DIM, numQuad)] = dvdX00;
                     dTdX[INDEX4(0, 1, 1, e, numTest, DIM, numQuad)] = dvdX01;
                     dTdX[INDEX4(1, 0, 1, e, numTest, DIM, numQuad)] = dvdX00;
@@ -196,10 +185,9 @@ void Assemble_jacobians_2D_M1D_E1D(double *coordinates, dim_t numQuad,
                 }
             }
         }
-    } /* end parallel */
+    } // end parallel
 }
 
-/************************************************************************************/
 /*                                                            */
 /*  Jacobian 3D                                               */
 /*                                                            */
@@ -217,8 +205,7 @@ void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements
         double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, dXdv02, dXdv12, dXdv22,
             dvdX00, dvdX10, dvdX20, dvdX01, dvdX11, dvdX21, dvdX02, dvdX12, dvdX22, D, invD, X0_loc, X1_loc, X2_loc;
 #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,dXdv02,dXdv12,dXdv22,dvdX00,dvdX10,dvdX20,dvdX01,dvdX11,dvdX21,dvdX02,dvdX12,dvdX22,D,invD,X0_loc,X1_loc,X2_loc) schedule(static)
-        for (e = 0; e < numElements; e++)
-        {
+        for (e = 0; e < numElements; e++) {
             dXdv00 = 0;
             dXdv10 = 0;
             dXdv20 = 0;
@@ -228,8 +215,7 @@ void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements
             dXdv02 = 0;
             dXdv12 = 0;
             dXdv22 = 0;
-            for (s = 0; s < numShape; s++)
-            {
+            for (s = 0; s < numShape; s++) {
                 X0_loc = coordinates[INDEX2(0, nodes[INDEX2(s, e, numNodes)], DIM)];
                 X1_loc = coordinates[INDEX2(1, nodes[INDEX2(s, e, numNodes)], DIM)];
                 X2_loc = coordinates[INDEX2(2, nodes[INDEX2(s, e, numNodes)], DIM)];
@@ -246,16 +232,13 @@ void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements
             D = dXdv00 * (dXdv11 * dXdv22 - dXdv12 * dXdv21) + dXdv01 * (dXdv20 * dXdv12 - dXdv10 * dXdv22) +
                 dXdv02 * (dXdv10 * dXdv21 - dXdv20 * dXdv11);
             absD[e] = ABS(D);
-            if (D == 0.)
-            {
+            if (D == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_3D: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 const std::string msg(ss.str());
-                Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
-            }
-            else
-            {
+                throw DudleyException(msg);
+            } else {
                 invD = 1. / D;
                 dvdX00 = (dXdv11 * dXdv22 - dXdv12 * dXdv21) * invD;
                 dvdX10 = (dXdv20 * dXdv12 - dXdv10 * dXdv22) * invD;
@@ -266,10 +249,8 @@ void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements
                 dvdX02 = (dXdv01 * dXdv12 - dXdv02 * dXdv11) * invD;
                 dvdX12 = (dXdv02 * dXdv10 - dXdv00 * dXdv12) * invD;
                 dvdX22 = (dXdv00 * dXdv11 - dXdv01 * dXdv10) * invD;
-                for (q = 0; q < numQuad; q++)
-                {
-                    for (s = 0; s < numTest; s++)
-                    {
+                for (q = 0; q < numQuad; q++) {
+                    for (s = 0; s < numTest; s++) {
                         dTdX[INDEX4(s, 0, q, e, numTest, DIM, numQuad)] =
                             DTDV_3D[s][0] * dvdX00 + DTDV_3D[s][1] * dvdX10 + DTDV_3D[s][2] * dvdX20;
                         dTdX[INDEX4(s, 1, q, e, numTest, DIM, numQuad)] =
@@ -280,10 +261,9 @@ void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements
                 }
             }
         }
-    } /* end parallel */
+    } // end parallel
 }
 
-/************************************************************************************/
 /*                                                            */
 /*  Jacobian 2D manifold in 3D with 2D elements               */
 /*                                                            */
@@ -302,16 +282,14 @@ void Assemble_jacobians_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t num
         double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, m00, m01, m11,
             dvdX00, dvdX01, dvdX02, dvdX10, dvdX11, dvdX12, D, invD, X0_loc, X1_loc, X2_loc;
 #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv20,dXdv01,dXdv11,dXdv21,m00,m01,m11,dvdX00,dvdX01,dvdX02,dvdX10,dvdX11,dvdX12,D,invD, X0_loc, X1_loc, X2_loc) schedule(static)
-        for (e = 0; e < numElements; e++)
-        {
+        for (e = 0; e < numElements; e++) {
             dXdv00 = 0;
             dXdv10 = 0;
             dXdv20 = 0;
             dXdv01 = 0;
             dXdv11 = 0;
             dXdv21 = 0;
-            for (s = 0; s < numShape; s++)
-            {
+            for (s = 0; s < numShape; s++) {
                 X0_loc = coordinates[INDEX2(0, nodes[INDEX2(s, e, numNodes)], DIM)];
                 X1_loc = coordinates[INDEX2(1, nodes[INDEX2(s, e, numNodes)], DIM)];
                 X2_loc = coordinates[INDEX2(2, nodes[INDEX2(s, e, numNodes)], DIM)];
@@ -327,16 +305,13 @@ void Assemble_jacobians_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t num
             m11 = dXdv01 * dXdv01 + dXdv11 * dXdv11 + dXdv21 * dXdv21;
             D = m00 * m11 - m01 * m01;
             absD[e] = sqrt(D);
-            if (D == 0.)
-            {
+            if (D == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_3D_M2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 const std::string msg(ss.str());
-                Dudley_setError(ZERO_DIVISION_ERROR, msg.c_str());
-            }
-            else
-            {
+                throw DudleyException(msg);
+            } else {
                 invD = 1. / D;
                 dvdX00 = (m00 * dXdv00 - m01 * dXdv01) * invD;
                 dvdX01 = (m00 * dXdv10 - m01 * dXdv11) * invD;
@@ -344,10 +319,8 @@ void Assemble_jacobians_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t num
                 dvdX10 = (-m01 * dXdv00 + m11 * dXdv01) * invD;
                 dvdX11 = (-m01 * dXdv10 + m11 * dXdv11) * invD;
                 dvdX12 = (-m01 * dXdv20 + m11 * dXdv21) * invD;
-                for (q = 0; q < numQuad; q++)
-                {
-                    for (s = 0; s < numTest; s++)
-                    {
+                for (q = 0; q < numQuad; q++) {
+                    for (s = 0; s < numTest; s++) {
                         dTdX[INDEX4(s, 0, q, e, numTest, DIM, numQuad)] = DTDV[s][0] * dvdX00 + DTDV[s][1] * dvdX10;
                         dTdX[INDEX4(s, 1, q, e, numTest, DIM, numQuad)] = DTDV[s][0] * dvdX01 + DTDV[s][1] * dvdX11;
                         dTdX[INDEX4(s, 2, q, e, numTest, DIM, numQuad)] = DTDV[s][0] * dvdX02 + DTDV[s][1] * dvdX12;
@@ -355,7 +328,7 @@ void Assemble_jacobians_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t num
                 }
             }
         }
-    }                           /* end parallel section */
+    } // end parallel section
 }
 
 } // namespace dudley

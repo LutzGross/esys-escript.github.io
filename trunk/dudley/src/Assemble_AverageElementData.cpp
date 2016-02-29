@@ -31,7 +31,6 @@ namespace dudley {
 
 void Assemble_AverageElementData(Dudley_ElementFile* elements, escript::Data* out, const escript::Data* in)
 {
-    Dudley_resetError();
     if (!elements)
         return;
 
@@ -55,17 +54,13 @@ void Assemble_AverageElementData(Dudley_ElementFile* elements, escript::Data* ou
 
     // check out and in
     if (numComps != in->getDataPointSize()) {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_AverageElementData: number of components of input and output Data do not match.");
+        throw DudleyException("Assemble_AverageElementData: number of components of input and output Data do not match.");
     } else if (!in->numSamplesEqual(numQuad_in, numElements)) {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_AverageElementData: illegal number of samples of input Data object");
+        throw DudleyException("Assemble_AverageElementData: illegal number of samples of input Data object");
     } else if (!out->numSamplesEqual(numQuad_out, numElements)) {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_AverageElementData: illegal number of samples of output Data object");
+        throw DudleyException("Assemble_AverageElementData: illegal number of samples of output Data object");
     } else if (!out->actsExpanded()) {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_AverageElementData: expanded Data object is expected for output data.");
+        throw DudleyException("Assemble_AverageElementData: expanded Data object is expected for output data.");
     } else {
         out->requireWrite();
         if (in->actsExpanded()) {

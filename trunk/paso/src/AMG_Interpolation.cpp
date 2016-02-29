@@ -67,9 +67,8 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     if (A->mpi_info->size == 1) return;
 
     if (B->remote_coupleBlock.get()) {
-        Esys_setError(VALUE_ERROR, "Preconditioner_AMG_extendB: the link to "
-                                   "remote_coupleBlock has already been set.");
-        return;
+        throw PasoException("Preconditioner_AMG_extendB: the link to "
+                            "remote_coupleBlock has already been set.");
     }
 #ifdef ESYS_MPI
     B->row_coupleBlock.reset();
@@ -1980,9 +1979,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
 
     delete[] RAP_main_val;
     delete[] RAP_couple_val;
-    if (!Esys_noError()) {
-        out.reset();
-    }
     return out;
 }
 
@@ -3370,9 +3366,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
 
     delete[] RAP_main_val;
     delete[] RAP_couple_val;
-    if (!Esys_noError()) {
-        out.reset();
-    }
     return out;
 }
 

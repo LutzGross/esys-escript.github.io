@@ -14,19 +14,21 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: ElementFile */
 
 /*   allocates and deallocates element table                  */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "ElementFile.h"
 #include "Util.h"
+
+namespace dudley {
 
 /*  allocates the element table within an element file to hold numElements: */
 
@@ -36,7 +38,6 @@ void Dudley_ElementFile_allocTable(Dudley_ElementFile* in, dim_t numElements)
     int *Owner2 = NULL;
     dim_t numNodes, e, i;
 
-    Dudley_resetError();
     /*  allocate memory: */
     numNodes = in->numNodes;
     Owner2 = new int[numElements];
@@ -77,12 +78,9 @@ void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in)
     if (in != NULL)
     {
         Dudley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
-        if (Dudley_noError())
-        {
-            delete[] in->tagsInUse;
-            in->tagsInUse = tagsInUse;
-            in->numTagsInUse = numTagsInUse;
-        }
+        delete[] in->tagsInUse;
+        in->tagsInUse = tagsInUse;
+        in->numTagsInUse = numTagsInUse;
     }
 }
 
@@ -101,4 +99,6 @@ void Dudley_ElementFile_freeTable(Dudley_ElementFile * in)
     in->maxColor = -1;
     in->minColor = 0;
 }
+
+} // namespace dudley
 

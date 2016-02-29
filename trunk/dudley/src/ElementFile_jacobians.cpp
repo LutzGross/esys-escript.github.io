@@ -21,6 +21,8 @@
 #include "ElementFile.h"
 #include "ShapeTable.h"
 
+namespace dudley {
+
 Dudley_ElementFile_Jacobians *Dudley_ElementFile_Jacobians_alloc(void)
 {
     Dudley_ElementFile_Jacobians *out = new Dudley_ElementFile_Jacobians;
@@ -72,72 +74,37 @@ Dudley_ElementFile_Jacobians *Dudley_ElementFile_borrowJacobians(
             out->absD = new  double[out->numElements];
 
         /*========================== dim = 1 ============================= */
-        if (out->numDim == 1)
-        {
-            Dudley_setError(SYSTEM_ERROR, "Dudley does not support 1D domains.");
+        if (out->numDim == 1) {
+            throw DudleyException("Dudley does not support 1D domains.");
         /*========================== dim = 2 ============================= */
-        }
-        else if (out->numDim == 2)
-        {
-            if (self->numLocalDim == 0)
-            {
-                Dudley_setError(SYSTEM_ERROR,
-                                "Dudley_ElementFile_borrowJacobians: 2D does not support local dimension 0.");
-            }
-            else if (self->numLocalDim == 1)
-            {
+        } else if (out->numDim == 2) {
+            if (self->numLocalDim == 1) {
                 dudley::Assemble_jacobians_2D_M1D_E1D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,
                                               self->Nodes, out->DSDX, out->absD, &(out->quadweight), self->Id);
-            }
-            else if (self->numLocalDim == 2)
-            {
+            } else if (self->numLocalDim == 2) {
                 dudley::Assemble_jacobians_2D(nodes->Coordinates, out->numQuad, self->numElements, numNodes, self->Nodes,
                                       out->DSDX, out->absD, &(out->quadweight), self->Id);
-            }
-            else
-            {
-                Dudley_setError(SYSTEM_ERROR,
-                                "Dudley_ElementFile_borrowJacobians: local dimension in a 2D domain has to be 1 or 2.");
+            } else {
+                throw DudleyException("Dudley_ElementFile_borrowJacobians: local dimension in a 2D domain has to be 1 or 2.");
             }
         /*========================== dim = 3 ============================= */
-        }
-        else if (out->numDim == 3)
-        {
-            if (self->numLocalDim == 0)
-            {
-                Dudley_setError(SYSTEM_ERROR,
-                                "Dudley_ElementFile_borrowJacobians: 3D does not support local dimension 0.");
-            }
-            else if (self->numLocalDim == 2)
-            {
+        } else if (out->numDim == 3) {
+            if (self->numLocalDim == 2) {
                 dudley::Assemble_jacobians_3D_M2D_E2D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,
                                               self->Nodes, out->DSDX, out->absD, &(out->quadweight), self->Id);
-            }
-            else if (self->numLocalDim == 3)
-            {
+            } else if (self->numLocalDim == 3) {
                 dudley::Assemble_jacobians_3D(nodes->Coordinates, out->numQuad, self->numElements, numNodes, self->Nodes,
                                       out->DSDX, out->absD, &(out->quadweight), self->Id);
+            } else {
+                throw DudleyException("Dudley_ElementFile_borrowJacobians: local dimension in a 3D domain has to be 2 or 3.");
             }
-            else
-            {
-                Dudley_setError(SYSTEM_ERROR,
-                                "Dudley_ElementFile_borrowJacobians: local dimension in a 3D domain has to be 2 or 3.");
-            }
+        } else {
+            throw DudleyException("Dudley_ElementFile_borrowJacobians: spatial dimension has to be 1, 2 or 3.");
         }
-        else
-        {
-            Dudley_setError(SYSTEM_ERROR,
-                            "Dudley_ElementFile_borrowJacobians: spatial dimension has to be 1, 2 or 3.");
-        }
-        if (Dudley_noError())
-        {
-            out->status = nodes->status;
-        }
-        else
-        {
-            out = NULL;
-        }
+        out->status = nodes->status;
     }
     return out;
 }
+
+} // namespace dudley
 

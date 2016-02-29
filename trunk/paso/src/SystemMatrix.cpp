@@ -63,10 +63,9 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     solver_package(PASO_PASO),
     solver_p(NULL)
 {
-    Esys_resetError();
     if (patternIsUnrolled) {
         if ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1)) {
-            Esys_setError(TYPE_ERROR, "SystemMatrix: requested offset and pattern offset do not match.");
+            throw PasoException("SystemMatrix: requested offset and pattern offset do not match.");
         }
     }
     // do we need to apply unrolling?
@@ -102,10 +101,8 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
             row_block_size = rowBlockSize;
             col_block_size = colBlockSize;
         }
-        if (Esys_noError()) {
-            row_distribution = pattern->input_distribution;
-            col_distribution = pattern->output_distribution;
-        }
+        row_distribution = pattern->input_distribution;
+        col_distribution = pattern->output_distribution;
     } else {
         if (unroll) {
             if (patternIsUnrolled) {
@@ -121,28 +118,24 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
             row_block_size = rowBlockSize;
             col_block_size = colBlockSize;
         }
-        if (Esys_noError()) {
-            row_distribution = pattern->output_distribution;
-            col_distribution = pattern->input_distribution;
-        }
+        row_distribution = pattern->output_distribution;
+        col_distribution = pattern->input_distribution;
     }
-    if (Esys_noError()) {
-        if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-            block_size = MIN(row_block_size, col_block_size);
-        } else {
-            block_size = row_block_size*col_block_size;
-        }
-        col_coupler.reset(new Coupler(pattern->col_connector, col_block_size));
-        row_coupler.reset(new Coupler(pattern->row_connector, row_block_size));
-        mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
-        col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
-        row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
-        const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
-        balance_vector = new double[n_norm];
+    if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+        block_size = MIN(row_block_size, col_block_size);
+    } else {
+        block_size = row_block_size*col_block_size;
+    }
+    col_coupler.reset(new Coupler(pattern->col_connector, col_block_size));
+    row_coupler.reset(new Coupler(pattern->row_connector, row_block_size));
+    mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
+    col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
+    row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
+    const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
+    balance_vector = new double[n_norm];
 #pragma omp parallel for
-        for (dim_t i=0; i<n_norm; ++i)
-            balance_vector[i] = 1.;
-    }
+    for (dim_t i=0; i<n_norm; ++i)
+        balance_vector[i] = 1.;
 }
 
 // deallocates a SystemMatrix
@@ -199,7 +192,7 @@ index_t* SystemMatrix::borrowMainDiagonalPointer() const
     MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, mpi_info->comm);
 #endif
     if (fail>0)
-        Esys_setError(VALUE_ERROR, "SystemMatrix::borrowMainDiagonalPointer: no main diagonal");
+        throw PasoException("SystemMatrix::borrowMainDiagonalPointer: no main diagonal");
     return out;
 }
 
@@ -268,9 +261,8 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
 
     if (mpi_info->size > 1) {
         if (type & MATRIX_FORMAT_CSC) {
-            Esys_setError(SYSTEM_ERROR, "SystemMatrix::nullifyRowsAndCols: "
-                                        "CSC is not supported with MPI.");
-            return;
+            throw PasoException("SystemMatrix::nullifyRowsAndCols: "
+                                "CSC is not supported with MPI.");
         }
 
         startColCollect(mask_col);
@@ -332,7 +324,6 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     double* out_dp = out.getSampleDataRW(0);        
     double* in_dp = in.getSampleDataRW(0);                
     solve(out_dp, in_dp, &paso_options);
-    checkPasoError();
     paso_options.updateEscriptDiagnostics(options);
 }
 
@@ -362,13 +353,10 @@ void SystemMatrix::copyColCoupleBlock()
         // nothing to do
         return;
     } else if (!row_coupleBlock) {
-        Esys_setError(VALUE_ERROR, "SystemMatrix::copyColCoupleBlock: "
+        throw PasoException("SystemMatrix::copyColCoupleBlock: "
                     "creation of row_coupleBlock pattern not supported yet.");
-        return;
     } else if (row_coupler->in_use) {
-        Esys_setError(SYSTEM_ERROR,
-                "SystemMatrix::copyColCoupleBlock: Coupler in use.");
-        return;
+        throw PasoException("SystemMatrix::copyColCoupleBlock: Coupler in use.");
     }
 
     // start receiving
@@ -480,49 +468,48 @@ void SystemMatrix::balance()
 
     if (!is_balanced) {
         if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_OFFSET1)) {
-            Esys_setError(TYPE_ERROR,"SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
+            throw PasoException("SystemMatrix_balance: No normalization "
+                  "available for compressed sparse column or index offset 1.");
         }
         if (getGlobalNumRows() != getGlobalNumCols() ||
                 row_block_size != col_block_size) {
-            Esys_setError(SYSTEM_ERROR,"SystemMatrix::balance: matrix needs to be a square matrix.");
+            throw PasoException("SystemMatrix::balance: matrix needs to be a square matrix.");
         }
-        if (Esys_noError()) {
-            // calculate absolute max value over each row
+        // calculate absolute max value over each row
 #pragma omp parallel for
-            for (dim_t irow=0; irow<nrow; ++irow) {
-                balance_vector[irow]=0;
-            }
-            mainBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
-            if (col_coupleBlock->pattern->ptr != NULL) {
-                col_coupleBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
-            }
-
-            // set balancing vector
-            #pragma omp parallel for
-            for (dim_t irow=0; irow<nrow; ++irow) {
-                const double fac = balance_vector[irow];
-                if (fac > 0) {
-                    balance_vector[irow]=sqrt(1./fac);
-                } else {
-                    balance_vector[irow]=1.;
-                }
-            }
-            ///// rescale matrix /////
-            // start exchange
-            startCollect(balance_vector);
-            // process main block
-            mainBlock->applyDiagonal_CSR_OFFSET0(balance_vector, balance_vector);
-            // finish exchange
-            double* remote_values = finishCollect();
-            // process couple block
-            if (col_coupleBlock->pattern->ptr != NULL) {
-                col_coupleBlock->applyDiagonal_CSR_OFFSET0(balance_vector, remote_values);
-            }
-            if (row_coupleBlock->pattern->ptr != NULL) {
-                row_coupleBlock->applyDiagonal_CSR_OFFSET0(remote_values, balance_vector);
-            }
-            is_balanced = true;
+        for (dim_t irow=0; irow<nrow; ++irow) {
+            balance_vector[irow]=0;
         }
+        mainBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
+        if (col_coupleBlock->pattern->ptr != NULL) {
+            col_coupleBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
+        }
+
+        // set balancing vector
+        #pragma omp parallel for
+        for (dim_t irow=0; irow<nrow; ++irow) {
+            const double fac = balance_vector[irow];
+            if (fac > 0) {
+                balance_vector[irow]=sqrt(1./fac);
+            } else {
+                balance_vector[irow]=1.;
+            }
+        }
+        ///// rescale matrix /////
+        // start exchange
+        startCollect(balance_vector);
+        // process main block
+        mainBlock->applyDiagonal_CSR_OFFSET0(balance_vector, balance_vector);
+        // finish exchange
+        double* remote_values = finishCollect();
+        // process couple block
+        if (col_coupleBlock->pattern->ptr != NULL) {
+            col_coupleBlock->applyDiagonal_CSR_OFFSET0(balance_vector, remote_values);
+        }
+        if (row_coupleBlock->pattern->ptr != NULL) {
+            row_coupleBlock->applyDiagonal_CSR_OFFSET0(remote_values, balance_vector);
+        }
+        is_balanced = true;
     }
 }
 
@@ -546,7 +533,7 @@ int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
 
         case PASO_UMFPACK:
             if (mpi_info->size > 1) {
-                Esys_setError(VALUE_ERROR, "The selected solver UMFPACK "
+                throw PasoException("The selected solver UMFPACK "
                         "requires CSC format which is not supported with "
                         "more than one rank.");
             } else {
@@ -555,7 +542,7 @@ int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
         break;
 
         default:
-            Esys_setError(VALUE_ERROR, "unknown package code");
+            throw PasoException("unknown package code");
     }
     return out;
 }

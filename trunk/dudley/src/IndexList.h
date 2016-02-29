@@ -14,20 +14,22 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Dudley: Converting an element list into a matrix shape     */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_DUDLEY_INDEXLIST
-#define INC_DUDLEY_INDEXLIST
+#ifndef __DUDLEY_INDEXLIST_H__
+#define __DUDLEY_INDEXLIST_H__
 
 #include "Dudley.h"
 #include "ElementFile.h"
 #include "Mesh.h"
 
 #include "esysUtils/IndexList.h"
+
+namespace dudley {
 
 using esysUtils::IndexList;
 
@@ -46,5 +48,7 @@ void Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(
                      index_t lastRow, Dudley_ElementFile* elements,
                      index_t* row_map, index_t* col_map);
 
-#endif /* #ifndef INC_DUDLEY_INDEXLIST */
+} // namespace dudley
+
+#endif // __DUDLEY_INDEXLIST_H__
 

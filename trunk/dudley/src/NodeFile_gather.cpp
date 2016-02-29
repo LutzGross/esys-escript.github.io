@@ -14,21 +14,21 @@
 *
 *****************************************************************************/
 
-/************************************************************************************
+/****************************************************************************
  *
- *   Dudley: Mesh: NodeFile                                   
- *   gathers the NodeFile out from the NodeFile in using the entries 
- *   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive) 
+ *   Dudley: Mesh: NodeFile
+ *   gathers the NodeFile out from the NodeFile in using the entries
+ *   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive)
  *   the node index[i]
  *
- ************************************************************************************/
+ ****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "NodeFile.h"
 
-/************************************************************************************/
+namespace dudley {
 
 void Dudley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, index_t max_index,
                                    index_t* Id_out, index_t* Id_in,
@@ -173,7 +173,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
             sprintf(error_msg,
                     "Dudley_NodeFile_gather_global: Node id %d at position %d is referenced but is not defined.",
                     out->Id[n], n);
-            Dudley_setError(VALUE_ERROR, error_msg);
+            throw DudleyException(error_msg);
         }
     }
     delete[] Id_buffer;
@@ -181,7 +181,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     delete[] globalDegreesOfFreedom_buffer;
     delete[] Coordinates_buffer;
     delete[] distribution;
-    /* make sure that the error is global */
-    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
 }
+
+} // namespace dudley
 

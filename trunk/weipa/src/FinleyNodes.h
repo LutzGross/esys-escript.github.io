@@ -25,6 +25,9 @@ struct Dudley_NodeFile;
 namespace finley {
     class NodeFile;
 }
+namespace dudley {
+    class Dudley_NodeFile;
+}
 
 namespace weipa {
 
@@ -52,7 +55,7 @@ public:
     virtual ~FinleyNodes();
 
     /// \brief Initialises with dudley node file.
-    bool initFromDudley(const Dudley_NodeFile* dudleyFile);
+    bool initFromDudley(const dudley::Dudley_NodeFile* dudleyFile);
 
     /// \brief Initialises with finley node file.
     bool initFromFinley(const finley::NodeFile* finleyFile);

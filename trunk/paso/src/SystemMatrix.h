@@ -69,7 +69,7 @@ public:
     virtual inline void saveMM(const std::string& filename) const
     {
         if (mpi_info->size > 1) {
-            Esys_setError(IO_ERROR, "SystemMatrix::saveMM: Only single rank supported.");
+            throw PasoException("SystemMatrix::saveMM: Only single rank supported.");
         } else {
             mainBlock->saveMM(filename.c_str());
         }
@@ -78,9 +78,9 @@ public:
     virtual inline void saveHB(const std::string& filename) const
     {
         if (mpi_info->size > 1) {
-            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only single rank supported.");
+            throw PasoException("SystemMatrix::saveHB: Only single rank supported.");
         } else if (!(type & MATRIX_FORMAT_CSC)) {
-            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only CSC format supported.");
+            throw PasoException("SystemMatrix::saveHB: Only CSC format supported.");
         } else {
             mainBlock->saveHB_CSC(filename.c_str());
         }
@@ -277,7 +277,7 @@ public:
     inline void rowSum(double* row_sum) const
     {
         if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_OFFSET1)) {
-            Esys_setError(TYPE_ERROR, "SystemMatrix::rowSum: No normalization "
+            throw PasoException("SystemMatrix::rowSum: No normalization "
                   "available for compressed sparse column or index offset 1.");
         } else {
             const dim_t nrow = mainBlock->numRows*row_block_size;

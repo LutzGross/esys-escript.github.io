@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh */
 
@@ -22,18 +22,21 @@
 /*   assigns new node reference numbers to elements in element file in. */
 /*   if k is the old node, the new node is newNode[k-offset].           */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
 
-/************************************************************************************/
+namespace dudley {
 
-void Dudley_Mesh_relableElementNodes(index_t * newNode, index_t offset, Dudley_Mesh * in)
+void Dudley_Mesh_relableElementNodes(index_t* newNode, index_t offset, Dudley_Mesh* in)
 {
     Dudley_ElementFile_relableNodes(newNode, offset, in->Elements);
     Dudley_ElementFile_relableNodes(newNode, offset, in->FaceElements);
     Dudley_ElementFile_relableNodes(newNode, offset, in->Points);
 }
+
+} // namespace dudley
+
