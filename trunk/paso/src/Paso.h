@@ -29,7 +29,7 @@
 #ifndef __PASO_H__
 #define __PASO_H__
 
-#include <esysUtils/index.h>
+#include <escript/index.h>
 #include <escript/DataTypes.h>
 #include <escript/EsysMPI.h>
 

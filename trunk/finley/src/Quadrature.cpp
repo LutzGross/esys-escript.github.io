@@ -22,7 +22,7 @@
 *****************************************************************************/
 
 #include "Quadrature.h"
-#include "esysUtils/index.h"
+#include <escript/index.h>
 
 
 #define QUADNODES(_K_,_I_) quadNodes[INDEX2(_K_,_I_,DIM)]
@@ -973,7 +973,7 @@ void Quad_getNodesTet(int numQuadNodes, std::vector<double>& quadNodes, std::vec
             const double JA33 = (1./3.)*Q1*Q2-(1./2.)*(Q1+Q2)+1.;
             const double DET = JA11*JA22*JA33 + JA12*JA23*JA31 + JA13*JA21*JA32
                               -JA13*JA22*JA31 - JA11*JA23*JA32 - JA12*JA21*JA33;
-            quadWeights[i]=quadWeights[i]*ABS(DET);
+            quadWeights[i]=quadWeights[i]*std::abs(DET);
             QUADNODES(0,i)=Q1*((1./3.)*Q2*Q3-(1./2.)*(Q2+Q3)+1.);
             QUADNODES(1,i)=Q2*((1./3.)*Q1*Q3-(1./2.)*(Q1+Q3)+1.);
             QUADNODES(2,i)=Q3*((1./3.)*Q1*Q2-(1./2.)*(Q1+Q2)+1.);

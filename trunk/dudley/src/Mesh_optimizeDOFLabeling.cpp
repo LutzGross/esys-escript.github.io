@@ -54,7 +54,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh* in, dim_t* distribution)
     myNumVertices = myLastVertex - myFirstVertex;
     len = 0;
     for (p = 0; p < mpiSize; ++p)
-        len = MAX(len, distribution[p + 1] - distribution[p]);
+        len = std::max(len, distribution[p + 1] - distribution[p]);
 
     boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
     newGlobalDOFID = new index_t[len];

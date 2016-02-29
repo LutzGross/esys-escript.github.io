@@ -16,11 +16,14 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include <esysUtils/index.h>
 #include <speckley/Rectangle.h>
 
+#include <escript/index.h>
+
 namespace speckley {
-void Rectangle::integral_order2(std::vector<double>& integrals, const escript::Data& arg) const {
+
+void Rectangle::integral_order2(std::vector<double>& integrals, const escript::Data& arg) const
+{
     const double weights[] = {0.333333333333, 1.33333333333, 0.333333333333};
     const int numComp = arg.getDataPointSize();
     const double volume_product = 0.25*m_dx[0]*m_dx[1];

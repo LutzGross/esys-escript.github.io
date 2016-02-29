@@ -29,6 +29,8 @@
 
 #include "TriangularMesh.h"
 
+#define MAX3(_arg1_,_arg2_,_arg3_) std::max(_arg1_,std::max(_arg2_,_arg3_))
+
 namespace dudley {
 
 // Be careful reading this function. The X? and NStride? are 1,2,3
@@ -60,9 +62,9 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
     myRank = mpi_info->rank;
 
     /* set up the global dimensions of the mesh */
-    NE0 = MAX(1, numElements[0]);
-    NE1 = MAX(1, numElements[1]);
-    NE2 = MAX(1, numElements[2]);
+    NE0 = std::max(1, numElements[0]);
+    NE1 = std::max(1, numElements[1]);
+    NE2 = std::max(1, numElements[2]);
     N0 = N_PER_E * NE0 + 1;
     N1 = N_PER_E * NE1 + 1;
     N2 = N_PER_E * NE2 + 1;

@@ -58,17 +58,23 @@ int Dudley_Mesh_findMatchingFaces_compar(const void *arg1, const void *arg2)
         return 0;
 }
 
+inline double getDist(int e0, int i0, int e1, int i1, int numDim, int NN,
+                      const double* X)
+{
+    double dist=0.;
+    for (int i=0; i<numDim; i++) {
+        dist=std::max(dist, std::abs(X[INDEX3(i, i0, e0, numDim, NN)]
+                    - X[INDEX3(i, i1, e1, numDim, NN)]));
+    }
+    return dist;
+}
+
 void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
         Dudley_ElementFile* faces, double safety_factor, double tolerance,
         dim_t* numPairs, index_t* elem0, index_t* elem1,
         index_t* matching_nodes_in_elem1)
 {
-#define getDist(_dist_,_e0_,_i0_,_e1_,_i1_) \
-      {dim_t i;   \
-      _dist_=0; \
-      for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
-      }
-    double h = HUGE_VAL, h_local, dist, *X = NULL;
+    double h = HUGE_VAL, dist, *X = NULL;
     Dudley_Mesh_findMatchingFaces_center *center;
     index_t e_0, e_1, *a1 = NULL, *a2 = NULL, *perm = NULL, *perm_tmp = NULL, *itmp_ptr = NULL;
     const index_t *shiftNodes = NULL, *reverseNodes = NULL;
@@ -110,13 +116,13 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
         /* get the minimum distance between nodes in the element */
         for (i0 = 0; i0 < numNodesOnFace; i0++) {
             for (i1 = i0 + 1; i1 < numNodesOnFace; i1++) {
-                getDist(h_local, e, i0, e, i1);
-                h = MIN(h, h_local);
+                const double h_local=getDist(e, i0, e, i1, numDim, NN, X);
+                h=std::min(h, h_local);
             }
         }
     }
 
-    Dudley_Mesh_lockingGridSize = h * MAX(safety_factor, 0);
+    Dudley_Mesh_lockingGridSize = h * std::max(safety_factor, 0.);
 #ifdef Dudley_TRACE
     printf("locking grid size is %e\n", Dudley_Mesh_lockingGridSize);
     printf("absolute tolerance is %e.\n", h * tolerance);
@@ -130,7 +136,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
     for (e = 0; e < faces->numElements - 1; e++) {
         dist = 0;
         for (i = 0; i < numDim; i++)
-            dist = MAX(dist, ABS(center[e].x[i] - center[e + 1].x[i]));
+            dist = std::max(dist, std::abs(center[e].x[i] - center[e + 1].x[i]));
         if (dist < h * tolerance) {
             e_0 = center[e].refId;
             e_1 = center[e + 1].refId;
@@ -143,7 +149,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
                 perm[i] = i;
             while (1) {
                 /* if node 0 and perm[0] are the same we are ready */
-                getDist(dist, e_0, 0, e_1, perm[0]);
+                dist=getDist(e_0, 0, e_1, perm[0], numDim, NN, X);
                 if (dist <= h * tolerance)
                     break;
                 if (shiftNodes[0] >= 0) {
@@ -168,7 +174,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
             }
             /* now we check if the second nodes match */
             if (numNodesOnFace > 1) {
-                getDist(dist, e_0, 1, e_1, perm[1]);
+                dist=getDist(e_0, 1, e_1, perm[1], numDim, NN, X);
                 /* if the second node does not match we reverse the direction of the nodes */
                 if (dist > h * tolerance) {
                     /* rotate the nodes */
@@ -186,7 +192,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
 #pragma ivdep
                         for (i = 0; i < NN; i++)
                             perm[i] = perm_tmp[reverseNodes[i]];
-                        getDist(dist, e_0, 1, e_1, perm[1]);
+                        dist=getDist(e_0, 1, e_1, perm[1], numDim, NN, X);
                         if (dist > h * tolerance) {
                             std::stringstream ss;
                             ss << "Mesh_findMatchingFaces: couldn't match "
@@ -201,7 +207,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
             /* we check if the rest of the face nodes match: */
             for (i = 2; i < numNodesOnFace; i++) {
                 n = i;
-                getDist(dist, e_0, n, e_1, perm[n]);
+                dist=getDist(e_0, n, e_1, perm[n], numDim, NN, X);
                 if (dist > h * tolerance) {
                     std::stringstream ss;
                     ss << "Mesh_findMatchingFaces: couldn't match the "
@@ -225,7 +231,6 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile* nodes,
     delete[] center;
     delete[] a1;
     delete[] a1;
-#undef getDist
 }
 
 } // namespace dudley

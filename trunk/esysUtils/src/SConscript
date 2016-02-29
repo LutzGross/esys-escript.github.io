@@ -23,7 +23,6 @@ sources = """
 
 headers = """
     IndexList.h
-    index.h
     pyerr.h
     first.h
 """.split()

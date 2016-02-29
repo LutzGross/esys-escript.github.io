@@ -20,7 +20,7 @@
 #include <speckley/CrossDomainCoupler.h>
 #include <speckley/lagrange_functions.h>
 
-#include <esysUtils/index.h>
+#include <escript/index.h>
 
 #define MINE 1
 #define SHARED 0

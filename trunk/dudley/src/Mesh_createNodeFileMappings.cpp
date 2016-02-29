@@ -153,8 +153,8 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh* in, bool use_reduced_e
     lastn = n;
     for (p = p_min; p <= p_max; ++p)
     {
-        firstDOF = MAX(min_DOF, dof_distribution->first_component[p]);
-        lastDOF = MIN(max_DOF + 1, dof_distribution->first_component[p + 1]);
+        firstDOF = std::max(min_DOF, dof_distribution->first_component[p]);
+        lastDOF = std::min(max_DOF + 1, dof_distribution->first_component[p + 1]);
         if (p != myRank)
         {
             for (i = firstDOF - min_DOF; i < lastDOF - min_DOF; ++i)
@@ -320,7 +320,7 @@ void Dudley_Mesh_createMappings(Dudley_Mesh* mesh, index_t* dof_distribution, in
 #pragma omp parallel for private(i) schedule(static)
     for (i = 0; i < mesh->Nodes->numNodes; ++i)
         maskReducedNodes[i] = -1;
-    Dudley_Mesh_markNodes(maskReducedNodes, 0, mesh, TRUE);
+    Dudley_Mesh_markNodes(maskReducedNodes, 0, mesh, true);
 
     numReducedNodes = Dudley_Util_packMask(mesh->Nodes->numNodes, maskReducedNodes, indexReducedNodes);
     Dudley_Mesh_createNodeFileMappings(mesh, numReducedNodes,
@@ -447,9 +447,9 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh* in, dim_t numReducedNodes,
     in->Nodes->reducedNodesMapping = Dudley_NodeMapping_alloc(in->Nodes->numNodes, nodeMask, UNUSED);
     delete[] nodeMask;
     /* ==== mapping between nodes and DOFs + DOF connector ========== */
-    Dudley_Mesh_createDOFMappingAndCoupling(in, FALSE);
+    Dudley_Mesh_createDOFMappingAndCoupling(in, false);
     /* == mapping between nodes and reduced DOFs + reduced DOF connector == */
-    Dudley_Mesh_createDOFMappingAndCoupling(in, TRUE);
+    Dudley_Mesh_createDOFMappingAndCoupling(in, true);
 
     /* get the Ids for DOFs and reduced nodes */
 #pragma omp parallel private(i)

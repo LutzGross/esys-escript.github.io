@@ -115,7 +115,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile* in)
         /* now entries are collected from the buffer again by sending the entries around in a circle */
 #pragma omp for private(n) schedule(static)
         for (n = 0; n < in->numNodes; ++n)
-            set_new_DOF[n] = TRUE;
+            set_new_DOF[n] = true;
     }
 #ifdef ESYS_MPI
     dest = in->MPIInfo->mod_rank(in->MPIInfo->rank + 1);
@@ -130,7 +130,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile* in)
             k = in->globalDegreesOfFreedom[n];
             if (set_new_DOF[n] && (dof_0 <= k) && (k < dof_1)) {
                 in->globalDegreesOfFreedom[n] = DOF_buffer[k - dof_0];
-                set_new_DOF[n] = FALSE;
+                set_new_DOF[n] = false;
             }
         }
         if (p < in->MPIInfo->size - 1) { /* the last send can be skipped */
@@ -326,14 +326,14 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
             id = in->Id[n];
             if ((myFirstDOF <= dof) && (dof < myLastDOF))
             {
-                loc_max_id = MAX(loc_max_id, id);
-                loc_min_id = MIN(loc_min_id, id);
+                loc_max_id = std::max(loc_max_id, id);
+                loc_min_id = std::min(loc_min_id, id);
             }
         }
 #pragma omp critical
         {
-            max_id = MAX(loc_max_id, max_id);
-            min_id = MIN(loc_min_id, min_id);
+            max_id = std::max(loc_max_id, max_id);
+            min_id = std::min(loc_min_id, min_id);
         }
     }
     /* allocate a buffer */
@@ -345,7 +345,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
     buffer_len = my_buffer_len;
 #endif
 
-    Node_buffer = new  index_t[buffer_len + header_len];
+    Node_buffer = new index_t[buffer_len + header_len];
     /* mark and count the nodes in use */
 #pragma omp parallel
     {

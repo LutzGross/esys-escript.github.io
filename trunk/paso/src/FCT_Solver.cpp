@@ -36,6 +36,8 @@
 
 #include <iostream>
 
+#define MIN3(_arg1_,_arg2_,_arg3_) std::min(_arg1_, std::min(_arg2_,_arg3_))
+
 namespace paso {
 
 static const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();

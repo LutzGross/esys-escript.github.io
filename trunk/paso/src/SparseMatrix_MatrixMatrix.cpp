@@ -1042,7 +1042,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
                        kj_ptrB += (index_t)(where_p-start_p);
                        A_ik=&(A->val[ik_ptrA*A_block_size]);
                        B_kj=&(B->val[kj_ptrB*B_block_size]);
-                       for (ib=0; ib<MIN(A_block_size, B_block_size); ++ib) C_ij[ib]+=A_ik[ib]*B_kj[ib];
+                       for (ib=0; ib<std::min(A_block_size, B_block_size); ++ib) C_ij[ib]+=A_ik[ib]*B_kj[ib];
                   }
                }
             }

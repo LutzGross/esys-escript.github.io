@@ -85,7 +85,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
             dXdv01 = COMPDXDV1(0);
             dXdv11 = COMPDXDV1(1);
             D = dXdv00 * dXdv11 - dXdv01 * dXdv10;
-            absD[e] = ABS(D);
+            absD[e] = std::abs(D);
             if (D == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D: element " << e
@@ -231,7 +231,7 @@ void Assemble_jacobians_3D(double *coordinates, dim_t numQuad, dim_t numElements
             }
             D = dXdv00 * (dXdv11 * dXdv22 - dXdv12 * dXdv21) + dXdv01 * (dXdv20 * dXdv12 - dXdv10 * dXdv22) +
                 dXdv02 * (dXdv10 * dXdv21 - dXdv20 * dXdv11);
-            absD[e] = ABS(D);
+            absD[e] = std::abs(D);
             if (D == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_3D: element " << e

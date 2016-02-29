@@ -470,7 +470,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     Dudley_Mesh* fMesh=NULL;
 
     fMesh=Dudley_TriangularMesh_Tet4(numElements, length, integrationOrder,
-                        reducedIntegrationOrder, (optimize ? TRUE : FALSE),
+                        reducedIntegrationOrder, optimize!=0,
                         mpi_info);
 
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
@@ -562,7 +562,7 @@ Domain_ptr loadMesh(const std::string& fileName)
         throw DudleyException("Dudley does not support element order greater than 1.");
     }
     Dudley_Mesh* fMesh=Dudley_TriangularMesh_Tri3(numElements, length,
-          integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE),
+          integrationOrder, reducedIntegrationOrder, optimize!=0,
           mpi_info);
     //
     // Convert any dudley errors into a C++ exception

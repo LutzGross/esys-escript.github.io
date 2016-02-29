@@ -24,7 +24,7 @@
 #include <speckley/CrossDomainCoupler.h>
 #endif
 
-#include <esysUtils/index.h>
+#include <escript/index.h>
 #include <escript/FileWriter.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/Random.h>
