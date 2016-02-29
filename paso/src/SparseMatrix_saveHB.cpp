@@ -27,6 +27,7 @@
 /****************************************************************************/
 
 #include "Paso.h"
+#include "PasoException.h"
 #include "SparseMatrix.h"
 
 #include <fstream>
@@ -180,8 +181,7 @@ void SparseMatrix::saveHB_CSC(const char* filename) const
 {
     std::ofstream f(filename);
     if (f.fail()) {
-        Esys_setError(IO_ERROR, "SparseMatrix::saveHB_CSC: File could not be opened for writing.");
-        return;
+        throw PasoException("SparseMatrix::saveHB_CSC: File could not be opened for writing.");
     }
 
     int i, curr_col,j ;

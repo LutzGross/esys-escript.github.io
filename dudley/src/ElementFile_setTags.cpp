@@ -29,39 +29,39 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Dudley_ElementFile_setTags(Dudley_ElementFile * self, int newTag, const escript::Data* mask)
+namespace dudley {
+
+void Dudley_ElementFile_setTags(Dudley_ElementFile* self, int newTag, const escript::Data* mask)
 {
-    Dudley_resetError();
     const dim_t numElements = self->numElements;
     const int numQuad = dudley::Assemble_reducedIntegrationOrder(mask) ? 1 : (self->numDim + 1);
 
     if (1 != mask->getDataPointSize()) {
-        Dudley_setError(TYPE_ERROR, "Dudley_ElementFile_setTags: number of components of mask is 1.");
+        throw DudleyException("Dudley_ElementFile_setTags: number of components of mask is 1.");
     } else if (!mask->numSamplesEqual(numQuad, numElements)) {
-        Dudley_setError(TYPE_ERROR, "Dudley_ElementFile_setTags: illegal number of samples of mask Data object");
+        throw DudleyException("Dudley_ElementFile_setTags: illegal number of samples of mask Data object");
     }
 
-    if (Dudley_noError())
-    {
-        if (mask->actsExpanded()) {
+    if (mask->actsExpanded()) {
 #pragma omp parallel for
-            for (index_t n = 0; n < numElements; n++) {
-                const double* mask_array = mask->getSampleDataRO(n);
-                if (mask_array[0] > 0)
-                    self->Tag[n] = newTag;
-            }
-        } else {
-#pragma omp parallel for
-            for (index_t n = 0; n < numElements; n++) {
-                const double* mask_array = mask->getSampleDataRO(n);
-                bool check = false;
-                for (int q = 0; q < numQuad; q++)
-                    check = check || mask_array[q];
-                if (check)
-                    self->Tag[n] = newTag;
-            }
+        for (index_t n = 0; n < numElements; n++) {
+            const double* mask_array = mask->getSampleDataRO(n);
+            if (mask_array[0] > 0)
+                self->Tag[n] = newTag;
         }
-        Dudley_ElementFile_setTagsInUse(self);
+    } else {
+#pragma omp parallel for
+        for (index_t n = 0; n < numElements; n++) {
+            const double* mask_array = mask->getSampleDataRO(n);
+            bool check = false;
+            for (int q = 0; q < numQuad; q++)
+                check = check || mask_array[q];
+            if (check)
+                self->Tag[n] = newTag;
+        }
     }
+    Dudley_ElementFile_setTagsInUse(self);
 }
+
+} // namespace dudley
 

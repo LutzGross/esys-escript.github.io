@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef INC_DUDLEY_MESH
-#define INC_DUDLEY_MESH
+#ifndef __DUDLEY_MESH_H__
+#define __DUDLEY_MESH_H__
 
 /****************************************************************************/
 
@@ -67,8 +67,9 @@
 
 #include "paso/SystemMatrixPattern.h"
 
-/*  this struct holds a mesh: */
+namespace dudley {
 
+/*  this struct holds a mesh: */
 struct Dudley_Mesh {
     char *Name;                 /* the name of the mesh */
     dim_t reference_counter;    /* counts the number of references to the mesh; */
@@ -97,7 +98,7 @@ typedef struct Dudley_Mesh Dudley_Mesh;
 
 struct Dudley_Mesh_findMatchingFaces_center {
     index_t refId;
-    double x[MAX_numDim];
+    double x[3];
 };
 typedef struct Dudley_Mesh_findMatchingFaces_center Dudley_Mesh_findMatchingFaces_center;
 
@@ -120,7 +121,7 @@ void Dudley_Mesh_dump(Dudley_Mesh * in, char *fname);
 void Dudley_PrintMesh_Info(Dudley_Mesh *, bool);
 Dudley_Mesh *Dudley_Mesh_load(char *fname);
 Dudley_Mesh *Dudley_Mesh_read(char *, index_t, index_t, bool);
-Dudley_Mesh *Dudley_Mesh_readGmsh(char *, index_t, index_t, index_t, bool, bool);
+Dudley_Mesh *Dudley_Mesh_readGmsh(char *, index_t, index_t, index_t, bool);
 void Dudley_Mesh_setOrders(Dudley_Mesh * in);
 
 void Dudley_Mesh_setCoordinates(Dudley_Mesh *, const escript::Data*);
@@ -158,5 +159,7 @@ index_t Dudley_Mesh_getDegree(paso::SystemMatrixPattern_ptr pattern_p, index_t *
 void Dudley_Mesh_setTagsInUse(Dudley_Mesh * in);
 int Dudley_Mesh_getStatus(Dudley_Mesh * in);
 
-#endif /* #ifndef INC_DUDLEY_MESH */
+} // namespace dudley
+
+#endif // __DUDLEY_MESH_H__
 

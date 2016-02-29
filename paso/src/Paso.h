@@ -29,7 +29,6 @@
 #ifndef __PASO_H__
 #define __PASO_H__
 
-#include <esysUtils/error.h>
 #include <esysUtils/Esys_MPI.h>
 #include <esysUtils/index.h>
 

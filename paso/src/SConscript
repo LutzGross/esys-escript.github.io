@@ -40,7 +40,6 @@ sources = """
     NewtonGMRES.cpp
     Options.cpp
     PCG.cpp
-    PasoException.cpp
     PasoUtil.cpp
     Pattern.cpp
     Pattern_mis.cpp

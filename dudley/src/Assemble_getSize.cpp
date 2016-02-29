@@ -31,7 +31,6 @@ namespace dudley {
 
 void Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* out)
 {
-    Dudley_resetError();
     if (!nodes || !elements)
         return;
 
@@ -52,15 +51,12 @@ void Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escr
 
     // check the dimensions of out
     if (!out->numSamplesEqual(numQuad, elements->numElements)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_getSize: illegal number of samples of element size Data object");
+        throw DudleyException("Assemble_getSize: illegal number of samples of element size Data object");
     } else if (!out->isDataPointShapeEqual(0, &numDim)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_getSize: illegal data point shape of element size Data object");
+        throw DudleyException("Assemble_getSize: illegal data point shape of element size Data object");
     } else if (!out->actsExpanded()) {
-        Dudley_setError(TYPE_ERROR, "Assemble_getSize: expanded Data object is expected for element size.");
+        throw DudleyException("Assemble_getSize: expanded Data object is expected for element size.");
     }
-
-    if (!Dudley_noError())
-        return;
 
     // now we can start
     out->requireWrite();

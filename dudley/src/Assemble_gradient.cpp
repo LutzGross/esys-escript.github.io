@@ -35,7 +35,6 @@ namespace dudley {
 void Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                               escript::Data* grad_data, const escript::Data* data)
 {
-    Dudley_resetError();
     if (!nodes || !elements)
         return;
 
@@ -51,21 +50,19 @@ void Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
         numNodes = nodes->reducedNodesMapping->numTargets;
     } else if (data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
-            return;
+            throw DudleyException("Assemble_gradient: for more than one "
+                "processor DEGREES_OF_FREEDOM data are not accepted as input.");
         }
         numNodes = nodes->degreesOfFreedomMapping->numTargets;
     } else if (data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
-            return;
+            throw DudleyException("Assemble_gradient: for more than one "
+                "processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
         }
         numNodes = nodes->reducedDegreesOfFreedomMapping->numTargets;
     } else {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
+        throw DudleyException("Assemble_gradient: Cannot calculate gradient "
+               "of data because of unsuitable input data representation.");
     }
 
     Dudley_ElementFile_Jacobians* jac = Dudley_ElementFile_borrowJacobians(
@@ -75,22 +72,16 @@ void Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     const int numQuad = jac->numQuad;
     const size_t localGradSize = sizeof(double) * numDim * numQuad * numComps;
 
-    if (Dudley_noError()) {
-        // check the dimensions of data
-        if (!grad_data->numSamplesEqual(numQuad, elements->numElements)) {
-            Dudley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples in gradient Data object");
-        } else if (!data->numSamplesEqual(1, numNodes)) {
-            Dudley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples of input Data object");
-        } else if (numDim * numComps != grad_data->getDataPointSize()) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_gradient: illegal number of components in gradient data object.");
-        } else if (!grad_data->actsExpanded()) {
-            Dudley_setError(TYPE_ERROR, "Assemble_gradient: expanded Data object is expected for output data.");
-        }
+    // check the dimensions of data
+    if (!grad_data->numSamplesEqual(numQuad, elements->numElements)) {
+        throw DudleyException("Assemble_gradient: illegal number of samples in gradient Data object");
+    } else if (!data->numSamplesEqual(1, numNodes)) {
+        throw DudleyException("Assemble_gradient: illegal number of samples of input Data object");
+    } else if (numDim * numComps != grad_data->getDataPointSize()) {
+        throw DudleyException("Assemble_gradient: illegal number of components in gradient data object.");
+    } else if (!grad_data->actsExpanded()) {
+        throw DudleyException("Assemble_gradient: expanded Data object is expected for output data.");
     }
-
-    if (!Dudley_noError())
-        return;
 
     grad_data->requireWrite();
 #pragma omp parallel

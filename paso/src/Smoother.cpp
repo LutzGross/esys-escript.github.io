@@ -58,12 +58,7 @@ Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr A,
     out->localSmoother=Preconditioner_LocalSmoother_alloc(A->mainBlock,
                                                 jacobi, verbose);
     out->is_local=is_local;
-    if (Esys_MPIInfo_noError(A->mpi_info)) {
-        return out;
-    } else {
-        Preconditioner_Smoother_free(out);
-        return NULL;
-    }
+    return out;
 }
 
 Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
@@ -72,7 +67,7 @@ Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
     const dim_t n=A->numRows;
     const dim_t n_block=A->row_block_size;
     const dim_t block_size=A->block_size;
-    double time0=Esys_timer();
+    double time0=esysUtils::gettime();
     Preconditioner_LocalSmoother* out=new Preconditioner_LocalSmoother;
 
     out->diag=new double[((size_t) n) * ((size_t) block_size)];
@@ -80,14 +75,8 @@ Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
     out->buffer=new double[((size_t) n) * ((size_t)  n_block)];
     out->Jacobi=jacobi;
     A->invMain(out->diag, out->pivot);
-    time0=Esys_timer()-time0;
-
-    if (Esys_noError()) {
-        return out;
-    } else {
-        Preconditioner_LocalSmoother_free(out);
-        return NULL;
-    }
+    time0=esysUtils::gettime()-time0;
+    return out;
 }
 
 /*
@@ -337,7 +326,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
     }
 
     if (failed > 0) {
-        Esys_setError(ZERO_DIVISION_ERROR, "Preconditioner_LocalSmoother_Sweep_sequential: non-regular main diagonal block.");
+        throw PasoException("Preconditioner_LocalSmoother_Sweep_sequential: non-regular main diagonal block.");
     }
 }
 
@@ -507,7 +496,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
         delete[] y;
     }
     if (failed > 0) {
-        Esys_setError(ZERO_DIVISION_ERROR, "Preconditioner_LocalSmoother_Sweep_colored: non-regular main diagonal block.");
+        throw PasoException("Preconditioner_LocalSmoother_Sweep_colored: non-regular main diagonal block.");
     }
 }
 

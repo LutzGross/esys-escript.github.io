@@ -14,10 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef INC_DUDLEY_NODEFILE
-#define INC_DUDLEY_NODEFILE
-
-#define MAX_numDim 3
+#ifndef __DUDLEY_NODEFILE_H__
+#define __DUDLEY_NODEFILE_H__
 
 #include "Dudley.h"
 #include "NodeMapping.h"
@@ -25,26 +23,28 @@
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 
+namespace dudley {
+
 struct Dudley_NodeFile {
-    esysUtils::JMPI MPIInfo;	/* MPI information */
+    esysUtils::JMPI MPIInfo;    /* MPI information */
 
-    dim_t numNodes;		/* number of nodes */
-    int numDim;		/* spatial dimension */
-    index_t *Id;		/* Id[i] is the id number of node i. It need to be unique. */
-    index_t *Tag;		/* Tag[i] is the tag of node i. */
-    index_t *tagsInUse;		/* array of tags which are actually used */
-    dim_t numTagsInUse;		/* number of tags used */
+    dim_t numNodes;             /* number of nodes */
+    int numDim;         /* spatial dimension */
+    index_t *Id;                /* Id[i] is the id number of node i. It need to be unique. */
+    index_t *Tag;               /* Tag[i] is the tag of node i. */
+    index_t *tagsInUse;         /* array of tags which are actually used */
+    dim_t numTagsInUse;         /* number of tags used */
 
-    index_t *globalDegreesOfFreedom;	/* globalDegreesOfFreedom[i] is the global degree of freedom assigned to node i */
+    index_t *globalDegreesOfFreedom;    /* globalDegreesOfFreedom[i] is the global degree of freedom assigned to node i */
     /* this index is used to consider periodic boundary conditions by assigning */
     /* the same degreesOfFreedom to the same node */
-    double *Coordinates;	/* Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of the */
+    double *Coordinates;        /* Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of the */
     /* node i. */
-    index_t *globalReducedDOFIndex;	/* assigns each local node a global unique Id in a dens labeling of reduced DOF */
+    index_t *globalReducedDOFIndex;     /* assigns each local node a global unique Id in a dens labeling of reduced DOF */
     /* value <0 indicates that the DOF is not used */
-    index_t *globalReducedNodesIndex;	/* assigns each local node a global unique Id in a dens labeling */
+    index_t *globalReducedNodesIndex;   /* assigns each local node a global unique Id in a dens labeling */
     /* value <0 indicates that the DOF is not used */
-    index_t *globalNodesIndex;	/* assigns each local reduced node a global unique Id in a dens labeling */
+    index_t *globalNodesIndex;  /* assigns each local reduced node a global unique Id in a dens labeling */
 
     Dudley_NodeMapping *nodesMapping;
     Dudley_NodeMapping *reducedNodesMapping;
@@ -64,7 +64,7 @@ struct Dudley_NodeFile {
     index_t *degreesOfFreedomId;
     index_t *reducedDegreesOfFreedomId;
 
-    int status;			/* the status counts the updates done on the node coordinates */
+    int status;                 /* the status counts the updates done on the node coordinates */
     /* the value of status is increased by when the node coordinates are updated. */
 
 };
@@ -120,18 +120,18 @@ index_t Dudley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Dudley_NodeFile *);
 void Dudley_NodeFile_setReducedDOFRange(index_t *, index_t *, Dudley_NodeFile *);
 dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile *);
 dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * node_distribution,
-					      const index_t * dof_distribution);
+                                              const index_t * dof_distribution);
 dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask);
 dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask);
 void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, int* mpiRankOfDOF, index_t * distribution);
 void Dudley_NodeFile_gather(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_gather_global(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_gatherEntries(dim_t, index_t *, index_t, index_t, index_t *, index_t *, index_t *, index_t *,
-				   index_t *, index_t *, dim_t numDim, double *, double *);
+                                   index_t *, index_t *, dim_t numDim, double *, double *);
 void Dudley_NodeFile_copyTable(dim_t, Dudley_NodeFile *, dim_t, dim_t, Dudley_NodeFile *);
 void Dudley_NodeFile_scatter(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_scatterEntries(dim_t, index_t *, index_t, index_t, index_t *, index_t *, index_t *, index_t *,
-				    index_t *, index_t *, dim_t numDim, double *, double *);
+                                    index_t *, index_t *, dim_t numDim, double *, double *);
 void Dudley_NodeFile_copyTable(dim_t, Dudley_NodeFile *, dim_t, dim_t, Dudley_NodeFile *);
 void Dudley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in);
 void Dudley_NodeFile_setGlobalNodeIDIndexRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in);
@@ -142,4 +142,7 @@ void Dudley_NodeFile_setCoordinates(Dudley_NodeFile *, const escript::Data *);
 void Dudley_NodeFile_setTags(Dudley_NodeFile *, const int, const escript::Data *);
 void Dudley_NodeFile_setTagsInUse(Dudley_NodeFile * in);
 
-#endif
+} // namespace dudley
+
+#endif // __DUDLEY_NODEFILE_H__
+

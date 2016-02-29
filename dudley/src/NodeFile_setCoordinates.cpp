@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh: NodeFile */
 
 /* copies the array newX into self->coordinates */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -28,7 +28,7 @@
 #include "NodeFile.h"
 #include "Util.h"
 
-/************************************************************************************/
+namespace dudley {
 
 void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self, const escript::Data* newX)
 {
@@ -37,14 +37,14 @@ void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self, const escript::Data* 
         ss << "Dudley_NodeFile_setCoordinates: number of dimensions of new "
             "coordinates has to be " << self->numDim;
         const std::string errorMsg(ss.str());
-        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+        throw DudleyException(errorMsg);
     } else if (newX->getNumDataPointsPerSample() != 1 ||
             newX->getNumSamples() != self->numNodes) {
         std::stringstream ss;
         ss << "Dudley_NodeFile_setCoordinates: number of given nodes must be "
             << self->numNodes;
         const std::string errorMsg(ss.str());
-        Dudley_setError(VALUE_ERROR, errorMsg.c_str());
+        throw DudleyException(errorMsg);
     } else {
         const size_t numDim_size = self->numDim * sizeof(double);
         Dudley_increaseStatus(self);
@@ -55,4 +55,6 @@ void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self, const escript::Data* 
         }
     }
 }
+
+} // namespace dudley
 

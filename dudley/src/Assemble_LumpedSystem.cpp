@@ -36,8 +36,6 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
                            bool useHRZ)
 {
-    Dudley_resetError();
-
     if (!nodes || !elements || lumpedMat.isEmpty() || D.isEmpty())
         return;
 
@@ -53,16 +51,13 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     } else if (funcspace == DUDLEY_REDUCED_FACE_ELEMENTS) {
         reducedIntegrationOrder = true;
     } else {
-        Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
-        return;
+        throw DudleyException("Assemble_LumpedSystem: assemblage failed because of illegal function space.");
     }
 
     // initialize parameters
     Assemble_Parameters p;
     Assemble_getAssembleParameters(nodes, elements, escript::ASM_ptr(),
                                       lumpedMat, reducedIntegrationOrder, &p);
-    if (!Dudley_noError())
-        return;
 
     // check if all function spaces are the same
     if (!D.numSamplesEqual(p.numQuad, elements->numElements)) {
@@ -71,16 +66,14 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
               "don't match (" << p.numQuad << ","
            << elements->numElements << ")";
         const std::string msg(ss.str());
-        Dudley_setError(TYPE_ERROR, msg.c_str());
-        return;
+        throw DudleyException(msg);
     }
 
     // check the dimensions
     if (p.numEqu == 1) {
         const escript::DataTypes::ShapeType dimensions; //dummy
         if (D.getDataPointShape() != dimensions) {
-            Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficient D, rank 0 expected.");
-            return;
+            throw DudleyException("Assemble_LumpedSystem: coefficient D, rank 0 expected.");
         }
     } else {
         const escript::DataTypes::ShapeType dimensions(1, p.numEqu);
@@ -89,7 +82,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
             ss << "Assemble_LumpedSystem: coefficient D, expected "
                   "shape (" << p.numEqu << ",)";
             const std::string msg(ss.str());
-            Dudley_setError(TYPE_ERROR, msg.c_str());
+            throw DudleyException(msg);
         }
     }
 
@@ -116,9 +109,8 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     } else {
         bool expandedD = D.actsExpanded();
         const double *S = NULL;
-        if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
-        {
-            Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: Unable to locate shape function.");
+        if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S)) {
+            throw DudleyException("Assemble_LumpedSystem: Unable to locate shape function.");
         }
 #pragma omp parallel
         {

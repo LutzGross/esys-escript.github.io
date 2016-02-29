@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Dudley: Mesh */
 
@@ -24,13 +24,15 @@
 /*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
 /*   The function does not create a distribution of the degrees of freedom. */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
 #include "Util.h"
+
+namespace dudley {
 
 void Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in)
 {
@@ -120,26 +122,15 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in)
     }
     /* create a new table */
     newNodeFile = Dudley_NodeFile_alloc(numDim, in->MPIInfo);
-    if (Dudley_noError())
-    {
-        Dudley_NodeFile_allocTable(newNodeFile, newNumNodes);
-    }
-    if (Dudley_noError())
-    {
-        Dudley_NodeFile_gather_global(newLocalToGlobalNodeLabels, in->Nodes, newNodeFile);
-    }
-    if (Dudley_noError())
-    {
-        Dudley_NodeFile_free(in->Nodes);
-        in->Nodes = newNodeFile;
-        /*  relabel nodes of the elements: */
-        Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels, min_id, in);
-    }
+    Dudley_NodeFile_allocTable(newNodeFile, newNumNodes);
+    Dudley_NodeFile_gather_global(newLocalToGlobalNodeLabels, in->Nodes, newNodeFile);
+    Dudley_NodeFile_free(in->Nodes);
+    in->Nodes = newNodeFile;
+    /*  relabel nodes of the elements: */
+    Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels, min_id, in);
     delete[] globalToNewLocalNodeLabels;
     delete[] newLocalToGlobalNodeLabels;
-    if (!Dudley_noError())
-    {
-        Dudley_NodeFile_free(newNodeFile);
-    }
 }
+
+} // namespace dudley
 

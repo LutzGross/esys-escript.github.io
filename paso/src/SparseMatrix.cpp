@@ -113,7 +113,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
 {
     if (patternIsUnrolled) {
         if ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1)) {
-            Esys_setError(TYPE_ERROR, "SparseMatrix: requested offset and pattern offset do not match.");
+            throw PasoException("SparseMatrix: requested offset and pattern offset do not match.");
         }
     }
     // do we need to apply unrolling?
@@ -148,10 +148,8 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
             row_block_size = rowBlockSize;
             col_block_size = colBlockSize;
         }
-        if (Esys_noError()) {
-            numRows = pattern->numInput;
-            numCols = pattern->numOutput;
-        }
+        numRows = pattern->numInput;
+        numCols = pattern->numOutput;
     } else {
     // === compressed sparse row ===
         if (unroll) {
@@ -168,22 +166,18 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
             row_block_size = rowBlockSize;
             col_block_size = colBlockSize;
         }
-        if (Esys_noError()) {
-            numRows = pattern->numOutput;
-            numCols = pattern->numInput;
-        }
+        numRows = pattern->numOutput;
+        numCols = pattern->numInput;
     }
-    if (Esys_noError()) {
-        if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-            block_size = MIN(row_block_size, col_block_size);
-        } else {
-            block_size = row_block_size*col_block_size;
-        }
-        len = (size_t)(pattern->len)*(size_t)(block_size);
+    if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+        block_size = MIN(row_block_size, col_block_size);
+    } else {
+        block_size = row_block_size*col_block_size;
+    }
+    len = (size_t)(pattern->len)*(size_t)(block_size);
 
-        val=new double[len];
-        setValues(0.);
-    }
+    val=new double[len];
+    setValues(0.);
 }
 
 SparseMatrix::~SparseMatrix()
@@ -209,35 +203,29 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
     SparseMatrix_ptr out;
     int i;
     MM_typecode matrixCode;
-    Esys_resetError();
 
     // open the file
     std::ifstream f(filename);
     if (f.fail()) {
-        Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Cannot open file for reading.");
-        return out;
+        throw PasoException("SparseMatrix::loadMM_toCSR: Cannot open file for reading.");
     }
 
     // process banner
     if (mm_read_banner(f, &matrixCode) != 0) {
-        Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Error processing MM banner.");
         f.close();
-        return out;
+        throw PasoException("SparseMatrix::loadMM_toCSR: Error processing MM banner.");
     }
     if (!(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode))) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::loadMM_toCSR: found Matrix Market type is not supported.");
         f.close();
-        return out;
+        throw PasoException("SparseMatrix::loadMM_toCSR: found Matrix Market type is not supported.");
     }
 
     // get matrix size
     int M, N, nz;
 
-    if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0)
-    {
-        Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Could not parse matrix size.");
+    if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0) {
         f.close();
-        return out;
+        throw PasoException("SparseMatrix::loadMM_toCSR: Could not parse matrix size.");
     }
 
     // prepare storage
@@ -291,18 +279,16 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
 void SparseMatrix::saveMM(const char* filename) const
 {
     if (col_block_size != row_block_size) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::saveMM: currently only square blocks are supported.");
-        return;
+        throw PasoException("SparseMatrix::saveMM: currently only square blocks are supported.");
     }
 
     // open the file
     std::ofstream f(filename);
     if (f.fail()) {
-        Esys_setError(IO_ERROR, "SparseMatrix::saveMM: File could not be opened for writing");
-        return;
+        throw PasoException("SparseMatrix::saveMM: File could not be opened for writing");
     }
     if (type & MATRIX_FORMAT_CSC) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::saveMM does not support CSC.");
+        throw PasoException("SparseMatrix::saveMM does not support CSC.");
     } else {
         MM_typecode matcode;
         mm_initialize_typecode(&matcode);
@@ -513,43 +499,41 @@ void SparseMatrix::invMain(double* inv_diag, index_t* pivot) const
     index_t* main_ptr=pattern->borrowMainDiagonalPointer();
     // check matrix is square
     if (m_block != n_block) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::invMain: square block size expected.");
+        throw PasoException("SparseMatrix::invMain: square block size expected.");
     }
-    if (Esys_noError()) {
-        if (n_block == 1) {
+    if (n_block == 1) {
 #pragma omp parallel for private(i, iPtr, A11) schedule(static)
-            for (i = 0; i < n; i++) {
-                iPtr = main_ptr[i];
-                A11 = val[iPtr];
-                if (ABS(A11) > 0.) {
-                    inv_diag[i]=1./A11;
-                } else {
-                    failed=1;
-                }
+        for (i = 0; i < n; i++) {
+            iPtr = main_ptr[i];
+            A11 = val[iPtr];
+            if (ABS(A11) > 0.) {
+                inv_diag[i]=1./A11;
+            } else {
+                failed=1;
             }
-        } else if (n_block==2) {
+        }
+    } else if (n_block==2) {
 #pragma omp parallel for private(i, iPtr) schedule(static)
-            for (i = 0; i < n; i++) {
-                iPtr = main_ptr[i];
-                BlockOps_invM_2(&inv_diag[i*4], &val[iPtr*4], &failed);
-            }
-        } else if (n_block==3) {
+        for (i = 0; i < n; i++) {
+            iPtr = main_ptr[i];
+            BlockOps_invM_2(&inv_diag[i*4], &val[iPtr*4], &failed);
+        }
+    } else if (n_block==3) {
 #pragma omp parallel for private(i, iPtr) schedule(static)
-            for (i = 0; i < n; i++) {
-                iPtr = main_ptr[i];
-                BlockOps_invM_3(&inv_diag[i*9], &val[iPtr*9], &failed);
-            }
-        } else {
+        for (i = 0; i < n; i++) {
+            iPtr = main_ptr[i];
+            BlockOps_invM_3(&inv_diag[i*9], &val[iPtr*9], &failed);
+        }
+    } else {
 #pragma omp parallel for private(i, iPtr) schedule(static)
-            for (i = 0; i < n; i++) {
-                iPtr = main_ptr[i];
-                BlockOps_Cpy_N(block_size, &inv_diag[i*block_size], &val[iPtr*block_size]);
-                BlockOps_invM_N(n_block, &inv_diag[i*block_size], &pivot[i*n_block], &failed);
-            }
+        for (i = 0; i < n; i++) {
+            iPtr = main_ptr[i];
+            BlockOps_Cpy_N(block_size, &inv_diag[i*block_size], &val[iPtr*block_size]);
+            BlockOps_invM_N(n_block, &inv_diag[i*block_size], &pivot[i*n_block], &failed);
         }
     }
     if (failed > 0) {
-        Esys_setError(ZERO_DIVISION_ERROR, "SparseMatrix::invMain: non-regular main diagonal block.");
+        throw PasoException("SparseMatrix::invMain: non-regular main diagonal block.");
     }
 }
 
@@ -647,46 +631,44 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
     const index_t A_offset = (type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     const index_t out_offset = (out_type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
 
-    if (Esys_noError()) {
-        if (out->type & MATRIX_FORMAT_CSC) {
+    if (out->type & MATRIX_FORMAT_CSC) {
 #pragma omp parallel for
-            for (dim_t i=0; i<n; ++i) {
-                for (index_t iptr=pattern->ptr[i]-A_offset; iptr<pattern->ptr[i+1]-A_offset; ++iptr) {
-                    const index_t j = pattern->index[iptr]-A_offset;
-                    for (dim_t icb=0; icb<col_block_size; ++icb) {
-                        const index_t icol=j*col_block_size+icb;
-                        const index_t* start_p=&out->pattern->index[out->pattern->ptr[icol]-out_offset];
-                        const index_t l_col=out->pattern->ptr[icol+1]-out->pattern->ptr[icol];
-                        for (dim_t irb=0; irb<row_block_size; ++irb) {
-                            const index_t irow=row_block_size*i+irb+out_offset;
-                            const index_t* where_p = (index_t*)bsearch(&irow,
-                                        start_p, l_col, sizeof(index_t),
-                                        util::comparIndex);
-                            if (where_p != NULL)
-                                out->val[out->pattern->ptr[icol]-out_offset+(index_t)(where_p-start_p)] =
-                                    val[block_size*iptr+irb+row_block_size*icb];
-                        }
+        for (dim_t i=0; i<n; ++i) {
+            for (index_t iptr=pattern->ptr[i]-A_offset; iptr<pattern->ptr[i+1]-A_offset; ++iptr) {
+                const index_t j = pattern->index[iptr]-A_offset;
+                for (dim_t icb=0; icb<col_block_size; ++icb) {
+                    const index_t icol=j*col_block_size+icb;
+                    const index_t* start_p=&out->pattern->index[out->pattern->ptr[icol]-out_offset];
+                    const index_t l_col=out->pattern->ptr[icol+1]-out->pattern->ptr[icol];
+                    for (dim_t irb=0; irb<row_block_size; ++irb) {
+                        const index_t irow=row_block_size*i+irb+out_offset;
+                        const index_t* where_p = (index_t*)bsearch(&irow,
+                                    start_p, l_col, sizeof(index_t),
+                                    util::comparIndex);
+                        if (where_p != NULL)
+                            out->val[out->pattern->ptr[icol]-out_offset+(index_t)(where_p-start_p)] =
+                                val[block_size*iptr+irb+row_block_size*icb];
                     }
                 }
             }
-        } else {
+        }
+    } else {
 #pragma omp parallel for
-            for (dim_t i=0; i<n; ++i) {
-                for (index_t iptr=pattern->ptr[i]-A_offset; iptr<pattern->ptr[i+1]-A_offset; ++iptr) {
-                    const index_t j = pattern->index[iptr]-A_offset;
-                    for (dim_t irb=0; irb<row_block_size; ++irb) {
-                        const index_t irow=row_block_size*i+irb;
-                        const index_t* start_p = &out->pattern->index[out->pattern->ptr[irow]-out_offset];
-                        const index_t l_row=out->pattern->ptr[irow+1]-out->pattern->ptr[irow];
-                        for (dim_t icb=0; icb<col_block_size; ++icb) {
-                            const index_t icol=j*col_block_size+icb+out_offset;
-                            const index_t* where_p = (index_t*)bsearch(&icol,
-                                        start_p, l_row, sizeof(index_t),
-                                        util::comparIndex);
-                            if (where_p != NULL)
-                                out->val[out->pattern->ptr[irow]-out_offset+(index_t)(where_p-start_p)] =
-                                    val[block_size*iptr+irb+row_block_size*icb];
-                        }
+        for (dim_t i=0; i<n; ++i) {
+            for (index_t iptr=pattern->ptr[i]-A_offset; iptr<pattern->ptr[i+1]-A_offset; ++iptr) {
+                const index_t j = pattern->index[iptr]-A_offset;
+                for (dim_t irb=0; irb<row_block_size; ++irb) {
+                    const index_t irow=row_block_size*i+irb;
+                    const index_t* start_p = &out->pattern->index[out->pattern->ptr[irow]-out_offset];
+                    const index_t l_row=out->pattern->ptr[irow+1]-out->pattern->ptr[irow];
+                    for (dim_t icb=0; icb<col_block_size; ++icb) {
+                        const index_t icol=j*col_block_size+icb+out_offset;
+                        const index_t* where_p = (index_t*)bsearch(&icol,
+                                    start_p, l_row, sizeof(index_t),
+                                    util::comparIndex);
+                        if (where_p != NULL)
+                            out->val[out->pattern->ptr[irow]-out_offset+(index_t)(where_p-start_p)] =
+                                val[block_size*iptr+irb+row_block_size*icb];
                     }
                 }
             }

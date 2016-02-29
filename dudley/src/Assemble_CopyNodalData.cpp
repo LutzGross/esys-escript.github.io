@@ -31,7 +31,6 @@ namespace dudley {
 
 void Assemble_CopyNodalData(Dudley_NodeFile* nodes, escript::Data* out, const escript::Data* in)
 {
-    Dudley_resetError();
     if (!nodes)
         return;
 
@@ -42,73 +41,58 @@ void Assemble_CopyNodalData(Dudley_NodeFile* nodes, escript::Data* out, const es
 
     // check out and in
     if (numComps != in->getDataPointSize()) {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_CopyNodalData: number of components of input and output Data do not match.");
+        throw DudleyException("Assemble_CopyNodalData: number of components of input and output Data do not match.");
     } else if (!out->actsExpanded()) {
-        Dudley_setError(TYPE_ERROR, "Assemble_CopyNodalData: expanded Data object is expected for output data.");
+        throw DudleyException("Assemble_CopyNodalData: expanded Data object is expected for output data.");
     }
 
     // more sophisticated test needed for overlapping node/DOF counts
     if (in_data_type == DUDLEY_NODES) {
         if (!in->numSamplesEqual(1, Dudley_NodeFile_getNumNodes(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of input Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == DUDLEY_REDUCED_NODES) {
         if (!in->numSamplesEqual(1, Dudley_NodeFile_getNumReducedNodes(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of input Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         if (!in->numSamplesEqual(1, Dudley_NodeFile_getNumDegreesOfFreedom(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of input Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if ((((out_data_type == DUDLEY_NODES) || (out_data_type == DUDLEY_DEGREES_OF_FREEDOM)) && !in->actsExpanded() && (mpiSize > 1))) {
 
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: DUDLEY_DEGREES_OF_FREEDOM to DUDLEY_NODES or DUDLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
+            throw DudleyException("Assemble_CopyNodalData: DUDLEY_DEGREES_OF_FREEDOM to DUDLEY_NODES or DUDLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
         }
     } else if (in_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (!in->numSamplesEqual(1, Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of input Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if ((out_data_type == DUDLEY_DEGREES_OF_FREEDOM) && !in->actsExpanded() && (mpiSize > 1)) {
-
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: DUDLEY_REDUCED_DEGREES_OF_FREEDOM to DUDLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
+            throw DudleyException("Assemble_CopyNodalData: DUDLEY_REDUCED_DEGREES_OF_FREEDOM to DUDLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
         }
     } else {
-        Dudley_setError(TYPE_ERROR, "Assemble_CopyNodalData: illegal function space type for target object");
+        throw DudleyException("Assemble_CopyNodalData: illegal function space type for target object");
     }
 
     if (out_data_type == DUDLEY_NODES) {
         if (!out->numSamplesEqual(1, Dudley_NodeFile_getNumNodes(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of output Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else if (out_data_type == DUDLEY_REDUCED_NODES) {
         if (!out->numSamplesEqual(1, Dudley_NodeFile_getNumReducedNodes(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of output Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         if (!out->numSamplesEqual(1, Dudley_NodeFile_getNumDegreesOfFreedom(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of output Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (!out->numSamplesEqual(1, Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes))) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: illegal number of samples of output Data object");
+            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else {
-        Dudley_setError(TYPE_ERROR, "Assemble_CopyNodalData: illegal function space type for source object");
+        throw DudleyException("Assemble_CopyNodalData: illegal function space type for source object");
     }
-
-    if (!Dudley_noError())
-        return;
 
     size_t numComps_size = numComps * sizeof(double);
 
@@ -146,15 +130,14 @@ void Assemble_CopyNodalData(Dudley_NodeFile* nodes, escript::Data* out, const es
     } else if (in_data_type == DUDLEY_REDUCED_NODES) {
         out->requireWrite();
         if (out_data_type == DUDLEY_NODES) {
-            Dudley_setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
+            throw DudleyException("Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
         } else if (out_data_type == DUDLEY_REDUCED_NODES) {
 #pragma omp parallel for
             for (index_t n = 0; n < nodes->reducedNodesMapping->numNodes; n++) {
                 memcpy(out->getSampleDataRW(n), in->getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
+            throw DudleyException("Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
         } else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
             const dim_t nComps = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel for
@@ -169,44 +152,40 @@ void Assemble_CopyNodalData(Dudley_NodeFile* nodes, escript::Data* out, const es
         out->requireWrite();
         if (out_data_type == DUDLEY_NODES) {
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
-            if (Esys_noError()) {
-                // safe provided coupler->copyAll is called before the pointer
-                // in "in" is invalidated
-                const_cast<escript::Data*>(in)->resolve();
-                coupler->startCollect(in->getDataRO());  
-                const double* recv_buffer = coupler->finishCollect();
-                const index_t upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
+            // safe provided coupler->copyAll is called before the pointer
+            // in "in" is invalidated
+            const_cast<escript::Data*>(in)->resolve();
+            coupler->startCollect(in->getDataRO());  
+            const double* recv_buffer = coupler->finishCollect();
+            const index_t upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel for
-                for (index_t n = 0; n < nodes->numNodes; n++) {
-                    const index_t k = nodes->degreesOfFreedomMapping->target[n];
-                    if (k < upperBound) {
-                        memcpy(out->getSampleDataRW(n), in->getSampleDataRO(k), numComps_size);
-                    } else {
-                        memcpy(out->getSampleDataRW(n),
-                               &recv_buffer[(k - upperBound) * numComps], numComps_size);
-                    }
+            for (index_t n = 0; n < nodes->numNodes; n++) {
+                const index_t k = nodes->degreesOfFreedomMapping->target[n];
+                if (k < upperBound) {
+                    memcpy(out->getSampleDataRW(n), in->getSampleDataRO(k), numComps_size);
+                } else {
+                    memcpy(out->getSampleDataRW(n),
+                           &recv_buffer[(k - upperBound) * numComps], numComps_size);
                 }
             }
         } else if (out_data_type == DUDLEY_REDUCED_NODES) {
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
-            if (Esys_noError()) {
-                // safe provided coupler->copyAll is called before the pointer
-                // in "in" is invalidated
-                const_cast<escript::Data*>(in)->resolve();
-                coupler->startCollect(in->getDataRO());  
-                const double* recv_buffer = coupler->finishCollect();
-                const index_t upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
+            // safe provided coupler->copyAll is called before the pointer
+            // in "in" is invalidated
+            const_cast<escript::Data*>(in)->resolve();
+            coupler->startCollect(in->getDataRO());  
+            const double* recv_buffer = coupler->finishCollect();
+            const index_t upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 
 #pragma omp parallel for
-                for (index_t n = 0; n < nodes->reducedNodesMapping->numTargets; n++) {
-                    const index_t l = nodes->reducedNodesMapping->map[n];
-                    const index_t k = nodes->degreesOfFreedomMapping->target[l];
-                    if (k < upperBound) {
-                        memcpy(out->getSampleDataRW(n), in->getSampleDataRO(k), numComps_size);
-                    } else {
-                        memcpy(out->getSampleDataRW(n),
-                               &recv_buffer[(k - upperBound)*numComps], numComps_size);
-                    }
+            for (index_t n = 0; n < nodes->reducedNodesMapping->numTargets; n++) {
+                const index_t l = nodes->reducedNodesMapping->map[n];
+                const index_t k = nodes->degreesOfFreedomMapping->target[l];
+                if (k < upperBound) {
+                    memcpy(out->getSampleDataRW(n), in->getSampleDataRO(k), numComps_size);
+                } else {
+                    memcpy(out->getSampleDataRW(n),
+                           &recv_buffer[(k - upperBound)*numComps], numComps_size);
                 }
             }
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
@@ -228,28 +207,25 @@ void Assemble_CopyNodalData(Dudley_NodeFile* nodes, escript::Data* out, const es
     /****************** DUDLEY_REDUCED_DEGREES_OF_FREEDOM *******************/
     } else if (in_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (out_data_type == DUDLEY_NODES) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
+            throw DudleyException("Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
         } else if (out_data_type == DUDLEY_REDUCED_NODES) {
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector, numComps));
-            if (Esys_noError()) {
-                const dim_t upperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
-                // safe provided coupler->copyAll is called before the pointer
-                // in "in" is invalidated
-                const_cast<escript::Data*>(in)->resolve();
-                coupler->startCollect(in->getDataRO());  
-                out->requireWrite();
-                const double* recv_buffer = coupler->finishCollect();
+            const dim_t upperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
+            // safe provided coupler->copyAll is called before the pointer
+            // in "in" is invalidated
+            const_cast<escript::Data*>(in)->resolve();
+            coupler->startCollect(in->getDataRO());  
+            out->requireWrite();
+            const double* recv_buffer = coupler->finishCollect();
 #pragma omp parallel for
-                for (index_t n = 0; n < nodes->reducedNodesMapping->numTargets; n++) {
-                    const index_t l = nodes->reducedNodesMapping->map[n];
-                    const index_t k = nodes->reducedDegreesOfFreedomMapping->target[l];
-                    if (k < upperBound) {
-                        memcpy(out->getSampleDataRW(n), in->getSampleDataRO(k), numComps_size);
-                    } else {
-                        memcpy(out->getSampleDataRW(n),
-                               &recv_buffer[(k - upperBound)*numComps], numComps_size);
-                    }
+            for (index_t n = 0; n < nodes->reducedNodesMapping->numTargets; n++) {
+                const index_t l = nodes->reducedNodesMapping->map[n];
+                const index_t k = nodes->reducedDegreesOfFreedomMapping->target[l];
+                if (k < upperBound) {
+                    memcpy(out->getSampleDataRW(n), in->getSampleDataRO(k), numComps_size);
+                } else {
+                    memcpy(out->getSampleDataRW(n),
+                           &recv_buffer[(k - upperBound)*numComps], numComps_size);
                 }
             }
         } else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
@@ -260,8 +236,7 @@ void Assemble_CopyNodalData(Dudley_NodeFile* nodes, escript::Data* out, const es
                 memcpy(out->getSampleDataRW(n), in->getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
-            Dudley_setError(TYPE_ERROR,
-                            "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
+            throw DudleyException("Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
         }
     }
 }

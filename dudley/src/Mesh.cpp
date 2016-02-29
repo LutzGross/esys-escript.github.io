@@ -13,16 +13,12 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
-
-/*   Dudley: Mesh */
-
-/************************************************************************************/
-
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
 #include "Mesh.h"
+
+namespace dudley {
 
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected independently. */
@@ -43,23 +39,12 @@ Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, esysUtils::JMPI& mpi_in
     out->reference_counter = 0;
     out->MPIInfo = mpi_info;
 
-    if (!Dudley_noError())
-    {
-        Dudley_Mesh_free(out);
-        return NULL;
-    }
     /*   copy name: */
-
-    out->Name = new  char[strlen(name) + 1];
+    out->Name = new char[strlen(name) + 1];
     strcpy(out->Name, name);
 
     /*   allocate node table: */
     out->Nodes = Dudley_NodeFile_alloc(numDim, mpi_info);
-    if (!Dudley_noError())
-    {
-        Dudley_Mesh_free(out);
-        return NULL;
-    }
     out->approximationOrder = -1;
     out->reducedApproximationOrder = -1;
     out->integrationOrder = -1;
@@ -151,4 +136,6 @@ void Dudley_Mesh_setOrders(Dudley_Mesh * in)
     in->integrationOrder = 2;
     in->reducedIntegrationOrder = 0;
 }
+
+} // namespace dudley
 

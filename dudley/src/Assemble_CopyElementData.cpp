@@ -31,7 +31,6 @@ namespace dudley {
 
 void Assemble_CopyElementData(Dudley_ElementFile* elements, escript::Data* out, const escript::Data* in)
 {
-    Dudley_resetError();
     if (!elements)
         return;
 
@@ -48,15 +47,13 @@ void Assemble_CopyElementData(Dudley_ElementFile* elements, escript::Data* out, 
     // check out and in
     if (numComps != in->getDataPointSize())
     {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_CopyElementData: number of components of input and output Data do not match.");
+        throw DudleyException("Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!in->numSamplesEqual(numQuad, numElements)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_CopyElementData: illegal number of samples of input Data object");
+        throw DudleyException("Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!out->numSamplesEqual(numQuad, numElements)) {
-        Dudley_setError(TYPE_ERROR, "Assemble_CopyElementData: illegal number of samples of output Data object");
+        throw DudleyException("Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!out->actsExpanded()) {
-        Dudley_setError(TYPE_ERROR,
-                        "Assemble_CopyElementData: expanded Data object is expected for output data.");
+        throw DudleyException("Assemble_CopyElementData: expanded Data object is expected for output data.");
     } else {
         out->requireWrite();
         if (in->actsExpanded()) {

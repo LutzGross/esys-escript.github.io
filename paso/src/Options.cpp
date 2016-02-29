@@ -371,7 +371,7 @@ int Options::getSolver(int solver, int pack, bool symmetry,
     } else if (pack==PASO_UMFPACK) {
         out=PASO_DIRECT;
     } else {
-        Esys_setError(VALUE_ERROR, "Options::getSolver: Unidentified package.");
+        throw PasoException("Options::getSolver: Unidentified package.");
     }
     return out;
 }
@@ -395,9 +395,9 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 #endif
                 } else{
 #if defined MKL
-                    Esys_setError(VALUE_ERROR, "MKL does not currently support MPI");
+                    throw PasoException("MKL does not currently support MPI");
 #elif defined USE_UMFPACK
-                    Esys_setError(VALUE_ERROR, "UMFPACK does not currently support MPI");
+                    throw PasoException("UMFPACK does not currently support MPI");
 #endif
                 }
             }
@@ -414,7 +414,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
             break;
 
         default:
-            Esys_setError(VALUE_ERROR, "Options::getPackage: Unidentified package.");
+            throw PasoException("Options::getPackage: Unidentified package.");
     }
     return out;
 }

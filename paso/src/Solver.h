@@ -28,7 +28,7 @@ namespace paso {
 
 void solve_free(SystemMatrix* A);
 
-void Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
+SolverResult Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
 
 void Solver_free(SystemMatrix*);
 

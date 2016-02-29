@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 /*                                                                                                         */
 /*   Dudley: ElementFile                                                                                   */
 /*                                                                                                         */
 /*   This routine tries to reduce the number of colors used to color elements in the Dudley_ElementFile in */
 /*                                                                                                         */
-/************************************************************************************/
+/****************************************************************************/
 
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
@@ -28,9 +28,9 @@
 #include "ElementFile.h"
 #include "Util.h"
 
-/************************************************************************************/
+namespace dudley {
 
-void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, index_t * degreeOfFreedom)
+void Dudley_ElementFile_createColoring(Dudley_ElementFile* in, dim_t numNodes, index_t* degreeOfFreedom)
 {
     dim_t e, i, numUncoloredElements, n, len, NN;
     index_t *maskDOF, min_id, max_id;
@@ -108,4 +108,6 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
     /* all done : */
     delete[] maskDOF;
 }
+
+} // namespace dudley
 

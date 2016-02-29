@@ -40,76 +40,86 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
 {
     Performance pp;
     index_t package;
-    Esys_resetError();
     if (getGlobalNumCols() != getGlobalNumRows()
                     || col_block_size != row_block_size) {
-        Esys_setError(VALUE_ERROR,"solve: matrix has to be a square matrix.");
-        return;
+        throw PasoException("solve: matrix has to be a square matrix.");
     }
     //options->show();
     Performance_open(&pp, options->verbose);
     package = Options::getPackage(options->method, options->package, options->symmetric, mpi_info);
-    if (Esys_noError()) {
-        switch(package) {
-            case PASO_PASO:
-                Solver(boost::const_pointer_cast<SystemMatrix>(shared_from_this()),
-                       out, in, options, &pp);
-                solver_package = PASO_PASO;
-            break;
+    SolverResult res = NoError;
 
-            case PASO_MKL:
-                if (mpi_info->size > 1) {
-                    Esys_setError(VALUE_ERROR,"solve: MKL package does not support MPI.");
-                    return;
-                }
-                options->converged = false;
-                options->time = Esys_timer();
-                Performance_startMonitor(&pp, PERFORMANCE_ALL);
-                MKL_solve(mainBlock, out, in, options->reordering,
-                          options->refinements, options->verbose);
-                solver_package = PASO_MKL;
-                Performance_stopMonitor(&pp, PERFORMANCE_ALL);
-                options->time = Esys_timer()-options->time;
-                options->set_up_time = 0;
-                options->residual_norm = 0.;
-                options->num_iter = 0;
-                if (Esys_MPIInfo_noError(mpi_info))
-                    options->converged = true;
-            break;
+    switch (package) {
+        case PASO_PASO:
+            res = Solver(boost::const_pointer_cast<SystemMatrix>(
+                        shared_from_this()), out, in, options, &pp);
+            solver_package = PASO_PASO;
+        break;
 
-            case PASO_UMFPACK:
-                if (mpi_info->size > 1) {
-                    Esys_setError(VALUE_ERROR,"solve: UMFPACK package does not support MPI.");
-                    return;
-                }
-                options->converged = false;
-                options->time = Esys_timer();
-                Performance_startMonitor(&pp, PERFORMANCE_ALL);
-                UMFPACK_solve(mainBlock, out, in, options->refinements, options->verbose);
-                solver_package = PASO_UMFPACK;
-                Performance_stopMonitor(&pp, PERFORMANCE_ALL);
-                options->time = Esys_timer()-options->time;
-                options->set_up_time = 0;
-                options->residual_norm = 0.;
-                options->num_iter = 0;
-                if (Esys_MPIInfo_noError(mpi_info))
-                    options->converged = true;
-            break;
+        case PASO_MKL:
+            if (mpi_info->size > 1) {
+                throw PasoException("solve: MKL package does not support MPI.");
+            }
+            options->converged = false;
+            options->time = esysUtils::gettime();
+            Performance_startMonitor(&pp, PERFORMANCE_ALL);
+            MKL_solve(mainBlock, out, in, options->reordering,
+                      options->refinements, options->verbose);
+            solver_package = PASO_MKL;
+            Performance_stopMonitor(&pp, PERFORMANCE_ALL);
+            options->time = esysUtils::gettime()-options->time;
+            options->set_up_time = 0;
+            options->residual_norm = 0.;
+            options->num_iter = 0;
+            options->converged = true;
+        break;
 
-            default:
-                Esys_setError(VALUE_ERROR, "solve: unknown package code");
-            break;
-        }
+        case PASO_UMFPACK:
+            if (mpi_info->size > 1) {
+                throw PasoException("solve: UMFPACK package does not support MPI.");
+            }
+            options->converged = false;
+            options->time = esysUtils::gettime();
+            Performance_startMonitor(&pp, PERFORMANCE_ALL);
+            UMFPACK_solve(mainBlock, out, in, options->refinements, options->verbose);
+            solver_package = PASO_UMFPACK;
+            Performance_stopMonitor(&pp, PERFORMANCE_ALL);
+            options->time = esysUtils::gettime()-options->time;
+            options->set_up_time = 0;
+            options->residual_norm = 0.;
+            options->num_iter = 0;
+            options->converged = true;
+        break;
+
+        default:
+            throw PasoException("solve: unknown package code");
+        break;
     }
-    /*
-        cancel divergence errors
-    */
-    if (options->accept_failed_convergence) {
-        if (Esys_getErrorType() == DIVERGED) {
-            Esys_resetError();
+
+    if (res == Divergence) {
+        // cancel divergence errors
+        if (options->accept_failed_convergence) {
             if (options->verbose)
                 printf("paso: failed convergence error has been canceled as requested.\n");
+        } else {
+            throw PasoException("Solver: No improvement during iteration. Iterative solver gives up.");
         }
+    } else if (res == MaxIterReached) {
+        // cancel divergence errors
+        if (options->accept_failed_convergence) {
+            if (options->verbose)
+                printf("paso: failed convergence error has been canceled as requested.\n");
+        } else {
+            throw PasoException("Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
+        }
+    } else if (res == InputError) {
+        throw PasoException("Solver: illegal dimension in iterative solver.");
+    } else if (res == NegativeNormError) {
+        throw PasoException("Solver: negative energy norm (try other solver or preconditioner).");
+    } else if (res == Breakdown) {
+        throw PasoException("Solver: fatal break down in iterative solver.");
+    } else if (res != NoError) {
+        throw PasoException("Solver: Generic error in solver.");
     }
     Performance_close(&pp, options->verbose);
 }

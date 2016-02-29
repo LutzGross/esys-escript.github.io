@@ -26,6 +26,7 @@
 /****************************************************************************/
 
 #include "Pattern.h"
+#include "PasoException.h"
 #include "PasoUtil.h"
 #include <boost/scoped_array.hpp>
 
@@ -47,7 +48,6 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
 {
     const index_t index_offset = (ntype & MATRIX_FORMAT_OFFSET1 ? 1:0);
     index_t min_index = index_offset, max_index = index_offset-1;
-    Esys_resetError();
 
     if (inPtr!=NULL && idx != NULL) {
 #pragma omp parallel
@@ -81,7 +81,7 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
       } // parallel section
 
       if (min_index < index_offset || max_index >= numIn+index_offset) {
-          Esys_setError(TYPE_ERROR, "Pattern: Pattern index out of range.");
+          throw PasoException("Pattern: Pattern index out of range.");
       }
       len = ptr[numOutput] - index_offset;
     }
@@ -128,11 +128,6 @@ Pattern_ptr Pattern::fromIndexListArray(dim_t n0, dim_t n,
     Pattern_ptr out(new Pattern(MATRIX_FORMAT_DEFAULT, n-n0,
                                 range_max+index_offset, ptr, index));
 
-    if (!Esys_noError()) {
-        delete[] ptr;
-        delete[] index;
-        out.reset();
-    }
     return out;
 }
 
@@ -178,7 +173,7 @@ index_t* Pattern::borrowColoringPointer()
             mis_marker[i] = -1;
         }
 
-        while (util::isAny(n, coloring, -1) && Esys_noError()) {
+        while (util::isAny(n, coloring, -1)) {
             mis(mis_marker);
 
 #pragma omp parallel for schedule(static)
@@ -201,7 +196,6 @@ Pattern_ptr Pattern::getSubpattern(dim_t newNumRows, dim_t newNumCols,
                                    const index_t* new_col_index) const
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-    Esys_resetError();
 
     index_t* newPtr = new index_t[newNumRows+1];
 #pragma omp parallel
@@ -244,10 +238,6 @@ Pattern_ptr Pattern::getSubpattern(dim_t newNumRows, dim_t newNumCols,
     }
     // create return value
     Pattern_ptr out(new Pattern(type, newNumRows, newNumCols, newPtr, newIndex));
-    if (!Esys_noError()) {
-        delete[] newIndex;
-        delete[] newPtr;
-    }
     return out;
 }
 
@@ -258,7 +248,6 @@ Pattern_ptr Pattern::unrollBlocks(int newType, dim_t output_block_size,
     const index_t index_offset_in=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const index_t index_offset_out=(newType & MATRIX_FORMAT_OFFSET1 ? 1:0);
 
-    Esys_resetError();
     if (output_block_size == 1 && input_block_size == 1 &&
           (type & MATRIX_FORMAT_OFFSET1) == (newType & MATRIX_FORMAT_OFFSET1)) {
         out = shared_from_this();
@@ -309,10 +298,6 @@ Pattern_ptr Pattern::unrollBlocks(int newType, dim_t output_block_size,
             }
         } // parallel section
         out.reset(new Pattern(newType, new_numOutput, new_numInput, newPtr, newIndex));
-        if (!Esys_noError()) {
-            delete[] newIndex;
-            delete[] newPtr;
-        }
     }
     return out;
 }

@@ -44,9 +44,8 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S, dim_t NN_Equa,
 {
     paso::SystemMatrix* in = dynamic_cast<paso::SystemMatrix*>(S.get());
     if (!in) {
-        Dudley_setError(TYPE_ERROR,
+        throw DudleyException(
             "Assemble_addToSystemMatrix: unsupported matrix type.");
-        return;
     }
     index_t index_offset = (in->type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     dim_t k_Equa, j_Equa, j_Sol, k_Sol, i_Equa, i_Sol, l_col, l_row, ic, ir, k, i_row, i_col;

@@ -14,22 +14,19 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
-
-/*   Dudley: header file for generates triangular meshes for 1D,2D,3D. */
-
-/************************************************************************************/
-
 #ifndef INC_DUDLEY_TRIANGULARMESH
 #define INC_DUDLEY_TRIANGULARMESH
 
-/************************************************************************************/
-
 #include "Mesh.h"
 
-Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-					bool optimize, esysUtils::JMPI& mpi_info);
-Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-					bool optimize, esysUtils::JMPI& mpi_info);
+namespace dudley {
 
-#endif				/* #ifndef INC_DUDLEY_TRIANGULARMESH */
+Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
+                    bool optimize, esysUtils::JMPI& mpi_info);
+Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
+                    bool optimize, esysUtils::JMPI& mpi_info);
+
+} // namespace dudley
+
+#endif /* #ifndef INC_DUDLEY_TRIANGULARMESH */
+

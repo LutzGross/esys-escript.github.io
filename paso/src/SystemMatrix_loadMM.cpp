@@ -110,36 +110,30 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     int curr_row;
     MM_typecode matrixCode;
     esysUtils::JMPI mpi_info=esysUtils::makeInfo(MPI_COMM_WORLD);
-    Esys_resetError();
     if (mpi_info->size > 1) {
-        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: supports single processor only");
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSR: supports single processor only");
     }
 
     // open the file
     std::ifstream f(filename);
     if (!f.good()) {
-        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: Cannot open file for reading.");
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSR: Cannot open file for reading.");
     }
 
     // process banner
     if (mm_read_banner(f, &matrixCode) != 0) {
-        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: Error processing MM banner.");
         f.close();
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSR: Error processing MM banner.");
     }
     if ( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) ) {
-        Esys_setError(TYPE_ERROR, "SystemMatrix::loadMM_toCSR: found Matrix Market type is not supported.");
         f.close();
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSR: found Matrix Market type is not supported.");
     }
 
     // get matrix size
     if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0) {
-        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: Could not read sparse matrix size.");
         f.close();
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSR: Could not read sparse matrix size.");
     }
 
     // prepare storage
@@ -221,36 +215,29 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     MM_typecode matrixCode;
     esysUtils::JMPI mpi_info=esysUtils::makeInfo( MPI_COMM_WORLD);
     if (mpi_info->size > 1) {
-        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSC: supports single processor only");
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSC: supports single processor only");
     }
-
-    Esys_resetError();
 
     // open the file
     std::ifstream f(filename);
     if (!f.good()) {
-        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSC: File could not be opened for reading.");
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSC: File could not be opened for reading.");
     }
 
     // process banner
     if (mm_read_banner(f, &matrixCode) != 0) {
-        Esys_setError(IO_ERROR,"SystemMatrix::loadMM_toCSC: Error processing MM banner.");
         f.close();
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSC: Error processing MM banner.");
     }
     if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) ) {
-        Esys_setError(TYPE_ERROR, "SystemMatrix::loadMM_toCSC: found Matrix Market type is not supported.");
         f.close();
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSC: found Matrix Market type is not supported.");
     }
 
     // get matrix size
     if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0) {
-        Esys_setError(TYPE_ERROR, "SystemMatrix::loadMM_toCSC: found Matrix Market type is not supported.");
         f.close();
-        return out;
+        throw PasoException("SystemMatrix::loadMM_toCSC: found Matrix Market type is not supported.");
     }
 
     // prepare storage
@@ -317,39 +304,36 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
 void RHS_loadMM_toCSR(const char *filename, double *b, dim_t size)
 {
     MM_typecode matrixCode;
-    Esys_resetError();
     // open the file
     std::ifstream f(filename);
     if (!f.good()) {
-        Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Cannot open file for reading.");
+        throw PasoException("RHS_loadMM_toCSR: Cannot open file for reading.");
     }
 
     // process banner
     if (mm_read_banner(f, &matrixCode) != 0) {
-        Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Error processing MM banner.");
+        throw PasoException("RHS_loadMM_toCSR: Error processing MM banner.");
     }
     if( !(mm_is_real(matrixCode) && mm_is_general(matrixCode) && mm_is_array(matrixCode)) ) {
-        Esys_setError(TYPE_ERROR,"RHS_loadMM_toCSR: found Matrix Market type is not supported.");
+        throw PasoException("RHS_loadMM_toCSR: found Matrix Market type is not supported.");
     }
 
     // get matrix size
     if (mm_read_mtx_array_size(f, &M, &N) != 0) {
-        Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Could not read sparse matrix size.");
+        throw PasoException("RHS_loadMM_toCSR: Could not read sparse matrix size.");
     }
 
     if (M != size) {
-        Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Actual and provided sizes do not match.");
+        throw PasoException("RHS_loadMM_toCSR: Actual and provided sizes do not match.");
     }
 
-    if (Esys_noError()) {
-        nz=M;
-        // perform actual read of elements
-        for (int i=0; i<nz; i++) {
-            f >> b[i];
-            if (!f.good()) {
-                f.close();
-                Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Could not read some of the values.");
-            }
+    nz=M;
+    // perform actual read of elements
+    for (int i=0; i<nz; i++) {
+        f >> b[i];
+        if (!f.good()) {
+            f.close();
+            throw PasoException("RHS_loadMM_toCSR: Could not read some of the values.");
         }
     }
     f.close();

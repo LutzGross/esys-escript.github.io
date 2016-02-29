@@ -15,7 +15,6 @@
 *****************************************************************************/
 
 #include "Esys_MPI.h"
-#include "error.h"
 #include "index.h"
 #include "escript/EsysException.h"
 
@@ -104,27 +103,6 @@ void JMPI_::split(dim_t N, dim_t* local_N, index_t* offset)
     } else {
         *offset = (*local_N)*rank + rest;
     }
-}
-
-/* checks that there is no error across all processes in a communicator */
-/* NOTE: does not guarantee consistency of error string on each process */
-bool Esys_MPIInfo_noError(const JMPI& mpi_info)
-{
-    int errorLocal = Esys_noError() ? 0 : 1;
-    int errorGlobal = errorLocal;
-
-#ifdef ESYS_MPI
-    if (!checkResult(errorLocal, errorGlobal, mpi_info))
-    {
-        return false;
-    }
-    if (errorLocal==0 && errorGlobal==1) 
-    {
-        Esys_setError(ESYS_MPI_ERROR, "Esys_MPIInfo_noError(): there was an error on another MPI process" );
-    }
-#endif
-
-    return (errorGlobal==0);
 }
 
 // Throw all values in and get the maximum --- used for error checking.

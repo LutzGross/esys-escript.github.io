@@ -61,7 +61,6 @@ sources = """
 	ElementFile_setNodeRange.cpp
 	ElementFile_setTags.cpp
 	ElementType.cpp
-	Dudley.cpp
 	IndexList.cpp
 	Mesh.cpp
 	Mesh_createNodeFileMappings.cpp
@@ -95,7 +94,6 @@ sources = """
 	ShapeTable.cpp
 	TagMap.cpp
 	Util.cpp
-	CPPAdapter/DudleyError.cpp
 	CPPAdapter/MeshAdapter.cpp
 	CPPAdapter/MeshAdapterFactory.cpp
 """.split()
@@ -122,7 +120,6 @@ headers = """
 	Util.h
 """.split()
 cppadapter_headers = """
-	CPPAdapter/DudleyError.h
 	CPPAdapter/MeshAdapter.h
 	CPPAdapter/MeshAdapterFactory.h
 	CPPAdapter/system_dep.h

@@ -14,18 +14,18 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
-/*   Some utility routines: */
+/*   Some utility routines */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_DUDLEY_UTIL
-#define INC_DUDLEY_UTIL
+#ifndef __DUDLEY_UTIL_H__
+#define __DUDLEY_UTIL_H__
 
 #include "Dudley.h"
 
-/************************************************************************************/
+namespace dudley {
 
 void Dudley_Util_Gather_double(dim_t len, index_t * index, dim_t numData, double *in, double *out);
 void Dudley_Util_Gather_int(dim_t len, index_t * index, dim_t numData, index_t * in, index_t * out);
@@ -47,7 +47,7 @@ bool Dudley_Util_isAny(dim_t N, index_t * array, index_t value);
 index_t Dudley_Util_cumsum(dim_t, index_t *);
 bool Dudley_Util_anyNonZeroDouble(dim_t N, double *values);
 void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, dim_t * numValuesInUse,
-				index_t ** valuesInUse, esysUtils::JMPI& mpiinfo);
+                                index_t ** valuesInUse, esysUtils::JMPI& mpiinfo);
 
 #ifdef ESYS_MPI
 void Dudley_printDoubleArray(FILE * fid, dim_t n, double *array, char *name);
@@ -67,4 +67,7 @@ typedef struct Dudley_Util_ValueAndIndex Dudley_Util_ValueAndIndex;
 void Dudley_Util_sortValueAndIndex(dim_t n, Dudley_Util_ValueAndIndex * array);
 int Dudley_Util_ValueAndIndex_compar(const void *, const void *);
 
-#endif				/* #ifndef INC_UTIL_UTIL */
+} // namespace dudley
+
+#endif // __DUDLEY_UTIL_H__
+

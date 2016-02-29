@@ -17,14 +17,16 @@
 /* Shape Function info
 These tables are a much simplified version of content from finley's ShapeFunctions files
 
-This file is not to be included in .h files - only .c files should have any use for it
+This file is not to be included in .h files - only .cpp files should have any use for it
 */
 
-#ifndef SHAPETABLE_DUDLEY
-#define SHAPETABLE_DUDLEY
+#ifndef __DUDLEY_SHAPETABLE_H__
+#define __DUDLEY_SHAPETABLE_H__
 
 #include "Dudley.h"
 #include "ElementType.h"
+
+namespace dudley {
 
 /* These are constructed from dsdv in ShapeFunction.c in finley
    The first two are just there for functions that want a pointer
@@ -62,4 +64,7 @@ bool getQuadShape(dim_t sim, bool reduced, const double **shapearr);
 
 const char *getElementName(Dudley_ElementTypeId id);
 
-#endif
+} // namespace dudley
+
+#endif // __DUDLEY_SHAPETABLE_H__
+
