@@ -22,8 +22,6 @@
 #include "DataException.h"
 #include "DataMaths.h"
 
-#include "esysUtils/Esys_MPI.h"
-
 #include <iostream>
 
 #ifdef USE_NETCDF
@@ -398,7 +396,7 @@ DataConstant::dump(const std::string fileName) const
    long dims[DataTypes::maxRank];
    const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
-   esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+   JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
 #ifdef ESYS_MPI
    const int mpi_iam = mpiInfo->rank;
    const int mpi_num = mpiInfo->size;

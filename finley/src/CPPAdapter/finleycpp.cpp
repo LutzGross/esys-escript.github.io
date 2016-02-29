@@ -25,8 +25,6 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/ExceptionTranslators.h>
 
-#include "esysUtils/Esys_MPI.h"
-
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>

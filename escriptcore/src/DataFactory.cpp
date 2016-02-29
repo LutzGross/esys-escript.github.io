@@ -17,15 +17,13 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "DataFactory.h"
-#include "esysUtils/Esys_MPI.h"
 
 #include <boost/python/extract.hpp>
 #include <boost/scoped_array.hpp>
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -146,7 +144,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
     NcAtt *type_att, *rank_att, *function_space_type_att;
     // netCDF error handler
     NcError err(NcError::silent_nonfatal);
-    esysUtils::JMPI mpiInfo(domain.getMPI());
+    JMPI mpiInfo(domain.getMPI());
     const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     NcFile dataFile(newFileName.c_str(), NcFile::ReadOnly);
     if (!dataFile.is_valid())

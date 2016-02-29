@@ -78,13 +78,13 @@ typedef std::map<std::string, int> TagMap;
 class Mesh
 {
 public:
-    Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info);
+    Mesh(const std::string name, int numDim, escript::JMPI& mpi_info);
     ~Mesh();
 
-    static Mesh* load(esysUtils::JMPI& mpi_info, const std::string fname);
-    static Mesh* read(esysUtils::JMPI& mpi_info, const std::string fname,
+    static Mesh* load(escript::JMPI& mpi_info, const std::string fname);
+    static Mesh* read(escript::JMPI& mpi_info, const std::string fname,
                       int order, int reducedOrder, bool optimize);
-    static Mesh* readGmsh(esysUtils::JMPI& mpi_info, const std::string fname,
+    static Mesh* readGmsh(escript::JMPI& mpi_info, const std::string fname,
                           int numDim, int order, int reducedOrder,
                           bool optimize, bool useMacroElements);
 
@@ -137,10 +137,10 @@ private:
     void writeElementInfo(std::ostream& stream, const ElementFile* e,
                           const std::string defaultType) const;
 
-    static Mesh* readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname,
+    static Mesh* readGmshSlave(escript::JMPI& mpi_info, const std::string fname,
                                int numDim, int order, int reducedOrder,
                                bool optimize, bool useMacroElements);
-    static Mesh* readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname,
+    static Mesh* readGmshMaster(escript::JMPI& mpi_info, const std::string fname,
                                 int numDim, int order, int reducedOrder,
                                 bool optimize, bool useMacroElements);
 
@@ -169,7 +169,7 @@ public:
     paso::SystemMatrixPattern_ptr FullReducedPattern;
     paso::SystemMatrixPattern_ptr ReducedFullPattern;
     paso::SystemMatrixPattern_ptr ReducedReducedPattern;
-    esysUtils::JMPI MPIInfo;
+    escript::JMPI MPIInfo;
 };
 
 // this structure is used for matching surface elements

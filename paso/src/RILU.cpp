@@ -96,11 +96,11 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
     out->b_C=NULL;
 
     /* identify independent set of rows/columns */
-    time0=esysUtils::gettime();
+    time0=escript::gettime();
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<n;++i) mis_marker[i]=-1;
     A_p->pattern->mis(mis_marker);
-    /*time2=esysUtils::gettime()-time0;*/
+    /*time2=escript::gettime()-time0;*/
     #pragma omp parallel for private(i) schedule(static)
     for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
     out->n=n;
@@ -220,11 +220,11 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
         out->A_FC=A_p->getSubmatrix(out->n_F, out->n_C, out->rows_in_F, out->mask_C);
         /* get A_FF block: */
         schur = A_p->getSubmatrix(out->n_C, out->n_C, out->rows_in_C, out->mask_C);
-        time0=esysUtils::gettime()-time0;
-        time1=esysUtils::gettime();
+        time0=escript::gettime()-time0;
+        time1=escript::gettime();
         /* update A_CC block to get Schur complement and then apply RILU to it */
         Solver_updateIncompleteSchurComplement(schur, out->A_CF, out->inv_A_FF, out->A_FF_pivot, out->A_FC);
-        time1=esysUtils::gettime()-time1;
+        time1=escript::gettime()-time1;
         out->RILU_of_Schur = Solver_getRILU(schur, verbose);
         schur.reset();
         /* allocate work arrays for RILU application */

@@ -570,7 +570,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         SystemMatrix_ptr A, SystemMatrix_ptr P,
         SystemMatrix_ptr R)
 {
-   esysUtils::JMPI& mpi_info=A->mpi_info;
+   escript::JMPI& mpi_info=A->mpi_info;
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
    Distribution_ptr input_dist, output_dist;
@@ -1987,7 +1987,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         SystemMatrix_ptr A, SystemMatrix_ptr P,
         SystemMatrix_ptr R)
 {
-   esysUtils::JMPI& mpi_info=A->mpi_info;
+   escript::JMPI& mpi_info=A->mpi_info;
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
    Distribution_ptr input_dist, output_dist;

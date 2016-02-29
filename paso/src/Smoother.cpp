@@ -67,7 +67,7 @@ Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
     const dim_t n=A->numRows;
     const dim_t n_block=A->row_block_size;
     const dim_t block_size=A->block_size;
-    double time0=esysUtils::gettime();
+    double time0=escript::gettime();
     Preconditioner_LocalSmoother* out=new Preconditioner_LocalSmoother;
 
     out->diag=new double[((size_t) n) * ((size_t) block_size)];
@@ -75,7 +75,7 @@ Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
     out->buffer=new double[((size_t) n) * ((size_t)  n_block)];
     out->Jacobi=jacobi;
     A->invMain(out->diag, out->pivot);
-    time0=esysUtils::gettime()-time0;
+    time0=escript::gettime()-time0;
     return out;
 }
 

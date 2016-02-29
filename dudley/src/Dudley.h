@@ -25,8 +25,8 @@
 
 #include <dudley/DudleyException.h>
 
-#include "esysUtils/Esys_MPI.h"
 #include <escript/DataTypes.h>
+#include <escript/EsysMPI.h>
 #include <cstring>
 
 namespace dudley {

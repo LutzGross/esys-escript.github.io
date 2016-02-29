@@ -17,9 +17,9 @@
 #ifndef escript_SubWorld_H
 #define escript_SubWorld_H
 
-#include "esysUtils/Esys_MPI.h"
 #include "AbstractDomain.h"
 #include "AbstractReducer.h"
+#include "EsysMPI.h"
 
 namespace escript
 {
@@ -47,16 +47,16 @@ namespace escript
 class SubWorld : public REFCOUNT_BASE_CLASS(SubWorld)
 {
 public:
-    SubWorld(esysUtils::JMPI& globalcom, esysUtils::JMPI& comm,
-             esysUtils::JMPI& corr, unsigned int subworldcount,
-             unsigned int local_id, bool manualimport);
+    SubWorld(JMPI& globalcom, JMPI& comm, JMPI& corr,
+             unsigned int subworldcount, unsigned int local_id,
+             bool manualimport);
 
     ~SubWorld();
 
     void setDomain(Domain_ptr d);
     Domain_ptr getDomain();
-    esysUtils::JMPI& getMPI();
-    esysUtils::JMPI& getCorrMPI();
+    JMPI& getMPI();
+    JMPI& getCorrMPI();
     void addJob(boost::python::object j);       // add a Job to the current batch
     char runJobs(std::string& errmsg);          // run all jobs in the current batch
     void clearJobs();                           // remove all jobs in the current batch
@@ -91,9 +91,9 @@ public:
     void newRunJobs();
     
 private:
-    esysUtils::JMPI everyone;   // communicator linking all procs in all subworlds
-    esysUtils::JMPI swmpi;      // communicator linking all procs in this subworld
-    esysUtils::JMPI corrmpi;    // communicator linking corresponding procs in all subworlds
+    JMPI everyone;   // communicator linking all procs in all subworlds
+    JMPI swmpi;      // communicator linking all procs in this subworld
+    JMPI corrmpi;    // communicator linking corresponding procs in all subworlds
                                 // eg: If this proc is the first in its domain, then corrmpi
                                 //     links to the other "first in its domain" processes.
                                 //      (So one in each SubWorld).
@@ -120,20 +120,20 @@ private:
     bool globalinfoinvalid;
     
     
-    bool makeComm(MPI_Comm& sourcecom, esysUtils::JMPI& sub,std::vector<int>& members);
+    bool makeComm(MPI_Comm& sourcecom, JMPI& sub,std::vector<int>& members);
 
 
     // a group with NEW nodes at the front and INT and OLDINT at the back
     // NONE worlds get an empty communicator
-    bool makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, esysUtils::JMPI& com);
+    bool makeGroupComm1(MPI_Comm& srccom, int vnum, char mystate, JMPI& com);
 
     // reduce on the first group and copy from cop[0] to others in cop
-    bool makeGroupReduceGroups(MPI_Comm& srccom, int vnum, char mystate, esysUtils::JMPI& red, esysUtils::JMPI& cop, bool& incopy);
+    bool makeGroupReduceGroups(MPI_Comm& srccom, int vnum, char mystate, JMPI& red, JMPI& cop, bool& incopy);
 
 
     // A group with a single OLD or OLDINT at the front and all the INT worlds 
     // following it
-    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, esysUtils::JMPI& com, bool& ingroup);    
+    bool makeGroupComm2(MPI_Comm& srccom, int vnum, char mystate, JMPI& com, bool& ingroup);    
     
 #endif
     

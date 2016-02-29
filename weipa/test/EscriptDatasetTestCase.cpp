@@ -21,8 +21,6 @@
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <weipa/EscriptDataset.h>
-#include <esysUtils/Esys_MPI.h>
-#include <cppunit/TestCaller.h>
 
 #if USE_DUDLEY
 #include <dudley/CppAdapter/MeshAdapterFactory.h>
@@ -36,6 +34,8 @@
 #if USE_SPECKLEY
 #include <speckley/Brick.h>
 #endif
+
+#include <cppunit/TestCaller.h>
 
 using namespace CppUnit;
 using namespace escript;
@@ -91,7 +91,7 @@ void EscriptDatasetTestCase::testBase()
 #if USE_DUDLEY
 void EscriptDatasetTestCase::testDudley()
 {
-    esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    JMPI info=makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(dudley::brick(info));
     cout << "Running Dudley tests..." << endl;
     runDomainTests(dom);
@@ -101,7 +101,7 @@ void EscriptDatasetTestCase::testDudley()
 #if USE_FINLEY
 void EscriptDatasetTestCase::testFinley()
 {
-    esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
+    JMPI info=makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(finley::brick(info));
     cout << "Running Finley tests..." << endl;
     runDomainTests(dom);
@@ -131,7 +131,7 @@ void EscriptDatasetTestCase::testSpeckley()
 void EscriptDatasetTestCase::runDomainTests(Domain_ptr dom)
 {
     EscriptDataset_ptr dataset(new EscriptDataset());
-    escript::Data data = Scalar(0.0, continuousFunction(*dom), true);
+    Data data = Scalar(0.0, continuousFunction(*dom), true);
 
     cout << "\tTest addData with NULL domain." << endl;
     CPPUNIT_ASSERT(dataset->addData(data, "foo", "bar") == false);

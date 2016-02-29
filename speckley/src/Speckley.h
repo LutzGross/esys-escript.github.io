@@ -24,7 +24,7 @@
 
 #include <speckley/system_dep.h>
 
-#include <esysUtils/Esys_MPI.h>
+#include <escript/EsysMPI.h>
 
 #include <boost/shared_ptr.hpp>
 #include <list>

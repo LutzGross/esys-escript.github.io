@@ -31,7 +31,7 @@ namespace dudley {
 
 /*   allocates a node file to hold nodes */
 /*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinates). */
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, esysUtils::JMPI& MPIInfo)
+Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, escript::JMPI& MPIInfo)
 {
     Dudley_NodeFile *out;
 

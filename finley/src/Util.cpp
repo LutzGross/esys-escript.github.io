@@ -343,7 +343,7 @@ std::vector<index_t> packMask(const std::vector<short>& mask)
 }
 
 void setValuesInUse(const int *values, const int numValues,
-                    std::vector<int>& valuesInUse, esysUtils::JMPI& mpiinfo)
+                    std::vector<int>& valuesInUse, escript::JMPI& mpiinfo)
 {
     const index_t INDEX_T_MAX = escript::DataTypes::index_t_max();
     index_t lastFoundValue = escript::DataTypes::index_t_min();

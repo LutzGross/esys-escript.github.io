@@ -19,11 +19,12 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "esysUtils/Esys_MPI.h"
+#include <escript/EsysMPI.h>
 
 #ifdef ESYS_MPI
 
-int main( int argc, char **argv ) {
+int main( int argc, char **argv )
+{
   int status = 0;
   int provided;
   try
@@ -125,7 +126,8 @@ int main( int argc, char **argv ) {
 
 #else
 
-int main( int argc, char **argv ) {
+int main( int argc, char **argv )
+{
 	printf( "Esys must be compiled with ESYS_MPI defined to make the MPI version available\n\n" );
 	return 0;
 }

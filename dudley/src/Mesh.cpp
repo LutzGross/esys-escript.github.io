@@ -23,7 +23,7 @@ namespace dudley {
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected independently. */
 
-Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, esysUtils::JMPI& mpi_info)
+Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, escript::JMPI& mpi_info)
 {
     Dudley_Mesh *out;
 

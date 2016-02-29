@@ -16,7 +16,7 @@
 
 
 #include "FileWriterTestCase.h"
-#include "esysUtils/Esys_MPI.h"
+
 #include "escript/FileWriter.h"
 
 #include <cppunit/TestCaller.h>

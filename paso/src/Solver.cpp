@@ -81,7 +81,7 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     if (A->getGlobalNumCols() != A->getGlobalNumRows()) {
         throw PasoException("Solver: Iterative solver requires a square matrix.");
     }
-    time_iter=esysUtils::gettime();
+    time_iter=escript::gettime();
     /* this for testing only */
     if (method==PASO_NONLINEAR_GMRES) {
         LinearSystem* F = new LinearSystem(A, b, options);
@@ -177,7 +177,7 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
         A->setPreconditioner(options);
         Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
-        options->set_up_time=esysUtils::gettime()-time_iter;
+        options->set_up_time=escript::gettime()-time_iter;
         // get an initial guess by evaluating the preconditioner
         A->solvePreconditioner(x, r);
 
@@ -185,7 +185,7 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         finalizeIteration = false;
         last_norm2_of_residual=norm2_of_b;
         last_norm_max_of_residual=norm_max_of_b;
-        net_time_start=esysUtils::gettime();
+        net_time_start=escript::gettime();
 
         // main loop
         while (!finalizeIteration) {
@@ -321,13 +321,13 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                 }
             }
         } // while
-        options->net_time = esysUtils::gettime()-net_time_start;
+        options->net_time = escript::gettime()-net_time_start;
         options->num_iter = totIter;
         A->applyBalanceInPlace(x, false);
     }
     delete[] r;
     delete[] x0;
-    options->time = esysUtils::gettime()-time_iter;
+    options->time = escript::gettime()-time_iter;
     Performance_stopMonitor(pp, PERFORMANCE_ALL);
     return errorCode;
 }

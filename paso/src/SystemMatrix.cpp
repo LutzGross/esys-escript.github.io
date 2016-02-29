@@ -515,7 +515,7 @@ void SystemMatrix::balance()
 
 int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
                                         int package, bool symmetry,
-                                        const esysUtils::JMPI& mpi_info)
+                                        const escript::JMPI& mpi_info)
 {
     int out = -1;
     int true_package = Options::getPackage(Options::mapEscriptOption(solver),

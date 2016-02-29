@@ -22,7 +22,6 @@
 #include "dudley/Mesh.h"
 #include "dudley/TriangularMesh.h"
 
-#include "esysUtils/Esys_MPI.h"
 #include "escript/SubWorld.h"
 
 #ifdef USE_NETCDF
@@ -67,7 +66,7 @@ inline void cleanupAndThrow(Dudley_Mesh* mesh, string msg)
 Domain_ptr loadMesh(const std::string& fileName)
 {
 #ifdef USE_NETCDF
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
+    escript::JMPI mpi_info = escript::makeInfo( MPI_COMM_WORLD );
     Dudley_Mesh *mesh_p=NULL;
     const string fName(mpi_info->appendRankToFileName(fileName));
 
@@ -436,7 +435,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     return temp->getPtr();
   }
 
-  Domain_ptr brick(esysUtils::JMPI& mpi_info, double n0, double n1,double n2,int order,
+  Domain_ptr brick(escript::JMPI& mpi_info, double n0, double n1,double n2,int order,
                    double l0,double l1,double l2,
                    int periodic0,int periodic1,
                    int periodic2,
@@ -482,7 +481,7 @@ Domain_ptr loadMesh(const std::string& fileName)
   {
       using boost::python::extract;
       boost::python::object pworld=args[15];
-      esysUtils::JMPI info;
+      escript::JMPI info;
       if (!pworld.is_none()) {
           extract<SubWorld_ptr> ex(pworld);
           if (!ex.check()) {       
@@ -490,7 +489,7 @@ Domain_ptr loadMesh(const std::string& fileName)
           }
           info=ex()->getMPI();
       } else {
-          info=esysUtils::makeInfo(MPI_COMM_WORLD);
+          info=escript::makeInfo(MPI_COMM_WORLD);
 
       }
       return brick(info, static_cast<int>(extract<float>(args[0])),
@@ -510,7 +509,7 @@ Domain_ptr loadMesh(const std::string& fileName)
   {
       using boost::python::extract;
       boost::python::object pworld=args[12];
-      esysUtils::JMPI info;
+      escript::JMPI info;
       if (!pworld.is_none()) {
           extract<SubWorld_ptr> ex(pworld);
           if (!ex.check()) {
@@ -518,7 +517,7 @@ Domain_ptr loadMesh(const std::string& fileName)
           }
           info=ex()->getMPI();
       } else {
-          info=esysUtils::makeInfo(MPI_COMM_WORLD);
+          info=escript::makeInfo(MPI_COMM_WORLD);
       }
 
       return rectangle(info, static_cast<int>(extract<float>(args[0])),
@@ -533,7 +532,7 @@ Domain_ptr loadMesh(const std::string& fileName)
   
   
   
-  Domain_ptr rectangle(esysUtils::JMPI& mpi_info, double n0, double n1, int order,
+  Domain_ptr rectangle(escript::JMPI& mpi_info, double n0, double n1, int order,
                        double l0, double l1,
                        int periodic0,int periodic1,
                        int integrationOrder,

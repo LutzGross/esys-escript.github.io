@@ -48,9 +48,7 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
         Pattern_ptr col_couplePattern, Pattern_ptr row_couplePattern,
         Connector_ptr col_connector, Connector_ptr row_connector);
 
-    ~SystemMatrixPattern()
-    {
-    }
+    ~SystemMatrixPattern() {}
 
     inline index_t getNumOutput() const {
         return mainPattern->numOutput;
@@ -60,7 +58,7 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
                                          dim_t input_block_size);
 
     int type;
-    esysUtils::JMPI mpi_info;
+    escript::JMPI mpi_info;
     Pattern_ptr mainPattern;
     Pattern_ptr col_couplePattern;
     Pattern_ptr row_couplePattern;

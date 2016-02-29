@@ -38,7 +38,7 @@ namespace finley {
 // They are only fwd declared here so that vis.studio will accept the friend
 // decls
 FINLEY_DLL_API
-escript::Domain_ptr brick(esysUtils::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
+escript::Domain_ptr brick(escript::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
                           int order, double l0, double l1, double l2,
                           bool periodic0, bool periodic1, bool periodic2,
                           int integrationOrder, int reducedIntegrationOrder,
@@ -49,7 +49,7 @@ escript::Domain_ptr brick(esysUtils::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
                     );
 
 FINLEY_DLL_API              
-escript::Domain_ptr rectangle(esysUtils::JMPI& p, dim_t n0, dim_t n1,
+escript::Domain_ptr rectangle(escript::JMPI& p, dim_t n0, dim_t n1,
                               int order, double l0, double l1,
                               bool periodic0, bool periodic1,
                               int integrationOrder, int reducedIntegrationOrder,
@@ -123,7 +123,7 @@ public:
      \brief
      returns a reference to the MPI information wrapper for this domain
     */
-    virtual esysUtils::JMPI getMPI() const;
+    virtual escript::JMPI getMPI() const;
 
     /**
      \brief
@@ -597,7 +597,7 @@ private:
  
     static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
-    friend escript::Domain_ptr brick(esysUtils::JMPI& p,
+    friend escript::Domain_ptr brick(escript::JMPI& p,
                     dim_t n0, dim_t n1, dim_t n2, int order,
                     double l0, double l1, double l2,
                     bool periodic0, bool periodic1, bool periodic2,
@@ -611,7 +611,7 @@ private:
                     const std::map<std::string, int>& tagNamesToNums);
                     
                     
-  friend escript::Domain_ptr rectangle(esysUtils::JMPI& p,
+  friend escript::Domain_ptr rectangle(escript::JMPI& p,
                         dim_t n0, dim_t n1, int order,
                         double l0, double l1,
                         bool periodic0, bool periodic1,
@@ -626,7 +626,7 @@ private:
 
    friend escript::Domain_ptr readMesh_driver(const boost::python::list& args);
 
-   friend escript::Domain_ptr readMesh(esysUtils::JMPI& p,
+   friend escript::Domain_ptr readMesh(escript::JMPI& p,
                                      const std::string& fileName,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
@@ -636,7 +636,7 @@ private:
 
   friend escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
 
-  friend escript::Domain_ptr readGmsh(esysUtils::JMPI& p,
+  friend escript::Domain_ptr readGmsh(escript::JMPI& p,
                                const std::string& fileName,
                                int numDim, 
                                int integrationOrder,

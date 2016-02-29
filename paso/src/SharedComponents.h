@@ -42,7 +42,7 @@ struct SharedComponents
     SharedComponents(dim_t localLength, dim_t nNeighbours,
             const int* neighbours, const index_t* sharedArray,
             const index_t* offset, index_t m, index_t b,
-            const esysUtils::JMPI& mpiInfo)
+            const escript::JMPI& mpiInfo)
         : local_length(localLength*m),
           numNeighbors(nNeighbours),
           mpi_info(mpiInfo)
@@ -103,7 +103,7 @@ struct SharedComponents
     /// = offsetInShared[numNeighbors]
     dim_t numSharedComponents;
 
-    const esysUtils::JMPI mpi_info;
+    const escript::JMPI mpi_info;
 };
 
 } // namespace paso

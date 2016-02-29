@@ -247,7 +247,7 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     return 0;
 }
 
-int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
+int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
         std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     /*
@@ -482,7 +482,7 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_
     return errorFlag;
 }
 
-int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getElementsSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     /*
@@ -615,7 +615,7 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
 #endif // ESYS_MPI
 }
 
-int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
+int getElements(escript::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     if (mpi_info->rank == 0) {
@@ -702,7 +702,7 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, std::string& errorMsg,
     return 0;
 }
 
-int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getNodesMaster(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
     int numNodes=0;
@@ -819,7 +819,7 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     return errorFlag;
 }
 
-int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getNodesSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
 #ifndef ESYS_MPI
@@ -874,7 +874,7 @@ int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
 #endif //#ifndef ESYS_MPI -> #else
 }
 
-int getNodes(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getNodes(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
     if (mpi_info->rank == 0)
@@ -915,7 +915,7 @@ int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
     return 0;
 }
 
-void recv_state(esysUtils::JMPI& mpi_info, int *error, int *logic) {
+void recv_state(escript::JMPI& mpi_info, int *error, int *logic) {
 #ifdef ESYS_MPI
     int flags[2] = {0};
     // Broadcast line
@@ -926,7 +926,7 @@ void recv_state(esysUtils::JMPI& mpi_info, int *error, int *logic) {
 #endif
 }
 
-void send_state(esysUtils::JMPI& mpi_info, int error, int logic) {
+void send_state(escript::JMPI& mpi_info, int error, int logic) {
 #ifdef ESYS_MPI
     int flags[2] = {error, logic};
     // Broadcast line
@@ -963,7 +963,7 @@ int check_error(int error, FILE *f, const std::string& errorMsg)
     return error;
 }
 
-Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
+Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int numDim, int order,
                      int reduced_order, bool optimize, bool useMacroElements)
 {
     double version = 1.0;
@@ -1114,7 +1114,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     return mesh_p;
 }
 
-Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
+Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int numDim, int order,
                      int reduced_order, bool optimize, bool useMacroElements)
 {
 #ifndef ESYS_MPI
@@ -1195,7 +1195,7 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
 }
 
 
-Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname,
+Mesh* Mesh::readGmsh(escript::JMPI& mpi_info, const std::string fname,
                      int numDim, int order, int reduced_order, bool optimize,
                      bool useMacroElements)
 {

@@ -130,7 +130,7 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         A->solver_package = PASO_MKL;
         // symbolic factorization
         phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
-        time0 = esysUtils::gettime();
+        time0 = escript::gettime();
         ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
                    ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
@@ -150,11 +150,11 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
                 throw PasoException("factorization in MKL library failed. Most likely the matrix is singular.");
            }
            if (verbose)
-               printf("MKL: LDU factorization completed (time = %e).\n", esysUtils::gettime()-time0);
+               printf("MKL: LDU factorization completed (time = %e).\n", escript::gettime()-time0);
         }
     }
     // forward backward substitution
-    time0 = esysUtils::gettime();
+    time0 = escript::gettime();
     phase = MKL_PHASE_SOLVE;
     ES_PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
                ptr, index, &idum, &nrhs, iparm, &msglvl, in, out, &error);
@@ -165,7 +165,7 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         throw PasoException("forward/backward substitution in MKL library failed. Most likely the matrix is singular.");
     } else {
         if (verbose)
-            printf("MKL: forward/backward substitution completed (time = %e).\n", esysUtils::gettime()-time0);
+            printf("MKL: forward/backward substitution completed (time = %e).\n", escript::gettime()-time0);
     }
 #else
     throw PasoException("Paso: MKL is not available.");

@@ -34,7 +34,7 @@
 #include "SharedDataTestCase.h"
 #include "TaipanTestCase.h"
 
-#include "esysUtils/Esys_MPI.h"
+#include "escript/EsysMPI.h"
 
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>

@@ -302,7 +302,7 @@ public:
 
     static int getSystemMatrixTypeId(int solver, int preconditioner,
                                      int package, bool symmetry,
-                                     const esysUtils::JMPI& mpi_info);
+                                     const escript::JMPI& mpi_info);
 
     SystemMatrixType type;
     SystemMatrixPattern_ptr pattern;
@@ -316,7 +316,7 @@ public:
 
     Distribution_ptr row_distribution;
     Distribution_ptr col_distribution;
-    esysUtils::JMPI mpi_info;
+    escript::JMPI mpi_info;
 
     Coupler_ptr col_coupler;
     Coupler_ptr row_coupler;

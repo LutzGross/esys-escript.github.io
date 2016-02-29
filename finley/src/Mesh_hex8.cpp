@@ -38,7 +38,7 @@ namespace finley {
 Mesh* RectangularMesh_Hex8(const dim_t* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool optimize, esysUtils::JMPI& mpiInfo)
+                           bool optimize, escript::JMPI& mpiInfo)
 {
     const int N_PER_E = 1;
     const int DIM = 3;

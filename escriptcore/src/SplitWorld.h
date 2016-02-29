@@ -16,11 +16,13 @@
 
 #ifndef escript_SplitWorld_H
 #define escript_SplitWorld_H
+
+#include "AbstractReducer.h"
+#include "SubWorld.h"
+
 #include <boost/python.hpp>
 #include <boost/smart_ptr.hpp>
-#include "esysUtils/Esys_MPI.h"
-#include "SubWorld.h"
-#include "AbstractReducer.h"
+
 namespace escript
 {
 
@@ -64,8 +66,8 @@ public:
     
     
 private:    
-    esysUtils::JMPI globalcom;	// communicator linking all procs used in this splitworld
-    esysUtils::JMPI leadercom;	// communicator linking the first proc in each subworld
+    JMPI globalcom;	// communicator linking all procs used in this splitworld
+    JMPI leadercom;	// communicator linking the first proc in each subworld
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
     unsigned int swcount;		// number of subwords
     unsigned int localid;		// position of localworld in overall world sequence
@@ -104,3 +106,4 @@ boost::python::object raw_addJobPerWorld(boost::python::tuple t, boost::python::
 boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dict kwargs);
 }
 #endif
+

@@ -34,7 +34,7 @@ namespace finley {
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
 ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
-                         esysUtils::JMPI& mpiInfo) :
+                         escript::JMPI& mpiInfo) :
     referenceElementSet(refSet),
     numElements(0),
     Id(NULL),

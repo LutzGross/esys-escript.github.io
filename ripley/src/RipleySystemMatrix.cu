@@ -88,7 +88,7 @@ void SystemMatrix::checkCUDA()
 #endif
 }
 
-SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
+SystemMatrix::SystemMatrix(escript::JMPI mpiInfo, int blocksize,
                            const escript::FunctionSpace& fs, int nRows,
                            const IndexVector& diagonalOffsets, bool symm) :
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),

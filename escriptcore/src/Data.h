@@ -14,11 +14,11 @@
 *
 *****************************************************************************/
 
-
 /** \file Data.h */
 
-#ifndef DATA_H
-#define DATA_H
+#ifndef __ESCRIPT_DATA_H__
+#define __ESCRIPT_DATA_H__
+
 #include "system_dep.h"
 
 #include "BinaryOp.h"
@@ -26,17 +26,11 @@
 #include "DataAlgorithm.h"
 #include "DataException.h"
 #include "DataTypes.h"
+#include "EsysMPI.h"
 #include "FunctionSpace.h"
 #include "UnaryOp.h"
 
-#include "esysUtils/Esys_MPI.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <algorithm>
-#include <sstream>
 #include <string>
 
 #include <boost/python/object.hpp>
@@ -78,7 +72,6 @@ class Data {
      Default constructor.
      Creates a DataEmpty object.
   */
-  ESCRIPT_DLL_API
   Data();
 
   /**
@@ -86,7 +79,6 @@ class Data {
      Copy constructor.
      WARNING: Only performs a shallow copy.
   */
-  ESCRIPT_DLL_API
   Data(const Data& inData);
 
   /**
@@ -95,17 +87,14 @@ class Data {
      function space of inData the inData are tried to be interpolated to what,
      otherwise a shallow copy of inData is returned.
   */
-  ESCRIPT_DLL_API
   Data(const Data& inData,
        const FunctionSpace& what);
 
   /**
-	\brief Copy Data from an existing vector
+     \brief Copy Data from an existing vector
   */ 
-
-  ESCRIPT_DLL_API
   Data(const DataTypes::RealVectorType& value,
-		 const DataTypes::ShapeType& shape,
+                 const DataTypes::ShapeType& shape,
                  const FunctionSpace& what=FunctionSpace(),
                  bool expanded=false);
 
@@ -120,7 +109,6 @@ class Data {
                        the given value. Otherwise a more efficient storage
                        mechanism will be used.
   */
-  ESCRIPT_DLL_API
   Data(DataTypes::real_t value,
        const DataTypes::ShapeType& dataPointShape=DataTypes::ShapeType(),
        const FunctionSpace& what=FunctionSpace(),
@@ -133,7 +121,6 @@ class Data {
      \param inData - Input - Input Data object.
      \param region - Input - Region to copy.
   */
-  ESCRIPT_DLL_API
   Data(const Data& inData,
        const DataTypes::RegionType& region);
 
@@ -147,7 +134,6 @@ class Data {
                        the value. Otherwise a more efficient storage
                        mechanism will be used.
   */
-  ESCRIPT_DLL_API
   Data(const boost::python::object& value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
@@ -162,7 +148,6 @@ class Data {
                        the value. Otherwise a more efficient storage
                        mechanism will be used.
   */       
-  ESCRIPT_DLL_API     
   Data(const WrappedArray& w, const FunctionSpace& what,
            bool expanded=false);       
        
@@ -176,7 +161,6 @@ class Data {
      \param value - Input - Input data.
      \param other - Input - contains all other parameters.
   */
-  ESCRIPT_DLL_API
   Data(const boost::python::object& value,
        const Data& other);
 
@@ -184,43 +168,37 @@ class Data {
      \brief
      Constructor which creates a DataConstant of "shape" with constant value.
   */
-  ESCRIPT_DLL_API
   Data(DataTypes::real_t value,
        const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
   /**
-	\brief Create a Data using an existing DataAbstract. Warning: The new object assumes ownership of the pointer!
-	Once you have passed the pointer, do not delete it.
+        \brief Create a Data using an existing DataAbstract. Warning: The new object assumes ownership of the pointer!
+        Once you have passed the pointer, do not delete it.
   */
-  ESCRIPT_DLL_API
   explicit Data(DataAbstract* underlyingdata);
 
   /**
-	\brief Create a Data based on the supplied DataAbstract
+        \brief Create a Data based on the supplied DataAbstract
   */
-  ESCRIPT_DLL_API
   explicit Data(DataAbstract_ptr underlyingdata);
 
   /**
      \brief
      Destructor
   */
-  ESCRIPT_DLL_API
   ~Data();
 
   /**
      \brief Make this object a deep copy of "other".
   */
-  ESCRIPT_DLL_API
   void
   copy(const Data& other);
 
   /**
      \brief Return a pointer to a deep copy of this object.
   */
-  ESCRIPT_DLL_API
   Data
   copySelf() const;
 
@@ -228,14 +206,12 @@ class Data {
   /**
      \brief produce a delayed evaluation version of this Data.
   */
-  ESCRIPT_DLL_API
   Data
   delay();
 
   /**
      \brief convert the current data into lazy data.
   */
-  ESCRIPT_DLL_API
   void 
   delaySelf();
 
@@ -249,7 +225,6 @@ class Data {
      switches on update protection
 
   */
-  ESCRIPT_DLL_API
   void
   setProtection();
 
@@ -258,7 +233,6 @@ class Data {
      Returns true, if the data object is protected against update
 
   */
-  ESCRIPT_DLL_API
   bool
   isProtected() const;
 
@@ -267,7 +241,6 @@ class Data {
    \brief 
    Return the value of a data point as a python tuple.
 */
-  ESCRIPT_DLL_API
   const boost::python::object
   getValueOfDataPointAsTuple(int dataPointNo);
 
@@ -275,7 +248,6 @@ class Data {
      \brief
      sets the values of a data-point from a python object on this process
   */
-  ESCRIPT_DLL_API
   void
   setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object& py_object);
 
@@ -283,7 +255,6 @@ class Data {
      \brief
      sets the values of a data-point from a array-like object on this process
   */
-  ESCRIPT_DLL_API
   void
   setValueOfDataPointToArray(int dataPointNo, const boost::python::object&);
 
@@ -291,11 +262,9 @@ class Data {
      \brief
      sets the values of a data-point on this process
   */
-  ESCRIPT_DLL_API
   void
   setValueOfDataPoint(int dataPointNo, const DataTypes::real_t);
   
-  ESCRIPT_DLL_API
   void
   setValueOfDataPointC(int dataPointNo, const DataTypes::cplx_t);  
   
@@ -303,7 +272,6 @@ class Data {
   /**
      \brief Return a data point across all processors as a python tuple.
   */
-  ESCRIPT_DLL_API
   const boost::python::object
   getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
 
@@ -311,7 +279,6 @@ class Data {
   /**
      \brief Set the value of a global data point
   */
-  ESCRIPT_DLL_API
   void
   setTupleForGlobalDataPoint(int id, int proc, boost::python::object);
   
@@ -320,7 +287,6 @@ class Data {
      Return the tag number associated with the given data-point.
 
   */
-  ESCRIPT_DLL_API
   int
   getTagNumber(int dpno);
 
@@ -329,7 +295,6 @@ class Data {
      \brief
      Write the data as a string. For large amounts of data, a summary is printed.
   */
-  ESCRIPT_DLL_API
   std::string
   toString() const;
 
@@ -337,7 +302,6 @@ class Data {
      \brief
      Whatever the current Data type make this into a DataExpanded.
   */
-  ESCRIPT_DLL_API
   void
   expand();
 
@@ -347,7 +311,6 @@ class Data {
      Constant data to be converted to tagged. An attempt to convert
      Expanded data to tagged will throw an exception.
   */
-  ESCRIPT_DLL_API
   void
   tag();
 
@@ -355,7 +318,6 @@ class Data {
     \brief If this data is lazy, then convert it to ready data.
     What type of ready data depends on the expression. For example, Constant+Tagged==Tagged.
   */
-  ESCRIPT_DLL_API
   void
   resolve();
 
@@ -364,28 +326,24 @@ class Data {
   \warning This is dependent on the ability to reliably detect NaNs on your compiler.
    See the nancheck function in LocalOps for details.
   */
-  ESCRIPT_DLL_API
   bool
   hasNaN();
 
   /**
   \brief replaces all NaN values with value 
   */
-  ESCRIPT_DLL_API
   void
   replaceNaN(DataTypes::real_t value);
   
   /**
   \brief replaces all NaN values with value 
   */
-  ESCRIPT_DLL_API
   void
   replaceNaN(DataTypes::cplx_t value);  
   
   /**
   \brief replaces all NaN values with value 
   */
-  ESCRIPT_DLL_API
   void
   replaceNaNPython(boost::python::object obj);  
 
@@ -399,7 +357,6 @@ class Data {
   Do not create any Data objects from this one between calling requireWrite and getSampleDataRW.
   Doing so might introduce additional sharing.
   */
-  ESCRIPT_DLL_API
   void
   requireWrite();
 
@@ -408,7 +365,6 @@ class Data {
      Return true if this Data is expanded.
      \note To determine if a sample will contain separate values for each datapoint. Use actsExpanded instead.
   */
-  ESCRIPT_DLL_API
   bool
   isExpanded() const;
 
@@ -417,7 +373,6 @@ class Data {
      Return true if this Data is expanded or resolves to expanded.
      That is, if it has a separate value for each datapoint in the sample.
   */
-  ESCRIPT_DLL_API
   bool
   actsExpanded() const;
   
@@ -426,7 +381,6 @@ class Data {
      \brief
      Return true if this Data is tagged.
   */
-  ESCRIPT_DLL_API
   bool
   isTagged() const;
 
@@ -434,21 +388,18 @@ class Data {
      \brief
      Return true if this Data is constant.
   */
-  ESCRIPT_DLL_API
   bool
   isConstant() const;
 
   /**
      \brief Return true if this Data is lazy.
   */
-  ESCRIPT_DLL_API
   bool
   isLazy() const;
 
   /**
      \brief Return true if this data is ready.
   */
-  ESCRIPT_DLL_API
   bool
   isReady() const;
 
@@ -457,7 +408,6 @@ class Data {
      Return true if this Data holds an instance of DataEmpty. This is _not_ the same as asking if the object 
 contains datapoints.
   */
-  ESCRIPT_DLL_API
   bool
   isEmpty() const;
 
@@ -465,7 +415,6 @@ contains datapoints.
     \brief
     True if components of this data are stored as complex
   */
-  ESCRIPT_DLL_API
   bool
   isComplex() const;
 
@@ -473,7 +422,6 @@ contains datapoints.
      \brief
      Return the function space.
   */
-  ESCRIPT_DLL_API
   inline
   const FunctionSpace&
   getFunctionSpace() const
@@ -485,7 +433,6 @@ contains datapoints.
      \brief
      Return the domain.
   */
-  ESCRIPT_DLL_API
   inline
 //   const AbstractDomain&
   const_Domain_ptr
@@ -500,7 +447,6 @@ contains datapoints.
      Return the domain.
      TODO: For internal use only.   This should be removed.
   */
-  ESCRIPT_DLL_API
   inline
 //   const AbstractDomain&
   Domain_ptr
@@ -513,7 +459,6 @@ contains datapoints.
      \brief
      Return the rank of the point data.
   */
-  ESCRIPT_DLL_API
   inline
   unsigned int
   getDataPointRank() const
@@ -525,7 +470,6 @@ contains datapoints.
      \brief
      Return the number of data points
   */
-  ESCRIPT_DLL_API
   inline
   int
   getNumDataPoints() const
@@ -536,7 +480,6 @@ contains datapoints.
      \brief
      Return the number of samples.
   */
-  ESCRIPT_DLL_API
   inline
   int
   getNumSamples() const
@@ -548,7 +491,6 @@ contains datapoints.
      \brief
      Return the number of data points per sample.
   */
-  ESCRIPT_DLL_API
   inline
   int
   getNumDataPointsPerSample() const
@@ -561,7 +503,6 @@ contains datapoints.
      Returns true if the number of data points per sample and the number of
      samples match the respective argument. DataEmpty always returns true.
   */
-  ESCRIPT_DLL_API
   inline
   bool numSamplesEqual(int numDataPointsPerSample, int numSamples) const
   {
@@ -584,10 +525,9 @@ contains datapoints.
   }
 
   /**
-	\brief
-	Return the number of values in the shape for this object.
+        \brief
+        Return the number of values in the shape for this object.
   */
-  ESCRIPT_DLL_API
   int
   getNoValues() const
   {
@@ -599,7 +539,6 @@ contains datapoints.
      \brief
      dumps the object into a netCDF file
   */
-  ESCRIPT_DLL_API
   void
   dump(const std::string fileName) const;
 
@@ -609,7 +548,6 @@ contains datapoints.
   \param scalarastuple If true, scalar data will produce single valued tuples [(1,) (2,) ...]
 If false, the result is a list of scalars [1, 2, ...]
  */
-  ESCRIPT_DLL_API
   const boost::python::object
   toListOfTuples(bool scalarastuple=true);
 
@@ -621,7 +559,6 @@ If false, the result is a list of scalars [1, 2, ...]
     \param sampleNo - Input - the given sample no.
     \return pointer to the sample data.
 */
-  ESCRIPT_DLL_API
   inline
   const DataTypes::real_t*
   getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
@@ -634,7 +571,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \param sampleNo - Input - the given sample no.
      \return pointer to the sample data.
   */
-  ESCRIPT_DLL_API
   inline
   DataTypes::real_t*
   getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
@@ -646,11 +582,9 @@ If false, the result is a list of scalars [1, 2, ...]
     \warning please avoid using this method since it by-passes possible lazy improvements. May be removed without notice.
     \return pointer to the data.
 */
-  ESCRIPT_DLL_API
   const DataTypes::real_t*
   getDataRO(DataTypes::real_t dummy=0) const;  
   
-  ESCRIPT_DLL_API
   const DataTypes::cplx_t*
   getDataRO(DataTypes::cplx_t dummy) const;    
   
@@ -662,7 +596,6 @@ If false, the result is a list of scalars [1, 2, ...]
      access data that isn't tagged an exception will be thrown.
      \param tag - Input - the tag key.
   */
-  ESCRIPT_DLL_API
   inline
   DataTypes::real_t*
   getSampleDataByTag(int tag)
@@ -676,7 +609,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \param sampleNo - Input -
      \param dataPointNo - Input -
   */
-  ESCRIPT_DLL_API
   DataTypes::RealVectorType::const_reference
   getDataPointRO(int sampleNo, int dataPointNo);
 
@@ -686,7 +618,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \param sampleNo - Input -
      \param dataPointNo - Input -
   */
-  ESCRIPT_DLL_API
   DataTypes::RealVectorType::reference
   getDataPointRW(int sampleNo, int dataPointNo);
 
@@ -696,7 +627,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \brief 
      Return the offset for the given sample and point within the sample
   */
-  ESCRIPT_DLL_API
   inline
   DataTypes::RealVectorType::size_type
   getDataOffset(int sampleNo,
@@ -709,19 +639,17 @@ If false, the result is a list of scalars [1, 2, ...]
      \brief
      Return a reference to the data point shape.
   */
-  ESCRIPT_DLL_API
   inline
   const DataTypes::ShapeType&
   getDataPointShape() const
   {
-	return m_data->getShape();
+        return m_data->getShape();
   }
 
   /**
      \brief
      Return the data point shape as a tuple of integers.
   */
-  ESCRIPT_DLL_API
   const boost::python::tuple
   getShapeTuple() const;
 
@@ -730,7 +658,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return the size of the data point. It is the product of the
      data point shape dimensions.
   */
-  ESCRIPT_DLL_API
   int
   getDataPointSize() const;
 
@@ -738,7 +665,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \brief
      Return the number of doubles stored for this Data.
   */
-  ESCRIPT_DLL_API
   DataTypes::RealVectorType::size_type
   getLength() const;
 
@@ -746,11 +672,10 @@ If false, the result is a list of scalars [1, 2, ...]
   \brief Return true if this object contains no samples.
   This is not the same as isEmpty() 
   */
-  ESCRIPT_DLL_API
   bool
   hasNoSamples() const
   {
-	return getLength()==0;
+        return getLength()==0;
   }
 
   /**
@@ -761,7 +686,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \param name - Input - name of tag.
      \param value - Input - Value to associate with given key.
   */
-  ESCRIPT_DLL_API
   void
   setTaggedValueByName(std::string name,
                        const boost::python::object& value);
@@ -775,7 +699,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \param value - Input - Value to associate with given key.
     ==>*
   */
-  ESCRIPT_DLL_API
   void
   setTaggedValue(int tagKey,
                  const boost::python::object& value);
@@ -790,26 +713,23 @@ If false, the result is a list of scalars [1, 2, ...]
      \param value - Input - Value to associate with given key.
      \param dataOffset - Input - Offset of the begining of the point within the value parameter
   */
-  ESCRIPT_DLL_API
   void
   setTaggedValueFromCPP(int tagKey,
-			const DataTypes::ShapeType& pointshape,
+                        const DataTypes::ShapeType& pointshape,
                         const DataTypes::RealVectorType& value,
-			int dataOffset=0);
+                        int dataOffset=0);
 
 
-  ESCRIPT_DLL_API
   void
   setTaggedValueFromCPP(int tagKey,
-			const DataTypes::ShapeType& pointshape,
+                        const DataTypes::ShapeType& pointshape,
                         const DataTypes::CplxVectorType& value,
-			int dataOffset=0);  
+                        int dataOffset=0);  
 
   /**
     \brief
     Copy other Data object into this Data object where mask is positive.
   */
-  ESCRIPT_DLL_API
   void
   copyWithMask(const Data& other,
                const Data& mask);
@@ -823,7 +743,6 @@ If false, the result is a list of scalars [1, 2, ...]
      set all values to zero
      *
   */
-  ESCRIPT_DLL_API
   void
   setToZero();
 
@@ -833,48 +752,39 @@ If false, the result is a list of scalars [1, 2, ...]
      the result as a Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   interpolate(const FunctionSpace& functionspace) const;
 
-  ESCRIPT_DLL_API
   Data
   interpolateFromTable3D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                        DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, 
-			DataTypes::real_t Cmin, DataTypes::real_t Cstep, bool check_boundaries);
+                        DataTypes::real_t Cmin, DataTypes::real_t Cstep, bool check_boundaries);
 
-  ESCRIPT_DLL_API
   Data
   interpolateFromTable2D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                        DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep,bool check_boundaries);
 
-  ESCRIPT_DLL_API
   Data
   interpolateFromTable1D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                        DataTypes::real_t undef,bool check_boundaries);
 
 
-  ESCRIPT_DLL_API
   Data
   interpolateFromTable3DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                         Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, DataTypes::real_t Cmin, DataTypes::real_t Cstep, DataTypes::real_t undef,bool check_boundaries);
 
 
-  ESCRIPT_DLL_API
   Data
   interpolateFromTable2DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                         Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, DataTypes::real_t undef,bool check_boundaries);
 
-  ESCRIPT_DLL_API
   Data
   interpolateFromTable1DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                         DataTypes::real_t undef,bool check_boundaries);
   
-  ESCRIPT_DLL_API
   Data
   nonuniforminterp(boost::python::object in, boost::python::object out, bool check_boundaries);
 
-  ESCRIPT_DLL_API
   Data
   nonuniformslope(boost::python::object in, boost::python::object out, bool check_boundaries);  
   
@@ -884,11 +794,9 @@ If false, the result is a list of scalars [1, 2, ...]
      If functionspace is not present the function space of Function(getDomain()) is used.
      *
   */
-  ESCRIPT_DLL_API
   Data
   gradOn(const FunctionSpace& functionspace) const;
 
-  ESCRIPT_DLL_API
   Data
   grad() const;
 
@@ -896,7 +804,6 @@ If false, the result is a list of scalars [1, 2, ...]
     \brief
      Calculate the integral over the function space domain as a python tuple.
   */
-  ESCRIPT_DLL_API
   boost::python::object
   integrateToTuple_const() const;
 
@@ -905,7 +812,6 @@ If false, the result is a list of scalars [1, 2, ...]
     \brief
      Calculate the integral over the function space domain as a python tuple.
   */
-  ESCRIPT_DLL_API
   boost::python::object
   integrateToTuple();
 
@@ -916,7 +822,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Returns 1./ Data object
      *
   */
-  ESCRIPT_DLL_API
   Data
   oneOver() const;
   /**
@@ -924,7 +829,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return a Data with a 1 for +ive values and a 0 for 0 or -ive values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   wherePositive() const;
 
@@ -933,7 +837,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return a Data with a 1 for -ive values and a 0 for +ive or 0 values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   whereNegative() const;
 
@@ -942,7 +845,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return a Data with a 1 for +ive or 0 values and a 0 for -ive values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   whereNonNegative() const;
 
@@ -951,7 +853,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return a Data with a 1 for -ive or 0 values and a 0 for +ive values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   whereNonPositive() const;
 
@@ -960,7 +861,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return a Data with a 1 for 0 values and a 0 for +ive or -ive values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   whereZero(DataTypes::real_t tol=0.0) const;
 
@@ -969,7 +869,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return a Data with a 0 for 0 values and a 1 for +ive or -ive values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   whereNonZero(DataTypes::real_t tol=0.0) const;
 
@@ -984,11 +883,9 @@ If false, the result is a list of scalars [1, 2, ...]
      For Data which contain no samples (or tagged Data for which no tags in use have a value)
      zero is returned.
   */
-  ESCRIPT_DLL_API
   DataTypes::real_t
   Lsup();
 
-  ESCRIPT_DLL_API
   DataTypes::real_t
   Lsup_const() const;
 
@@ -1004,11 +901,9 @@ If false, the result is a list of scalars [1, 2, ...]
      For Data which contain no samples (or tagged Data for which no tags in use have a value)
      a large negative value is returned.
   */
-  ESCRIPT_DLL_API
   DataTypes::real_t
   sup();
 
-  ESCRIPT_DLL_API
   DataTypes::real_t
   sup_const() const;
 
@@ -1024,11 +919,9 @@ If false, the result is a list of scalars [1, 2, ...]
      For Data which contain no samples (or tagged Data for which no tags in use have a value)
      a large positive value is returned.
   */
-  ESCRIPT_DLL_API
   DataTypes::real_t
   inf();
 
-  ESCRIPT_DLL_API
   DataTypes::real_t
   inf_const() const;
 
@@ -1039,7 +932,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return the absolute value of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   abs() const;
 
@@ -1048,7 +940,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return the maximum value of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   maxval() const;
 
@@ -1057,7 +948,6 @@ If false, the result is a list of scalars [1, 2, ...]
      Return the minimum value of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   minval() const;
 
@@ -1068,7 +958,6 @@ If false, the result is a list of scalars [1, 2, ...]
      \note If you are working in python, please consider using Locator 
 instead of manually manipulating process and point IDs.
   */
-  ESCRIPT_DLL_API
   const boost::python::tuple
   minGlobalDataPoint() const;
 
@@ -1079,7 +968,6 @@ instead of manually manipulating process and point IDs.
      \note If you are working in python, please consider using Locator 
 instead of manually manipulating process and point IDs.
   */
-  ESCRIPT_DLL_API
   const boost::python::tuple
   maxGlobalDataPoint() const;
 
@@ -1091,7 +979,6 @@ instead of manually manipulating process and point IDs.
      -1 for negative values, zero for zero values, 1 for positive values.
      *
   */
-  ESCRIPT_DLL_API
   Data
   sign() const;
 
@@ -1100,7 +987,6 @@ instead of manually manipulating process and point IDs.
      Return the symmetric part of a matrix which is half the matrix plus its transpose.
      *
   */
-  ESCRIPT_DLL_API
   Data
   symmetric() const;
 
@@ -1109,7 +995,6 @@ instead of manually manipulating process and point IDs.
      Return the nonsymmetric part of a matrix which is half the matrix minus its transpose.
      *
   */
-  ESCRIPT_DLL_API
   Data
   nonsymmetric() const;
 
@@ -1118,7 +1003,6 @@ instead of manually manipulating process and point IDs.
      Return the trace of a matrix
      *
   */
-  ESCRIPT_DLL_API
   Data
   trace(int axis_offset) const;
 
@@ -1127,7 +1011,6 @@ instead of manually manipulating process and point IDs.
      Transpose each data point of this Data object around the given axis.
      *
   */
-  ESCRIPT_DLL_API
   Data
   transpose(int axis_offset) const;
 
@@ -1137,7 +1020,6 @@ instead of manually manipulating process and point IDs.
      Currently this function is restricted to rank 2, square shape, and dimension 3.
      *
   */
-  ESCRIPT_DLL_API
   Data
   eigenvalues() const;
 
@@ -1150,7 +1032,6 @@ instead of manually manipulating process and point IDs.
      Currently this function is restricted to rank 2, square shape, and dimension 3
      *
   */
-  ESCRIPT_DLL_API
   const boost::python::tuple
   eigenvalues_and_eigenvectors(const DataTypes::real_t tol=1.e-12) const;
 
@@ -1159,7 +1040,6 @@ instead of manually manipulating process and point IDs.
      swaps the components axis0 and axis1
      *
   */
-  ESCRIPT_DLL_API
   Data
   swapaxes(const int axis0, const int axis1) const;
 
@@ -1168,7 +1048,6 @@ instead of manually manipulating process and point IDs.
      Return the error function erf of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   erf() const;
 
@@ -1178,15 +1057,12 @@ instead of manually manipulating process and point IDs.
      For complex values return the conjugate values.
      For non-complex data return a copy
   */
-  ESCRIPT_DLL_API
   Data
   conjugate() const;
   
-  ESCRIPT_DLL_API
   Data
   real() const;  
   
-  ESCRIPT_DLL_API
   Data
   imag() const;  
 
@@ -1195,7 +1071,6 @@ instead of manually manipulating process and point IDs.
      Return the sin of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   sin() const;
 
@@ -1204,7 +1079,6 @@ instead of manually manipulating process and point IDs.
      Return the cos of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   cos() const;
 
@@ -1213,7 +1087,6 @@ instead of manually manipulating process and point IDs.
      Bessel worker function.
      *
   */
-  ESCRIPT_DLL_API
   Data
   bessel(int order, DataTypes::real_t (*besselfunc) (int,DataTypes::real_t) );
   
@@ -1223,7 +1096,6 @@ instead of manually manipulating process and point IDs.
      Return the Bessel function of the first kind for each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   besselFirstKind(int order);
 
@@ -1232,7 +1104,6 @@ instead of manually manipulating process and point IDs.
      Return the Bessel function of the second kind for each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   besselSecondKind(int order);
 
@@ -1242,7 +1113,6 @@ instead of manually manipulating process and point IDs.
      Return the tan of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   tan() const;
 
@@ -1251,7 +1121,6 @@ instead of manually manipulating process and point IDs.
      Return the asin of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   asin() const;
 
@@ -1260,7 +1129,6 @@ instead of manually manipulating process and point IDs.
      Return the acos of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   acos() const;
 
@@ -1269,7 +1137,6 @@ instead of manually manipulating process and point IDs.
      Return the atan of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   atan() const;
 
@@ -1278,7 +1145,6 @@ instead of manually manipulating process and point IDs.
      Return the sinh of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   sinh() const;
 
@@ -1287,7 +1153,6 @@ instead of manually manipulating process and point IDs.
      Return the cosh of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   cosh() const;
 
@@ -1296,7 +1161,6 @@ instead of manually manipulating process and point IDs.
      Return the tanh of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   tanh() const;
 
@@ -1305,7 +1169,6 @@ instead of manually manipulating process and point IDs.
      Return the asinh of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   asinh() const;
 
@@ -1314,7 +1177,6 @@ instead of manually manipulating process and point IDs.
      Return the acosh of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   acosh() const;
 
@@ -1323,7 +1185,6 @@ instead of manually manipulating process and point IDs.
      Return the atanh of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   atanh() const;
 
@@ -1332,7 +1193,6 @@ instead of manually manipulating process and point IDs.
      Return the log to base 10 of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   log10() const;
 
@@ -1341,7 +1201,6 @@ instead of manually manipulating process and point IDs.
      Return the natural log of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   log() const;
 
@@ -1350,7 +1209,6 @@ instead of manually manipulating process and point IDs.
      Return the exponential function of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   exp() const;
 
@@ -1359,7 +1217,6 @@ instead of manually manipulating process and point IDs.
      Return the square root of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   sqrt() const;
 
@@ -1368,7 +1225,6 @@ instead of manually manipulating process and point IDs.
      Return the negation of each data point of this Data object.
      *
   */
-  ESCRIPT_DLL_API
   Data
   neg() const;
 
@@ -1378,7 +1234,6 @@ instead of manually manipulating process and point IDs.
      Simply returns this object unmodified.
      *
   */
-  ESCRIPT_DLL_API
   Data
   pos() const;
 
@@ -1389,7 +1244,6 @@ instead of manually manipulating process and point IDs.
      \param right Input - the power to raise the object to.
      *
   */
-  ESCRIPT_DLL_API
   Data
   powD(const Data& right) const;
 
@@ -1400,7 +1254,6 @@ instead of manually manipulating process and point IDs.
      \param right Input - the power to raise the object to.
      *
    */
-  ESCRIPT_DLL_API
   Data
   powO(const boost::python::object& right) const;
 
@@ -1412,7 +1265,6 @@ instead of manually manipulating process and point IDs.
      *
    */
 
-  ESCRIPT_DLL_API
   Data
   rpowO(const boost::python::object& left) const;
 
@@ -1422,12 +1274,9 @@ instead of manually manipulating process and point IDs.
      \param right - Input - The right hand side.
      *
   */
-  ESCRIPT_DLL_API
   Data& operator+=(const Data& right);
-  ESCRIPT_DLL_API
   Data& operator+=(const boost::python::object& right);
 
-  ESCRIPT_DLL_API
   Data& operator=(const Data& other);
 
   /**
@@ -1436,9 +1285,7 @@ instead of manually manipulating process and point IDs.
      \param right - Input - The right hand side.
      *
   */
-  ESCRIPT_DLL_API
   Data& operator-=(const Data& right);
-  ESCRIPT_DLL_API
   Data& operator-=(const boost::python::object& right);
 
  /**
@@ -1447,9 +1294,7 @@ instead of manually manipulating process and point IDs.
      \param right - Input - The right hand side.
      *
   */
-  ESCRIPT_DLL_API
   Data& operator*=(const Data& right);
-  ESCRIPT_DLL_API
   Data& operator*=(const boost::python::object& right);
 
  /**
@@ -1458,37 +1303,31 @@ instead of manually manipulating process and point IDs.
      \param right - Input - The right hand side.
      *
   */
-  ESCRIPT_DLL_API
   Data& operator/=(const Data& right);
-  ESCRIPT_DLL_API
   Data& operator/=(const boost::python::object& right);
 
   /**
     \brief
     Newer style division operator for python
   */
-  ESCRIPT_DLL_API
   Data truedivD(const Data& right);
 
   /**
     \brief
     Newer style division operator for python
   */
-  ESCRIPT_DLL_API
   Data truedivO(const boost::python::object& right);
 
   /**
     \brief
     Newer style division operator for python
   */
-  ESCRIPT_DLL_API
   Data rtruedivO(const boost::python::object& left);
 
   /**
     \brief
     wrapper for python add operation
   */
-  ESCRIPT_DLL_API
   boost::python::object __add__(const boost::python::object& right);
   
 
@@ -1496,41 +1335,35 @@ instead of manually manipulating process and point IDs.
     \brief
     wrapper for python subtract operation
   */
-  ESCRIPT_DLL_API
   boost::python::object __sub__(const boost::python::object& right);
   
   /**
     \brief
     wrapper for python reverse subtract operation
   */
-  ESCRIPT_DLL_API
   boost::python::object __rsub__(const boost::python::object& right);  
 
   /**
     \brief
     wrapper for python multiply operation
   */
-  ESCRIPT_DLL_API
   boost::python::object __mul__(const boost::python::object& right);
     
   /**
     \brief
     wrapper for python divide operation
   */
-  ESCRIPT_DLL_API
   boost::python::object __div__(const boost::python::object& right);
   
   /**
     \brief
     wrapper for python reverse divide operation
   */
-  ESCRIPT_DLL_API
   boost::python::object __rdiv__(const boost::python::object& right);    
   
   /**
-	\brief return inverse of matricies.
+        \brief return inverse of matricies.
   */
-  ESCRIPT_DLL_API
   Data
   matrixInverse() const;
 
@@ -1538,7 +1371,6 @@ instead of manually manipulating process and point IDs.
      \brief
      Returns true if this can be interpolated to functionspace.
   */
-  ESCRIPT_DLL_API
   bool
   probeInterpolation(const FunctionSpace& functionspace) const;
 
@@ -1557,7 +1389,6 @@ instead of manually manipulating process and point IDs.
      \param key - Input - python slice tuple specifying
      slice to return.
   */
-  ESCRIPT_DLL_API
   Data
   getItem(const boost::python::object& key) const;
 
@@ -1572,12 +1403,10 @@ instead of manually manipulating process and point IDs.
      slice to copy from value.
      \param value - Input - Data object to copy from.
   */
-  ESCRIPT_DLL_API
   void
   setItemD(const boost::python::object& key,
            const Data& value);
 
-  ESCRIPT_DLL_API
   void
   setItemO(const boost::python::object& key,
            const boost::python::object& value);
@@ -1590,7 +1419,6 @@ instead of manually manipulating process and point IDs.
      this Data object.
   */
   template <class UnaryFunction>
-  ESCRIPT_DLL_API
   inline
   void
   unaryOp2(UnaryFunction operation);
@@ -1602,7 +1430,6 @@ instead of manually manipulating process and point IDs.
      \param region - Input - Region to copy.
      *
   */
-  ESCRIPT_DLL_API
   Data
   getSlice(const DataTypes::RegionType& region) const;
 
@@ -1614,7 +1441,6 @@ instead of manually manipulating process and point IDs.
      \param region - Input - Region to copy.
      *
   */
-  ESCRIPT_DLL_API
   void
   setSlice(const Data& value,
            const DataTypes::RegionType& region);
@@ -1623,9 +1449,8 @@ instead of manually manipulating process and point IDs.
      \brief
      print the data values to stdout. Used for debugging
   */
-  ESCRIPT_DLL_API
   void
-        print(void);
+  print(void);
 
   /**
      \brief
@@ -1633,7 +1458,6 @@ instead of manually manipulating process and point IDs.
                  MPI_COMM_WORLD is assumed and the result of MPI_Comm_size()
                  is returned
   */
-  ESCRIPT_DLL_API
         int
         get_MPIRank(void) const;
 
@@ -1643,7 +1467,6 @@ instead of manually manipulating process and point IDs.
                  MPI_COMM_WORLD is assumed and the result of MPI_Comm_rank()
                  is returned
   */
-  ESCRIPT_DLL_API
         int
         get_MPISize(void) const;
 
@@ -1652,24 +1475,20 @@ instead of manually manipulating process and point IDs.
      return the MPI rank number of the local data
                  MPI_COMM_WORLD is assumed and returned.
   */
-  ESCRIPT_DLL_API
         MPI_Comm
         get_MPIComm(void) const;
 
   /**
      \brief
      return the object produced by the factory, which is a DataConstant or DataExpanded
-	TODO Ownership of this object should be explained in doco.
+        TODO Ownership of this object should be explained in doco.
   */
-  ESCRIPT_DLL_API
         DataAbstract*
         borrowData(void) const;
 
-  ESCRIPT_DLL_API
         DataAbstract_ptr
         borrowDataPtr(void) const;
 
-  ESCRIPT_DLL_API
         DataReady_ptr
         borrowReadyPtr(void) const;
 
@@ -1682,24 +1501,18 @@ instead of manually manipulating process and point IDs.
      \param i - position(offset) in the underlying datastructure
   */
 
-  ESCRIPT_DLL_API
         DataTypes::RealVectorType::const_reference
         getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
 
-
-  ESCRIPT_DLL_API
         DataTypes::RealVectorType::reference
         getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
-	
-  ESCRIPT_DLL_API
+        
         DataTypes::CplxVectorType::const_reference
         getDataAtOffsetRO(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
 
-
-  ESCRIPT_DLL_API
         DataTypes::CplxVectorType::reference
-        getDataAtOffsetRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);	
-	
+        getDataAtOffsetRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);     
+        
 
   /**
     \brief Ensures that the Data is expanded and returns its underlying vector
@@ -1710,11 +1523,9 @@ instead of manually manipulating process and point IDs.
     to allow quick initialisation of Data by domain; not as a bypass around 
     escript's other mechanisms.
   */
-  ESCRIPT_DLL_API
   DataTypes::RealVectorType&
   getExpandedVectorReference(DataTypes::real_t dummy=0);
 
-  ESCRIPT_DLL_API
   DataTypes::CplxVectorType&
   getExpandedVectorReference(DataTypes::cplx_t dummy);
   
@@ -1723,14 +1534,12 @@ instead of manually manipulating process and point IDs.
    * \brief For tagged Data returns the number of tags with values.
    * For non-tagged data will return 0 (even Data which has been expanded from tagged).
   */ 
-  ESCRIPT_DLL_API
   size_t
   getNumberOfTaggedValues() const;
 
   /*
   * \brief make the data complex
   */
-  ESCRIPT_DLL_API
   void complicate();
  
  protected:
@@ -1826,7 +1635,7 @@ template <class BinaryOp>
   
   void
   binaryDataOp(const Data& right,
-		   escript::ESFunction operation); 
+                   escript::ESFunction operation); 
   
 
   /**
@@ -1852,7 +1661,7 @@ template <class BinaryOp>
 
   void
   initialise(const DataTypes::RealVectorType& value,
-	     const DataTypes::ShapeType& shape,
+             const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
 
@@ -1863,7 +1672,7 @@ template <class BinaryOp>
 
   void
   initialise(const DataTypes::real_t value,
-	     const DataTypes::ShapeType& shape,
+             const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
 
@@ -1904,7 +1713,7 @@ template <class BinaryOp>
   */
   void updateShareStatus(bool nowshared) const
   {
-	m_shared=nowshared;		// m_shared is mutable
+        m_shared=nowshared;             // m_shared is mutable
   }
 
   // In the isShared() method below:
@@ -1923,28 +1732,28 @@ template <class BinaryOp>
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-	return m_shared;
-/*	if (m_shared) return true;
-	if (m_data->isShared())			
-	{					
-		updateShareStatus(true);
-		return true;
-	}
-	return false;*/
+        return m_shared;
+/*      if (m_shared) return true;
+        if (m_data->isShared())                 
+        {                                       
+                updateShareStatus(true);
+                return true;
+        }
+        return false;*/
   }
 
   void forceResolve()
   {
-	if (isLazy())
-	{
-	    #ifdef _OPENMP
-	    if (omp_in_parallel())
-	    {	// Yes this is throwing an exception out of an omp thread which is forbidden.
-		throw DataException("Please do not call forceResolve() in a parallel region.");
-	    }
-	    #endif
-	    resolve();
-	}
+        if (isLazy())
+        {
+            #ifdef _OPENMP
+            if (omp_in_parallel())
+            {   // Yes this is throwing an exception out of an omp thread which is forbidden.
+                throw DataException("Please do not call forceResolve() in a parallel region.");
+            }
+            #endif
+            resolve();
+        }
   }
 
   /**
@@ -1956,18 +1765,18 @@ template <class BinaryOp>
 #ifdef _OPENMP
   if (omp_in_parallel())
   {
-	throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
+        throw DataException("Programming error. Please do not run exclusiveWrite() in multi-threaded sections.");
   }
 #endif
-	forceResolve();
-	if (isShared())
-	{
-		DataAbstract* t=m_data->deepCopy();
-   		set_m_data(DataAbstract_ptr(t));
-	}
-#ifdef EXWRITECHK		
-	m_data->exclusivewritecalled=true;
-#endif	
+        forceResolve();
+        if (isShared())
+        {
+                DataAbstract* t=m_data->deepCopy();
+                set_m_data(DataAbstract_ptr(t));
+        }
+#ifdef EXWRITECHK               
+        m_data->exclusivewritecalled=true;
+#endif  
   }
 
   /**
@@ -1975,10 +1784,10 @@ template <class BinaryOp>
   */
   void checkExclusiveWrite()
   {
-	if  (isLazy() || isShared())
-	{
-		throw DataException("Programming error. ExclusiveWrite required - please call requireWrite()");
-	}
+        if  (isLazy() || isShared())
+        {
+                throw DataException("Programming error. ExclusiveWrite required - please call requireWrite()");
+        }
   }
 
   /**
@@ -1989,25 +1798,22 @@ template <class BinaryOp>
   */
   void set_m_data(DataAbstract_ptr p);
 
-  friend class DataAbstract;		// To allow calls to updateShareStatus
-  friend class TestDomain;		// so its getX will work quickly
+  friend class DataAbstract;            // To allow calls to updateShareStatus
+  friend class TestDomain;              // so its getX will work quickly
 #ifdef IKNOWWHATIMDOING
-  friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
+  friend Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
-  friend ESCRIPT_DLL_API Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
-  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed, const boost::python::tuple& filter);
+  friend Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+  friend Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed, const boost::python::tuple& filter);
 
 };
 
 
 #ifdef IKNOWWHATIMDOING
-ESCRIPT_DLL_API
 Data
 applyBinaryCFunction(boost::python::object func, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
 
-
-ESCRIPT_DLL_API
 Data
 condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 
@@ -2016,7 +1822,6 @@ condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 /**
  \brief Create a new Expanded Data object filled with pseudo-random data.
 */
-ESCRIPT_DLL_API
 Data randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
        long seed, const boost::python::tuple& filter);
@@ -2080,7 +1885,7 @@ Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
 {
    if (isLazy())
    {
-	throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
+        throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
    }
 #ifdef EXWRITECHK
    if (!getReady()->exclusivewritecalled)
@@ -2098,9 +1903,9 @@ Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
    {
-	size_t offset=0;
-	const DataTypes::RealVectorType* res=l->resolveSample(sampleNo,offset);
-	return &((*res)[offset]);
+        size_t offset=0;
+        const DataTypes::RealVectorType* res=l->resolveSample(sampleNo,offset);
+        return &((*res)[offset]);
    }
    return getReady()->getSampleDataRO(sampleNo);
 }
@@ -2115,11 +1920,11 @@ Data::getDataRO(DataTypes::real_t dummy) const
     }
     if (getNumSamples()==0)
     {
-	return 0;
+        return 0;
     }
     else
     {
-	return &(getReady()->getTypedVectorRO(0)[0]);
+        return &(getReady()->getTypedVectorRO(0)[0]);
     }
 }
 
@@ -2133,11 +1938,11 @@ Data::getDataRO(DataTypes::cplx_t dummy) const
     }
     if (getNumSamples()==0)
     {
-	return 0;
+        return 0;
     }
     else
     {
-	return &(getReady()->getTypedVectorRO(dummy)[0]);
+        return &(getReady()->getTypedVectorRO(dummy)[0]);
     }
 }
 
@@ -2155,28 +1960,28 @@ inline DataTypes::real_t rpow(DataTypes::real_t x,DataTypes::real_t y)
   Operator+
   Takes two Data objects.
 */
-ESCRIPT_DLL_API Data operator+(const Data& left, const Data& right);
+Data operator+(const Data& left, const Data& right);
 
 /**
   \brief
   Operator-
   Takes two Data objects.
 */
-ESCRIPT_DLL_API Data operator-(const Data& left, const Data& right);
+Data operator-(const Data& left, const Data& right);
 
 /**
   \brief
   Operator*
   Takes two Data objects.
 */
-ESCRIPT_DLL_API Data operator*(const Data& left, const Data& right);
+Data operator*(const Data& left, const Data& right);
 
 /**
   \brief
   Operator/
   Takes two Data objects.
 */
-ESCRIPT_DLL_API Data operator/(const Data& left, const Data& right);
+Data operator/(const Data& left, const Data& right);
 
 /**
   \brief
@@ -2184,7 +1989,7 @@ ESCRIPT_DLL_API Data operator/(const Data& left, const Data& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator+(const Data& left, const boost::python::object& right);
+Data operator+(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -2192,7 +1997,7 @@ ESCRIPT_DLL_API Data operator+(const Data& left, const boost::python::object& ri
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator-(const Data& left, const boost::python::object& right);
+Data operator-(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -2200,7 +2005,7 @@ ESCRIPT_DLL_API Data operator-(const Data& left, const boost::python::object& ri
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator*(const Data& left, const boost::python::object& right);
+Data operator*(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -2208,7 +2013,7 @@ ESCRIPT_DLL_API Data operator*(const Data& left, const boost::python::object& ri
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator/(const Data& left, const boost::python::object& right);
+Data operator/(const Data& left, const boost::python::object& right);
 
 /**
   \brief
@@ -2216,7 +2021,7 @@ ESCRIPT_DLL_API Data operator/(const Data& left, const boost::python::object& ri
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator+(const boost::python::object& left, const Data& right);
+Data operator+(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -2224,7 +2029,7 @@ ESCRIPT_DLL_API Data operator+(const boost::python::object& left, const Data& ri
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator-(const boost::python::object& left, const Data& right);
+Data operator-(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -2232,7 +2037,7 @@ ESCRIPT_DLL_API Data operator-(const boost::python::object& left, const Data& ri
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator*(const boost::python::object& left, const Data& right);
+Data operator*(const boost::python::object& left, const Data& right);
 
 /**
   \brief
@@ -2240,7 +2045,7 @@ ESCRIPT_DLL_API Data operator*(const boost::python::object& left, const Data& ri
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API Data operator/(const boost::python::object& left, const Data& right);
+Data operator/(const boost::python::object& left, const Data& right);
 
 
 
@@ -2248,7 +2053,7 @@ ESCRIPT_DLL_API Data operator/(const boost::python::object& left, const Data& ri
   \brief
   Output operator
 */
-ESCRIPT_DLL_API std::ostream& operator<<(std::ostream& o, const Data& data);
+std::ostream& operator<<(std::ostream& o, const Data& data);
 
 /**
   \brief
@@ -2258,7 +2063,6 @@ ESCRIPT_DLL_API std::ostream& operator<<(std::ostream& o, const Data& data);
   \param axis_offset - Input - axis offset
   \param transpose - Input - 0: transpose neither, 1: transpose arg0, 2: transpose arg1
 */
-ESCRIPT_DLL_API
 Data
 C_GeneralTensorProduct(Data& arg_0,
                      Data& arg_1,
@@ -2307,7 +2111,7 @@ Data::rtruedivO(const boost::python::object& left)
 inline 
 void
 Data::binaryDataOp(const Data& right,
-		   escript::ESFunction operation)
+                   escript::ESFunction operation)
 {
    //
    // if this has a rank of zero promote it to the rank of the RHS
@@ -2329,9 +2133,9 @@ Data::binaryDataOp(const Data& right,
      if (intres==0)
      {
          std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
-	 msg+=fsl.toString();
-	 msg+="  ";
-	 msg+=fsr.toString();
+         msg+=fsl.toString();
+         msg+="  ";
+         msg+=fsr.toString();
          throw DataException(msg.c_str());
      } 
      else if (intres==1)
@@ -2339,7 +2143,7 @@ Data::binaryDataOp(const Data& right,
        // an interpolation is required so create a new Data
        tempRight=Data(right,fsl);
      }
-     else	// reverse interpolation preferred
+     else       // reverse interpolation preferred
      {
         // interpolate onto the RHS function space
        Data tempLeft(*this,fsr);
@@ -2406,7 +2210,7 @@ Data::binaryOp(const Data& right,
    }
    //
    // initially make the temporary a shallow copy
-   //Data tempRight(right);				// unfortunately, this adds an owner and breaks d+=d
+   //Data tempRight(right);                             // unfortunately, this adds an owner and breaks d+=d
    
    DataAbstract_ptr rp=right.m_data;
    
@@ -2417,9 +2221,9 @@ Data::binaryOp(const Data& right,
      if (intres==0)
      {
          std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
-	 msg+=fsl.toString();
-	 msg+="  ";
-	 msg+=fsr.toString();
+         msg+=fsl.toString();
+         msg+="  ";
+         msg+=fsr.toString();
          throw DataException(msg.c_str());
      } 
      else if (intres==1)
@@ -2427,7 +2231,7 @@ Data::binaryOp(const Data& right,
        // an interpolation is required so create a new Data
        rp=Data(right,fsl).m_data;
      }
-     else	// reverse interpolation preferred
+     else       // reverse interpolation preferred
      {
         // interpolate onto the RHS function space
        Data tempLeft(*this,fsr);
@@ -2438,9 +2242,9 @@ Data::binaryOp(const Data& right,
    //operandCheck(tempRight);
    //
    // ensure this has the right type for the RHS
-   typeMatchRight(right);		// yes we are actually processing rp 
-			      // (which may be pointing at a different object) not right.
-			      // but rp and right will be referring to the same type of data
+   typeMatchRight(right);               // yes we are actually processing rp 
+                              // (which may be pointing at a different object) not right.
+                              // but rp and right will be referring to the same type of data
    //
    // Need to cast to the concrete types so that the correct binaryOp
    // is called.
@@ -2604,7 +2408,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       arg_1_Z=arg_1.interpolate(arg_0.getFunctionSpace());
       arg_0_Z =Data(arg_0);      
      }
-     else	// reverse interpolation preferred
+     else       // reverse interpolation preferred
      {
       arg_0_Z = arg_0.interpolate(arg_1.getFunctionSpace());
       arg_1_Z = Data(arg_1);
@@ -2632,8 +2436,8 @@ C_TensorBinaryOperation(Data const &arg_0,
       res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataConstant output
       if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
       {
-	  res.complicate();	// It would be much better to create the Data object as complex to start with
-      }				// But that would require more work so let's just get this case working first
+          res.complicate();     // It would be much better to create the Data object as complex to start with
+      }                         // But that would require more work so let's just get this case working first
       const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
       const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
       typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
@@ -2864,7 +2668,7 @@ C_TensorBinaryOperation(Data const &arg_0,
       res.requireWrite();
       #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
       for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-	  dataPointNo_0=0;
+          dataPointNo_0=0;
 //        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
           int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
           int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
@@ -3389,7 +3193,7 @@ Data
 C_TensorUnaryOperation(Data const &arg_0,
                        UnaryFunction operation)
 {
-  if (arg_0.isEmpty())	// do this before we attempt to interpolate
+  if (arg_0.isEmpty())  // do this before we attempt to interpolate
   {
      throw DataException("Error - Operations (C_TensorUnaryOperation) not permitted on instances of DataEmpty.");
   }
@@ -3456,7 +3260,7 @@ C_TensorUnaryOperation(Data const &arg_0,
     int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
     #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
     for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-	dataPointNo_0=0;
+        dataPointNo_0=0;
         int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
         int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
         const typename decltype(operation)::argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
@@ -3475,12 +3279,9 @@ C_TensorUnaryOperation(Data const &arg_0,
 Data
 C_TensorUnaryOperation(Data const &arg_0,
                        escript::ESFunction operation,
-		       DataTypes::real_t tol=0
-		      );
+                       DataTypes::real_t tol=0);
 
+} // namespace escript
 
+#endif // __ESCRIPT_DATA_H__
 
-
-
-}
-#endif

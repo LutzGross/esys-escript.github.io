@@ -40,7 +40,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh* in, bool use_reduced_e
     Dudley_NodeMapping *this_mapping = NULL;
     paso::Connector_ptr this_connector;
     paso::Distribution_ptr dof_distribution;
-    esysUtils::JMPI& mpi_info = in->MPIInfo;
+    escript::JMPI mpi_info(in->MPIInfo);
 #ifdef ESYS_MPI
     MPI_Request *mpi_requests = NULL;
     MPI_Status *mpi_stati = NULL;

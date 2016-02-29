@@ -40,14 +40,14 @@ struct IndexList {
     IndexList() : n(0), extension(NULL) {}
     ~IndexList() { delete extension; }
 
-    index_t m_list[ESYS_INDEXLIST_LENGTH];
-    dim_t n;
+    escript::DataTypes::index_t m_list[ESYS_INDEXLIST_LENGTH];
+    escript::DataTypes::dim_t n;
     IndexList* extension;
 
     /// inserts row index into the IndexList in if it does not exist
-    inline void insertIndex(index_t index)
+    inline void insertIndex(escript::DataTypes::index_t index)
     {
-        for (dim_t i=0; i<n; i++) {
+        for (escript::DataTypes::dim_t i=0; i<n; i++) {
             if (m_list[i] == index)
                 return;
         }
@@ -61,10 +61,10 @@ struct IndexList {
     }
 
     /// counts the number of row indices in the IndexList in
-    inline dim_t count(index_t range_min, index_t range_max) const
+    inline escript::DataTypes::dim_t count(escript::DataTypes::index_t range_min, escript::DataTypes::index_t range_max) const
     {
-        dim_t out=0;
-        for (dim_t i=0; i < n; i++) {
+        escript::DataTypes::dim_t out=0;
+        for (escript::DataTypes::dim_t i=0; i < n; i++) {
             if (m_list[i] >= range_min && range_max > m_list[i])
                 ++out;
         }
@@ -74,11 +74,11 @@ struct IndexList {
     }
 
     /// index list to array
-    inline void toArray(index_t* array, index_t range_min, index_t range_max,
-                        index_t index_offset) const
+    inline void toArray(escript::DataTypes::index_t* array, escript::DataTypes::index_t range_min, escript::DataTypes::index_t range_max,
+                        escript::DataTypes::index_t index_offset) const
     {
-        index_t idx = 0;
-        for (dim_t i=0; i < n; i++) {
+        escript::DataTypes::index_t idx = 0;
+        for (escript::DataTypes::dim_t i=0; i < n; i++) {
             if (m_list[i] >= range_min && range_max > m_list[i]) {
                 array[idx] = m_list[i]+index_offset;
                 ++idx;

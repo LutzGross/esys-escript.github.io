@@ -16,8 +16,9 @@
 #ifndef __ESCRIPT_REDUCER_H__
 #define __ESCRIPT_REDUCER_H__
 
-#include "esysUtils/Esys_MPI.h"
 #include "escript/Data.h"
+#include "escript/EsysMPI.h"
+
 #include <boost/shared_ptr.hpp>
 
 namespace escript
@@ -57,7 +58,7 @@ public:
     // same communicator requirements for reduceRemoteValues
     // Must give the same answer when called on any process in the subworlds
     // Must only be called on 
-    virtual bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)=0;
+    virtual bool checkRemoteCompatibility(JMPI& mpi_info, std::string& errstring)=0;
     // Some reducers need to know what domain they are operating in
     virtual void setDomain(Domain_ptr dom) {} 
     
@@ -89,11 +90,11 @@ public:
     
     // Get a value for this variable from another process
     // This is not a reduction and will replace any existing value
-    virtual bool recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo)=0;
+    virtual bool recvFrom(int localid, int source, JMPI& mpiinfo)=0;
 
     // Send a value to this variable to another process
     // This is not a reduction and will replace any existing value    
-    virtual bool sendTo(int localid, int target, esysUtils::JMPI& mpiinfo)=0;
+    virtual bool sendTo(int localid, int target, JMPI& mpiinfo)=0;
     
     virtual double getDouble();
    

@@ -16,14 +16,13 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
-#include <sstream>
-#include <limits>
-#include <boost/python/extract.hpp>
-#include <boost/scoped_array.hpp>
-
 #include "MPIDataReducer.h"
 #include "SplitWorldException.h"
+
+#include <limits>
+#include <sstream>
+#include <boost/python/extract.hpp>
+#include <boost/scoped_array.hpp>
 
 using namespace boost::python;
 using namespace escript;
@@ -180,7 +179,7 @@ void MPIDataReducer::reset()
     value=Data();
 }
 
-bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)
+bool MPIDataReducer::checkRemoteCompatibility(JMPI& mpi_info, std::string& errstring)
 {
 #ifdef ESYS_MPI    
     // since they can't add it unless it is using the proper domain, we need to check 
@@ -299,7 +298,7 @@ void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
 
 // Get a value for this variable from another process
 // This is not a reduction and will replace any existing value
-bool MPIDataReducer::recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo)
+bool MPIDataReducer::recvFrom(int localid, int source, JMPI& mpiinfo)
 {
 #ifdef ESYS_MPI 
       // first we need to find out what we are expecting
@@ -348,7 +347,7 @@ bool MPIDataReducer::recvFrom(int localid, int source, esysUtils::JMPI& mpiinfo)
 
 // Send a value to this variable to another process
 // This is not a reduction and will replace any existing value    
-bool MPIDataReducer::sendTo(int localid, int target, esysUtils::JMPI& mpiinfo)
+bool MPIDataReducer::sendTo(int localid, int target, JMPI& mpiinfo)
 {
       if (!valueadded)
       {

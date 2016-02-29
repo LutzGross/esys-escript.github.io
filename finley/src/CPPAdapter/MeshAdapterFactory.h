@@ -128,7 +128,7 @@ escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
     \param tagNamesToNums
 */
 FINLEY_DLL_API
-escript::Domain_ptr brick(esysUtils::JMPI& info,
+escript::Domain_ptr brick(escript::JMPI& info,
                           dim_t n0=1, dim_t n1=1, dim_t n2=1, int order=1,
                           double l0=1., double l1=1., double l2=1.,
                           bool periodic0=false, bool periodic1=false,
@@ -180,7 +180,7 @@ escript::Domain_ptr brick(esysUtils::JMPI& info,
      \param tagNamesToNums
   */
 FINLEY_DLL_API
-escript::Domain_ptr rectangle(esysUtils::JMPI& info,
+escript::Domain_ptr rectangle(escript::JMPI& info,
                               dim_t n0=1, dim_t n1=1, dim_t order=1,
                               double l0=1.0, double l1=1.0,
                               bool periodic0=false, bool periodic1=false,

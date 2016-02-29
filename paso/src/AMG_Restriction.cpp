@@ -46,7 +46,7 @@ namespace paso {
 
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 {
-   esysUtils::JMPI& mpi_info=P->mpi_info;
+   escript::JMPI& mpi_info=P->mpi_info;
    Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
    Connector_ptr col_connector;

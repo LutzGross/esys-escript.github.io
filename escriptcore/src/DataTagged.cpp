@@ -17,18 +17,16 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-#include <complex>
 #include "Data.h"
-#include "DataTagged.h"
 #include "DataConstant.h"
 #include "DataException.h"
-#include "esysUtils/Esys_MPI.h"
+#include "DataMaths.h"
+#include "DataTagged.h"
 
+#include <complex>
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-
-#include "DataMaths.h"
 
 
 #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
@@ -1098,7 +1096,7 @@ DataTagged::dump(const std::string fileName) const
    long dims[ldims];
    const double* d_ptr=&(m_data_r[0]);
    DataTypes::ShapeType shape = getShape();
-   esysUtils::JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+   JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
 #ifdef ESYS_MPI
    const int mpi_iam = mpiInfo->rank;
    const int mpi_num = mpiInfo->size;
@@ -1232,8 +1230,6 @@ DataTagged::getTypedVectorRO(DataTypes::cplx_t dummy) const
   return m_data_c;
 }
 
-
-
 size_t
 DataTagged::getTagCount() const
 {
@@ -1241,3 +1237,4 @@ DataTagged::getTagCount() const
 }
 
 }  // end of namespace
+

@@ -46,7 +46,7 @@ struct Connector
 {
     SharedComponents_ptr send;
     SharedComponents_ptr recv;
-    mutable esysUtils::JMPI mpi_info;
+    mutable escript::JMPI mpi_info;
 
     Connector(SharedComponents_ptr s, SharedComponents_ptr r)
     {
@@ -155,7 +155,7 @@ struct Coupler
     double* recv_buffer;
     MPI_Request* mpi_requests;
     MPI_Status* mpi_stati;
-    mutable esysUtils::JMPI mpi_info;
+    mutable escript::JMPI mpi_info;
 };
 
 

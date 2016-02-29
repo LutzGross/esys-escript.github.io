@@ -17,7 +17,6 @@
 #define ESNEEDPYTHON
 #include "esysUtils/first.h"
 
-
 #include "MeshAdapterTestCase.h"
 
 #include "finley/CppAdapter/MeshAdapter.h"
@@ -36,7 +35,7 @@ void MeshAdapterTestCase::testAll()
 {
     // test construction of a mesh using the brick factory method
     // boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
-	esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
+	JMPI info=makeInfo(MPI_COMM_WORLD);
 	brick(info);	// brick now returns a Domain_ptr which will auto delete
 }
 

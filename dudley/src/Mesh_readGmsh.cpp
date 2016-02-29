@@ -46,7 +46,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
     Dudley_ElementTypeId *element_type = NULL;
 
     /* No! Bad! take a parameter for this */
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
+    escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_WORLD);
     if (mpi_info->size > 1)
         throw DudleyException("reading GMSH with MPI is not supported yet.");
 

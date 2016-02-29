@@ -86,7 +86,7 @@ static void gatherEntries(dim_t n, const index_t* index,
 
 /// constructor
 /// use NodeFile::allocTable to allocate the node table (Id,Coordinates)
-NodeFile::NodeFile(int nDim, esysUtils::JMPI& mpiInfo) :
+NodeFile::NodeFile(int nDim, escript::JMPI& mpiInfo) :
     numNodes(0),
     numDim(nDim),
     Id(NULL),

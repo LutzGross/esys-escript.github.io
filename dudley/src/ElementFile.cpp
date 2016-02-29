@@ -31,7 +31,7 @@
 
 namespace dudley {
 
-Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUtils::JMPI& MPIInfo)
+Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, escript::JMPI& MPIInfo)
 {
     Dudley_ElementFile* out = new Dudley_ElementFile;
     out->numElements = 0;
