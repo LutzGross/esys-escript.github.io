@@ -24,9 +24,6 @@
 
 /****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "NodeFile.h"
 
 namespace dudley {

@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/AbstractAssembler.h>
 #include <speckley/Brick.h>
 #include <speckley/Rectangle.h>

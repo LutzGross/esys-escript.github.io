@@ -14,15 +14,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <escript/AbstractContinuousDomain.h>
 
 #include "MeshAdapterTestCase.h"
 
-#include "finley/CppAdapter/MeshAdapter.h"
-#include "finley/CppAdapter/MeshAdapterFactory.h"
-
-#include "escript/AbstractContinuousDomain.h"
+#include <finley/CppAdapter/MeshAdapter.h>
+#include <finley/CppAdapter/MeshAdapterFactory.h>
 
 #include <cppunit/TestCaller.h>
 #include <boost/scoped_ptr.hpp>

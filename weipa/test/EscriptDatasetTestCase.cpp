@@ -14,13 +14,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "EscriptDatasetTestCase.h"
+
+#include <weipa/EscriptDataset.h>
+
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
-#include <weipa/EscriptDataset.h>
 
 #if USE_DUDLEY
 #include <dudley/CppAdapter/MeshAdapterFactory.h>

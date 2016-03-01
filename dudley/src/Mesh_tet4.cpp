@@ -24,9 +24,6 @@
 
 /****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "TriangularMesh.h"
 
 #define MAX3(_arg1_,_arg2_,_arg3_) std::max(_arg1_,std::max(_arg2_,_arg3_))

@@ -25,7 +25,6 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "Preconditioner.h"
 #include "Options.h"
 #include "PasoUtil.h"

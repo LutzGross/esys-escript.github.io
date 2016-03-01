@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_ABSTRACTTRANSPORTPROBLEM_H__
+#define __ESCRIPT_ABSTRACTTRANSPORTPROBLEM_H__
 
-#if !defined  escript_AbstractTransportProblem_H
-#define escript_AbstractTransportProblem_H
 #include "system_dep.h"
-
 #include "FunctionSpace.h"
 #include "TransportProblemException.h"
+
 #include <boost/python/object.hpp>
 
 namespace escript {
@@ -144,8 +144,8 @@ public:
 
   /**
      \brief
-     copy constraint u_{,t}=r where q>0  into the problem 
-     it can be assumed that q and r are not empty and have  
+     copy constraint u_{,t}=r where q>0  into the problem
+     it can be assumed that q and r are not empty and have
      appropriate shape and function space.
   */
   ESCRIPT_DLL_API
@@ -161,5 +161,5 @@ typedef boost::shared_ptr<AbstractTransportProblem> ATP_ptr;
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_ABSTRACTTRANSPORTPROBLEM_H__
 

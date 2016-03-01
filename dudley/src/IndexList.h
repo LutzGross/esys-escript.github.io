@@ -27,11 +27,11 @@
 #include "ElementFile.h"
 #include "Mesh.h"
 
-#include "esysUtils/IndexList.h"
+#include <escript/IndexList.h>
 
 namespace dudley {
 
-using esysUtils::IndexList;
+using escript::IndexList;
 
 /* structure to build system matrix */
 

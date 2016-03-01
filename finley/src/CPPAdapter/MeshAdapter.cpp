@@ -14,17 +14,14 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include "MeshAdapter.h"
-#include "finley/Assemble.h"
-#include "finley/FinleyException.h"
+#include <finley/Assemble.h>
+#include <finley/FinleyException.h>
 
-#include "escript/Data.h"
-#include "escript/DataFactory.h"
-#include "escript/Random.h"
-#include "escript/SolverOptions.h"
+#include <escript/Data.h>
+#include <escript/DataFactory.h>
+#include <escript/Random.h>
+#include <escript/SolverOptions.h>
 
 #include <paso/SystemMatrix.h>
 #include <paso/Transport.h>

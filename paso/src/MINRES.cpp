@@ -17,10 +17,9 @@
 
 /* MINRES iterations */
 
-#include "SystemMatrix.h"
-#include "Paso.h"
 #include "Solver.h"
 #include "PasoUtil.h"
+#include "SystemMatrix.h"
 
 namespace paso {
 

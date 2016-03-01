@@ -14,19 +14,17 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-/*                                                                                                         */
-/*   Dudley: ElementFile                                                                                   */
-/*                                                                                                         */
-/*  reorders the elements in the element file such that the elements are stored close to the nodes         */
-/*                                                                                                         */
-/****************************************************************************/
+/****************************************************************************
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+  Dudley: ElementFile
 
-#include "Util.h"
+  reorders the elements in the element file such that the elements are
+  stored close to the nodes
+
+*****************************************************************************/
+
 #include "ElementFile.h"
+#include "Util.h"
 
 namespace dudley {
 

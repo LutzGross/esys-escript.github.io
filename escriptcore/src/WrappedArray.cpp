@@ -14,15 +14,18 @@
 *
 *****************************************************************************/
 
-#include <boost/python/tuple.hpp>
+#include "Data.h"
 #include "WrappedArray.h"
 #include "DataException.h"
+
 #if HAVE_NUMPY_H
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
 #endif
 
 #include <iostream>
+
+#include <boost/python/tuple.hpp>
 
 using namespace escript;
 using namespace boost::python;

@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
 #include <speckley/WaveAssembler3D.h>

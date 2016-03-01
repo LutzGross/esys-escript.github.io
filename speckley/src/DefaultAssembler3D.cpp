@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <speckley/DefaultAssembler3D.h>
 #include <speckley/domainhelpers.h>
 #include <escript/index.h>

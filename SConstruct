@@ -409,7 +409,6 @@ env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
 
 if IS_WINDOWS:
     if not env['build_shared']:
-        env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
         env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
 env['IS_WINDOWS']=IS_WINDOWS
@@ -583,7 +582,6 @@ env.SConscript(dirs = ['cusplibrary'])
 
 #This will pull in the escriptcore/py_src and escriptcore/test
 env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
-env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
 if 'dudley' in env['domains']:
     env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 if 'finley' in env['domains']:
@@ -613,10 +611,7 @@ env.Alias('target_init', [target_init])
 # delete buildvars upon cleanup
 env.Clean('target_init', os.path.join(env['libinstall'], 'buildvars'))
 
-# The headers have to be installed prior to build in order to satisfy
-# #include <paso/Common.h>
-env.Alias('build_esysUtils', ['install_esysUtils_headers', 'build_esysUtils_lib'])
-env.Alias('install_esysUtils', ['build_esysUtils', 'install_esysUtils_lib'])
+# The headers have to be installed prior to build
 
 env.Alias('build_paso', ['install_paso_headers', 'build_paso_lib'])
 env.Alias('install_paso', ['build_paso', 'install_paso_lib'])
@@ -648,7 +643,6 @@ env.Alias('install_escriptreader', ['build_escriptreader', 'install_escriptreade
 
 # Now gather all the above into some easy targets: build_all and install_all
 build_all_list = []
-build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 if 'dudley' in env['domains']: build_all_list += ['build_dudley']
@@ -664,7 +658,6 @@ env.Alias('build_all', build_all_list)
 
 install_all_list = []
 install_all_list += ['target_init']
-install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
 install_all_list += ['install_escript']
 if 'dudley' in env['domains']: install_all_list += ['install_dudley']

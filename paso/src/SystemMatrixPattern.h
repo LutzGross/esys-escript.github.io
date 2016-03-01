@@ -29,9 +29,9 @@
 #ifndef __PASO_SYSTEMMATRIXPATTERN_H__
 #define __PASO_SYSTEMMATRIXPATTERN_H__
 
+#include "Coupler.h"
 #include "Distribution.h"
 #include "Pattern.h"
-#include "Coupler.h"
 
 namespace paso {
 

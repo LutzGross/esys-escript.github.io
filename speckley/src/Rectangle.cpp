@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/Rectangle.h>
 #include <speckley/DefaultAssembler2D.h>
 #include <speckley/WaveAssembler2D.h>

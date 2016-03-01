@@ -14,11 +14,9 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <escript/EsysMPI.h>
 
 #include "EscriptDatasetTestCase.h"
-#include <escript/EsysMPI.h>
 
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>

@@ -14,12 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <escript/DataTypes.h>
 
 #include "TaipanTestCase.h"
 
-#include "escript/Taipan.h"
+#include <escript/Taipan.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>

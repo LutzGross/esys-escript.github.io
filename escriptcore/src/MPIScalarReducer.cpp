@@ -13,14 +13,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "MPIScalarReducer.h"
 #include "SplitWorldException.h"
 
 #include <limits>
 #include <sstream>
+
 #include <boost/python/extract.hpp>
 #include <boost/scoped_array.hpp>
 
@@ -54,7 +52,7 @@ Reducer_ptr makeScalarReducer(std::string type)
         throw SplitWorldException("Unsupported operation for makeScalarReducer.");
     }
     MPIScalarReducer* m=new MPIScalarReducer(op);
-    return Reducer_ptr(m);    
+    return Reducer_ptr(m);
 }
 
 
@@ -67,19 +65,19 @@ void combineDouble(double& d1, const double d2, MPI_Op op)
     if (op==MPI_SUM)
     {
         d1+=d2;
-    }  
+    }
     else if (op==MPI_MAX)
     {
         d1=(d2>d1)?d2:d1;
     }
     else if (op==MPI_MIN)
     {
-        d1=(d2<d1)?d2:d1;      
+        d1=(d2<d1)?d2:d1;
     }
-    else if (op==MPI_OP_NULL) 
+    else if (op==MPI_OP_NULL)
     {
         throw SplitWorldException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
-    }    
+    }
 }
 
 } // anonymous namespace
@@ -101,7 +99,7 @@ MPIScalarReducer::MPIScalarReducer(MPI_Op op)
     {
         identity=std::numeric_limits<double>::max();
     }
-    else      
+    else
     {
         throw SplitWorldException("Unsupported MPI_Op");
     }
@@ -122,7 +120,7 @@ std::string MPIScalarReducer::description()
     else if (reduceop==MPI_MAX)
     {
         op="MAX";
-    } 
+    }
     else if (reduceop==MPI_MIN)
     {
         op="MIN";
@@ -130,12 +128,12 @@ std::string MPIScalarReducer::description()
     else if (reduceop==MPI_OP_NULL)
     {
         op="SET";
-    }    
+    }
     else
     {
         throw SplitWorldException("Unsupported MPI reduction operation");
     }
-    return "Reducer("+op+") for double scalars"; 
+    return "Reducer("+op+") for double scalars";
 }
 
 void MPIScalarReducer::newRunJobs()
@@ -172,7 +170,7 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
     {
         if (reduceop==MPI_OP_NULL)
         {
-            if (had_an_export_this_round) 
+            if (had_an_export_this_round)
             {
                 reset();
                 errstring="reduceLocalValue: Multiple 'simultaneous' attempts to export a 'SET' variable.";
@@ -181,11 +179,10 @@ bool MPIScalarReducer::reduceLocalValue(boost::python::object v, std::string& er
             value=ex();
         }
         else
-        { 
+        {
             combineDouble(value, ex(), reduceop);
-        }      
+        }
         had_an_export_this_round=true;
-        
     }
     return true;
 }
@@ -201,13 +198,13 @@ bool MPIScalarReducer::checkRemoteCompatibility(JMPI& mpi_info, std::string& err
     return true;
 }
 
-// By the time this function is called, we know that all the values 
+// By the time this function is called, we know that all the values
 // are compatible
 bool MPIScalarReducer::reduceRemoteValues(MPI_Comm& com)
 {
 #ifdef ESYS_MPI
     if (reduceop==MPI_OP_NULL)
-    {   
+    {
         reset();
         return false;           // this will stop bad things happening but won't give an informative error message
     }
@@ -229,7 +226,7 @@ bool MPIScalarReducer::reduceRemoteValues(MPI_Comm& com)
 //  [0]    Type of Data:  {0 : error,  1: DataEmpty, 10: constant, 11:tagged, 12:expanded}
 //  [1]    Functionspace type code
 //  [2]    Only used for tagged --- gives the number of tags (which exist in the data object)
-//  [3..6] Components of the shape  
+//  [3..6] Components of the shape
 void MPIScalarReducer::getCompatibilityInfo(std::vector<unsigned>& params)
 {
     params.resize(1);   // in case someone tries to do something with it
@@ -240,22 +237,22 @@ void MPIScalarReducer::getCompatibilityInfo(std::vector<unsigned>& params)
 // This is not a reduction and will replace any existing value
 bool MPIScalarReducer::recvFrom(int localid, int source, JMPI& mpiinfo)
 {
-#ifdef ESYS_MPI  
+#ifdef ESYS_MPI
     MPI_Status stat;
     if (MPI_Recv(&value, 1, MPI_DOUBLE, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
         return false;
-#endif    
+#endif
     return true;
 }
 
 // Send a value to this variable to another process
-// This is not a reduction and will replace any existing value    
+// This is not a reduction and will replace any existing value
 bool MPIScalarReducer::sendTo(int localid, int target, JMPI& mpiinfo)
 {
-#ifdef ESYS_MPI  
+#ifdef ESYS_MPI
     if (MPI_Send(&value, 1, MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
         return false;
-#endif      
+#endif
     return true;
 }
 

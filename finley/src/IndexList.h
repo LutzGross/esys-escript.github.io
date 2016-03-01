@@ -26,13 +26,13 @@
 
 #include "Finley.h"
 
-#include "esysUtils/IndexList.h"
+#include <escript/IndexList.h>
 
 // helpers to build system matrix
 
 namespace finley {
 
-using esysUtils::IndexList;
+using escript::IndexList;
 
 class ElementFile;
 

@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include "Data.h"
 #include "DataConstant.h"
 #include "DataException.h"
@@ -25,6 +22,7 @@
 #include "DataTagged.h"
 
 #include <limits>
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif

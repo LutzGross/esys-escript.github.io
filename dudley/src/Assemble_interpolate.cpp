@@ -21,9 +21,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"

@@ -17,6 +17,7 @@
 #ifndef __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 #define __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 
+#include "DataTypes.h"
 #include "EsysException.h"
 
 // put this within all boost module definitions so exceptions are translated

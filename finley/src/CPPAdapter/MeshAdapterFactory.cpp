@@ -14,11 +14,8 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include "MeshAdapterFactory.h"
-#include "finley/FinleyException.h"
+#include <finley/FinleyException.h>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>

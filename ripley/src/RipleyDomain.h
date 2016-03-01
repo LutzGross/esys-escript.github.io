@@ -17,12 +17,9 @@
 #ifndef __RIPLEY_DOMAIN_H__
 #define __RIPLEY_DOMAIN_H__
 
-#include <boost/python/tuple.hpp>
-#include <boost/python/list.hpp>
-
 #include <ripley/Ripley.h>
-#include <ripley/RipleyException.h>
 #include <ripley/AbstractAssembler.h>
+#include <ripley/RipleyException.h>
 
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
@@ -30,6 +27,9 @@
 #include <escript/SubWorld.h>
 
 #include <paso/SystemMatrix.h>
+
+#include <boost/python/list.hpp>
+#include <boost/python/tuple.hpp>
 
 namespace ripley {
 

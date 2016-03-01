@@ -40,7 +40,7 @@
 
 namespace paso {
 
-using esysUtils::IndexList;
+using escript::IndexList;
 
 /* debug: print the entries */
 /*

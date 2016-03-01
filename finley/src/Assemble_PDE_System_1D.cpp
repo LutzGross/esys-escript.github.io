@@ -38,10 +38,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "Assemble.h"
 #include "Util.h"
 

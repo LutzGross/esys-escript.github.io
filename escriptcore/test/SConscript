@@ -24,7 +24,7 @@ if local_env['cppunit']:
     testname='escript_UnitTest'
 
     # build the executable
-    local_env.Append(LIBS=['escript', 'esysUtils']+env['cppunit_libs'])
+    local_env.Append(LIBS=['escript']+env['cppunit_libs'])
     # some of these test files are too large to optimize
     local_env['CCFLAGS'] = re.sub('-O[0-9]', '-g', str(local_env['CCFLAGS']))
     program = local_env.Program(testname, sources)

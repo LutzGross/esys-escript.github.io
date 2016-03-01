@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Data.h"
 
 #include "AbstractContinuousDomain.h"
@@ -5177,3 +5174,4 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 
   return res;
 }
+

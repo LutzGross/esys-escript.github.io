@@ -22,8 +22,9 @@
 *****************************************************************************/
 
 #include "ReferenceElements.h"
-#include <cstring>
+
 #include <algorithm> // std::max
+#include <cstring>
 
 namespace finley {
 

@@ -17,8 +17,9 @@
 #ifndef __RIPLEY_BRICK_H__
 #define __RIPLEY_BRICK_H__
 
-#include <paso/Coupler.h>
 #include <ripley/RipleyDomain.h>
+
+#include <paso/Coupler.h>
 
 namespace ripley {
 

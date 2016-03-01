@@ -14,26 +14,25 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <escript/DataTypes.h>
 
 #include "DataTaggedTestCase.h"
 
-#include "escript/BinaryOp.h"
-#include "escript/DataConstant.h"
-#include "escript/DataFactory.h"
-#include "escript/DataTagged.h"
-#include "escript/DataTypes.h"
-#include "escript/DataVector.h"
-#include "escript/EsysException.h"
-#include "escript/FunctionSpace.h"
-#include "escript/FunctionSpaceFactory.h"
-#include "escript/UnaryOp.h"
+#include <escript/BinaryOp.h>
+#include <escript/DataConstant.h>
+#include <escript/DataFactory.h>
+#include <escript/DataTagged.h>
+#include <escript/DataVector.h>
+#include <escript/EsysException.h>
+#include <escript/FunctionSpace.h>
+#include <escript/FunctionSpaceFactory.h>
+#include <escript/UnaryOp.h>
 
 #include <cppunit/TestCaller.h>
-#include <iostream>
-#include <functional>
+
 #include <algorithm>
+#include <functional>
+#include <iostream>
 
 
 using namespace CppUnit;

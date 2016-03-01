@@ -26,7 +26,6 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "SystemMatrix.h"
 
 namespace paso {

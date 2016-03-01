@@ -14,15 +14,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "DataTypes.h"
+#include "DataException.h"
+
 #include <sstream>
 #include <boost/python/extract.hpp>
 #include <boost/python/tuple.hpp>
-#include "DataException.h"
 
 namespace bp = boost::python;
 

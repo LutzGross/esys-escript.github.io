@@ -15,17 +15,11 @@
 *****************************************************************************/
 
 /****************************************************************************/
-
 /*   Dudley: Mesh */
-
 /*                                                                      */
 /*   assigns new node reference numbers to elements in element file in. */
 /*   if k is the old node, the new node is newNode[k-offset].           */
-
 /****************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "Mesh.h"
 

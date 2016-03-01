@@ -23,6 +23,7 @@
 
 *****************************************************************************/
 
+// first include to avoid _POSIX_C_SOURCE redefinition warnings
 #include <escript/DataTypes.h>
 
 #include <finley/FinleyException.h>

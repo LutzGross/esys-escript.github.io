@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "DataVector.h"
 
 #include "DataException.h"
@@ -31,19 +28,19 @@ using namespace escript;
 using namespace boost::python;
 using namespace DataTypes;
 
-namespace 
-{
-inline  
+namespace {
+
+inline
 void cplxout(std::ostream& os, const DataTypes::cplx_t& c)
 {
     os << c.real();
     if (c.imag()>=0)
     {
-        os << '+';      
+        os << '+';
     }
     os << c.imag() << 'j';
 }
-  
+
 }
 
 
@@ -376,8 +373,8 @@ namespace escript {
       } else {
          throw DataException("Error - invalid offset specified.");
       }
-   } 
-   
+   }
+
    void DataTypes::copyPoint(CplxVectorType& dest, CplxVectorType::size_type doffset, CplxVectorType::size_type nvals, const CplxVectorType& src, CplxVectorType::size_type soffset)
    {
       ESYS_ASSERT((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
@@ -387,9 +384,8 @@ namespace escript {
       } else {
          throw DataException("Error - invalid offset specified.");
       }
-   }    
-   
-   
+   }
+
    /**
     * \brief copy data from a real vector to a complex vector
     * The complex vector will be resized as needed and any previous
@@ -410,3 +406,4 @@ namespace escript {
    }
 
 } // end of namespace
+

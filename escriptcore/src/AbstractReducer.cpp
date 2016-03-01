@@ -13,9 +13,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "AbstractReducer.h"
 #include "SplitWorldException.h"
 

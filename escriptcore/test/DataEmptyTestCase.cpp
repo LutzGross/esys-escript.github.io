@@ -14,14 +14,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <escript/DataEmpty.h>
 
 #include "DataEmptyTestCase.h"
 
-#include "escript/DataEmpty.h"
-#include "escript/FunctionSpace.h"
-#include "escript/EsysException.h"
+#include <escript/FunctionSpace.h>
+#include <escript/EsysException.h>
 
 #include <cppunit/TestCaller.h>
 

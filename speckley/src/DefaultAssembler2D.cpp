@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/DefaultAssembler2D.h>
 #include <speckley/domainhelpers.h>
 

@@ -14,13 +14,12 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATAVECTOR_H__
+#define __ESCRIPT_DATAVECTOR_H__
 
-#if !defined escript_DataVector_H
-#define escript_DataVector_H
 #include "system_dep.h"
-
-#include "Assert.h"
 #include "DataTypes.h"
+#include "Assert.h"
 #include "DataVectorAlt.h"
 #include "DataVectorTaipan.h"
 
@@ -38,10 +37,6 @@ namespace DataTypes
   //typedef DataVectorTaipan DataVector;
   typedef escript::DataTypes::DataVectorAlt<real_t> RealVectorType;//!< Vector to store underlying data.
   typedef escript::DataTypes::DataVectorAlt<cplx_t> CplxVectorType;
-
-
-   
-
 
    /**
       \brief Display a single value (with the specified shape) from the data.
@@ -78,8 +73,7 @@ namespace DataTypes
    */
    void
    pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
-   
-   
+
    /**
       \brief Display a single value (with the specified shape) from the data.
 
@@ -104,7 +98,7 @@ namespace DataTypes
    \param src - vector to copy from
    \param soffset - beginning of the datapoint in src
    */
-   void copyPoint(RealVectorType& dest, vec_size_type doffset, vec_size_type nvals, const RealVectorType& src, vec_size_type soffset);  
+   void copyPoint(RealVectorType& dest, vec_size_type doffset, vec_size_type nvals, const RealVectorType& src, vec_size_type soffset);
 
    /**
       \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
@@ -115,26 +109,20 @@ namespace DataTypes
    \param src - vector to copy from
    \param soffset - beginning of the datapoint in src
    */
-   void copyPoint(CplxVectorType& dest, vec_size_type doffset, vec_size_type nvals, const CplxVectorType& src, vec_size_type soffset);     
-   
-   
+   void copyPoint(CplxVectorType& dest, vec_size_type doffset, vec_size_type nvals, const CplxVectorType& src, vec_size_type soffset);
+
    /**
     * \brief copy data from a real vector to a complex vector
     * The complex vector will be resized as needed and any previous
     * values will be replaced.
    */
    void fillComplexFromReal(const RealVectorType& r, CplxVectorType& c);
-   
-   
-   
-   
-   
-   
+
   /**
      \brief
      Copy a data slice specified by the given region and offset from the
      "other" view into the "left" view at the given offset.
-     
+
      \param left - vector to copy into
      \param leftShape - shape of datapoints for the left vector
      \param leftOffset - location within left to start copying to
@@ -148,12 +136,12 @@ namespace DataTypes
    ESCRIPT_DLL_API
    void
    copySlice(VEC& left,
-			    const ShapeType& leftShape,
-			    typename VEC::size_type leftOffset,
-                            const VEC& other,
-			    const ShapeType& otherShape,
-                            typename VEC::size_type otherOffset,
-                            const RegionLoopRangeType& region)
+             const ShapeType& leftShape,
+             typename VEC::size_type leftOffset,
+             const VEC& other,
+             const ShapeType& otherShape,
+             typename VEC::size_type otherOffset,
+             const RegionLoopRangeType& region)
    {
       //
       // Make sure views are not empty
@@ -183,7 +171,7 @@ namespace DataTypes
 
       switch (region.size()) {
       case 0:
-         /* this case should never be encountered, 
+         /* this case should never be encountered,
          as python will never pass us an empty region.
          here for completeness only, allows slicing of a scalar */
 //          (*m_data)[leftOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex()];
@@ -237,8 +225,6 @@ namespace DataTypes
       }
    }
 
-   
-   
   /**
      \brief
      Copy data into a slice specified by the given region and offset in
@@ -257,12 +243,12 @@ namespace DataTypes
    ESCRIPT_DLL_API
    void
    copySliceFrom(VEC& left,
-				const ShapeType& leftShape,
-				typename VEC::size_type leftOffset,
-                                const VEC& other,
-				const ShapeType& otherShape,
-                                typename VEC::size_type otherOffset,
-                                const RegionLoopRangeType& region)
+                 const ShapeType& leftShape,
+                 typename VEC::size_type leftOffset,
+                 const VEC& other,
+                 const ShapeType& otherShape,
+                 typename VEC::size_type otherOffset,
+                 const RegionLoopRangeType& region)
    {
       //
       // Make sure views are not empty
@@ -296,11 +282,11 @@ namespace DataTypes
 
          switch (region.size()) {
          case 0:
-            /* this case should never be encountered, 
+            /* this case should never be encountered,
             as python will never pass us an empty region.
             here for completeness only, allows slicing of a scalar */
             //(*m_data)[leftOffset+relIndex()]=(*other.m_data)[otherOffset];
-	    left[leftOffset]=other[otherOffset];
+            left[leftOffset]=other[otherOffset];
             numCopy++;
             break;
          case 1:
@@ -352,11 +338,11 @@ namespace DataTypes
 
          switch (region.size()) {
          case 0:
-            /* this case should never be encountered, 
+            /* this case should never be encountered,
             as python will never pass us an empty region.
             here for completeness only, allows slicing of a scalar */
             //(*m_data)[leftOffset+relIndex()]=(*other.m_data)[otherOffset+numCopy];
-	    left[leftOffset]=other[otherOffset+numCopy];
+            left[leftOffset]=other[otherOffset+numCopy];
             numCopy++;
             break;
          case 1:
@@ -404,18 +390,9 @@ namespace DataTypes
       }
 
    }
-   
-   
-   
-   
-   
-   
-   
-   
-   
 }
 
- 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_DATAVECTOR_H__
+

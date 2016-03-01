@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "NullDomain.h" 
 #include "Data.h"
 #include "DomainException.h"
@@ -188,3 +185,4 @@ void NullDomain::setToX(escript::Data&) const
 
 
 }  // end of namespace
+

@@ -17,7 +17,7 @@
 #ifndef __SPECKLEY_SYSTEM_DEP_H__
 #define __SPECKLEY_SYSTEM_DEP_H__
 
-#include <cmath>
+#include <escript/DataTypes.h>
 
 #define Speckley_DLL_API
 

@@ -31,7 +31,6 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "SystemMatrix.h"
 
 #include <cstring> // memcpy

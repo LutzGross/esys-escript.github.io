@@ -14,8 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 #include "AbstractContinuousDomain.h"
 #include "Data.h"
 
@@ -213,6 +211,5 @@ void AbstractContinuousDomain::Print_Mesh_Info(const bool full) const
 }
 
 
-
-
 }  // end of namespace
+

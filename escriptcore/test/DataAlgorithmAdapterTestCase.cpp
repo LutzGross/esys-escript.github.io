@@ -14,21 +14,18 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
-#include <cmath>
+#include <escript/DataTypes.h>
 
 #include "DataAlgorithmAdapterTestCase.h"
-#include "escript/DataExpanded.h"
-#include "escript/DataAlgorithm.h"
-#include "escript/DataTypes.h"
+#include <escript/DataExpanded.h>
+#include <escript/DataAlgorithm.h>
 
 #include <cppunit/TestCaller.h>
-#include <iostream>
+
 #include <algorithm>
+#include <iostream>
 #include <limits>
+#include <cmath>
 
 using namespace CppUnit;
 using namespace std;

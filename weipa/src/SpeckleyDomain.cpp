@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <weipa/SpeckleyDomain.h>
 #include <weipa/SpeckleyNodes.h>
 #include <weipa/DataVar.h>

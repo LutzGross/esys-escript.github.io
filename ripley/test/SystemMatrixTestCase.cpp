@@ -15,9 +15,12 @@
 *****************************************************************************/
 
 #include "SystemMatrixTestCase.h"
-#include <escript/FunctionSpaceFactory.h>
+
 #include <ripley/Rectangle.h>
 #include <ripley/RipleySystemMatrix.h>
+
+#include <escript/FunctionSpaceFactory.h>
+
 #include <cppunit/TestCaller.h>
 
 using namespace CppUnit;
@@ -173,7 +176,7 @@ TestSuite* SystemMatrixTestCase::suite()
 
 void SystemMatrixTestCase::setUp()
 {
-    mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
+    mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
     domain.reset(new ripley::Rectangle(4, 3, 0., 0., 1., 1.));
 }
 

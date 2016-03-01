@@ -17,9 +17,6 @@
 #ifndef __Speckley_DOMAIN_H__
 #define __Speckley_DOMAIN_H__
 
-#include <boost/python/tuple.hpp>
-#include <boost/python/list.hpp>
-
 #include <speckley/Speckley.h>
 #include <speckley/SpeckleyException.h>
 #include <speckley/AbstractAssembler.h>
@@ -29,6 +26,9 @@
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
+
+#include <boost/python/tuple.hpp>
+#include <boost/python/list.hpp>
 
 namespace speckley {
 

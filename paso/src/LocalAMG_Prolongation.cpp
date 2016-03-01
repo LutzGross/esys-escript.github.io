@@ -27,9 +27,9 @@
 
 #include "Paso.h"
 #include "Options.h"
-#include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "SparseMatrix.h"
 
 namespace paso {
 

@@ -18,6 +18,7 @@
 #ifndef __PASO_FUNCTIONS_H__
 #define __PASO_FUNCTIONS_H__
 
+#include "Paso.h"
 #include "performance.h"
 #include "SystemMatrix.h"
 

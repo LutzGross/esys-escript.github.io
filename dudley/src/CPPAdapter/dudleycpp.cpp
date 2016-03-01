@@ -14,10 +14,8 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <dudley/Dudley.h>
 
-#include "dudley/Dudley.h"
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 

@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "DataLazy.h"
 #include "Data.h"
 #include "DataTypes.h"

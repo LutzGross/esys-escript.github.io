@@ -13,11 +13,11 @@
 *
 *****************************************************************************/
 
-#ifndef __ESCRIPT_REDUCER_H__
-#define __ESCRIPT_REDUCER_H__
+#ifndef __ESCRIPT_ABSTRACTREDUCER_H__
+#define __ESCRIPT_ABSTRACTREDUCER_H__
 
-#include "escript/Data.h"
-#include "escript/EsysMPI.h"
+#include <escript/Data.h>
+#include <escript/EsysMPI.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -118,5 +118,5 @@ typedef boost::shared_ptr<AbstractReducer> Reducer_ptr;
 
 }
 
-#endif // __ESCRIPT_REDUCER_H__
+#endif // __ESCRIPT_ABSTRACTREDUCER_H__
 

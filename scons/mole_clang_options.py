@@ -215,10 +215,6 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 #DEFAULT: False
 #build_shared = True
 
-# work around for Python2.7 on OSX/BSD
-#DEFAULT: True
-#BADPYTHONMACROS = False
-
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 

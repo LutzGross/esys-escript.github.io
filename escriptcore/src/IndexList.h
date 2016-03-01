@@ -14,19 +14,8 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************/
-
-/*   esysUtils: IndexList                                                   */
-
-/****************************************************************************/
-
-/*   Author: Lutz Gross, l.gross@uq.edu.au */
-
-/****************************************************************************/
-
-#ifndef __ESYSUTILS_INDEXLIST_H__
-#define __ESYSUTILS_INDEXLIST_H__
+#ifndef __ESCRIPT_INDEXLIST_H__
+#define __ESCRIPT_INDEXLIST_H__
 
 #include <escript/DataTypes.h>
 
@@ -34,20 +23,20 @@
 // from revision ~101 by jgs.
 #define ESYS_INDEXLIST_LENGTH 85
 
-namespace esysUtils {
+namespace escript {
 
 struct IndexList {
     IndexList() : n(0), extension(NULL) {}
     ~IndexList() { delete extension; }
 
-    escript::DataTypes::index_t m_list[ESYS_INDEXLIST_LENGTH];
-    escript::DataTypes::dim_t n;
+    DataTypes::index_t m_list[ESYS_INDEXLIST_LENGTH];
+    DataTypes::dim_t n;
     IndexList* extension;
 
     /// inserts row index into the IndexList in if it does not exist
-    inline void insertIndex(escript::DataTypes::index_t index)
+    inline void insertIndex(DataTypes::index_t index)
     {
-        for (escript::DataTypes::dim_t i=0; i<n; i++) {
+        for (DataTypes::dim_t i=0; i<n; i++) {
             if (m_list[i] == index)
                 return;
         }
@@ -61,10 +50,11 @@ struct IndexList {
     }
 
     /// counts the number of row indices in the IndexList in
-    inline escript::DataTypes::dim_t count(escript::DataTypes::index_t range_min, escript::DataTypes::index_t range_max) const
+    inline DataTypes::dim_t count(DataTypes::index_t range_min,
+                                  DataTypes::index_t range_max) const
     {
-        escript::DataTypes::dim_t out=0;
-        for (escript::DataTypes::dim_t i=0; i < n; i++) {
+        DataTypes::dim_t out=0;
+        for (DataTypes::dim_t i=0; i < n; i++) {
             if (m_list[i] >= range_min && range_max > m_list[i])
                 ++out;
         }
@@ -74,11 +64,12 @@ struct IndexList {
     }
 
     /// index list to array
-    inline void toArray(escript::DataTypes::index_t* array, escript::DataTypes::index_t range_min, escript::DataTypes::index_t range_max,
-                        escript::DataTypes::index_t index_offset) const
+    inline void toArray(DataTypes::index_t* array,
+                    DataTypes::index_t range_min, DataTypes::index_t range_max,
+                    DataTypes::index_t index_offset) const
     {
-        escript::DataTypes::index_t idx = 0;
-        for (escript::DataTypes::dim_t i=0; i < n; i++) {
+        DataTypes::index_t idx = 0;
+        for (DataTypes::dim_t i=0; i < n; i++) {
             if (m_list[i] >= range_min && range_max > m_list[i]) {
                 array[idx] = m_list[i]+index_offset;
                 ++idx;
@@ -89,7 +80,7 @@ struct IndexList {
     }
 };
 
-} // namespace esysUtils
+} // namespace escript
 
-#endif // __ESYSUTILS_INDEXLIST_H__
+#endif // __ESCRIPT_INDEXLIST_H__
 

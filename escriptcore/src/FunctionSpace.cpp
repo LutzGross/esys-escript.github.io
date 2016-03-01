@@ -14,14 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "FunctionSpace.h" 
-#include "FunctionSpaceException.h"
+
 #include "Data.h" 
 #include "DataFactory.h" 
+#include "FunctionSpaceException.h"
 #include "NullDomain.h"
 
 #include <iostream>
@@ -39,9 +36,7 @@ namespace escript {
   }
 
 
-
-namespace
-{
+namespace {
 //
 // Create a null domain for use with any default-constructed function space
 // NullDomain const FunctionSpace::nullDomainValue;
@@ -318,3 +313,4 @@ FunctionSpace::getApproximationOrder() const
 }
 
 }  // end of namespace
+

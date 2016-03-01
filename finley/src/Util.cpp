@@ -21,11 +21,9 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Finley.h"
 #include "Util.h"
+
 #include <escript/index.h>
 
 #include <algorithm> // std::sort

@@ -14,10 +14,8 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
+#include "ShapeTable.h"
 #include "Util.h"
 
 /* Unless the loops in here get complicated again, this file should be compiled with loop unrolling */
@@ -42,8 +40,6 @@ double* dTdX[DIM*numTest*NUMSIDES*numQuad*numElements]
 double* volume[numQuad*numElements]
 
 */
-
-#include "ShapeTable.h"
 
 #define SCALING(_nsub_,_dim_) pow(1./(double)(_nsub_),1./(double)(_dim_))
 

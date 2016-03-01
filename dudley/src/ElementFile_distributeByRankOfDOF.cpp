@@ -20,9 +20,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "ElementFile.h"
 
 namespace dudley {

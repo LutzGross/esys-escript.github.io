@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include <ripley/Rectangle.h>
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/LameAssembler2D.h>
@@ -2358,7 +2355,7 @@ escript::Data Rectangle::randomFillWorker(
     basey=Y*m_gNE[1]/m_NX[1];
 #endif
 
-    esysUtils::patternFillArray2D(ext[0], ext[1], src, 4, basex, basey, numvals);
+    escript::patternFillArray2D(ext[0], ext[1], src, 4, basex, basey, numvals);
 */
 
 #ifdef ESYS_MPI
