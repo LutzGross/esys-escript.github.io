@@ -64,7 +64,6 @@ silo_libs = ['siloh5']
 visit = False
 visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 #visit_libs = ['simV2']
-#build_shared = True
 
 
 ### ADVANCED OPTIONS ###

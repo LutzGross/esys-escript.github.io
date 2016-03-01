@@ -135,7 +135,7 @@ vars.AddVariables(
   ('env_export', 'Environment variables to be passed to tools',[]),
   EnumVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
   EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
-  ('build_shared', 'Build dynamic libraries only', True),
+  ('build_shared', 'Build dynamic libraries only (ignored)', True),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
@@ -406,10 +406,6 @@ else:
 env['svn_revision']=global_revision
 env['buildvars']['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
-
-if IS_WINDOWS:
-    if not env['build_shared']:
-        env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
 env['IS_WINDOWS']=IS_WINDOWS
 env['IS_OSX']=IS_OSX

@@ -210,10 +210,6 @@ visit_prefix = '/sw/apps/visit/2.7.0/linux-x86_64/libsim/V2'
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
-# Build dynamic libraries only
-#DEFAULT: False
-build_shared = True
-
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
