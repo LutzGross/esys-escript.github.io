@@ -23,9 +23,10 @@
 
 /****************************************************************************/
 
+#include <escript/DataTypes.h>
+
 #include <dudley/DudleyException.h>
 
-#include <escript/DataTypes.h>
 #include <escript/EsysMPI.h>
 #include <cstring>
 

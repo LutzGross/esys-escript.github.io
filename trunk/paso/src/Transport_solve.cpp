@@ -37,12 +37,13 @@
 
 /****************************************************************************/
 
-#include <iostream>
 #include "Transport.h"
 #include "FCT_Solver.h"
 #include "ReactiveSolver.h"
 #include "Solver.h"
 #include "PasoUtil.h"
+
+#include <iostream>
 
 namespace paso {
 

@@ -15,13 +15,13 @@
 *****************************************************************************/
 
 
-#if !defined escript_DataVectorAlt_H
-#define escript_DataVectorAlt_H
-#include "system_dep.h"
+#ifndef __ESCRIPT_DATAVECTORALT_H__
+#define __ESCRIPT_DATAVECTORALT_H__
 
+#include "DataTypes.h"
+#include "system_dep.h"
 #include "Assert.h"
 #include "DataException.h"
-#include "DataTypes.h"
 #include "WrappedArray.h"
 
 #include <sstream>
@@ -275,7 +275,7 @@ DataVectorAlt<T>::resize(const DataVectorAlt<T>::size_type newSize,
                    const DataVectorAlt<T>::value_type newValue,
                    const DataVectorAlt<T>::size_type newBlockSize)
 {
-	// The < 1 is to catch both ==0 and negatives
+        // The < 1 is to catch both ==0 and negatives
   if ( newBlockSize < 1) {
     std::ostringstream oss;
     oss << "DataVectorAlt: invalid blockSize specified (" << newBlockSize << ')';    
@@ -380,83 +380,83 @@ DataVectorAlt<T>::copyFromArrayToOffset(const WrappedArray& value, size_type off
   size_type si=0,sj=0,sk=0,sl=0;
   switch (value.getRank())
   {
-  case 0:	
-	for (size_type z=0;z<copies;++z)
-	{
-	   m_array_data[offset+z]=value.getElt();
-	}
-	break;
+  case 0:       
+        for (size_type z=0;z<copies;++z)
+        {
+           m_array_data[offset+z]=value.getElt();
+        }
+        break;
   case 1:
-	for (size_type z=0;z<copies;++z)
-	{
-	   for (size_t i=0;i<tempShape[0];++i)
-	   {
-	      m_array_data[offset+i]=value.getElt(i);
-	   }
-	   offset+=len;
-	}
-	break;
+        for (size_type z=0;z<copies;++z)
+        {
+           for (size_t i=0;i<tempShape[0];++i)
+           {
+              m_array_data[offset+i]=value.getElt(i);
+           }
+           offset+=len;
+        }
+        break;
   case 2:
-	si=tempShape[0];
-	sj=tempShape[1];
-	for (size_type z=0;z<copies;++z)
-	{
+        si=tempShape[0];
+        sj=tempShape[1];
+        for (size_type z=0;z<copies;++z)
+        {
            for (size_type i=0;i<si;i++)
-	   {
+           {
               for (size_type j=0;j<sj;j++)
-	      {
+              {
                  m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j)]=value.getElt(i,j);
               }
            }
-	   offset+=len;
-	}
-	break;
+           offset+=len;
+        }
+        break;
   case 3:
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	for (size_type z=0;z<copies;++z) 
-	{
+        si=tempShape[0];
+        sj=tempShape[1];
+        sk=tempShape[2];
+        for (size_type z=0;z<copies;++z) 
+        {
           for (size_type i=0;i<si;i++)
-	  {
+          {
             for (size_type j=0;j<sj;j++)
-	    {
+            {
               for (size_type k=0;k<sk;k++)
-	      {
+              {
                  m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k)]=value.getElt(i,j,k);
               }
             }
           }
-	  offset+=len;
-	}
-	break;
+          offset+=len;
+        }
+        break;
   case 4:
-	si=tempShape[0];
-	sj=tempShape[1];
-	sk=tempShape[2];
-	sl=tempShape[3];
-	for (size_type z=0;z<copies;++z)
-	{
+        si=tempShape[0];
+        sj=tempShape[1];
+        sk=tempShape[2];
+        sl=tempShape[3];
+        for (size_type z=0;z<copies;++z)
+        {
           for (size_type i=0;i<si;i++)
-	  {
+          {
             for (size_type j=0;j<sj;j++)
-	    {
+            {
               for (size_type k=0;k<sk;k++)
-	      {
+              {
                  for (size_type l=0;l<sl;l++)
-		 {
+                 {
                     m_array_data[offset+DataTypes::getRelIndex(tempShape,i,j,k,l)]=value.getElt(i,j,k,l);
                  }
               }
             }
           }
-	  offset+=len;
-	}
-	break;
+          offset+=len;
+        }
+        break;
   default:
-	std::ostringstream oss;
-	oss << "Error - unknown rank. Rank=" << value.getRank();
-	throw DataException(oss.str());
+        std::ostringstream oss;
+        oss << "Error - unknown rank. Rank=" << value.getRank();
+        throw DataException(oss.str());
   }
 }
 
@@ -471,9 +471,9 @@ DataVectorAlt<T>::copyFromArray(const WrappedArray& value, size_type copies)
     free(m_array_data);
   }
   m_array_data=reinterpret_cast<T*>(malloc(sizeof(T)*nelements));
-  m_size=nelements;	// total amount of elements
-  m_dim=m_size;		// elements per sample
-  m_N=1;			// number of samples
+  m_size=nelements;     // total amount of elements
+  m_dim=m_size;         // elements per sample
+  m_N=1;                        // number of samples
   copyFromArrayToOffset(value,0,copies);
 }
 
@@ -482,4 +482,4 @@ DataVectorAlt<T>::copyFromArray(const WrappedArray& value, size_type copies)
 } // end of namespace
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_DATAVECTORALT_H__

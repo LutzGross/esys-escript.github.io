@@ -14,9 +14,9 @@
 *
 *****************************************************************************/
 
-#include <iostream>
 #include "Solver.h"
 #include "PasoUtil.h"
+#include <iostream>
 
 namespace paso {
 
