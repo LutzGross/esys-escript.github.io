@@ -15,11 +15,11 @@
 *****************************************************************************/
 
 
-#if !defined escript_LocalOps_H
-#define escript_LocalOps_H
+#ifndef __ESCRIPT_LOCALOPS_H__
+#define __ESCRIPT_LOCALOPS_H__
 
-#include "DataException.h"
 #include "DataTypes.h"
+#include "DataException.h"
 #include "UnaryFuncs.h"
 
 #include <cmath>
@@ -1113,4 +1113,6 @@ bool supports_cplx(escript::ESFunction operation);
 
 
 } // end of namespace
-#endif
+
+#endif // __ESCRIPT_LOCALOPS_H__
+

@@ -14,10 +14,10 @@
 *
 *****************************************************************************/
 
-
-#include <iostream>	// for the debug method
-#include <cstring>	// for memset
 #include "blocktools.h"
+
+#include <cstring>	// for memset
+#include <iostream>	// for the debug method
 
 
 BlockGrid2::BlockGrid2(coord_t x, coord_t y)

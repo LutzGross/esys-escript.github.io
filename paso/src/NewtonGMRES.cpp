@@ -31,10 +31,10 @@
 *
 */
 
-#include <iostream>
 #include "Solver.h"
 #include "Options.h"
 #include "PasoUtil.h"
+#include <iostream>
 
 namespace paso {
 

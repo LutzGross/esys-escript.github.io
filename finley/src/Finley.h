@@ -23,9 +23,10 @@
 
 *****************************************************************************/
 
+#include <escript/DataTypes.h>
+
 #include <finley/FinleyException.h>
 
-#include <escript/DataTypes.h>
 #include <escript/EsysMPI.h>
 
 #include <vector>
