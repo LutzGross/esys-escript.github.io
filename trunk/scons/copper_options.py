@@ -31,5 +31,3 @@ lapack = 'clapack'
 
 silo = True
 
-build_shared = False
-

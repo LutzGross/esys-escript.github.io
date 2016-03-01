@@ -221,12 +221,6 @@ visit_prefix = '/opt/visit/2.3.1/2.3.1/linux-x86_64/libsim/V2'
 # Additional environmental variables to export to the tools
 #env_export = []
 
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
-
 #tools_names = ['default']
 
 #iknowwhatimdoing = False
