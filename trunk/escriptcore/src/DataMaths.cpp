@@ -14,11 +14,9 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-#include "DataTypes.h"
 #include "DataMaths.h"
+#include "DataTypes.h"
+
 #include <sstream>
 
 namespace

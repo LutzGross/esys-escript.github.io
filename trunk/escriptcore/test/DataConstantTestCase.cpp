@@ -14,14 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataConstant.h>
 
 #include "DataConstantTestCase.h"
 
-#include "escript/DataConstant.h"
-#include "escript/FunctionSpace.h"
+#include <escript/FunctionSpace.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>

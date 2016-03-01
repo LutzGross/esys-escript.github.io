@@ -55,6 +55,7 @@ sources = """
     NullDomain.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
+    pyerr.cpp
     Random.cpp
     SplitWorld.cpp
     SubWorld.cpp
@@ -99,6 +100,7 @@ headers = """
     FunctionSpace.h
     FunctionSpaceException.h
     FunctionSpaceFactory.h
+    IndexList.h
     LapackInverseHelper.h
     LocalOps.h
     NonReducedVariable.h
@@ -117,10 +119,10 @@ headers = """
     TransportProblemException.h
     UnaryFuncs.h
     UnaryOp.h
-    UtilC.h
     Utils.h
     WrappedArray.h
     index.h
+    pyerr.h
     system_dep.h
 """.split()
 
@@ -128,8 +130,6 @@ dodgy_sources = """
     Dodgy.cpp
 """.split()
 
-local_env.Prepend(LIBS = ['esysUtils'])
-local_dodgy.Prepend(LIBS = ['esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
     local_dodgy.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
@@ -153,7 +153,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_escript_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+py_wrapper_local_env.Prepend(LIBS = ['escript'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'escriptcpp.cpp')
 env.Alias('build_escriptcpp_lib', py_wrapper_lib)

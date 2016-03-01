@@ -22,8 +22,8 @@
 *****************************************************************************/
 
 #include "Quadrature.h"
-#include <escript/index.h>
 
+#include <escript/index.h>
 
 #define QUADNODES(_K_,_I_) quadNodes[INDEX2(_K_,_I_,DIM)]
 #define QUADWEIGHTS(_I_) quadWeights[_I_]

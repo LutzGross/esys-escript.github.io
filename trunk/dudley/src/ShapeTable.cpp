@@ -14,6 +14,7 @@
 *****************************************************************************/
 
 #include "ShapeTable.h"
+
 #include <cstdlib>
 
 namespace dudley {

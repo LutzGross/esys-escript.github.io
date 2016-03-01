@@ -18,7 +18,6 @@
 #define __ESCRIPT_NULLDOMAIN_H__
 
 #include "system_dep.h"
-
 #include "AbstractDomain.h"
 
 namespace escript {

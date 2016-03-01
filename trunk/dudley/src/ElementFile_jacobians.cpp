@@ -14,11 +14,8 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-#include "Assemble.h"
 #include "ElementFile.h"
+#include "Assemble.h"
 #include "ShapeTable.h"
 
 namespace dudley {

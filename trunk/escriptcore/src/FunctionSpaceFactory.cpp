@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "FunctionSpaceFactory.h"
 #include "AbstractContinuousDomain.h"
 #include "FunctionSpaceException.h"

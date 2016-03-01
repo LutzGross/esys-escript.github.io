@@ -13,13 +13,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "SplitWorld.h"
+
 #include "AbstractDomain.h"
 #include "SplitWorldException.h"
-#include "esysUtils/pyerr.h"
+#include "pyerr.h"
 
 #include <sstream>
 
@@ -41,9 +39,9 @@ boost::python::object SplitWorld::getLocalObjectVariable(const std::string& name
 }
 
 
-
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
-    :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1), manualimport(false)
+    : localworld((SubWorld*)0), swcount(numgroups > 0 ? numgroups : 1),
+      jobcounter(1), manualimport(false)
 {
     globalcom = makeInfo(global);
     

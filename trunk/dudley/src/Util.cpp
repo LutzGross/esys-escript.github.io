@@ -15,6 +15,7 @@
 *****************************************************************************/
 
 #include "Util.h"
+
 #include <escript/index.h>
 
 #include <limits.h>

@@ -14,13 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-#ifndef OVERLORDPATH
-#define OVERLORDPATH ""
-#endif
-
 #include "Data.h"
 #include "DataVector.h"
 #include "FileWriter.h"
@@ -34,6 +27,10 @@
 #include <boost/scoped_array.hpp>
 
 namespace bp = boost::python;
+
+#ifndef OVERLORDPATH
+#define OVERLORDPATH ""
+#endif
 
 namespace escript {
 
@@ -377,12 +374,12 @@ int runMPIProgram(bp::list args)
 
 double getMachinePrecision()
 {
-    return DBL_EPSILON;
+    return std::numeric_limits<double>::epsilon();
 }
 
 double getMaxFloat()
 {
-    return DBL_MAX;
+    return std::numeric_limits<double>::max();
 }
 
 void MPIBarrierWorld()

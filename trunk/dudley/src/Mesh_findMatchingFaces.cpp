@@ -22,9 +22,6 @@
 
 /****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Mesh.h"
 #include "ShapeTable.h"
 #include "Util.h"

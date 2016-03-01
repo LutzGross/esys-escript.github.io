@@ -18,9 +18,10 @@
 #ifndef __PASO_SOLVER_H__
 #define __PASO_SOLVER_H__
 
-#include "SystemMatrix.h"
-#include "performance.h"
+#include "Paso.h"
 #include "Functions.h"
+#include "performance.h"
+#include "SystemMatrix.h"
 
 namespace paso {
 

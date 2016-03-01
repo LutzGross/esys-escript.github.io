@@ -16,12 +16,14 @@
 #ifndef __SPECKLEY_DEFAULTASSEMBLER3D_H__
 #define __SPECKLEY_DEFAULTASSEMBLER3D_H__
 
-#include <map>
-#include <escript/Data.h>
 #include <speckley/Speckley.h>
-#include <speckley/SpeckleyException.h>
 #include <speckley/AbstractAssembler.h>
 #include <speckley/Brick.h>
+#include <speckley/SpeckleyException.h>
+
+#include <escript/Data.h>
+
+#include <map>
 
 namespace speckley {
 

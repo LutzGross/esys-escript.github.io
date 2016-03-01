@@ -14,15 +14,13 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataTypes.h>
 
 #include "DataTypesTestCase.h"
-#include "escript/DataAlgorithm.h"
-#include "escript/DataTypes.h"
-#include "escript/DataVector.h"
-#include "escript/EsysException.h"
+
+#include <escript/DataAlgorithm.h>
+#include <escript/DataVector.h>
+#include <escript/EsysException.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>

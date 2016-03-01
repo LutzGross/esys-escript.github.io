@@ -14,12 +14,9 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <speckley/domainhelpers.h>
 #include <speckley/SpeckleyException.h>
+
 #include <cmath>
 
 #ifdef USE_BOOSTIO

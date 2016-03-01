@@ -14,9 +14,7 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-#include "AbstractTransportProblem.h" 
+#include "AbstractTransportProblem.h"
 #include "Data.h"
 #include "DataTypes.h"
 #include "TransportProblemException.h"

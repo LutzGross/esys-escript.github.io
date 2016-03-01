@@ -14,18 +14,14 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "DataVector.h"
 
-#include "Taipan.h"
 #include "DataException.h"
-#include <boost/python/extract.hpp>
 #include "DataTypes.h"
+#include "Taipan.h"
 #include "WrappedArray.h"
 
+#include <boost/python/extract.hpp>
 #include <cassert>
 
 using namespace std;
@@ -298,6 +294,7 @@ DataVectorTaipan::copyFromArray(const WrappedArray& value, size_type copies)
   copyFromArrayToOffset(value,0,copies);
 }
 
+} // namespace DataTypes
 
-}
-}
+} // namespace escript
+

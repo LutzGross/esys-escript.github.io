@@ -68,10 +68,7 @@ if local_env['visit']:
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
     local_env.AppendUnique(LIBS = ['simV2'])
 
-if not env['build_shared']:
-    local_env.Prepend(LIBS = ['escript'])
-else:
-    local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+local_env.Prepend(LIBS = ['escript'])
 
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
@@ -104,10 +101,7 @@ if 'ripley' in env['domains']:
 if 'speckley' in env['domains']:
     py_wrapper_local_env.Prepend(LIBS = ['speckley'])
 
-if not env['build_shared']:
-    py_wrapper_local_env.Prepend(LIBS = ['escript'])
-else:
-    py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+py_wrapper_local_env.Prepend(LIBS = ['escript'])
 
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')
@@ -136,7 +130,7 @@ plugin_sources = """
     FinleyNodes.cpp
 """.split()
 
-visitplugin_env.Prepend(LIBS = ['esysUtils'])
+visitplugin_env.Prepend(LIBS = ['escript'])
 visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN', 'USE_FINLEY'])
 visitplugin_env['OBJPREFIX']='reader_'
 

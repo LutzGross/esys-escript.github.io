@@ -14,12 +14,10 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include <ripley/MultiBrick.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
+
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 

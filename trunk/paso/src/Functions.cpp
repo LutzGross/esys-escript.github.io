@@ -14,7 +14,6 @@
 *
 *****************************************************************************/
 
-
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"

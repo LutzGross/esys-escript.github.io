@@ -27,8 +27,8 @@
 /****************************************************************************/
 
 #include "Paso.h"
-#include "Preconditioner.h"
 #include "PasoUtil.h"
+#include "Preconditioner.h"
 
 namespace paso {
 

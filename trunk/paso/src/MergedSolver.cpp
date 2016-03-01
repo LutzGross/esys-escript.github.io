@@ -27,10 +27,10 @@
 
 #include "MergedSolver.h"
 #include "Options.h"
-#include "Preconditioner.h"
 #include "PasoUtil.h"
-#include "UMFPACK.h"
+#include "Preconditioner.h"
 #include "MKL.h"
+#include "UMFPACK.h"
 
 namespace paso {
 

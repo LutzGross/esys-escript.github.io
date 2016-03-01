@@ -60,7 +60,7 @@ headers = """
     WaveAssembler3D.h
 """.split()
 
-local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+local_env.Prepend(LIBS = ['escript'])
 
 if 'ripley' in env['domains']:
     local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
@@ -90,7 +90,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_speckley_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['speckley', 'escript', 'esysUtils'])
+py_wrapper_local_env.Prepend(LIBS = ['speckley', 'escript'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'speckleycpp.cpp')
 env.Alias('build_speckleycpp_lib', py_wrapper_lib)

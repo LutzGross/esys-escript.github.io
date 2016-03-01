@@ -24,7 +24,7 @@ if local_env['cppunit']:
     testname='dudley_UnitTest'
 
     # build the executable
-    local_env.Prepend(LIBS=['dudley', 'paso', 'escript', 'esysUtils']+env['cppunit_libs'])
+    local_env.Prepend(LIBS=['dudley', 'paso', 'escript']+env['cppunit_libs'])
     program = local_env.Program(testname, sources)
 
     # run the tests - but only if test_targets are stale

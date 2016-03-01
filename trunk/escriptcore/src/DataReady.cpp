@@ -14,25 +14,21 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "DataReady.h"
 
 namespace escript
 {
 
-DataReady::DataReady(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty)
-	:parent(what,shape,isDataEmpty)
+DataReady::DataReady(const FunctionSpace& what, const ShapeType& shape,
+                     bool isDataEmpty)
+    : parent(what, shape, isDataEmpty)
 {
 }
 
 
-DataReady_ptr 
-DataReady::resolve()
+DataReady_ptr DataReady::resolve()
 {
-	return REFCOUNTNS::dynamic_pointer_cast<DataReady>(this->getPtr());
+    return REFCOUNTNS::dynamic_pointer_cast<DataReady>(this->getPtr());
 }
 
 

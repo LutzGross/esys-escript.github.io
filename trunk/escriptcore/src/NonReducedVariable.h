@@ -71,11 +71,9 @@ private:
     boost::python::object identity;
 };
 
-
 Reducer_ptr makeNonReducedVariable();
 
-
-}
+} // namespace escript
 
 #endif // __ESCRIPT_NONREDUCEDVARIABLE_H__
 

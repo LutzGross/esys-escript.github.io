@@ -23,9 +23,6 @@
 
 /****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "TriangularMesh.h"
 
 namespace dudley {

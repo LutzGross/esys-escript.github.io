@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/CrossDomainCoupler.h>
 #include <speckley/lagrange_functions.h>
 

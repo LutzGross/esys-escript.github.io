@@ -26,9 +26,8 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
-#include "PasoException.h"
 #include "SparseMatrix.h"
+#include "PasoException.h"
 
 #include <fstream>
 #include <iomanip>

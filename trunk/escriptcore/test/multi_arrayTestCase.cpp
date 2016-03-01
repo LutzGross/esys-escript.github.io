@@ -14,9 +14,7 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataTypes.h>
 
 #include "multi_arrayTestCase.h"
 

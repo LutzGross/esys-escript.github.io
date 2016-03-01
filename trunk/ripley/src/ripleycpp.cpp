@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 #include <ripley/MultiBrick.h>

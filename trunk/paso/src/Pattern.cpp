@@ -28,9 +28,10 @@
 #include "Pattern.h"
 #include "PasoException.h"
 #include "PasoUtil.h"
+
 #include <boost/scoped_array.hpp>
 
-using esysUtils::IndexList;
+using escript::IndexList;
 
 namespace paso {
 

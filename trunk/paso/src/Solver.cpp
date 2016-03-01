@@ -25,7 +25,6 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "Solver.h"
 #include "Options.h"
 #include "SystemMatrix.h"

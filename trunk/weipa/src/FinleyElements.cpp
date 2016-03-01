@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <weipa/FinleyElements.h>
 #include <weipa/NodeData.h>
 

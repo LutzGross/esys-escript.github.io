@@ -14,14 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataExpanded.h>
 #include "DataExpandedTestCase.h"
-#include "escript/DataExpanded.h"
-#include "escript/DataReady.h"
-#include "escript/EsysException.h"
-#include "escript/FunctionSpace.h"
+#include <escript/DataReady.h>
+#include <escript/EsysException.h>
+#include <escript/FunctionSpace.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>

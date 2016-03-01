@@ -20,7 +20,6 @@
 #define __ESCRIPT_DATA_H__
 
 #include "system_dep.h"
-
 #include "BinaryOp.h"
 #include "DataAbstract.h"
 #include "DataAlgorithm.h"
@@ -36,6 +35,10 @@
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 #include <boost/math/special_functions/bessel.hpp>
+
+#ifndef ESCRIPT_MAX_DATA_RANK
+#define ESCRIPT_MAX_DATA_RANK 4
+#endif
 
 namespace escript {
 

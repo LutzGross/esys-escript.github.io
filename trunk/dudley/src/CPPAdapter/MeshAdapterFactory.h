@@ -14,14 +14,13 @@
 *
 *****************************************************************************/
 
-
 #if !defined  dudley_MeshAdapterFactory_20040526_H
 #define dudley_MeshAdapterFactory_20040526_H
-#include "system_dep.h"
 
+#include "system_dep.h"
 #include "MeshAdapter.h"
 
-#include "escript/AbstractContinuousDomain.h"
+#include <escript/AbstractContinuousDomain.h>
 
 #include <boost/python/list.hpp>
 

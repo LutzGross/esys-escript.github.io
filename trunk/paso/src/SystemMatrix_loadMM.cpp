@@ -26,11 +26,8 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
-#include "mmio.h"
 #include "SystemMatrix.h"
-
-#include "limits.h"
+#include "mmio.h"
 
 namespace paso {
 

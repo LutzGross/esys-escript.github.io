@@ -25,9 +25,9 @@
 /****************************************************************************/
 
 #include "Paso.h"
-#include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "SparseMatrix.h"
 
 #include <cstring> // memcpy
 

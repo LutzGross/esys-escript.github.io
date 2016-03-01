@@ -28,6 +28,7 @@
 #ifndef __PASO_COUPLER_H__
 #define __PASO_COUPLER_H__
 
+#include "Paso.h"
 #include "PasoException.h"
 #include "SharedComponents.h"
 

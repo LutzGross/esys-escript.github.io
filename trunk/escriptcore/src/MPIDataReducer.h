@@ -13,11 +13,11 @@
 *
 *****************************************************************************/
 
-#ifndef __ESCRIPT_DATAREDUCER_H__
-#define __ESCRIPT_DATAREDUCER_H__
+#ifndef __ESCRIPT_MPIDATAREDUCER_H__
+#define __ESCRIPT_MPIDATAREDUCER_H__
 
 #include "AbstractReducer.h"
-#include "escript/Data.h"
+#include "Data.h"
 
 namespace escript
 {
@@ -78,5 +78,5 @@ Reducer_ptr makeDataReducer(std::string type);
 
 }
 
-#endif // __ESCRIPT_DATAREDUCER_H__
+#endif // __ESCRIPT_MPIDATAREDUCER_H__
 

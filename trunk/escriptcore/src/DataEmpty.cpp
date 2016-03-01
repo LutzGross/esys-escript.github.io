@@ -14,15 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "DataEmpty.h"
 #include "DataException.h"
 
 
 namespace {
-
 
   inline
   void
@@ -30,7 +26,6 @@ namespace {
   {
     throw escript::DataException("Error - "+functionName+" function call invalid for DataEmpty.");
   }
-
 
   escript::DataTypes::RealVectorType dummy;	
   escript::DataTypes::CplxVectorType dummyc;	
@@ -173,3 +168,4 @@ DataEmpty::dump(const std::string fileName) const
 }
 
 }  // end of namespace
+

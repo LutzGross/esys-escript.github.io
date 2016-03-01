@@ -21,12 +21,8 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
-#include "Util.h"
 #include "Assemble.h"
+#include "Util.h"
 
 #include <sstream>
 

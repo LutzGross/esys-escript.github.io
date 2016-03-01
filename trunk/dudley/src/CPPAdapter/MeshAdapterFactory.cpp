@@ -14,15 +14,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "MeshAdapterFactory.h"
-#include "dudley/Dudley.h"
-#include "dudley/Mesh.h"
-#include "dudley/TriangularMesh.h"
+#include <dudley/Dudley.h>
+#include <dudley/Mesh.h>
+#include <dudley/TriangularMesh.h>
 
-#include "escript/SubWorld.h"
+#include <escript/SubWorld.h>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>

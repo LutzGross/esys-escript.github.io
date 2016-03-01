@@ -25,18 +25,18 @@
 
 /****************************************************************************/
 
+#include "Paso.h"
+#include "Options.h"
+#include "PasoUtil.h"
+#include "Preconditioner.h"
+#include "MKL.h"
+#include "UMFPACK.h"
+
+#include <iostream>
+
 #define SHOW_TIMING false
 #define USE_TRANSPOSE true
 #define SMALL_PANEL true
-
-#include "Paso.h"
-#include "Preconditioner.h"
-#include "Options.h"
-#include "PasoUtil.h"
-#include "UMFPACK.h"
-#include "MKL.h"
-
-#include <iostream>
 
 namespace paso {
 

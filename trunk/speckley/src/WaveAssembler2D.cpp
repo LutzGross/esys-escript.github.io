@@ -14,11 +14,9 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/WaveAssembler2D.h>
 #include <speckley/domainhelpers.h>
+
 #include <escript/index.h>
 
 const double all_weights[][11] = {

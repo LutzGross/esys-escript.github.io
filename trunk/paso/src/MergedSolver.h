@@ -28,6 +28,7 @@
 #ifndef __PASO_MERGEDSOLVER_H__
 #define __PASO_MERGEDSOLVER_H__
 
+#include "Paso.h"
 #include "SystemMatrix.h"
 
 namespace paso {

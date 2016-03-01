@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "TestDomain.h"
 #include "Data.h"
 #include "DomainException.h"

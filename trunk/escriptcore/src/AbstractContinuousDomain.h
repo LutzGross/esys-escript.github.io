@@ -15,17 +15,16 @@
 *****************************************************************************/
 
 
-#if !defined escript_AbstractContinuousDomain_20040528_H
-#define escript_AbstractContinuousDomain_20040528_H
+#ifndef __ESCRIPT_ABSTRACTCONTINUOUSDOMAIN_H__
+#define __ESCRIPT_ABSTRACTCONTINUOUSDOMAIN_H__
 
 #include "system_dep.h"
 #include "AbstractDomain.h"
+#include "AbstractSystemMatrix.h"
+#include "AbstractTransportProblem.h"
 
 #include <string>
 #include <vector>
-
-#include "AbstractSystemMatrix.h"
-#include "AbstractTransportProblem.h"
 
 namespace escript {
 
@@ -292,14 +291,9 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
      \param full
   */
   virtual void Print_Mesh_Info(const bool full=false) const;
-
-
- protected:
-
- private:
-
 };
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_ABSTRACTCONTINUOUSDOMAIN_H__
+

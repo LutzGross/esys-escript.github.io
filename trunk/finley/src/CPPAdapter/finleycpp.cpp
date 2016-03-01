@@ -14,11 +14,8 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-#include "finley/Finley.h"
-#include "finley/FinleyException.h"
+#include <finley/Finley.h>
+#include <finley/FinleyException.h>
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 

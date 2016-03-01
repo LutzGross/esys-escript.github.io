@@ -14,17 +14,14 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataConstant.h>
 #include "DataLazyTestCase.h"
 
-#include "escript/DataConstant.h"
-#include "escript/DataLazy.h"
-#include "escript/FunctionSpace.h"
+#include <escript/DataLazy.h>
+#include <escript/FunctionSpace.h>
 
-#include <cppunit/TestCaller.h>
 #include <iostream>
+#include <cppunit/TestCaller.h>
 #include <boost/shared_ptr.hpp>	// for the cast operator
 
 using namespace CppUnit;

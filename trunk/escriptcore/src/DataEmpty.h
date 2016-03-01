@@ -14,11 +14,10 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATAEMPTY_H__
+#define __ESCRIPT_DATAEMPTY_H__
 
-#if !defined escript_DataEmpty_20040726_H
-#define escript_DataEmpty_20040726_H
 #include "system_dep.h"
-
 #include "DataReady.h"
 
 namespace escript {
@@ -212,4 +211,5 @@ typedef DataReady parent;
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_DATAEMPTY_H__
+

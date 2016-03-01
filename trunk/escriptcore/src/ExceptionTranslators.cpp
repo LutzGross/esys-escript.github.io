@@ -14,8 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 #include "ExceptionTranslators.h" 
 
 namespace escript {

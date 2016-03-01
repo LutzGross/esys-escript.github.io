@@ -14,8 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 #include <speckley/Brick.h>
 
 #include <escript/index.h>

@@ -14,14 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Mesh.h"
 
 namespace dudley {
 
-/*  writes the mesh to the external file fname using the Dudley file format: */
+/// writes the mesh to the external file fname using the Dudley file format
 void Dudley_Mesh_write(Dudley_Mesh* in, char* fname)
 {
     char error_msg[1024];

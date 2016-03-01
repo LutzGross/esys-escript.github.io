@@ -21,8 +21,8 @@
 
 /****************************************************************************/
 
-#include "UMFPACK.h"
 #include "Paso.h"
+#include "UMFPACK.h"
 #include "Options.h"
 #include "PasoException.h"
 

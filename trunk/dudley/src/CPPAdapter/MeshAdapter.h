@@ -18,13 +18,13 @@
 #define dudley_MeshAdapter_20040526_H
 #include "system_dep.h"
 
-#include "dudley/Assemble.h"
-#include "dudley/Dudley.h"
-#include "dudley/Mesh.h"
+#include <dudley/Assemble.h>
+#include <dudley/Dudley.h>
+#include <dudley/Mesh.h>
 
-#include "escript/AbstractContinuousDomain.h"
-#include "escript/FunctionSpace.h"
-#include "escript/FunctionSpaceFactory.h"
+#include <escript/AbstractContinuousDomain.h>
+#include <escript/FunctionSpace.h>
+#include <escript/FunctionSpaceFactory.h>
 
 #include <boost/python/dict.hpp>
 

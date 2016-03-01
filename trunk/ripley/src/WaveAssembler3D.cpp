@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <ripley/WaveAssembler3D.h>
 #include <ripley/domainhelpers.h>
 

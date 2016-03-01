@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "AbstractContinuousDomain.h"
 #include "AbstractReducer.h"
 #include "AbstractSystemMatrix.h"

@@ -14,15 +14,14 @@
 *
 *****************************************************************************/
 
-
 #ifndef __ESCRIPT_ABSTRACTSYSTEMMATRIX_H__
 #define __ESCRIPT_ABSTRACTSYSTEMMATRIX_H__
 
 #include "system_dep.h"
 #include "FunctionSpace.h"
 #include "SystemMatrixException.h"
-#include <boost/python/object.hpp>
 
+#include <boost/python/object.hpp>
 
 namespace escript {
 

@@ -15,9 +15,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "EscriptParams.h"
 #include "EsysException.h"
 

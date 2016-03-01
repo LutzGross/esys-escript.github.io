@@ -20,8 +20,9 @@
 
 #define DT_FACTOR_MAX 100000.
 
-#include "SystemMatrix.h"
+#include "Paso.h"
 #include "Options.h"
+#include "SystemMatrix.h"
 
 #include <escript/AbstractTransportProblem.h>
 

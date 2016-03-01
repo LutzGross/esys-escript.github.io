@@ -28,9 +28,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 
 #include <paso/SystemMatrix.h>

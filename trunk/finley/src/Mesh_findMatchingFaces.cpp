@@ -23,11 +23,8 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-#include "Util.h"
 #include "Mesh.h"
+#include "Util.h"
 
 namespace finley {
 

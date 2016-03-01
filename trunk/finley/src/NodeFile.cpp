@@ -21,10 +21,8 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "NodeFile.h"
+
 #include <escript/Data.h>
 
 #include <limits>

@@ -14,9 +14,9 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATAMATHS_H__
+#define __ESCRIPT_DATAMATHS_H__
 
-#ifndef escript_DataMaths_20080822_H
-#define escript_DataMaths_20080822_H
 #include "DataAbstract.h"
 #include "DataException.h"
 #include "LocalOps.h"
@@ -1128,5 +1128,6 @@ vectorHasNaN(const DataTypes::RealVectorType& in, DataTypes::RealVectorType::siz
 
 }  // end namespace DataMath
 }  // end namespace escript
-#endif
+
+#endif // __ESCRIPT_DATAMATHS_H__
 

@@ -22,7 +22,9 @@
 *****************************************************************************/
 
 #include "ShapeFunctions.h"
+
 #include <escript/index.h>
+
 #include <cstring>
 
 namespace finley {

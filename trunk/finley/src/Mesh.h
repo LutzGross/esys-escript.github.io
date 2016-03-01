@@ -60,7 +60,8 @@
 #include "NodeFile.h"
 #include "ElementFile.h"
 #include "Util.h"
-#include "paso/SystemMatrixPattern.h"
+
+#include <paso/SystemMatrixPattern.h>
 
 #include <map>
 #include <string>

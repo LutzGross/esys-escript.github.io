@@ -20,9 +20,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Mesh.h"
 #include "FinleyException.h"
 #include "IndexList.h"

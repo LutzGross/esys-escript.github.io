@@ -1,7 +1,6 @@
-
 /*****************************************************************************
 *
-* Copyright (c) 2003-2016 by The University of Queensland
+* Copyright (c)2015-2016 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,12 +13,18 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_PYERR_H__
+#define __ESCRIPT_PYERR_H__
 
-#if !defined  escript_UtilC_20040611_H
-#define escript_UtilC_20040611_H
-#include "system_dep.h"
-#include "SolverOptions.h"
+#include <boost/python/errors.hpp>
 
-#define ESCRIPT_MAX_DATA_RANK 4
+#include <string>
 
-#endif
+namespace escript {
+
+void getStringFromPyException(boost::python::error_already_set e, std::string& errormsg);
+
+} // namespace escript
+
+#endif // __ESCRIPT_PYERR_H__
+

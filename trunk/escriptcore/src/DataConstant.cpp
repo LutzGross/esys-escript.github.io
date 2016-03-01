@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "DataConstant.h"
 #include "Data.h"
 #include "DataException.h"

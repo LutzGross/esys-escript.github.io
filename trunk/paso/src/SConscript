@@ -107,7 +107,7 @@ headers = """
     UMFPACK.h
 """.split()
 
-local_env.Prepend(LIBS = ['esysUtils', 'escript'])
+local_env.Prepend(LIBS = ['escript'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 
