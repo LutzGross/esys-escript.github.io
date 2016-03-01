@@ -42,39 +42,54 @@ SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
     output_distribution(outDist),
     input_distribution(inDist)
 {
+    std::stringstream ss;
+
     if (outDist->mpi_info != inDist->mpi_info) {
-        throw PasoException("SystemMatrixPattern: output distribution and input distribution MPI communicators don't match.");
+        ss << "SystemMatrixPattern: output distribution and input distribution MPI communicators don't match.";
+    } else if (outDist->mpi_info != colConn->mpi_info) {
+        ss << "SystemMatrixPattern: output distribution and col connector MPI communicators don't match.";
+    } else if (outDist->mpi_info != rowConn->mpi_info) {
+        ss << "SystemMatrixPattern: output distribution and row connector MPI communicators don't match.";
+    } else if (mainPat->type != patType)  {
+        ss << "SystemMatrixPattern: type of mainPattern (" << mainPat->type
+           << ") does not match expected type (" << patType << ")";
+    } else if (colPat->type != patType)  {
+        ss << "SystemMatrixPattern: type of col couplePattern (" << colPat->type
+           << ") does not match expected type (" << patType << ")";
+    } else if (rowPat->type != patType)  {
+        ss << "SystemMatrixPattern: type of row couplePattern (" << rowPat->type
+           << ") does not match expected type (" << patType << ")";
+    } else if (colPat->numOutput != mainPat->numOutput) {
+        ss << "SystemMatrixPattern: number of outputs for couple and main "
+              "pattern don't match: " << colPat->numOutput << " != "
+           << mainPat->numOutput;
+    } else if (mainPat->numOutput != outDist->getMyNumComponents()) {
+        ss << "SystemMatrixPattern: number of outputs and given distribution "
+              "don't match: " << mainPat->numOutput << " != "
+           << outDist->getMyNumComponents();
+    } else if (mainPat->numInput != inDist->getMyNumComponents()) {
+        ss << "SystemMatrixPattern: number of input for main pattern and "
+              "number of send components in connector don't match: "
+           << mainPat->numInput << " != " << inDist->getMyNumComponents();
+    } else if (colPat->numInput != colConn->recv->numSharedComponents) {
+        ss << "SystemMatrixPattern: number of inputs for column couple pattern"
+              " and number of received components in connector don't match: "
+           << colPat->numInput << " != " << colConn->recv->numSharedComponents;
+    } else if (rowPat->numOutput != rowConn->recv->numSharedComponents) {
+        ss << "SystemMatrixPattern: number of inputs for row couple pattern "
+              "and number of received components in connector don't match: "
+           << rowPat->numOutput << " != " << rowConn->recv->numSharedComponents;
     }
-    if (outDist->mpi_info != colConn->mpi_info) {
-        throw PasoException("SystemMatrixPattern: output distribution and col connector MPI communicators don't match.");
+    const std::string msg(ss.str());
+    int error = msg.length(); // proxy for error condition
+    int gerror = error;
+    escript::checkResult(error, gerror, outDist->mpi_info);
+    if (gerror > 0) {
+        char* gmsg;
+        escript::shipString(msg.c_str(), &gmsg, outDist->mpi_info->comm);
+        throw PasoException(gmsg);
     }
-    if (outDist->mpi_info != rowConn->mpi_info ) {
-        throw PasoException("SystemMatrixPattern: output distribution and row connector MPI communicators don't match.");
-    }
-    if (mainPat->type != patType)  {
-        throw PasoException("SystemMatrixPattern: type of mainPattern does not match expected type.");
-    }
-    if (colPat->type != patType)  {
-        throw PasoException("SystemMatrixPattern: type of col couplePattern does not match expected type.");
-    }
-    if (rowPat->type != patType)  {
-        throw PasoException("SystemMatrixPattern: type of row couplePattern does not match expected type.");
-    }
-    if (colPat->numOutput != mainPat->numOutput) {
-        throw PasoException("SystemMatrixPattern: number of outputs for couple and main pattern don't match.");
-    }
-    if (mainPat->numOutput != outDist->getMyNumComponents()) {
-        throw PasoException("SystemMatrixPattern: number of outputs and given distribution don't match.");
-    }
-    if (mainPat->numInput != inDist->getMyNumComponents()) {
-        throw PasoException("SystemMatrixPattern: number of input for main pattern and number of send components in connector don't match.");
-    }
-    if (colPat->numInput != colConn->recv->numSharedComponents) {
-        throw PasoException("SystemMatrixPattern: number of inputs for column couple pattern and number of received components in connector don't match.");
-    }
-    if (rowPat->numOutput != rowConn->recv->numSharedComponents) {
-        throw PasoException("SystemMatrixPattern: number of inputs for row couple pattern and number of received components in connector don't match.");
-    }
+
     mpi_info = outDist->mpi_info;
 }
 
