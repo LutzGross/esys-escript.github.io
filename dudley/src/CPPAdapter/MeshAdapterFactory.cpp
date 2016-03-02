@@ -225,8 +225,8 @@ Domain_ptr loadMesh(const std::string& fileName)
            }
        }
        delete[] Elements_Nodes;
-       Dudley_ElementFile_setTagsInUse(mesh_p->Elements);
     } /* num_Elements>0 */
+    Dudley_ElementFile_setTagsInUse(mesh_p->Elements);
 
     /* get the face elements */
     mesh_p->FaceElements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)FaceElements_TypeId, mpi_info);
@@ -271,8 +271,8 @@ Domain_ptr loadMesh(const std::string& fileName)
            }
        }
        delete[] FaceElements_Nodes;
-       Dudley_ElementFile_setTagsInUse(mesh_p->FaceElements);
     } /* num_FaceElements>0 */
+    Dudley_ElementFile_setTagsInUse(mesh_p->FaceElements);
 
     /* get the Points (nodal elements) */
     mesh_p->Points=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Points_TypeId, mpi_info);
@@ -315,8 +315,8 @@ Domain_ptr loadMesh(const std::string& fileName)
            mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
        }
        delete[] Points_Nodes;
-       Dudley_ElementFile_setTagsInUse(mesh_p->Points);
     } /* num_Points>0 */
+    Dudley_ElementFile_setTagsInUse(mesh_p->Points);
 
     /* get the tags */
     if (num_Tags>0) {
