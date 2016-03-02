@@ -823,11 +823,11 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     }
 
     std::stringstream ss;
-    if (!(min_DOF<=myFirstDOF && myLastDOF-1<=max_DOF)) {
+    if (myFirstDOF<myLastDOF && !(min_DOF<=myFirstDOF && myLastDOF-1<=max_DOF)) {
         ss << "createDOFMappingAndCoupling: Local elements do not span local "
               "degrees of freedom. min_DOF=" << min_DOF << ", myFirstDOF="
-              << myFirstDOF << ", myLastDOF-1=" << myLastDOF-1
-              << ", max_DOF=" << max_DOF;
+           << myFirstDOF << ", myLastDOF-1=" << myLastDOF-1
+           << ", max_DOF=" << max_DOF << " on rank=" << MPIInfo->rank;
     }
     const std::string msg(ss.str());
     int error = msg.length();
