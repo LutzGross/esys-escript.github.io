@@ -254,9 +254,10 @@ cc_name=os.path.basename(env['CXX'])
 
 if cc_name == 'icpc':
     # Intel compiler
+    # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -Wno-unknown-pragmas"
+    cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
     omp_flags   = "-openmp"

@@ -53,7 +53,7 @@ escript_opts_version = 203
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-std=c++11 -ipo -sox -I/sw/pymodules/2.7/scipy-0.15.1-haswell/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-sox -I/sw/pymodules/2.7/scipy-0.15.1-haswell/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
