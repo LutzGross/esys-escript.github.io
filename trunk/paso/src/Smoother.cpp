@@ -220,6 +220,9 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* smoother, double* x)
 {
     const dim_t n=A->numRows;
+    if (n==0)
+        return;
+
     const dim_t n_block=A->row_block_size;
     double *diag = smoother->diag;
     index_t* pivot = smoother->pivot;
