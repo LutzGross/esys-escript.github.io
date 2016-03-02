@@ -822,9 +822,23 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         }
     }
 
-    if (!((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF))) {
-        throw FinleyException("Local elements do not span local degrees of freedom.");
+    std::stringstream ss;
+    if (!(min_DOF<=myFirstDOF && myLastDOF-1<=max_DOF)) {
+        ss << "createDOFMappingAndCoupling: Local elements do not span local "
+              "degrees of freedom. min_DOF=" << min_DOF << ", myFirstDOF="
+              << myFirstDOF << ", myLastDOF-1=" << myLastDOF-1
+              << ", max_DOF=" << max_DOF;
     }
+    const std::string msg(ss.str());
+    int error = msg.length();
+    int gerror = error;
+    escript::checkResult(error, gerror, MPIInfo);
+    if (gerror > 0) {
+        char* gmsg;
+        escript::shipString(msg.c_str(), &gmsg, MPIInfo->comm);
+        throw FinleyException(gmsg);
+    }
+
     const index_t UNUSED = -1;
     const index_t len_loc_dof=max_DOF-min_DOF+1;
     std::vector<index_t> shared(numNodes*(p_max-p_min+1));
