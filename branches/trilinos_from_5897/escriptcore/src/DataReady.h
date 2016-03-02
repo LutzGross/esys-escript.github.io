@@ -112,7 +112,14 @@ public:
   */
   ESCRIPT_DLL_API
   virtual void
-  replaceNaN(double value) = 0;
+  replaceNaN(DataTypes::real_t value) = 0;
+  
+  /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  replaceNaN(DataTypes::cplx_t value) = 0;  
   
   /**
      \brief

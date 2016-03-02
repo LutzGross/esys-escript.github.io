@@ -21,9 +21,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "ElementFile.h"
 #include <escript/Data.h>
 
@@ -34,7 +31,7 @@ namespace finley {
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
 ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
-                         esysUtils::JMPI& mpiInfo) :
+                         escript::JMPI& mpiInfo) :
     referenceElementSet(refSet),
     numElements(0),
     Id(NULL),
@@ -116,8 +113,7 @@ void ElementFile::copyTable(index_t offset, index_t nodeOffset,
 {
     const int NN_in=in->numNodes;
     if (NN_in > numNodes) {
-        setError(TYPE_ERROR, "ElementFile::copyTable: dimensions of element files don't match.");
-        return;
+        throw escript::ValueError("ElementFile::copyTable: dimensions of element files don't match.");
     }
 
 #pragma omp parallel for
@@ -190,21 +186,19 @@ void ElementFile::optimizeOrdering()
     index_t *index=new index_t[numElements];
     ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
     out->allocTable(numElements);
-    if (noError()) {
 #pragma omp parallel for
-        for (index_t e=0; e<numElements; e++) {
-            std::pair<index_t,index_t> entry(Nodes[INDEX2(0,e,NN)], e);
-            for (int i=1; i<NN; i++)
-                entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
-            item_list[e] = entry;
-        }
-        util::sortValueAndIndex(item_list);
-#pragma omp parallel for
-        for (index_t e=0; e<numElements; e++)
-            index[e]=item_list[e].second;
-        out->gather(index, this);
-        swapTable(out);
+    for (index_t e=0; e<numElements; e++) {
+        std::pair<index_t,index_t> entry(Nodes[INDEX2(0,e,NN)], e);
+        for (int i=1; i<NN; i++)
+            entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
+        item_list[e] = entry;
     }
+    util::sortValueAndIndex(item_list);
+#pragma omp parallel for
+    for (index_t e=0; e<numElements; e++)
+        index[e]=item_list[e].second;
+    out->gather(index, this);
+    swapTable(out);
     delete out;
     delete[] index;
 }
@@ -224,18 +218,14 @@ void ElementFile::relabelNodes(const std::vector<index_t>& newNode, index_t offs
 
 void ElementFile::setTags(int newTag, const escript::Data& mask)
 {
-    resetError();
-
     const int numQuad=referenceElementSet->borrowReferenceElement(
             util::hasReducedIntegrationOrder(mask))
             ->Parametrization->numQuadNodes; 
     if (1 != mask.getDataPointSize()) {
-        setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
-        return;
+        throw escript::ValueError("ElementFile::setTags: number of components of mask must be 1.");
     } else if (mask.getNumDataPointsPerSample() != numQuad ||
             mask.getNumSamples() != numElements) {
-        setError(TYPE_ERROR, "ElementFile::setTags: illegal number of samples of mask Data object");
-        return;
+        throw escript::ValueError("ElementFile::setTags: illegal number of samples of mask Data object");
     }
 
     if (mask.actsExpanded()) {
@@ -467,7 +457,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         // copied once only for each processor
         for (index_t e=0; e<numElements; e++) {
             if (Owner[e] == myRank) {
-                proc_mask.assign(size, TRUE);
+                proc_mask.assign(size, true);
                 for (int j=0; j<numNodes; j++) {
                     const int p=mpiRankOfDOF[Nodes[INDEX2(j,e,numNodes)]];
                     if (proc_mask[p]) {
@@ -479,7 +469,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                             Nodes_buffer[INDEX2(i,k,numNodes)]=
                                     index[Nodes[INDEX2(i,e,numNodes)]];
                         send_count[p]++;
-                        proc_mask[p]=FALSE;
+                        proc_mask[p]=false;
                     }
                 }
             }
@@ -491,20 +481,20 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         for (int p=0; p<size; ++p) {
             if (recv_count[p] > 0) {
                 MPI_Irecv(&Id[recv_offset[p]], recv_count[p], MPI_DIM_T, p,
-                        MPIInfo->msg_tag_counter+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Tag[recv_offset[p]], recv_count[p], MPI_INT, p,
-                        MPIInfo->msg_tag_counter+size+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Owner[recv_offset[p]], recv_count[p], MPI_INT, p,
-                        MPIInfo->msg_tag_counter+2*size+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+2*size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Irecv(&Nodes[recv_offset[p]*numNodes],
                         recv_count[p]*numNodes, MPI_DIM_T, p,
-                        MPIInfo->msg_tag_counter+3*size+myRank, MPIInfo->comm,
+                        MPIInfo->counter()+3*size+myRank, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
             }
@@ -513,25 +503,25 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         for (int p=0; p<size; ++p) {
             if (send_count[p] > 0) {
                 MPI_Issend(&Id_buffer[send_offset[p]], send_count[p], MPI_DIM_T,
-                        p, MPIInfo->msg_tag_counter+p, MPIInfo->comm,
+                        p, MPIInfo->counter()+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Tag_buffer[send_offset[p]], send_count[p], MPI_INT,
-                        p, MPIInfo->msg_tag_counter+size+p, MPIInfo->comm,
+                        p, MPIInfo->counter()+size+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Owner_buffer[send_offset[p]], send_count[p],
-                        MPI_INT, p, MPIInfo->msg_tag_counter+2*size+p,
+                        MPI_INT, p, MPIInfo->counter()+2*size+p,
                         MPIInfo->comm, &mpi_requests[numRequests]);
                 numRequests++;
                 MPI_Issend(&Nodes_buffer[send_offset[p]*numNodes],
                         send_count[p]*numNodes, MPI_DIM_T, p,
-                        MPIInfo->msg_tag_counter+3*size+p, MPIInfo->comm,
+                        MPIInfo->counter()+3*size+p, MPIInfo->comm,
                         &mpi_requests[numRequests]);
                 numRequests++;
             }
         }
-        ESYS_MPI_INC_COUNTER(*MPIInfo, 4*size);
+        MPIInfo->incCounter(4*size);
         // wait for the requests to be finalized
         MPI_Waitall(numRequests, &mpi_requests[0], &mpi_stati[0]);
 #endif

@@ -14,17 +14,13 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+#include <dudley/Dudley.h>
 
-#include "../Dudley.h"
-#include "DudleyAdapterException.h"
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
 
-#include "esysUtils/Esys_MPI.h"
-#include <escript/ExceptionTranslators.h>
 #include <escript/AbstractContinuousDomain.h>
+#include <escript/ExceptionTranslators.h>
 
 #include <boost/python.hpp>
 #include <boost/python/def.hpp>
@@ -44,7 +40,9 @@ BOOST_PYTHON_MODULE(dudleycpp)
 
   scope().attr("__doc__") = "To use this module, please import esys.dudley";  
   
-  register_exception_translator<dudley::DudleyAdapterException>(&escript::RuntimeErrorTranslator);
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
+    register_exception_translator<dudley::DudleyException>(&escript::RuntimeErrorTranslator);
 
   //
   // NOTE: The return_value_policy is necessary for functions that
@@ -70,8 +68,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
        arg("numDim"), 
        arg("integrationOrder")=-1, 
        arg("reducedIntegrationOrder")=-1, 
-       arg("optimize")=true,  
-       arg("useMacroElements")=false)
+       arg("optimize")=true)
 //       ,return_value_policy<manage_new_object>());
 ,"Read a gmsh mesh file\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
@@ -79,7 +76,6 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":type integrationOrder: ``int``\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If *reducedIntegrationOrder<0* the integration order is selected independently.\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``\n"
-":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``"
 );
 
   def ("__Brick_driver",dudley::brick_driver,
@@ -145,7 +141,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 );
 
   class_<dudley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
-      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Dudley_Mesh*> >())
+      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <dudley::Dudley_Mesh*> >())
       .def(init<const dudley::MeshAdapter&>())
       .def("write",&dudley::MeshAdapter::write,args("filename"),
 "Write the current mesh to a file with the given name.")

@@ -14,13 +14,9 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
-#include "DomainException.h"
 #include "NullDomain.h" 
 #include "Data.h"
+#include "DomainException.h"
 
 namespace escript {
 
@@ -41,6 +37,11 @@ std::string NullDomain::getDescription() const
 std::string NullDomain::functionSpaceTypeAsString(int functionSpaceType) const
 {
     return "Default_FunctionSpace";
+}
+
+JMPI NullDomain::getMPI() const
+{
+    throw DomainException("NullDomain::getMPI() not supported.");
 }
 
 void NullDomain::interpolateOnDomain(Data& target,const Data& source) const
@@ -93,7 +94,7 @@ const int* NullDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 escript::Data NullDomain::randomFill(const DataTypes::ShapeType& shape,
        const FunctionSpace& what, long seed, const boost::python::tuple& filter) const
 {
-    throw DataException("Attempted randomFill on NullDomain. NullDomains do not store values.");
+    throw DomainException("Attempted randomFill on NullDomain. NullDomains do not store values.");
 }
 void NullDomain::dump(std::string const&) const
 {
@@ -184,3 +185,4 @@ void NullDomain::setToX(escript::Data&) const
 
 
 }  // end of namespace
+

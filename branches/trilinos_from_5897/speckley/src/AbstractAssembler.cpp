@@ -13,10 +13,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <speckley/AbstractAssembler.h>
 
 namespace speckley {

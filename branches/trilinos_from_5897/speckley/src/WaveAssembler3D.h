@@ -16,12 +16,14 @@
 #ifndef __SPECKLEY_WAVE_ASSEMBLER_3D_H__
 #define __SPECKLEY_WAVE_ASSEMBLER_3D_H__
 
-#include <map>
-#include <escript/Data.h>
 #include <speckley/Speckley.h>
-#include <speckley/SpeckleyException.h>
 #include <speckley/AbstractAssembler.h>
 #include <speckley/Brick.h>
+#include <speckley/SpeckleyException.h>
+
+#include <escript/Data.h>
+
+#include <map>
 
 namespace speckley {
 
@@ -36,7 +38,7 @@ public:
         m_NE(NE),
         m_NN(NN)
     {
-        domain = boost::static_pointer_cast<const Brick>(dom);
+        domain = REFCOUNTNS::static_pointer_cast<const Brick>(dom);
         isHTI = isVTI = false;
         DataMap::const_iterator a = c.find("c12"), b = c.find("c23");
         if (c.find("c11") == c.end()
@@ -172,7 +174,7 @@ public:
                                    const DataMap& coefs) const;
 
 protected:
-    boost::shared_ptr<const Brick> domain;
+    POINTER_WRAPPER_CLASS(const Brick) domain;
     const double *m_dx;
     const dim_t *m_NE;
     const dim_t *m_NN;

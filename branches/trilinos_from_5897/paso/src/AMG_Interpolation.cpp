@@ -25,9 +25,9 @@
 /****************************************************************************/
 
 #include "Paso.h"
-#include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "SparseMatrix.h"
 
 #include <cstring> // memcpy
 
@@ -67,9 +67,8 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     if (A->mpi_info->size == 1) return;
 
     if (B->remote_coupleBlock.get()) {
-        Esys_setError(VALUE_ERROR, "Preconditioner_AMG_extendB: the link to "
-                                   "remote_coupleBlock has already been set.");
-        return;
+        throw PasoException("Preconditioner_AMG_extendB: the link to "
+                            "remote_coupleBlock has already been set.");
     }
 #ifdef ESYS_MPI
     B->row_coupleBlock.reset();
@@ -165,7 +164,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         row = recv->offsetInShared[p];
         m = recv->offsetInShared[p + 1];
         MPI_Irecv(&(ptr_ptr[2*row]), 2 * (m-row), MPI_INT, recv->neighbor[p],
-                A->mpi_info->msg_tag_counter+recv->neighbor[p],
+                A->mpi_info->counter()+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
     }
@@ -247,7 +246,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
 
         /* sending */
         MPI_Issend(&(send_offset[2*i0]), 2*(i-i0), MPI_INT, send->neighbor[p],
-                A->mpi_info->msg_tag_counter+rank,
+                A->mpi_info->counter()+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
         send_degree[p] = len;
@@ -267,7 +266,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
                     A->col_coupler->connector->recv->numNeighbors,
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
+    A->mpi_info->incCounter(size);
 
     j = 0;
     k = 0;
@@ -296,7 +295,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         if (i > 0) {
             k_ub ++;
             MPI_Irecv(&(ptr_idx[j]), i, MPI_INT, recv->neighbor[p],
-                A->mpi_info->msg_tag_counter+recv->neighbor[p],
+                A->mpi_info->counter()+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
         }
@@ -310,7 +309,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         if (i > 0){
             k_ub ++;
             MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbor[p],
-                A->mpi_info->msg_tag_counter+rank,
+                A->mpi_info->counter()+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
         }
@@ -321,7 +320,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
                     A->col_coupler->connector->recv->numNeighbors,
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
+    A->mpi_info->incCounter(size);
 
 #pragma omp parallel for private(i,j,k,m,p) schedule(static)
     for (i=0; i<len; i++) {
@@ -362,7 +361,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         if (i > 0)
             MPI_Irecv(&(ptr_val[j]), i * block_size,
                 MPI_DOUBLE, recv->neighbor[p],
-                A->mpi_info->msg_tag_counter+recv->neighbor[p],
+                A->mpi_info->counter()+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
         j += (i * block_size);
@@ -373,7 +372,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         i = send_degree[p] - j;
         if (i > 0)
             MPI_Issend(&(send_buf[j*block_size]), i*block_size, MPI_DOUBLE, send->neighbor[p],
-                A->mpi_info->msg_tag_counter+rank,
+                A->mpi_info->counter()+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
         j = send_degree[p] ;
@@ -382,7 +381,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     MPI_Waitall(A->col_coupler->connector->send->numNeighbors+A->col_coupler->connector->recv->numNeighbors,
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
+    A->mpi_info->incCounter(size);
 
 #pragma omp parallel for private(i,j,k,m,p) schedule(static)
     for (i=0; i<len; i++) {
@@ -425,15 +424,15 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
 {
     SharedComponents_ptr send, recv;
     index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
-    index_t i, j, p, m, n, size;
+    index_t i, j, p, m, n;
     index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
     index_t *ptr=*p_ptr, *idx=*p_idx;
     double  *val=*p_val, *recv_val=NULL;
   #ifdef ESYS_MPI
-    index_t rank = P->mpi_info->rank;
+    int rank = P->mpi_info->rank;
+    int size = P->mpi_info->size;
   #endif
 
-    size = P->mpi_info->size;
     send = P->col_coupler->connector->recv;
     recv = P->col_coupler->connector->send;
     send_neighbors = send->numNeighbors;
@@ -453,7 +452,7 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     n = recv->offsetInShared[p+1];
     #ifdef ESYS_MPI
     MPI_Irecv(&(recv_ptr[m]), n-m, MPI_INT, recv->neighbor[p],
-                P->mpi_info->msg_tag_counter + recv->neighbor[p],
+                P->mpi_info->counter() + recv->neighbor[p],
                 P->mpi_info->comm,
                 &(P->col_coupler->mpi_requests[p]));
     #endif
@@ -463,17 +462,17 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     n = send->offsetInShared[p+1];
     #ifdef ESYS_MPI
     MPI_Issend(&(send_degree[m]), n-m, MPI_INT, send->neighbor[p],
-                P->mpi_info->msg_tag_counter + rank,
+                P->mpi_info->counter() + rank,
                 P->mpi_info->comm,
                 &(P->col_coupler->mpi_requests[p+recv_neighbors]));
     #endif
   }
-  #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+  P->mpi_info->incCounter(size);
   MPI_Waitall(send_neighbors+recv_neighbors,
                 P->col_coupler->mpi_requests,
                 P->col_coupler->mpi_stati);
-  #endif
-  ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
+#endif
 
   delete[] send_degree;
   m = util::cumsum(recv_rows, recv_ptr);
@@ -490,7 +489,7 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     if (i > 0) {
       #ifdef ESYS_MPI
       MPI_Irecv(&(recv_idx[j]), i, MPI_INT, recv->neighbor[p],
-                P->mpi_info->msg_tag_counter + recv->neighbor[p],
+                P->mpi_info->counter() + recv->neighbor[p],
                 P->mpi_info->comm,
                 &(P->col_coupler->mpi_requests[p]));
       #endif
@@ -506,19 +505,19 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     if (i >0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(idx[j]), i, MPI_INT, send->neighbor[p],
-                P->mpi_info->msg_tag_counter + rank,
+                P->mpi_info->counter() + rank,
                 P->mpi_info->comm,
                 &(P->col_coupler->mpi_requests[p+recv_neighbors]));
         #endif
         j += i;
     }
   }
-  #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+  P->mpi_info->incCounter(size);
   MPI_Waitall(send_neighbors+recv_neighbors,
                 P->col_coupler->mpi_requests,
                 P->col_coupler->mpi_stati);
-  #endif
-  ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
+#endif
 
   /* Last, send/receive the data array */
   j = 0;
@@ -529,7 +528,7 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     #ifdef ESYS_MPI
     if (i > 0)
       MPI_Irecv(&(recv_val[j]), i*block_size, MPI_DOUBLE, recv->neighbor[p],
-                P->mpi_info->msg_tag_counter + recv->neighbor[p],
+                P->mpi_info->counter() + recv->neighbor[p],
                 P->mpi_info->comm,
                 &(P->col_coupler->mpi_requests[p]));
     #endif
@@ -544,19 +543,19 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     if (i >0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(val[j]), i * block_size, MPI_DOUBLE, send->neighbor[p],
-                P->mpi_info->msg_tag_counter + rank,
+                P->mpi_info->counter() + rank,
                 P->mpi_info->comm,
                 &(P->col_coupler->mpi_requests[p+recv_neighbors]));
         #endif
         j += i * block_size;
     }
   }
-  #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+  P->mpi_info->incCounter(size);
   MPI_Waitall(send_neighbors+recv_neighbors,
                 P->col_coupler->mpi_requests,
                 P->col_coupler->mpi_stati);
-  #endif
-  ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
+#endif
 
   /* Clean up and return with received ptr, index and data arrays */
   delete[] ptr;
@@ -571,7 +570,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         SystemMatrix_ptr A, SystemMatrix_ptr P,
         SystemMatrix_ptr R)
 {
-   esysUtils::JMPI& mpi_info=A->mpi_info;
+   escript::JMPI& mpi_info=A->mpi_info;
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
    Distribution_ptr input_dist, output_dist;
@@ -598,7 +597,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    index_t **send_ptr=NULL, **send_idx=NULL;
    dim_t p, num_neighbors;
    dim_t *recv_len=NULL, *send_len=NULL, *len=NULL;
-   Esys_MPI_rank *neighbor=NULL;
+   int *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -1681,7 +1680,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    dist = P->pattern->input_distribution->first_component;
    recv_len = new dim_t[size];
    send_len = new dim_t[size];
-   neighbor = new Esys_MPI_rank[size];
+   neighbor = new int[size];
    offsetInShared = new index_t[size+1];
    shared = new index_t[num_RAPext_cols];
    memset(recv_len, 0, sizeof(dim_t) * size);
@@ -1741,7 +1740,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      k = neighbor[i];
      #ifdef ESYS_MPI
      MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k,
-                mpi_info->msg_tag_counter+k,
+                mpi_info->counter()+k,
                 mpi_info->comm, &mpi_requests[i]);
      #endif
      j += send_len[k];
@@ -1750,16 +1749,16 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      k = recv->neighbor[i];
      #ifdef ESYS_MPI
      MPI_Issend(&(global_id_RAP[j]), recv_len[k], MPI_INT, k,
-                mpi_info->msg_tag_counter+rank,
+                mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[i+num_neighbors]);
      #endif
      j += recv_len[k];
    }
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(num_neighbors + recv->numNeighbors,
                 mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size);
+#endif
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
@@ -1880,7 +1879,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      i = offsetInShared[p+1];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
-                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->counter()+neighbor[p],
                 mpi_info->comm, &mpi_requests[p]);
      #endif
    }
@@ -1889,15 +1888,15 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      #ifdef ESYS_MPI
      MPI_Issend(send_ptr[send->neighbor[p]], send_len[send->neighbor[p]],
                 MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+rank,
+                mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(num_neighbors + send->numNeighbors,
         mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size);
+#endif
    delete[] send_len;
 
    sum = 0;
@@ -1916,7 +1915,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      j2 = row_couple_ptr[offsetInShared[p+1]];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_idx[j1]), j2-j1, MPI_INT, neighbor[p],
-                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->counter()+neighbor[p],
                 mpi_info->comm, &mpi_requests[p]);
      #endif
    }
@@ -1924,15 +1923,15 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      #ifdef ESYS_MPI
      MPI_Issend(send_idx[send->neighbor[p]], len[send->neighbor[p]],
                 MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+rank,
+                mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(num_neighbors + send->numNeighbors,
                 mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size);
+#endif
 
     offset = input_dist->first_component[rank];
     k = row_couple_ptr[num_RAPext_rows];
@@ -1980,9 +1979,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
 
     delete[] RAP_main_val;
     delete[] RAP_couple_val;
-    if (!Esys_noError()) {
-        out.reset();
-    }
     return out;
 }
 
@@ -1991,7 +1987,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         SystemMatrix_ptr A, SystemMatrix_ptr P,
         SystemMatrix_ptr R)
 {
-   esysUtils::JMPI& mpi_info=A->mpi_info;
+   escript::JMPI& mpi_info=A->mpi_info;
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
    Distribution_ptr input_dist, output_dist;
@@ -2018,7 +2014,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    index_t **send_ptr=NULL, **send_idx=NULL;
    dim_t p, num_neighbors;
    dim_t *recv_len=NULL, *send_len=NULL, *len=NULL;
-   Esys_MPI_rank *neighbor=NULL;
+   int *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -3080,7 +3076,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    dist = P->pattern->input_distribution->first_component;
    recv_len = new dim_t[size];
    send_len = new dim_t[size];
-   neighbor = new Esys_MPI_rank[size];
+   neighbor = new int[size];
    offsetInShared = new index_t[size+1];
    shared = new index_t[num_RAPext_cols];
    memset(recv_len, 0, sizeof(dim_t) * size);
@@ -3138,7 +3134,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      k = neighbor[i];
      #ifdef ESYS_MPI
      MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k,
-                mpi_info->msg_tag_counter+k,
+                mpi_info->counter()+k,
                 mpi_info->comm, &mpi_requests[i]);
      #endif
      j += send_len[k];
@@ -3147,16 +3143,16 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      k = recv->neighbor[i];
      #ifdef ESYS_MPI
      MPI_Issend(&(global_id_RAP[j]), recv_len[k], MPI_INT, k,
-                mpi_info->msg_tag_counter+rank,
+                mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[i+num_neighbors]);
      #endif
      j += recv_len[k];
    }
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(num_neighbors + recv->numNeighbors,
                 mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size);
+#endif
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
@@ -3272,7 +3268,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      i = offsetInShared[p+1];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
-                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->counter()+neighbor[p],
                 mpi_info->comm, &mpi_requests[p]);
      #endif
    }
@@ -3281,15 +3277,15 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      #ifdef ESYS_MPI
      MPI_Issend(send_ptr[send->neighbor[p]], send_len[send->neighbor[p]],
                 MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+rank,
+                mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(num_neighbors + send->numNeighbors,
         mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size);
+#endif
    delete[] send_len;
 
    sum = 0;
@@ -3308,7 +3304,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      j2 = row_couple_ptr[offsetInShared[p+1]];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_idx[j1]), j2-j1, MPI_INT, neighbor[p],
-                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->counter()+neighbor[p],
                 mpi_info->comm, &mpi_requests[p]);
      #endif
    }
@@ -3316,15 +3312,15 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      #ifdef ESYS_MPI
      MPI_Issend(send_idx[send->neighbor[p]], len[send->neighbor[p]],
                 MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+rank,
+                mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(num_neighbors + send->numNeighbors,
                 mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size);
+#endif
 
    offset = input_dist->first_component[rank];
    k = row_couple_ptr[num_RAPext_rows];
@@ -3370,9 +3366,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
 
     delete[] RAP_main_val;
     delete[] RAP_couple_val;
-    if (!Esys_noError()) {
-        out.reset();
-    }
     return out;
 }
 

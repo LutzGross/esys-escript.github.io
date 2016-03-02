@@ -13,10 +13,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "NonReducedVariable.h"
 #include "SplitWorldException.h"
 
@@ -59,7 +55,7 @@ void NonReducedVariable::reset()
 
 // Since we aren't actually don't a check here, this call won't function
 // as a barrier like other implementations of this method
-bool NonReducedVariable::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)
+bool NonReducedVariable::checkRemoteCompatibility(JMPI& mpi_info, std::string& errstring)
 {
     return true;
 }
@@ -79,12 +75,12 @@ std::string NonReducedVariable::description()
     return "Non-Reduced Variable.";
 }
 
-bool NonReducedVariable::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+bool NonReducedVariable::recvFrom(int localid, int source, JMPI& mpiinfo)
 {
     return true;
 }
 
-bool NonReducedVariable::sendTo(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+bool NonReducedVariable::sendTo(int localid, int source, JMPI& mpiinfo)
 {
     return true;
 }
@@ -121,13 +117,13 @@ void NonReducedVariable::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
 }
 
 
-namespace escript
-{
+namespace escript {
+
 Reducer_ptr makeNonReducedVariable()
 {
     NonReducedVariable* m=new NonReducedVariable();
     return Reducer_ptr(m);
-
 }
 
 }
+

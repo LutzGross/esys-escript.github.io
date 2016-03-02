@@ -77,7 +77,7 @@ std::pair<index_t,index_t> getFlaggedMinMaxInt(dim_t N, const index_t* values, i
 std::vector<index_t> packMask(const std::vector<short>& mask);
 
 void setValuesInUse(const int *values, const int numValues,
-                    std::vector<int>& valuesInUse, esysUtils::JMPI& mpiinfo);
+                    std::vector<int>& valuesInUse, escript::JMPI& mpiinfo);
 
 } // namespace util
 } // namespace finley

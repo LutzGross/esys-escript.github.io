@@ -14,20 +14,33 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 #include "ExceptionTranslators.h" 
 
 namespace escript {
 
-void RuntimeErrorTranslator(const esysUtils::EsysException& e) 
-  {
-    PyErr_SetString(PyExc_RuntimeError,e.what());
-  }
-
-void ValueErrorTranslator(const esysUtils::EsysException& e) 
+void AssertionErrorTranslator(const EsysException& e) 
 {
-    PyErr_SetString(PyExc_ValueError,e.what());
+    PyErr_SetString(PyExc_AssertionError, e.what());
+}
+
+void IOErrorTranslator(const EsysException& e) 
+{
+    PyErr_SetString(PyExc_IOError, e.what());
+}
+
+void NotImplementedErrorTranslator(const EsysException& e) 
+{
+    PyErr_SetString(PyExc_NotImplementedError, e.what());
+}
+
+void RuntimeErrorTranslator(const EsysException& e) 
+{
+    PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void ValueErrorTranslator(const EsysException& e) 
+{
+    PyErr_SetString(PyExc_ValueError, e.what());
 }
 
 }  // end of namespace

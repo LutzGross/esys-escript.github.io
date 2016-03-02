@@ -14,15 +14,10 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <speckley/CrossDomainCoupler.h>
-
 #include <speckley/lagrange_functions.h>
-#include <esysUtils/index.h>
-#include <esysUtils/Esys_MPI.h>
+
+#include <escript/index.h>
 
 #define MINE 1
 #define SHARED 0

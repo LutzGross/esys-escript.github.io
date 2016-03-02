@@ -95,7 +95,7 @@ mpi_prefix = '/sw/intel/impi/5.1.1.109/intel64'
 # MPI libraries to link against
 #mpi_libs = ['mpi']
 
-cuda = True
+#cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
 
 # Prefix or paths to NVidia CUDA installation. See note above. [new in 202]
@@ -209,10 +209,6 @@ visit_prefix = '/sw/apps/visit/2.7.0/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
-
-# Build dynamic libraries only
-#DEFAULT: False
-build_shared = True
 
 
 ### ADVANCED OPTIONS ###

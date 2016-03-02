@@ -26,9 +26,9 @@
 
 #include "Paso.h"
 #include "Options.h"
-#include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "SparseMatrix.h"
 
 #include <cstring> // memset
 
@@ -59,7 +59,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
         const index_t* S, const dim_t n_C, index_t* counter_C,
         const index_t interpolation_method)
 {
-   esysUtils::JMPI& mpi_info=A_p->mpi_info;
+   escript::JMPI& mpi_info=A_p->mpi_info;
    Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
    Connector_ptr col_connector;
@@ -82,7 +82,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
    #ifdef ESYS_MPI
    index_t rank=mpi_info->rank;
    #endif
-   Esys_MPI_rank *neighbor=NULL;
+   int *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -202,22 +202,15 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
           }
         }
 
-   if (Esys_noError()) {
-     main_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
+    main_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
                         my_n_C, main_p, main_idx));
-     couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
+    couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
                         sum, couple_p, couple_idx));
-   } else {
-     delete[] main_p;
-     delete[] main_idx;
-     delete[] couple_p;
-     delete[] couple_idx;
-   }
 
    /* prepare the receiver for the col_connector.
       Note that the allocation for "shared" assumes the send and receive buffer
       of the interpolation matrix P is no larger than that of matrix A_p. */
-   neighbor = new Esys_MPI_rank[size];
+   neighbor = new int[size];
    offsetInShared = new index_t[size+1];
    recv = A_p->col_coupler->connector->recv;
    send = A_p->col_coupler->connector->send;
@@ -241,7 +234,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      i = send->offsetInShared[p];
      #ifdef ESYS_MPI
      MPI_Irecv (&(send_shared[i]), send->offsetInShared[p+1]-i, MPI_INT,
-                send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
+                send->neighbor[p], mpi_info->counter()+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[p]);
      #endif
    }
@@ -270,7 +263,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      #ifdef ESYS_MPI
      MPI_Issend(&(recv_shared[recv->offsetInShared[i]]),
                 k-recv->offsetInShared[i], MPI_INT, recv->neighbor[i],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm,
+                mpi_info->counter()+rank, mpi_info->comm,
                 &mpi_requests[i+send->numNeighbors]);
      #endif
    }
@@ -278,10 +271,10 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
                shared, offsetInShared, 1, 0, mpi_info));
 
    /* now we can build the sender */
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
+   mpi_info->incCounter(size);
    MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size)
+#endif
    delete[] mpi_requests;
    delete[] mpi_stati;
 
@@ -307,34 +300,31 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      }
    }
 
-   send.reset(new SharedComponents(my_n_C, num_neighbors, neighbor,
+    send.reset(new SharedComponents(my_n_C, num_neighbors, neighbor,
                shared, offsetInShared, 1, 0, mpi_info));
-   col_connector.reset(new Connector(send, recv));
-   delete[] recv_shared;
-   delete[] send_shared;
-   delete[] neighbor;
-   delete[] offsetInShared;
-   delete[] shared;
+    col_connector.reset(new Connector(send, recv));
+    delete[] recv_shared;
+    delete[] send_shared;
+    delete[] neighbor;
+    delete[] offsetInShared;
+    delete[] shared;
 
    /* now we need to create the System Matrix
       TO BE FIXED: at this stage, we only construct col_couple_pattern
       and col_connector for interpolation matrix P. To be completed,
       row_couple_pattern and row_connector need to be constructed as well */
-   SystemMatrix_ptr out;
-   SystemMatrixPattern_ptr pattern;
-   if (Esys_noError()) {
-     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+    SystemMatrix_ptr out;
+    SystemMatrixPattern_ptr pattern;
+    pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, main_pattern, couple_pattern,
                 couple_pattern, col_connector, col_connector));
-     out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
+    out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
                                 row_block_size, col_block_size, false,
                                 A_p->getRowFunctionSpace(),
                                 A_p->getColumnFunctionSpace()));
-   }
 
-   /* now fill in the matrix */
-   if (Esys_noError()) {
-     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
+    /* now fill in the matrix */
+    if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
         || ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
         if (row_block_size == 1) {
           Preconditioner_AMG_setClassicProlongation(out, A_p, offset_S, degree_S, S, counter_C);
@@ -347,12 +337,8 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
         } else {
           Preconditioner_AMG_setDirectProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
         }
-     }
-   }
-
-    if (!Esys_noError()) {
-        out.reset();
     }
+
     return out;
 }
 
@@ -761,27 +747,27 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                     if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;
                     } else {   /* yes i strongly connected with j */
-                        if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
-                               if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Preconditioner_setClassicProlongation: interpolation point is missing.");
-                               } else {
-                                    const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p_main_i);
-                                    main_block->val[offset]+=A_ij;
-                               }
-                          } else {  /* j is not an interpolation point */
-                               /* find all interpolation points m of k */
-                               double s=0.;
-                               len_D_s=0;
+                        if (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
+                            const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
+                            if (where_p == NULL)  {
+                                throw PasoException("Preconditioner_setClassicProlongation: interpolation point is missing.");
+                            } else {
+                                const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p_main_i);
+                                main_block->val[offset]+=A_ij;
+                            }
+                        } else {  /* j is not an interpolation point */
+                            /* find all interpolation points m of k */
+                            double s=0.;
+                            len_D_s=0;
 
-                               /* first, the mainBlock part */
-                               range_j = A->mainBlock->pattern->ptr[j + 1];
-                               for (iPtr_j=A->mainBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
-                                    const double A_jm=A->mainBlock->val[iPtr_j];
-                                    const index_t m=A->mainBlock->pattern->index[iPtr_j];
-                                    /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
-                                    if (! (where_p_m==NULL)) {
+                            /* first, the mainBlock part */
+                            range_j = A->mainBlock->pattern->ptr[j + 1];
+                            for (iPtr_j=A->mainBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+                                const double A_jm=A->mainBlock->val[iPtr_j];
+                                const index_t m=A->mainBlock->pattern->index[iPtr_j];
+                                /* is m an interpolation point ? */
+                                const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
+                                if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          if (!util::samesign(A_ii, A_jm)) {
                                               D_s[len_D_s]=A_jm;
@@ -790,13 +776,13 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                          }
                                          D_s_offset[len_D_s]=offset_m;
                                          len_D_s++;
-                                    }
-                               }
+                                }
+                            }
 
-                               /* then the coupleBlock part */
-                               if (degree_p_couple_i) {
-                                 range_j = A->col_coupleBlock->pattern->ptr[j + 1];
-                                 for (iPtr_j=A->col_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+                            /* then the coupleBlock part */
+                            if (degree_p_couple_i) {
+                                range_j = A->col_coupleBlock->pattern->ptr[j + 1];
+                                for (iPtr_j=A->col_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
                                     const double A_jm=A->col_coupleBlock->val[iPtr_j];
                                     const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
@@ -811,22 +797,22 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                          D_s_offset[len_D_s]=offset_m + main_len;
                                          len_D_s++;
                                     }
-                                 }
-                               }
+                                }
+                            }
 
-                               for (q=0;q<len_D_s;++q) s+=D_s[q];
-                               if (std::abs(s)>0) {
-                                   s=A_ij/s;
-                                   for (q=0;q<len_D_s;++q) {
-                                        if (D_s_offset[q] < main_len)
-                                          main_block->val[D_s_offset[q]]+=s*D_s[q];
-                                        else
-                                          couple_block->val[D_s_offset[q]-main_len]+=s*D_s[q];
-                                   }
-                               } else {
-                                   a+=A_ij;
-                               }
-                          }
+                            for (q=0;q<len_D_s;++q) s+=D_s[q];
+                            if (std::abs(s)>0) {
+                                s=A_ij/s;
+                                for (q=0;q<len_D_s;++q) {
+                                    if (D_s_offset[q] < main_len)
+                                        main_block->val[D_s_offset[q]]+=s*D_s[q];
+                                    else
+                                        couple_block->val[D_s_offset[q]-main_len]+=s*D_s[q];
+                                }
+                            } else {
+                                a+=A_ij;
+                            }
+                        }
                      }
                  }
               }
@@ -847,7 +833,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                         if  (counter_C[t]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Preconditioner_AMG_setClassicProlongation: interpolation point is missing.");
+                                   throw PasoException("Preconditioner_AMG_setClassicProlongation: interpolation point is missing.");
                                } else {
                                     const index_t offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p_couple_i);
                                     couple_block->val[offset]+=A_ij;
@@ -996,7 +982,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
+                                   throw PasoException("Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
                                } else {
                                     const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p_main_i);
                                     for (ib=0; ib<row_block; ib++) main_block->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];
@@ -1086,7 +1072,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                         if  (counter_C[t]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
+                                   throw PasoException("Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
 
                                } else {
                                     const index_t offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p_couple_i);

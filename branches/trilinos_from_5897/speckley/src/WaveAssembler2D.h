@@ -31,7 +31,7 @@ public:
         m_NE(NE),
         m_NN(NN)
     {
-        domain = boost::static_pointer_cast<const Rectangle>(dom);
+        domain = REFCOUNTNS::static_pointer_cast<const Rectangle>(dom);
         isHTI = isVTI = false;
         DataMap::const_iterator a = c.find("c12"), b = c.find("c23");
         if (c.find("c11") == c.end()
@@ -171,7 +171,7 @@ public:
                                            const DataMap& coefs) const;
 
 protected:
-    boost::shared_ptr<const Rectangle> domain;
+    POINTER_WRAPPER_CLASS(const Rectangle) domain;
     const double *m_dx;
     const dim_t *m_NE;
     const dim_t *m_NN;

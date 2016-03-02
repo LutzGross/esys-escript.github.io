@@ -14,17 +14,16 @@
 *
 *****************************************************************************/
 
-
 #include "MeshAdapterTestCase.h"
+
+#include <escript/EsysMPI.h>
+
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
 #include <cppunit/TestResultCollector.h>
 #include <cppunit/TestRunner.h>
 
-
 using namespace CppUnit;
-
-#include "esysUtils/Esys_MPI.h"
 
 int main(int argc, char* argv[])
 {

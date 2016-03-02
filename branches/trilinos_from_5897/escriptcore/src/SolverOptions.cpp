@@ -14,10 +14,10 @@
 *
 *****************************************************************************/
 
-#include <boost/python.hpp>
-
 #include "SolverOptions.h"
-#include "SolverOptionsException.h"
+#include "EsysException.h"
+
+#include <boost/python.hpp>
 
 namespace bp = boost::python;
 
@@ -246,7 +246,7 @@ const char* SolverBuddy::getName(int key) const
         case SO_REORDERING_NESTED_DISSECTION: return "NESTED_DISSECTION";
         case SO_REORDERING_NONE: return "NO_REORDERING";
         default:
-            throw SolverOptionsException("getName() invalid option given");
+            throw ValueError("getName() invalid option given");
     }
     return "invalid option";
 }
@@ -286,50 +286,50 @@ void SolverBuddy::updateDiagnostics(std::string name, const bp::object& value)
 
     if (name == "num_iter") {
         if (!ib)
-            throw SolverOptionsException("setting num_iter to non-int value");
+            throw ValueError("setting num_iter to non-int value");
         cum_num_iter += num_iter = i;
     } else if (name == "num_level") {
         if (!ib)
-            throw SolverOptionsException("setting num_level to non-int value");
+            throw ValueError("setting num_level to non-int value");
         num_level = i;
     } else if (name == "num_inner_iter") {
         if (!ib)
-            throw SolverOptionsException("setting num_inner_iter to non-int value");
+            throw ValueError("setting num_inner_iter to non-int value");
         cum_num_inner_iter += num_inner_iter = i;
     } else if (name == "time") {
         if (!db)
-            throw SolverOptionsException("setting time to non-double value");
+            throw ValueError("setting time to non-double value");
         cum_time += time = d;
     } else if (name == "set_up_time") {
         if (!db)
-            throw SolverOptionsException("setting set_up_time to non-double value");
+            throw ValueError("setting set_up_time to non-double value");
         cum_set_up_time += set_up_time = d;
     } else if (name == "net_time") {
         if (!db)
-            throw SolverOptionsException("setting net_time to non-double value");
+            throw ValueError("setting net_time to non-double value");
         cum_net_time += net_time = d;
     } else if (name == "residual_norm") {
         if (!db)
-            throw SolverOptionsException("setting residual_norm to non-double value");
+            throw ValueError("setting residual_norm to non-double value");
         residual_norm = d;
     } else if (name == "converged") {
         if (!bb)
-            throw SolverOptionsException("setting converged to non-bool value");
+            throw ValueError("setting converged to non-bool value");
         converged = b;
     } else if (name == "time_step_backtracking_used") {
         if (!bb)
-            throw SolverOptionsException("setting time_step_backtracking_used to non-bool value");
+            throw ValueError("setting time_step_backtracking_used to non-bool value");
         time_step_backtracking_used = b;
     } else if (name == "coarse_level_sparsity") {
         if (!db)
-            throw SolverOptionsException("setting coarse_level_sparsity to non-double value");
+            throw ValueError("setting coarse_level_sparsity to non-double value");
         coarse_level_sparsity = d;
     } else if (name == "num_coarse_unknowns") {
         if (!ib)
-            throw SolverOptionsException("setting num_coarse_unknowns to non-int value");
+            throw ValueError("setting num_coarse_unknowns to non-int value");
         num_coarse_unknowns = i;
     } else {
-        throw SolverOptionsException(std::string("Unknown diagnostic: ") + name);
+        throw ValueError(std::string("Unknown diagnostic: ") + name);
     }
 }
 
@@ -354,8 +354,7 @@ double SolverBuddy::getDiagnostics(const std::string name) const
     else if (name == "coarse_level_sparsity") return coarse_level_sparsity;
     else if (name == "num_coarse_unknowns") return num_coarse_unknowns;
 
-    throw SolverOptionsException(std::string("unknown diagnostic item: ")
-                                 + name);
+    throw ValueError(std::string("unknown diagnostic item: ") + name);
 }
 
 bool SolverBuddy::hasConverged() const
@@ -380,7 +379,7 @@ void SolverBuddy::setCoarsening(int method)
             coarsening = meth;
             break;
         default:
-            throw SolverOptionsException("unknown coarsening method");
+            throw ValueError("unknown coarsening method");
     }
 }
 
@@ -392,7 +391,7 @@ SolverOptions SolverBuddy::getCoarsening() const
 void SolverBuddy::setMinCoarseMatrixSize(int size)
 {
     if (size < 0) {
-        throw SolverOptionsException("minimum size of the coarsest level "
+        throw ValueError("minimum size of the coarsest level "
                                      "matrix must be non-negative.");
     }
     min_coarse_matrix_size = size;
@@ -410,7 +409,7 @@ void SolverBuddy::setPreconditioner(int precon)
         case SO_PRECONDITIONER_AMG:
 /*
 #ifdef ESYS_MPI
-            throw SolverOptionsException("AMG preconditioner is not supported in MPI builds");
+            throw ValueError("AMG preconditioner is not supported in MPI builds");
             break;
 #endif
 */
@@ -426,7 +425,7 @@ void SolverBuddy::setPreconditioner(int precon)
             this->preconditioner = preconditioner;
             break;
         default:
-            throw SolverOptionsException("unknown preconditioner");
+            throw ValueError("unknown preconditioner");
     }
 }
 
@@ -440,7 +439,7 @@ void SolverBuddy::setSmoother(int s)
     SolverOptions smoother = static_cast<SolverOptions>(s);
     if (smoother != SO_PRECONDITIONER_JACOBI &&
             smoother != SO_PRECONDITIONER_GAUSS_SEIDEL) {
-        throw SolverOptionsException("unknown smoother");
+        throw ValueError("unknown smoother");
     }
     this->smoother = smoother;
 }
@@ -486,10 +485,11 @@ void SolverBuddy::setSolverMethod(int method)
             this->method = meth;
             break;
 #else
-            throw SolverOptionsException("Cannot use DIRECT solver method, the running escript was not compiled with a direct solver enabled");
+            throw ValueError("Cannot use DIRECT solver method, the running "
+                    "escript was not compiled with a direct solver enabled");
 #endif
         default:
-            throw SolverOptionsException("unknown solver method");
+            throw ValueError("unknown solver method");
     }
 }
 
@@ -507,7 +507,7 @@ void SolverBuddy::setSolverTarget(int target)
             this->target = targ;
             break;
         default:
-            throw SolverOptionsException("unknown solver target");
+            throw ValueError("unknown solver target");
     }
 }
 
@@ -531,7 +531,7 @@ void SolverBuddy::setPackage(int package)
             this->package = pack;
             break;
         default:
-            throw SolverOptionsException("unknown solver package");
+            throw ValueError("unknown solver package");
     }
 }
 
@@ -551,7 +551,7 @@ void SolverBuddy::setReordering(int ordering)
             reordering = ord;
             break;
         default:
-            throw SolverOptionsException("unknown reordering strategy");
+            throw ValueError("unknown reordering strategy");
     }
 }
 
@@ -563,7 +563,7 @@ SolverOptions SolverBuddy::getReordering() const
 void SolverBuddy::setRestart(int restart)
 {
     if (restart < 0)
-        throw SolverOptionsException("restart must be non-negative.");
+        throw ValueError("restart must be non-negative.");
 
     this->restart = restart;
 }
@@ -584,7 +584,7 @@ int SolverBuddy::_getRestartForC() const
 void SolverBuddy::setDiagonalDominanceThreshold(double value)
 {
     if (value < 0. || value > 1.)
-        throw SolverOptionsException("Diagonal dominance threshold must be between 0 and 1.");
+        throw ValueError("Diagonal dominance threshold must be between 0 and 1.");
     diagonal_dominance_threshold = value;
 }
 
@@ -596,7 +596,7 @@ double SolverBuddy::getDiagonalDominanceThreshold() const
 void SolverBuddy::setTruncation(int truncation)
 {
     if (truncation < 1)
-        throw SolverOptionsException("truncation must be positive.");
+        throw ValueError("truncation must be positive.");
     this->truncation = truncation;
 }
 
@@ -608,7 +608,7 @@ int SolverBuddy::getTruncation() const
 void SolverBuddy::setInnerIterMax(int iter_max)
 {
     if (iter_max < 1)
-        throw SolverOptionsException("maximum number of inner iteration must be positive.");
+        throw ValueError("maximum number of inner iteration must be positive.");
     inner_iter_max = iter_max;
 }
 
@@ -620,7 +620,7 @@ int SolverBuddy::getInnerIterMax() const
 void SolverBuddy::setIterMax(int iter_max)
 {
     if (iter_max < 1)
-        throw SolverOptionsException("maximum number of iteration steps must be positive.");
+        throw ValueError("maximum number of iteration steps must be positive.");
     this->iter_max = iter_max;
 }
 
@@ -632,7 +632,7 @@ int SolverBuddy::getIterMax() const
 void SolverBuddy::setLevelMax(int level_max)
 {
     if (level_max < 0)
-        throw SolverOptionsException("maximum number of coarsening levels must be non-negative.");
+        throw ValueError("maximum number of coarsening levels must be non-negative.");
     this->level_max = level_max;
 }
 
@@ -654,7 +654,7 @@ int SolverBuddy::getCycleType() const
 void SolverBuddy::setCoarseningThreshold(double theta)
 {
     if (theta < 0. || theta > 1.)
-        throw SolverOptionsException("threshold must be between 0 and 1.");
+        throw ValueError("threshold must be between 0 and 1.");
     coarsening_threshold = theta;
 }
 
@@ -666,7 +666,7 @@ double SolverBuddy::getCoarseningThreshold() const
 void SolverBuddy::setNumSweeps(int sweeps)
 {
     if (sweeps < 1)
-        throw SolverOptionsException("number of sweeps must be positive.");
+        throw ValueError("number of sweeps must be positive.");
     this->sweeps = sweeps;
 }
 
@@ -678,7 +678,7 @@ int SolverBuddy::getNumSweeps() const
 void SolverBuddy::setNumPreSweeps(int sweeps)
 {
     if (sweeps < 1)
-        throw SolverOptionsException("number of pre-sweeps must be positive.");
+        throw ValueError("number of pre-sweeps must be positive.");
     pre_sweeps = sweeps;
 }
 
@@ -690,7 +690,7 @@ int SolverBuddy::getNumPreSweeps() const
 void SolverBuddy::setNumPostSweeps(int sweeps)
 {
     if (sweeps < 1)
-       throw SolverOptionsException("number of post-sweeps must be positive.");
+       throw ValueError("number of post-sweeps must be positive.");
     post_sweeps = sweeps;
 }
 
@@ -702,7 +702,7 @@ int SolverBuddy::getNumPostSweeps() const
 void SolverBuddy::setTolerance(double rtol)
 {
     if (rtol < 0. || rtol > 1.)
-        throw SolverOptionsException("tolerance must be between 0 and 1.");
+        throw ValueError("tolerance must be between 0 and 1.");
     tolerance = rtol;
 }
 
@@ -714,7 +714,7 @@ double SolverBuddy::getTolerance() const
 void SolverBuddy::setAbsoluteTolerance(double atol)
 {
     if (atol < 0.)
-       throw SolverOptionsException("absolute tolerance must be non-negative.");
+       throw ValueError("absolute tolerance must be non-negative.");
     absolute_tolerance = atol;
 }
 
@@ -726,7 +726,7 @@ double SolverBuddy::getAbsoluteTolerance() const
 void SolverBuddy::setInnerTolerance(double rtol)
 {
     if (rtol <= 0. || rtol > 1.)
-        throw SolverOptionsException("tolerance must be positive and less than or equal to 1.");
+        throw ValueError("tolerance must be positive and less than or equal to 1.");
     inner_tolerance = rtol;
 }
 
@@ -738,7 +738,7 @@ double SolverBuddy::getInnerTolerance() const
 void SolverBuddy::setDropTolerance(double drop_tol)
 {
     if (drop_tol < 0. || drop_tol > 1.)
-        throw SolverOptionsException("drop tolerance must be between 0 and 1.");
+        throw ValueError("drop tolerance must be between 0 and 1.");
     drop_tolerance = drop_tol;
 }
 
@@ -750,7 +750,7 @@ double SolverBuddy::getDropTolerance() const
 void SolverBuddy::setDropStorage(double storage)
 {
     if (storage < 1.)
-        throw SolverOptionsException("allowed storage increase must be greater than or equal to 1.");
+        throw ValueError("allowed storage increase must be greater than or equal to 1.");
     drop_storage = storage;
 }
 
@@ -762,7 +762,7 @@ double SolverBuddy::getDropStorage() const
 void SolverBuddy::setRelaxationFactor(double factor)
 {
     if (factor < 0.)
-        throw SolverOptionsException("relaxation factor must be non-negative.");
+        throw ValueError("relaxation factor must be non-negative.");
     relaxation = factor;
 }
 
@@ -889,7 +889,7 @@ void SolverBuddy::setLocalPreconditioner(bool use)
 void SolverBuddy::setMinCoarseMatrixSparsity(double sparsity)
 {
     if (sparsity < 0. || sparsity > 1.)
-        throw SolverOptionsException("sparsity must be between 0 and 1.");
+        throw ValueError("sparsity must be between 0 and 1.");
     min_sparsity = sparsity;
 }
 
@@ -901,7 +901,7 @@ double SolverBuddy::getMinCoarseMatrixSparsity() const
 void SolverBuddy::setNumRefinements(int refinements)
 {
     if (refinements < 0)
-        throw SolverOptionsException("number of refinements must be non-negative.");
+        throw ValueError("number of refinements must be non-negative.");
     this->refinements = refinements;
 }
 
@@ -913,7 +913,7 @@ int SolverBuddy::getNumRefinements() const
 void SolverBuddy::setNumCoarseMatrixRefinements(int refinements)
 {
     if (refinements < 0)
-        throw SolverOptionsException("number of coarse matrix refinements must be non-negative.");
+        throw ValueError("number of coarse matrix refinements must be non-negative.");
     coarse_refinements = refinements;
 }
 
@@ -955,7 +955,7 @@ void SolverBuddy::setAMGInterpolation(int method)
             amg_interpolation_method = meth;
             break;
         default:
-            throw SolverOptionsException("unknown AMG interpolation method");
+            throw ValueError("unknown AMG interpolation method");
     }
 }
 
@@ -974,7 +974,7 @@ void SolverBuddy::setODESolver(int method)
             ode_solver = ode;
             break;
         default:
-            throw SolverOptionsException("unknown ODE solver method");
+            throw ValueError("unknown ODE solver method");
     }
 }
 

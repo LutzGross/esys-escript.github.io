@@ -14,21 +14,14 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATAVECTOR_H__
+#define __ESCRIPT_DATAVECTOR_H__
 
-#if !defined escript_DataVector_H
-#define escript_DataVector_H
 #include "system_dep.h"
-
-#include "esysUtils/EsysAssert.h"
-
-#include <vector>
-#include <iostream>
-#include <fstream>
-
 #include "DataTypes.h"
-
-#include "DataVectorTaipan.h"
+#include "Assert.h"
 #include "DataVectorAlt.h"
+#include "DataVectorTaipan.h"
 
 // ensure that nobody else tries to instantiate the complex version
 extern template class escript::DataTypes::DataVectorAlt<escript::DataTypes::cplx_t>;
@@ -44,10 +37,6 @@ namespace DataTypes
   //typedef DataVectorTaipan DataVector;
   typedef escript::DataTypes::DataVectorAlt<real_t> RealVectorType;//!< Vector to store underlying data.
   typedef escript::DataTypes::DataVectorAlt<cplx_t> CplxVectorType;
-
-
-   
-
 
    /**
       \brief Display a single value (with the specified shape) from the data.
@@ -84,8 +73,7 @@ namespace DataTypes
    */
    void
    pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
-   
-   
+
    /**
       \brief Display a single value (with the specified shape) from the data.
 
@@ -110,7 +98,7 @@ namespace DataTypes
    \param src - vector to copy from
    \param soffset - beginning of the datapoint in src
    */
-   void copyPoint(RealVectorType& dest, vec_size_type doffset, vec_size_type nvals, const RealVectorType& src, vec_size_type soffset);  
+   void copyPoint(RealVectorType& dest, vec_size_type doffset, vec_size_type nvals, const RealVectorType& src, vec_size_type soffset);
 
    /**
       \brief  Copy a point from one vector to another. Note: This version does not check to see if shapes are the same.
@@ -121,26 +109,20 @@ namespace DataTypes
    \param src - vector to copy from
    \param soffset - beginning of the datapoint in src
    */
-   void copyPoint(CplxVectorType& dest, vec_size_type doffset, vec_size_type nvals, const CplxVectorType& src, vec_size_type soffset);     
-   
-   
+   void copyPoint(CplxVectorType& dest, vec_size_type doffset, vec_size_type nvals, const CplxVectorType& src, vec_size_type soffset);
+
    /**
     * \brief copy data from a real vector to a complex vector
     * The complex vector will be resized as needed and any previous
     * values will be replaced.
    */
    void fillComplexFromReal(const RealVectorType& r, CplxVectorType& c);
-   
-   
-   
-   
-   
-   
+
   /**
      \brief
      Copy a data slice specified by the given region and offset from the
      "other" view into the "left" view at the given offset.
-     
+
      \param left - vector to copy into
      \param leftShape - shape of datapoints for the left vector
      \param leftOffset - location within left to start copying to
@@ -154,34 +136,32 @@ namespace DataTypes
    ESCRIPT_DLL_API
    void
    copySlice(VEC& left,
-			    const ShapeType& leftShape,
-			    typename VEC::size_type leftOffset,
-                            const VEC& other,
-			    const ShapeType& otherShape,
-                            typename VEC::size_type otherOffset,
-                            const RegionLoopRangeType& region)
+             const ShapeType& leftShape,
+             typename VEC::size_type leftOffset,
+             const VEC& other,
+             const ShapeType& otherShape,
+             typename VEC::size_type otherOffset,
+             const RegionLoopRangeType& region)
    {
       //
       // Make sure views are not empty
 
-      EsysAssert(!left.size()==0,
-                 "Error - left data is empty.");
-      EsysAssert(!other.size()==0,
-                 "Error - other data is empty.");
+      ESYS_ASSERT(!left.size()==0, "left data is empty.");
+      ESYS_ASSERT(!other.size()==0, "other data is empty.");
 
       //
       // Check the view to be sliced from is compatible with the region to be sliced,
       // and that the region to be sliced is compatible with this view:
-      EsysAssert(checkOffset(leftOffset,left.size(),noValues(leftShape)),
-                 "Error - offset incompatible with this view.");
-      EsysAssert(otherOffset+noValues(leftShape)<=other.size(),
-                 "Error - offset incompatible with other view.");
+      ESYS_ASSERT(checkOffset(leftOffset,left.size(),noValues(leftShape)),
+                 "offset incompatible with this view.");
+      ESYS_ASSERT(otherOffset+noValues(leftShape)<=other.size(),
+                 "offset incompatible with other view.");
 
-      EsysAssert(getRank(otherShape)==region.size(),
-                 "Error - slice not same rank as view to be sliced from.");
+      ESYS_ASSERT(getRank(otherShape)==region.size(),
+                 "slice not same rank as view to be sliced from.");
 
-      EsysAssert(noValues(leftShape)==noValues(getResultSliceShape(region)),
-                 "Error - slice shape not compatible shape for this view.");
+      ESYS_ASSERT(noValues(leftShape)==noValues(getResultSliceShape(region)),
+                 "slice shape not compatible shape for this view.");
 
       //
       // copy the values in the specified region of the other view into this view
@@ -191,7 +171,7 @@ namespace DataTypes
 
       switch (region.size()) {
       case 0:
-         /* this case should never be encountered, 
+         /* this case should never be encountered,
          as python will never pass us an empty region.
          here for completeness only, allows slicing of a scalar */
 //          (*m_data)[leftOffset+numCopy]=(*other.m_data)[otherOffset+other.relIndex()];
@@ -245,8 +225,6 @@ namespace DataTypes
       }
    }
 
-   
-   
   /**
      \brief
      Copy data into a slice specified by the given region and offset in
@@ -265,35 +243,33 @@ namespace DataTypes
    ESCRIPT_DLL_API
    void
    copySliceFrom(VEC& left,
-				const ShapeType& leftShape,
-				typename VEC::size_type leftOffset,
-                                const VEC& other,
-				const ShapeType& otherShape,
-                                typename VEC::size_type otherOffset,
-                                const RegionLoopRangeType& region)
+                 const ShapeType& leftShape,
+                 typename VEC::size_type leftOffset,
+                 const VEC& other,
+                 const ShapeType& otherShape,
+                 typename VEC::size_type otherOffset,
+                 const RegionLoopRangeType& region)
    {
       //
       // Make sure views are not empty
 
-      EsysAssert(left.size()!=0,
-                 "Error - this view is empty.");
-      EsysAssert(other.size()!=0,
-                 "Error - other view is empty.");
+      ESYS_ASSERT(left.size()!=0, "this view is empty.");
+      ESYS_ASSERT(other.size()!=0, "other view is empty.");
 
       //
       // Check this view is compatible with the region to be sliced,
       // and that the region to be sliced is compatible with the other view:
 
-      EsysAssert(checkOffset(otherOffset,other.size(),noValues(otherShape)),
-                 "Error - offset incompatible with other view.");
-      EsysAssert(leftOffset+noValues(otherShape)<=left.size(),
-                 "Error - offset incompatible with this view.");
+      ESYS_ASSERT(checkOffset(otherOffset,other.size(),noValues(otherShape)),
+                 "offset incompatible with other view.");
+      ESYS_ASSERT(leftOffset+noValues(otherShape)<=left.size(),
+                 "offset incompatible with this view.");
 
-      EsysAssert(getRank(leftShape)==region.size(),
-                 "Error - slice not same rank as this view.");
+      ESYS_ASSERT(getRank(leftShape)==region.size(),
+                 "slice not same rank as this view.");
 
-      EsysAssert(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
-                 "Error - slice shape not compatible shape for other view.");
+      ESYS_ASSERT(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
+                 "slice shape not compatible shape for other view.");
 
       //
       // copy the values in the other view into the specified region of this view
@@ -306,11 +282,11 @@ namespace DataTypes
 
          switch (region.size()) {
          case 0:
-            /* this case should never be encountered, 
+            /* this case should never be encountered,
             as python will never pass us an empty region.
             here for completeness only, allows slicing of a scalar */
             //(*m_data)[leftOffset+relIndex()]=(*other.m_data)[otherOffset];
-	    left[leftOffset]=other[otherOffset];
+            left[leftOffset]=other[otherOffset];
             numCopy++;
             break;
          case 1:
@@ -362,11 +338,11 @@ namespace DataTypes
 
          switch (region.size()) {
          case 0:
-            /* this case should never be encountered, 
+            /* this case should never be encountered,
             as python will never pass us an empty region.
             here for completeness only, allows slicing of a scalar */
             //(*m_data)[leftOffset+relIndex()]=(*other.m_data)[otherOffset+numCopy];
-	    left[leftOffset]=other[otherOffset+numCopy];
+            left[leftOffset]=other[otherOffset+numCopy];
             numCopy++;
             break;
          case 1:
@@ -414,18 +390,9 @@ namespace DataTypes
       }
 
    }
-   
-   
-   
-   
-   
-   
-   
-   
-   
 }
 
- 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_DATAVECTOR_H__
+

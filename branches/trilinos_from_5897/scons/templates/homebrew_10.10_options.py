@@ -233,10 +233,6 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 # DEFAULT: 'all' (i.e. dudley, finley, ripley, speckley)
 #domains = 'finley,ripley'
 
-# Build dynamic libraries only
-#DEFAULT: False
-#build_shared = True
-
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do

@@ -21,6 +21,14 @@
 
 namespace escript {
 
+#ifndef SQRT_DBL_EPSILON
+#define SQRT_DBL_EPSILON 1.4901161193847656e-08
+#endif
+
+#ifndef M_LN2
+#define M_LN2 0.69314718055994530942  // log_e 2
+#endif
+
 #ifndef FP_NAN
 #define FP_NAN IEEE_NaN()
 #endif
@@ -139,7 +147,7 @@ atanh_substitute (const double x)
     {
       return s * 0.5 * log1p (2 * a / (1 - a));
     }
-  else if (a > DBL_EPSILON)
+  else if (a > std::numeric_limits<double>::epsilon())
     {
       return s * 0.5 * log1p (2 * a + 2 * a * a / (1 - a));
     }

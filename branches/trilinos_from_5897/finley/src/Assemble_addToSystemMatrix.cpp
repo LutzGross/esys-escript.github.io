@@ -30,9 +30,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Assemble.h"
 #include <paso/SystemMatrix.h>
 
@@ -89,7 +86,7 @@ void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* in, int NN_Equa,
         return;
     }
 #endif
-    setError(TYPE_ERROR, "Assemble_addToSystemMatrix: unknown system matrix type.");
+    throw FinleyException("Assemble_addToSystemMatrix: unknown system matrix type.");
 }
 
 void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix* in, int NN_Equa,

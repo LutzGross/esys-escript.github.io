@@ -44,7 +44,7 @@ private:
     escript::ASM_ptr createMatrix(int blocksize, bool symmetric);
     escript::Data createInputVector(int blocksize);
 
-    esysUtils::JMPI mpiInfo;
+    escript::JMPI mpiInfo;
     escript::Domain_ptr domain;
 };
 

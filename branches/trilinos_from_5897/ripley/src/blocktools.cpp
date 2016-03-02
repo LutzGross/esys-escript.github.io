@@ -14,10 +14,10 @@
 *
 *****************************************************************************/
 
-
-#include <iostream>	// for the debug method
-#include <cstring>	// for memset
 #include "blocktools.h"
+
+#include <cstring>	// for memset
+#include <iostream>	// for the debug method
 
 using namespace std;
 
@@ -435,5 +435,4 @@ unsigned char getSrcBuffID(unsigned char destx, unsigned char desty, unsigned ch
   
     return sourcex+sourcey*3+sourcez*9;
 }
-
 

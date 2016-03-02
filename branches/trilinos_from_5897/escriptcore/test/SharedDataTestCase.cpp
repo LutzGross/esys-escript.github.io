@@ -15,13 +15,10 @@
 
 // The purpose of these tests is to check for unwanted sharing of between Data objects
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/Data.h>
 
 #include "SharedDataTestCase.h"
-#include "escript/Data.h"
-#include "escript/EscriptParams.h"
+#include <escript/EscriptParams.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>
@@ -46,6 +43,7 @@ void SharedDataTestCase::testEQ()
   TESTEQOP(*=)
   cout << "\tOK" << endl << "Testing /=";
   TESTEQOP(/=)
+  cout << "\tOK" << endl;
 }
 
 // Test for shared data caused by using a copy constructor

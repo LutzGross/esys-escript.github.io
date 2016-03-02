@@ -31,7 +31,6 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "SystemMatrix.h"
 
 #include <cstring> // memcpy
@@ -153,7 +152,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 #ifdef ESYS_MPI
         MPI_Irecv(&recv_ST[z], j, MPI_INT,
                 row_coupler->connector->recv->neighbor[p],
-                mpi_info->msg_tag_counter+row_coupler->connector->recv->neighbor[p],
+                mpi_info->counter()+row_coupler->connector->recv->neighbor[p],
                 mpi_info->comm, &row_coupler->mpi_requests[p]);
 #endif
         z += j;
@@ -175,7 +174,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 #ifdef ESYS_MPI
         MPI_Issend(&send_buf[z0], z-z0, MPI_INT,
                  row_coupler->connector->send->neighbor[p],
-                 mpi_info->msg_tag_counter+mpi_info->rank,
+                 mpi_info->counter()+mpi_info->rank,
                  mpi_info->comm,
                  &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
 #endif
@@ -213,11 +212,11 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 
     // wait until everything is done
 #ifdef ESYS_MPI
+    mpi_info->incCounter(mpi_info->size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                     row_coupler->connector->recv->numNeighbors,
                     row_coupler->mpi_requests, row_coupler->mpi_stati);
 #endif
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size)
 
     // filter the received ST (for extended rows) with cols in mainBlock as
     // well as cols in col_coupleBlock, their global ids are listed in "B"

@@ -26,10 +26,9 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include "RectangularMesh.h"
+
+#define MAX3(_arg1_,_arg2_,_arg3_) std::max(_arg1_,std::max(_arg2_,_arg3_))
 
 using escript::DataTypes::real_t;
 
@@ -39,14 +38,14 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                             const bool* periodic, int order, int reduced_order,
                             bool useElementsOnFace, bool useFullElementOrder,
                             bool useMacroElements, bool optimize,
-                            esysUtils::JMPI& mpiInfo)
+                            escript::JMPI& mpiInfo)
 {
     const int N_PER_E = 2;
     const int DIM = 3;
     dim_t Nstride0=0, Nstride1=0, Nstride2=0, local_NE0, local_NE1, local_NE2;
     index_t e_offset0, e_offset1, e_offset2;
 
-    const Esys_MPI_rank myRank = mpiInfo->rank;
+    const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
     const dim_t NE0 = std::max(dim_t(1),numElements[0]);
@@ -71,9 +70,7 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
             refElements.reset(new ReferenceElementSet(Hex27, order, reduced_order));
         }
         if (useElementsOnFace) {
-            setError(SYSTEM_ERROR, "rich elements for Hex27 elements are not supported.");
-            delete out;
-            return NULL;
+            throw escript::NotImplementedError("rich elements for Hex27 elements are not supported.");
         } else {
             if (useMacroElements) {
                 refFaceElements.reset(new ReferenceElementSet(Rec9Macro, order, reduced_order));
@@ -604,14 +601,7 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
-    if (noError()) {
-        out->prepare(optimize);
-    }
-
-    if (!noError()) {
-        delete out;
-        out=NULL;
-    }
+    out->prepare(optimize);
     return out;
 }
 

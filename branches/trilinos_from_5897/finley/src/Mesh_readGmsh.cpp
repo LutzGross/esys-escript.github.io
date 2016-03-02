@@ -21,12 +21,10 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Mesh.h"
+#include "FinleyException.h"
+
 #include <cstdio>
-#include "CPPAdapter/FinleyAdapterException.h"
 
 //can't return because the flag need to be shared across all nodes
 #define SSCANF_CHECK(scan_ret) { if (scan_ret == EOF) { errorFlag = 1;} }
@@ -238,10 +236,7 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
          third tag would be partition id */
     }
 
-    if (!noError()) {
-        return ERROR;
-    }
-    for(int j = 0; j < numNodesPerElement; j++) {
+    for (int j = 0; j < numNodesPerElement; j++) {
         if (sscanf(position, "%d", e.vertex+j) == 0 
                 || next_space(&position, 1) == NULL)
             return EARLY_EOF;
@@ -249,7 +244,7 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     return 0;
 }
 
-int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
+int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
         std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     /*
@@ -392,10 +387,6 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_
 
     // all elements have been read and shared, now we have to identify the
     // elements for finley
-    if (!noError()) {
-        return ERROR;
-    }
-    /* first we have to identify the elements to define Elements and FaceElements */
     if (final_element_type == NoRef) {
         if (numDim==1) {
            final_element_type=Line2;
@@ -445,19 +436,10 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_
     mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
     mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
     mesh_p->Points=new ElementFile(refPoints, mpi_info);
-
-
-    if (!noError())
-        return ERROR;
-
     mesh_p->Elements->allocTable(chunkElements);
     mesh_p->FaceElements->allocTable(chunkFaceElements);
     mesh_p->ContactElements->allocTable(0);
     mesh_p->Points->allocTable(0);
-
-    if (!noError())
-        return ERROR;
-
     mesh_p->Elements->minColor=0;
     mesh_p->Elements->maxColor=chunkElements-1;
     mesh_p->FaceElements->minColor=0;
@@ -497,7 +479,7 @@ int getElementsMaster(esysUtils::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_
     return errorFlag;
 }
 
-int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getElementsSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     /*
@@ -571,10 +553,6 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
 
     // all elements have been read and shared, now we have to identify the
     // elements for finley
-    if (!noError()) {
-        return ERROR;
-    }
-
     int numNodes[3] = {0,0,0};
     MPI_Bcast(numNodes, 3, MPI_INT,  0, mpi_info->comm);
     final_element_type = static_cast<ElementTypeId>(numNodes[0]);
@@ -589,18 +567,10 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
     mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
     mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
     mesh_p->Points=new ElementFile(refPoints, mpi_info);
-
-    if (!noError())
-        return ERROR;
-
     mesh_p->Elements->allocTable(chunkElements);
     mesh_p->FaceElements->allocTable(chunkFaceElements);
     mesh_p->ContactElements->allocTable(0);
     mesh_p->Points->allocTable(0);
-
-    if (!noError())
-        return ERROR;
-
     mesh_p->Elements->minColor=0;
     mesh_p->Elements->maxColor=chunkElements-1;
     mesh_p->FaceElements->minColor=0;
@@ -642,7 +612,7 @@ int getElementsSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p
 #endif // ESYS_MPI
 }
 
-int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
+int getElements(escript::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
         std::string& errorMsg, bool useMacroElements, const std::string fname,
         int numDim, double version, int order, int reduced_order) {
     if (mpi_info->rank == 0) {
@@ -729,7 +699,7 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, std::string& errorMsg,
     return 0;
 }
 
-int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getNodesMaster(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
     int numNodes=0;
@@ -815,17 +785,15 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
 
 
 #ifdef ESYS_MPI
-    if(mpi_info->size>1){
-        MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpi_info->comm);
+    if (mpi_info->size > 1) {
+        MPI_Bcast(&errorFlag, 1, MPI_INT, 0, mpi_info->comm);
     }
 #endif
-    if(errorFlag){
+    if (errorFlag) {
         return errorFlag;
     }
 
-    if (!noError()) return ERROR;
     mesh_p->Nodes->allocTable(chunkNodes);
-    if (!noError()) return ERROR;
 
 #pragma omp parallel for schedule(static)
     for (int i=0; i<chunkNodes; i++) {
@@ -848,15 +816,15 @@ int getNodesMaster(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     return errorFlag;
 }
 
-int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getNodesSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
 #ifndef ESYS_MPI
-    throw FinleyAdapterException("slave function called in non-MPI build");
+    throw FinleyException("slave function called in non-MPI build");
 #else
 
     if (mpi_info->size == 1)
-        throw FinleyAdapterException("slave function called without master");
+        throw FinleyException("slave function called without master");
 
     int numNodes=0;
 
@@ -874,15 +842,12 @@ int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         chunkNodes = tempInts[chunkSize];   /* How many nodes are in this workers chunk? */
     }
 
-
-    MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpi_info->comm);
-    if(errorFlag){
+    MPI_Bcast(&errorFlag, 1, MPI_INT, 0, mpi_info->comm);
+    if (errorFlag) {
         return errorFlag;
     }
 
-    if (!noError()) return ERROR;
     mesh_p->Nodes->allocTable(chunkNodes);
-    if (!noError()) return ERROR;
 
 #pragma omp parallel for schedule(static)
     for (int i=0; i<chunkNodes; i++) {
@@ -906,7 +871,7 @@ int getNodesSlave(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
 #endif //#ifndef ESYS_MPI -> #else
 }
 
-int getNodes(esysUtils::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
+int getNodes(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
 {
     if (mpi_info->rank == 0)
@@ -947,7 +912,7 @@ int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
     return 0;
 }
 
-void recv_state(esysUtils::JMPI& mpi_info, int *error, int *logic) {
+void recv_state(escript::JMPI& mpi_info, int *error, int *logic) {
 #ifdef ESYS_MPI
     int flags[2] = {0};
     // Broadcast line
@@ -958,7 +923,7 @@ void recv_state(esysUtils::JMPI& mpi_info, int *error, int *logic) {
 #endif
 }
 
-void send_state(esysUtils::JMPI& mpi_info, int error, int logic) {
+void send_state(escript::JMPI& mpi_info, int error, int logic) {
 #ifdef ESYS_MPI
     int flags[2] = {error, logic};
     // Broadcast line
@@ -975,27 +940,27 @@ int check_error(int error, FILE *f, const std::string& errorMsg)
         case 0:
             break;
         case ERROR:
-            throw FinleyAdapterException("ERROR set for unknown reason");
+            throw FinleyException("ERROR set for unknown reason");
         case EARLY_EOF: //early eof while scanning
-            throw FinleyAdapterException("early eof while scanning");
+            throw escript::IOError("early eof while scanning");
         case MISSING_NODES:  //EOF before nodes section found
-            throw FinleyAdapterException("EOF before nodes section found");
+            throw escript::IOError("EOF before nodes section found");
         case MISSING_ELEMENTS:
-            throw FinleyAdapterException("EOF before elements section found");
+            throw escript::IOError("EOF before elements section found");
         case THROW_ERROR: // throw errorMsg
-            throw FinleyAdapterException(errorMsg);
+            throw escript::IOError(errorMsg);
         case SUCCESS: // eof at apropriate time.
             if (f)
                 fclose(f);
             break;
         default:
-            throw FinleyAdapterException("an unknown error has occured in readGmsh");
+            throw FinleyException("an unknown error has occured in readGmsh");
 
     }
     return error;
 }
 
-Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
+Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int numDim, int order,
                      int reduced_order, bool optimize, bool useMacroElements)
 {
     double version = 1.0;
@@ -1003,18 +968,14 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
     int format = 0, size = sizeof(double), scan_ret,  errorFlag=0, logicFlag=0;
     std::vector<char> line;
     std::map<int,int> nodeTags;
-#ifdef Finley_TRACE
-    double time0=timer();
-#endif
     FILE* fileHandle_p = NULL;
     std::string errorMsg;
 
-    resetError();
     size_t found = fname.find("\n");
-    if (found != std::string::npos){
+    if (found != std::string::npos) {
         errorFlag=THROW_ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
-        throw FinleyAdapterException("readGmsh: filename contains newline characters!");
+        throw escript::ValueError("readGmsh: filename contains newline characters!");
     }
 
     // allocate mesh
@@ -1028,21 +989,19 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
         errorMsg = ss.str();
         errorFlag=THROW_ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
-        throw FinleyAdapterException(errorMsg);
+        throw escript::IOError(errorMsg);
     }
     // start reading
-    while(noError() && errorFlag==0) {
+    while (errorFlag==0) {
         // find line starting with $
         logicFlag=0;
         errorFlag = get_next_state(fileHandle_p, nodesRead, elementsRead, &logicFlag);
-        if (!errorFlag && !noError())
-            errorFlag = ERROR;
         send_state(mpi_info, errorFlag, logicFlag);
         //pre-logic error check
         if (check_error(errorFlag, fileHandle_p, errorMsg) == SUCCESS)
             break;
         // format
-        if (logicFlag == 1 && errorFlag ==0) {
+        if (logicFlag == 1 && errorFlag == 0) {
             std::vector<char> fmt;
             if (!get_line(fmt, fileHandle_p))
                 errorFlag = EARLY_EOF;
@@ -1089,9 +1048,7 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
                     reduced_order);
         }
         // name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca )
-        else if (logicFlag==4 && errorFlag ==0) {
-            if (!noError())
-                errorFlag = ERROR;
+        else if (logicFlag==4 && errorFlag == 0) {
             std::vector<char> names;
             if (!get_line(names, fileHandle_p))
                 errorFlag = EARLY_EOF;
@@ -1116,10 +1073,8 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
                         || sscanf(position, "%d", tag_info) != 1 
                         || next_space(&position, 1) == NULL
                         || sscanf(position, "%s", name) != 1) {
-                    setError(IO_ERROR,"Mesh::readGmsh: bad tagname");
-                }
-                if (!noError())
                     errorFlag = ERROR;
+                }
                 name[strlen(name)-1]='\0'; //strip trailing "
                 //mpi broadcast the tag info
 
@@ -1149,33 +1104,21 @@ Mesh* Mesh::readGmshMaster(esysUtils::JMPI& mpi_info, const std::string fname, i
         //post logic error check, throws if relevant
         check_error(errorFlag, fileHandle_p, errorMsg);
     }
-    // clean up
-    if (!noError()) {
-        delete mesh_p;
-        return NULL;
-    }    
     // resolve id's
-    if (noError())
-        mesh_p->resolveNodeIds();
+    mesh_p->resolveNodeIds();
     // rearrange elements
-    if (noError())
-        mesh_p->prepare(optimize);
-
-    if (!noError()) {
-        delete mesh_p;
-        return NULL;
-    }
+    mesh_p->prepare(optimize);
     return mesh_p;
 }
 
-Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
+Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int numDim, int order,
                      int reduced_order, bool optimize, bool useMacroElements)
 {
 #ifndef ESYS_MPI
-    throw FinleyAdapterException("slave function called in non-MPI build");
+    throw FinleyException("slave function called in non-MPI build");
 #else
     if (mpi_info->size == 1)
-        throw FinleyAdapterException("slave function called but only one process");
+        throw FinleyException("slave function called but only one process");
 
     double version = 1.0;
     int errorFlag=0, logicFlag=0;
@@ -1184,18 +1127,14 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
     char name[1024];
     std::string errorMsg;
     std::map<int,int> nodeTags;
-#ifdef Finley_TRACE
-    double time0=timer();
-#endif
     FILE * fileHandle_p = NULL;
 
-    resetError();
     // allocate mesh
     Mesh* mesh_p = new Mesh(fname, numDim, mpi_info);
 
     // get file handle
     /* start reading */
-    while(noError() && errorFlag != SUCCESS) {
+    while (errorFlag != SUCCESS) {
         logicFlag = 0;
         //pre logic state fetch
         recv_state(mpi_info, &errorFlag, &logicFlag);
@@ -1226,8 +1165,6 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
         }
          /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
         else if (logicFlag==4) {
-            if (! noError())
-                errorFlag = THROW_ERROR;
             // Broadcast numNames if there are multiple mpi procs
             MPI_Bcast(&numNames, 1, MPI_INT,  0, mpi_info->comm);
             for (i = 0; i < numNames; i++) {
@@ -1246,31 +1183,18 @@ Mesh* Mesh::readGmshSlave(esysUtils::JMPI& mpi_info, const std::string fname, in
     //end while loop
     }
 
-    // clean up
-    if (!noError()) {
-        delete mesh_p;
-        return NULL;
-    }
     // resolve id's
-    if (noError())
-        mesh_p->resolveNodeIds();
+    mesh_p->resolveNodeIds();
     // rearrange elements
-    if (noError())
-        mesh_p->prepare(optimize);
-
-    if (!noError()) {
-        delete mesh_p;
-        return NULL;
-    }
+    mesh_p->prepare(optimize);
     return mesh_p;
-#endif //#ifndef ESYS_MPI -> #else
+#endif // ESYS_MPI
 }
 
 
-
-
-Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                     int reduced_order, bool optimize, bool useMacroElements)
+Mesh* Mesh::readGmsh(escript::JMPI& mpi_info, const std::string fname,
+                     int numDim, int order, int reduced_order, bool optimize,
+                     bool useMacroElements)
 {
     if (mpi_info->rank == 0)
         return readGmshMaster(mpi_info, fname, numDim, order, reduced_order,

@@ -36,7 +36,7 @@ public:
        Creates a new Trilinos CRS matrix adapter using a compatible
        fill-complete Trilinos matrix graph.
     */
-    TrilinosMatrixAdapter(esysUtils::JMPI mpiInfo, int blocksize,
+    TrilinosMatrixAdapter(escript::JMPI mpiInfo, int blocksize,
                           const escript::FunctionSpace& fs,
                           const_TrilinosGraph_ptr graph);
 
@@ -76,7 +76,7 @@ private:
 
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
-    esysUtils::JMPI m_mpiInfo;
+    escript::JMPI m_mpiInfo;
     Teuchos::RCP<MatrixType> mat;
     Teuchos::RCP<const ImportType> importer;
 };

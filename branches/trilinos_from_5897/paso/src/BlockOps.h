@@ -18,6 +18,8 @@
 #define __PASO_BLOCKOPS_H__
 
 #include "Paso.h"
+#include "PasoException.h"
+
 #include <cstring> // memcpy
 
 #ifdef USE_LAPACK
@@ -72,7 +74,7 @@ inline void BlockOps_SMV_3(double* R, const double* mat, const double* V)
     R[2] -= A31 * S1 + A32 * S2 + A33 * S3;
 }
 
-#define PASO_MISSING_CLAPACK Esys_setError(TYPE_ERROR, "You need to install a LAPACK version to enable operations on block sizes > 3.")
+#define PASO_MISSING_CLAPACK throw PasoException("You need to install a LAPACK version to enable operations on block sizes > 3.")
 
 /// performs operation R=R-mat*V (V and R are not overlapping) - NxN
 inline void BlockOps_SMV_N(dim_t N, double* R, const double* mat, const double* V)
@@ -236,7 +238,7 @@ inline void BlockOps_solveAll(dim_t n_block, dim_t n, double* D,
             BlockOps_solve_N(n_block, &x[n_block*i], &D[block_size*i], &pivot[n_block*i], &failed);
         }
         if (failed > 0) {
-            Esys_setError(ZERO_DIVISION_ERROR, "BlockOps_solveAll: solution failed.");
+            throw PasoException("BlockOps_solveAll: solution failed.");
         }
     }
 }

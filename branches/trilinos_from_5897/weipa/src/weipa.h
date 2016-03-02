@@ -17,6 +17,10 @@
 #ifndef __WEIPA_H__
 #define __WEIPA_H__
 
+#ifndef VISIT_PLUGIN
+#include <escript/DataTypes.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <map>

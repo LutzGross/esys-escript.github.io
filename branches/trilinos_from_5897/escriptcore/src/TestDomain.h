@@ -18,7 +18,6 @@
 #define __ESCRIPT_TESTDOMAIN_H__
 
 #include "system_dep.h"
-
 #include "NullDomain.h"
 
 namespace escript {

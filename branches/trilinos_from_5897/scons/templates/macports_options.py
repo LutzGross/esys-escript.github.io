@@ -256,10 +256,6 @@ tools_names = ['clang']
 # DEFAULT: 'leave_alone'
 #forcecollres = 'on'
 
-# Whether to create dynamic libraries for esysUtils and paso
-# DEFAULT: False
-build_shared = True
-
 # Extra libraries to link with
 #sys_libs = []
 

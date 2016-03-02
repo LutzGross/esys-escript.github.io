@@ -17,7 +17,7 @@
 #ifndef __PASO_EXCEPTION_H__
 #define __PASO_EXCEPTION_H__
 
-#include <esysUtils/EsysException.h>
+#include <escript/EsysException.h>
 
 namespace paso {
 
@@ -29,66 +29,11 @@ namespace paso {
   PasoException exception class.
   The class provides a public function returning the exception name
 */
-class PasoException : public esysUtils::EsysException
+class PasoException : public escript::EsysException
 {
-
-protected:
-    typedef EsysException Parent;
-
 public:
-    /**
-    \brief
-    Default constructor for the exception.
-    */
-    PasoException() : Parent() { updateMessage(); }
-
-    /**
-    \brief
-    Constructor for the exception.
-    */
-    PasoException(const char *cstr) : Parent(cstr) { updateMessage(); }
-
-    /**
-    \brief
-    Constructor for the exception.
-    */
-    PasoException(const std::string &str) : Parent(str) { updateMessage(); }
-
-    /**
-    \brief
-    Copy Constructor for the exception.
-    */
-    PasoException(const PasoException &other) : Parent(other)
-    {
-        updateMessage();
-    }
-
-    /// Destructor
-    virtual ~PasoException() THROW(NO_ARG) {}
-
-    /**
-    \brief
-    Assignment operator.
-    */
-    inline PasoException& operator=(const PasoException &other ) THROW(NO_ARG)
-    {
-        Parent::operator=(other);
-        updateMessage();
-        return *this;
-    }
-
-    /**
-    \brief
-    Returns the name of the exception.
-    */
-    virtual const std::string & exceptionName() const;
-
-private:
-    //
-    // the exception name is immutable and class-wide.
-    // Inheritor note; you need one of these too.
-    // and an overloaded exceptionName() in your .cpp implementation file. 
-    static const std::string exceptionNameValue;
+    PasoException(const std::string& str) : EsysException(str) {}
+    virtual ~PasoException() throw() {}
 };
 
 void checkPasoError(); 

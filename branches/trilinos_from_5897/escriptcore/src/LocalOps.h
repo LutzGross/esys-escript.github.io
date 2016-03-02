@@ -15,13 +15,16 @@
 *****************************************************************************/
 
 
-#if !defined escript_LocalOps_H
-#define escript_LocalOps_H
-#include <cmath>
-#include <complex>
-#include "UnaryFuncs.h"
+#ifndef __ESCRIPT_LOCALOPS_H__
+#define __ESCRIPT_LOCALOPS_H__
+
 #include "DataTypes.h"
 #include "DataException.h"
+#include "UnaryFuncs.h"
+
+#include <cmath>
+#include <complex>
+
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
 #endif
@@ -40,6 +43,7 @@ namespace escript {
 
 typedef enum
 {
+NEGF,
 SINF,
 COSF,
 TANF,
@@ -779,6 +783,10 @@ struct sign_func<DataTypes::cplx_t>     // dummy instantiation
     typedef DataTypes::cplx_t result_type;
 };
 
+inline escript::DataTypes::real_t fabs(const escript::DataTypes::cplx_t c)
+{
+    return abs(c);
+}
 
 
 template <typename T>
@@ -973,6 +981,20 @@ inline void tensor_unary_operation_helper(const size_t size,
   }
 }
 
+template <typename IN>
+inline DataTypes::real_t abs_f(IN i)
+{
+    return fabs(i);
+}
+
+template <>
+inline DataTypes::real_t abs_f(DataTypes::cplx_t i)
+{
+    return abs(i);
+}
+
+
+
 
 // deals with unary operations which return real, regardless of
 // their input type
@@ -1004,13 +1026,31 @@ inline void tensor_unary_array_operation_real(const size_t size,
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = (fabs(arg1[i])>tol);
           }
-          break;          
+          break;
+    case ABSF: 
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = abs_f(arg1[i]);
+          }
+          break;     	  
      default:
           throw DataException("Unsupported unary operation");      
    }  
 }
 
 
+
+template <typename OUT, typename IN>
+inline OUT conjugate(const IN i)
+{
+    return conj(i);
+}
+
+// This should never actually be called
+template <>
+inline DataTypes::real_t conjugate(const DataTypes::real_t r)
+{
+    return r;
+}
 
 // In most cases, IN and OUT will be the same
 // but not ruling out putting Re() and Im()
@@ -1024,6 +1064,11 @@ inline void tensor_unary_array_operation(const size_t size,
 {
   switch (operation)
   {
+    case NEGF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = -arg1[i];
+          }
+          break;
     case SINF: tensor_unary_operation_helper(size, arg1, argRes, sin_func<IN>()); break;
     case COSF: tensor_unary_operation_helper(size, arg1, argRes, cos_func<IN>()); break;
     case TANF: tensor_unary_operation_helper(size, arg1, argRes, tan_func<IN>()); break;
@@ -1040,7 +1085,6 @@ inline void tensor_unary_array_operation(const size_t size,
     case LOG10F: tensor_unary_operation_helper(size, arg1, argRes, log10_func<IN>()); break;
     case LOGF: tensor_unary_operation_helper(size, arg1, argRes, log_func<IN>()); break;
     case SIGNF: tensor_unary_operation_helper(size, arg1, argRes, sign_func<IN>()); break;
-    case ABSF: tensor_unary_operation_helper(size, arg1, argRes, abs_func<IN>()); break;
     case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
     case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
 
@@ -1050,7 +1094,7 @@ inline void tensor_unary_array_operation(const size_t size,
     case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
     case CONJF: 
           for (size_t i = 0; i < size; ++i) {
-              argRes[i] = static_cast<OUT>(std::conj(arg1[i]));
+              argRes[i] = conjugate<OUT,IN>(arg1[i]);
           }
           break; 
     case INVF: 
@@ -1069,4 +1113,6 @@ bool supports_cplx(escript::ESFunction operation);
 
 
 } // end of namespace
-#endif
+
+#endif // __ESCRIPT_LOCALOPS_H__
+

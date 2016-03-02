@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-#include <esysUtils/Esys_MPI.h>
-
 #include "Data.h"
 #include "DataConstant.h"
 #include "DataException.h"
@@ -26,6 +22,7 @@
 #include "DataTagged.h"
 
 #include <limits>
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -167,7 +164,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
-    EsysAssert(data.size()%getNoValues()==0,
+    ESYS_ASSERT(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
@@ -191,7 +188,7 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::CplxVectorType &data)
   : parent(what,shape)
 {
-    EsysAssert(data.size()%getNoValues()==0,
+    ESYS_ASSERT(data.size()%getNoValues()==0,
                  "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
@@ -296,7 +293,7 @@ void DataExpanded::setSlice(const DataAbstract* value,
 
 void DataExpanded::copy(const DataConstant& value)
 {
-    EsysAssert((checkShape(getShape(), value.getShape())),
+    ESYS_ASSERT((checkShape(getShape(), value.getShape())),
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
     if (isComplex())
     {
@@ -373,7 +370,7 @@ DataExpanded::hasNaN() const
   if (isComplex())
   {
       #pragma omp parallel for
-      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
       {
 	  if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))
 	  {
@@ -408,7 +405,7 @@ DataExpanded::replaceNaN(DataTypes::real_t value) {
   if (isComplex())
   {
       #pragma omp parallel for
-      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_r.size();++i)
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
       {
 	if (std::isnan(m_data_c[i].real()) || std::isnan(m_data_c[i].imag()))  
 	{
@@ -482,13 +479,13 @@ DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
     DataTypes::RealVectorType::size_type blockSize=getNoValues();
-    EsysAssert((isComplex()?
+    ESYS_ASSERT((isComplex()?
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_c.size() > 0))
 		:
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
 	       "(DataBlocks2D) Index value out of range.");
     DataTypes::RealVectorType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    EsysAssert((isComplex()?
+    ESYS_ASSERT((isComplex()?
 		  (temp <= (m_data_c.size()-blockSize))
 		:
 		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range.");
@@ -890,13 +887,10 @@ void DataExpanded::dump(const std::string fileName) const
     long dims[ldims];
     const double* d_ptr=&(m_data_r[0]);
     const DataTypes::ShapeType& shape = getShape();
-    int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
-    int mpi_num=getFunctionSpace().getDomain()->getMPISize();
-
+    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     // netCDF error handler
     NcError err(NcError::verbose_nonfatal);
-    std::string newFileName(esysUtils::appendRankToFileName(fileName,
-                                                            mpi_num, mpi_iam));
     NcFile dataFile(newFileName.c_str(), NcFile::Replace);
     if (!dataFile.is_valid())
         throw DataException("DataExpanded::dump: opening of netCDF file for output failed.");
@@ -1099,7 +1093,7 @@ const DataTypes::CplxVectorType& DataExpanded::getTypedVectorRO(DataTypes::cplx_
 //
 //    DataVector&  dv=getVectorRW();
 //    const size_t dvsize=dv.size();
-//    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+//    randomFillArray(seed, &(dv[0]), dvsize);
 //}
 
 }  // end of namespace

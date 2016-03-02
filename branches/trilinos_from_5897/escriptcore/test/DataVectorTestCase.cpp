@@ -14,14 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataVector.h>
 
 #include "DataVectorTestCase.h"
 
-#include "escript/DataVector.h"
-#include "esysUtils/EsysException.h"
+#include <escript/EsysException.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>
@@ -30,7 +27,6 @@ using namespace std;
 using namespace CppUnit;
 using namespace escript;
 using namespace escript::DataTypes;
-using namespace esysUtils;
 
 
 void DataVectorTestCase::testAll()

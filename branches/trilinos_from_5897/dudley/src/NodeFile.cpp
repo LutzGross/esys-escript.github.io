@@ -14,33 +14,25 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 /*                                                             */
 /*   Dudley: Mesh : NodeFile                                   */
 /*                                                             */
 /*   allocates and frees node files                            */
 /*                                                             */
-/************************************************************************************/
-
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
+/****************************************************************************/
 
 #include "NodeFile.h"
 
-/************************************************************************************/
+namespace dudley {
 
 /*   allocates a node file to hold nodes */
 /*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinates). */
-
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, esysUtils::JMPI& MPIInfo)
+Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, escript::JMPI& MPIInfo)
 {
     Dudley_NodeFile *out;
 
-    /*  allocate the return value */
-
     out = new Dudley_NodeFile;
-    if (Dudley_checkPtr(out))
-	return NULL;
     out->numNodes = 0;
     out->numDim = numDim;
     out->numTagsInUse = 0;
@@ -73,252 +65,150 @@ void Dudley_NodeFile_free(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	Dudley_NodeFile_freeTable(in);
-	delete in;
+        Dudley_NodeFile_freeTable(in);
+        delete in;
     }
 }
 
 index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedNodesDistribution->getFirstComponent();
-    }
-    else
-    {
-	return 0;
-    }
+        return in->reducedNodesDistribution->getFirstComponent();
+    return 0;
 }
 
 index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedNodesDistribution->getLastComponent();
-    }
-    else
-    {
-	return 0;
-    }
-
+        return in->reducedNodesDistribution->getLastComponent();
+    return 0;
 }
 
 dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedNodesDistribution->getGlobalNumComponents();
-    }
-    else
-    {
-	return 0;
-    }
-
+        return in->reducedNodesDistribution->getGlobalNumComponents();
+    return 0;
 }
 
 index_t *Dudley_NodeFile_borrowGlobalReducedNodesIndex(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->globalReducedNodesIndex;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->globalReducedNodesIndex;
+    return NULL;
 }
 
 index_t Dudley_NodeFile_getFirstNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->nodesDistribution->getFirstComponent();
-    }
-    else
-    {
-	return 0;
-    }
+        return in->nodesDistribution->getFirstComponent();
+    return 0;
 }
 
 index_t Dudley_NodeFile_getLastNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->nodesDistribution->getLastComponent();
-    }
-    else
-    {
-	return 0;
-    }
-
+        return in->nodesDistribution->getLastComponent();
+    return 0;
 }
 
 dim_t Dudley_NodeFile_getGlobalNumNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->nodesDistribution->getGlobalNumComponents();
-    }
-    else
-    {
-	return 0;
-    }
-
+        return in->nodesDistribution->getGlobalNumComponents();
+    return 0;
 }
 
 index_t *Dudley_NodeFile_borrowGlobalNodesIndex(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->globalNodesIndex;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->globalNodesIndex;
+    return NULL;
 }
 
 dim_t Dudley_NodeFile_getNumReducedNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedNodesMapping->numTargets;
-    }
-    else
-    {
-	return 0;
-    }
-
+        return in->reducedNodesMapping->numTargets;
+    return 0;
 }
 
 dim_t Dudley_NodeFile_getNumDegreesOfFreedom(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->degreesOfFreedomDistribution->getMyNumComponents();
-    }
-    else
-    {
-	return 0;
-    }
+        return in->degreesOfFreedomDistribution->getMyNumComponents();
+    return 0;
 }
 
 dim_t Dudley_NodeFile_getNumNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->nodesMapping->numNodes;
-    }
-    else
-    {
-	return 0;
-    }
+        return in->nodesMapping->numNodes;
+    return 0;
 }
 
 dim_t Dudley_NodeFile_getNumReducedDegreesOfFreedom(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedDegreesOfFreedomDistribution->getMyNumComponents();
-    }
-    else
-    {
-	return 0;
-    }
+        return in->reducedDegreesOfFreedomDistribution->getMyNumComponents();
+    return 0;
 }
 
 index_t *Dudley_NodeFile_borrowTargetReducedNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedNodesMapping->target;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->reducedNodesMapping->target;
+    return NULL;
 }
 
 index_t *Dudley_NodeFile_borrowTargetDegreesOfFreedom(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->degreesOfFreedomMapping->target;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->degreesOfFreedomMapping->target;
+    return NULL;
 }
 
 index_t *Dudley_NodeFile_borrowTargetNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->nodesMapping->target;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->nodesMapping->target;
+    return NULL;
 }
 
-index_t *Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(Dudley_NodeFile * in)
+index_t *Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(Dudley_NodeFile* in)
 {
     if (in != NULL)
-    {
-	return in->reducedDegreesOfFreedomMapping->target;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->reducedDegreesOfFreedomMapping->target;
+    return NULL;
 }
 
 index_t *Dudley_NodeFile_borrowReducedNodesTarget(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedNodesMapping->map;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->reducedNodesMapping->map;
+    return NULL;
 }
 
 index_t *Dudley_NodeFile_borrowDegreesOfFreedomTarget(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->degreesOfFreedomMapping->map;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->degreesOfFreedomMapping->map;
+    return NULL;
 }
 
 index_t *Dudley_NodeFile_borrowNodesTarget(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->nodesMapping->map;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->nodesMapping->map;
+    return NULL;
 }
 
 index_t *Dudley_NodeFile_borrowReducedDegreesOfFreedomTarget(Dudley_NodeFile * in)
 {
     if (in != NULL)
-    {
-	return in->reducedDegreesOfFreedomMapping->map;
-    }
-    else
-    {
-	return NULL;
-    }
+        return in->reducedDegreesOfFreedomMapping->map;
+    return NULL;
 }
+
+} // namespace dudley
+

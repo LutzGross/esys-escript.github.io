@@ -22,8 +22,9 @@
 *****************************************************************************/
 
 #include "ReferenceElements.h"
-#include <cstring>
+
 #include <algorithm> // std::max
+#include <cstring>
 
 namespace finley {
 
@@ -580,13 +581,11 @@ ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
 {
     Type = getInfo(id);
     if (!Type) {
-        setError(VALUE_ERROR, "ReferenceElement: unable to identify element type.");
-        return;
+        throw escript::ValueError("ReferenceElement: unable to identify element type.");
     }
     LinearType = getInfo(Type->LinearTypeId);
     if (!LinearType) {
-        setError(VALUE_ERROR, "ReferenceElement: unable to identify linear element type.");
-        return;
+        throw escript::ValueError("ReferenceElement: unable to identify linear element type.");
     }
 
     const QuadInfo* quadscheme=QuadInfo_getInfo(Type->Quadrature);
@@ -631,10 +630,8 @@ ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
                 &BasisFunctions->dSdv[0],
                 numQuadNodes*nsub, &quadNodes2[0], &quadWeights2[0],
                 DBasisFunctionDv);
-        if (noError()) {
-            Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
-            LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
-        }
+        Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
+        LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
     } else {
         Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes*nsub, quadNodes, quadWeights));
         BasisFunctions.reset(new ShapeFunction(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));
@@ -673,7 +670,7 @@ const ReferenceElementInfo* ReferenceElement::getInfo(ElementTypeId id)
         ptr++;
     }
     if (out==NULL) {
-        setError(VALUE_ERROR, "ReferenceElement::getInfo: cannot find requested reference element.");
+        throw escript::ValueError("ReferenceElement::getInfo: cannot find requested reference element.");
     }
     return out;
 }

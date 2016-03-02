@@ -22,6 +22,7 @@
 #include "system_dep.h"
 #include "DataTypes.h"
 #include "boost/python/extract.hpp"
+#include "boost/python/object.hpp"
 #include <complex>
 
 namespace escript

@@ -13,13 +13,12 @@
 *
 *****************************************************************************/
 
-#ifndef __ESCRIPT_DATAREDUCER_H__
-#define __ESCRIPT_DATAREDUCER_H__
+#ifndef __ESCRIPT_MPIDATAREDUCER_H__
+#define __ESCRIPT_MPIDATAREDUCER_H__
 
-#include "esysUtils/Esys_MPI.h"
-#include "escript/Data.h"
-#include <boost/shared_ptr.hpp>
 #include "AbstractReducer.h"
+#include "Data.h"
+
 namespace escript
 {
 
@@ -28,17 +27,17 @@ class MPIDataReducer : public AbstractReducer
 {
 public:
     MPIDataReducer(MPI_Op op);
-    ~MPIDataReducer(){};
+    ~MPIDataReducer() {}
     
-        // This is not a constructor parameter because 
-        // if these are created outside the subworld, they won't have
-        // access to a domain yet.
-        // I also want SplitWorld to be able to set this
+    // This is not a constructor parameter because 
+    // if these are created outside the subworld, they won't have
+    // access to a domain yet.
+    // I also want SplitWorld to be able to set this
     void setDomain(escript::Domain_ptr d);
     bool valueCompatible(boost::python::object v);
     bool reduceLocalValue(boost::python::object v, std::string& errstring);
     void reset();
-    bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring);
+    bool checkRemoteCompatibility(JMPI& mpi_info, std::string& errstring);
     
     void getCompatibilityInfo(std::vector<unsigned>& params);
     
@@ -50,11 +49,11 @@ public:
     
 	// Get a value for this variable from another process
 	// This is not a reduction and will replace any existing value
-    bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo);
+    bool recvFrom(int localid, int source, JMPI& mpiinfo);
 
 	// Send a value to this variable to another process
 	// This is not a reduction and will replace any existing value    
-    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
+    bool sendTo(int localid, int target, JMPI& mpiinfo);    
     virtual boost::python::object getPyObj();
 
 	// send from proc 0 in the communicator to all others
@@ -79,5 +78,5 @@ Reducer_ptr makeDataReducer(std::string type);
 
 }
 
-#endif // __ESCRIPT_DATAREDUCER_H__
+#endif // __ESCRIPT_MPIDATAREDUCER_H__
 

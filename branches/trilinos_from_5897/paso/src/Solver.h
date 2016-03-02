@@ -18,9 +18,10 @@
 #ifndef __PASO_SOLVER_H__
 #define __PASO_SOLVER_H__
 
-#include "SystemMatrix.h"
-#include "performance.h"
+#include "Paso.h"
 #include "Functions.h"
+#include "performance.h"
+#include "SystemMatrix.h"
 
 namespace paso {
 
@@ -28,7 +29,7 @@ namespace paso {
 
 void solve_free(SystemMatrix* A);
 
-void Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
+SolverResult Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
 
 void Solver_free(SystemMatrix*);
 

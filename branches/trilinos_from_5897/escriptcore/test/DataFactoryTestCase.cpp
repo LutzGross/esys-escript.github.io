@@ -14,13 +14,10 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/Data.h>
 #include "DataFactoryTestCase.h"
 
-#include "escript/DataFactory.h"
-#include "escript/Data.h"
+#include <escript/DataFactory.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>

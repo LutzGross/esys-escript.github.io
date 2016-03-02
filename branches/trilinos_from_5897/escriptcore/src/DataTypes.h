@@ -14,14 +14,17 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATATYPES_H__
+#define __ESCRIPT_DATATYPES_H__
 
-#if !defined escript_DataTypes_20080811_H
-#define escript_DataTypes_20080811_H
-#include "system_dep.h"
-#include "esysUtils/EsysAssert.h"
-#include <vector>
+#include <boost/python/object_fwd.hpp>
+
+#include "Assert.h"
+
+#include <complex>
+#include <limits>
 #include <string>
-#include <boost/python/object.hpp>
+#include <vector>
 
 namespace escript {
 
@@ -98,7 +101,6 @@ namespace DataTypes {
      \brief
      Calculate the number of values in a datapoint with the given shape.
   */
-  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::ShapeType& shape);
 
@@ -106,7 +108,6 @@ namespace DataTypes {
      \brief
      Calculate the number of values for the given region.
   */
-  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::RegionLoopRangeType& region);
 
@@ -116,7 +117,6 @@ namespace DataTypes {
 
      \param shape - Input.
   */
-  ESCRIPT_DLL_API
   std::string
   shapeToString(const DataTypes::ShapeType& shape);
 
@@ -126,7 +126,6 @@ namespace DataTypes {
 
      \param region - Input - Slice region
   */
-  ESCRIPT_DLL_API
   DataTypes::ShapeType
   getResultSliceShape(const DataTypes::RegionType& region);
 
@@ -188,7 +187,6 @@ namespace DataTypes {
 
      Note: Not unit tested in c++.
   */
-   ESCRIPT_DLL_API
    DataTypes::RegionType
    getSliceRegion(const DataTypes::ShapeType& shape, const boost::python::object& key);
 
@@ -204,7 +202,6 @@ namespace DataTypes {
    the slice region is of size 1. So in the above example, we modify the above
    region like so: <<1,2><0,3><0,3>> and take this slice.
   */
-  ESCRIPT_DLL_API
   DataTypes::RegionLoopRangeType
   getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
@@ -214,7 +211,6 @@ namespace DataTypes {
    \param shape
    \return the rank.
   */
-  ESCRIPT_DLL_API
   inline
   int
   getRank(const DataTypes::ShapeType& shape)
@@ -230,13 +226,12 @@ namespace DataTypes {
   \param i - Input - subscript to locate.
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i)
   {
-  	EsysAssert((getRank(shape)==1),"Incorrect number of indices for the rank of this object.");
-	EsysAssert((i < DataTypes::noValues(shape)), "Error - Invalid index.");
+  	ESYS_ASSERT(getRank(shape)==1, "Incorrect number of indices for the rank of this object.");
+	ESYS_ASSERT(i < DataTypes::noValues(shape), "Invalid index.");
 	return i;
   }
 
@@ -248,16 +243,15 @@ namespace DataTypes {
   \param j - Input - column
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i,
 	   vec_size_type j)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
-  	EsysAssert((getRank(shape)==2),"Incorrect number of indices for the rank of this object.");
+  	ESYS_ASSERT(getRank(shape)==2, "Incorrect number of indices for the rank of this object.");
   	vec_size_type temp=i+j*shape[0];
-  	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
+  	ESYS_ASSERT(temp < DataTypes::noValues(shape), "Invalid index.");
 	return temp;
   }
 
@@ -268,16 +262,15 @@ namespace DataTypes {
   \param i,j,k - Input - subscripts to locate.
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i,
 	   vec_size_type j, vec_size_type k)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
-  	EsysAssert((getRank(shape)==3),"Incorrect number of indices for the rank of this object.");
+  	ESYS_ASSERT(getRank(shape)==3, "Incorrect number of indices for the rank of this object.");
   	vec_size_type temp=i+j*shape[0]+k*shape[1]*shape[0];
-  	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
+  	ESYS_ASSERT(temp < DataTypes::noValues(shape), "Invalid index.");
   	return temp;
   }
 
@@ -288,7 +281,6 @@ namespace DataTypes {
   \param i,j,k,m - Input - subscripts to locate.
   \return offset relative to the beginning of the datapoint.
   */
-  ESCRIPT_DLL_API
   inline
   vec_size_type
   getRelIndex(const DataTypes::ShapeType& shape, vec_size_type i,
@@ -296,16 +288,15 @@ namespace DataTypes {
 	   vec_size_type m)
   {
 	// Warning: This is not C ordering. Do not try to figure out the params by looking at the code
-	EsysAssert((getRank(shape)==4),"Incorrect number of indices for the rank of this object.");
+	ESYS_ASSERT(getRank(shape)==4, "Incorrect number of indices for the rank of this object.");
 	vec_size_type temp=i+j*shape[0]+k*shape[1]*shape[0]+m*shape[2]*shape[1]*shape[0];
-	EsysAssert((temp < DataTypes::noValues(shape)), "Error - Invalid index.");
+	ESYS_ASSERT(temp < DataTypes::noValues(shape), "Invalid index.");
 	return temp;
   }
 
   /**
      \brief Test if two shapes are equal.
   */
-  ESCRIPT_DLL_API
   inline
   bool
   checkShape(const ShapeType& s1, const ShapeType& s2)
@@ -320,7 +311,6 @@ namespace DataTypes {
    \param other - displayed in the message as "Other shape"
    \param thisShape - displayed in the message as "This shape"
   */
-   ESCRIPT_DLL_API
    std::string 
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,
@@ -335,8 +325,7 @@ namespace DataTypes {
 
  }   // End of namespace DataTypes
 
-
 } // End of namespace escript
 
-#endif
+#endif // __ESCRIPT_DATATYPES_H__
 

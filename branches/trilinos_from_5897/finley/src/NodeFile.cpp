@@ -21,10 +21,8 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "NodeFile.h"
+
 #include <escript/Data.h>
 
 #include <limits>
@@ -86,7 +84,7 @@ static void gatherEntries(dim_t n, const index_t* index,
 
 /// constructor
 /// use NodeFile::allocTable to allocate the node table (Id,Coordinates)
-NodeFile::NodeFile(int nDim, esysUtils::JMPI& mpiInfo) :
+NodeFile::NodeFile(int nDim, escript::JMPI& mpiInfo) :
     numNodes(0),
     numDim(nDim),
     Id(NULL),
@@ -201,14 +199,14 @@ void NodeFile::setCoordinates(const escript::Data& newX)
         ss << "NodeFile::setCoordinates: number of dimensions of new "
             "coordinates has to be " << numDim;
         const std::string errorMsg(ss.str());
-        setError(VALUE_ERROR, errorMsg.c_str());
+        throw escript::ValueError(errorMsg);
     } else if (newX.getNumDataPointsPerSample() != 1 ||
             newX.getNumSamples() != numNodes) {
         std::stringstream ss;
         ss << "NodeFile::setCoordinates: number of given nodes must be "
             << numNodes;
         const std::string errorMsg(ss.str());
-        setError(VALUE_ERROR, errorMsg.c_str());
+        throw escript::ValueError(errorMsg);
     } else {
         const size_t numDim_size=numDim*sizeof(double);
         ++status;
@@ -222,15 +220,11 @@ void NodeFile::setCoordinates(const escript::Data& newX)
 /// sets tags to newTag where mask>0
 void NodeFile::setTags(int newTag, const escript::Data& mask)
 {
-    resetError();
-
     if (1 != mask.getDataPointSize()) {
-       setError(TYPE_ERROR, "NodeFile::setTags: number of components of mask must be 1.");
-       return;
+        throw escript::ValueError("NodeFile::setTags: number of components of mask must be 1.");
     } else if (mask.getNumDataPointsPerSample() != 1 ||
             mask.getNumSamples() != numNodes) {
-       setError(TYPE_ERROR, "NodeFile::setTags: illegal number of samples of mask Data object");
-       return;
+        throw escript::ValueError("NodeFile::setTags: illegal number of samples of mask Data object");
     }
 
 #pragma omp parallel for
@@ -312,12 +306,10 @@ void NodeFile::copyTable(index_t offset, index_t idOffset, index_t dofOffset,
 {
     // check number of dimensions and table size
     if (numDim != in->numDim) {
-        setError(TYPE_ERROR, "NodeFile::copyTable: dimensions of node files don't match");
-        return;
+        throw escript::ValueError("NodeFile::copyTable: dimensions of node files don't match");
     }
     if (numNodes < in->numNodes+offset) {
-        setError(MEMORY_ERROR, "NodeFile::copyTable: node table is too small.");
-        return;
+        throw escript::ValueError("NodeFile::copyTable: node table is too small.");
     }
 
 #pragma omp parallel for
@@ -377,29 +369,29 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
     // fill the buffer by sending portions around in a circle
 #ifdef ESYS_MPI
     MPI_Status status;
-    int dest=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank+1);
-    int source=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank-1);
+    int dest = in->MPIInfo->mod_rank(in->MPIInfo->rank+1);
+    int source = in->MPIInfo->mod_rank(in->MPIInfo->rank-1);
 #endif
-    int buffer_rank=in->MPIInfo->rank;
+    int buffer_rank = in->MPIInfo->rank;
     for (int p=0; p<in->MPIInfo->size; ++p) {
         if (p>0) { // the initial send can be skipped
 #ifdef ESYS_MPI
             MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_DIM_T, dest,
-                    in->MPIInfo->msg_tag_counter, source,
-                    in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter(), source,
+                    in->MPIInfo->counter(), in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT, dest,
-                    in->MPIInfo->msg_tag_counter+1, source,
-                    in->MPIInfo->msg_tag_counter+1, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter()+1, source,
+                    in->MPIInfo->counter()+1, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len,
-                    MPI_DIM_T, dest, in->MPIInfo->msg_tag_counter+2, source,
-                    in->MPIInfo->msg_tag_counter+2, in->MPIInfo->comm, &status);
+                    MPI_DIM_T, dest, in->MPIInfo->counter()+2, source,
+                    in->MPIInfo->counter()+2, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Coordinates_buffer, buffer_len*numDim,
-                    MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
-                    in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
+                    MPI_DOUBLE, dest, in->MPIInfo->counter()+3, source,
+                    in->MPIInfo->counter()+3, in->MPIInfo->comm, &status);
+	        in->MPIInfo->incCounter(4);
 #endif
-	    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
-        buffer_rank=esysUtils::mod_rank(in->MPIInfo->size, buffer_rank-1);
+        buffer_rank=in->MPIInfo->mod_rank(buffer_rank-1);
         scatterEntries(in->numNodes, in->Id, distribution[buffer_rank],
                 distribution[buffer_rank+1], Id_buffer, in->Id,
                 Tag_buffer, in->Tag, globalDegreesOfFreedom_buffer,
@@ -409,8 +401,8 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
     // now entries are collected from the buffer again by sending the
     // entries around in a circle
 #ifdef ESYS_MPI
-    dest=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank+1);
-    source=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank-1);
+    dest = in->MPIInfo->mod_rank(in->MPIInfo->rank+1);
+    source = in->MPIInfo->mod_rank(in->MPIInfo->rank-1);
 #endif
     buffer_rank=in->MPIInfo->rank;
     for (int p=0; p<in->MPIInfo->size; ++p) {
@@ -421,45 +413,50 @@ void NodeFile::gather_global(const index_t *index, const NodeFile* in)
         if (p < in->MPIInfo->size-1) { // the last send can be skipped
 #ifdef ESYS_MPI
             MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_DIM_T, dest,
-                    in->MPIInfo->msg_tag_counter, source,
-                    in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter(), source,
+                    in->MPIInfo->counter(), in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT, dest,
-                    in->MPIInfo->msg_tag_counter+1, source,
-                    in->MPIInfo->msg_tag_counter+1, in->MPIInfo->comm, &status);
+                    in->MPIInfo->counter()+1, source,
+                    in->MPIInfo->counter()+1, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len,
-                    MPI_DIM_T, dest, in->MPIInfo->msg_tag_counter+2, source,
-                    in->MPIInfo->msg_tag_counter+2, in->MPIInfo->comm, &status);
+                    MPI_DIM_T, dest, in->MPIInfo->counter()+2, source,
+                    in->MPIInfo->counter()+2, in->MPIInfo->comm, &status);
             MPI_Sendrecv_replace(Coordinates_buffer, buffer_len*numDim,
-                    MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
-                    in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
+                    MPI_DOUBLE, dest, in->MPIInfo->counter()+3, source,
+                    in->MPIInfo->counter()+3, in->MPIInfo->comm, &status);
+            in->MPIInfo->incCounter(4);
 #endif
-            ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
-        buffer_rank=esysUtils::mod_rank(in->MPIInfo->size, buffer_rank-1);
+        buffer_rank=in->MPIInfo->mod_rank(buffer_rank-1);
     }
+#if DOASSERT
     // check if all nodes are set:
+    index_t err=-1;
 #pragma omp parallel for
     for (index_t n=0; n<numNodes; ++n) {
         if (Id[n] == undefined_node) {
-            std::stringstream ss;
-            ss << "NodeFile::gather_global: Node id " << Id[n]
-                << " at position " << n << " is referenced but not defined.";
-            const std::string errorMsg(ss.str());
-            setError(VALUE_ERROR, errorMsg.c_str());
+#pragma omp critical
+            err=n;
         }
     }
+    if (err>=0) {
+        std::stringstream ss;
+        ss << "NodeFile::gather_global: Node id " << Id[err]
+            << " at position " << err << " is referenced but not defined.";
+        const std::string errorMsg(ss.str());
+        throw escript::AssertException(errorMsg);
+    }
+#endif // DOASSERT
     delete[] Id_buffer;
     delete[] Tag_buffer;
     delete[] globalDegreesOfFreedom_buffer;
     delete[] Coordinates_buffer;
-    // make sure that the error is global
-    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
 }
 
 void NodeFile::assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF,
                                    const std::vector<index_t>& distribution)
 {
-    Esys_MPI_rank p_min=MPIInfo->size, p_max=-1;
+    int p_min=MPIInfo->size, p_max=-1;
     // first we retrieve the min and max DOF on this processor to reduce
     // costs for searching
     const std::pair<index_t,index_t> dof_range(getDOFRange());
@@ -503,20 +500,20 @@ dim_t NodeFile::prepareLabeling(const std::vector<short>& mask,
     // fill the buffer by sending portions around in a circle
 #ifdef ESYS_MPI
     MPI_Status status;
-    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
-    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
+    int dest = MPIInfo->mod_rank(MPIInfo->rank + 1);
+    int source = MPIInfo->mod_rank(MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
         if (p>0) { // the initial send can be skipped
 #ifdef ESYS_MPI
             MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_DIM_T, dest,
-                    MPIInfo->msg_tag_counter, source, MPIInfo->msg_tag_counter,
+                    MPIInfo->counter(), source, MPIInfo->counter(),
                     MPIInfo->comm, &status);
+            MPIInfo->incCounter();
 #endif
-            MPIInfo->msg_tag_counter++;
         }
-        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
+        buffer_rank=MPIInfo->mod_rank(buffer_rank-1);
         const index_t id0=distribution[buffer_rank];
         const index_t id1=distribution[buffer_rank+1];
 #pragma omp parallel for
@@ -574,8 +571,8 @@ dim_t NodeFile::createDenseDOFLabeling()
     // now entries are collected from the buffer again by sending them around
     // in a circle
 #ifdef ESYS_MPI
-    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
-    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
+    int dest = MPIInfo->mod_rank(MPIInfo->rank + 1);
+    int source = MPIInfo->mod_rank(MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -593,12 +590,12 @@ dim_t NodeFile::createDenseDOFLabeling()
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&DOF_buffer[0], DOF_buffer.size(), MPI_DIM_T,
-                    dest, MPIInfo->msg_tag_counter, source,
-                    MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
+                    dest, MPIInfo->counter(), source,
+                    MPIInfo->counter(), MPIInfo->comm, &status);
+	        MPIInfo->incCounter();
 #endif
-	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
-        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
+        buffer_rank = MPIInfo->mod_rank(buffer_rank-1);
     }
 
     return new_numGlobalDOFs;
@@ -686,8 +683,8 @@ dim_t NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
 
     // now we send this buffer around to assign global node index
 #ifdef ESYS_MPI
-    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
-    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
+    int dest = MPIInfo->mod_rank(MPIInfo->rank + 1);
+    int source = MPIInfo->mod_rank(MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -708,12 +705,12 @@ dim_t NodeFile::createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&Node_buffer[0], Node_buffer.size(), MPI_DIM_T,
-                    dest, MPIInfo->msg_tag_counter, source,
-                    MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
+                    dest, MPIInfo->counter(), source,
+                    MPIInfo->counter(), MPIInfo->comm, &status);
+	        MPIInfo->incCounter();
 #endif
-	        ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
-        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
+        buffer_rank = MPIInfo->mod_rank(buffer_rank-1);
     }
     return globalNumNodes;
 }
@@ -759,8 +756,8 @@ dim_t NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask
     // now entries are collected from the buffer by sending them around
     // in a circle
 #ifdef ESYS_MPI
-    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
-    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
+    int dest = MPIInfo->mod_rank(MPIInfo->rank + 1);
+    int source = MPIInfo->mod_rank(MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -778,12 +775,12 @@ dim_t NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&buffer[0], buffer.size(), MPI_DIM_T, dest,
-                    MPIInfo->msg_tag_counter, source,
-                    MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
+                    MPIInfo->counter(), source,
+                    MPIInfo->counter(), MPIInfo->comm, &status);
+	        MPIInfo->incCounter();
 #endif
-	        ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
-        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
+        buffer_rank = MPIInfo->mod_rank(buffer_rank-1);
     }
     return new_numGlobalReduced;
 }
@@ -825,10 +822,23 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         }
     }
 
-    if (!((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF))) {
-        setError(SYSTEM_ERROR, "Local elements do not span local degrees of freedom.");
-        return;
+    std::stringstream ss;
+    if (myFirstDOF<myLastDOF && !(min_DOF<=myFirstDOF && myLastDOF-1<=max_DOF)) {
+        ss << "createDOFMappingAndCoupling: Local elements do not span local "
+              "degrees of freedom. min_DOF=" << min_DOF << ", myFirstDOF="
+           << myFirstDOF << ", myLastDOF-1=" << myLastDOF-1
+           << ", max_DOF=" << max_DOF << " on rank=" << MPIInfo->rank;
     }
+    const std::string msg(ss.str());
+    int error = msg.length();
+    int gerror = error;
+    escript::checkResult(error, gerror, MPIInfo);
+    if (gerror > 0) {
+        char* gmsg;
+        escript::shipString(msg.c_str(), &gmsg, MPIInfo->comm);
+        throw FinleyException(gmsg);
+    }
+
     const index_t UNUSED = -1;
     const index_t len_loc_dof=max_DOF-min_DOF+1;
     std::vector<index_t> shared(numNodes*(p_max-p_min+1));
@@ -865,7 +875,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     std::vector<index_t> wanted_DOFs(numNodes);
     std::vector<index_t> rcv_len(mpiSize);
     std::vector<index_t> snd_len(mpiSize);
-    std::vector<Esys_MPI_rank> neighbor(mpiSize);
+    std::vector<int> neighbor(mpiSize);
     int numNeighbors=0;
     index_t n=0;
     index_t lastn=n;
@@ -959,7 +969,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         MPI_Isend(&(wanted_DOFs[rcv_shcomp->offsetInShared[p]]),
                 rcv_shcomp->offsetInShared[p+1]-rcv_shcomp->offsetInShared[p],
                 MPI_DIM_T, rcv_shcomp->neighbor[p],
-                MPIInfo->msg_tag_counter+myRank, MPIInfo->comm,
+                MPIInfo->counter()+myRank, MPIInfo->comm,
                 &mpi_requests[count]);
         count++;
 #endif
@@ -970,7 +980,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         if (snd_len[p] > 0) {
 #ifdef ESYS_MPI
             MPI_Irecv(&shared[n], snd_len[p], MPI_DIM_T, p,
-                    MPIInfo->msg_tag_counter+p, MPIInfo->comm,
+                    MPIInfo->counter()+p, MPIInfo->comm,
                     &mpi_requests[count]);
             count++;
 #endif
@@ -980,9 +990,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             n+=snd_len[p];
         }
     }
-    ESYS_MPI_INC_COUNTER(*MPIInfo, MPIInfo->size)
     offsetInShared[numNeighbors]=n;
 #ifdef ESYS_MPI
+    MPIInfo->incCounter(MPIInfo->size);
     MPI_Waitall(count, &mpi_requests[0], &mpi_stati[0]);
 #endif
     // map global ids to local id's
@@ -995,12 +1005,10 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], p,
             &offsetInShared[0], 1, 0, MPIInfo));
 
-    if (noError()) {
-        if (use_reduced_elements) {
-            reducedDegreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-        } else {
-            degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-        }
+    if (use_reduced_elements) {
+        reducedDegreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+    } else {
+        degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
     }
 }
 
@@ -1074,54 +1082,42 @@ void NodeFile::createNodeMappings(const std::vector<index_t>& indexReducedNodes,
 
     std::vector<index_t> nodeMask(numNodes);
 
-    if (noError()) {
-        const index_t UNUSED = -1;
-        // ==== nodes mapping which is a dummy structure ========
+    const index_t UNUSED = -1;
+    // ==== nodes mapping which is a dummy structure ========
 #pragma omp parallel for
-        for (index_t i=0; i<numNodes; ++i)
-            nodeMask[i]=i;
-        nodesMapping.assign(nodeMask, UNUSED);
+    for (index_t i=0; i<numNodes; ++i)
+        nodeMask[i]=i;
+    nodesMapping.assign(nodeMask, UNUSED);
 
-        // ==== mapping between nodes and reduced nodes ==========
+    // ==== mapping between nodes and reduced nodes ==========
 #pragma omp parallel for
-        for (index_t i=0; i<numNodes; ++i)
-            nodeMask[i]=UNUSED;
+    for (index_t i=0; i<numNodes; ++i)
+        nodeMask[i]=UNUSED;
 #pragma omp parallel for
-        for (index_t i=0; i<iRNsize; ++i)
-            nodeMask[indexReducedNodes[i]]=i;
-        reducedNodesMapping.assign(nodeMask, UNUSED);
-    }
+    for (index_t i=0; i<iRNsize; ++i)
+        nodeMask[indexReducedNodes[i]]=i;
+    reducedNodesMapping.assign(nodeMask, UNUSED);
+
     // ==== mapping between nodes and DOFs + DOF connector
-    if (noError())
-        createDOFMappingAndCoupling(false);
+    createDOFMappingAndCoupling(false);
     // ==== mapping between nodes and reduced DOFs + reduced DOF connector
-    if (noError())
-        createDOFMappingAndCoupling(true);
+    createDOFMappingAndCoupling(true);
 
     // get the Ids for DOFs and reduced nodes
-    if (noError()) {
-        const index_t rnTargets = reducedNodesMapping.getNumTargets();
-        const index_t dofTargets = degreesOfFreedomMapping.getNumTargets();
-        const index_t rdofTargets = reducedDegreesOfFreedomMapping.getNumTargets();
+    const index_t rnTargets = reducedNodesMapping.getNumTargets();
+    const index_t dofTargets = degreesOfFreedomMapping.getNumTargets();
+    const index_t rdofTargets = reducedDegreesOfFreedomMapping.getNumTargets();
 #pragma omp parallel
-        {
+    {
+#pragma omp for nowait
+        for (index_t i=0; i<rnTargets; ++i)
+            reducedNodesId[i]=Id[reducedNodesMapping.map[i]];
+#pragma omp for nowait
+        for (index_t i=0; i<dofTargets; ++i)
+            degreesOfFreedomId[i]=Id[degreesOfFreedomMapping.map[i]];
 #pragma omp for
-         for (index_t i=0; i<rnTargets; ++i)
-             reducedNodesId[i]=Id[reducedNodesMapping.map[i]];
-#pragma omp for
-         for (index_t i=0; i<dofTargets; ++i)
-             degreesOfFreedomId[i]=Id[degreesOfFreedomMapping.map[i]];
-#pragma omp for
-         for (index_t i=0; i<rdofTargets; ++i)
-             reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
-        }
-    } else {
-        nodesDistribution.reset();
-        reducedNodesDistribution.reset();
-        degreesOfFreedomDistribution.reset();
-        reducedDegreesOfFreedomDistribution.reset();
-        degreesOfFreedomConnector.reset();
-        reducedDegreesOfFreedomConnector.reset();
+        for (index_t i=0; i<rdofTargets; ++i)
+            reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
     }
 }
 

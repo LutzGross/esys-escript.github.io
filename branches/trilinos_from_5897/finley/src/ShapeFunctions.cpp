@@ -22,7 +22,9 @@
 *****************************************************************************/
 
 #include "ShapeFunctions.h"
-#include "esysUtils/index.h"
+
+#include <escript/index.h>
+
 #include <cstring>
 
 namespace finley {
@@ -65,8 +67,7 @@ ShapeFunction::ShapeFunction(ShapeFunctionTypeId id, int numQDim,
     const int numShapes=ShapeFunction_InfoList[id].numShapes;
 
     if (numQDim>numDim) {
-        setError(VALUE_ERROR, "ShapeFunction: number of spatial dimensions of quadrature scheme is larger than the spatial dimensionality of shape function.");
-        return;
+        throw escript::ValueError("ShapeFunction: number of spatial dimensions of quadrature scheme is larger than the spatial dimensionality of shape function.");
     }
 
     Type=getInfo(id);
@@ -110,7 +111,7 @@ const ShapeFunctionInfo* ShapeFunction::getInfo(ShapeFunctionTypeId id)
        idx++;
     }
     if (out==NULL) {
-        setError(VALUE_ERROR, "ShapeFunction::getInfo: cannot find requested shape function");
+        throw escript::ValueError("ShapeFunction::getInfo: cannot find requested shape function");
     }
     return out;
 }

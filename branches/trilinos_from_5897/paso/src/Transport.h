@@ -20,8 +20,9 @@
 
 #define DT_FACTOR_MAX 100000.
 
-#include "SystemMatrix.h"
+#include "Paso.h"
 #include "Options.h"
+#include "SystemMatrix.h"
 
 #include <escript/AbstractTransportProblem.h>
 
@@ -92,7 +93,7 @@ public:
 
     inline static int getTypeId(int solver, int preconditioner,
                                 int package, bool symmetry,
-                                const esysUtils::JMPI& mpi_info)
+                                const escript::JMPI& mpi_info)
     {
         return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
     }
@@ -116,7 +117,7 @@ public:
     double* reactive_matrix;
     double* main_diagonal_mass_matrix;
 
-    esysUtils::JMPI mpi_info;
+    escript::JMPI mpi_info;
 
 private:
     virtual void setToSolution(escript::Data& out, escript::Data& u0,

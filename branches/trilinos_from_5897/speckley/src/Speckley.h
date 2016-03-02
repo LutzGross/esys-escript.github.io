@@ -24,7 +24,7 @@
 
 #include <speckley/system_dep.h>
 
-#include <esysUtils/Esys_MPI.h>
+#include <escript/EsysMPI.h>
 
 #include <boost/shared_ptr.hpp>
 #include <list>
@@ -41,7 +41,6 @@ using escript::DataTypes::real_t;
 typedef std::pair<index_t,index_t> IndexPair;
 typedef std::vector<index_t> IndexVector;
 typedef std::vector<real_t> DoubleVector;
-typedef std::vector<Esys_MPI_rank> RankVector;
 typedef std::map<std::string,int> TagMap;
 
 enum {

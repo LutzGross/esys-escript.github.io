@@ -114,7 +114,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         const index_t row = recv->offsetInShared[p];
         const index_t i = recv->offsetInShared[p+1];
         MPI_Irecv(&(ptr_ptr[row]), i-row, MPI_INT, recv->neighbor[p],
-                mpi_info->msg_tag_counter+recv->neighbor[p],
+                mpi_info->counter()+recv->neighbor[p],
                 mpi_info->comm,
                 &(row_coupler->mpi_requests[p]));
     }
@@ -218,16 +218,16 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
 
         /* sending */
         MPI_Issend(&send_offset[i0], i-i0, MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm,
+                mpi_info->counter()+rank, mpi_info->comm,
                 &row_coupler->mpi_requests[p+recv->numNeighbors]);
         send_degree[p] = len;
         i0 = i;
     }
 
+    mpi_info->incCounter(mpi_size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                     row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_size)
 
     len = 0;
     for (index_t i=0; i<overlapped_n; i++) {
@@ -244,7 +244,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         const index_t i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
         if (i > 0)
             MPI_Irecv(&ptr_idx[j], i, MPI_INT, recv->neighbor[p],
-                mpi_info->msg_tag_counter+recv->neighbor[p], mpi_info->comm,
+                mpi_info->counter()+recv->neighbor[p], mpi_info->comm,
                 &row_coupler->mpi_requests[p]);
         j += i;
     }
@@ -254,15 +254,15 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         const index_t i = send_degree[p] - j;
         if (i > 0)
             MPI_Issend(&send_idx[j], i, MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm,
+                mpi_info->counter()+rank, mpi_info->comm,
                 &row_coupler->mpi_requests[p+recv->numNeighbors]);
         j = send_degree[p];
     }
 
+    mpi_info->incCounter(mpi_size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                          row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_size)
 
     // allocate pattern and sparse matrix for remote_coupleBlock
     Pattern_ptr pattern(new Pattern(row_coupleBlock->pattern->type,
@@ -277,7 +277,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         if (i > 0)
             MPI_Irecv(&remote_coupleBlock->val[j], i * block_size,
                 MPI_DOUBLE, recv->neighbor[p],
-                mpi_info->msg_tag_counter+recv->neighbor[p], mpi_info->comm,
+                mpi_info->counter()+recv->neighbor[p], mpi_info->comm,
                 &row_coupler->mpi_requests[p]);
         j += i*block_size;
     }
@@ -287,16 +287,16 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         const index_t i = send_degree[p] - j;
         if (i > 0)
             MPI_Issend(&send_buf[j*block_size], i*block_size, MPI_DOUBLE,
-                       send->neighbor[p], mpi_info->msg_tag_counter+rank,
+                       send->neighbor[p], mpi_info->counter()+rank,
                        mpi_info->comm,
                        &row_coupler->mpi_requests[p+recv->numNeighbors]);
         j = send_degree[p];
     }
 
+    mpi_info->incCounter(mpi_size);
     MPI_Waitall(row_coupler->connector->send->numNeighbors +
                      row_coupler->connector->recv->numNeighbors,
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
-    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_size)
 
     // release all temp memory allocation
     delete[] cols;

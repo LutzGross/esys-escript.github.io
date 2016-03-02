@@ -14,11 +14,10 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATAABSTRACT_H__
+#define __ESCRIPT_DATAABSTRACT_H__
 
-#if !defined escript_DataAbstract_20040315_H
-#define escript_DataAbstract_20040315_H
 #include "system_dep.h"
-
 #include "DataTypes.h"
 #include "DataVector.h"
 #include "FunctionSpace.h"
@@ -280,16 +279,16 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual
   void
   setTaggedValue(int tagKey,
-		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::ShapeType& pointshape,
                  const DataTypes::RealVectorType& value,
-		 int dataOffset=0);
+                 int dataOffset=0);
 
   virtual
   void
   setTaggedValue(int tagKey,
-		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::ShapeType& pointshape,
                  const DataTypes::CplxVectorType& value,
-		 int dataOffset=0);  
+                 int dataOffset=0);
 
   /**
      \brief
@@ -306,8 +305,8 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::real_t value);
 
   virtual void
-  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::cplx_t value);  
-  
+  copyToDataPoint(const int sampleNo, const int dataPointNo, const DataTypes::cplx_t value);
+
   /**
      \brief
      Copy the array object to the data point dataPointNo of sample sampleNo in this object.
@@ -433,14 +432,14 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
 
   /**
-	\brief
-	Return the number of values in the shape for this object.
+        \brief
+        Return the number of values in the shape for this object.
   */
   unsigned int
   getNoValues() const;
 
 
-  bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
+  bool isLazy() const;  // a test to determine if this object is an instance of DataLazy
 
   virtual
   bool
@@ -464,7 +463,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   bool
   isTagged() const {return false;}
 
-  bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
+  bool isEmpty() const; // a fast test to determine if this object is an instance of DataEmpty
 
   /**
    \brief true if the components of datapoints are complex
@@ -473,40 +472,40 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
 
   /**
-  	\warning should only be used in single threaded code (or inside a single/critical section)
+        \warning should only be used in single threaded code (or inside a single/critical section)
   */
   void
   addOwner(Data*);
 
   /**
-  	\warning should only be used in single threaded code (or inside a single/critical section)
+        \warning should only be used in single threaded code (or inside a single/critical section)
   */
   void
   removeOwner(Data*);
 
   /**
-	\brief Is this object owned by more than one Data object
+        \brief Is this object owned by more than one Data object
   */
   bool
   isShared() const
   {
-	return m_lazyshared || (m_owners.size()>1);
+        return m_lazyshared || (m_owners.size()>1);
   }
 
 #ifdef EXWRITECHK
-  bool exclusivewritecalled;	// used to check for some potential programming faults 
-				// involving shared data.
-				// This flag only asserts that exclusive write has been called
-				// on this object, it does not definitively guarantee that
-				// sharing has not occurred since that call
-				// This flag is for internal use only may be removed without warning
+  bool exclusivewritecalled;    // used to check for some potential programming faults
+                                // involving shared data.
+                                // This flag only asserts that exclusive write has been called
+                                // on this object, it does not definitively guarantee that
+                                // sharing has not occurred since that call
+                                // This flag is for internal use only may be removed without warning
 #endif
 
 /*
  * Make the object complex
 */
  virtual void complicate();
-  
+
 protected:
     /**
     \brief Returns true if this object is not shared.
@@ -519,7 +518,7 @@ protected:
     For internal use only.
     */
     void
-    makeLazyShared();	
+    makeLazyShared();
 
     friend class DataLazy;
 
@@ -567,7 +566,7 @@ inline
 bool
 DataAbstract::isEmpty() const
 {
-	return m_isempty;
+        return m_isempty;
 }
 
 inline
@@ -590,7 +589,7 @@ DataAbstract::getNumDPPSample() const
 {
   if (isEmpty())
   {
-     	throw DataException("Error - Operations (getNumDPPSample) not permitted on instances of DataEmpty.");
+        throw DataException("Error - Operations (getNumDPPSample) not permitted on instances of DataEmpty.");
   }
   return m_noDataPointsPerSample;
 }
@@ -601,7 +600,7 @@ DataAbstract::getNumSamples() const
 {
   if (isEmpty())
   {
-     	throw DataException("Error - Operations (getNumSamples) not permitted on instances of DataEmpty.");
+        throw DataException("Error - Operations (getNumSamples) not permitted on instances of DataEmpty.");
   }
   return m_noSamples;
 }
@@ -618,36 +617,36 @@ inline
 const DataTypes::ShapeType&
 DataAbstract::getShape() const
 {
-	if (isEmpty())
-	{
-		throw DataException("Error - Operations (getShape) not permitted on instances of DataEmpty.");
-	}
-	return m_shape;
+        if (isEmpty())
+        {
+                throw DataException("Error - Operations (getShape) not permitted on instances of DataEmpty.");
+        }
+        return m_shape;
 }
 
 inline
 unsigned int
 DataAbstract::getRank() const
 {
-	if (isEmpty())
-	{
-		throw DataException("Error - Operations (getRank) not permitted on instances of DataEmpty.");
-	}
-	return m_rank;
+        if (isEmpty())
+        {
+                throw DataException("Error - Operations (getRank) not permitted on instances of DataEmpty.");
+        }
+        return m_rank;
 }
 
 inline
 unsigned int
 DataAbstract::getNoValues() const
-{	
-	if (isEmpty())
-	{
-		throw DataException("Error - Operations (getNoValues) not permitted on instances of DataEmpty.");
-	}
-	return m_novalues;
+{
+        if (isEmpty())
+        {
+                throw DataException("Error - Operations (getNoValues) not permitted on instances of DataEmpty.");
+        }
+        return m_novalues;
 }
-
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_DATAABSTRACT_H__
+

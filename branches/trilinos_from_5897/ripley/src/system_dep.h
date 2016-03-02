@@ -17,8 +17,6 @@
 #ifndef __RIPLEY_SYSTEM_DEP_H__
 #define __RIPLEY_SYSTEM_DEP_H__
 
-#include <cmath>
-
 #define RIPLEY_DLL_API
 
 #ifdef _WIN32
@@ -32,6 +30,7 @@
 #   endif
 #endif
 
+#include <escript/DataTypes.h>
 
 // byte swapping / endianness:
 

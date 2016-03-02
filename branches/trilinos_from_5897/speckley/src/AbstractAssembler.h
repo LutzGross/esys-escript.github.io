@@ -17,11 +17,11 @@
 #ifndef __SPECKLEY_ABSTRACTASSEMBLER_H__
 #define __SPECKLEY_ABSTRACTASSEMBLER_H__
 
+#include <speckley/domainhelpers.h>
+
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/Data.h>
 #include <escript/Pointers.h>
-#include <esysUtils/index.h>
-#include <speckley/domainhelpers.h>
 
 namespace speckley {
 

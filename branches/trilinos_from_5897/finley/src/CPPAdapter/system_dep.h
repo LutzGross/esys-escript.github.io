@@ -26,8 +26,6 @@
 #ifndef finley_system_dep_h
 #define finley_system_dep_h
 
-#include <cmath>
-
 #define FINLEY_DLL_API
 
 #ifdef _WIN32

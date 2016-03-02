@@ -754,11 +754,9 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = escriptcore/src \
-                         esysUtils/src \
                          dudley/src \
                          finley/src \
                          paso/src \
-                         pasowrap/src \
                          pythonMPI/src \
                          ripley/src \
                          speckley/src \
@@ -2363,3 +2361,4 @@ GENERATE_LEGEND        = YES
 # This tag requires that the tag HAVE_DOT is set to YES.
 
 DOT_CLEANUP            = YES
+

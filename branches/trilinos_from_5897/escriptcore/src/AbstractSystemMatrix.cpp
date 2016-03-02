@@ -14,11 +14,9 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 #include "AbstractSystemMatrix.h" 
-#include "DataException.h"
 #include "Data.h"
+#include "DataException.h"
 #include "DataTypes.h"
 
 namespace escript {

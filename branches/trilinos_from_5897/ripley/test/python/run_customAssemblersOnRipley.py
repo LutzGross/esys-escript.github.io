@@ -219,10 +219,10 @@ class RipleyWaveAssemblerTestBase(unittest.TestCase):
         for i in [self.V_p, self.V_s, self.c11, self.c12, self.c13, self.c23,
                 self.c33, self.c44, self.c66]:
             i.expand()
-        with self.assertRaises(RuntimeError) as e:
+        with self.assertRaises(ValueError) as e:
             self.run_HTI_assembly()
         self.assertTrue("mismatching function spaces" in str(e.exception))
-        with self.assertRaises(RuntimeError) as e:
+        with self.assertRaises(ValueError) as e:
             self.run_VTI_assembly()
         self.assertTrue("mismatching function spaces" in str(e.exception))
 
@@ -236,10 +236,10 @@ class RipleyWaveAssemblerTestBase(unittest.TestCase):
         self.c33 = Scalar(33., ReducedFunction(self.domain))
         self.c44 = Scalar(44., ReducedFunction(self.domain))
         self.c66 = Scalar(66., ReducedFunction(self.domain))
-        with self.assertRaises(RuntimeError) as e:
+        with self.assertRaises(ValueError) as e:
             self.run_HTI_assembly()
         self.assertTrue("mismatching function spaces" in str(e.exception))
-        with self.assertRaises(RuntimeError) as e:
+        with self.assertRaises(ValueError) as e:
             self.run_VTI_assembly()
         self.assertTrue("mismatching function spaces" in str(e.exception))
 

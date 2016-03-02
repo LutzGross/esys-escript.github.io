@@ -14,21 +14,18 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
-#include <iostream>
+#include <escript/EsysMPI.h>
 
 #include "EscriptDatasetTestCase.h"
+
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
 #include <cppunit/TestResultCollector.h>
 #include <cppunit/TestRunner.h>
 
-using namespace CppUnit;
+#include <iostream>
 
-#include "esysUtils/Esys_MPI.h"
+using namespace CppUnit;
 
 int main(int argc, char* argv[])
 {

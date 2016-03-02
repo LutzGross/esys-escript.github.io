@@ -445,7 +445,7 @@ void linearCombination(dim_t n, double* z, double a, const double* x,
 }
 
 double innerProduct(const dim_t n,const double* x, const double* y,
-                    const esysUtils::JMPI& mpiinfo)
+                    const escript::JMPI& mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0, local_out=0., out=0.;
@@ -482,7 +482,7 @@ double innerProduct(const dim_t n,const double* x, const double* y,
     return out;
 }
 
-double lsup(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
+double lsup(dim_t n, const double* x, const escript::JMPI& mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0., local_out=0., out=0.;
@@ -518,7 +518,7 @@ double lsup(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
     return out;
 }
 
-double l2(dim_t n, const double* x, const esysUtils::JMPI& mpiinfo)
+double l2(dim_t n, const double* x, const escript::JMPI& mpiinfo)
 {
     double my_out=0, out=0.;
 #ifdef _OPENMP
