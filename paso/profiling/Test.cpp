@@ -28,7 +28,7 @@ double Lsup(double* x, int n) {
     int i;
     
     for (i=0;i<n;i++) {
-        max=MAX(ABS(x[i]),max);
+        max=std::max(std::abs(x[i]),max);
     }
     
     return max;

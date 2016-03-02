@@ -20,21 +20,18 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "Mesh.h"
+#include "FinleyException.h"
 #include "IndexList.h"
+
 #include <boost/scoped_array.hpp>
 
-#include "CPPAdapter/FinleyAdapterException.h"
 
 namespace finley {
 
 /// Constructor.
 /// Allocates a Mesh with given name and dimensionality
-Mesh::Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info) :
+Mesh::Mesh(const std::string name, int numDim, escript::JMPI& mpi_info) :
     m_name(name),
     approximationOrder(-1),
     reducedApproximationOrder(-1),
@@ -132,9 +129,8 @@ void Mesh::createMappings(const std::vector<index_t>& dofDistribution,
     std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
     markNodes(maskReducedNodes, 0, true);
     std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
-    if (noError())
-        Nodes->createNodeMappings(indexReducedNodes, dofDistribution,
-                                  nodeDistribution);
+    Nodes->createNodeMappings(indexReducedNodes, dofDistribution,
+                              nodeDistribution);
 }
 
 /// redistributes the Nodes and Elements including overlap
@@ -149,18 +145,12 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
     // at the input the Node tables refer to the local labeling of the nodes
     // while at the output they refer to the global labeling which is rectified
     // in the next step
-    if (noError())
-        Elements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
-    if (noError())
-        FaceElements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
-    if (noError())
-        ContactElements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
-    if (noError())
-        Points->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
+    Elements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
+    FaceElements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
+    ContactElements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
+    Points->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
 
-    // resolve the node ids
-    if (noError())
-        resolveNodeIds();
+    resolveNodeIds();
 
     // create a local labeling of the DOFs
     const std::pair<index_t,index_t> dof_range(Nodes->getDOFRange());
@@ -195,8 +185,7 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
         localDOF_map[n]=k;
     }
     // create element coloring
-    if (noError())
-        createColoring(localDOF_map);
+    createColoring(localDOF_map);
 }
 
 /// prints the mesh details to standard output
@@ -360,45 +349,40 @@ void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
             myNumVertices, index_list.get(), myFirstVertex, myLastVertex,
             -myFirstVertex);
 
-    if (noError())
-        pattern->reduceBandwidth(&newGlobalDOFID[0]); 
+    pattern->reduceBandwidth(&newGlobalDOFID[0]); 
 
-    esysUtils::Esys_MPIInfo_noError(MPIInfo);
-
-    if (noError()) {
-        // shift new labeling to create a global id
+    // shift new labeling to create a global id
 #pragma omp parallel for
-        for (int i=0; i<myNumVertices; ++i)
-            newGlobalDOFID[i]+=myFirstVertex;
+    for (int i=0; i<myNumVertices; ++i)
+        newGlobalDOFID[i]+=myFirstVertex;
 
-        // distribute new labeling to other processors
+    // distribute new labeling to other processors
 #ifdef ESYS_MPI
-        const int dest=esysUtils::mod_rank(mpiSize, myRank + 1);
-        const int source=esysUtils::mod_rank(mpiSize, myRank - 1);
+    const int dest = MPIInfo->mod_rank(myRank + 1);
+    const int source = MPIInfo->mod_rank(myRank - 1);
 #endif
-        int current_rank=myRank;
-        for (int p=0; p<mpiSize; ++p) {
-            const index_t firstVertex=distribution[current_rank];
-            const index_t lastVertex=distribution[current_rank+1];
+    int current_rank=myRank;
+    for (int p=0; p<mpiSize; ++p) {
+        const index_t firstVertex=distribution[current_rank];
+        const index_t lastVertex=distribution[current_rank+1];
 #pragma omp parallel for
-            for (index_t i=0; i<Nodes->numNodes; ++i) {
-                const index_t k=Nodes->globalDegreesOfFreedom[i];
-                if (firstVertex<=k && k<lastVertex) {
-                    Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
-                }
+        for (index_t i=0; i<Nodes->numNodes; ++i) {
+            const index_t k=Nodes->globalDegreesOfFreedom[i];
+            if (firstVertex<=k && k<lastVertex) {
+                Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
             }
-   
-            if (p<mpiSize-1) { // the final send can be skipped
+        }
+
+        if (p<mpiSize-1) { // the final send can be skipped
 #ifdef ESYS_MPI
-                MPI_Status status;
-                MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
-                                     dest, MPIInfo->msg_tag_counter,
-                                     source, MPIInfo->msg_tag_counter,
-                                     MPIInfo->comm, &status);
+            MPI_Status status;
+            MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
+                                 dest, MPIInfo->counter(),
+                                 source, MPIInfo->counter(),
+                                 MPIInfo->comm, &status);
+            MPIInfo->incCounter();
 #endif
-                MPIInfo->msg_tag_counter++;
-                current_rank=esysUtils::mod_rank(mpiSize, current_rank-1);
-            }
+            current_rank = MPIInfo->mod_rank(current_rank-1);
         }
     }
 }
@@ -423,19 +407,17 @@ void Mesh::prepare(bool optimize)
     // this will redistribute the Nodes and Elements including overlap and
     // will create an element coloring but will not create any mappings
     // (see later in this function)
-    if (noError())
-        distributeByRankOfDOF(distribution);
+    distributeByRankOfDOF(distribution);
 
     // at this stage we are able to start an optimization of the DOF
     // distribution using ParMetis. On return distribution is altered and
     // new DOF IDs have been assigned
-    if (noError() && optimize && MPIInfo->size>1) {
+    if (optimize && MPIInfo->size>1) {
         optimizeDOFDistribution(distribution); 
-        if (noError())
-            distributeByRankOfDOF(distribution);
+        distributeByRankOfDOF(distribution);
     }
     // the local labelling of the degrees of freedom is optimized
-    if (noError() && optimize) {
+    if (optimize) {
         optimizeDOFLabeling(distribution); 
     }
     // rearrange elements with the aim of bringing elements closer to memory
@@ -443,22 +425,18 @@ void Mesh::prepare(bool optimize)
     optimizeElementOrdering();
 
     // create the global indices
-    if (noError()) {
-        std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
-        std::vector<index_t> nodeDistribution(MPIInfo->size+1);
-        markNodes(maskReducedNodes, 0, true);
-        std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
+    std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
+    std::vector<index_t> nodeDistribution(MPIInfo->size+1);
+    markNodes(maskReducedNodes, 0, true);
+    std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
 
-        Nodes->createDenseNodeLabeling(nodeDistribution, distribution); 
-        // created reduced DOF labeling
-        Nodes->createDenseReducedLabeling(maskReducedNodes, false); 
-        // created reduced node labeling
-        Nodes->createDenseReducedLabeling(maskReducedNodes, true);
-
-        // create the missing mappings
-        if (noError())
-            Nodes->createNodeMappings(indexReducedNodes, distribution, nodeDistribution);
-    }
+    Nodes->createDenseNodeLabeling(nodeDistribution, distribution); 
+    // created reduced DOF labeling
+    Nodes->createDenseReducedLabeling(maskReducedNodes, false); 
+    // created reduced node labeling
+    Nodes->createDenseReducedLabeling(maskReducedNodes, true);
+    // create the missing mappings
+    Nodes->createNodeMappings(indexReducedNodes, distribution, nodeDistribution);
 
     updateTagList();
 }
@@ -466,37 +444,29 @@ void Mesh::prepare(bool optimize)
 /// tries to reduce the number of colours for all element files
 void Mesh::createColoring(const std::vector<index_t>& dofMap)
 {
-    if (noError())
-        Elements->createColoring(dofMap);
-    if (noError())
-        FaceElements->createColoring(dofMap);
-    if (noError())
-        Points->createColoring(dofMap);
-    if (noError())
-        ContactElements->createColoring(dofMap);
+    Elements->createColoring(dofMap);
+    FaceElements->createColoring(dofMap);
+    Points->createColoring(dofMap);
+    ContactElements->createColoring(dofMap);
 }
 
 /// redistributes elements to minimize communication during assemblage
 void Mesh::optimizeElementOrdering()
 {
-    if (noError())
-        Elements->optimizeOrdering();
-    if (noError())
-        FaceElements->optimizeOrdering();
-    if (noError())
-        Points->optimizeOrdering();
-    if (noError())
-        ContactElements->optimizeOrdering();
+    Elements->optimizeOrdering();
+    FaceElements->optimizeOrdering();
+    Points->optimizeOrdering();
+    ContactElements->optimizeOrdering();
 }
 
 /// regenerates list of tags in use for node file and element files
 void Mesh::updateTagList()
 {
-    if (noError()) Nodes->updateTagList();
-    if (noError()) Elements->updateTagList();
-    if (noError()) FaceElements->updateTagList();
-    if (noError()) Points->updateTagList();
-    if (noError()) ContactElements->updateTagList();
+    Nodes->updateTagList();
+    Elements->updateTagList();
+    FaceElements->updateTagList();
+    Points->updateTagList();
+    ContactElements->updateTagList();
 }
 
 /// assigns new node reference numbers to all element files
@@ -587,22 +557,16 @@ void Mesh::resolveNodeIds()
 
     // create a new table
     NodeFile *newNodeFile=new NodeFile(getDim(), MPIInfo);
-    if (noError()) {
-        newNodeFile->allocTable(newNumNodes);
-    }
-    if (noError()) {
-        if (len)
-            newNodeFile->gather_global(&newLocalToGlobalNodeLabels[0], Nodes);
-        else
-            newNodeFile->gather_global(NULL, Nodes);
-    }
-    if (noError()) {
-        delete Nodes;
-        Nodes=newNodeFile;
-        // relabel nodes of the elements
-        relabelElementNodes(globalToNewLocalNodeLabels, min_id);
-    } else
-        throw FinleyAdapterException("Errors occurred during node resolution");
+    newNodeFile->allocTable(newNumNodes);
+    if (len)
+        newNodeFile->gather_global(&newLocalToGlobalNodeLabels[0], Nodes);
+    else
+        newNodeFile->gather_global(NULL, Nodes);
+
+    delete Nodes;
+    Nodes=newNodeFile;
+    // relabel nodes of the elements
+    relabelElementNodes(globalToNewLocalNodeLabels, min_id);
 }
 
 /// sets new coordinates for the nodes
@@ -623,8 +587,7 @@ int Mesh::getTag(const char* name) const
         std::stringstream ss;
         ss << "getTag: unknown tag name " << name << ".";
         const std::string errorMsg(ss.str());
-        setError(VALUE_ERROR, errorMsg.c_str());
-        return -1;
+        throw escript::ValueError(errorMsg);
     }
     return it->second;
 }

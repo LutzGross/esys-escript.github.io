@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <escript/Data.h>
 
 #include <weipa/EscriptDataset.h>

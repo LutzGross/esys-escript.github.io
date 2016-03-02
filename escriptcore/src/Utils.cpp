@@ -14,23 +14,10 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-#ifndef OVERLORDPATH
-#define OVERLORDPATH ""
-#endif
-
 #include "Data.h"
 #include "DataVector.h"
+#include "FileWriter.h"
 #include "Utils.h"
-
-#include <esysUtils/Esys_MPI.h>
-#include <esysUtils/esysFileWriter.h>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #include <cstring>
 #include <fstream>
@@ -40,7 +27,10 @@
 #include <boost/scoped_array.hpp>
 
 namespace bp = boost::python;
-using esysUtils::FileWriter;
+
+#ifndef OVERLORDPATH
+#define OVERLORDPATH ""
+#endif
 
 namespace escript {
 
@@ -384,21 +374,21 @@ int runMPIProgram(bp::list args)
 
 double getMachinePrecision()
 {
-    return DBL_EPSILON;
+    return std::numeric_limits<double>::epsilon();
 }
 
 double getMaxFloat()
 {
-    return DBL_MAX;
+    return std::numeric_limits<double>::max();
 }
 
 void MPIBarrierWorld()
 {
 #ifdef ESYS_MPI
-    if (!esysUtils::NoCOMM_WORLD::active()) {
+    if (!NoCOMM_WORLD::active()) {
         MPI_Barrier(MPI_COMM_WORLD );
     } else {
-        throw esysUtils::EsysException("Attempt to use MPI_COMM_WORLD while it is blocked.");
+        throw EsysException("Attempt to use MPI_COMM_WORLD while it is blocked.");
     }
 #endif
 }

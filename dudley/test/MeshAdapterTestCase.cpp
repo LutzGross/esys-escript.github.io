@@ -14,16 +14,12 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/AbstractContinuousDomain.h>
 
 #include "MeshAdapterTestCase.h"
 
 #include "dudley/CppAdapter/MeshAdapter.h"
 #include "dudley/CppAdapter/MeshAdapterFactory.h"
-
-#include "escript/AbstractContinuousDomain.h"
 
 #include <cppunit/TestCaller.h>
 #include <boost/scoped_ptr.hpp>
@@ -34,10 +30,8 @@ using namespace CppUnit;
 
 void MeshAdapterTestCase::testAll()
 {
-    // test construction of a mesh using the brick factory method
-    //   boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
-    esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
-	brick(info); // brick now returns a Domain_ptr which will auto delete
+    JMPI info=makeInfo(MPI_COMM_WORLD);
+	brick(info);
 }
 
 TestSuite* MeshAdapterTestCase::suite()

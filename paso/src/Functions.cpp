@@ -14,14 +14,13 @@
 *
 *****************************************************************************/
 
-
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"
 
 namespace paso {
 
-Function::Function(const esysUtils::JMPI& mpiInfo) :
+Function::Function(const escript::JMPI& mpiInfo) :
     mpi_info(mpiInfo)
 {
 }

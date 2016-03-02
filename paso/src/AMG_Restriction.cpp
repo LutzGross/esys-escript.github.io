@@ -25,9 +25,9 @@
 /****************************************************************************/
 
 #include "Paso.h"
-#include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "SparseMatrix.h"
 
 #include <cstring> // memcpy
 
@@ -46,7 +46,7 @@ namespace paso {
 
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 {
-   esysUtils::JMPI& mpi_info=P->mpi_info;
+   escript::JMPI& mpi_info=P->mpi_info;
    Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
    Connector_ptr col_connector;
@@ -63,7 +63,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    index_t block_size, copy_block_size, sum, offset, len, msgs;
    double  *val=NULL, *data_set=NULL, *recv_val=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
-   Esys_MPI_rank *neighbor=NULL;
+   int *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -154,7 +154,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
-                mpi_info->msg_tag_counter+send->neighbor[p],
+                mpi_info->counter()+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[msgs]);
         #endif
         msgs++;
@@ -168,17 +168,17 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm,
+                mpi_info->counter()+rank, mpi_info->comm,
                 &mpi_requests[msgs]);
         #endif
         msgs++;
      }
    }
 
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, size)
+   mpi_info->incCounter(size);
+#endif
 
    delete[] degree_set;
    degree_set = new index_t[send->numNeighbors];
@@ -200,12 +200,12 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (degree_set[p]) {
         #ifdef ESYS_MPI
         MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
-                send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
+                send->neighbor[p], mpi_info->counter()+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
         MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size,
                 MPI_DOUBLE, send->neighbor[p],
-                mpi_info->msg_tag_counter+send->neighbor[p]+size,
+                mpi_info->counter()+send->neighbor[p]+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         offset += degree_set[p];
         #endif
@@ -220,11 +220,11 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
-                recv->neighbor[p], mpi_info->msg_tag_counter+rank,
+                recv->neighbor[p], mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
         MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
-                recv->neighbor[p], mpi_info->msg_tag_counter+rank+size,
+                recv->neighbor[p], mpi_info->counter()+rank+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         #endif
         msgs++;
@@ -238,10 +238,10 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      temp[p] = temp[p-1] + recv_ptr[p-1];
    }
 
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
-   #endif
-   ESYS_MPI_INC_COUNTER(*mpi_info, 2*size)
+   mpi_info->incCounter(2*size);
+#endif
    delete[] degree_set;
    delete[] offset_set;
    delete[] data_set;
@@ -370,14 +370,12 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
        row_couple_pattern and row_connector need to be constructed as well */
     SystemMatrix_ptr out;
     SystemMatrixPattern_ptr pattern;
-    if (Esys_noError()) {
-        pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-                  output_dist, input_dist, main_block->pattern, couple_pattern,
-                  couple_pattern, col_connector, col_connector));
-        out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
-                  row_block_size, col_block_size, false,
-                  P->getRowFunctionSpace(), P->getColumnFunctionSpace()));
-    }
+    pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+              output_dist, input_dist, main_block->pattern, couple_pattern,
+              couple_pattern, col_connector, col_connector));
+    out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
+              row_block_size, col_block_size, false,
+              P->getRowFunctionSpace(), P->getColumnFunctionSpace()));
 
     /* now fill in the matrix */
     memcpy(out->mainBlock->val, main_block->val,
@@ -385,10 +383,6 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
     memcpy(out->col_coupleBlock->val, val,
                 out->col_coupleBlock->len * sizeof(double));
     delete[] val;
-
-    if (!Esys_noError()) {
-        out.reset();
-    }
     return out;
 }
 

@@ -23,18 +23,16 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "Mesh.h"
 #include "IndexList.h"
+
 #ifdef USE_PARMETIS
 #include <parmetis.h>
 #ifndef REALTYPEWIDTH
 typedef float real_t;
 #endif
 #endif
+
 #include <boost/scoped_array.hpp>
 
 namespace finley {
@@ -45,7 +43,7 @@ namespace finley {
 // that every rank has at least 1 vertex (at line 129 of file
 // "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
 // any rank has no vertex).
-bool allRanksHaveNodes(esysUtils::JMPI& mpiInfo, const std::vector<index_t>& distribution)
+bool allRanksHaveNodes(escript::JMPI& mpiInfo, const std::vector<index_t>& distribution)
 {
     int ret = 1;
 
@@ -192,8 +190,8 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 
     // now the overlap needs to be created by sending the partition around
 #ifdef ESYS_MPI
-    int dest=esysUtils::mod_rank(mpiSize, myRank + 1);
-    int source=esysUtils::mod_rank(mpiSize, myRank - 1);
+    int dest = MPIInfo->mod_rank(myRank + 1);
+    int source = MPIInfo->mod_rank(myRank - 1);
 #endif
     int current_rank=myRank;
     std::vector<short> setNewDOFId(Nodes->numNodes, 1);
@@ -214,12 +212,12 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
-                               dest, MPIInfo->msg_tag_counter,
-                               source, MPIInfo->msg_tag_counter,
+                               dest, MPIInfo->counter(),
+                               source, MPIInfo->counter(),
                                MPIInfo->comm, &status);
+            MPIInfo->incCounter();
 #endif
-            MPIInfo->msg_tag_counter++;
-            current_rank=esysUtils::mod_rank(mpiSize, current_rank-1);
+            current_rank=MPIInfo->mod_rank(current_rank-1);
         }
     }
     for (int i=0; i<mpiSize+1; ++i)

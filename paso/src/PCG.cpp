@@ -49,9 +49,8 @@
 *  ==============================================================
 */
 
-#include "SystemMatrix.h"
-#include "Paso.h"
 #include "Solver.h"
+#include "SystemMatrix.h"
 
 namespace paso {
 

@@ -14,9 +14,7 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-#include <esysUtils/Esys_MPI.h>
+#include <escript/Esys_MPI.h>
 
 #include "SystemMatrixTestCase.h"
 

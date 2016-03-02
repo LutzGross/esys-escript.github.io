@@ -14,15 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "DataAbstract.h"
+#include "Data.h" // So we can update the shared status when things change
 #include "DataException.h"
 #include "DataLazy.h"
 
-#include "Data.h" // So we can update the shared status when things change
 
 using namespace std;
 
@@ -346,3 +342,4 @@ void DataAbstract::complicate()
 
 
 }  // end of namespace
+

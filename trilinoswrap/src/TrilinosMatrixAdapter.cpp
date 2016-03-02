@@ -17,7 +17,7 @@
 #include "TrilinosMatrixAdapter.h" 
 #include "TrilinosAdapterException.h" 
 
-#include <esysUtils/index.h>
+#include <escript/index.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
@@ -39,7 +39,7 @@ using Teuchos::rcpFromRef;
 
 namespace esys_trilinos {
 
-TrilinosMatrixAdapter::TrilinosMatrixAdapter(esysUtils::JMPI mpiInfo,
+TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
         int blocksize, const escript::FunctionSpace& fs,
         const_TrilinosGraph_ptr graph) :
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),

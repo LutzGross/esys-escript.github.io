@@ -34,6 +34,7 @@
 /****************************************************************************/
 
 #include "Pattern.h"
+#include "PasoException.h"
 
 namespace paso {
 
@@ -151,8 +152,7 @@ bool dropTree(index_t root, const Pattern* pattern, index_t* AssignedLevel,
 void Pattern::reduceBandwidth(index_t* oldToNew)
 {
     if (numOutput != numInput) {
-        Esys_setError(VALUE_ERROR, "Pattern::reduceBandwidth: pattern needs to be for a square matrix.");
-        return;
+        throw PasoException("Pattern::reduceBandwidth: pattern needs to be for a square matrix.");
     } else if (numOutput == 0) {
         return;
     }

@@ -17,7 +17,7 @@
 #include "RipleySystemMatrix.h" 
 #include "RipleyException.h" 
 
-#include <esysUtils/index.h>
+#include <escript/index.h>
 #include <escript/Data.h>
 #include <escript/SolverOptions.h>
 
@@ -88,7 +88,7 @@ void SystemMatrix::checkCUDA()
 #endif
 }
 
-SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
+SystemMatrix::SystemMatrix(escript::JMPI mpiInfo, int blocksize,
                            const escript::FunctionSpace& fs, int nRows,
                            const IndexVector& diagonalOffsets, bool symm) :
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),

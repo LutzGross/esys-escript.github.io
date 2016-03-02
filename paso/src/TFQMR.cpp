@@ -123,7 +123,7 @@ SolverResult Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
 
     while (!(convergeFlag || maxIterFlag || breakFlag || (status!=NoError) )) {
         sigma = util::innerProduct(n,res,v,A->mpi_info);
-        if (! (breakFlag = (ABS(sigma) == 0.))) {
+        if (! (breakFlag = (std::abs(sigma) == 0.))) {
             alpha = rho / sigma;
             for (j=0; j<=1; j=j+1) {
                 // Compute y2 and u2 only if you have to
@@ -166,7 +166,7 @@ SolverResult Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                 util::update(n,1.,x,eta,d);
             }
 
-            breakFlag = (ABS(rho) == 0);
+            breakFlag = (std::abs(rho) == 0);
 
             rhon = util::innerProduct(n, res, w, A->mpi_info);
             beta = rhon / rho;

@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-#include "esysUtils/Esys_MPI.h"
-
 #include "AbstractContinuousDomain.h"
 #include "AbstractReducer.h"
 #include "AbstractSystemMatrix.h"
@@ -33,7 +29,6 @@
 #include "MPIScalarReducer.h"
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
-#include "SolverOptionsException.h"
 #include "SplitWorld.h"
 #include "SubWorld.h"
 #include "TestDomain.h"
@@ -116,13 +111,15 @@ bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
 
 BOOST_PYTHON_MODULE(escriptcpp)
 {
-
-  #if BOOST_VERSION >= 103500
+#if BOOST_VERSION >= 103500
 // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  docstring_options docopt(true,true,false);
-  #endif
+    docstring_options docopt(true,true,false);
+#endif
 
-  scope().attr("__doc__") = "To use this module, please import esys.escript";      
+    scope().attr("__doc__") = "To use this module, please import esys.escript";
+
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
 
 /* begin SubWorld things */
 
@@ -510,7 +507,7 @@ args("arg"), "assigns new location to the domain\n\n"
 	":return: True if this ``Data`` stores complex values.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
     .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN.")
-    .def("replaceNaN",&escript::Data::replaceNaN,args("value"),"Replaces NaN values with value")
+    .def("replaceNaN",&escript::Data::replaceNaNPython,args("value"),"Replaces NaN values with value")
     .def("tag",&escript::Data::tag,"Convert data to tagged representation if it is not already tagged or expanded")
     .def("resolve",&escript::Data::resolve,"Convert the data to non-lazy representation.")
     .def("copy",&escript::Data::copy,args("other"),"Make this object a copy of ``other``\n"
@@ -1280,11 +1277,5 @@ args("source", "q", "r","factor"),
 #endif
 
   def("_condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
-
-  //
-  // Register exception translators
-  //
-  register_exception_translator<esysUtils::EsysException>(&escript::RuntimeErrorTranslator);
-  register_exception_translator<escript::SolverOptionsException>(&escript::ValueErrorTranslator);
 }
 

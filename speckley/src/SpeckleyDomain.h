@@ -17,9 +17,6 @@
 #ifndef __Speckley_DOMAIN_H__
 #define __Speckley_DOMAIN_H__
 
-#include <boost/python/tuple.hpp>
-#include <boost/python/list.hpp>
-
 #include <speckley/Speckley.h>
 #include <speckley/SpeckleyException.h>
 #include <speckley/AbstractAssembler.h>
@@ -29,6 +26,9 @@
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
+
+#include <boost/python/tuple.hpp>
+#include <boost/python/list.hpp>
 
 namespace speckley {
 
@@ -95,6 +95,12 @@ public:
        Destructor
     */
     ~SpeckleyDomain();
+
+    /**
+     \brief
+     returns a reference to the MPI information wrapper for this domain
+    */
+    virtual escript::JMPI getMPI() const { return m_mpiInfo; }
 
     /**
        \brief
@@ -723,7 +729,7 @@ public:
 protected:
     int m_numDim;
     StatusType m_status;
-    esysUtils::JMPI m_mpiInfo;
+    escript::JMPI m_mpiInfo;
     TagMap m_tagMap;
     mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
     mutable std::vector<int> m_elementTags, m_elementTagsInUse;

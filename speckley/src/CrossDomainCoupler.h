@@ -17,10 +17,11 @@
 #ifndef __SPECKLEY_CROSSDOMAINCOUPLER_H__
 #define __SPECKLEY_CROSSDOMAINCOUPLER_H__
 
-#include <speckley/Rectangle.h>
 #include <speckley/Brick.h>
-#include <ripley/Rectangle.h>
+#include <speckley/Rectangle.h>
+
 #include <ripley/Brick.h>
+#include <ripley/Rectangle.h>
 
 namespace speckley {
 

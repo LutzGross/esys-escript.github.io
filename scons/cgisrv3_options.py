@@ -224,10 +224,6 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
-# Build dynamic libraries only
-#DEFAULT: False
-#build_shared = True
-
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 

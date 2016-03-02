@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <speckley/AbstractAssembler.h>
 #include <speckley/Brick.h>
 #include <speckley/Rectangle.h>
@@ -324,6 +321,8 @@ BOOST_PYTHON_MODULE(speckleycpp)
     docstring_options docopt(true, true, false);
 #endif
 
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
     register_exception_translator<speckley::SpeckleyException>(&escript::RuntimeErrorTranslator);
 
     scope().attr("__doc__") = "To use this module, please import esys.speckley";

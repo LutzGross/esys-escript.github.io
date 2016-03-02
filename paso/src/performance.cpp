@@ -41,40 +41,38 @@ void Performance_open(Performance* pp, int verbose)
         // Initialize the PAPI library
         int retval = PAPI_library_init(PAPI_VER_CURRENT);
         if (retval != PAPI_VER_CURRENT && retval > 0) {
-            Esys_setError(SYSTEM_ERROR,"performance: PAPI library version mismatch.");
+            throw PasoException("performance: PAPI library version mismatch.");
         } else if (retval < 0) {
-            Esys_setError(SYSTEM_ERROR,"performance: PAPI initialization error.");
+            throw PasoException("performance: PAPI initialization error.");
         } else {
             if (PAPI_create_eventset(&(pp->event_set)) != PAPI_OK)
-                Esys_setError(SYSTEM_ERROR,"performance: PAPI event set up failed.");
+                throw PasoException("performance: PAPI event set up failed.");
         }
-        if (Esys_noError()) {
-            // try to add various monitors
-            pp->num_events=0;
-            if (PAPI_add_event(pp->event_set, PAPI_FP_OPS) == PAPI_OK) {
-                pp->events[pp->num_events]=PAPI_FP_OPS;
-                pp->num_events++;
-            }
-            if (PAPI_add_event(pp->event_set, PAPI_L1_DCM) == PAPI_OK) {
-                pp->events[pp->num_events]=PAPI_L1_DCM;
-                pp->num_events++;
-            }
-            if (PAPI_add_event(pp->event_set, PAPI_L2_DCM) == PAPI_OK) {
-                pp->events[pp->num_events]=PAPI_L2_DCM;
-                pp->num_events++;
-            }
-            if (PAPI_add_event(pp->event_set, PAPI_L3_DCM) == PAPI_OK) {
-                pp->events[pp->num_events]=PAPI_L3_DCM;
-                pp->num_events++;
-            }
-            for (int i=0; i<PERFORMANCE_NUM_MONITORS; ++i) {
-                pp->cycles[i] = 0;
-                pp->set[i] = PERFORMANCE_UNUSED;
-                for (int j=0; j<PERFORMANCE_NUM_EVENTS; ++j)
-                    pp->values[i][j] = 0.;
-            }
-            PAPI_start(pp->event_set);
+        // try to add various monitors
+        pp->num_events=0;
+        if (PAPI_add_event(pp->event_set, PAPI_FP_OPS) == PAPI_OK) {
+            pp->events[pp->num_events]=PAPI_FP_OPS;
+            pp->num_events++;
         }
+        if (PAPI_add_event(pp->event_set, PAPI_L1_DCM) == PAPI_OK) {
+            pp->events[pp->num_events]=PAPI_L1_DCM;
+            pp->num_events++;
+        }
+        if (PAPI_add_event(pp->event_set, PAPI_L2_DCM) == PAPI_OK) {
+            pp->events[pp->num_events]=PAPI_L2_DCM;
+            pp->num_events++;
+        }
+        if (PAPI_add_event(pp->event_set, PAPI_L3_DCM) == PAPI_OK) {
+            pp->events[pp->num_events]=PAPI_L3_DCM;
+            pp->num_events++;
+        }
+        for (int i=0; i<PERFORMANCE_NUM_MONITORS; ++i) {
+            pp->cycles[i] = 0;
+            pp->set[i] = PERFORMANCE_UNUSED;
+            for (int j=0; j<PERFORMANCE_NUM_EVENTS; ++j)
+                pp->values[i][j] = 0.;
+        }
+        PAPI_start(pp->event_set);
     } // omp single
 #endif // PAPI
 }
@@ -96,7 +94,7 @@ void Performance_close(Performance* pp, int verbose)
 #ifdef PAPI
 #pragma omp single
     {
-        if (Esys_noError() && verbose) {
+        if (verbose) {
             int i_ops = Performance_getEventIndex(pp, PAPI_FP_OPS);
             int i_l1_miss = Performance_getEventIndex(pp, PAPI_L1_DCM);
             int i_l2_miss = Performance_getEventIndex(pp, PAPI_L2_DCM);

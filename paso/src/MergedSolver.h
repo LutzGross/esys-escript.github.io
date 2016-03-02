@@ -28,6 +28,7 @@
 #ifndef __PASO_MERGEDSOLVER_H__
 #define __PASO_MERGEDSOLVER_H__
 
+#include "Paso.h"
 #include "SystemMatrix.h"
 
 namespace paso {
@@ -39,7 +40,7 @@ struct MergedSolver
 
     void solve(double* local_x, const double* local_b);
 
-    esysUtils::JMPI mpi_info;
+    escript::JMPI mpi_info;
     SparseMatrix_ptr A;
     double* x;
     double* b;

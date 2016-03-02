@@ -16,8 +16,12 @@
 
 #include <speckley/Rectangle.h>
 
+#include <escript/index.h>
+
 namespace speckley {
-void Rectangle::reduction_order2(const escript::Data& in, escript::Data& out) const {
+
+void Rectangle::reduction_order2(const escript::Data& in, escript::Data& out) const
+{
     const double weights[] = {0.333333333333, 1.33333333333, 0.333333333333};
     const int numComp = in.getDataPointSize();
     for (int ei = 0; ei < m_NE[1]; ++ei) {

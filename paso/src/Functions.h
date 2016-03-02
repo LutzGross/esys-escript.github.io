@@ -18,6 +18,7 @@
 #ifndef __PASO_FUNCTIONS_H__
 #define __PASO_FUNCTIONS_H__
 
+#include "Paso.h"
 #include "performance.h"
 #include "SystemMatrix.h"
 
@@ -25,7 +26,7 @@ namespace paso {
 
 struct Function
 {
-    Function(const esysUtils::JMPI& mpi_info);
+    Function(const escript::JMPI& mpi_info);
     virtual ~Function();
 
     /// sets value=F(arg)
@@ -39,7 +40,7 @@ struct Function
     /// returns the length of the vectors used by this function
     virtual dim_t getLen() = 0;
 
-    const esysUtils::JMPI mpi_info;
+    const escript::JMPI mpi_info;
 };
 
 struct LinearSystem : public Function

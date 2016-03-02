@@ -14,25 +14,31 @@
 *
 *****************************************************************************/
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Dudley: simple link list to privide clear names for a tag keys */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_DUDLEY_TAGMAP
-#define INC_DUDLEY_TAGMAP
+#ifndef __DUDLEY_TAGMAP_H__
+#define __DUDLEY_TAGMAP_H__
 
 #include "Dudley.h"
 
-typedef struct Dudley_TagMap {
+namespace dudley {
+
+struct Dudley_TagMap {
     char *name;
     index_t tag_key;
     struct Dudley_TagMap *next;
-} Dudley_TagMap;
+};
 
 void Dudley_TagMap_insert(Dudley_TagMap **, const char *name, index_t tag_key);
 index_t Dudley_TagMap_getTag(Dudley_TagMap *, const char *name);
 bool Dudley_TagMap_isValidTagName(Dudley_TagMap *, const char *name);
 void Dudley_TagMap_free(Dudley_TagMap *);
-#endif				/* #ifndef INC_DUDLEY_TAGMAP */
+
+} // namespace dudley
+
+#endif // __DUDLEY_TAGMAP_H__
+

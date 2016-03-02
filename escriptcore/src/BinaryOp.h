@@ -14,16 +14,15 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_BINARYOP_H__
+#define __ESCRIPT_BINARYOP_H__
 
-#if !defined  escript_BinaryOp_20040315_H
-#define escript_BinaryOp_20040315_H
 #include "system_dep.h"
-
 #include "DataTypes.h"
 #include "DataConstant.h"
-#include "DataTagged.h"
 #include "DataExpanded.h"
 #include "DataMaths.h"
+#include "DataTagged.h"
 
 /**
 \file BinaryOp.h 
@@ -529,4 +528,5 @@ inline void binaryOp(DataExpanded& left, const DataReady& right,
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_BINARYOP_H__
+

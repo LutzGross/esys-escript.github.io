@@ -33,7 +33,6 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "SparseMatrix.h"
 
 namespace paso {

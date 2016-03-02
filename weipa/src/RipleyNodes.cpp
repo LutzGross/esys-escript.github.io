@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <weipa/RipleyNodes.h>
 
 #ifndef VISIT_PLUGIN

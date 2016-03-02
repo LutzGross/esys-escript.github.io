@@ -24,7 +24,7 @@ if local_env['cppunit']:
     testname='weipa_UnitTest'
 
     # build the executable
-    local_env.Append(LIBS=['weipa', 'escript', 'esysUtils']+env['cppunit_libs'])
+    local_env.Append(LIBS=['weipa', 'escript']+env['cppunit_libs'])
     if 'dudley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
         local_env.Prepend(LIBS = ['dudley'])

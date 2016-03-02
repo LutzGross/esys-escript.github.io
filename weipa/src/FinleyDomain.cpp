@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <weipa/FinleyDomain.h>
 #include <weipa/FinleyNodes.h>
 #include <weipa/DataVar.h>
@@ -119,7 +115,7 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 #endif
 #ifdef USE_DUDLEY
     else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
-        const Dudley_Mesh* dudleyMesh =
+        const dudley::Dudley_Mesh* dudleyMesh =
             dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)
                 ->getDudley_Mesh();
 

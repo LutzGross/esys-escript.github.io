@@ -50,7 +50,6 @@ sources = """
     Assemble_jacobians.cpp
     ElementFile.cpp
     ElementFile_jacobians.cpp
-    Finley.cpp
     IndexList.cpp
     Mesh.cpp
     Mesh_addPoints.cpp
@@ -73,7 +72,6 @@ sources = """
     ReferenceElements.cpp
     ShapeFunctions.cpp
     Util.cpp
-    CPPAdapter/FinleyAdapterException.cpp
     CPPAdapter/MeshAdapter.cpp
     CPPAdapter/MeshAdapterFactory.cpp
 """.split()
@@ -82,6 +80,7 @@ headers = """
     Assemble.h
     ElementFile.h
     Finley.h
+    FinleyException.h
     FinleyVersion.h
     IndexList.h
     Mesh.h
@@ -96,16 +95,16 @@ headers = """
 """.split()
 
 cppadapter_headers = """
-    CPPAdapter/FinleyAdapterException.h
     CPPAdapter/MeshAdapter.h
     CPPAdapter/MeshAdapterFactory.h
     CPPAdapter/system_dep.h
 """.split()
 
-local_env.Prepend(LIBS = ['escript', 'paso', 'esysUtils'])
+local_env.Prepend(LIBS = ['escript', 'paso'])
 
 if local_env['trilinos']:
     local_env.AppendUnique(LIBS = ['trilinoswrap'])
+    py_wrapper_local_env.AppendUnique(LIBS = ['trilinoswrap'])
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS'])
@@ -126,7 +125,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_finley_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['finley', 'escript', 'paso', 'esysUtils'])
+py_wrapper_local_env.Prepend(LIBS = ['finley', 'escript', 'paso'])
 
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'CPPAdapter/finleycpp.cpp')

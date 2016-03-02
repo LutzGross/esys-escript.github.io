@@ -17,46 +17,15 @@
 #ifndef __TRILINOSADAPTEREXCEPTION_H__
 #define __TRILINOSADAPTEREXCEPTION_H__
 
-#include <esysUtils/EsysException.h>
+#include <escript/EsysException.h>
 
 namespace esys_trilinos {
 
-class TrilinosAdapterException : public esysUtils::EsysException
+class TrilinosAdapterException : public escript::EsysException
 {
-protected:
-    typedef EsysException Parent;
-
 public:
-    TrilinosAdapterException() : Parent() { updateMessage(); }
-
-    TrilinosAdapterException(const char* cstr) : Parent(cstr) {
-        updateMessage();
-    }
-
-    TrilinosAdapterException(const std::string& str) : Parent(str) {
-        updateMessage();
-    }
-
-    TrilinosAdapterException(const TrilinosAdapterException& other) :
-        Parent(other)
-    {
-        updateMessage();
-    }
-
-    virtual ~TrilinosAdapterException() THROW(NO_ARG) {}
-
-    inline TrilinosAdapterException &
-    operator=(const TrilinosAdapterException& other) THROW(NO_ARG)
-    {
-        Parent::operator=(other);
-        updateMessage();
-        return *this;
-    }
-
-    virtual const std::string& exceptionName() const;
-
-private:
-    static const std::string exceptionNameValue;
+    TrilinosAdapterException(const std::string& str)
+        : escript::EsysException(str) {}
 };
 
 

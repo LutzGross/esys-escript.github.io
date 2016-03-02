@@ -19,12 +19,7 @@
 #define escript_DataVectorTaipan_H
 #include "system_dep.h"
 
-#include "esysUtils/EsysAssert.h"
-
-#include <vector>
-#include <iostream>
-#include <fstream>
-
+#include "Assert.h"
 #include "DataTypes.h"
 #include "WrappedArray.h"
 
@@ -228,7 +223,7 @@ inline
 DataVectorTaipan::reference
 DataVectorTaipan::operator[](const DataVectorTaipan::size_type i)
 {
-  EsysAssert(i<size(),"DataVectorTaipan: invalid index specified. " << i << " of " << size());
+  ESYS_ASSERT(i<size(), "DataVectorTaipan: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 
@@ -236,7 +231,7 @@ inline
 DataVectorTaipan::const_reference
 DataVectorTaipan::operator[](const DataVectorTaipan::size_type i) const
 {
-  EsysAssert(i<size(),"DataVectorTaipan: invalid index specified. " << i << " of " << size());
+  ESYS_ASSERT(i<size(),"DataVectorTaipan: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 

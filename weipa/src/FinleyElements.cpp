@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <weipa/FinleyElements.h>
 #include <weipa/NodeData.h>
 
@@ -30,8 +26,6 @@
 #include <finley/CppAdapter/MeshAdapter.h>
 #endif
 
-#elif !defined(ABS)
-#define ABS(X) ((X)>0?(X):-(X))
 #endif
 
 #include <iostream>
@@ -160,7 +154,7 @@ FinleyElements::FinleyElements(const FinleyElements& e)
 //
 //
 //
-bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
+bool FinleyElements::initFromDudley(const dudley::Dudley_ElementFile* dudleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numElements = dudleyFile->numElements;
@@ -1009,7 +1003,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
 // returns true if |x-c| <= r, false otherwise
 inline bool inside1D(float x, float c, float r)
 {
-    return (ABS(x-c) <= r);
+    return (std::abs(x-c) <= r);
 }
 
 // returns true if |x-cx| <= r and |y-cy| <= r, false otherwise
@@ -1030,7 +1024,7 @@ inline bool inside3D(float x, float y, float z,
 inline bool sameSide(float d1, float d2)
 {
     const float TOL = 1.e-8f;
-    return (ABS(d1) < TOL || ABS(d2) < TOL || d1*d2>=0.);
+    return (std::abs(d1) < TOL || std::abs(d2) < TOL || d1*d2>=0.);
 }
 
 // computes the determinant of the 4x4 matrix given by its elements m_ij
@@ -1103,7 +1097,7 @@ static bool pointInTri(float x, float y,
     float dot11 = v1[0]*v1[0]+v1[1]*v1[1];
     float dot12 = v1[0]*v2[0]+v1[1]*v2[1];
     float invDenom = dot00*dot11 - dot01*dot01;
-    if (ABS(invDenom) < TOL) invDenom = TOL;
+    if (std::abs(invDenom) < TOL) invDenom = TOL;
     invDenom = 1.f/invDenom;
     float u = (dot11*dot02 - dot01*dot12) * invDenom;
     float v = (dot00*dot12 - dot01*dot02) * invDenom;

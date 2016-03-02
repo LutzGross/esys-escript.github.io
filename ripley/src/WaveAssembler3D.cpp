@@ -14,10 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include <ripley/WaveAssembler3D.h>
 #include <ripley/domainhelpers.h>
 
@@ -33,18 +29,18 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
     m_NE(NE),
     m_NN(NN)
 {
-    domain = boost::static_pointer_cast<const Brick>(dom);
+    domain = REFCOUNTNS::static_pointer_cast<const Brick>(dom);
     isHTI = isVTI = false;
     DataMap::const_iterator a = c.find("c12"), b = c.find("c23");
     if (c.find("c11") == c.end()
                 || c.find("c13") == c.end() || c.find("c33") == c.end()
                 || c.find("c44") == c.end() || c.find("c66") == c.end()
                 || (a == c.end() && b == c.end()))
-        throw RipleyException("required constants missing for WaveAssembler");
+        throw escript::ValueError("required constants missing for WaveAssembler");
 
     if (a != c.end() && b != c.end()) {
-        throw RipleyException("WaveAssembler3D() doesn't support general "
-                              "form waves (yet)");
+        throw escript::NotImplementedError("WaveAssembler3D() doesn't support "
+                                           "general form waves (yet)");
     } else if (a == c.end()) {
         c23 = b->second;
         isHTI = true;
@@ -64,7 +60,7 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
             || fs != c33.getFunctionSpace().getTypeCode()
             || fs != c44.getFunctionSpace().getTypeCode()
             || fs != c66.getFunctionSpace().getTypeCode()) {
-        throw RipleyException("C tensor elements are in mismatching function spaces");
+        throw escript::ValueError("C tensor elements are in mismatching function spaces");
     }
 }
 
@@ -101,7 +97,7 @@ void WaveAssembler3D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
     const Data& du = unpackData("du", coefs);
 
     if ((!du.isEmpty()) && du.getFunctionSpace().getTypeCode() != c11.getFunctionSpace().getTypeCode()) {
-        throw RipleyException("WaveAssembler3D: du and C tensor in mismatching function spaces");
+        throw escript::ValueError("WaveAssembler3D: du and C tensor in mismatching function spaces");
     }
 
     dim_t numEq, numComp;

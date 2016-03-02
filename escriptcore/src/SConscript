@@ -32,10 +32,8 @@ sources = """
     AbstractTransportProblem.cpp
     Data.cpp
     DataAbstract.cpp
-    DataC.cpp
     DataConstant.cpp
     DataEmpty.cpp
-    DataException.cpp
     DataExpanded.cpp
     DataFactory.cpp
     DataLazy.cpp
@@ -46,11 +44,10 @@ sources = """
     DataVector.cpp
     DataVectorAlt.cpp
     DataVectorTaipan.cpp    
-    DomainException.cpp
     EscriptParams.cpp
+    EsysMPI.cpp
     ExceptionTranslators.cpp
     FunctionSpace.cpp
-    FunctionSpaceException.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     LocalOps.cpp
@@ -58,18 +55,15 @@ sources = """
     NullDomain.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
+    pyerr.cpp
     Random.cpp
     SplitWorld.cpp
-    SplitWorldException.cpp
     SubWorld.cpp
-    SystemMatrixException.cpp
     Taipan.cpp
     TestDomain.cpp
-    TransportProblemException.cpp
     Utils.cpp
     WrappedArray.cpp
     SolverOptions.cpp
-    SolverOptionsException.cpp
 """.split()
 
 headers = """
@@ -78,11 +72,11 @@ headers = """
     AbstractReducer.h
     AbstractSystemMatrix.h
     AbstractTransportProblem.h
+    Assert.h
     BinaryOp.h
     Data.h
     DataAbstract.h
     DataAlgorithm.h
-    DataC.h
     DataConstant.h
     DataEmpty.h
     DataException.h
@@ -99,10 +93,14 @@ headers = """
     Dodgy.h
     DomainException.h
     EscriptParams.h
+    EsysException.h
+    EsysMPI.h
     ExceptionTranslators.h
+    FileWriter.h
     FunctionSpace.h
     FunctionSpaceException.h
     FunctionSpaceFactory.h
+    IndexList.h
     LapackInverseHelper.h
     LocalOps.h
     NonReducedVariable.h
@@ -111,6 +109,7 @@ headers = """
     MPIScalarReducer.h
     Pointers.h
     Random.h
+    SolverOptions.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h
@@ -120,20 +119,17 @@ headers = """
     TransportProblemException.h
     UnaryFuncs.h
     UnaryOp.h
-    UtilC.h
     Utils.h
     WrappedArray.h
+    index.h
+    pyerr.h
     system_dep.h
-    SolverOptions.h
-    SolverOptionsException.h
 """.split()
 
 dodgy_sources = """
     Dodgy.cpp
 """.split()
 
-local_env.Prepend(LIBS = ['esysUtils'])
-local_dodgy.Prepend(LIBS = ['esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
     local_dodgy.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
@@ -157,7 +153,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_escript_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+py_wrapper_local_env.Prepend(LIBS = ['escript'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'escriptcpp.cpp')
 env.Alias('build_escriptcpp_lib', py_wrapper_lib)

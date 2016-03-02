@@ -17,8 +17,9 @@
 #ifndef __RIPLEY_BRICK_H__
 #define __RIPLEY_BRICK_H__
 
-#include <paso/Coupler.h>
 #include <ripley/RipleyDomain.h>
+
+#include <paso/Coupler.h>
 
 namespace ripley {
 
@@ -338,8 +339,8 @@ inline dim_t Brick::getNumDataPointsGlobal() const
 
 inline double Brick::getLocalCoordinate(index_t index, int dim) const
 {
-    EsysAssert((dim>=0 && dim<3), "'dim' out of bounds");
-    EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
+    ESYS_ASSERT(dim>=0 && dim<3, "'dim' out of bounds");
+    ESYS_ASSERT(index>=0 && index<m_NN[dim], "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
 }
 
@@ -360,7 +361,7 @@ inline dim_t Brick::getNumDOF() const
 //protected
 inline dim_t Brick::getNumDOFInAxis(unsigned axis) const
 {
-    EsysAssert((axis < m_numDim), "Invalid axis");
+    ESYS_ASSERT(axis < m_numDim, "Invalid axis");
     return (m_gNE[axis]+1)/m_NX[axis];
 }
 

@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 #include <ripley/MultiBrick.h>
@@ -491,6 +488,8 @@ BOOST_PYTHON_MODULE(ripleycpp)
     docstring_options docopt(true, true, false);
 #endif
 
+    // register escript's default translators
+    REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
     register_exception_translator<ripley::RipleyException>(&escript::RuntimeErrorTranslator);
 
     scope().attr("__doc__") = "To use this module, please import esys.ripley";

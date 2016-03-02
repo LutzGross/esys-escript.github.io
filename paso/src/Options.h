@@ -113,11 +113,11 @@ struct Options
     static const char* name(int key);
 
     static int getPackage(int solver, int package, bool symmetry,
-                          const esysUtils::JMPI& mpi_info);
+                          const escript::JMPI& mpi_info);
 
     /// returns the solver to be used with given combination
     static int getSolver(int solver, int package, bool symmetry,
-                         const esysUtils::JMPI& mpi_info);
+                         const escript::JMPI& mpi_info);
 
     int method;
     int package;

@@ -68,20 +68,15 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
             new_col_connector = col_connector;
         }
 
-        if (Esys_noError()) {
-            out.reset(new SystemMatrixPattern(newType, new_output_distribution,
-                                              new_input_distribution,
-                                              new_mainPattern,
-                                              new_col_couplePattern,
-                                              new_row_couplePattern,
-                                              new_col_connector,
-                                              new_row_connector));
-        }
+        out.reset(new SystemMatrixPattern(newType, new_output_distribution,
+                                          new_input_distribution,
+                                          new_mainPattern,
+                                          new_col_couplePattern,
+                                          new_row_couplePattern,
+                                          new_col_connector,
+                                          new_row_connector));
     }
 
-    if (!Esys_noError()) {
-        return SystemMatrixPattern_ptr();
-    }
     return out;
 }
 

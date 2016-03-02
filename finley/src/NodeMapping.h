@@ -45,8 +45,7 @@ struct NodeMapping {
         std::pair<index_t,index_t> range(
             util::getFlaggedMinMaxInt(theTarget.size(), &theTarget[0], unused));
         if (range.first < 0) {
-            setError(VALUE_ERROR, "NodeMapping: target has negative entry.");
-            return;
+            throw escript::ValueError("NodeMapping: target has negative entry.");
         }
         // now we assume min(target)=0!
         const dim_t numTargets = range.first<=range.second ? range.second+1 : 0;
@@ -54,6 +53,7 @@ struct NodeMapping {
         const index_t targetSize = target.size();
         map.assign(numTargets, -1);
 
+        bool err = false;
 #pragma omp parallel
         {
 #pragma omp for
@@ -65,10 +65,13 @@ struct NodeMapping {
 #pragma omp for
             for (index_t i=0; i<numTargets; ++i) {
                 if (map[i]==-1) {
-                    setError(VALUE_ERROR, "NodeMapping: target does not define a continuous labeling.");
+#pragma omp critical
+                    err=true;
                 }
             }
         }
+        if (err)
+            throw escript::ValueError("NodeMapping: target does not define a continuous labeling.");
     }
 
     /// returns the number of target nodes (number of items in the map array)

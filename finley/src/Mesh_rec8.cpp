@@ -25,9 +25,6 @@
 
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "RectangularMesh.h"
 
 using escript::DataTypes::real_t;
@@ -38,7 +35,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
                            bool useMacroElements, bool optimize,
-                           esysUtils::JMPI& mpiInfo)
+                           escript::JMPI& mpiInfo)
 {
     const int N_PER_E = 2;
     const int DIM = 2;
@@ -46,7 +43,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
     index_t e_offset0, e_offset1;
     const bool generateAllNodes = useFullElementOrder || useMacroElements;
 
-    const Esys_MPI_rank myRank = mpiInfo->rank;
+    const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
     const dim_t NE0 = std::max(dim_t(1),numElements[0]);
@@ -67,7 +64,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
             refElements.reset(new ReferenceElementSet(Rec9, order, reduced_order));
         }
         if (useElementsOnFace) {
-            setError(SYSTEM_ERROR, "rich elements for Rec9 elements are not supported yet.");
+            throw escript::NotImplementedError("rich elements for Rec9 elements are not supported yet.");
         } else {
             if (useMacroElements) {
                 refFaceElements.reset(new ReferenceElementSet(Line3Macro, order, reduced_order));
@@ -88,6 +85,8 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
     }
     refPoints.reset(new ReferenceElementSet(Point1, order, reduced_order));
 
+    if (!refPoints->referenceElement)
+        throw escript::ValueError("ERRRRORRRRR!!");
     out->setPoints(new ElementFile(refPoints, mpiInfo));
     out->setContactElements(new ElementFile(refContactElements, mpiInfo));
     out->setFaceElements(new ElementFile(refFaceElements, mpiInfo));
@@ -317,14 +316,7 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
-    if (noError()) {
-        out->prepare(optimize);
-    }
-    if (!noError()) {
-        delete out;
-        out=NULL;
-    }
-
+    out->prepare(optimize);
     return out;
 }
 

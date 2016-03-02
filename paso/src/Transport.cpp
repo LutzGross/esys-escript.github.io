@@ -26,7 +26,6 @@
 /****************************************************************************/
 
 #include "Transport.h"
-#include "PasoException.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 #include "Solver.h" // only for resetting
@@ -36,6 +35,8 @@
 #include <limits>
 
 namespace bp = boost::python;
+
+using escript::ValueError;
 
 namespace paso {
 
@@ -66,20 +67,18 @@ TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
 
     mpi_info = pattern->mpi_info;
 
-    if (Esys_noError()) {
-        const dim_t n = transport_matrix->getTotalNumRows();
-        constraint_mask = new double[n];
-        lumped_mass_matrix = new double[n];
-        reactive_matrix = new double[n];
-        main_diagonal_mass_matrix = new double[n];
-        main_diagonal_low_order_transport_matrix = new double[n];
+    const dim_t n = transport_matrix->getTotalNumRows();
+    constraint_mask = new double[n];
+    lumped_mass_matrix = new double[n];
+    reactive_matrix = new double[n];
+    main_diagonal_mass_matrix = new double[n];
+    main_diagonal_low_order_transport_matrix = new double[n];
 
 #pragma omp parallel for
-        for (dim_t i = 0; i < n; ++i) {
-            lumped_mass_matrix[i] = 0.;
-            main_diagonal_low_order_transport_matrix[i] = 0.;
-            constraint_mask[i] = 0.;
-        }
+    for (dim_t i = 0; i < n; ++i) {
+        lumped_mass_matrix[i] = 0.;
+        main_diagonal_low_order_transport_matrix[i] = 0.;
+        constraint_mask[i] = 0.;
     }
 }
 
@@ -99,15 +98,15 @@ void TransportProblem::setToSolution(escript::Data& out, escript::Data& u0,
     Options paso_options(options);
     options.attr("resetDiagnostics")();
     if (out.getDataPointSize() != getBlockSize()) {
-        throw PasoException("solve: block size of solution does not match block size of transport problems.");
+        throw ValueError("solve: block size of solution does not match block size of transport problems.");
     } else if (source.getDataPointSize() != getBlockSize()) {
-        throw PasoException("solve: block size of source term does not match block size of transport problems.");
+        throw ValueError("solve: block size of source term does not match block size of transport problems.");
     } else if (out.getFunctionSpace() != getFunctionSpace()) {
-        throw PasoException("solve: function spaces of solution and of transport problem don't match.");
+        throw ValueError("solve: function spaces of solution and of transport problem don't match.");
     } else if (source.getFunctionSpace() != getFunctionSpace()) {
-        throw PasoException("solve: function spaces of source term and of transport problem don't match.");
+        throw ValueError("solve: function spaces of source term and of transport problem don't match.");
     } else if (dt <= 0.) {
-        throw PasoException("solve: time increment dt needs to be positive.");
+        throw ValueError("solve: time increment dt needs to be positive.");
     }
     out.expand();
     source.expand();
@@ -126,17 +125,17 @@ void TransportProblem::copyConstraint(escript::Data& source, escript::Data& q,
                                       escript::Data& r)
 {
     if (q.getDataPointSize() != getBlockSize()) {
-        throw PasoException("copyConstraint: block size does not match the number of components of constraint mask.");
+        throw ValueError("copyConstraint: block size does not match the number of components of constraint mask.");
     } else if (q.getFunctionSpace() != getFunctionSpace()) {
-        throw PasoException("copyConstraint: function spaces of transport problem and constraint mask don't match.");
+        throw ValueError("copyConstraint: function spaces of transport problem and constraint mask don't match.");
     } else if (r.getDataPointSize() != getBlockSize()) {
-        throw PasoException("copyConstraint: block size does not match the number of components of constraint values.");
+        throw ValueError("copyConstraint: block size does not match the number of components of constraint values.");
     } else if (r.getFunctionSpace() != getFunctionSpace()) {
-        throw PasoException("copyConstraint: function spaces of transport problem and constraint values don't match.");
+        throw ValueError("copyConstraint: function spaces of transport problem and constraint values don't match.");
     } else if (source.getDataPointSize() != getBlockSize()) {
-        throw PasoException("copyConstraint: block size does not match the number of components of source.");
+        throw ValueError("copyConstraint: block size does not match the number of components of source.");
     } else if (source.getFunctionSpace() != getFunctionSpace()) {
-        throw PasoException("copyConstraint: function spaces of transport problem and source don't match.");
+        throw ValueError("copyConstraint: function spaces of transport problem and source don't match.");
     }
 
 #if 0
@@ -156,15 +155,12 @@ void TransportProblem::copyConstraint(escript::Data& source, escript::Data& q,
     double* q_dp = q.getSampleDataRW(0);
 
     mass_matrix->MatrixVector(-1., r2_dp, 1., source_dp);
-    checkPasoError();
 
     // insert 0 rows into transport matrix
     transport_matrix->nullifyRows(q_dp, 0.);
-    checkPasoError();
 
     // insert 0 rows and 1 in main diagonal into mass matrix
     mass_matrix->nullifyRowsAndCols(q_dp, q_dp, 1.);
-    checkPasoError();
     source.copyWithMask(escript::Data(0.,q.getDataPointShape(),q.getFunctionSpace()),q);
 #else
     r.expand();
@@ -200,9 +196,8 @@ double TransportProblem::getUnlimitedTimeStepSize() const
 void TransportProblem::setUpConstraint(const double* q)
 {
     if (valid_matrices) {
-        Esys_setError(VALUE_ERROR, "TransportProblem::setUpConstraint: "
+        throw PasoException("TransportProblem::setUpConstraint: "
                             "Cannot insert a constraint into a valid system.");
-        return;
     }
 
     const dim_t n = transport_matrix->getTotalNumRows();

@@ -14,14 +14,11 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
+#include <escript/DataExpanded.h>
 #include "DataExpandedTestCase.h"
-#include "escript/FunctionSpace.h"
-#include "escript/DataExpanded.h"
-#include "esysUtils/EsysException.h"
-#include "escript/DataReady.h"
+#include <escript/DataReady.h>
+#include <escript/EsysException.h>
+#include <escript/FunctionSpace.h>
 
 #include <cppunit/TestCaller.h>
 #include <iostream>
@@ -29,7 +26,6 @@
 using namespace CppUnit;
 using namespace escript;
 using namespace std;
-using namespace esysUtils;
 using namespace escript::DataTypes;
 
 namespace

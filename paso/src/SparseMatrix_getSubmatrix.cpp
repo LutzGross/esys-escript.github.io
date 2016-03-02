@@ -45,35 +45,29 @@ SparseMatrix_ptr SparseMatrix::getSubmatrix(dim_t n_row_sub, dim_t n_col_sub,
                                             const index_t* new_col_index) const
 {
     SparseMatrix_ptr out;
-    Esys_resetError();
     if (type & MATRIX_FORMAT_CSC) {
-        Esys_setError(TYPE_ERROR, "SparseMatrix::getSubmatrix: gathering submatrices supports CSR matrix format only.");
-        return out;
+        throw PasoException("SparseMatrix::getSubmatrix: gathering submatrices supports CSR matrix format only.");
     }
 
     const index_t index_offset = (type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     Pattern_ptr sub_pattern(pattern->getSubpattern(n_row_sub, n_col_sub,
                                                    row_list, new_col_index));
-    if (Esys_noError()) {
-        // create the return object
-        out.reset(new SparseMatrix(type, sub_pattern, row_block_size,
-                                   col_block_size, true));
-        if (Esys_noError()) {
+    // create the return object
+    out.reset(new SparseMatrix(type, sub_pattern, row_block_size,
+                               col_block_size, true));
 #pragma omp parallel for
-            for (int i=0; i<n_row_sub; ++i) {
-                const index_t subpattern_row = row_list[i];
-                for (int k=pattern->ptr[subpattern_row]-index_offset;
-                        k < pattern->ptr[subpattern_row+1]-index_offset; ++k) {
-                    index_t tmp=new_col_index[pattern->index[k]-index_offset];
-                    if (tmp > -1) {
-                        #pragma ivdep
-                        for (index_t m=out->pattern->ptr[i]-index_offset;
-                                m < out->pattern->ptr[i+1]-index_offset; ++m) {
-                            if (out->pattern->index[m]==tmp+index_offset) {
-                                BlockOps_Cpy_N(block_size, &out->val[m*block_size], &val[k*block_size]);
-                                break;
-                            }
-                        }
+    for (int i=0; i<n_row_sub; ++i) {
+        const index_t subpattern_row = row_list[i];
+        for (int k=pattern->ptr[subpattern_row]-index_offset;
+                k < pattern->ptr[subpattern_row+1]-index_offset; ++k) {
+            index_t tmp=new_col_index[pattern->index[k]-index_offset];
+            if (tmp > -1) {
+                #pragma ivdep
+                for (index_t m=out->pattern->ptr[i]-index_offset;
+                        m < out->pattern->ptr[i+1]-index_offset; ++m) {
+                    if (out->pattern->index[m]==tmp+index_offset) {
+                        BlockOps_Cpy_N(block_size, &out->val[m*block_size], &val[k*block_size]);
+                        break;
                     }
                 }
             }
@@ -97,7 +91,7 @@ SparseMatrix_ptr SparseMatrix::getBlock(int blockid) const
                 }
             }
         } else {
-            Esys_setError(VALUE_ERROR, "SparseMatrix::getBlock: Invalid block ID requested.");
+            throw PasoException("SparseMatrix::getBlock: Invalid block ID requested.");
         }
     } else if (blocksize==2) {
         if (blockid==1) {
@@ -115,7 +109,7 @@ SparseMatrix_ptr SparseMatrix::getBlock(int blockid) const
                 }
             }
         } else {
-            Esys_setError(VALUE_ERROR, "SparseMatrix::getBlock: Invalid block ID requested.");
+            throw PasoException("SparseMatrix::getBlock: Invalid block ID requested.");
         }
     } else if (blocksize==3) {
         if (blockid==1) {
@@ -140,7 +134,7 @@ SparseMatrix_ptr SparseMatrix::getBlock(int blockid) const
                 }
             }
         } else {
-            Esys_setError(VALUE_ERROR, "SparseMatrix::getBlock: Invalid block ID requested.");
+            throw PasoException("SparseMatrix::getBlock: Invalid block ID requested.");
         }
     }
     return out;

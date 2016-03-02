@@ -154,7 +154,7 @@ class Test_InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('tag1'),1,'error with tag1')
         self.assertEqual(dom.getTag('tag2'),2,'error with tag2')
         self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
-        self.assertRaises(RuntimeError, dom.getTag, 'tag4')
+        self.assertRaises(ValueError, dom.getTag, 'tag4')
      
      @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
      def test_gmshNamedTags(self):
@@ -172,7 +172,7 @@ class Test_InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('bottom'),10,'error with bottom,')
         self.assertEqual(dom.getTag('left'),1,'error with left')
         self.assertEqual(dom.getTag('right'),2,'error with reight')
-        self.assertRaises(RuntimeError, dom.getTag, 'tag4')
+        self.assertRaises(ValueError, dom.getTag, 'tag4')
 
      @unittest.skipIf(not loadIsConfigured(), "load not configured")
      def test_mesh_dump_to_NetCDF_brick(self):

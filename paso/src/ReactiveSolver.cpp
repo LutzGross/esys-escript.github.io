@@ -106,12 +106,12 @@ double ReactiveSolver::getSafeTimeStepSize(const_TransportProblem_ptr tp)
             const double m_i = tp->lumped_mass_matrix[i];
             if (m_i > 0) { // no constraint
                 if (d_ii > 0)
-                    dt_max_loc = MIN(dt_max_loc, m_i/d_ii);
+                    dt_max_loc = std::min(dt_max_loc, m_i/d_ii);
             }
         }
         #pragma omp critical
         {
-            dt_max = MIN(dt_max, dt_max_loc);
+            dt_max = std::min(dt_max, dt_max_loc);
         }
     }
 #ifdef ESYS_MPI

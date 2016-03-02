@@ -32,23 +32,23 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* length,
                             const bool* periodic, int order, int reducedOrder,
                             bool useElementsOnFace, bool useFullElementOrder,
                             bool useMacroElements, bool optimize,
-                            esysUtils::JMPI& mpi_info);
+                            escript::JMPI& mpi_info);
 
 Mesh* RectangularMesh_Hex8(const dim_t* numElements, const double* length,
                            const bool* periodic, int order, int reducedOrder,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool useMacroElements, esysUtils::JMPI& mpi_info);
+                           bool useMacroElements, escript::JMPI& mpi_info);
 
 Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* length,
                            const bool* periodic, int order, int reducedOrder,
                            bool useElementsOnFace, bool useFullElementOrder,
                            bool useMacroElements, bool optimize,
-                           esysUtils::JMPI& mpi_info);
+                           escript::JMPI& mpi_info);
 
 Mesh* RectangularMesh_Rec4(const dim_t* numElements, const double* length,
                            const bool* periodic, int order, int reducedOrder,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool useMacroElements, esysUtils::JMPI& mpi_info);
+                           bool useMacroElements, escript::JMPI& mpi_info);
 
 }
 

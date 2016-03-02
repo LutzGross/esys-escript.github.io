@@ -557,7 +557,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
-            self.assertTrue('SolverOptionsException' in str(package.exception))
+            self.assertTrue('not compiled' in str(package.exception))
         else:
             sb.setSolverMethod(so.DIRECT)
             self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
@@ -1685,7 +1685,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('SolverOptionsException' in str(package.exception))
+            self.assertTrue('not compiled' in str(package.exception))
             return
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
@@ -1693,7 +1693,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -1755,7 +1754,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('SolverOptionsException' in str(package.exception))
+            self.assertTrue('not compiled' in str(package.exception))
             return
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
@@ -1763,7 +1762,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2179,7 +2177,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('SolverOptionsException' in str(package.exception))
+            self.assertTrue('not compiled' in str(package.exception))
             return
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
@@ -2187,7 +2185,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2268,7 +2265,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('SolverOptionsException' in str(package.exception))
+            self.assertTrue('not compiled' in str(package.exception))
             return
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
@@ -2276,7 +2273,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         if getMPISizeWorld() > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
-            self.assertTrue('PasoException' in str(package.exception))
         else:
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')

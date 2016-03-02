@@ -17,8 +17,9 @@
 #ifndef __PASO_PRECONDITIONER_H__
 #define __PASO_PRECONDITIONER_H__
 
-#include "SystemMatrix.h"
+#include "Paso.h"
 #include "BOOMERAMG.h"
+#include "SystemMatrix.h"
 
 namespace paso {
 

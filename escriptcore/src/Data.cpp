@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include "Data.h"
 
 #include "AbstractContinuousDomain.h"
@@ -1843,17 +1840,15 @@ Data::sign() const
 Data
 Data::abs() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(ABS);
-    return C_TensorUnaryOperation(*this, abs_func<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::ABSF);
 }
 
 Data
 Data::neg() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(NEG);
-    return C_TensorUnaryOperation(*this, negate<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::NEGF);
 }
 
 Data
@@ -1871,17 +1866,15 @@ Data::pos() const
 Data
 Data::exp() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(EXP);
-    return C_TensorUnaryOperation(*this, exp_func<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::EXPF);
 }
 
 Data
 Data::sqrt() const
 {
-    THROWONCOMPLEX
     MAKELAZYOP(SQRT);
-    return C_TensorUnaryOperation(*this, sqrt_func<real_t>());
+    return C_TensorUnaryOperation(*this, escript::ESFunction::SQRTF);
 }
 
 real_t
@@ -2020,7 +2013,7 @@ Data::lazyAlgWorker(real_t init)
         throw DataException("Error - lazyAlgWorker can only be called on lazy(expanded) data.");
     }
     DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
-    EsysAssert((dl!=0), "Programming error - casting to DataLazy.");
+    ESYS_ASSERT(dl!=0, "Programming error - casting to DataLazy.");
     real_t val=init;
     int i=0;
     const size_t numsamples=getNumSamples();
@@ -2071,7 +2064,6 @@ Data::lazyAlgWorker(real_t init)
 bool
 Data::hasNaN()
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -2083,7 +2075,6 @@ Data::hasNaN()
 void
 Data::replaceNaN(real_t value)
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         resolve();
@@ -2091,8 +2082,29 @@ Data::replaceNaN(real_t value)
     getReady()->replaceNaN(value); 
 }
 
+void
+Data::replaceNaN(cplx_t value)
+{
+    if (isLazy())
+    {
+        resolve();
+    }
+    getReady()->replaceNaN(value); 
+}
 
-
+void
+Data::replaceNaNPython(boost::python::object obj)
+{
+    boost::python::extract<DataTypes::real_t> exr(obj);
+    if (exr.check())
+    {
+	replaceNaN(exr());
+    }
+    else
+    {
+	replaceNaN(boost::python::extract<DataTypes::cplx_t>(obj)());
+    }
+}
 
 // Do not call this on Lazy Data use the proper entry point
 real_t
@@ -3541,8 +3553,8 @@ Data::borrowDataPtr() const
 DataReady_ptr
 Data::borrowReadyPtr() const
 {
-    DataReady_ptr dr=boost::dynamic_pointer_cast<DataReady>(m_data);
-    EsysAssert((dr!=0), "Error - casting to DataReady.");
+    DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
+    ESYS_ASSERT((dr!=0), "Error - casting to DataReady.");
     return dr;
 }
 
@@ -5162,3 +5174,4 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 
   return res;
 }
+

@@ -18,12 +18,12 @@
 #ifndef __PASO_REACTIVESOLVER_H__
 #define __PASO_REACTIVESOLVER_H__
 
-#include "performance.h"
 #include "Transport.h"
 
 namespace paso {
 
-PASO_DLL_API
+struct Performance;
+
 struct ReactiveSolver
 {
     ReactiveSolver(const_TransportProblem_ptr _tp) : tp(_tp) {}

@@ -20,7 +20,7 @@ sources = ['ScriptMPI.cpp']
 sources_redirect = ['ScriptMPIredirect.cpp']
 
 local_env = env.Clone()
-local_env.Prepend(LIBS = ['esysUtils'])
+local_env.Prepend(LIBS = ['escript'])
 
 prog = local_env.Program('pythonMPI', sources)
 prog_redirect = local_env.Program('pythonMPIredirect', sources_redirect)

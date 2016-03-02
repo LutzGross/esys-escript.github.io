@@ -32,6 +32,7 @@
 /****************************************************************************/
 
 #include "Pattern.h"
+#include "PasoException.h"
 #include "PasoUtil.h"
 
 namespace paso {
@@ -48,8 +49,7 @@ void Pattern::mis(index_t* mis_marker) const
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     if (numOutput != numInput) {
-        Esys_setError(VALUE_ERROR, "Pattern::mis: pattern must be square.");
-        return;
+        throw PasoException("Pattern::mis: pattern must be square.");
     }
 
     const dim_t n = numOutput;

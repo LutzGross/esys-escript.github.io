@@ -211,14 +211,6 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
-# Build dynamic libraries only
-#DEFAULT: False
-#build_shared = True
-
-# work around for Python2.7 on OSX/BSD
-#DEFAULT: True
-#BADPYTHONMACROS = False
-
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 

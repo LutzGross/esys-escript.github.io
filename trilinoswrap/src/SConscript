@@ -19,7 +19,6 @@ Import('*')
 local_env = env.Clone()
 
 sources = """
-  TrilinosAdapterException.cpp
   TrilinosMatrixAdapter.cpp
 """.split()
 

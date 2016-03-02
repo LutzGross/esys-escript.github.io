@@ -14,11 +14,10 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_FUNCTIONSPACEFACTORY_H__
+#define __ESCRIPT_FUNCTIONSPACEFACTORY_H__
 
-#if !defined  escript_FunctionSpaceFactory_20040604_H
-#define escript_FunctionSpaceFactory_20040604_H
 #include "system_dep.h"
-
 #include "AbstractDomain.h"
 #include "FunctionSpace.h"
 
@@ -102,4 +101,6 @@ namespace escript {
   ESCRIPT_DLL_API FunctionSpace diracDeltaFunctions(const AbstractDomain& domain);
 
 } // end of namespace
-#endif
+
+#endif // __ESCRIPT_FUNCTIONSPACEFACTORY_H__
+

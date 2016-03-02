@@ -14,9 +14,6 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
 #include <weipa/FinleyNodes.h>
 
 #ifndef VISIT_PLUGIN
@@ -133,7 +130,7 @@ FinleyNodes::~FinleyNodes()
 //
 //
 //
-bool FinleyNodes::initFromDudley(const Dudley_NodeFile* dudleyFile)
+bool FinleyNodes::initFromDudley(const dudley::Dudley_NodeFile* dudleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numDims = dudleyFile->numDim;
@@ -207,7 +204,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
     numNodes = finleyFile->numNodes;
 
     int mpisize = finleyFile->MPIInfo->size;
-    index_t* idxPtr = finleyFile->nodesDistribution->first_component;
+    escript::DataTypes::index_t* idxPtr = finleyFile->nodesDistribution->first_component;
     nodeDist.clear();
     nodeDist.insert(nodeDist.end(), mpisize+1, 0);
     copy(idxPtr, idxPtr+mpisize+1, nodeDist.begin());
@@ -228,7 +225,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
             double* srcPtr = finleyFile->Coordinates + i;
             float* c = new float[numNodes];
             coords.push_back(c);
-            for (index_t j=0; j<numNodes; j++, srcPtr+=numDims) {
+            for (escript::DataTypes::index_t j=0; j<numNodes; j++, srcPtr+=numDims) {
                 *c++ = (float) *srcPtr;
             }
         }

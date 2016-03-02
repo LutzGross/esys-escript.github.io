@@ -38,7 +38,7 @@ typedef cusp::array1d<double, cusp::device_memory> DeviceVectorType;
 class SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
-    SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
+    SystemMatrix(escript::JMPI mpiInfo, int blocksize,
                  const escript::FunctionSpace& fs, int nRows,
                  const IndexVector& diagonalOffsets, bool symmetric);
 
@@ -76,7 +76,7 @@ private:
     /// GPU device IDs supporting CUDA
     static std::vector<int> cudaDevices;
 
-    esysUtils::JMPI m_mpiInfo;
+    escript::JMPI m_mpiInfo;
     HostMatrixType mat;
     mutable DeviceMatrixType dmat;
     mutable bool matrixAltered;

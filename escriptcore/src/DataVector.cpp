@@ -14,38 +14,33 @@
 *
 *****************************************************************************/
 
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
-
-
 #include "DataVector.h"
 
-#include "Taipan.h"
 #include "DataException.h"
-#include <boost/python/extract.hpp>
 #include "DataTypes.h"
+#include "Taipan.h"
 #include "WrappedArray.h"
 
-#include <cassert>
+#include <boost/python/extract.hpp>
 
 using namespace std;
 using namespace escript;
 using namespace boost::python;
 using namespace DataTypes;
 
-namespace 
-{
-inline  
+namespace {
+
+inline
 void cplxout(std::ostream& os, const DataTypes::cplx_t& c)
 {
     os << c.real();
     if (c.imag()>=0)
     {
-        os << '+';      
+        os << '+';
     }
     os << c.imag() << 'j';
 }
-  
+
 }
 
 
@@ -55,8 +50,8 @@ namespace escript {
    DataTypes::pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
    {
       using namespace std;
-      EsysAssert(data!=0, "Error - data is null");
-//      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      ESYS_ASSERT(data!=0, "Error - data is null");
+//      ESYS_ASSERT(data.size()>0,"Error - Data object is empty.");
       switch (getRank(shape)) {
       case 0:
 	 if (needsep)
@@ -145,8 +140,8 @@ namespace escript {
    DataTypes::pointToStream(std::ostream& os, const RealVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep, const std::string& sep)
    {
       using namespace std;
-      EsysAssert(data!=0, "Error - data is null");
-//      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      ESYS_ASSERT(data!=0, "Error - data is null");
+//      ESYS_ASSERT(data.size()>0,"Error - Data object is empty.");
       switch (getRank(shape)) {
       case 0:
 	 if (needsep)
@@ -235,7 +230,7 @@ namespace escript {
    DataTypes::pointToString(const CplxVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {
       using namespace std;
-      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      ESYS_ASSERT(data.size()>0,"Error - Data object is empty.");
       stringstream temp;
       string finalPrefix=prefix;
       if (prefix.length() > 0) {
@@ -306,7 +301,7 @@ namespace escript {
    DataTypes::pointToString(const RealVectorType& data,const ShapeType& shape, int offset, const std::string& prefix)
    {
       using namespace std;
-      EsysAssert(data.size()>0,"Error - Data object is empty.");
+      ESYS_ASSERT(data.size()>0,"Error - Data object is empty.");
       stringstream temp;
       string finalPrefix=prefix;
       if (prefix.length() > 0) {
@@ -371,27 +366,26 @@ namespace escript {
 
    void DataTypes::copyPoint(RealVectorType& dest, RealVectorType::size_type doffset, RealVectorType::size_type nvals, const RealVectorType& src, RealVectorType::size_type soffset)
    {
-      EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
+      ESYS_ASSERT((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
                  "Error - Couldn't copy due to insufficient storage.");
       if (checkOffset(doffset,dest.size(),nvals) && checkOffset(soffset,src.size(),nvals)) {
          memcpy(&dest[doffset],&src[soffset],sizeof(real_t)*nvals);
       } else {
          throw DataException("Error - invalid offset specified.");
       }
-   } 
-   
+   }
+
    void DataTypes::copyPoint(CplxVectorType& dest, CplxVectorType::size_type doffset, CplxVectorType::size_type nvals, const CplxVectorType& src, CplxVectorType::size_type soffset)
    {
-      EsysAssert((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
+      ESYS_ASSERT((dest.size()>0&&src.size()>0&&checkOffset(doffset,dest.size(),nvals)),
                  "Error - Couldn't copy due to insufficient storage.");
       if (checkOffset(doffset,dest.size(),nvals) && checkOffset(soffset,src.size(),nvals)) {
          memcpy(&dest[doffset],&src[soffset],sizeof(cplx_t)*nvals);
       } else {
          throw DataException("Error - invalid offset specified.");
       }
-   }    
-   
-   
+   }
+
    /**
     * \brief copy data from a real vector to a complex vector
     * The complex vector will be resized as needed and any previous
@@ -412,3 +406,4 @@ namespace escript {
    }
 
 } // end of namespace
+

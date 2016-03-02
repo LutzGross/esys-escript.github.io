@@ -23,10 +23,12 @@
 
 *****************************************************************************/
 
-#include "esysUtils/Esys_MPI.h"
-#include "esysUtils/error.h"
-
+// first include to avoid _POSIX_C_SOURCE redefinition warnings
 #include <escript/DataTypes.h>
+
+#include <finley/FinleyException.h>
+
+#include <escript/EsysMPI.h>
 
 #include <vector>
 
@@ -54,17 +56,6 @@ using escript::DataTypes::index_t;
 #define FINLEY_REDUCED_CONTACT_ELEMENTS_2 13
 
 #define FINLEY_INITIAL_STATUS 0
-
-typedef Esys_ErrorCodeType ErrorCodeType;
-
-double timer();
-void resetError();
-void setError(ErrorCodeType err, const char* msg);
-bool noError();
-ErrorCodeType getErrorType();
-char* getErrorMessage();
-void checkFinleyError();
-bool MPI_noError(esysUtils::JMPI& mpi_info);
 
 } // namespace finley
 

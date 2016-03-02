@@ -14,14 +14,13 @@
 *
 *****************************************************************************/
 
-
 #if !defined  dudley_MeshAdapterFactory_20040526_H
 #define dudley_MeshAdapterFactory_20040526_H
-#include "system_dep.h"
 
+#include "system_dep.h"
 #include "MeshAdapter.h"
 
-#include "escript/AbstractContinuousDomain.h"
+#include <escript/AbstractContinuousDomain.h>
 
 #include <boost/python/list.hpp>
 
@@ -70,16 +69,13 @@ namespace dudley {
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
      \param optimize Input - switches on the optimization of node labels 
-     \param useMacroElements
   */
   DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
   escript::Domain_ptr readGmsh(const std::string& fileName,
 				     int numDim, 
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
-				     int optimize=0,
-				     int useMacroElements=0);
+				     int optimize=0);
 				     
 				     
    /**
@@ -115,7 +111,7 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr brick(esysUtils::JMPI& mpi_info, double n0=1,double n1=1,double n2=1,int order=1,
+  escript::Domain_ptr brick(escript::JMPI& mpi_info, double n0=1,double n1=1,double n2=1,int order=1,
                     double l0=1.0,double l1=1.0,double l2=1.0,
                     int periodic0=0,int periodic1=0,
                     int periodic2=0,
@@ -145,7 +141,7 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr rectangle(esysUtils::JMPI& mpi_info, double n0=1,double n1=1,int order=1,
+  escript::Domain_ptr rectangle(escript::JMPI& mpi_info, double n0=1,double n1=1,int order=1,
                                       double l0=1.0, double l1=1.0,
                                       int periodic0=false,int periodic1=false,
                                       int integrationOrder=-1,

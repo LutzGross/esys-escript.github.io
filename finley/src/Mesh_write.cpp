@@ -21,9 +21,6 @@
 
 /*****************************************************************************/
 
-#define ESNEEDPYTHON
-#include <esysUtils/first.h>
-
 #include "Mesh.h"
 
 #include <iomanip>
@@ -95,17 +92,15 @@ void Mesh::printElementInfo(const ElementFile* e, const string title,
 void Mesh::write(const string filename) const
 {
     if (MPIInfo->size >1) {
-        setError(IO_ERROR, "Mesh::write: only single rank runs are supported.");
-        return;
+        throw escript::NotImplementedError("Mesh::write: only single rank runs are supported.");
     }
 
     std::ofstream f(filename.c_str());
     if (!f.is_open()) {
         std::stringstream ss;
         ss << "Mesh::write: Opening file " << filename << " for writing failred.";
-        string err(ss.str());
-        setError(IO_ERROR, err.c_str());
-        return;
+        const string err(ss.str());
+        throw escript::IOError(err);
     }
 
     // write header

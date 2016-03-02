@@ -14,7 +14,6 @@
 *
 *****************************************************************************/
 
-
 #include "Coupler.h"
 
 #include <cstring> // memcpy
@@ -37,7 +36,6 @@ Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize) :
     mpi_requests(NULL),
     mpi_stati(NULL)
 {
-    Esys_resetError();
     mpi_info = conn->mpi_info;
 #ifdef ESYS_MPI
     mpi_requests = new MPI_Request[conn->send->numNeighbors +
@@ -66,7 +64,7 @@ void Coupler::startCollect(const double* in)
     data = const_cast<double*>(in);
     if (mpi_info->size > 1) {
         if (in_use) {
-            Esys_setError(SYSTEM_ERROR,"Coupler::startCollect: Coupler in use.");
+            throw PasoException("Coupler::startCollect: Coupler in use.");
         }
         // start receiving input
         for (dim_t i=0; i < connector->recv->numNeighbors; ++i) {
@@ -74,7 +72,7 @@ void Coupler::startCollect(const double* in)
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
                     MPI_DOUBLE, connector->recv->neighbor[i],
-                    mpi_info->msg_tag_counter+connector->recv->neighbor[i],
+                    mpi_info->counter()+connector->recv->neighbor[i],
                     mpi_info->comm, &mpi_requests[i]);
 #endif
         }
@@ -94,17 +92,17 @@ void Coupler::startCollect(const double* in)
                 send_buffer[i]=in[connector->send->shared[i]];
             }
         }
+#ifdef ESYS_MPI
         // send buffer out
         for (dim_t i=0; i < connector->send->numNeighbors; ++i) {
-#ifdef ESYS_MPI
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
                     MPI_DOUBLE, connector->send->neighbor[i],
-                    mpi_info->msg_tag_counter+mpi_info->rank, mpi_info->comm,
+                    mpi_info->counter()+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->numNeighbors]);
-#endif
         }
-        ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size)
+        mpi_info->incCounter(mpi_info->size);
+#endif
         in_use = true;
     }
 }
@@ -113,8 +111,7 @@ double* Coupler::finishCollect()
 {
     if (mpi_info->size > 1) {
         if (!in_use) {
-            Esys_setError(SYSTEM_ERROR, "Coupler::finishCollect: Communication has not been initiated.");
-            return NULL;
+            throw PasoException("Coupler::finishCollect: Communication has not been initiated.");
         }
         // wait for receive
 #ifdef ESYS_MPI

@@ -14,19 +14,16 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DATALAZY_H__
+#define __ESCRIPT_DATALAZY_H__
 
-#if !defined escript_DataLazy_20081008_H
-#define escript_DataLazy_20081008_H
 #include "system_dep.h"
-
 #include "DataAbstract.h"
-
-#include <string>
-#include <functional>
-
 #include "LocalOps.h"		// for tensor_binary_op
 #include "DataVector.h"		// for ElementType
 
+#include <functional>
+#include <string>
 
 //#define LAZY_NODE_STORAGE
 
@@ -383,4 +380,6 @@ private:
 };
 
 }
-#endif
+
+#endif // __ESCRIPT_DATALAZY_H__
+

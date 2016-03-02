@@ -21,8 +21,6 @@
   of elements and assigns the value to each quadrature point in out.
 
 *****************************************************************************/
-#define ESNEEDPYTHON
-#include "esysUtils/first.h"
 
 #include "Assemble.h"
 #include "Util.h"
@@ -32,8 +30,6 @@ namespace finley {
 void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
                       escript::Data& out)
 {
-    resetError();
-
     if (!nodes || !elements)
         return;
 
@@ -49,15 +45,12 @@ void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
 
     // check the dimensions of out
     if (!out.numSamplesEqual(numQuad, elements->numElements)) {
-        setError(TYPE_ERROR, "Assemble_getSize: illegal number of samples of out Data object");
+        throw escript::ValueError("Assemble_getSize: illegal number of samples of out Data object");
     } else if (!out.isDataPointShapeEqual(0, &numDim)) {
-        setError(TYPE_ERROR, "Assemble_getSize: illegal data point shape of out Data object");
+        throw escript::ValueError("Assemble_getSize: illegal data point shape of out Data object");
     } else if (!out.actsExpanded()) {
-        setError(TYPE_ERROR, "Assemble_getSize: expanded Data object is expected for element size.");
+        throw escript::ValueError("Assemble_getSize: expanded Data object is expected for element size.");
     }
-
-    if (!noError())
-        return;
 
     // now we can start
     int node_offset;
