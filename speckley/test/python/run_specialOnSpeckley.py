@@ -54,7 +54,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                     f *= whereNegative(dom.getX()[dim]-6)
                 res = Lsup(f)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
     def test_Rectangle_XY_single(self):
@@ -77,7 +77,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                     f *= whereNegative(dom.getX()[dim]-6)
                 res = Lsup(f)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
     def test_Brick_XY_system(self):
@@ -102,7 +102,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                     f *= whereNegative(dom.getX()[dim]-6)
                 res = Lsup(f)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
     def test_Rectangle_XY_system(self):
@@ -125,7 +125,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                 f *= whereNegative(dom.getX()[0]-6)*whereNegative(dom.getX()[1]-6)
                 res = Lsup(f)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
     def test_Brick_Du_Y_single(self):
@@ -150,7 +150,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                 
                 res = Lsup((rhs/lhs)-2)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
     
     def test_Rectangle_Du_Y_single(self):
@@ -175,7 +175,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                 
                 res = Lsup((rhs/lhs)-2)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
     def test_Brick_Du_Y_system(self):
@@ -202,7 +202,7 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                 
                 res = Lsup((rhs/lhs)-2)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
     def test_Rectangle_Du_Y_system(self):
@@ -229,11 +229,11 @@ class Test_Speckley_Assemblers(unittest.TestCase):
                 
                 res = Lsup((rhs/lhs)-2)
                 self.assertLess(res, self.TOLERANCE,
-                        ("assembly for {0}expanded order %d failed with %g >= %g"%(order,
+                        ("assembly for {0}expanded order %d failed with %e >= %e"%(order,
                         res, self.TOLERANCE)).format("" if expanded else "un-"))
 
 class Test_Speckley(unittest.TestCase):
-    TOLERANCE = 1e-10
+    TOLERANCE = 5e-10
     def test_Rectangle_ReducedFunction(self):
         ranks = getMPISizeWorld()
         for order in range(2, 11):
@@ -245,11 +245,11 @@ class Test_Speckley(unittest.TestCase):
                     (interpolate(redData, ContinuousFunction(dom)), "ContinuousFunction")]
             for d, fs in data:
                 self.assertLess(inf(d-[0.5]*2), self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != 0"%(fs, order, inf(d-[0.5]*2)))
+                        "reduced->%s failure with order %d: %e != 0"%(fs, order, inf(d-[0.5]*2)))
                 self.assertLess(sup(d[0]+0.5) - 3, self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != 3"%(fs, order, sup(d[0]+0.5)))
+                        "reduced->%s failure with order %d: %e != 3"%(fs, order, sup(d[0]+0.5)))
                 self.assertLess(sup(d[1]+0.5) - 3*ranks, self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != %g"%(fs, order, sup(d[1]+0.5), 3*ranks))
+                        "reduced->%s failure with order %d: %e >= %e"%(fs, order, sup(d[1]+0.5)-3*ranks, self.TOLERANCE))
 
     def test_Brick_ReducedFunction(self):
         ranks = getMPISizeWorld()
@@ -262,13 +262,13 @@ class Test_Speckley(unittest.TestCase):
                     (interpolate(redData, ContinuousFunction(dom)), "ContinuousFunction")]
             for d, fs in data:
                 self.assertLess(inf(d-[0.5]*3), self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != 0"%(fs, order, inf(d-[0.5]*3)))
+                        "reduced->%s failure with order %d: %e != 0"%(fs, order, inf(d-[0.5]*3)))
                 self.assertLess(sup(d[0]+0.5) - 3, self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != 3"%(fs, order, sup(d[0]+0.5)))
+                        "reduced->%s failure with order %d: %e != 3"%(fs, order, sup(d[0]+0.5)))
                 self.assertLess(sup(d[1]+0.5) - 3*ranks, self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != %g"%(fs, order, sup(d[1]+0.5), 3*ranks))
+                        "reduced->%s failure with order %d: %e >= %e"%(fs, order, sup(d[1]+0.5)-3*ranks, self.TOLERANCE))
                 self.assertLess(sup(d[2]+0.5) - 3, self.TOLERANCE,
-                        "reduced->%s failure with order %d: %g != 3"%(fs, order, sup(d[2]+0.5)))
+                        "reduced->%s failure with order %d: %e != 3"%(fs, order, sup(d[2]+0.5)))
 
     def test_Rectangle_Function_gradient(self): #expanded and non-expanded
         ranks = getMPISizeWorld()
@@ -277,14 +277,14 @@ class Test_Speckley(unittest.TestCase):
                 dom = Rectangle(order, 3, 3*ranks, d1=ranks)
                 x = Data(5, Function(dom), True)
                 self.assertLess(Lsup(grad(x)), 1e-10,
-                        "single component failure, order %d%s, %g >= 1e-10"%(order,
+                        "single component failure, order %d%s, %e >= 1e-10"%(order,
                         (" expanded" if expanded else ""), Lsup(grad(x))))
                 for data in [[5,1], [-5,-1], [5,1,1e-5]]:
                     x = Data(data, Function(dom), True)
                     g = grad(x)
                     for n,d in enumerate(data):
                         self.assertLess(Lsup(g[n]), 1e-10,
-                                "%d-component failure, order %d %sexpanded, %g >= 1e-10"%(len(data),
+                                "%d-component failure, order %d %sexpanded, %e >= 1e-10"%(len(data),
                                 order, ("" if expanded else "un-"), Lsup(g[n])))
 
     def test_Brick_Function_gradient(self):
@@ -294,14 +294,14 @@ class Test_Speckley(unittest.TestCase):
                 dom = Brick(order, 3, 3*ranks, 3, d1=ranks)
                 x = Data(5, Function(dom), True)
                 self.assertLess(Lsup(grad(x)), 1e-10,
-                        "single component failure, order %d%s, %g >= 1e-10"%(order,
+                        "single component failure, order %d%s, %e >= 1e-10"%(order,
                         (" expanded" if expanded else ""), Lsup(grad(x))))
                 for data in [[5,1], [-5,-1], [5,1,1e-5]]:
                     x = Data(data, Function(dom), True)
                     g = grad(x)
                     for n,d in enumerate(data):
                         self.assertLess(Lsup(g[n]), 1e-10,
-                                "%d-component failure, order %d %sexpanded, %g >= 1e-10"%(len(data),
+                                "%d-component failure, order %d %sexpanded, %e >= 1e-10"%(len(data),
                                 order, ("" if expanded else "un-"), Lsup(g[n])))
 
 
@@ -312,7 +312,7 @@ class Test_Speckley(unittest.TestCase):
             X = dom.getX()
             u = X[0] + X[1] + 1
             v = Lsup(grad(u) - 1)
-            self.assertLess(v, 1e-10, "order %d, %g >= 1e-10, %s"%(order, v, str(grad(u)-1)))
+            self.assertLess(v, 1e-10, "order %d, %e >= 1e-10, %s"%(order, v, str(grad(u)-1)))
             for power in range(1, order+1):
                 for power2 in range(1, order+1):
                     a = X[0]**power * X[1]**power2
@@ -322,10 +322,10 @@ class Test_Speckley(unittest.TestCase):
                     second = Lsup(da[1] - power2*X[1]**(power2-1) * X[0]**power) \
                             /Lsup(power2*X[1]**(power2-1) * X[0]**power)
                     self.assertLess(first, 1e-10,
-                            "order %d and degree %d,%d, %g >= 1e-9"%(order,
+                            "order %d and degree %d,%d, %e >= 1e-9"%(order,
                             power, power2, first))
                     self.assertLess(second, 1e-10,
-                            "order %d and degree %d,%d, %g >= 1e-9"%(order,
+                            "order %d and degree %d,%d, %e >= 1e-9"%(order,
                             power, power2, second))
 
     def test_Brick_ContinuousFunction_gradient(self):
@@ -335,7 +335,7 @@ class Test_Speckley(unittest.TestCase):
             X = dom.getX()
             u = X[0] + X[1] + X[2] + 1
             v = Lsup(grad(u) - 1)
-            self.assertLess(v, 1e-10, "order %d, %g >= 1e-10, %s"%(order, v,
+            self.assertLess(v, 1e-10, "order %d, %e >= 1e-10, %s"%(order, v,
                     str(grad(u)-1)))
             for power1 in range(1, order+1, order//2):
                 for power2 in range(1, order+1, order//2):
@@ -351,13 +351,13 @@ class Test_Speckley(unittest.TestCase):
                         third = Lsup(da[2] - temp) / Lsup(temp)
                                 
                         self.assertLess(first, 1e-10,
-                            "order %d and degree %d,%d,%d, %g >= 1e-9"%(order,
+                            "order %d and degree %d,%d,%d, %e >= 1e-9"%(order,
                             power1, power2, power3, first))
                         self.assertLess(second, 1e-10,
-                            "order %d and degree %d,%d,%d, %g >= 1e-9"%(order,
+                            "order %d and degree %d,%d,%d, %e >= 1e-9"%(order,
                             power1, power2, power3, second))
                         self.assertLess(third, 1e-10,
-                            "order %d and degree %d,%d,%d, %g >= 1e-9"%(order,
+                            "order %d and degree %d,%d,%d, %e >= 1e-9"%(order,
                             power1, power2, power3, third))
 
     def test_Rectangle_interpolation_continuous_noncontinuous_and_back(self):
@@ -368,18 +368,18 @@ class Test_Speckley(unittest.TestCase):
             cont = interpolate(original, ContinuousFunction(dom))
             func = interpolate(cont, Function(dom))
             self.assertEqual(Lsup(original-func), 0,
-                    "interpolation of constant, order %d: original and final not equal, %g != 0"%(order, Lsup(original-func)))
+                    "interpolation of constant, order %d: original and final not equal, %e != 0"%(order, Lsup(original-func)))
             x = dom.getX()
             original = x[0] + x[1] + 1
             cont = interpolate(original, ContinuousFunction(dom))
             func = interpolate(cont, Function(dom))
             self.assertEqual(Lsup(original-func), 0,
-                    "interpolation of expanded, order %d: original and final not equal, %g != 0"%(order, Lsup(original-func)))
+                    "interpolation of expanded, order %d: original and final not equal, %e != 0"%(order, Lsup(original-func)))
             original = whereZero(x[0]-2) + whereZero(x[1]-2)
             cont = interpolate(original, ContinuousFunction(dom))
             func = interpolate(cont, Function(dom))
             self.assertEqual(Lsup(original-func), 0,
-                    "interpolation of point, order %d: original and final not equal, %g != 0"%(order, Lsup(original-func)))
+                    "interpolation of point, order %d: original and final not equal, %e != 0"%(order, Lsup(original-func)))
 
     def test_Brick_interpolation_continuous_noncontinuous_and_back(self):
         ranks = getMPISizeWorld()
@@ -389,18 +389,18 @@ class Test_Speckley(unittest.TestCase):
             cont = interpolate(original, ContinuousFunction(dom))
             func = interpolate(cont, Function(dom))
             self.assertEqual(Lsup(original-func), 0,
-                    "interpolation of constant, order %d: original and final not equal, %g != 0"%(order, Lsup(original-func)))
+                    "interpolation of constant, order %d: original and final not equal, %e != 0"%(order, Lsup(original-func)))
             x = dom.getX()
             original = x[0] + x[1] + x[2] + 1
             cont = interpolate(original, ContinuousFunction(dom))
             func = interpolate(cont, Function(dom))
             self.assertEqual(Lsup(original-func), 0,
-                    "interpolation of expanded, order %d: original and final not equal, %g != 0"%(order, Lsup(original-func)))
+                    "interpolation of expanded, order %d: original and final not equal, %e != 0"%(order, Lsup(original-func)))
             original = whereZero(x[0]-2) + whereZero(x[1]-2) + whereZero(x[2] - 2)
             cont = interpolate(original, ContinuousFunction(dom))
             func = interpolate(cont, Function(dom))
             self.assertEqual(Lsup(original-func), 0,
-                    "interpolation of point, order %d: original and final not equal, %g != 0"%(order, Lsup(original-func)))
+                    "interpolation of point, order %d: original and final not equal, %e != 0"%(order, Lsup(original-func)))
 
     def test_Rectangle_integration(self):
         ranks = getMPISizeWorld()
@@ -431,7 +431,7 @@ class Test_Speckley(unittest.TestCase):
                                 /((k+1.)*(l+1.)*(m+1.))
                         res = abs(integral - actual)/actual
                         self.assertLess(res, 1e-11,
-                                "too much variance in integral result (order %d, degrees %d %d, %g >= 1e-11)"%(order,
+                                "too much variance in integral result (order %d, degrees %d %d, %e >= 1e-11)"%(order,
                                 k, l, res))
 
     @unittest.skipIf(getMPISizeWorld() == 1,
