@@ -3578,10 +3578,12 @@ dim_t Brick::findNode(const double *coords) const
     //is the found element even owned by this rank
     // (inside owned or shared elements but will map to an owned element)
     for (int dim = 0; dim < m_numDim; dim++) {
+        //allows for point outside mapping onto node
         double min = m_origin[dim] + m_offset[dim]* m_dx[dim]
-                - m_dx[dim]/2.; //allows for point outside mapping onto node
+                - m_dx[dim]/2. + escript::DataTypes::real_t_eps();
+        
         double max = m_origin[dim] + (m_offset[dim] + m_NE[dim])*m_dx[dim]
-                + m_dx[dim]/2.;
+                + m_dx[dim]/2. - escript::DataTypes::real_t_eps();
         if (min > coords[dim] || max < coords[dim]) {
             return NOT_MINE;
         }
