@@ -701,20 +701,26 @@ void MultiRectangle::populateSampleIds()
     // involved)
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
     dim_t numDOF=getNumDOF();
-    MPI_Allgather(&numDOF, 1, MPI_DIM_T, &m_nodeDistribution[0], 1, MPI_DIM_T,
-            m_mpiInfo->comm);
+    if (m_mpiInfo->size > 1) {
+#if ESYS_MPI
+        MPI_Allgather(&numDOF, 1, MPI_DIM_T, &m_nodeDistribution[0], 1,
+                      MPI_DIM_T, m_mpiInfo->comm);
 
-    // accumulate
-    dim_t accu = 0;
-    for (int rank=0; rank<m_mpiInfo->size; rank++) {
-        const dim_t n = m_nodeDistribution[rank];
-        m_nodeDistribution[rank] = accu;
-        accu += n;
+        // accumulate
+        dim_t accu = 0;
+        for (int rank=0; rank<m_mpiInfo->size; rank++) {
+            const dim_t n = m_nodeDistribution[rank];
+            m_nodeDistribution[rank] = accu;
+            accu += n;
+        }
+        ESYS_ASSERT(accu == getNumDataPointsGlobal(),
+                "something went wrong computing the DOF distribution!");
+
+        m_nodeDistribution[m_mpiInfo->size] = accu;
+#endif
+    } else {
+        m_nodeDistribution[m_mpiInfo->size] = numDOF;
     }
-    ESYS_ASSERT(accu == getNumDataPointsGlobal(),
-            "something went wrong computing the DOF distribution!");
-
-    m_nodeDistribution[m_mpiInfo->size] = accu;
 
     try {
         m_nodeId.resize(getNumNodes());
