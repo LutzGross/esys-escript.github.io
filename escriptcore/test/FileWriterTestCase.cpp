@@ -14,10 +14,9 @@
 *
 *****************************************************************************/
 
+#include <escript/FileWriter.h>
 
 #include "FileWriterTestCase.h"
-
-#include "escript/FileWriter.h"
 
 #include <cppunit/TestCaller.h>
 #include <fstream>

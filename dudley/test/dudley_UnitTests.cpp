@@ -14,9 +14,9 @@
 *
 *****************************************************************************/
 
-#include "MeshAdapterTestCase.h"
-
 #include <escript/EsysMPI.h>
+
+#include "MeshAdapterTestCase.h"
 
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
