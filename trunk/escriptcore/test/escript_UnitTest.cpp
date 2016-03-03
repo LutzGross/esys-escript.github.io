@@ -14,8 +14,7 @@
 *
 *****************************************************************************/
 
-
-#include <iostream>
+#include <escript/EsysMPI.h>
 
 #include "DataAlgorithmAdapterTestCase.h"
 #include "DataConstantTestCase.h"
@@ -34,7 +33,7 @@
 #include "SharedDataTestCase.h"
 #include "TaipanTestCase.h"
 
-#include "escript/EsysMPI.h"
+#include <iostream>
 
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
