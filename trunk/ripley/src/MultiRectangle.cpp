@@ -695,14 +695,27 @@ void MultiRectangle::populateSampleIds()
     // helps when writing out data rank after rank.
 
     // build node distribution vector first.
-    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
-    // constant for all ranks in this implementation
+    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes.
+    // Unlike regular ripley domains this is NOT constant for all ranks so
+    // we do an Allgather (we could have also computed per rank but it's a bit
+    // involved)
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
-    const dim_t numDOF=getNumDOF();
-    for (dim_t k=1; k<m_mpiInfo->size; k++) {
-        m_nodeDistribution[k]=k*numDOF;
+    dim_t numDOF=getNumDOF();
+    MPI_Allgather(&numDOF, 1, MPI_DIM_T, &m_nodeDistribution[0], 1, MPI_DIM_T,
+            m_mpiInfo->comm);
+
+    // accumulate
+    dim_t accu = 0;
+    for (int rank=0; rank<m_mpiInfo->size; rank++) {
+        const dim_t n = m_nodeDistribution[rank];
+        m_nodeDistribution[rank] = accu;
+        accu += n;
     }
-    m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
+    ESYS_ASSERT(accu == getNumDataPointsGlobal(),
+            "something went wrong computing the DOF distribution!");
+
+    m_nodeDistribution[m_mpiInfo->size] = accu;
+
     try {
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
