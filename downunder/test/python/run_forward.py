@@ -239,7 +239,7 @@ class TestSubsidence(unittest.TestCase):
         lam=2.
         mu=1.
 
-        domain=ripBrick(20,20,19, d2=mpisize)
+        domain=ripBrick(20,20,max(19,2*mpisize-1), d2=mpisize)
 
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
