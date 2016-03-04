@@ -19,6 +19,7 @@
 
 #include "system_dep.h"
 #include "NullDomain.h"
+#include <vector>
 
 namespace escript {
 
@@ -99,12 +100,22 @@ public:
     virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
                                      const FunctionSpace& what, long seed,
                                      const boost::python::tuple& filter) const;
+				     
+    void addUsedTag(int t);
+    void clearUsedTags();
+    void assignTags(std::vector<int> t);
+    void resetTagAssignments();
 
 private:
     DataTypes::dim_t m_samples;       // number of samples
     int m_dpps;            // data points per sample
     int m_dpsize;          // how big are the datapoints?
     DataTypes::dim_t* m_samplerefids; // sample reference ids
+    
+    std::vector<int> mytags;
+    std::vector<int> tag_assignment; 	// which tag is assigned to each sample
+				// to make testing easier, the tags in use list is 
+				// controlled separately
 };
 
 ESCRIPT_DLL_API
