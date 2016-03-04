@@ -147,14 +147,169 @@ Data getExpanded(FunctionSpace fs, bool rank0, double seed)
     return d;
 }
 
+void createConsts(FunctionSpace& fs, Data& c0s, Data& c4s, Data& c1, Data& c5)
+{
+    c0s=getConstant(fs, true, 0);
+    c4s=getConstant(fs, true, 4);
+  
+    c1=getConstant(fs, false, 1);
+    c5=getConstant(fs, false, 5); 
+}
 
+void createTagged(FunctionSpace& fs, Data& t1s, Data& t2s, Data& t3s, Data& t4s, Data& t5s, Data& t1, Data& t2, Data& t3, Data& t4, Data& t5)
+{
+  t1s=getTagged(fs, true, 1, 1, 2, 3);	// to check for problems with tag ordering
+  t2s=getTagged(fs, true, 5, 1, 3, 2);
+  t3s=getTagged(fs, true, 7, 3, 2, 1);
+  t4s=getTagged(fs, true, 3, 2, 1, 3); 
+  t5s=getTagged(fs, true, 8, 2, 4, 5);     // ensure we test mismatching tags
+  
+  t1=getTagged(fs, false, 1, 1, 2, 3);	// to check for problems with tag ordering
+  t2=getTagged(fs, false, 5, 1, 2, 3);
+  t3=getTagged(fs, false, 7, 3, 2, 1);
+  t4=getTagged(fs, false, 3, 2, 1, 3);  
+  t5=getTagged(fs, false, 9, 5, 2, 4);	// ensure we test mismatching tags  
+}
+
+void createExpand(FunctionSpace& fs, Data& es1, Data& es2, Data& e1, Data& e2)
+{
+    es1=getExpanded(fs, true, 1);
+    es2=getExpanded(fs, true, 2);
+  
+    e1=getExpanded(fs, false, 1);
+    e2=getExpanded(fs, false, 2);
+}
+
+
+}
+
+
+void DataCombinationsTestCase::testUpdate()
+{
+  cout << endl;
+  TestDomain* tdp=new TestDomain(2,3,1);	// 2 points per sample, 3 samples, 1D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());  
+  
+  Data c0s;
+  Data c4s;
+  
+  Data c1;
+  Data c5;
+  
+  
+  Data t1s;
+  Data t2s;
+  Data t3s;
+  Data t4s; 
+  Data t5s;
+  
+  Data t1;
+  Data t2;
+  Data t3;
+  Data t4;  
+  Data t5;
+  
+  Data es1;
+  Data es2;
+  
+  Data e1;
+  Data e2;  
+  
+  
+  createConsts(fs, c0s, c4s, c1, c5);
+  
+  cout << "Constants (self):\n";
+  c0s+=c4s;
+  CPPUNIT_ASSERT(fabs(c0s.Lsup()-4)<0.01);
+  
+  c1+=c5;
+  CPPUNIT_ASSERT(fabs(c1.Lsup()-16)<0.01);  
+  
+  createConsts(fs, c0s, c4s, c1, c5);
+
+  c1+=c4s;
+  CPPUNIT_ASSERT(fabs(c1.Lsup()-10)<0.01);  
+
+  cout << "Tagged (self):\n";  
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5); 
+  
+  t1+=t2;
+  CPPUNIT_ASSERT(fabs(t1.inf()-6)<0.01);
+  CPPUNIT_ASSERT(fabs(t1.Lsup()-16)<0.01);
+  
+  tdp->addUsedTag(1);
+  CPPUNIT_ASSERT(fabs(t1.inf()-6)<0.01);
+  CPPUNIT_ASSERT(fabs(t1.Lsup()-32)<0.01);
+  
+  tdp->addUsedTag(2);
+  CPPUNIT_ASSERT(fabs(t1.inf()-6)<0.01);
+  CPPUNIT_ASSERT(fabs(t1.Lsup()-64)<0.01);
+
+  tdp->addUsedTag(3);
+  CPPUNIT_ASSERT(fabs(t1.inf()-6)<0.01);
+  CPPUNIT_ASSERT(fabs(t1.Lsup()-128)<0.01);
+ 
+  tdp->clearUsedTags();
+  
+  t2s+=t1s;
+  CPPUNIT_ASSERT(fabs(t2s.Lsup()-6)<0.01);
+  
+  tdp->addUsedTag(1);
+  CPPUNIT_ASSERT(fabs(t2s.inf()-6)<0.01);
+  CPPUNIT_ASSERT(fabs(t2s.Lsup()-12)<0.01);
+  
+  tdp->addUsedTag(2);
+  CPPUNIT_ASSERT(fabs(t2s.Lsup()-44)<0.01);
+
+  tdp->clearUsedTags();
+  tdp->addUsedTag(3);
+  CPPUNIT_ASSERT(fabs(t2s.Lsup()-28)<0.01);  
+  
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5); 
+
+  tdp->clearUsedTags();
+  t5+=t2s;
+
+  CPPUNIT_ASSERT(fabs(t5.Lsup()-19)<0.01);
+  CPPUNIT_ASSERT(fabs(t5.inf()-14)<0.01);
+  tdp->addUsedTag(5);
+  CPPUNIT_ASSERT(fabs(t5.Lsup()-33)<0.01);
+  CPPUNIT_ASSERT(fabs(t5.inf()-14)<0.01);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t5.Lsup()-34)<0.01);
+  CPPUNIT_ASSERT(fabs(t5.inf()-14)<0.01);  
+  tdp->addUsedTag(4);  
+  CPPUNIT_ASSERT(fabs(t5.Lsup()-117)<0.01);
+  CPPUNIT_ASSERT(fabs(t5.inf()-14)<0.01);    
+  tdp->clearUsedTags();  
+  
+  cout << "Expanded (self):\n";
+  createExpand(fs, es1, es2, e1, e2);
+  
+  es2+=es1;
+  CPPUNIT_ASSERT(fabs(es2.inf())<0.01);    
+  CPPUNIT_ASSERT(fabs(es2.Lsup()-7.5)<0.01);
+  
+  e2+=e1;
+  
+  CPPUNIT_ASSERT(fabs(e2.inf())<0.01);    
+  CPPUNIT_ASSERT(fabs(e2.Lsup()-32.5)<0.01);
+  
+  createExpand(fs, es1, es2, e1, e2);
+
+  e1+=es2;
+  CPPUNIT_ASSERT(fabs(e1.inf())<0.01);    
+  CPPUNIT_ASSERT(fabs(e1.Lsup()-20)<0.01);
+  
+  
 }
 
 // The purpose of this test is to check all the various combinations 
 // of DataReady interactions
 // These will test only the (Data + Data)
 // hopefully it includes all relevant combinations
-void DataCombinationsTestCase::testSome()
+void DataCombinationsTestCase::testNonUpdate()
 {
 
   cout << endl;
@@ -554,6 +709,9 @@ CppUnit::TestSuite* DataCombinationsTestCase::suite()
   // create the suite of tests to perform.
   CppUnit::TestSuite *testSuite = new TestSuite("DataCombinationsTestCase");
   testSuite->addTest(new TestCaller<DataCombinationsTestCase>(
-              "testSome",&DataCombinationsTestCase::testSome));
+              "testNonUpdate",&DataCombinationsTestCase::testNonUpdate));
+  testSuite->addTest(new TestCaller<DataCombinationsTestCase>(
+              "testUpdate",&DataCombinationsTestCase::testUpdate));
+  
   return testSuite;
 }
