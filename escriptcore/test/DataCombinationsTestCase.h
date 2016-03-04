@@ -27,7 +27,8 @@ class DataCombinationsTestCase : public CppUnit::TestFixture
 {
 public:
 
-  void testSome();
+  void testNonUpdate();
+  void testUpdate();  
 
   static CppUnit::TestSuite* suite();
 
