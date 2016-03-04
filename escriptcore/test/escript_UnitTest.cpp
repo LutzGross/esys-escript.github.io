@@ -32,6 +32,7 @@
 #include "FunctionSpaceTestCase.h"
 #include "SharedDataTestCase.h"
 #include "TaipanTestCase.h"
+#include "DataCombinationsTestCase.h"
 
 #include <iostream>
 
@@ -66,11 +67,12 @@ int main(int argc, char* argv[])
 	runner.addTest(DataVectorTestCase::suite());
 	runner.addTest(DataMathsTestCase::suite());
  	runner.addTest(DataAlgorithmAdapterTestCase::suite());
-    runner.addTest(FileWriterTestCase::suite());
+	runner.addTest(FileWriterTestCase::suite());
 	runner.addTest(TaipanTestCase::suite());
 	runner.addTest(FunctionSpaceTestCase::suite());
 	runner.addTest(DataTestCase::suite());
 	runner.addTest(DataLazyTestCase::suite());
+	runner.addTest(DataCombinationsTestCase::suite());
 
 	runner.run(controller);
     CompilerOutputter outputter( &result, std::cerr );
