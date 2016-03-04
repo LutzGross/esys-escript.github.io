@@ -322,6 +322,13 @@ void DataCombinationsTestCase::testSome()
   CPPUNIT_ASSERT(rr<0.01);
   CPPUNIT_ASSERT(fabs(res1.Lsup()-21.5)<0.01);
   CPPUNIT_ASSERT(fabs(res1.inf()-4)<0.000001);    
+  
+  res1=c5+e2;
+  res2=e2+c5;
+  rr=(res1-res2).Lsup();
+  CPPUNIT_ASSERT(rr<0.01);
+  CPPUNIT_ASSERT(fabs(res1.Lsup()-27.5)<0.01);
+  CPPUNIT_ASSERT(fabs(res1.inf()-5)<0.000001); 
  
   cout << "TTT\n";
   
@@ -446,13 +453,13 @@ void DataCombinationsTestCase::testSome()
   t.push_back(0);
   
   tdp->assignTags(t);
-  
+
   res1=t1+es2;
   res2=es2+t1;
   CPPUNIT_ASSERT((res1-res2).Lsup()<0.01);
   CPPUNIT_ASSERT(fabs(res1.inf()-1)<0.001);
   CPPUNIT_ASSERT(fabs(res1.Lsup()-15)<0.001);       
-  
+
   res1=t1+e2;
   res2=e2+t1;  
   

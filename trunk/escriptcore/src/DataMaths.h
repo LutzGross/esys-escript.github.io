@@ -21,6 +21,7 @@
 #include "DataException.h"
 #include "LocalOps.h"
 #include "LapackInverseHelper.h"
+#include "DataTagged.h"
 
 /**
 \file DataMaths.h 
@@ -115,6 +116,9 @@ Note that vector in this context refers to a data vector storing datapoints not 
            BinaryFunction operation);
 
 // ------------------------
+
+
+
   
   /**
      \brief
@@ -930,6 +934,208 @@ binaryOp(DataTypes::RealVectorType& left,
 
 
 // -------------------
+
+/**
+ * This assumes that all data involved have the same points per sample and same shape
+*/
+template <class ResVEC, class LVEC, class RSCALAR>
+void
+binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
+	  typename ResVEC::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename ResVEC::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename ResVEC::size_type sampleSize,		// number of values in each sample
+	  const LVEC& left, 				// LHS of calculation
+	  typename LVEC::size_type leftOffset,		// where to start reading LHS values
+	  const RSCALAR* right, 			// RHS of the calculation
+	  const bool rightreset,			// true if RHS is providing a single sample of 1 value only
+	  escript::ESFunction operation,		// operation to perform
+	  bool singleleftsample)			// set to false for normal operation
+{
+  size_t substep=(rightreset?0:1);  
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const RSCALAR* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]+*rpos;
+	  }
+      }
+      break;
+    case POWF:
+    case MINUSF:
+    case MULTIPLIESF:
+    case DIVIDESF:
+    case LESSF:
+    case GREATERF:
+    case GREATER_EQUALF:
+    case LESS_EQUALF:
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+
+
+
+/**
+ * This assumes that all data involved have the same points per sample and same shape
+*/
+template <class ResVEC, class LSCALAR, class RVEC>
+void
+binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
+	  typename ResVEC::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename ResVEC::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename ResVEC::size_type sampleSize,		// number of values in each sample
+	  const LSCALAR* left, 				// LHS of calculation
+          const bool leftreset,				// true if LHS is providing a single sample of 1 value only
+	  const RVEC& right, 				// RHS of the calculation
+	  typename RVEC::size_type rightOffset,		// where to start reading RHS values
+	  escript::ESFunction operation,		// operation to perform
+	  bool singlerightsample)			// right consists of a single sample
+{
+  size_t substep=(leftreset?0:1);
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename RVEC::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const LSCALAR* lpos=left+(leftreset?0:i*substep);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos+right[rightbase+j];
+	  }	
+      }
+      break;
+    case POWF:
+    case MINUSF:
+    case MULTIPLIESF:
+    case DIVIDESF:
+    case LESSF:
+    case GREATERF:
+    case GREATER_EQUALF:
+    case LESS_EQUALF:
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+
+/**
+ * This assumes that all data involved have the same points per sample and same shape
+*/
+template <class ResVEC, class LVEC, class RVEC>
+void
+binaryOpVector(ResVEC& res,				// where result is to be stored
+	  typename ResVEC::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename ResVEC::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename ResVEC::size_type sampleSize,		// number of values in each sample
+	  const LVEC& left, 				// LHS of calculation
+	  typename LVEC::size_type leftOffset,		// where to start reading LHS values
+	  const bool leftreset,				// Is LHS only supplying a single sample instead of a bunch of them
+	  const RVEC& right, 				// RHS of the calculation
+	  typename RVEC::size_type rightOffset,		// where to start reading RHS values
+	  const bool rightreset,			// Is RHS only supplying a single sample instead of a bunch of them
+	  escript::ESFunction operation)		// operation to perform
+{
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename RVEC::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]+right[rightbase+j];
+	  }
+	
+      }
+      break;
+    case POWF:
+    case MINUSF:
+    case MULTIPLIESF:
+    case DIVIDESF:
+    case LESSF:
+    case GREATERF:
+    case GREATER_EQUALF:
+    case LESS_EQUALF:
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+
+
+/**
+ * This assumes that all data involved have the same points per sample and same shape
+*/
+/* trying to make a single version for all Tagged+Expanded interactions */
+template <class ResVEC, class LVEC, class RVEC>
+void
+binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
+	  const typename ResVEC::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename ResVEC::size_type DPPSample,	// number of datapoints per sample
+	  const typename ResVEC::size_type DPSize,		// datapoint size
+		
+	  const LVEC& left, 				// LHS of calculation
+	  const bool leftscalar,
+	  const RVEC& right, 				// RHS of the calculation
+	  const bool rightscalar,		
+	  const bool lefttagged,			// true if left object is the tagged one
+	  const DataTagged& tagsource,			// where to get tag offsets from
+	  escript::ESFunction operation)		// operation to perform	  
+{
+  typename ResVEC::size_type lstep=leftscalar?1:DPSize;
+  typename ResVEC::size_type rstep=rightscalar?1:DPSize;
+  typename ResVEC::size_type limit=samplesToProcess*DPPSample;
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<limit;++i)
+      {
+	  typename LVEC::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename RVEC::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename ResVEC::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]+right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;
+    case POWF:
+    case MINUSF:
+    case MULTIPLIESF:
+    case DIVIDESF:
+    case LESSF:
+    case GREATERF:
+    case GREATER_EQUALF:
+    case LESS_EQUALF:
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

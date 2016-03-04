@@ -30,6 +30,7 @@ sources = """
     AbstractReducer.cpp
     AbstractSystemMatrix.cpp
     AbstractTransportProblem.cpp
+    BinaryOp.cpp    
     Data.cpp
     DataAbstract.cpp
     DataConstant.cpp
