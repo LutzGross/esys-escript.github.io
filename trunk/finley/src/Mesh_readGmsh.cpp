@@ -285,7 +285,6 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
 #ifdef ESYS_MPI
     //chunkInfo stores the number of elements and number of face elements
     int chunkInfo[2];
-    int cpuId = 0;
 #endif
 
 #pragma omp parallel for schedule(static)
@@ -295,6 +294,7 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
         element_type[i] = NoRef;
     }
 
+    int cpuId = 0;
     int chunkElements = 0;
     int chunkFaceElements = 0;
     int chunkOtherElements = 0;
