@@ -79,7 +79,7 @@ inline bool get_line(std::vector<char>& line, FILE *file)
     line.resize(capacity);
     char *tmp = &line[0];
     char *res = NULL;
-    //not terribly efficient, but any line longer than 1024 
+    //not terribly efficient, but any line longer than 1024
     //is probably already bad
     while ((res = fgets(tmp, 1023, file)) == tmp
             && strchr(tmp, '\n') == NULL) {
@@ -226,10 +226,10 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     } else {
         e.tag = 1;
         int numTags=0; //this is garbage and never used
-        if (sscanf(position, "%d", &numTags) == 0 
+        if (sscanf(position, "%d", &numTags) == 0
                 || next_space(&position, 1) == NULL)
             return EARLY_EOF;
-        if (sscanf(position, "%d", &e.tag) == 0 
+        if (sscanf(position, "%d", &e.tag) == 0
                 || next_space(&position, numTags) == NULL)
             return EARLY_EOF;
         /* ignore any other tags, second tag would be elementary id,
@@ -237,7 +237,7 @@ int getSingleElement(FILE *f, int dim, double version, struct ElementInfo& e,
     }
 
     for (int j = 0; j < numNodesPerElement; j++) {
-        if (sscanf(position, "%d", e.vertex+j) == 0 
+        if (sscanf(position, "%d", e.vertex+j) == 0
                 || next_space(&position, 1) == NULL)
             return EARLY_EOF;
     }
@@ -258,8 +258,6 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
     int numElements=0, numFaceElements=0, totalNumElements=0;
     const_ReferenceElementSet_ptr refPoints, refContactElements;
     const_ReferenceElementSet_ptr refFaceElements, refElements;
-    int *id, *tag;
-    ElementTypeId * element_type;
     std::vector<char> line;
     if (!get_line(line, fileHandle_p))
         errorFlag = EARLY_EOF;
@@ -274,14 +272,15 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
     }
 #endif
 
-    int chunkSize = totalNumElements / mpi_info->size + 1, chunkElements=0;
-    int chunkFaceElements=0, chunkOtherElements=0;
-    id = new int[chunkSize+1];
-    tag = new int[chunkSize+1];
-    std::vector<int>vertices(chunkSize*MAX_numNodes_gmsh, -1);
-    element_type = new ElementTypeId[chunkSize+1];
-    std::vector<int> elementIndices (chunkSize, -1);
-    std::vector<int> faceElementIndices (chunkSize, -1);
+    int chunkSize = totalNumElements / mpi_info->size;
+    int rest = totalNumElements - (mpi_info->size-1)*chunkSize;
+    const size_t storage = std::max(chunkSize, rest);
+    int* id = new int[storage+1];
+    int* tag = new int[storage+1];
+    std::vector<int> vertices(storage*MAX_numNodes_gmsh, -1);
+    ElementTypeId* element_type = new ElementTypeId[storage+1];
+    std::vector<int> elementIndices (storage, -1);
+    std::vector<int> faceElementIndices (storage, -1);
 
 #ifdef ESYS_MPI
     //chunkInfo stores the number of elements and number of face elements
@@ -290,14 +289,22 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
 #endif
 
 #pragma omp parallel for schedule(static)
-    for (int i=0; i<chunkSize; i++) {
+    for (int i=0; i<storage; i++) {
         id[i] = -1;
         tag[i] = -1;
         element_type[i] = NoRef;
     }
 
+    int chunkElements = 0;
+    int chunkFaceElements = 0;
+    int chunkOtherElements = 0;
+
     // read all in
-    for(int e = 0, count = 0; e < totalNumElements; e++, count++) {
+    for (int e = 0, count = 0; e < totalNumElements; e++, count++) {
+        if (cpuId >= mpi_info->size-1) {
+            chunkSize = rest;
+        }
+
         struct ElementInfo element = {NoRef, 0, 0, &vertices[count*MAX_numNodes_gmsh], 0};
         getSingleElement(fileHandle_p, numDim, version,
                 element, errorMsg, fname.c_str(), useMacroElements);
@@ -336,16 +343,18 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
             chunkOtherElements++;
         }
 #ifdef ESYS_MPI
-        if(count < chunkSize - 1)
+        if (count < chunkSize - 1)
             continue;
         chunkInfo[0]=chunkElements;
         chunkInfo[1]=chunkFaceElements;
 
-        if(cpuId++ > mpi_info->size) {
+        // the last chunk is left for the master process
+        if (++cpuId >= mpi_info->size) {
             continue;
         }
-        if(errorFlag){
-            for(; cpuId<mpi_info->size; cpuId++) {
+
+        if (errorFlag) {
+            for(; cpuId < mpi_info->size; cpuId++) {
                 MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
             }
             break;
@@ -356,8 +365,8 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
         MPI_Send(tag, chunkSize, MPI_INT, cpuId, 81722, mpi_info->comm);
         MPI_Send(element_type, chunkSize, MPI_INT, cpuId, 81723, mpi_info->comm);
         MPI_Send(chunkInfo, 2, MPI_INT, cpuId, 81724, mpi_info->comm);
-        MPI_Send(&(elementIndices[0]), chunkElements, MPI_INT, cpuId, 81725, mpi_info->comm);
-        MPI_Send(&(faceElementIndices[0]), chunkFaceElements, MPI_INT, cpuId, 81726, mpi_info->comm);
+        MPI_Send(&elementIndices[0], chunkElements, MPI_INT, cpuId, 81725, mpi_info->comm);
+        MPI_Send(&faceElementIndices[0], chunkFaceElements, MPI_INT, cpuId, 81726, mpi_info->comm);
 
         // reset arrays for next cpu
 #pragma omp parallel for schedule(static)
@@ -377,13 +386,11 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
     }
 
 #ifdef ESYS_MPI
-    if(mpi_info->size>1){
+    if (mpi_info->size > 1)
         MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpi_info->comm);
-    }
 #endif
-    if(errorFlag){
+    if(errorFlag)
         return errorFlag;
-    }
 
     // all elements have been read and shared, now we have to identify the
     // elements for finley
@@ -420,13 +427,11 @@ int getElementsMaster(escript::JMPI& mpi_info, Mesh* mesh_p, FILE* fileHandle_p,
 #ifdef ESYS_MPI
     // Broadcast numNodes if there are multiple mpi procs
     if (mpi_info->size > 1) {
-        int msg[3] = {final_element_type, final_face_element_type, 
+        int msg[3] = {final_element_type, final_face_element_type,
                 contact_element_type};
         MPI_Bcast(msg, 3, MPI_INT,  0, mpi_info->comm);
     }
 #endif
-
-
 
     refElements.reset(new ReferenceElementSet(final_element_type, order, reduced_order));
     refFaceElements.reset(new ReferenceElementSet(final_face_element_type, order, reduced_order));
@@ -500,16 +505,14 @@ int getElementsSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     ElementTypeId final_element_type = NoRef;
     ElementTypeId final_face_element_type = NoRef;
     ElementTypeId contact_element_type = NoRef;
-    int totalNumElements=0;
     const_ReferenceElementSet_ptr refPoints, refContactElements;
     const_ReferenceElementSet_ptr refFaceElements, refElements;
     ElementTypeId * element_type;
 
-    int msg = 0;
-    MPI_Bcast(&msg, 1, MPI_INT, 0, mpi_info->comm);
-    totalNumElements = msg;
+    int totalNumElements=0;
+    MPI_Bcast(&totalNumElements, 1, MPI_INT, 0, mpi_info->comm);
 
-    int chunkSize = totalNumElements / mpi_info->size + 1, chunkElements=0;
+    int chunkSize = totalNumElements / mpi_info->size, chunkElements=0;
     int chunkFaceElements=0;
     int *id = new int[chunkSize+1];
     int *tag = new int[chunkSize+1];
@@ -531,10 +534,10 @@ int getElementsSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     /* Each worker receives messages */
     MPI_Status status;
 
-    MPI_Recv(&errorFlag, 1, MPI_INT,0, 81719, mpi_info->comm, &status);
-    if (errorFlag) {
+    MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpi_info->comm, &status);
+    if (errorFlag)
         return errorFlag;
-    }
+
     MPI_Recv(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, 0, 81720, mpi_info->comm, &status);
     MPI_Recv(id, chunkSize, MPI_INT, 0, 81721, mpi_info->comm, &status);
     MPI_Recv(tag, chunkSize, MPI_INT, 0, 81722, mpi_info->comm, &status);
@@ -542,14 +545,13 @@ int getElementsSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     MPI_Recv(chunkInfo, 2, MPI_INT, 0, 81724, mpi_info->comm, &status);
     chunkElements = chunkInfo[0];
     chunkFaceElements = chunkInfo[1];
-    MPI_Recv(&(elementIndices[0]), chunkElements, MPI_INT, 0, 81725, mpi_info->comm,&status);
-    MPI_Recv(&(faceElementIndices[0]), chunkFaceElements, MPI_INT, 0, 81726, mpi_info->comm,&status);
+    MPI_Recv(&elementIndices[0], chunkElements, MPI_INT, 0, 81725, mpi_info->comm,&status);
+    MPI_Recv(&faceElementIndices[0], chunkFaceElements, MPI_INT, 0, 81726, mpi_info->comm,&status);
 
 
     MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpi_info->comm);
-    if (errorFlag) {
+    if (errorFlag)
         return errorFlag;
-    }
 
     // all elements have been read and shared, now we have to identify the
     // elements for finley
@@ -610,19 +612,6 @@ int getElementsSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     delete[] element_type;
     return errorFlag;
 #endif // ESYS_MPI
-}
-
-int getElements(escript::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p,
-        std::string& errorMsg, bool useMacroElements, const std::string fname,
-        int numDim, double version, int order, int reduced_order) {
-    if (mpi_info->rank == 0) {
-        return getElementsMaster(mpi_info, mesh_p, fileHandle_p,
-                errorMsg, useMacroElements, fname,
-                numDim, version, order, reduced_order);
-    }
-    return getElementsSlave(mpi_info, mesh_p, fileHandle_p,
-                errorMsg, useMacroElements, fname,
-                numDim, version, order, reduced_order);
 }
 
 int gather_nodes(FILE *f, std::map<int,int>& tags, std::string& errorMsg,
@@ -700,45 +689,37 @@ int gather_nodes(FILE *f, std::map<int,int>& tags, std::string& errorMsg,
 }
 
 int getNodesMaster(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
+                   int numDim, std::string& errorMsg, std::map<int, int>& tags)
 {
-    int numNodes=0;
+    int errorFlag = 0;
     std::vector<char> line;
     if (!get_line(line, fileHandle_p))
         errorFlag = EARLY_EOF;
+
+    int numNodes = 0;
     int scan_ret = sscanf(&line[0], "%d", &numNodes);
     SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
     // Broadcast numNodes if there are multiple mpi procs
-    if (mpi_info->size > 1) {
+    if (mpi_info->size > 1)
         MPI_Bcast(&numNodes, 1, MPI_INT,  0, mpi_info->comm);
-    }
 #endif
-    int chunkSize;
-    if(mpi_info->size > 1) {
-        chunkSize = (numNodes / mpi_info->size) + 1;
-    } else {
-        chunkSize = (numNodes / mpi_info->size);
-    }
-    int totalNodes=0, chunkNodes = 0;
-    int *tempInts = new int[chunkSize+1];        /* Stores the integer message data */
-    double *tempCoords = new double[chunkSize*numDim]; /* Stores the double message data */
+    int chunkSize = numNodes / mpi_info->size;
+    const int rest = numNodes - (mpi_info->size-1)*chunkSize;
+    const size_t storage = std::max(chunkSize, rest);
+    std::vector<int> tempInts(storage+1, -1);
+    std::vector<double> tempCoords(storage*numDim, -1.);
+
+    int totalNodes=0;
 
     for (int nextCPU = mpi_info->size-1; nextCPU >= 0; nextCPU--) {
-//intialise arrays
-#pragma omp parallel for schedule(static)
-        for (int i=0; i<chunkSize+1; i++)
-            tempInts[i] = -1;
-#pragma omp parallel for schedule(static)
-        for (int i=0; i<chunkSize*numDim; i++)
-            tempCoords[i] = -1.0;
+        if (nextCPU == 0)
+            chunkSize = rest;
+
         if (!errorFlag) {
-            if (nextCPU ==0) {
-                chunkSize = numNodes-totalNodes;
-            }
             //read in chunksize nodes
-            for (chunkNodes=0; chunkNodes<chunkSize; chunkNodes++) {
-                if(totalNodes > numNodes) {
+            for (int chunkNodes=0; chunkNodes<chunkSize; chunkNodes++) {
+                if (totalNodes > numNodes) {
                     std::stringstream ss;
                     ss << "readGmsh: too many nodes (" << totalNodes << " < "
                         << numNodes << ")";
@@ -749,11 +730,11 @@ int getNodesMaster(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
                 std::vector<char> line;
                 if (!get_line(line, fileHandle_p))
                     errorFlag = EARLY_EOF;
-                
+
                 if (is_endnode_string(&line[0])) {
                     errorMsg = "readGmsh: found end node string while still reading nodes!";
                     errorFlag = THROW_ERROR;
-                    break;   
+                    break;
                 } else {
                     if (1 == numDim) {
                         scan_ret = sscanf(&line[0], "%d %le\n", &tempInts[chunkNodes], &tempCoords[0+chunkNodes*numDim]);
@@ -775,28 +756,27 @@ int getNodesMaster(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
             MPI_Send(&errorFlag, 1, MPI_INT, nextCPU, 81719, mpi_info->comm);
             /* send out this chunk of mesh to the next waiting node */
             if (!errorFlag) {
-                tempInts[chunkSize] = chunkNodes;   /* The message has one more int to send chunkNodes */
-                MPI_Send(tempInts, chunkSize+1, MPI_INT, nextCPU, 81720, mpi_info->comm);
-                MPI_Send(tempCoords, chunkSize*numDim, MPI_DOUBLE, nextCPU, 81721, mpi_info->comm);
+                // The message has one more int to send chunkSize
+                tempInts[chunkSize] = chunkSize;
+                MPI_Send(&tempInts[0], chunkSize+1, MPI_INT, nextCPU, 81720, mpi_info->comm);
+                if (chunkSize > 0)
+                    MPI_Send(&tempCoords[0], chunkSize*numDim, MPI_DOUBLE, nextCPU, 81721, mpi_info->comm);
             }
         }
 #endif
     }
 
-
 #ifdef ESYS_MPI
-    if (mpi_info->size > 1) {
+    if (mpi_info->size > 1)
         MPI_Bcast(&errorFlag, 1, MPI_INT, 0, mpi_info->comm);
-    }
 #endif
-    if (errorFlag) {
+    if (errorFlag)
         return errorFlag;
-    }
 
-    mesh_p->Nodes->allocTable(chunkNodes);
+    mesh_p->Nodes->allocTable(chunkSize);
 
 #pragma omp parallel for schedule(static)
-    for (int i=0; i<chunkNodes; i++) {
+    for (int i=0; i<chunkSize; i++) {
         mesh_p->Nodes->Id[i] = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
         int tag = tags[tempInts[i]];
@@ -811,13 +791,11 @@ int getNodesMaster(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
 
     }
 
-    delete[] tempInts;
-    delete[] tempCoords;
     return errorFlag;
 }
 
 int getNodesSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
+                  int numDim, std::string& errorMsg, std::map<int, int>& tags)
 {
 #ifndef ESYS_MPI
     throw FinleyException("slave function called in non-MPI build");
@@ -826,26 +804,27 @@ int getNodesSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
     if (mpi_info->size == 1)
         throw FinleyException("slave function called without master");
 
-    int numNodes=0;
+    int errorFlag = 0;
+    int numNodes = 0;
 
-    // Broadcast numNodes if there are multiple mpi procs
+    // get numNodes from the master
     MPI_Bcast(&numNodes, 1, MPI_INT,  0, mpi_info->comm);
-    int chunkSize = (numNodes / mpi_info->size) + 1, chunkNodes=0;
-    int *tempInts = new int[chunkSize+1];        /* Stores the integer message data */
-    double *tempCoords = new double[chunkSize*numDim]; /* Stores the double message data */
-    /* Each worker receives two messages */
+    int chunkSize = numNodes / mpi_info->size, chunkNodes=0;
+    int *tempInts = new int[chunkSize+1]; // Stores the integer message data
+    double *tempCoords = new double[chunkSize*numDim]; // Stores the double message data
+    // Each worker receives two messages
     MPI_Status status;
-    MPI_Recv(&errorFlag, 1, MPI_INT,0, 81719, mpi_info->comm, &status);
-    if(!errorFlag){
+    MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpi_info->comm, &status);
+    if (!errorFlag) {
         MPI_Recv(tempInts, chunkSize+1, MPI_INT, 0, 81720, mpi_info->comm, &status);
-        MPI_Recv(tempCoords, chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpi_info->comm, &status);
-        chunkNodes = tempInts[chunkSize];   /* How many nodes are in this workers chunk? */
+        if (chunkSize > 0)
+            MPI_Recv(tempCoords, chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpi_info->comm, &status);
+        chunkNodes = tempInts[chunkSize]; // How many nodes are in this workers chunk?
     }
 
     MPI_Bcast(&errorFlag, 1, MPI_INT, 0, mpi_info->comm);
-    if (errorFlag) {
+    if (errorFlag)
         return errorFlag;
-    }
 
     mesh_p->Nodes->allocTable(chunkNodes);
 
@@ -862,31 +841,19 @@ int getNodesSlave(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
         for (int j=0; j<numDim; j++) {
             mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
-
     }
 
     delete[] tempInts;
     delete[] tempCoords;
     return errorFlag;
-#endif //#ifndef ESYS_MPI -> #else
-}
-
-int getNodes(escript::JMPI& mpi_info, Mesh *mesh_p, FILE *fileHandle_p,
-        int numDim, std::string& errorMsg, std::map< int, int>& tags, int errorFlag)
-{
-    if (mpi_info->rank == 0)
-        return getNodesMaster(mpi_info, mesh_p, fileHandle_p, numDim, errorMsg,
-                tags, errorFlag);
-
-    return getNodesSlave(mpi_info, mesh_p, fileHandle_p, numDim, errorMsg,
-                tags, errorFlag);
+#endif // ESYS_MPI
 }
 
 int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
     std::vector<char> line;
     do {
         if (!get_line(line, f)) { //got no line
-            //check to see we atleast have some nodes and elements
+            //check to see we at least have some nodes and elements
             if (!nodesRead) {
                 //EOF before nodes section found
                 return MISSING_NODES;
@@ -941,15 +908,15 @@ int check_error(int error, FILE *f, const std::string& errorMsg)
             break;
         case ERROR:
             throw FinleyException("ERROR set for unknown reason");
-        case EARLY_EOF: //early eof while scanning
-            throw escript::IOError("early eof while scanning");
+        case EARLY_EOF: //early EOF while scanning
+            throw escript::IOError("early EOF while scanning");
         case MISSING_NODES:  //EOF before nodes section found
             throw escript::IOError("EOF before nodes section found");
         case MISSING_ELEMENTS:
             throw escript::IOError("EOF before elements section found");
         case THROW_ERROR: // throw errorMsg
             throw escript::IOError(errorMsg);
-        case SUCCESS: // eof at apropriate time.
+        case SUCCESS: // EOF at apropriate time.
             if (f)
                 fclose(f);
             break;
@@ -960,8 +927,9 @@ int check_error(int error, FILE *f, const std::string& errorMsg)
     return error;
 }
 
-Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                     int reduced_order, bool optimize, bool useMacroElements)
+Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname,
+                           int numDim, int order, int reduced_order,
+                           bool optimize, bool useMacroElements)
 {
     double version = 1.0;
     bool nodesRead=false, elementsRead=false;
@@ -992,7 +960,7 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
         throw escript::IOError(errorMsg);
     }
     // start reading
-    while (errorFlag==0) {
+    while (!errorFlag) {
         // find line starting with $
         logicFlag=0;
         errorFlag = get_next_state(fileHandle_p, nodesRead, elementsRead, &logicFlag);
@@ -1001,7 +969,7 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
         if (check_error(errorFlag, fileHandle_p, errorMsg) == SUCCESS)
             break;
         // format
-        if (logicFlag == 1 && errorFlag == 0) {
+        if (logicFlag == 1 && !errorFlag) {
             std::vector<char> fmt;
             if (!get_line(fmt, fileHandle_p))
                 errorFlag = EARLY_EOF;
@@ -1009,7 +977,7 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
             SSCANF_CHECK(scan_ret);
         }
         // nodes are read
-        else if (logicFlag == 2 && errorFlag ==0) {
+        else if (logicFlag == 2 && !errorFlag) {
             nodesRead=true;
             std::vector<int> sendable_map;
             long current = ftell(fileHandle_p);
@@ -1037,18 +1005,19 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
                     nodeTags[sendable_map[j]] = sendable_map[j + 1];
             }
 #endif
-            errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,
-                    errorMsg, nodeTags, errorFlag);
+            errorFlag = getNodesMaster(mpi_info, mesh_p, fileHandle_p, numDim,
+                    errorMsg, nodeTags);
         }
         // elements
-        else if(logicFlag==3 && errorFlag ==0) {
-            elementsRead=true;
-            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, errorMsg,
-                    useMacroElements, fname, numDim, version, order,
+        else if (logicFlag == 3 && !errorFlag) {
+            elementsRead = true;
+            errorFlag=getElementsMaster(mpi_info, mesh_p, fileHandle_p,
+                    errorMsg, useMacroElements, fname, numDim, version, order,
                     reduced_order);
         }
-        // name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca )
-        else if (logicFlag==4 && errorFlag == 0) {
+        // name tags
+        // (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca)
+        else if (logicFlag == 4 && !errorFlag) {
             std::vector<char> names;
             if (!get_line(names, fileHandle_p))
                 errorFlag = EARLY_EOF;
@@ -1057,9 +1026,8 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
             SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
             // Broadcast numNames if there are multiple mpi procs
-            if (mpi_info->size > 1) {
+            if (mpi_info->size > 1)
                 MPI_Bcast(&numNames, 1, MPI_INT,  0, mpi_info->comm);
-            }
 #endif
             for (int i = 0; i < numNames; i++) {
                 std::vector<char> line;
@@ -1069,8 +1037,8 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
                 int tag_info[2] = {0};
                 char *position = &line[0];
                 //skip the first int, it's the physical dimension
-                if (next_space(&position, 1) == NULL 
-                        || sscanf(position, "%d", tag_info) != 1 
+                if (next_space(&position, 1) == NULL
+                        || sscanf(position, "%d", tag_info) != 1
                         || next_space(&position, 1) == NULL
                         || sscanf(position, "%s", name) != 1) {
                     errorFlag = ERROR;
@@ -1086,7 +1054,6 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname, int
                 }
 #endif
                 mesh_p->addTagMap(name+1, tag_info[0]); //skip leading "
-
             }
         }
 
@@ -1140,7 +1107,7 @@ Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int 
         recv_state(mpi_info, &errorFlag, &logicFlag);
         if (check_error(errorFlag, NULL, errorMsg) == SUCCESS)
             break;
-         
+
         /* format */
         /* nodes are read */
         if (logicFlag == 2) {
@@ -1154,17 +1121,18 @@ Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int 
             for (int j = 0; j < mapsize; j += 2)
                 nodeTags[sendable_map[j]] = sendable_map[j + 1];
 
-            errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,
-                    errorMsg, nodeTags, errorFlag);
+            errorFlag = getNodesSlave(mpi_info, mesh_p, fileHandle_p, numDim,
+                    errorMsg, nodeTags);
         }
-
-        /* elements */
-        else if(logicFlag==3) {
-            errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, errorMsg, useMacroElements,
-                    fname, numDim, version, order, reduced_order);
+        // elements
+        else if (logicFlag == 3) {
+            errorFlag = getElementsSlave(mpi_info, mesh_p, fileHandle_p,
+                    errorMsg, useMacroElements, fname, numDim, version, order,
+                    reduced_order);
         }
-         /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
-        else if (logicFlag==4) {
+        // name tags
+        // (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca)
+        else if (logicFlag == 4) {
             // Broadcast numNames if there are multiple mpi procs
             MPI_Bcast(&numNames, 1, MPI_INT,  0, mpi_info->comm);
             for (i = 0; i < numNames; i++) {
@@ -1180,8 +1148,7 @@ Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int 
         recv_state(mpi_info, &errorFlag, &logicFlag);
         if (check_error(errorFlag, NULL, errorMsg) == SUCCESS)
             break;
-    //end while loop
-    }
+    } //end while loop
 
     // resolve id's
     mesh_p->resolveNodeIds();
