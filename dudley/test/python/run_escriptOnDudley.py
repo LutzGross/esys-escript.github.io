@@ -38,7 +38,7 @@ try:
 except KeyError:
      DUDLEY_WORKDIR='.'
 
-NE=4 # number elements, must be even
+NE=max(4, getMPISizeWorld()) # number elements, must be even
 
 class Test_SharedOnDudley(Test_Shared):
   def setUp(self):
