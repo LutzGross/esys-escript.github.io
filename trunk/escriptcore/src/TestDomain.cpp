@@ -29,14 +29,25 @@ const int TestDomainFS=1;     // Null domains only support 1 functionspace type.
 }
 
 TestDomain::TestDomain(int pointspersample, int numsamples, int dpsize)
-        : m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
+        : m_totalsamples(numsamples), m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
 {
     int world=getMPISizeWorld();
     int rank=getMPIRankWorld();
     m_samples/=world;
+    m_originsample=rank*m_samples;	// how many samples have gone to earlier ranks before we start    
     if (world > 1 && rank < numsamples%world) {
         m_samples++;
     }
+    if ((world > 1) && (numsamples%world))
+    {
+	m_originsample+=(rank<numsamples%world?rank:numsamples%world);      
+    }
+    m_endsample=m_originsample+numsamples/world;
+    if ((world > 1) && (rank < numsamples%world))
+    {
+	m_endsample++;      
+    }
+    m_endsample--;		// so that the end_sample is inclusive
     m_samplerefids=new DataTypes::dim_t[numsamples];
     for (DataTypes::dim_t i=0; i<numsamples; ++i) {
         m_samplerefids[i]=i+10; // the +10 is arbitrary.
@@ -226,7 +237,7 @@ escript::Data TestDomain::getX() const
         DataTypes::RealVectorType& vec=res.getReady()->getVectorRW();
         for (DataTypes::dim_t i=0; i<m_samples; ++i) {
             for (int j=0; j<m_dpps; ++j) {
-                vec[i*m_dpps+j]=i+(1.0*j)/m_dpps;
+                vec[i*m_dpps+j]=m_originsample+i+(1.0*j)/m_dpps;
             }
         }
         return res;
@@ -240,7 +251,7 @@ escript::Data TestDomain::getX() const
     for (DataTypes::dim_t i=0; i<m_samples; ++i) {
         for (int j=0; j<m_dpps; ++j) {
             for (int k=0; k<m_dpsize; ++k) {
-                vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=i+j*majorstep+k*minorstep;
+                vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=(i+m_originsample)+j*majorstep+k*minorstep;
             }
         }
     }
@@ -284,11 +295,15 @@ const int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 
 void TestDomain::assignTags(std::vector<int> t)
 {
-    if (t.size()!=m_samples)
+    if (t.size()!=m_totalsamples)
     {
 	throw DataException("Programming error - Tag vector must be the same size as the number of samples.");
     }
-    tag_assignment=t;  
+    tag_assignment=std::vector<int>(m_samples);
+    for (int i=m_originsample;i<=m_endsample;++i)
+    {
+	tag_assignment[i-m_originsample]=t[i];
+    }
 }
 
 

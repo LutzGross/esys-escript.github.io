@@ -107,7 +107,12 @@ public:
     void resetTagAssignments();
 
 private:
+    DataTypes::dim_t m_totalsamples;	// samples in all worlds  
     DataTypes::dim_t m_samples;       // number of samples
+    DataTypes::dim_t m_originsample;
+    DataTypes::dim_t m_endsample;
+
+    
     int m_dpps;            // data points per sample
     int m_dpsize;          // how big are the datapoints?
     DataTypes::dim_t* m_samplerefids; // sample reference ids
