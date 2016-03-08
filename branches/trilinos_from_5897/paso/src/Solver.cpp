@@ -307,6 +307,7 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                                     << totIter << " (residual = "
                                     << tol << "). Restarting ...\n";
                             finalizeIteration = false;
+                            errorCode = NoError;
                         }
                     } else {
                         if (options->verbose)

@@ -2364,6 +2364,21 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
   }
 }
 
+
+/**
+  \brief
+  Compute a tensor operation with two Data objects
+  \param arg_0 - Input - Data object
+  \param arg_1 - Input - Data object
+  \param operation - Input - Binary op functor
+*/
+Data
+C_TensorBinaryOperation(Data const &arg_0,
+                        Data const &arg_1,
+                        ESFunction operation);
+
+
+
 /**
   \brief
   Compute a tensor operation with two Data objects

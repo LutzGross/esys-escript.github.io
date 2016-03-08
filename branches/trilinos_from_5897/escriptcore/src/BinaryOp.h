@@ -269,6 +269,26 @@ inline void binaryOpDataReadyHelperCC(DataConstant& left, const DataConstant& ri
   }
 }
 
+void binaryOpDataCCC(DataConstant& result, const DataConstant& left, const DataConstant& right, 
+		     escript::ESFunction operation);
+void binaryOpDataTCT(DataTagged& result, const DataConstant& left, const DataTagged& right, 
+		     escript::ESFunction operation);
+void binaryOpDataTTC(DataTagged& result, const DataTagged& left, const DataConstant& right, 
+		     escript::ESFunction operation);
+void binaryOpDataTTT(DataTagged& result, const DataTagged& left, const DataTagged& right, 
+		     escript::ESFunction operation);
+void binaryOpDataEEC(DataExpanded& result, const DataExpanded& left, const DataConstant& right, 
+		     escript::ESFunction operation);
+void binaryOpDataECE(DataExpanded& result, const DataConstant& left, const DataExpanded& right, 
+		     escript::ESFunction operation);
+void binaryOpDataEEE(DataExpanded& result, const DataExpanded& left, const DataExpanded& right, 
+		     escript::ESFunction operation);
+void binaryOpDataETE(DataExpanded& result, const DataTagged& left, const DataExpanded& right, 
+		     escript::ESFunction operation);
+void binaryOpDataEET(DataExpanded& result, const DataExpanded& left, const DataTagged& right, 
+ 		     escript::ESFunction operation);
+
+
 inline void binaryOpDataReady(DataConstant& left, const DataConstant& right, 
 		     escript::ESFunction operation)
 {

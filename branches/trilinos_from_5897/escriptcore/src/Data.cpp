@@ -2885,6 +2885,10 @@ escript::operator+(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,ADD);
     BINOPTENSOR(left,plus_func)
+    
+    
+//    return C_TensorBinaryOperation(left, right, ESFunction::PLUSF);
+//     BINOPTENSOR(left,plus_func)
 }
 
 //
@@ -5173,5 +5177,119 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   }
 
   return res;
+}
+
+// This version will call binaryOpData???
+Data
+escript::C_TensorBinaryOperation(Data const &arg_0,
+                        Data const &arg_1,
+                        ESFunction operation)
+{
+  if (arg_0.isEmpty() || arg_1.isEmpty())
+  {
+     throw DataException("Error - Operations (C_TensorBinaryOperation) not permitted on instances of DataEmpty.");
+  }
+  if (arg_0.isLazy() || arg_1.isLazy())
+  {
+     throw DataException("Error - Operations not permitted on lazy data.");
+  }
+  
+  // Interpolate if necessary and find an appropriate function space
+  Data arg_0_Z, arg_1_Z;
+  FunctionSpace fsl=arg_0.getFunctionSpace();
+  FunctionSpace fsr=arg_1.getFunctionSpace();
+  if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - C_TensorBinaryOperation: arguments have incompatible function spaces.";
+         msg+=fsl.toString();
+         msg+=" ";
+         msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
+      arg_1_Z=arg_1.interpolate(arg_0.getFunctionSpace());
+      arg_0_Z =Data(arg_0);      
+     }
+     else	// reverse interpolation preferred
+     {
+      arg_0_Z = arg_0.interpolate(arg_1.getFunctionSpace());
+      arg_1_Z = Data(arg_1);
+     }    
+  } else {
+      arg_0_Z = Data(arg_0);
+      arg_1_Z = Data(arg_1);
+  }
+  DataTypes::ShapeType shape0 = arg_0_Z.getDataPointShape();
+  DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
+  
+  DataTypes::ShapeType resultshape=((arg_0_Z.getDataPointRank()!=0)?shape0:shape1);
+  
+  if ((shape0==shape1) || (arg_0_Z.getDataPointRank()==0) || (arg_1_Z.getDataPointRank()==0))
+  {
+    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant())
+    {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataConstant output
+      binaryOpDataCCC(*dynamic_cast<DataConstant*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged())
+    {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataTagged output
+      res.tag();
+      binaryOpDataTCT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded())
+    {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      binaryOpDataECE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant())
+    {
+      Data res(0.0, resultshape, arg_0_Z.getFunctionSpace());      // DataTagged output
+      res.tag();
+      binaryOpDataTTC(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged())
+    {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());
+      res.tag();        // DataTagged output
+      binaryOpDataTTT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded())
+    {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      
+      binaryOpDataETE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      binaryOpDataEEC(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+
+      binaryOpDataEET(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      binaryOpDataEEE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      return res;
+    }
+    else {
+      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
+    }
+  } else {
+    throw DataException("Error - C_TensorBinaryOperation: arguments have incompatible shapes");
+  }
 }
 

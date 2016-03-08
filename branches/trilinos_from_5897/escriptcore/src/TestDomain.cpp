@@ -29,18 +29,31 @@ const int TestDomainFS=1;     // Null domains only support 1 functionspace type.
 }
 
 TestDomain::TestDomain(int pointspersample, int numsamples, int dpsize)
-        : m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
+        : m_totalsamples(numsamples), m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
 {
     int world=getMPISizeWorld();
     int rank=getMPIRankWorld();
     m_samples/=world;
+    m_originsample=rank*m_samples;	// how many samples have gone to earlier ranks before we start    
     if (world > 1 && rank < numsamples%world) {
         m_samples++;
     }
+    if ((world > 1) && (numsamples%world))
+    {
+	m_originsample+=(rank<numsamples%world?rank:numsamples%world);      
+    }
+    m_endsample=m_originsample+numsamples/world;
+    if ((world > 1) && (rank < numsamples%world))
+    {
+	m_endsample++;      
+    }
+    m_endsample--;		// so that the end_sample is inclusive
     m_samplerefids=new DataTypes::dim_t[numsamples];
     for (DataTypes::dim_t i=0; i<numsamples; ++i) {
         m_samplerefids[i]=i+10; // the +10 is arbitrary.
     }                           // so these ids look different from others
+    mytags.push_back(0);
+    resetTagAssignments();
 }
 
 TestDomain::~TestDomain()
@@ -179,7 +192,11 @@ std::pair<int,DataTypes::dim_t> TestDomain::getDataShape(int functionSpaceCode) 
 
 int TestDomain::getTagFromSampleNo(int functionSpaceType, DataTypes::index_t sampleNo) const
 {
-    return 0;
+    if (sampleNo>=tag_assignment.size())
+    {
+	throw DataException("invalid sample number");
+    }
+    return tag_assignment[sampleNo];
 }
 
 const DataTypes::dim_t* TestDomain::borrowSampleReferenceIDs(int functionSpaceType) const
@@ -210,14 +227,7 @@ bool TestDomain::canTag(int functionSpaceCode) const
 
 int TestDomain::getNumberOfTagsInUse(int functionSpaceCode) const
 {
-    // this is not arbitrary.
-    // It allows us to report that the default tag is in use
-    return 1;
-}
-
-const int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
-{
-    return defaultList;
+    return mytags.size();
 }
 
 escript::Data TestDomain::getX() const
@@ -227,7 +237,7 @@ escript::Data TestDomain::getX() const
         DataTypes::RealVectorType& vec=res.getReady()->getVectorRW();
         for (DataTypes::dim_t i=0; i<m_samples; ++i) {
             for (int j=0; j<m_dpps; ++j) {
-                vec[i*m_dpps+j]=i+(1.0*j)/m_dpps;
+                vec[i*m_dpps+j]=m_originsample+i+(1.0*j)/m_dpps;
             }
         }
         return res;
@@ -241,7 +251,7 @@ escript::Data TestDomain::getX() const
     for (DataTypes::dim_t i=0; i<m_samples; ++i) {
         for (int j=0; j<m_dpps; ++j) {
             for (int k=0; k<m_dpsize; ++k) {
-                vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=i+j*majorstep+k*minorstep;
+                vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=(i+m_originsample)+j*majorstep+k*minorstep;
             }
         }
     }
@@ -260,12 +270,63 @@ escript::Data TestDomain::randomFill(const DataTypes::ShapeType& shape,
     return towipe;
 }
 
+void TestDomain::addUsedTag(int t)
+{
+    for (auto i=mytags.begin();i!=mytags.end();++i)
+    {
+	if (*i==t)
+	{
+	    return;
+	}
+    }
+    mytags.push_back(t);
+}
+
+void TestDomain::clearUsedTags()
+{
+    mytags.clear();
+    mytags.push_back(0);
+}
+
+const int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
+{
+    return &mytags[0];
+}
+
+void TestDomain::assignTags(std::vector<int> t)
+{
+    if (t.size()!=m_totalsamples)
+    {
+	throw DataException("Programming error - Tag vector must be the same size as the number of samples.");
+    }
+    tag_assignment=std::vector<int>(m_samples);
+    for (int i=m_originsample;i<=m_endsample;++i)
+    {
+	tag_assignment[i-m_originsample]=t[i];
+    }
+}
+
+
+void TestDomain::resetTagAssignments()
+{
+    tag_assignment=std::vector<int>(m_samples);
+    for (size_t i=0;i<m_samples;++i)
+    {
+	tag_assignment[i]=0;
+    }
+}
+
+
 FunctionSpace getTestDomainFunctionSpace(int dpps, DataTypes::dim_t samples, int dpsize)
 {
     TestDomain* td=new TestDomain(dpps, samples, dpsize);
     Domain_ptr p=Domain_ptr(td);
     return FunctionSpace(p, td->getDefaultCode());
 }
+
+
+
+
 
 }  // end of namespace
 

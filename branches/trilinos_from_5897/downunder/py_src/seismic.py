@@ -39,7 +39,11 @@ from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE, S
 OBSPY_AVAILABLE = False
 try:
     from obspy import Trace, Stream, UTCDateTime
-    from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
+    try:
+        # new interface
+        from obspy.io.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
+    except:
+        from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
     from obspy.core import AttribDict
     OBSPY_AVAILABLE = True
 except:

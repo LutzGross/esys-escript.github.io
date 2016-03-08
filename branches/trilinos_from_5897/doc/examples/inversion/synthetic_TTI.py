@@ -40,17 +40,17 @@ rho=     [ 2000 * U.kg/U.m**3  , 2000 * U.kg/U.m**3, 2000 * U.kg/U.m**3 ]
 #
 #   other input:
 #
-t_end=0.008*U.sec                   #only this low for testing purposes
-frq=10.*U.Hz                         #  dominant frequnce in the Ricker (maximum frequence ~ 2 * frq)
+t_end=0.008*U.sec                   # only this low for testing purposes
+frq=10.*U.Hz                        # dominant frequnce in the Ricker (maximum frequence ~ 2 * frq)
 sampling_interval=4*U.msec          # sampling interval
 ne_z=None                           # number of elements in vertical direction, if none it is guessed 
 n_out = 5                         # a silo file is created every n_out's sample
-absorption_zone=100*U.m             # absorbtion zone to be added in horizantal direction to the area covered by receiver line 
+absorption_zone=100*U.m             # absorbtion zone to be added in horizontal direction to the area covered by receiver line 
                                     # and subtracted from the lowest layer.
 # defines the receiver line 
-rangeRcv=800*U.m                    # width of the receveiver line
-numRcvPerLine=101                   # total number of receiver
-src_id=numRcvPerLine//2              # location of source in crossing array lines with in 0..numRcvInLine 
+rangeRcv=800*U.m                    # width of the receiver line
+numRcvPerLine=101                   # total number of receivers
+src_id=numRcvPerLine//2             # location of source in crossing array lines with in 0..numRcvInLine 
 lumping = True
 src_dir=[0,1]
 
@@ -59,6 +59,8 @@ width_x=rangeRcv + 4*absorption_zone
 depth=sum(layers)
 if ne_z is None:
     ne_z=int(ceil(depth*(2*frq)/min(v_P)))
+    if getMPISizeWorld() > 10:
+        ne_z = 2*ne_z-1
 ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create receiver array 
