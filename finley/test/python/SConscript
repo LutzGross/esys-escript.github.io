@@ -40,7 +40,7 @@ testruns += ['run_linearPDEsOnFinley3.py']
 testruns += ['run_linearPDEsOnFinleyMacro.py']
 testruns += ['run_models.py']
 testruns += ['run_darcy.py']
-testruns += ['run_simplesolve.py']
+testruns += ['run_pasoSolversOnFinley.py']
 testruns += ['run_utilOnFinley.py']
 # testruns += ['run_visualization_interface.py']
 testruns += ['run_amg.py'] 
@@ -51,7 +51,7 @@ testruns += ['run_splitworldOnFinley.py']
 #  files defining a few tests for a quick test
 scalable_tests = []
 scalable_tests += ['run_inputOutput.py']
-scalable_tests += ['run_simplesolve.py']
+scalable_tests += ['run_pasoSolversOnFinley.py']
 
 # files defining tests run locally (not as part of a release)
 localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
