@@ -14,8 +14,7 @@
 *
 *****************************************************************************/
 
-
-#include <iostream>
+#include <escript/EsysMPI.h>
 
 #include "DataAlgorithmAdapterTestCase.h"
 #include "DataConstantTestCase.h"
@@ -33,8 +32,9 @@
 #include "FunctionSpaceTestCase.h"
 #include "SharedDataTestCase.h"
 #include "TaipanTestCase.h"
+#include "DataCombinationsTestCase.h"
 
-#include "escript/EsysMPI.h"
+#include <iostream>
 
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
@@ -67,11 +67,12 @@ int main(int argc, char* argv[])
 	runner.addTest(DataVectorTestCase::suite());
 	runner.addTest(DataMathsTestCase::suite());
  	runner.addTest(DataAlgorithmAdapterTestCase::suite());
-    runner.addTest(FileWriterTestCase::suite());
+	runner.addTest(FileWriterTestCase::suite());
 	runner.addTest(TaipanTestCase::suite());
 	runner.addTest(FunctionSpaceTestCase::suite());
 	runner.addTest(DataTestCase::suite());
 	runner.addTest(DataLazyTestCase::suite());
+	runner.addTest(DataCombinationsTestCase::suite());
 
 	runner.run(controller);
     CompilerOutputter outputter( &result, std::cerr );

@@ -642,7 +642,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
    VERBOSE=False # or True
    A=1.
    P_max=100
-   NE=2*getMPISizeWorld()
+   NE=min(24, 2*getMPISizeWorld())
    tau_Y=10.
    N_dt=10
 

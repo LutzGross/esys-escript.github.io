@@ -85,10 +85,23 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh* in, bool use_reduced_e
     }
 
     len_loc_dof = max_DOF - min_DOF + 1;
-    if (!((min_DOF <= myFirstDOF) && (myLastDOF - 1 <= max_DOF)))
-    {
-        throw DudleyException("Local elements do not span local degrees of freedom.");
+    std::stringstream ss;
+    if (myFirstDOF<myLastDOF && !(min_DOF <= myFirstDOF && myLastDOF-1 <= max_DOF)) {
+        ss << "createDOFMappingAndCoupling: Local elements do not span local "
+              "degrees of freedom. min_DOF=" << min_DOF << ", myFirstDOF="
+           << myFirstDOF << ", myLastDOF-1=" << myLastDOF-1
+           << ", max_DOF=" << max_DOF << " on rank=" << in->MPIInfo->rank;
     }
+    const std::string msg(ss.str());
+    int error = msg.length();
+    int gerror = error;
+    escript::checkResult(error, gerror, in->MPIInfo);
+    if (gerror > 0) {
+        char* gmsg;
+        escript::shipString(msg.c_str(), &gmsg, in->MPIInfo->comm);
+        throw DudleyException(gmsg);
+    }
+
     rcv_len = new  dim_t[mpiSize];
     snd_len = new  dim_t[mpiSize];
 #ifdef ESYS_MPI
