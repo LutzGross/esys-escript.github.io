@@ -1071,6 +1071,24 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
   }  
 }
 
+
+#define OPVECLAZY(X)     \
+    for (size_t j=0;j<onumsteps;++j)\
+    {\
+      for (size_t i=0;i<numsteps;++i,res+=resultStep) \
+      { \
+	  for (size_t s=0; s<chunksize; ++s)\
+	  {\
+	      res[i] = X;\
+	  }\
+/*	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X);*/ \
+	  lroffset+=leftstep; \
+	  rroffset+=rightstep; \
+      }\
+      lroffset+=oleftstep;\
+      rroffset+=orightstep;\
+    }
+
 /**
  * This assumes that all data involved have the same points per sample and same shape
  * This version is to be called from within DataLazy.
@@ -1091,25 +1109,17 @@ binaryOpVectorLazyHelper(ResELT* res,
 			 const size_t oleftstep,
 			 const size_t orightstep,			 
 			 escript::ESFunction operation)		// operation to perform
-{
-    size_t lroffset=0, rroffset=0;        // offsets in the left and right result vectors 
-    for (size_t j=0;j<onumsteps;++j)
+{ 
+    size_t lroffset=0, rroffset=0;        // offsets in the left and right result vectors
+    switch (operation)
     {
-      for (size_t i=0;i<numsteps;++i,res+=resultStep) 
-      { 
-// This is just apply the operator chunksize times
-	  for (size_t s=0; s<chunksize; ++s)
-	  {
-	      res[i] = left[lroffset+i]+right[rroffset+i];
-	  }
-//	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); 
-	  lroffset+=leftstep; 
-	  rroffset+=rightstep; 
-      }
-      lroffset+=oleftstep;
-      rroffset+=orightstep;
+      case PLUSF:
+	OPVECLAZY(left[lroffset+i]+right[rroffset+i])
+	break;
+      default:
+	std::cerr << "This should never happen\n";
+	// I can't throw here because this will be called inside a parallel section
     }
-  
 }
 
 /**
