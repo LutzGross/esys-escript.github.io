@@ -43,8 +43,8 @@ if env['usempi']:
     Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # Add a group of tests
-from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("SPECKLEY_TEST_DATA","$BATCH_ROOT/speckley/test/python"),('SPECKLEY_WORKDIR','$BUILD_DIR/speckley/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/speckley/test/python","$BATCH_ROOT/speckley/test/python",testruns)
+from grouptest import GroupTest
+tgroup=GroupTest("speckley", "$PYTHONRUNNER ", (("SPECKLEY_TEST_DATA","$BATCH_ROOT/speckley/test/python"),('SPECKLEY_WORKDIR','$BUILD_DIR/speckley/test/python')), "$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/speckley/test/python", "$BATCH_ROOT/speckley/test/python", testruns)
 tgroup.makeDir("$BUILD_DIR/speckley/test/python")
 TestGroups.append(tgroup)
 
