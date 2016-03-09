@@ -77,8 +77,8 @@ if env['usempi']:
     Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # Add a group of tests
-from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("DUDLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('DUDLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)
+from grouptest import GroupTest
+tgroup=GroupTest("dudley", "$PYTHONRUNNER ", (("DUDLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('DUDLEY_WORKDIR','$BUILD_DIR/dudley/test/python')), "$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/dudley/test/python", "$BATCH_ROOT/dudley/test/python", testruns)
 tgroup.makeDir("$BUILD_DIR/dudley/test/python")
 TestGroups.append(tgroup)
 
