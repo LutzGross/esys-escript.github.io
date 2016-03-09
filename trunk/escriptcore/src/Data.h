@@ -1801,6 +1801,9 @@ template <class BinaryOp>
   */
   void set_m_data(DataAbstract_ptr p);
 
+  
+  void TensorSelfUpdateBinaryOperation(const Data& right, escript::ESFunction operation);  
+  
   friend class DataAbstract;            // To allow calls to updateShareStatus
   friend class TestDomain;              // so its getX will work quickly
 #ifdef IKNOWWHATIMDOING
