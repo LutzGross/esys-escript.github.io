@@ -5371,3 +5371,80 @@ Data::TensorSelfUpdateBinaryOperation(const Data& right,
    }  
 }
 
+void
+Data::binaryDataOp(const Data& right,
+                   escript::ESFunction operation)
+{
+   //
+   // if this has a rank of zero promote it to the rank of the RHS
+   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
+     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
+   }
+
+   if (isLazy() || right.isLazy())
+   {
+     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
+   }
+   //
+   // initially make the temporary a shallow copy
+   Data tempRight(right);
+   FunctionSpace fsl=getFunctionSpace();
+   FunctionSpace fsr=right.getFunctionSpace();
+   if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
+         msg+=fsl.toString();
+         msg+="  ";
+         msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
+       // an interpolation is required so create a new Data
+       tempRight=Data(right,fsl);
+     }
+     else       // reverse interpolation preferred
+     {
+        // interpolate onto the RHS function space
+       Data tempLeft(*this,fsr);
+       set_m_data(tempLeft.m_data);
+     }
+   }
+   operandCheck(tempRight);
+   //
+   // ensure this has the right type for the RHS
+   typeMatchRight(tempRight);
+   //
+   // Need to cast to the concrete types so that the correct binaryOp
+   // is called.
+   if (isExpanded()) {
+     //
+     // Expanded data will be done in parallel, the right hand side can be
+     // of any data type
+     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
+     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
+     escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
+   } else if (isTagged()) {
+     //
+     // Tagged data is operated on serially, the right hand side can be
+     // either DataConstant or DataTagged
+     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
+     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
+     if (right.isTagged()) {
+       DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
+       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataTagged.");
+       escript::binaryOpDataReady(*leftC,*rightC,operation);
+     } else {
+       DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataConstant.");
+       escript::binaryOpDataReady(*leftC,*rightC,operation);
+     }
+   } else if (isConstant()) {
+     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
+     DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+     ESYS_ASSERT(leftC!=0 && rightC!=0, "Programming error - casting to DataConstant.");
+     escript::binaryOpDataReady(*leftC,*rightC,operation);
+   }  
+}
