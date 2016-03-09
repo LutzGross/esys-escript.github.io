@@ -87,10 +87,8 @@ SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
     if (gerror > 0) {
         char* gmsg;
         escript::shipString(msg.c_str(), &gmsg, outDist->mpi_info->comm);
-        std::string realmsg(error? msg : gmsg);
-        //throw PasoException(realmsg);
+        throw PasoException(gmsg);
     }
-    std::cerr << msg << std::endl;
 
     mpi_info = outDist->mpi_info;
 }
