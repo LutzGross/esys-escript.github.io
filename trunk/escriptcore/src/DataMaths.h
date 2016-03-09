@@ -968,17 +968,218 @@ binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
       }
       break;
     case POWF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const RSCALAR* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=pow(left[leftbase+j],*rpos);
+	  }
+      }
+      break;      
     case MINUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const RSCALAR* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]-*rpos;
+	  }
+      }
+      break;      
     case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const RSCALAR* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j] * *rpos;
+	  }
+      }
+      break;      
     case DIVIDESF:
-    case LESSF:
-    case GREATERF:
-    case GREATER_EQUALF:
-    case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const RSCALAR* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]/ *rpos;
+	  }
+      }
+      break;      
     default:
       throw DataException("Unsupported binary operation");    
   }  
 }
+
+template<>
+void
+binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is to be stored
+	  typename DataTypes::RealVectorType::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type sampleSize,		// number of values in each sample
+	  const DataTypes::RealVectorType& left, 				// LHS of calculation
+	  typename DataTypes::RealVectorType::size_type leftOffset,		// where to start reading LHS values
+	  const DataTypes::real_t* right, 			// RHS of the calculation
+	  const bool rightreset,			// true if RHS is providing a single sample of 1 value only
+	  escript::ESFunction operation,		// operation to perform
+	  bool singleleftsample);
+
+
+/*
+template <>
+void
+binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is to be stored
+	  typename DataTypes::RealVectorType::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type sampleSize,		// number of values in each sample
+	  const DataTypes::RealVectorType& left, 				// LHS of calculation
+	  typename DataTypes::RealVectorType::size_type leftOffset,		// where to start reading LHS values
+	  const DataTypes::real_t* right, 			// RHS of the calculation
+	  const bool rightreset,			// true if RHS is providing a single sample of 1 value only
+	  escript::ESFunction operation,		// operation to perform
+	  bool singleleftsample)			// set to false for normal operation
+{
+  size_t substep=(rightreset?0:1);  
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]+*rpos;
+	  }
+      }
+      break;
+    case POWF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=pow(left[leftbase+j],*rpos);
+	  }
+      }
+      break;      
+    case MINUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]-*rpos;
+	  }
+      }
+      break;      
+    case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j] * *rpos;
+	  }
+      }
+      break;      
+    case DIVIDESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]/ *rpos;
+	  }
+      }
+      break;      
+    case LESSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]<*rpos;
+	  }
+      }
+      break;      
+    case GREATERF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]>*rpos;
+	  }
+      }
+      break;      
+    case GREATER_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]>=*rpos;
+	  }
+      }
+      break;      
+    case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(singleleftsample?0:i*sampleSize);
+	  const DataTypes::real_t* rpos=right+(rightreset?0:i*substep);	
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]<=*rpos;
+	  }
+      }
+      break;      
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+
+*/
+
+
 
 
 
@@ -1014,17 +1215,202 @@ binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
       }
       break;
     case POWF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename RVEC::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const LSCALAR* lpos=left+(leftreset?0:i*substep);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=pow(*lpos,right[rightbase+j]);
+	  }	
+      }
+      break;      
     case MINUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename RVEC::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const LSCALAR* lpos=left+(leftreset?0:i*substep);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos-right[rightbase+j];
+	  }	
+      }
+      break;      
     case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename RVEC::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const LSCALAR* lpos=left+(leftreset?0:i*substep);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos*right[rightbase+j];
+	  }	
+      }
+      break;      
     case DIVIDESF:
-    case LESSF:
-    case GREATERF:
-    case GREATER_EQUALF:
-    case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename RVEC::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const LSCALAR* lpos=left+(leftreset?0:i*substep);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos/right[rightbase+j];
+	  }	
+      }
+      break;           
     default:
       throw DataException("Unsupported binary operation");    
   }  
 }
+
+template <>
+void
+binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is to be stored
+	  typename DataTypes::RealVectorType::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type sampleSize,		// number of values in each sample
+	  const DataTypes::real_t* left, 				// LHS of calculation
+          const bool leftreset,				// true if LHS is providing a single sample of 1 value only
+	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
+	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
+	  escript::ESFunction operation,		// operation to perform
+	  bool singlerightsample);			// right consists of a single sample
+
+/*
+template <>
+void
+binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is to be stored
+	  typename DataTypes::RealVectorType::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type sampleSize,		// number of values in each sample
+	  const DataTypes::real_t* left, 				// LHS of calculation
+          const bool leftreset,				// true if LHS is providing a single sample of 1 value only
+	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
+	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
+	  escript::ESFunction operation,		// operation to perform
+	  bool singlerightsample)			// right consists of a single sample
+{
+  size_t substep=(leftreset?0:1);
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos+right[rightbase+j];
+	  }	
+      }
+      break;
+    case POWF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=pow(*lpos,right[rightbase+j]);
+	  }	
+      }
+      break;      
+    case MINUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos-right[rightbase+j];
+	  }	
+      }
+      break;      
+    case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos*right[rightbase+j];
+	  }	
+      }
+      break;      
+    case DIVIDESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos/right[rightbase+j];
+	  }	
+      }
+      break;      
+    case LESSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos<right[rightbase+j];
+	  }	
+      }
+      break;      
+    case GREATERF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos>right[rightbase+j];
+	  }	
+      }
+      break;      
+    case GREATER_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos>=right[rightbase+j];
+	  }	
+      }
+      break;      
+    case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(singlerightsample?0:i*sampleSize);
+	  const DataTypes::real_t* lpos=left+(leftreset?0:i*substep);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=*lpos<=right[rightbase+j];
+	  }	
+      }
+      break;      
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+*/
+
 
 /**
  * This assumes that all data involved have the same points per sample and same shape
@@ -1059,20 +1445,221 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
       }
       break;
     case POWF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename RVEC::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=pow(left[leftbase+j],right[rightbase+j]);
+	  }
+	
+      }
+      break;      
     case MINUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename RVEC::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]-right[rightbase+j];
+	  }
+	
+      }
+      break;      
     case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename RVEC::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]*right[rightbase+j];
+	  }
+	
+      }
+      break;      
     case DIVIDESF:
-    case LESSF:
-    case GREATERF:
-    case GREATER_EQUALF:
-    case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename LVEC::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename RVEC::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename ResVEC::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]/right[rightbase+j];
+	  }
+	
+      }
+      break;         
     default:
       throw DataException("Unsupported binary operation");    
   }  
 }
 
+template <>
+void
+binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be stored
+	  typename DataTypes::RealVectorType::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type sampleSize,		// number of values in each sample
+	  const DataTypes::RealVectorType& left, 				// LHS of calculation
+	  typename DataTypes::RealVectorType::size_type leftOffset,		// where to start reading LHS values
+	  const bool leftreset,				// Is LHS only supplying a single sample instead of a bunch of them
+	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
+	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
+	  const bool rightreset,			// Is RHS only supplying a single sample instead of a bunch of them
+	  escript::ESFunction operation);		// operation to perform
 
-#define OPVECLAZY(X)     \
+
+/*
+template <>
+void
+binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be stored
+	  typename DataTypes::RealVectorType::size_type resOffset,		// offset in the result vector to start storing results
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type sampleSize,		// number of values in each sample
+	  const DataTypes::RealVectorType& left, 				// LHS of calculation
+	  typename DataTypes::RealVectorType::size_type leftOffset,		// where to start reading LHS values
+	  const bool leftreset,				// Is LHS only supplying a single sample instead of a bunch of them
+	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
+	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
+	  const bool rightreset,			// Is RHS only supplying a single sample instead of a bunch of them
+	  escript::ESFunction operation)		// operation to perform
+{
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]+right[rightbase+j];
+	  }
+	
+      }
+      break;
+    case POWF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=pow(left[leftbase+j],right[rightbase+j]);
+	  }
+	
+      }
+      break;      
+    case MINUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]-right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]*right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    case DIVIDESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]/right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    case LESSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]<right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    case GREATERF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]>right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    case GREATER_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]>=right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=leftOffset+(leftreset?0:i*sampleSize);
+	  typename DataTypes::RealVectorType::size_type rightbase=rightOffset+(rightreset?0:i*sampleSize);
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<sampleSize;++j)
+	  {
+	      res[i*sampleSize+resOffset+j]=left[leftbase+j]<=right[rightbase+j];
+	  }
+	
+      }
+      break;      
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+*/
+
+
+
+
+#define OPVECLAZYBODY(X)     \
     for (size_t j=0;j<onumsteps;++j)\
     {\
       for (size_t i=0;i<numsteps;++i,res+=resultStep) \
@@ -1114,8 +1701,32 @@ binaryOpVectorLazyHelper(ResELT* res,
     switch (operation)
     {
       case PLUSF:
-	OPVECLAZY(left[lroffset+i]+right[rroffset+i])
+	OPVECLAZYBODY(left[lroffset+i]+right[rroffset+i])
 	break;
+    case POWF:
+	OPVECLAZYBODY(pow(left[lroffset+i],right[rroffset+i]))
+      break;      
+    case MINUSF:
+	OPVECLAZYBODY(left[lroffset+i]-right[rroffset+i])      
+      break;      
+    case MULTIPLIESF:
+	OPVECLAZYBODY(left[lroffset+i]*right[rroffset+i])
+      break;      
+    case DIVIDESF:
+	OPVECLAZYBODY(left[lroffset+i]/right[rroffset+i])
+      break;      
+    case LESSF:
+	OPVECLAZYBODY(left[lroffset+i]<right[rroffset+i])      
+      break;      
+    case GREATERF:
+	OPVECLAZYBODY(left[lroffset+i]>right[rroffset+i])      
+      break;      
+    case GREATER_EQUALF:
+	OPVECLAZYBODY(left[lroffset+i]>=right[rroffset+i])      
+      break;      
+    case LESS_EQUALF:
+	OPVECLAZYBODY(left[lroffset+i]<=right[rroffset+i])      
+      break;   	
       default:
 	std::cerr << "This should never happen\n";
 	// I can't throw here because this will be called inside a parallel section
@@ -1162,13 +1773,243 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
       }
       break;
     case POWF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<limit;++i)
+      {
+	  typename LVEC::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename RVEC::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename ResVEC::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=pow(left[leftbase+j*(!leftscalar)],right[rightbase+j*(!rightscalar)]);
+	  }
+	
+      }
+      break;      
     case MINUSF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<limit;++i)
+      {
+	  typename LVEC::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename RVEC::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename ResVEC::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]-right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<limit;++i)
+      {
+	  typename LVEC::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename RVEC::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename ResVEC::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]*right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     case DIVIDESF:
+      #pragma omp parallel for
+      for (typename ResVEC::size_type i=0;i<limit;++i)
+      {
+	  typename LVEC::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename RVEC::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename ResVEC::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]/right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
+    default:
+      throw DataException("Unsupported binary operation");    
+  }  
+}
+
+template<>
+void
+binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be stored
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type DPPSample,	// number of datapoints per sample
+	  const typename DataTypes::RealVectorType::size_type DPSize,		// datapoint size
+		
+	  const DataTypes::RealVectorType& left, 				// LHS of calculation
+	  const bool leftscalar,
+	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
+	  const bool rightscalar,		
+	  const bool lefttagged,			// true if left object is the tagged one
+	  const DataTagged& tagsource,			// where to get tag offsets from
+	  escript::ESFunction operation);
+
+
+/*
+
+template <>
+void
+binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be stored
+	  const typename DataTypes::RealVectorType::size_type samplesToProcess,	// number of samples to be updated in the result
+	  const typename DataTypes::RealVectorType::size_type DPPSample,	// number of datapoints per sample
+	  const typename DataTypes::RealVectorType::size_type DPSize,		// datapoint size
+		
+	  const DataTypes::RealVectorType& left, 				// LHS of calculation
+	  const bool leftscalar,
+	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
+	  const bool rightscalar,		
+	  const bool lefttagged,			// true if left object is the tagged one
+	  const DataTagged& tagsource,			// where to get tag offsets from
+	  escript::ESFunction operation)		// operation to perform	  
+{
+  typename DataTypes::RealVectorType::size_type lstep=leftscalar?1:DPSize;
+  typename DataTypes::RealVectorType::size_type rstep=rightscalar?1:DPSize;
+  typename DataTypes::RealVectorType::size_type limit=samplesToProcess*DPPSample;
+  switch (operation)
+  {
+    case PLUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]+right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;
+    case POWF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=pow(left[leftbase+j*(!leftscalar)],right[rightbase+j*(!rightscalar)]);
+	  }
+	
+      }
+      break;      
+    case MINUSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]-right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
+    case MULTIPLIESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]*right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
+    case DIVIDESF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]/right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     case LESSF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]<right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     case GREATERF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]>right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     case GREATER_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]>=right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     case LESS_EQUALF:
+      #pragma omp parallel for
+      for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
+      {
+	  typename DataTypes::RealVectorType::size_type leftbase=(lefttagged?tagsource.getPointOffset(i/DPPSample,0):i*lstep);	// only one of these
+	  typename DataTypes::RealVectorType::size_type rightbase=(lefttagged?i*rstep:tagsource.getPointOffset(i/DPPSample,0));	// will apply
+	  
+	  
+	  for (typename DataTypes::RealVectorType::size_type j=0;j<DPSize;++j)
+	  {
+	      res[i*DPSize+j]=left[leftbase+j*(!leftscalar)]<=right[rightbase+j*(!rightscalar)];
+	  }
+	
+      }
+      break;      
     default:
       throw DataException("Unsupported binary operation");    
   }  
@@ -1176,11 +2017,7 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
 
 
 
-
-
-
-
-
+*/
 
 
 
