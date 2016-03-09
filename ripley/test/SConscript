@@ -50,8 +50,8 @@ if local_env['cppunit'] and local_env['cuda']:
     Alias("run_tests", testname+'.passed')
 
     # add a group of tests
-    from grouptest import *
-    tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/ripley/test", ('./'+testname,))
+    from grouptest import GroupTest
+    tgroup=GroupTest("ripleycpp", "$BINRUNNER ", (), "", "$BUILD_DIR/ripley/test", ('./'+testname,))
     TestGroups.append(tgroup)
 
 # configure python unit tests

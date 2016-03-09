@@ -50,8 +50,8 @@ if env['usempi']:
     Depends(program, env['prefix']+"/lib/pythonMPI")
 
 # add a group of tests
-from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("WEIPA_TEST_DATA","$BATCH_ROOT/weipa/test/python"),('WEIPA_WORKDIR','$BUILD_DIR/weipa/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/weipa/test/python","$BATCH_ROOT/weipa/test/python",testruns)
+from grouptest import GroupTest
+tgroup=GroupTest("weipa", "$PYTHONRUNNER ", (("WEIPA_TEST_DATA","$BATCH_ROOT/weipa/test/python"),('WEIPA_WORKDIR','$BUILD_DIR/weipa/test/python')), "$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/weipa/test/python", "$BATCH_ROOT/weipa/test/python", testruns)
 tgroup.makeDir("$BUILD_DIR/weipa/test/python")
 TestGroups.append(tgroup)
 
