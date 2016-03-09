@@ -61,7 +61,7 @@ typedef DataReady parent;
      \param what - Input - A description of what this data represents.
   */
   ESCRIPT_DLL_API
-  DataExpanded(const WrappedArray& value,
+  explicit DataExpanded(const WrappedArray& value,
                const FunctionSpace& what);
 
   /**
@@ -73,7 +73,7 @@ typedef DataReady parent;
      \param region - Input - region to copy.
   */
   ESCRIPT_DLL_API
-  DataExpanded(const DataExpanded& other,
+  explicit DataExpanded(const DataExpanded& other,
                const DataTypes::RegionType& region);
 
   /**
@@ -89,25 +89,25 @@ typedef DataReady parent;
 TODO Note that this constructor will also copy data to all points if it only contains enough elements to hold a single point.  ie this is the merge of two separate constructors.
   */
   ESCRIPT_DLL_API
-  DataExpanded(const FunctionSpace& what,
+  explicit DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::RealVectorType &data);
   
   
   ESCRIPT_DLL_API
-  DataExpanded(const FunctionSpace& what,
+  explicit DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::CplxVectorType &data);
   
 
 	       
   ESCRIPT_DLL_API
-  DataExpanded(const FunctionSpace& what,
+  explicit DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::real_t data);	       
   
   ESCRIPT_DLL_API
-  DataExpanded(const FunctionSpace& what,
+  explicit DataExpanded(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::cplx_t data);	       
   
@@ -126,7 +126,7 @@ TODO Note that this constructor will also copy data to all points if it only con
      Construct a DataExpanded from a DataConstant.
   */
   ESCRIPT_DLL_API
-  DataExpanded(const DataConstant& other);
+  explicit DataExpanded(const DataConstant& other);
 
   /**
      \brief
@@ -134,7 +134,7 @@ TODO Note that this constructor will also copy data to all points if it only con
      Construct a DataExpanded from a DataTagged.
   */
   ESCRIPT_DLL_API
-  DataExpanded(const DataTagged& other);
+  explicit DataExpanded(const DataTagged& other);
 
   /**
      \brief

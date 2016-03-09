@@ -68,13 +68,13 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
      \param data - The data values for each tag.
     NB: no unit testing yet
   */
-  DataTagged(const FunctionSpace& what,
+  explicit DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const int tags[],
              const DataTypes::RealVectorType& data);
   
   
-  DataTagged(const FunctionSpace& what,
+  explicit DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const int tags[],
              const DataTypes::CplxVectorType& data);  
@@ -92,12 +92,12 @@ class ESCRIPT_DLL_API DataTagged : public DataReady
      \param data - The data values for each tag.
 TODO Make sure to document the relationship between tags and data, ie: data also contains the default value
  */
-  DataTagged(const FunctionSpace& what,
+  explicit DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const TagListType& tags,
              const DataTypes::RealVectorType& data);
   
-  DataTagged(const FunctionSpace& what,
+  explicit DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const TagListType& tags,
              const DataTypes::CplxVectorType& data);  
@@ -118,7 +118,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      The default value will be the value of the DataConstant object.
     T
   */
-  DataTagged(const DataConstant& other);
+  explicit DataTagged(const DataConstant& other);
 
   /**
      \brief
@@ -130,12 +130,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param defaultvalue - Input - Default value for new DataTagged
      \param tagsource - Input - A DataTagged object which supplies the tags. 
   */
-  DataTagged(const FunctionSpace& what,
+  explicit DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
              const DataTypes::RealVectorType& defaultvalue,
              const DataTagged* tagsource=0);
 
-  DataTagged(const FunctionSpace& what,
+  explicit DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
              const DataTypes::CplxVectorType& defaultvalue,
              const DataTagged* tagsource=0);  
