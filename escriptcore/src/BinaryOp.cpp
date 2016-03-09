@@ -570,6 +570,14 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
 	res.addTag(i->first);
       }
   }
+  else	// result already has tags in it
+  {	// add tags from right, any duplicates are silently ignored by addTag
+      const DataTagged::DataMapType& lookup_r=right.getTagLookup();
+      for (auto i=lookup_r.begin();i!=lookup_r.end();i++)
+      {
+	res.addTag(i->first);
+      }      
+  }
   // so now we know that both tagged objects have the same tags (perhaps not in the same order though)
   if (right.getRank()==0) 	// scalar op on the right
   {		// we'll reuse this code by pretending samples are 1 value long
