@@ -737,6 +737,13 @@ void MeshAdapter::addPDEToSystem(
         const escript::Data& d_contact, const escript::Data& y_contact,
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(&mat);
+    if (tm) {
+        tm->resumeFill();
+    }
+#endif
+
     Mesh* mesh=m_finleyMesh.get();
     Assemble_PDE(mesh->Nodes, mesh->Elements, &mat, rhs, A, B, C, D, X, Y);
 
@@ -750,6 +757,11 @@ void MeshAdapter::addPDEToSystem(
 
     Assemble_PDE(mesh->Nodes, mesh->Points, &mat, rhs, escript::Data(),
             escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
+#ifdef USE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
 void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
