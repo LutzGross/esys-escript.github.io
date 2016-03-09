@@ -165,8 +165,6 @@ example_deps.append('inversion/data/QLDWestMagnetic.nc')
 example_deps.append('inversion/data/HalfSphere_v1.4.msh')
 
 
-
-
 if len(skipped_tests)>0:
     env['warnings'].append("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
 

@@ -191,7 +191,6 @@ RCP<SolverType> TrilinosMatrixAdapter::createSolver(
     }
 
     switch (method) {
-        case escript::SO_DEFAULT:
         case escript::SO_METHOD_PCG:
             solver = factory.create("CG", solverParams);
             break;

@@ -276,7 +276,8 @@ void DataCombinationsTestCase::testUpdate()
   tdp->addUsedTag(5);
   CPPUNIT_ASSERT(fabs(t5.Lsup()-33)<0.01);
   CPPUNIT_ASSERT(fabs(t5.inf()-14)<0.01);
-  tdp->addUsedTag(3);  
+  tdp->addUsedTag(3);
+  
   CPPUNIT_ASSERT(fabs(t5.Lsup()-34)<0.01);
   CPPUNIT_ASSERT(fabs(t5.inf()-14)<0.01);  
   tdp->addUsedTag(4);  
@@ -302,7 +303,151 @@ void DataCombinationsTestCase::testUpdate()
   CPPUNIT_ASSERT(fabs(e1.inf())<0.01);    
   CPPUNIT_ASSERT(fabs(e1.Lsup()-20)<0.01);
   
+  cout << "Constant (self update by others):\n";
+  createConsts(fs, c0s, c4s, c1, c5);
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5);
+  createExpand(fs, es1, es2, e1, e2);
   
+  c4s+=t1s;
+  CPPUNIT_ASSERT(fabs(c4s.Lsup()-5)<0.01);
+  createConsts(fs, c0s, c4s, c1, c5);
+
+  createConsts(fs, c0s, c4s, c1, c5);
+  c5+=t1s;
+  CPPUNIT_ASSERT(fabs(c5.Lsup()-11)<0.01);  
+  
+  createConsts(fs, c0s, c4s, c1, c5);
+  c5+=t3;
+  CPPUNIT_ASSERT(fabs(c5.Lsup()-22)<0.01);  
+
+  createExpand(fs, es1, es2, e1, e2);
+  c4s+=es1;
+  CPPUNIT_ASSERT(fabs(c4s.Lsup()-6.5)<0.01);
+  
+  createConsts(fs, c0s, c4s, c1, c5);
+  c5+=es1;
+  CPPUNIT_ASSERT(fabs(c5.Lsup()-12.5)<0.01);
+  
+  createConsts(fs, c0s, c4s, c1, c5);
+  c5+=e2;
+  CPPUNIT_ASSERT(fabs(c5.Lsup()-27.5)<0.01);
+  
+  cout << "Tagged (self update by others):\n";
+  createConsts(fs, c0s, c4s, c1, c5);
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5);
+  createExpand(fs, es1, es2, e1, e2);
+  
+  tdp->clearUsedTags();
+  t3s+=c4s;
+  CPPUNIT_ASSERT(fabs(t3s.Lsup()-11)<0.01); 
+  tdp->addUsedTag(1);
+  tdp->addUsedTag(2);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t3s.Lsup()-60)<0.01);
+  tdp->clearUsedTags();
+  
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5);
+  t2+=c4s;
+  CPPUNIT_ASSERT(fabs(t2.Lsup()-14)<0.01);  
+  tdp->addUsedTag(1);
+  tdp->addUsedTag(2);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t2.Lsup()-84)<0.01); 
+  tdp->clearUsedTags();
+  
+  
+  t4+=c4s;
+  CPPUNIT_ASSERT(fabs(t4.Lsup()-12)<0.01);  
+  tdp->addUsedTag(1);
+  tdp->addUsedTag(2);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t4.Lsup()-68)<0.01);  
+  tdp->clearUsedTags();
+  
+  
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5);
+  t3s+=es1;
+  CPPUNIT_ASSERT(fabs(t3s.Lsup()-9.5)<0.01);  
+  tdp->addUsedTag(1);
+  tdp->addUsedTag(2);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t3s.Lsup()-9.5)<0.01);  
+  tdp->clearUsedTags();
+  
+
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5);
+  t3+=es1;
+  
+  CPPUNIT_ASSERT(fabs(t3.Lsup()-14.5)<0.01);
+  tdp->addUsedTag(1);
+  tdp->addUsedTag(2);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t3.Lsup()-14.5)<0.01);
+  tdp->clearUsedTags();
+  
+
+  t5+=es2;
+  CPPUNIT_ASSERT(fabs(t5.Lsup()-19)<0.01);  
+  tdp->addUsedTag(1);
+  tdp->addUsedTag(2);
+  tdp->addUsedTag(3);  
+  CPPUNIT_ASSERT(fabs(t5.Lsup()-19)<0.01);
+  tdp->clearUsedTags();
+  
+  
+  cout << "Expanded (self update by others):\n";
+  createConsts(fs, c0s, c4s, c1, c5);
+  createTagged(fs, t1s, t2s, t3s, t4s, t5s, t1, t2, t3, t4, t5);
+  createExpand(fs, es1, es2, e1, e2);
+
+
+  es1+=c4s;
+  
+  CPPUNIT_ASSERT(fabs(es1.Lsup()-6.5)<0.01);
+
+  es2+=t4s;
+  createExpand(fs, es1, es2, e1, e2);
+  
+  std::vector<int> t;
+  t.push_back(1);
+  t.push_back(1);
+  t.push_back(0);  
+  tdp->assignTags(t);
+  es2+=t4s;
+  CPPUNIT_ASSERT(fabs(es2.Lsup()-15)<0.01);   
+
+  createExpand(fs, es1, es2, e1, e2);
+  t[0]=2;
+  t[1]=3;
+  t[2]=1;
+  tdp->assignTags(t);    
+  es2+=t4s;
+  CPPUNIT_ASSERT(fabs(es2.Lsup()-27)<0.01);   
+  
+  createExpand(fs, es1, es2, e1, e2);
+  
+  e2+=c4s;
+  CPPUNIT_ASSERT(fabs(e2.Lsup()-21.5)<0.01);  
+  
+  e1+=c5;
+  
+  CPPUNIT_ASSERT(fabs(e1.Lsup()-25)<0.01);
+
+  
+  createExpand(fs, es1, es2, e1, e2);
+
+  e2+=t3;
+
+  CPPUNIT_ASSERT(fabs(e2.Lsup()-113.5)<0.01);
+  
+
+  t[0]=0;
+  t[1]=1;
+  t[2]=1;   
+  tdp->assignTags(t);  
+  e2+=t3;
+  CPPUNIT_ASSERT(fabs(e2.Lsup()-209.5)<0.01);
+ 
 }
 
 // The purpose of this test is to check all the various combinations 

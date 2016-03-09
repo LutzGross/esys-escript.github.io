@@ -37,8 +37,8 @@ if local_env['cppunit']:
     Alias("run_tests", testname+'.passed')
 
     # add a group of tests
-    from grouptest import *
-    tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/escriptcore/test", ('./'+testname,))
+    from grouptest import GroupTest
+    tgroup=GroupTest("escriptcpp", "$BINRUNNER ", (), "", "$BUILD_DIR/escriptcore/test", ('./'+testname,))
     TestGroups.append(tgroup)
 
 # configure python unit tests
