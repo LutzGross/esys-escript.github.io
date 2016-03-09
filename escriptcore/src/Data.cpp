@@ -115,36 +115,6 @@ using DataTypes::cplx_t;
 #define CHECK_DO_CRES escriptParams.getRESOLVE_COLLECTIVE()
 
 
-
-#define BINOPTENSOR(L,T) \
-    if (!(L).isComplex()) \
-    { \
-        if (!right.isComplex()) /* both are real */ \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>()); \
-        } \
-        else \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
-        } \
-    } \
-    else        /* L isComplex */\
-    { \
-        if (!right.isComplex())  \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>()); \
-        } \
-        else \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
-        } \
-    } 
-
-
-    
-    
-    
-
 namespace
 {
 
@@ -2758,7 +2728,8 @@ Data::operator-=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::MINUSF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::MINUSF);
+    //binaryDataOp(right, escript::ESFunction::MINUSF);
     return (*this);
 }
 
@@ -2785,7 +2756,8 @@ Data::operator*=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::MULTIPLIESF);
+    //binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
     return (*this);
 }
 
@@ -2812,7 +2784,8 @@ Data::operator/=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::DIVIDESF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::DIVIDESF);
+    //binaryDataOp(right, escript::ESFunction::DIVIDESF);
     return (*this);
 }
 
@@ -2875,7 +2848,10 @@ Data
 Data::powD(const Data& right) const
 {
     MAKELAZYBIN(right,POW);
-    BINOPTENSOR(*this, pow_func);
+    //BINOPTENSOR(*this, pow_func);
+    
+    return C_TensorBinaryOperation(*this, right, ESFunction::POWF);    
+    
 }
 
 
@@ -2897,7 +2873,9 @@ Data
 escript::operator-(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,SUB);
-    BINOPTENSOR(left,minus_func)
+//    BINOPTENSOR(left,minus_func)
+    
+    return C_TensorBinaryOperation(left, right, ESFunction::MINUSF);    
 }
 
 //
@@ -2905,8 +2883,10 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
-    MAKELAZYBIN2(left,right,MUL);
-    BINOPTENSOR(left,multiplies_func);
+    MAKELAZYBIN2(left,right,MUL);    
+//    BINOPTENSOR(left,multiplies_func);
+    
+    return C_TensorBinaryOperation(left, right, ESFunction::MULTIPLIESF);        
 }
 
 //
@@ -2915,7 +2895,9 @@ Data
 escript::operator/(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,DIV);
-    BINOPTENSOR(left,divides_func);
+//    BINOPTENSOR(left,divides_func);
+        
+    return C_TensorBinaryOperation(left, right, ESFunction::DIVIDESF);        
 }
 
 //
