@@ -1582,7 +1582,7 @@ binaryOpVectorLazyHelper(ResELT* res,
 	OPVECLAZYBODY(left[lroffset+i]<=right[rroffset+i])      
       break;   	
       default:
-	std::cerr << "This should never happen\n";
+	ESYS_ASSERT(false, "Invalid operation. This should never happen!");
 	// I can't throw here because this will be called inside a parallel section
     }
 }
