@@ -2721,8 +2721,8 @@ Data::operator+=(const Data& right)
     {
         complicate();
     }
-    //TensorSelfUpdateBinaryOperation(right, escript::ESFunction::PLUSF);  
-    binaryDataOp(right, escript::ESFunction::PLUSF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::PLUSF);  
+    //binaryDataOp(right, escript::ESFunction::PLUSF);
     return (*this);
 }
 
@@ -2885,10 +2885,10 @@ Data
 escript::operator+(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,ADD);
-    BINOPTENSOR(left,plus_func)
+//    BINOPTENSOR(left,plus_func)
     
     
-//    return C_TensorBinaryOperation(left, right, ESFunction::PLUSF);
+    return C_TensorBinaryOperation(left, right, ESFunction::PLUSF);
 }
 
 //
