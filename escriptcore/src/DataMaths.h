@@ -1071,6 +1071,46 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
   }  
 }
 
+/**
+ * This assumes that all data involved have the same points per sample and same shape
+ * This version is to be called from within DataLazy.
+ * It does not have openmp around loops because it will be evaluating individual samples 
+ * (Which will be done within an enclosing openmp region.
+*/
+template <class ResELT, class LELT, class RELT>
+void
+binaryOpVectorLazyHelper(ResELT* res, 
+			 const LELT* left,
+			 const RELT* right,
+			 const size_t chunksize,
+			 const size_t onumsteps,
+			 const size_t numsteps,
+			 const size_t resultStep,
+			 const size_t leftstep,
+			 const size_t rightstep,
+			 const size_t oleftstep,
+			 const size_t orightstep,			 
+			 escript::ESFunction operation)		// operation to perform
+{
+    size_t lroffset=0, rroffset=0;        // offsets in the left and right result vectors 
+    for (size_t j=0;j<onumsteps;++j)
+    {
+      for (size_t i=0;i<numsteps;++i,res+=resultStep) 
+      { 
+// This is just apply the operator chunksize times
+	  for (size_t s=0; s<chunksize; ++s)
+	  {
+	      res[i] = left[lroffset+i]+right[rroffset+i];
+	  }
+//	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); 
+	  lroffset+=leftstep; 
+	  rroffset+=rightstep; 
+      }
+      lroffset+=oleftstep;
+      rroffset+=orightstep;
+    }
+  
+}
 
 /**
  * This assumes that all data involved have the same points per sample and same shape

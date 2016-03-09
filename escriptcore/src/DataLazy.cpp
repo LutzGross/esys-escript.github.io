@@ -21,6 +21,7 @@
 #include "FunctionSpace.h"
 #include "UnaryFuncs.h"    // for escript::fsign
 #include "Utils.h"
+#include "DataMaths.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -1025,7 +1026,7 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   }
   if (m_op==IDENTITY)   
   {
-    const ValueType& vec=m_id->getVectorRO();
+    const RealVectorType& vec=m_id->getVectorRO();
     roffset=m_id->getPointOffset(sampleNo, 0);
 #ifdef LAZY_STACK_PROF
 int x;
@@ -1262,7 +1263,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     throw DataException("Programmer error - resolveNodeNP1OUT should not be called on identity nodes.");
   }
   size_t subroffset;
-  const ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
   roffset=m_samplesize*tid;
   size_t loop=0;
   size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
@@ -1308,7 +1309,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
   }
   size_t subroffset;
   size_t offset;
-  const ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
   roffset=m_samplesize*tid;
   offset=roffset;
   size_t loop=0;
@@ -1353,7 +1354,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
   }
   size_t subroffset;
   size_t offset;
-  const ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
   roffset=m_samplesize*tid;
   offset=roffset;
   size_t loop=0;
@@ -1389,8 +1390,8 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const
   }
   size_t subroffset;
 
-  const ValueType* maskres=m_mask->resolveNodeSample(tid, sampleNo, subroffset);
-  const ValueType* srcres=0;
+  const RealVectorType* maskres=m_mask->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* srcres=0;
   if ((*maskres)[subroffset]>0)
   {
         srcres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
@@ -1533,8 +1534,8 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 
   int resultStep=max(leftstep,rightstep);       // only one (at most) should be !=0
         // Get the values of sub-expressions
-  const ValueType* left=m_left->resolveNodeSample(tid,sampleNo,lroffset);       
-  const ValueType* right=m_right->resolveNodeSample(tid,sampleNo,rroffset);
+  const RealVectorType* left=m_left->resolveNodeSample(tid,sampleNo,lroffset);       
+  const RealVectorType* right=m_right->resolveNodeSample(tid,sampleNo,rroffset);
 LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
 LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
 LAZYDEBUG(cout << "chunksize=" << chunksize << endl << "leftstep=" << leftstep << " rightstep=" << rightstep;)
@@ -1552,7 +1553,19 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
   switch(m_op)
   {
     case ADD:
-        PROC_OP(NO_ARG,plus<double>());
+        //PROC_OP(NO_ARG,plus<double>());
+      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 escript::ESFunction::PLUSF);	
         break;
     case SUB:
         PROC_OP(NO_ARG,minus<double>());
@@ -1594,9 +1607,9 @@ LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
   roffset=m_samplesize*tid;
   size_t offset=roffset;
 
-  const ValueType* left=m_left->resolveNodeSample(tid, sampleNo, lroffset);
+  const RealVectorType* left=m_left->resolveNodeSample(tid, sampleNo, lroffset);
 
-  const ValueType* right=m_right->resolveNodeSample(tid, sampleNo, rroffset);
+  const RealVectorType* right=m_right->resolveNodeSample(tid, sampleNo, rroffset);
 
 LAZYDEBUG(cerr << "[Left shape]=" << DataTypes::shapeToString(m_left->getShape()) << "\n[Right shape]=" << DataTypes::shapeToString(m_right->getShape()) << " result=" <<DataTypes::shapeToString(getShape()) <<  endl;
 cout << getNoValues() << endl;)
@@ -1733,14 +1746,14 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
   {             // it is possible that dats[0] is one of the objects which we discarded and
                 // all the other functionspaces match.
         vector<DataExpanded*> dep;
-        vector<ValueType*> vecs;
+        vector<RealVectorType*> vecs;
         for (int i=0;i<work.size();++i)
         {
-                dep.push_back(new DataExpanded(fs,work[i]->getShape(), ValueType(work[i]->getNoValues())));
+                dep.push_back(new DataExpanded(fs,work[i]->getShape(), RealVectorType(work[i]->getNoValues())));
                 vecs.push_back(&(dep[i]->getVectorRW()));
         }
         int totalsamples=work[0]->getNumSamples();
-        const ValueType* res=0; // Storage for answer
+        const RealVectorType* res=0; // Storage for answer
         int sample;
         #pragma omp parallel private(sample, res)
         {
@@ -1792,13 +1805,13 @@ DataLazy::resolveNodeWorker()
     return m_id;
   }
         // from this point on we must have m_op!=IDENTITY and m_readytype=='E'
-  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
-  ValueType& resvec=result->getVectorRW();
+  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  RealVectorType(getNoValues()));
+  RealVectorType& resvec=result->getVectorRW();
   DataReady_ptr resptr=DataReady_ptr(result);
 
   int sample;
   int totalsamples=getNumSamples();
-  const ValueType* res=0;       // Storage for answer
+  const RealVectorType* res=0;       // Storage for answer
 LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   #pragma omp parallel private(sample,res)
   {
