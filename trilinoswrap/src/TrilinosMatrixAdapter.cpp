@@ -46,6 +46,7 @@ TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
     m_mpiInfo(mpiInfo)
 {
     mat = rcp(new MatrixType(graph));
+    mat->fillComplete();
     importer = rcp(new ImportType(mat->getRowMap(), mat->getColMap()));
 }
 
@@ -108,9 +109,9 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     // we need remote values for x
     const Teuchos::ArrayView<const ST> xView(x.getSampleDataRO(0), x.getNumDataPoints());
     RCP<VectorType> lclX = rcp(new VectorType(mat->getRowMap(), xView, xView.size(), 1));
-    RCP<VectorType> gblX = rcp(new VectorType(mat->getColMap(), 1));
+    //RCP<VectorType> gblX = rcp(new VectorType(mat->getColMap(), 1));
 
-    gblX->doImport(*lclX, *importer, Tpetra::INSERT);
+    //gblX->doImport(*lclX, *importer, Tpetra::INSERT);
 
     const ST alpha = Teuchos::ScalarTraits<ST>::one();
     const ST beta = Teuchos::ScalarTraits<ST>::one();
@@ -118,7 +119,8 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     RCP<VectorType> Y = rcp(new VectorType(mat->getRowMap(), yView, yView.size(), 1));
 
     // Y = beta*Y + alpha*A*X
-    mat->localMultiply(*gblX, *Y, Teuchos::NO_TRANS, alpha, beta);
+    //mat->localMultiply(*gblX, *Y, Teuchos::NO_TRANS, alpha, beta);
+    mat->apply(*lclX, *Y, Teuchos::NO_TRANS, alpha, beta);
     Y->get1dCopy(yView, yView.size());
 }
 
@@ -191,6 +193,9 @@ RCP<SolverType> TrilinosMatrixAdapter::createSolver(
     }
 
     switch (method) {
+        case escript::SO_METHOD_BICGSTAB:
+            solver = factory.create("BICGSTAB", solverParams);
+            break;
         case escript::SO_METHOD_PCG:
             solver = factory.create("CG", solverParams);
             break;
@@ -240,14 +245,14 @@ RCP<OpType> TrilinosMatrixAdapter::createPreconditioner(
             params->set("fact: drop tolerance", sb.getDropTolerance());
             break;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
-            ifprec = factory.create<MatrixType>("RELAXATION", mat);
-            params->set("relaxation: type", "Gauss-Seidel");
-            params->set("relaxation: sweeps", sb.getNumSweeps());
-            params->set("relaxation: damping factor", sb.getRelaxationFactor());
-            break;
         case escript::SO_PRECONDITIONER_JACOBI:
             ifprec = factory.create<MatrixType>("RELAXATION", mat);
-            params->set("relaxation: type", "Jacobi");
+            if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
+                params->set("relaxation: type", "Jacobi");
+            } else {
+                params->set("relaxation: type", (sb.isSymmetric() ?
+                            "Symmetric Gauss-Seidel" : "Gauss-Seidel"));
+            }
             params->set("relaxation: sweeps", sb.getNumSweeps());
             params->set("relaxation: damping factor", sb.getRelaxationFactor());
             break;
@@ -321,7 +326,11 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
         RCP<ProblemType> problem = rcp(new ProblemType(mat, X, B));
 
         if (!prec.is_null()) {
-            problem->setLeftPrec(prec);
+            // Trilinos BiCGStab does not currently support left preconditioners
+            if (sb.getSolverMethod() == escript::SO_METHOD_BICGSTAB)
+                problem->setRightPrec(prec);
+            else
+                problem->setLeftPrec(prec);
         }
         problem->setProblem();
         solver->setProblem(problem);
