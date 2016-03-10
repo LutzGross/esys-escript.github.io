@@ -39,6 +39,7 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
     const index_t numColTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
     const index_t* colTarget = Nodes->borrowTargetDegreesOfFreedom();
     const index_t* gNI = Nodes->borrowGlobalNodesIndex();
+    const IndexVector& dofMap = Nodes->degreesOfFreedomMapping.map;
 
     const index_t myNumRowTargets = Nodes->getNumDegreesOfFreedom();
     const index_t numRowTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
@@ -46,7 +47,7 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
     boost::scoped_array<IndexList> index_list(new IndexList[numRowTargets]);
     IndexVector myRows(myNumRowTargets);
     IndexVector columns(numColTargets);
-  
+
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns in indexlist:
@@ -61,9 +62,8 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
 
 #pragma omp for nowait
         for (size_t i=0; i<myRows.size(); i++) {
-            myRows[i] = Nodes->getFirstNode()+i;
+            myRows[i] = gNI[dofMap[i]];
         }
-
 #pragma omp for
         for (size_t i=0; i<columns.size(); i++) {
             columns[colTarget[i]] = gNI[i];
