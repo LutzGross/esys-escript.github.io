@@ -1520,7 +1520,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
       { \
 	  for (size_t s=0; s<chunksize; ++s)\
 	  {\
-	      res[i] = X;\
+	      res[i+s] = X;\
 	  }\
 /*	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X);*/ \
 	  lroffset+=leftstep; \
@@ -1548,14 +1548,29 @@ binaryOpVectorLazyHelper(ResELT* res,
 			 const size_t leftstep,
 			 const size_t rightstep,
 			 const size_t oleftstep,
-			 const size_t orightstep,			 
+			 const size_t orightstep,
+			 size_t lroffset,
+			 size_t rroffset,
 			 escript::ESFunction operation)		// operation to perform
 { 
-    size_t lroffset=0, rroffset=0;        // offsets in the left and right result vectors
     switch (operation)
     {
       case PLUSF:
-	OPVECLAZYBODY(left[lroffset+i]+right[rroffset+i])
+    for (size_t j=0;j<onumsteps;++j)\
+    {\
+      for (size_t i=0;i<numsteps;++i,res+=resultStep) \
+      { \
+	  for (size_t s=0; s<chunksize; ++s)\
+	  {\
+	      res[s] = left[lroffset+s]+right[rroffset+s];\
+	  }\
+/*	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X);*/ \
+	  lroffset+=leftstep; \
+	  rroffset+=rightstep; \
+      }\
+      lroffset+=oleftstep;\
+      rroffset+=orightstep;\
+    }	
 	break;
     case POWF:
 	OPVECLAZYBODY(pow(left[lroffset+i],right[rroffset+i]))

@@ -1565,6 +1565,8 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 rightstep,
 			 oleftstep,
 			 orightstep,
+			 lroffset,
+			 rroffset,
 			 escript::ESFunction::PLUSF);	
         break;
     case SUB:
