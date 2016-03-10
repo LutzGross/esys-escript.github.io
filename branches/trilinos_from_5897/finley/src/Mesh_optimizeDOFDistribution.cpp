@@ -128,9 +128,9 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         index_t impiSize = mpiSize;
         index_t idim = dim;
         // options[0]=1 -> non-default values, evaluate rest of options
-        // options[1]=15 -> DBG_TIME | DBG_INFO | DBG_PROGRESS | DBG_REFINEINFO
+        // options[1]=0 -> debug level (no output)
         // options[2] -> random seed
-        index_t options[3] = { 1, 15, 0 };
+        index_t options[3] = { 1, 0, 0 };
         std::vector<real_t> tpwgts(ncon*mpiSize, 1.f/mpiSize);
         std::vector<real_t> ubvec(ncon, 1.05f);
         ParMETIS_V3_PartGeomKway(&distribution[0], pattern->ptr, pattern->index,
