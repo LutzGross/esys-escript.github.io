@@ -66,6 +66,10 @@
 
 #include <paso/SystemMatrixPattern.h>
 
+#ifdef USE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
+
 namespace dudley {
 
 /*  this struct holds a mesh: */
@@ -115,6 +119,12 @@ bool Dudley_Mesh_isValidTagName(Dudley_Mesh * mesh_p, const char *name);
 void Dudley_Mesh_distributeByRankOfDOF(Dudley_Mesh * in, dim_t * distribution);
 paso::SystemMatrixPattern_ptr Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order);
 paso::SystemMatrixPattern_ptr Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order);
+#ifdef USE_TRILINOS
+/// creates and returns a Trilinos CRS graph suitable to build a sparse
+/// matrix
+esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(Dudley_Mesh* mesh);
+#endif
+
 void Dudley_Mesh_write(Dudley_Mesh *, char *);
 void Dudley_Mesh_dump(Dudley_Mesh * in, char *fname);
 void Dudley_PrintMesh_Info(Dudley_Mesh *, bool);

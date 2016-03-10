@@ -15,6 +15,8 @@
 *****************************************************************************/
 
 #include "MeshAdapter.h"
+#include <dudley/Assemble.h>
+#include <dudley/DudleyException.h>
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -27,15 +29,19 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#include <boost/python/tuple.hpp>
+
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+
+using esys_trilinos::TrilinosMatrixAdapter;
+using esys_trilinos::const_TrilinosGraph_ptr;
+#endif
 
 using namespace std;
-using namespace escript;
 namespace bp = boost::python;
 
 namespace dudley {
 
-//
 // define the static constants
 MeshAdapter::FunctionSpaceNamesMapType MeshAdapter::m_functionSpaceTypeNames;
 const int MeshAdapter::DegreesOfFreedom=DUDLEY_DEGREES_OF_FREEDOM;
@@ -50,29 +56,26 @@ const int MeshAdapter::Points=DUDLEY_POINTS;
 
 MeshAdapter::MeshAdapter(Dudley_Mesh* dudleyMesh)
 {
-   setFunctionSpaceTypeNames();
-   //
-   // need to use a null_deleter as Dudley_Mesh_free deletes the pointer
-   // for us.
-   m_dudleyMesh.reset(dudleyMesh,null_deleter());
+    setFunctionSpaceTypeNames();
+    // need to use a null_deleter as Dudley_Mesh_free deletes the pointer
+    // for us.
+    m_dudleyMesh.reset(dudleyMesh,null_deleter());
 }
 
 //
 // The copy constructor should just increment the use count
-MeshAdapter::MeshAdapter(const MeshAdapter& in):
-m_dudleyMesh(in.m_dudleyMesh)
+MeshAdapter::MeshAdapter(const MeshAdapter& in) :
+    m_dudleyMesh(in.m_dudleyMesh)
 {
-   setFunctionSpaceTypeNames();
+    setFunctionSpaceTypeNames();
 }
 
 MeshAdapter::~MeshAdapter()
 {
-   //
-   // I hope the case for the pointer being zero has been taken care of.
-   //  cout << "In MeshAdapter destructor." << endl;
-   if (m_dudleyMesh.unique()) {
-      Dudley_Mesh_free(m_dudleyMesh.get());
-   }
+    // I hope the case for the pointer being zero has been taken care of
+    if (m_dudleyMesh.unique()) {
+        Dudley_Mesh_free(m_dudleyMesh.get());
+    }
 }
 
 escript::JMPI MeshAdapter::getMPI() const
@@ -82,24 +85,24 @@ escript::JMPI MeshAdapter::getMPI() const
 
 int MeshAdapter::getMPISize() const
 {
-   return m_dudleyMesh.get()->MPIInfo->size;
+    return m_dudleyMesh.get()->MPIInfo->size;
 }
 
 int MeshAdapter::getMPIRank() const
 {
-   return m_dudleyMesh.get()->MPIInfo->rank;
+    return m_dudleyMesh.get()->MPIInfo->rank;
 }
 
 void MeshAdapter::MPIBarrier() const
 {
 #ifdef ESYS_MPI
-   MPI_Barrier(m_dudleyMesh.get()->MPIInfo->comm);
+    MPI_Barrier(m_dudleyMesh.get()->MPIInfo->comm);
 #endif
 }
 
 bool MeshAdapter::onMasterProcessor() const
 {
-   return m_dudleyMesh.get()->MPIInfo->rank == 0;
+    return m_dudleyMesh.get()->MPIInfo->rank == 0;
 }
 
 MPI_Comm MeshAdapter::getMPIComm() const
@@ -109,20 +112,20 @@ MPI_Comm MeshAdapter::getMPIComm() const
 
 Dudley_Mesh* MeshAdapter::getDudley_Mesh() const
 {
-   return m_dudleyMesh.get();
+    return m_dudleyMesh.get();
 }
 
 void MeshAdapter::write(const string& fileName) const
 {
-   char *fName = (fileName.size()+1>0) ? new char[fileName.size()+1] : (char*)NULL;
-   strcpy(fName,fileName.c_str());
-   Dudley_Mesh_write(m_dudleyMesh.get(),fName);
-   delete[] fName;
+    char *fName = (fileName.size()+1>0) ? new char[fileName.size()+1] : (char*)NULL;
+    strcpy(fName, fileName.c_str());
+    Dudley_Mesh_write(m_dudleyMesh.get(),fName);
+    delete[] fName;
 }
 
 void MeshAdapter::Print_Mesh_Info(const bool full) const
 {
-   Dudley_PrintMesh_Info(m_dudleyMesh.get(), full);
+    Dudley_PrintMesh_Info(m_dudleyMesh.get(), full);
 }
 
 void MeshAdapter::dump(const string& fileName) const
@@ -169,84 +172,84 @@ void MeshAdapter::dump(const string& fileName) const
    string msgPrefix("Error in MeshAdapter::dump: NetCDF operation failed - ");
    // check if writing was successful
    if (!dataFile.is_valid())
-      throw DataException(msgPrefix+"Open file for output");
+      throw DudleyException(msgPrefix+"Open file for output");
 
    // Define dimensions (num_Elements and dim_Elements are identical,
    // dim_Elements only appears if > 0)
    if (! (ncdims[0] = dataFile.add_dim("numNodes", numNodes)) )
-      throw DataException(msgPrefix+"add_dim(numNodes)");
+      throw DudleyException(msgPrefix+"add_dim(numNodes)");
    if (! (ncdims[1] = dataFile.add_dim("numDim", numDim)) )
-      throw DataException(msgPrefix+"add_dim(numDim)");
+      throw DudleyException(msgPrefix+"add_dim(numDim)");
    if (! (ncdims[2] = dataFile.add_dim("mpi_size_plus_1", mpi_size+1)) )
-      throw DataException(msgPrefix+"add_dim(mpi_size)");
+      throw DudleyException(msgPrefix+"add_dim(mpi_size)");
    if (num_Elements>0)
       if (! (ncdims[3] = dataFile.add_dim("dim_Elements", num_Elements)) )
-         throw DataException(msgPrefix+"add_dim(dim_Elements)");
+         throw DudleyException(msgPrefix+"add_dim(dim_Elements)");
    if (num_FaceElements>0)
       if (! (ncdims[4] = dataFile.add_dim("dim_FaceElements", num_FaceElements)) )
-         throw DataException(msgPrefix+"add_dim(dim_FaceElements)");
+         throw DudleyException(msgPrefix+"add_dim(dim_FaceElements)");
    if (num_Points>0)
       if (! (ncdims[6] = dataFile.add_dim("dim_Points", num_Points)) )
-         throw DataException(msgPrefix+"add_dim(dim_Points)");
+         throw DudleyException(msgPrefix+"add_dim(dim_Points)");
    if (num_Elements>0)
       if (! (ncdims[7] = dataFile.add_dim("dim_Elements_Nodes", num_Elements_numNodes)) )
-         throw DataException(msgPrefix+"add_dim(dim_Elements_Nodes)");
+         throw DudleyException(msgPrefix+"add_dim(dim_Elements_Nodes)");
    if (num_FaceElements>0)
       if (! (ncdims[8] = dataFile.add_dim("dim_FaceElements_numNodes", num_FaceElements_numNodes)) )
-         throw DataException(msgPrefix+"add_dim(dim_FaceElements_numNodes)");
+         throw DudleyException(msgPrefix+"add_dim(dim_FaceElements_numNodes)");
    if (num_Tags>0)
       if (! (ncdims[10] = dataFile.add_dim("dim_Tags", num_Tags)) )
-         throw DataException(msgPrefix+"add_dim(dim_Tags)");
+         throw DudleyException(msgPrefix+"add_dim(dim_Tags)");
 
    // Attributes: MPI size, MPI rank, Name, order, reduced_order
    if (!dataFile.add_att("mpi_size", mpi_size) )
-      throw DataException(msgPrefix+"add_att(mpi_size)");
+      throw DudleyException(msgPrefix+"add_att(mpi_size)");
    if (!dataFile.add_att("mpi_rank", mpi_rank) )
-      throw DataException(msgPrefix+"add_att(mpi_rank)");
+      throw DudleyException(msgPrefix+"add_att(mpi_rank)");
    if (!dataFile.add_att("Name",mesh->Name) )
-      throw DataException(msgPrefix+"add_att(Name)");
+      throw DudleyException(msgPrefix+"add_att(Name)");
    if (!dataFile.add_att("numDim",numDim) )
-      throw DataException(msgPrefix+"add_att(order)");
+      throw DudleyException(msgPrefix+"add_att(order)");
    if (!dataFile.add_att("order",mesh->integrationOrder) )
-      throw DataException(msgPrefix+"add_att(order)");
+      throw DudleyException(msgPrefix+"add_att(order)");
    if (!dataFile.add_att("reduced_order",mesh->reducedIntegrationOrder) )
-      throw DataException(msgPrefix+"add_att(reduced_order)");
+      throw DudleyException(msgPrefix+"add_att(reduced_order)");
    if (!dataFile.add_att("numNodes",numNodes) )
-      throw DataException(msgPrefix+"add_att(numNodes)");
+      throw DudleyException(msgPrefix+"add_att(numNodes)");
    if (!dataFile.add_att("num_Elements",num_Elements) )
-      throw DataException(msgPrefix+"add_att(num_Elements)");
+      throw DudleyException(msgPrefix+"add_att(num_Elements)");
    if (!dataFile.add_att("num_FaceElements",num_FaceElements) )
-      throw DataException(msgPrefix+"add_att(num_FaceElements)");
+      throw DudleyException(msgPrefix+"add_att(num_FaceElements)");
    if (!dataFile.add_att("num_Points",num_Points) )
-      throw DataException(msgPrefix+"add_att(num_Points)");
+      throw DudleyException(msgPrefix+"add_att(num_Points)");
    if (!dataFile.add_att("num_Elements_numNodes",num_Elements_numNodes) )
-      throw DataException(msgPrefix+"add_att(num_Elements_numNodes)");
+      throw DudleyException(msgPrefix+"add_att(num_Elements_numNodes)");
    if (!dataFile.add_att("num_FaceElements_numNodes",num_FaceElements_numNodes) )
-      throw DataException(msgPrefix+"add_att(num_FaceElements_numNodes)");
+      throw DudleyException(msgPrefix+"add_att(num_FaceElements_numNodes)");
    if (!dataFile.add_att("Elements_TypeId", mesh->Elements->etype) )
-      throw DataException(msgPrefix+"add_att(Elements_TypeId)");
+      throw DudleyException(msgPrefix+"add_att(Elements_TypeId)");
    if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->etype) )
-      throw DataException(msgPrefix+"add_att(FaceElements_TypeId)");
+      throw DudleyException(msgPrefix+"add_att(FaceElements_TypeId)");
    if (!dataFile.add_att("Points_TypeId", mesh->Points->etype) )
-      throw DataException(msgPrefix+"add_att(Points_TypeId)");
+      throw DudleyException(msgPrefix+"add_att(Points_TypeId)");
    if (!dataFile.add_att("num_Tags", num_Tags) )
-      throw DataException(msgPrefix+"add_att(num_Tags)");
+      throw DudleyException(msgPrefix+"add_att(num_Tags)");
 
    // // // // // Nodes // // // // //
 
    // Nodes nodeDistribution
    if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncInt, ncdims[2])) )
-      throw DataException(msgPrefix+"add_var(Nodes_NodeDistribution)");
+      throw DudleyException(msgPrefix+"add_var(Nodes_NodeDistribution)");
    int_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
    if (! (ids->put(int_ptr, mpi_size+1)) )
-      throw DataException(msgPrefix+"put(Nodes_NodeDistribution)");
+      throw DudleyException(msgPrefix+"put(Nodes_NodeDistribution)");
 
    // Nodes degreesOfFreedomDistribution
    if (! ( ids = dataFile.add_var("Nodes_DofDistribution", ncInt, ncdims[2])) )
-      throw DataException(msgPrefix+"add_var(Nodes_DofDistribution)");
+      throw DudleyException(msgPrefix+"add_var(Nodes_DofDistribution)");
    int_ptr = &mesh->Nodes->degreesOfFreedomDistribution->first_component[0];
    if (! (ids->put(int_ptr, mpi_size+1)) )
-      throw DataException(msgPrefix+"put(Nodes_DofDistribution)");
+      throw DudleyException(msgPrefix+"put(Nodes_DofDistribution)");
 
    // Only write nodes if non-empty because NetCDF doesn't like empty arrays
    // (it treats them as NC_UNLIMITED)
@@ -254,51 +257,51 @@ void MeshAdapter::dump(const string& fileName) const
 
       // Nodes Id
       if (! ( ids = dataFile.add_var("Nodes_Id", ncInt, ncdims[0])) )
-         throw DataException(msgPrefix+"add_var(Nodes_Id)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_Id)");
       int_ptr = &mesh->Nodes->Id[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException(msgPrefix+"put(Nodes_Id)");
+         throw DudleyException(msgPrefix+"put(Nodes_Id)");
 
       // Nodes Tag
       if (! ( ids = dataFile.add_var("Nodes_Tag", ncInt, ncdims[0])) )
-         throw DataException(msgPrefix+"add_var(Nodes_Tag)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_Tag)");
       int_ptr = &mesh->Nodes->Tag[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException(msgPrefix+"put(Nodes_Tag)");
+         throw DudleyException(msgPrefix+"put(Nodes_Tag)");
 
       // Nodes gDOF
       if (! ( ids = dataFile.add_var("Nodes_gDOF", ncInt, ncdims[0])) )
-         throw DataException(msgPrefix+"add_var(Nodes_gDOF)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_gDOF)");
       int_ptr = &mesh->Nodes->globalDegreesOfFreedom[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException(msgPrefix+"put(Nodes_gDOF)");
+         throw DudleyException(msgPrefix+"put(Nodes_gDOF)");
 
       // Nodes global node index
       if (! ( ids = dataFile.add_var("Nodes_gNI", ncInt, ncdims[0])) )
-         throw DataException(msgPrefix+"add_var(Nodes_gNI)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_gNI)");
       int_ptr = &mesh->Nodes->globalNodesIndex[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException(msgPrefix+"put(Nodes_gNI)");
+         throw DudleyException(msgPrefix+"put(Nodes_gNI)");
 
       // Nodes grDof
       if (! ( ids = dataFile.add_var("Nodes_grDfI", ncInt, ncdims[0])) )
-         throw DataException(msgPrefix+"add_var(Nodes_grDfI)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_grDfI)");
       int_ptr = &mesh->Nodes->globalReducedDOFIndex[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException(msgPrefix+"put(Nodes_grDfI)");
+         throw DudleyException(msgPrefix+"put(Nodes_grDfI)");
 
       // Nodes grNI
       if (! ( ids = dataFile.add_var("Nodes_grNI", ncInt, ncdims[0])) )
-         throw DataException(msgPrefix+"add_var(Nodes_grNI)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_grNI)");
       int_ptr = &mesh->Nodes->globalReducedNodesIndex[0];
       if (! (ids->put(int_ptr, numNodes)) )
-         throw DataException(msgPrefix+"put(Nodes_grNI)");
+         throw DudleyException(msgPrefix+"put(Nodes_grNI)");
 
       // Nodes Coordinates
       if (! ( ids = dataFile.add_var("Nodes_Coordinates", ncDouble, ncdims[0], ncdims[1]) ) )
-         throw DataException(msgPrefix+"add_var(Nodes_Coordinates)");
+         throw DudleyException(msgPrefix+"add_var(Nodes_Coordinates)");
       if (! (ids->put(&(mesh->Nodes->Coordinates[INDEX2(0,0,numDim)]), numNodes, numDim)) )
-         throw DataException(msgPrefix+"put(Nodes_Coordinates)");
+         throw DudleyException(msgPrefix+"put(Nodes_Coordinates)");
 
    }
 
@@ -308,37 +311,37 @@ void MeshAdapter::dump(const string& fileName) const
 
       // Elements_Id
       if (! ( ids = dataFile.add_var("Elements_Id", ncInt, ncdims[3])) )
-         throw DataException(msgPrefix+"add_var(Elements_Id)");
+         throw DudleyException(msgPrefix+"add_var(Elements_Id)");
       int_ptr = &mesh->Elements->Id[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException(msgPrefix+"put(Elements_Id)");
+         throw DudleyException(msgPrefix+"put(Elements_Id)");
 
       // Elements_Tag
       if (! ( ids = dataFile.add_var("Elements_Tag", ncInt, ncdims[3])) )
-         throw DataException(msgPrefix+"add_var(Elements_Tag)");
+         throw DudleyException(msgPrefix+"add_var(Elements_Tag)");
       int_ptr = &mesh->Elements->Tag[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException(msgPrefix+"put(Elements_Tag)");
+         throw DudleyException(msgPrefix+"put(Elements_Tag)");
 
       // Elements_Owner
       if (! ( ids = dataFile.add_var("Elements_Owner", ncInt, ncdims[3])) )
-         throw DataException(msgPrefix+"add_var(Elements_Owner)");
+         throw DudleyException(msgPrefix+"add_var(Elements_Owner)");
       int_ptr = &mesh->Elements->Owner[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException(msgPrefix+"put(Elements_Owner)");
+         throw DudleyException(msgPrefix+"put(Elements_Owner)");
 
       // Elements_Color
       if (! ( ids = dataFile.add_var("Elements_Color", ncInt, ncdims[3])) )
-         throw DataException(msgPrefix+"add_var(Elements_Color)");
+         throw DudleyException(msgPrefix+"add_var(Elements_Color)");
       int_ptr = &mesh->Elements->Color[0];
       if (! (ids->put(int_ptr, num_Elements)) )
-         throw DataException(msgPrefix+"put(Elements_Color)");
+         throw DudleyException(msgPrefix+"put(Elements_Color)");
 
       // Elements_Nodes
       if (! ( ids = dataFile.add_var("Elements_Nodes", ncInt, ncdims[3], ncdims[7]) ) )
-         throw DataException(msgPrefix+"add_var(Elements_Nodes)");
+         throw DudleyException(msgPrefix+"add_var(Elements_Nodes)");
       if (! (ids->put(&(mesh->Elements->Nodes[0]), num_Elements, num_Elements_numNodes)) )
-         throw DataException(msgPrefix+"put(Elements_Nodes)");
+         throw DudleyException(msgPrefix+"put(Elements_Nodes)");
 
    }
 
@@ -348,37 +351,37 @@ void MeshAdapter::dump(const string& fileName) const
 
       // FaceElements_Id
       if (! ( ids = dataFile.add_var("FaceElements_Id", ncInt, ncdims[4])) )
-         throw DataException(msgPrefix+"add_var(FaceElements_Id)");
+         throw DudleyException(msgPrefix+"add_var(FaceElements_Id)");
       int_ptr = &mesh->FaceElements->Id[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException(msgPrefix+"put(FaceElements_Id)");
+         throw DudleyException(msgPrefix+"put(FaceElements_Id)");
 
       // FaceElements_Tag
       if (! ( ids = dataFile.add_var("FaceElements_Tag", ncInt, ncdims[4])) )
-         throw DataException(msgPrefix+"add_var(FaceElements_Tag)");
+         throw DudleyException(msgPrefix+"add_var(FaceElements_Tag)");
       int_ptr = &mesh->FaceElements->Tag[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException(msgPrefix+"put(FaceElements_Tag)");
+         throw DudleyException(msgPrefix+"put(FaceElements_Tag)");
 
       // FaceElements_Owner
       if (! ( ids = dataFile.add_var("FaceElements_Owner", ncInt, ncdims[4])) )
-         throw DataException(msgPrefix+"add_var(FaceElements_Owner)");
+         throw DudleyException(msgPrefix+"add_var(FaceElements_Owner)");
       int_ptr = &mesh->FaceElements->Owner[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException(msgPrefix+"put(FaceElements_Owner)");
+         throw DudleyException(msgPrefix+"put(FaceElements_Owner)");
 
       // FaceElements_Color
       if (! ( ids = dataFile.add_var("FaceElements_Color", ncInt, ncdims[4])) )
-         throw DataException(msgPrefix+"add_var(FaceElements_Color)");
+         throw DudleyException(msgPrefix+"add_var(FaceElements_Color)");
       int_ptr = &mesh->FaceElements->Color[0];
       if (! (ids->put(int_ptr, num_FaceElements)) )
-         throw DataException(msgPrefix+"put(FaceElements_Color)");
+         throw DudleyException(msgPrefix+"put(FaceElements_Color)");
 
       // FaceElements_Nodes
       if (! ( ids = dataFile.add_var("FaceElements_Nodes", ncInt, ncdims[4], ncdims[8]) ) )
-         throw DataException(msgPrefix+"add_var(FaceElements_Nodes)");
+         throw DudleyException(msgPrefix+"add_var(FaceElements_Nodes)");
       if (! (ids->put(&(mesh->FaceElements->Nodes[0]), num_FaceElements, num_FaceElements_numNodes)) )
-         throw DataException(msgPrefix+"put(FaceElements_Nodes)");
+         throw DudleyException(msgPrefix+"put(FaceElements_Nodes)");
 
    }
 
@@ -390,38 +393,38 @@ void MeshAdapter::dump(const string& fileName) const
 
       // Points_Id
       if (! ( ids = dataFile.add_var("Points_Id", ncInt, ncdims[6])) )
-         throw DataException(msgPrefix+"add_var(Points_Id)");
+         throw DudleyException(msgPrefix+"add_var(Points_Id)");
       int_ptr = &mesh->Points->Id[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException(msgPrefix+"put(Points_Id)");
+         throw DudleyException(msgPrefix+"put(Points_Id)");
 
       // Points_Tag
       if (! ( ids = dataFile.add_var("Points_Tag", ncInt, ncdims[6])) )
-         throw DataException(msgPrefix+"add_var(Points_Tag)");
+         throw DudleyException(msgPrefix+"add_var(Points_Tag)");
       int_ptr = &mesh->Points->Tag[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException(msgPrefix+"put(Points_Tag)");
+         throw DudleyException(msgPrefix+"put(Points_Tag)");
 
       // Points_Owner
       if (! ( ids = dataFile.add_var("Points_Owner", ncInt, ncdims[6])) )
-         throw DataException(msgPrefix+"add_var(Points_Owner)");
+         throw DudleyException(msgPrefix+"add_var(Points_Owner)");
       int_ptr = &mesh->Points->Owner[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException(msgPrefix+"put(Points_Owner)");
+         throw DudleyException(msgPrefix+"put(Points_Owner)");
 
       // Points_Color
       if (! ( ids = dataFile.add_var("Points_Color", ncInt, ncdims[6])) )
-         throw DataException(msgPrefix+"add_var(Points_Color)");
+         throw DudleyException(msgPrefix+"add_var(Points_Color)");
       int_ptr = &mesh->Points->Color[0];
       if (! (ids->put(int_ptr, num_Points)) )
-         throw DataException(msgPrefix+"put(Points_Color)");
+         throw DudleyException(msgPrefix+"put(Points_Color)");
 
       // Points_Nodes
       // mesh->Nodes->Id[mesh->Points->Nodes[INDEX2(0,i,1)]]
       if (! ( ids = dataFile.add_var("Points_Nodes", ncInt, ncdims[6]) ) )
-         throw DataException(msgPrefix+"add_var(Points_Nodes)");
+         throw DudleyException(msgPrefix+"add_var(Points_Nodes)");
       if (! (ids->put(&(mesh->Points->Nodes[0]), num_Points)) )
-         throw DataException(msgPrefix+"put(Points_Nodes)");
+         throw DudleyException(msgPrefix+"put(Points_Nodes)");
 
    }
 
@@ -445,10 +448,10 @@ void MeshAdapter::dump(const string& fileName) const
 
       // Tags_keys
       if (! ( ids = dataFile.add_var("Tags_keys", ncInt, ncdims[10])) )
-         throw DataException(msgPrefix+"add_var(Tags_keys)");
+         throw DudleyException(msgPrefix+"add_var(Tags_keys)");
       int_ptr = &Tags_keys[0];
       if (! (ids->put(int_ptr, num_Tags)) )
-         throw DataException(msgPrefix+"put(Tags_keys)");
+         throw DudleyException(msgPrefix+"put(Tags_keys)");
 
       // Tags_names_*
       // This is an array of strings, it should be stored as an array but
@@ -460,7 +463,7 @@ void MeshAdapter::dump(const string& fileName) const
          while (tag_map) {
             sprintf(name_temp, "Tags_name_%d", i);
             if (!dataFile.add_att(name_temp, tag_map->name) )
-               throw DataException(msgPrefix+"add_att(Tags_names_XX)");
+               throw DudleyException(msgPrefix+"add_att(Tags_names_XX)");
             tag_map=tag_map->next;
             i++;
          }
@@ -483,7 +486,7 @@ void MeshAdapter::dump(const string& fileName) const
 
 string MeshAdapter::getDescription() const
 {
-   return "DudleyMesh";
+    return "DudleyMesh";
 }
 
 string MeshAdapter::functionSpaceTypeAsString(int functionSpaceType) const
@@ -499,93 +502,96 @@ string MeshAdapter::functionSpaceTypeAsString(int functionSpaceType) const
 
 bool MeshAdapter::isValidFunctionSpaceType(int functionSpaceType) const
 {
-   FunctionSpaceNamesMapType::iterator loc;
-   loc=m_functionSpaceTypeNames.find(functionSpaceType);
-   return (loc!=m_functionSpaceTypeNames.end());
+    FunctionSpaceNamesMapType::iterator loc;
+    loc=m_functionSpaceTypeNames.find(functionSpaceType);
+    return (loc!=m_functionSpaceTypeNames.end());
 }
 
 void MeshAdapter::setFunctionSpaceTypeNames()
 {
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(DegreesOfFreedom,"Dudley_DegreesOfFreedom [Solution(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedDegreesOfFreedom,"Dudley_ReducedDegreesOfFreedom [ReducedSolution(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(Nodes,"Dudley_Nodes [ContinuousFunction(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedNodes,"Dudley_Reduced_Nodes [ReducedContinuousFunction(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(Elements,"Dudley_Elements [Function(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedElements,"Dudley_Reduced_Elements [ReducedFunction(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(FaceElements,"Dudley_Face_Elements [FunctionOnBoundary(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedFaceElements,"Dudley_Reduced_Face_Elements [ReducedFunctionOnBoundary(domain)]"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(Points,"Dudley_Points [DiracDeltaFunctions(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                DegreesOfFreedom,"Dudley_DegreesOfFreedom [Solution(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                ReducedDegreesOfFreedom,"Dudley_ReducedDegreesOfFreedom [ReducedSolution(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                Nodes,"Dudley_Nodes [ContinuousFunction(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                ReducedNodes,"Dudley_Reduced_Nodes [ReducedContinuousFunction(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                Elements,"Dudley_Elements [Function(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                ReducedElements,"Dudley_Reduced_Elements [ReducedFunction(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                FaceElements,"Dudley_Face_Elements [FunctionOnBoundary(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                ReducedFaceElements,"Dudley_Reduced_Face_Elements [ReducedFunctionOnBoundary(domain)]"));
+    m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
+                Points,"Dudley_Points [DiracDeltaFunctions(domain)]"));
 }
 
 int MeshAdapter::getContinuousFunctionCode() const
 {
-   return Nodes;
+    return Nodes;
 }
+
 int MeshAdapter::getReducedContinuousFunctionCode() const
 {
-   return ReducedNodes;
+    return ReducedNodes;
 }
 
 int MeshAdapter::getFunctionCode() const
 {
-   return Elements;
+    return Elements;
 }
+
 int MeshAdapter::getReducedFunctionCode() const
 {
-   return ReducedElements;
+    return ReducedElements;
 }
 
 int MeshAdapter::getFunctionOnBoundaryCode() const
 {
-   return FaceElements;
+    return FaceElements;
 }
+
 int MeshAdapter::getReducedFunctionOnBoundaryCode() const
 {
-   return ReducedFaceElements;
+    return ReducedFaceElements;
 }
 
 int MeshAdapter::getFunctionOnContactZeroCode() const
 {
-   throw DudleyException("Dudley does not support contact elements.");
+    throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getReducedFunctionOnContactZeroCode() const
 {
-   throw DudleyException("Dudley does not support contact elements.");
+    throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getFunctionOnContactOneCode() const
 {
-   throw DudleyException("Dudley does not support contact elements.");
+    throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getReducedFunctionOnContactOneCode() const
 {
-   throw DudleyException("Dudley does not support contact elements.");
+    throw DudleyException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getSolutionCode() const
 {
-   return DegreesOfFreedom;
+    return DegreesOfFreedom;
 }
 
 int MeshAdapter::getReducedSolutionCode() const
 {
-   return ReducedDegreesOfFreedom;
+    return ReducedDegreesOfFreedom;
 }
 
 int MeshAdapter::getDiracDeltaFunctionsCode() const
 {
-   return Points;
+    return Points;
 }
 
 //
@@ -593,9 +599,9 @@ int MeshAdapter::getDiracDeltaFunctionsCode() const
 //
 int MeshAdapter::getDim() const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   int numDim=Dudley_Mesh_getDim(mesh);
-   return numDim;
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    int numDim=Dudley_Mesh_getDim(mesh);
+    return numDim;
 }
 
 //
@@ -603,7 +609,7 @@ int MeshAdapter::getDim() const
 //
 int MeshAdapter::getNumDataPointsGlobal() const
 {
-   return Dudley_NodeFile_getGlobalNumNodes(m_dudleyMesh.get()->Nodes);
+    return Dudley_NodeFile_getGlobalNumNodes(m_dudleyMesh.get()->Nodes);
 }
 
 //
@@ -678,79 +684,83 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 //
 // adds linear PDE of second order into a given stiffness matrix and right hand side:
 //
-void MeshAdapter::addPDEToSystem(AbstractSystemMatrix& mat, escript::Data& rhs,
-                                 const escript::Data& A, const escript::Data& B,
-                                 const escript::Data& C, const escript::Data& D,
-                                 const escript::Data& X, const escript::Data& Y,
-                                 const escript::Data& d, const escript::Data& y,
-                                 const escript::Data& d_contact,
-                                 const escript::Data& y_contact,
-                                 const escript::Data& d_dirac,
-                                 const escript::Data& y_dirac) const
+void MeshAdapter::addPDEToSystem(
+        escript::AbstractSystemMatrix& mat, escript::Data& rhs,
+        const escript::Data& A, const escript::Data& B, const escript::Data& C,
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y,
+        const escript::Data& d_contact, const escript::Data& y_contact,
+        const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty() || !y_contact.isEmpty())
         throw DudleyException("Dudley does not support contact elements");
 
-    paso::SystemMatrix* smat = dynamic_cast<paso::SystemMatrix*>(&mat);
-    if (smat) {
-        paso::SystemMatrix_ptr S(smat->shared_from_this());
-        Dudley_Mesh* mesh = m_dudleyMesh.get();
-
-        Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
-
-        Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs, escript::Data(),
-                     escript::Data(), escript::Data(), d, escript::Data(), y);
-
-        Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
-                     escript::Data(), escript::Data(), d_dirac,
-                     escript::Data(), y_dirac);
-        return;
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(&mat);
+    if (tm) {
+        tm->resumeFill();
     }
-    throw DudleyException("Dudley only accepts Paso system matrices");
+#endif
+
+    Dudley_Mesh* mesh = m_dudleyMesh.get();
+    Assemble_PDE(mesh->Nodes, mesh->Elements, mat.getPtr(), rhs,
+                 A, B, C, D, X, Y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, mat.getPtr(), rhs,
+                 escript::Data(), escript::Data(), escript::Data(), d,
+                 escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->Points, mat.getPtr(), rhs, escript::Data(),
+                 escript::Data(), escript::Data(), d_dirac,
+                 escript::Data(), y_dirac);
+
+#ifdef USE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
-void  MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
-                                        const escript::Data& D,
-                                        const escript::Data& d,
-                                        const escript::Data& d_dirac,
-                                        bool useHRZ) const
+void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
+                                       const escript::Data& D,
+                                       const escript::Data& d,
+                                       const escript::Data& d_dirac,
+                                       bool useHRZ) const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-
-   Assemble_LumpedSystem(mesh->Nodes,mesh->Elements, mat, D, useHRZ);
-   Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, mat, d, useHRZ);
-   Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements, mat, d_dirac, useHRZ);
+    Dudley_Mesh* mesh = m_dudleyMesh.get();
+    Assemble_LumpedSystem(mesh->Nodes, mesh->Elements, mat, D, useHRZ);
+    Assemble_LumpedSystem(mesh->Nodes, mesh->FaceElements, mat, d, useHRZ);
+    Assemble_LumpedSystem(mesh->Nodes, mesh->Points, mat, d_dirac, useHRZ);
 }
-
 
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
+void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
+          const escript::Data& Y, const escript::Data& y,
+          const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
-   if (!y_contact.isEmpty())
-   {
+    if (!y_contact.isEmpty())
         throw DudleyException("Dudley does not support y_contact");
-   }
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Assemble_PDE(mesh->Nodes, mesh->Elements, escript::ASM_ptr(), rhs,
-                escript::Data(), escript::Data(), escript::Data(),
-                escript::Data(), X, Y);
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Assemble_PDE(mesh->Nodes, mesh->FaceElements, escript::ASM_ptr(), rhs,
-                escript::Data(), escript::Data(), escript::Data(),
-                escript::Data(), escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, escript::ASM_ptr(), rhs,
+                 escript::Data(), escript::Data(), escript::Data(),
+                 escript::Data(), X, Y);
 
-   Assemble_PDE(mesh->Nodes, mesh->Points, escript::ASM_ptr(), rhs,
-                escript::Data(), escript::Data(), escript::Data(),
-                escript::Data(), escript::Data(), y_dirac);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, escript::ASM_ptr(), rhs,
+                 escript::Data(), escript::Data(), escript::Data(),
+                 escript::Data(), escript::Data(), y);
+
+    Assemble_PDE(mesh->Nodes, mesh->Points, escript::ASM_ptr(), rhs,
+                 escript::Data(), escript::Data(), escript::Data(),
+                 escript::Data(), escript::Data(), y_dirac);
 }
+
 //
 // adds PDE of second order into a transport problem
 //
 void MeshAdapter::addPDEToTransportProblem(
-        AbstractTransportProblem& tp, escript::Data& source,
+        escript::AbstractTransportProblem& tp, escript::Data& source,
         const escript::Data& M, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const  escript::Data& D,const escript::Data& X,
         const escript::Data& Y, const escript::Data& d, const escript::Data& y,
@@ -758,37 +768,32 @@ void MeshAdapter::addPDEToTransportProblem(
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty())
-    {
         throw DudleyException("Dudley does not support d_contact");
-    }
     if (!y_contact.isEmpty())
-    {
         throw DudleyException("Dudley does not support y_contact");
-    }   
+
     paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
-    {
         throw DudleyException("Dudley only accepts Paso transport problems");
-    }
-    DataTypes::ShapeType shape;
+
     source.expand();
 
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(), source,
-                escript::Data(), escript::Data(), escript::Data(), M,
-                escript::Data(), escript::Data());
+    Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(), source,
+                 escript::Data(), escript::Data(), escript::Data(), M,
+                 escript::Data(), escript::Data());
 
-   Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
-                source, A, B, C, D, X, Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
+                 source, A, B, C, D, X, Y);
 
-   Assemble_PDE(mesh->Nodes, mesh->FaceElements, ptp->borrowTransportMatrix(),
-                source, escript::Data(), escript::Data(), escript::Data(), d,
-                escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, ptp->borrowTransportMatrix(),
+                 source, escript::Data(), escript::Data(), escript::Data(), d,
+                 escript::Data(), y);
 
-   Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
-                source, escript::Data(), escript::Data(), escript::Data(),
-                d_dirac, escript::Data(), y_dirac);
+    Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
+                 source, escript::Data(), escript::Data(), escript::Data(),
+                 d_dirac, escript::Data(), y_dirac);
 }
 
 //
@@ -1075,16 +1080,12 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 }
 
 //
-// interpolates data to other domain:
+// interpolates data to other domain
 //
 void MeshAdapter::interpolateAcross(escript::Data& target,const escript::Data& source) const
 {
-   const_Domain_ptr targetDomain_p=target.getFunctionSpace().getDomain();
-   const MeshAdapter* targetDomain=dynamic_cast<const MeshAdapter*>(targetDomain_p.get());
-   if (targetDomain!=this) 
-      throw DudleyException("Illegal domain of interpolation target");
-
-   throw DudleyException("Dudley does not allow interpolation across domains yet.");
+    throw escript::NotImplementedError("Dudley does not allow interpolation "
+                                       "across domains.");
 }
 
 //
@@ -1291,118 +1292,129 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
     return true;
 }
 
-
+#ifdef USE_TRILINOS
+const_TrilinosGraph_ptr MeshAdapter::getTrilinosGraph() const
+{
+    if (m_graph.is_null()) {
+        m_graph = createTrilinosGraph(m_dudleyMesh.get());
+    }
+    return m_graph;
+}
+#endif
 
 //
 // creates a stiffness matrix an initializes it with zeros
 //
-ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
-                                     const escript::FunctionSpace& row_functionspace,
-                                     const int column_blocksize,
-                                     const escript::FunctionSpace& column_functionspace,
-                                     const int type) const
+escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
+                            const escript::FunctionSpace& row_functionspace,
+                            int column_blocksize,
+                            const escript::FunctionSpace& column_functionspace,
+                            int type) const
 {
-   int reduceRowOrder=0;
-   int reduceColOrder=0;
-   // is the domain right?
-   const MeshAdapter& row_domain=dynamic_cast<const MeshAdapter&>(*(row_functionspace.getDomain()));
-   if (row_domain!=*this) 
-      throw DudleyException("domain of row function space does not match the domain of matrix generator.");
-   const MeshAdapter& col_domain=dynamic_cast<const MeshAdapter&>(*(column_functionspace.getDomain()));
-   if (col_domain!=*this) 
-      throw DudleyException("domain of column function space does not match the domain of matrix generator.");
-   // is the function space type right 
-   if (row_functionspace.getTypeCode()==DegreesOfFreedom) {
-      reduceRowOrder=0;
-   } else if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
-      reduceRowOrder=1;
-   } else {
-      throw DudleyException("illegal function space type for system matrix rows.");
-   }
-   if (column_functionspace.getTypeCode()==DegreesOfFreedom) {
-      reduceColOrder=0;
-   } else if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
-      reduceColOrder=1;
-   } else {
-      throw DudleyException("illegal function space type for system matrix columns.");
-   }
-   // generate matrix:
- 
-   paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder));
-   paso::SystemMatrix_ptr sm;
-   int trilinos = 0;
-   if (trilinos) {
-#ifdef TRILINOS
-      /* Allocation Epetra_VrbMatrix here */
+    // is the domain right?
+    const MeshAdapter& row_domain=dynamic_cast<const MeshAdapter&>(*(row_functionspace.getDomain()));
+    if (row_domain!=*this) 
+        throw DudleyException("domain of row function space does not match the domain of matrix generator.");
+    const MeshAdapter& col_domain=dynamic_cast<const MeshAdapter&>(*(column_functionspace.getDomain()));
+    if (col_domain!=*this) 
+        throw DudleyException("domain of column function space does not match the domain of matrix generator.");
+
+    int reduceRowOrder=0;
+    int reduceColOrder=0;
+    // is the function space type right 
+    if (row_functionspace.getTypeCode()==DegreesOfFreedom) {
+        reduceRowOrder=0;
+    } else if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+        reduceRowOrder=1;
+    } else {
+        throw DudleyException("illegal function space type for system matrix rows.");
+    }
+    if (column_functionspace.getTypeCode()==DegreesOfFreedom) {
+        reduceColOrder=0;
+    } else if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+        reduceColOrder=1;
+    } else {
+        throw DudleyException("illegal function space type for system matrix columns.");
+    }
+
+    // generate matrix
+    if (type & (int)SMT_TRILINOS) {
+#ifdef USE_TRILINOS
+        const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_dudleyMesh->MPIInfo,
+                    row_blocksize, row_functionspace, graph));
+        return sm;
+#else
+        throw DudleyException("newSystemMatrix: dudley was not compiled "
+                "with Trilinos support so the Trilinos solver stack cannot be "
+                "used.");
 #endif
-   }
-   else {
-      sm.reset(new paso::SystemMatrix(type, fsystemMatrixPattern,
+    } else if (type & (int)SMT_PASO) {
+        paso::SystemMatrixPattern_ptr pattern(Dudley_getPattern(
+                    getDudley_Mesh(), reduceRowOrder, reduceColOrder));
+        paso::SystemMatrix_ptr sm(new paso::SystemMatrix(type, pattern,
                   row_blocksize, column_blocksize, false, row_functionspace,
                   column_functionspace));
-   }
-   return sm;
+        return sm;
+    } else {
+        throw DudleyException("newSystemMatrix: unknown matrix type ID");
+    }
 }
 
 //
 // creates a TransportProblem
 //
-ATP_ptr MeshAdapter::newTransportProblem(int blocksize,
-                                         const escript::FunctionSpace& fs,
-                                         int type) const
+escript::ATP_ptr MeshAdapter::newTransportProblem(int blocksize,
+                                             const escript::FunctionSpace& fs,
+                                             int type) const
 {
-   int reduceOrder=0;
-   // is the domain right?
-   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(fs.getDomain()));
-   if (domain!=*this) 
-      throw DudleyException("domain of function space does not match the domain of transport problem generator.");
-   // is the function space type right 
-   if (fs.getTypeCode()==DegreesOfFreedom) {
-      reduceOrder=0;
-   } else if (fs.getTypeCode()==ReducedDegreesOfFreedom) {
-      reduceOrder=1;
-   } else {
-      throw DudleyException("illegal function space type for system matrix rows.");
-   }
-   // generate matrix:
- 
-   paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(
-               getDudley_Mesh(),reduceOrder,reduceOrder));
-   paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
-                                            fsystemMatrixPattern, blocksize,
-                                            fs));
-   return transportProblem;
-}
+    int reduceOrder=0;
+    // is the domain right?
+    const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(fs.getDomain()));
+    if (domain!=*this) 
+        throw DudleyException("domain of function space does not match the domain of transport problem generator.");
+    // is the function space type right 
+    if (fs.getTypeCode()==DegreesOfFreedom) {
+        reduceOrder=0;
+    } else if (fs.getTypeCode()==ReducedDegreesOfFreedom) {
+        reduceOrder=1;
+    } else {
+        throw DudleyException("illegal function space type for system matrix rows.");
+    }
 
-//
-// vtkObject MeshAdapter::createVtkObject() const
-// TODO:
-//
+    // generate matrix
+    paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(
+                getDudley_Mesh(),reduceOrder,reduceOrder));
+    paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
+                                              fsystemMatrixPattern, blocksize,
+                                              fs));
+    return transportProblem;
+}
 
 //
 // returns true if data at the atom_type is considered as being cell centered:
 bool MeshAdapter::isCellOriented(int functionSpaceCode) const
 {
-   switch(functionSpaceCode) {
-   case(Nodes):
-   case(DegreesOfFreedom):
-   case(ReducedDegreesOfFreedom):
-   return false;
-   break;
-   case(Elements):
-   case(FaceElements):
-   case(Points):
-   case(ReducedElements):
-   case(ReducedFaceElements):
-   return true;
-   break;
-   default:
-      stringstream temp;
-      temp << "Cell: Dudley does not know anything about function space type " << functionSpaceCode;
-      throw DudleyException(temp.str());
-      break;
-   }
-   return false;
+    switch (functionSpaceCode) {
+        case(Nodes):
+        case(DegreesOfFreedom):
+        case(ReducedDegreesOfFreedom):
+            return false;
+            break;
+        case(Elements):
+        case(FaceElements):
+        case(Points):
+        case(ReducedElements):
+        case(ReducedFaceElements):
+            return true;
+            break;
+        default:
+            stringstream temp;
+            temp << "Cell: Dudley does not know anything about function space type " << functionSpaceCode;
+            throw DudleyException(temp.str());
+            break;
+    }
+    return false;
 }
 
 bool
@@ -1439,37 +1451,38 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
     bool hasrednodes=false;
     for (int i=0;i<fs.size();++i)
     {
-        switch(fs[i])
-        {
-        case(Nodes):   hasnodes=true;   // no break is deliberate
-        case(DegreesOfFreedom):
+        switch(fs[i]) {
+            case(Nodes):
+                hasnodes=true;   // no break is deliberate
+            case(DegreesOfFreedom):
                 hasclass[1]=1;
                 break;
-        case(ReducedNodes):    hasrednodes=true;        // no break is deliberate
-        case(ReducedDegreesOfFreedom):
+            case(ReducedNodes):
+                hasrednodes=true; // no break is deliberate
+            case(ReducedDegreesOfFreedom):
                 hasclass[2]=1;
                 break;
-        case(Points):
+            case(Points):
                 hasline[0]=1;
                 hasclass[3]=1;
                 break;
-        case(Elements):
+            case(Elements):
                 hasclass[4]=1;
                 hasline[1]=1;
                 break;
-        case(ReducedElements):
+            case(ReducedElements):
                 hasclass[5]=1;
                 hasline[1]=1;
                 break;
-        case(FaceElements):
+            case(FaceElements):
                 hasclass[6]=1;
                 hasline[2]=1;
                 break;
-        case(ReducedFaceElements):
+            case(ReducedFaceElements):
                 hasclass[7]=1;
                 hasline[2]=1;
                 break;
-        default:
+            default:
                 return false;
         }
     }
@@ -1533,13 +1546,9 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
 signed char MeshAdapter::preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
 {
     if (probeInterpolationOnDomain(functionSpaceType_source, functionSpaceType_target))
-    {  
         return 1;
-    }
     else if (probeInterpolationOnDomain(functionSpaceType_target, functionSpaceType_source))
-    {  
         return -1;
-    }
     return 0;
 }
 
@@ -1665,56 +1674,65 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
    return false;
 }
 
-bool MeshAdapter::probeInterpolationAcross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
+bool MeshAdapter::probeInterpolationAcross(int functionSpaceType_source,
+        const AbstractDomain& targetDomain, int functionSpaceType_target) const
 {
-   return false;
+    return false;
 }
 
 bool MeshAdapter::operator==(const AbstractDomain& other) const
 {
-   const MeshAdapter* temp=dynamic_cast<const MeshAdapter*>(&other);
-   if (temp!=0) {
-      return (m_dudleyMesh==temp->m_dudleyMesh);
-   } else {
-      return false;
-   }
+    const MeshAdapter* temp=dynamic_cast<const MeshAdapter*>(&other);
+    if (temp!=0) {
+        return (m_dudleyMesh==temp->m_dudleyMesh);
+    } else {
+        return false;
+    }
 }
 
 bool MeshAdapter::operator!=(const AbstractDomain& other) const
 {
-   return !(operator==(other));
+    return !(operator==(other));
 }
 
 int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
-    return paso::SystemMatrix::getSystemMatrixTypeId(sb.getSolverMethod(),
-                sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(),
-                m_dudleyMesh->MPIInfo);
+    int package = sb.getPackage();
+    if (package == escript::SO_PACKAGE_TRILINOS) {
+#ifdef USE_TRILINOS
+        return (int)SMT_TRILINOS;
+#else
+        throw DudleyAdapterException("Trilinos requested but not built with Trilinos.");       
+#endif
+    }
+    return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
+                sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
+                sb.isSymmetric(), m_dudleyMesh->MPIInfo);
 }
 
 int MeshAdapter::getTransportTypeId(int solver, int preconditioner,
                                     int package, bool symmetry) const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   return paso::TransportProblem::getTypeId(solver, preconditioner, package,
-                                            symmetry, mesh->MPIInfo);
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    return paso::TransportProblem::getTypeId(solver, preconditioner, package,
+                                             symmetry, mesh->MPIInfo);
 }
 
 escript::Data MeshAdapter::getX() const
 {
-   return continuousFunction(*this).getX();
+    return continuousFunction(*this).getX();
 }
 
 escript::Data MeshAdapter::getNormal() const
 {
-   return functionOnBoundary(*this).getNormal();
+    return functionOnBoundary(*this).getNormal();
 }
 
 escript::Data MeshAdapter::getSize() const
 {
-   return escript::function(*this).getSize();
+    return escript::function(*this).getSize();
 }
 
 const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
@@ -1801,73 +1819,73 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 
 void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   switch(functionSpaceType) {
-   case(Nodes):
-   Dudley_NodeFile_setTags(mesh->Nodes,newTag,&mask);
-   break;
-   case(ReducedNodes):
-   throw DudleyException("ReducedNodes does not support tags");
-   break;
-   case(DegreesOfFreedom):
-   throw DudleyException("DegreesOfFreedom does not support tags");
-   break;
-   case(ReducedDegreesOfFreedom):
-   throw DudleyException("ReducedDegreesOfFreedom does not support tags");
-   break;
-   case(Elements):
-   Dudley_ElementFile_setTags(mesh->Elements,newTag,&mask);
-   break;
-   case(ReducedElements):
-   Dudley_ElementFile_setTags(mesh->Elements,newTag,&mask);
-   break;
-   case(FaceElements):
-   Dudley_ElementFile_setTags(mesh->FaceElements,newTag,&mask);
-   break;
-   case(ReducedFaceElements):
-   Dudley_ElementFile_setTags(mesh->FaceElements,newTag,&mask);
-   break;
-   case(Points):
-   Dudley_ElementFile_setTags(mesh->Points,newTag,&mask);
-   break;
-   default:
-      stringstream temp;
-      temp << "Dudley does not know anything about function space type " << functionSpaceType;
-      throw DudleyException(temp.str());
-   }
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    switch (functionSpaceType) {
+        case Nodes:
+            Dudley_NodeFile_setTags(mesh->Nodes,newTag,&mask);
+            break;
+        case ReducedNodes:
+            throw DudleyException("ReducedNodes does not support tags");
+            break;
+        case DegreesOfFreedom:
+            throw DudleyException("DegreesOfFreedom does not support tags");
+            break;
+        case ReducedDegreesOfFreedom:
+            throw DudleyException("ReducedDegreesOfFreedom does not support tags");
+            break;
+        case Elements:
+            Dudley_ElementFile_setTags(mesh->Elements,newTag,&mask);
+            break;
+        case ReducedElements:
+            Dudley_ElementFile_setTags(mesh->Elements,newTag,&mask);
+            break;
+        case FaceElements:
+            Dudley_ElementFile_setTags(mesh->FaceElements,newTag,&mask);
+            break;
+        case ReducedFaceElements:
+            Dudley_ElementFile_setTags(mesh->FaceElements,newTag,&mask);
+            break;
+        case Points:
+            Dudley_ElementFile_setTags(mesh->Points,newTag,&mask);
+            break;
+        default:
+            stringstream temp;
+            temp << "Dudley does not know anything about function space type " << functionSpaceType;
+            throw DudleyException(temp.str());
+    }
 }
 
 void MeshAdapter::setTagMap(const string& name,  int tag)
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   Dudley_Mesh_addTagMap(mesh, name.c_str(),tag);
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    Dudley_Mesh_addTagMap(mesh, name.c_str(),tag);
 }
 
 int MeshAdapter::getTag(const string& name) const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   int tag=0;
-   tag=Dudley_Mesh_getTag(mesh, name.c_str());
-   return tag;
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    int tag=0;
+    tag=Dudley_Mesh_getTag(mesh, name.c_str());
+    return tag;
 }
 
 bool MeshAdapter::isValidTagName(const string& name) const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   return Dudley_Mesh_isValidTagName(mesh,name.c_str());
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    return Dudley_Mesh_isValidTagName(mesh,name.c_str());
 }
 
 string MeshAdapter::showTagNames() const
 {
-   stringstream temp;
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   Dudley_TagMap* tag_map=mesh->TagMap;
-   while (tag_map) {
-      temp << tag_map->name;
-      tag_map=tag_map->next;
-      if (tag_map) temp << ", ";
-   }
-   return temp.str();
+    stringstream temp;
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    Dudley_TagMap* tag_map=mesh->TagMap;
+    while (tag_map) {
+        temp << tag_map->name;
+        tag_map=tag_map->next;
+        if (tag_map) temp << ", ";
+    }
+    return temp.str();
 }
 
 int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
@@ -1908,67 +1926,63 @@ int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
 
 const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
 {
-  Dudley_Mesh* mesh=m_dudleyMesh.get();
-  index_t* tags=NULL;
-  switch(functionSpaceCode) {
-   case(Nodes):
-          tags=mesh->Nodes->tagsInUse;
-          break;
-   case(ReducedNodes):
-          throw DudleyException("ReducedNodes does not support tags");
-          break;
-   case(DegreesOfFreedom):
-          throw DudleyException("DegreesOfFreedom does not support tags");
-          break;
-   case(ReducedDegreesOfFreedom):
-          throw DudleyException("ReducedDegreesOfFreedom does not support tags");
-          break;
-   case(Elements):
-   case(ReducedElements):
-          tags=mesh->Elements->tagsInUse;
-          break;
-   case(FaceElements):
-   case(ReducedFaceElements):
-          tags=mesh->FaceElements->tagsInUse;
-          break;
-   case(Points):
-          tags=mesh->Points->tagsInUse;
-          break;
-   default:
-      stringstream temp;
-      temp << "Dudley does not know anything about function space type " << functionSpaceCode;
-      throw DudleyException(temp.str());
-  }
-  return tags;
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    index_t* tags=NULL;
+    switch (functionSpaceCode) {
+        case Nodes:
+            tags=mesh->Nodes->tagsInUse;
+            break;
+        case ReducedNodes:
+            throw DudleyException("ReducedNodes does not support tags");
+            break;
+        case DegreesOfFreedom:
+            throw DudleyException("DegreesOfFreedom does not support tags");
+            break;
+        case ReducedDegreesOfFreedom:
+            throw DudleyException("ReducedDegreesOfFreedom does not support tags");
+            break;
+        case Elements:
+        case ReducedElements:
+            tags=mesh->Elements->tagsInUse;
+            break;
+        case FaceElements:
+        case ReducedFaceElements:
+            tags=mesh->FaceElements->tagsInUse;
+            break;
+        case Points:
+            tags=mesh->Points->tagsInUse;
+            break;
+        default:
+            stringstream temp;
+            temp << "Dudley does not know anything about function space type " << functionSpaceCode;
+            throw DudleyException(temp.str());
+    }
+    return tags;
 }
 
 
 bool MeshAdapter::canTag(int functionSpaceCode) const
 {
-  switch(functionSpaceCode) {
-   case(Nodes):
-   case(Elements):
-   case(ReducedElements):
-   case(FaceElements):
-   case(ReducedFaceElements):
-   case(Points):
-          return true;
-   case(ReducedNodes):
-   case(DegreesOfFreedom):
-   case(ReducedDegreesOfFreedom):
-          return false;
-   default:
-        return false;
-  }
+    switch(functionSpaceCode) {
+        case Nodes:
+        case Elements:
+        case ReducedElements:
+        case FaceElements:
+        case ReducedFaceElements:
+        case Points:
+            return true;
+        default:
+            return false;
+    }
 }
 
-AbstractDomain::StatusType MeshAdapter::getStatus() const
+MeshAdapter::StatusType MeshAdapter::getStatus() const
 {
-  Dudley_Mesh* mesh=m_dudleyMesh.get();
-  return Dudley_Mesh_getStatus(mesh);
+    Dudley_Mesh* mesh=m_dudleyMesh.get();
+    return Dudley_Mesh_getStatus(mesh);
 }
 
-int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
+int MeshAdapter::getApproximationOrder(int functionSpaceCode) const
 {
    
   Dudley_Mesh* mesh=m_dudleyMesh.get();
@@ -1999,19 +2013,18 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
   return order;
 }
 
-
 bool MeshAdapter::supportsContactElements() const
 {
     return false;
 }
 
 escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed,
-       const bp::tuple& filter) const
+                                const escript::FunctionSpace& what, long seed,
+                                const bp::tuple& filter) const
 {
-    Data towipe(0, shape, what, true);
-    // since we just made this object, no sharing is possible and we don't need to check for
-    // exlusive write
+    escript::Data towipe(0, shape, what, true);
+    // since we just made this object, no sharing is possible and we don't
+    // need to check for exlusive write
     escript::DataTypes::RealVectorType& dv=towipe.getExpandedVectorReference();
     const size_t dvsize=dv.size();
     escript::randomFillArray(seed, &(dv[0]), dvsize);
