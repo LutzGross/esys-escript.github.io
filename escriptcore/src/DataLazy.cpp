@@ -991,28 +991,6 @@ DataLazy::collapse() const
   m_op=IDENTITY;
 }
 
-
-
-
-
-
-#define PROC_OP(TYPE,X)                               \
-        for (int j=0;j<onumsteps;++j)\
-        {\
-          for (int i=0;i<numsteps;++i,resultp+=resultStep) \
-          { \
-LAZYDEBUG(cout << "[left,right]=[" << lroffset << "," << rroffset << "]" << endl;)\
-LAZYDEBUG(cout << "{left,right}={" << (*left)[lroffset] << "," << (*right)[rroffset] << "}\n";)\
-             tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
-LAZYDEBUG(cout << " result=      " << resultp[0] << endl;) \
-             lroffset+=leftstep; \
-             rroffset+=rightstep; \
-          }\
-          lroffset+=oleftstep;\
-          rroffset+=orightstep;\
-        }
-
-
 // The result will be stored in m_samples
 // The return value is a pointer to the DataVector, offset is the offset within the return value
 const DataTypes::RealVectorType*
@@ -1570,16 +1548,72 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 escript::ESFunction::PLUSF);	
         break;
     case SUB:
-        PROC_OP(NO_ARG,minus<double>());
+      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::MINUSF);	      
+        //PROC_OP(NO_ARG,minus<double>());
         break;
     case MUL:
-        PROC_OP(NO_ARG,multiplies<double>());
+        //PROC_OP(NO_ARG,multiplies<double>());
+      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::MULTIPLIESF);	      
         break;
     case DIV:
-        PROC_OP(NO_ARG,divides<double>());
+        //PROC_OP(NO_ARG,divides<double>());
+      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::DIVIDESF);	      
         break;
     case POW:
-       PROC_OP(double (double,double),::pow);
+       //PROC_OP(double (double,double),::pow);
+      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::POWF);	      
         break;
     default:
         throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");

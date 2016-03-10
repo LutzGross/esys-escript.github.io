@@ -1520,7 +1520,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
       { \
 	  for (size_t s=0; s<chunksize; ++s)\
 	  {\
-	      res[i+s] = X;\
+	      res[s] = X;\
 	  }\
 /*	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X);*/ \
 	  lroffset+=leftstep; \
@@ -1556,45 +1556,31 @@ binaryOpVectorLazyHelper(ResELT* res,
     switch (operation)
     {
       case PLUSF:
-    for (size_t j=0;j<onumsteps;++j)\
-    {\
-      for (size_t i=0;i<numsteps;++i,res+=resultStep) \
-      { \
-	  for (size_t s=0; s<chunksize; ++s)\
-	  {\
-	      res[s] = left[lroffset+s]+right[rroffset+s];\
-	  }\
-/*	  tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X);*/ \
-	  lroffset+=leftstep; \
-	  rroffset+=rightstep; \
-      }\
-      lroffset+=oleftstep;\
-      rroffset+=orightstep;\
-    }	
+	OPVECLAZYBODY((left[lroffset+s]+right[rroffset+s]));
 	break;
     case POWF:
-	OPVECLAZYBODY(pow(left[lroffset+i],right[rroffset+i]))
+	OPVECLAZYBODY(pow(left[lroffset+s],right[rroffset+s]))
       break;      
     case MINUSF:
-	OPVECLAZYBODY(left[lroffset+i]-right[rroffset+i])      
+	OPVECLAZYBODY(left[lroffset+s]-right[rroffset+s])      
       break;      
     case MULTIPLIESF:
-	OPVECLAZYBODY(left[lroffset+i]*right[rroffset+i])
+	OPVECLAZYBODY(left[lroffset+s]*right[rroffset+s])
       break;      
     case DIVIDESF:
-	OPVECLAZYBODY(left[lroffset+i]/right[rroffset+i])
+	OPVECLAZYBODY(left[lroffset+s]/right[rroffset+s])
       break;      
     case LESSF:
-	OPVECLAZYBODY(left[lroffset+i]<right[rroffset+i])      
+	OPVECLAZYBODY(left[lroffset+s]<right[rroffset+s])      
       break;      
     case GREATERF:
-	OPVECLAZYBODY(left[lroffset+i]>right[rroffset+i])      
+	OPVECLAZYBODY(left[lroffset+s]>right[rroffset+s])      
       break;      
     case GREATER_EQUALF:
-	OPVECLAZYBODY(left[lroffset+i]>=right[rroffset+i])      
+	OPVECLAZYBODY(left[lroffset+s]>=right[rroffset+s])      
       break;      
     case LESS_EQUALF:
-	OPVECLAZYBODY(left[lroffset+i]<=right[rroffset+i])      
+	OPVECLAZYBODY(left[lroffset+s]<=right[rroffset+s])      
       break;   	
       default:
 	ESYS_ASSERT(false, "Invalid operation. This should never happen!");
