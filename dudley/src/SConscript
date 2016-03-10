@@ -64,6 +64,7 @@ sources = """
 	IndexList.cpp
 	Mesh.cpp
 	Mesh_createNodeFileMappings.cpp
+	Mesh_createTrilinosGraph.cpp
 	Mesh_distributeByRankOfDOF.cpp
 	Mesh_findMatchingFaces.cpp
 	Mesh_getPattern.cpp
@@ -126,6 +127,10 @@ cppadapter_headers = """
 """.split()
 
 local_env.Prepend(LIBS = ['escript', 'paso'])
+
+if local_env['trilinos']:
+    local_env.AppendUnique(LIBS = ['trilinoswrap'])
+    py_wrapper_local_env.AppendUnique(LIBS = ['trilinoswrap'])
 
 if IS_WINDOWS :
   local_env.Append(CPPDEFINES = ['DUDLEY_EXPORTS'])
