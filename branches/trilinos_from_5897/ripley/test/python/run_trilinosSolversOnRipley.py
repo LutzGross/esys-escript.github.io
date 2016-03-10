@@ -58,6 +58,30 @@ class SimpleSolveSingleOnly(SimpleSolveTestCase):
     def test_system(self):
         pass
 
+### BiCGStab + Jacobi
+
+class Test_SimpleSolveRipley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
+    def setUp(self):
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveRipley3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
+    def setUp(self):
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+### GMRES + Jacobi
+
 class Test_SimpleSolveRipley2D_Trilinos_GMRES_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -77,6 +101,8 @@ class Test_SimpleSolveRipley3D_Trilinos_GMRES_Jacobi(SimpleSolveSingleOnly):
 
     def tearDown(self):
         del self.domain
+
+### PCG + Jacobi
 
 class Test_SimpleSolveRipley2D_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
@@ -98,6 +124,8 @@ class Test_SimpleSolveRipley3D_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
+### MINRES + Jacobi
+
 class Test_SimpleSolveRipley2D_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -117,6 +145,8 @@ class Test_SimpleSolveRipley3D_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
 
     def tearDown(self):
         del self.domain
+
+### TFQMR + RILU
 
 class Test_SimpleSolveRipley2D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
     def setUp(self):
@@ -138,11 +168,25 @@ class Test_SimpleSolveRipley3D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
+### LSQR + AMG
+
 class Test_SimpleSolveRipley2D_Trilinos_LSQR_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+### PCG + AMG
+
+class Test_SimpleSolveRipley2D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
+    def setUp(self):
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
     def tearDown(self):
@@ -154,6 +198,28 @@ class Test_SimpleSolveRipley3D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+### PCG + ILUT
+
+class Test_SimpleSolveRipley2D_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
+    def setUp(self):
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.ILUT
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveRipley3D_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
+    def setUp(self):
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.ILUT
 
     def tearDown(self):
         del self.domain
