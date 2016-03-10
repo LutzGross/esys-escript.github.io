@@ -81,7 +81,7 @@ inline void setShapeError(const char* c, int num, const int *dims)
 }
 
 void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
-                  escript::AbstractSystemMatrix* S, escript::Data& F,
+                  escript::ASM_ptr S, escript::Data& F,
                   const escript::Data& A, const escript::Data& B,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y)

@@ -745,17 +745,17 @@ void MeshAdapter::addPDEToSystem(
 #endif
 
     Mesh* mesh=m_finleyMesh.get();
-    Assemble_PDE(mesh->Nodes, mesh->Elements, &mat, rhs, A, B, C, D, X, Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, mat.getPtr(), rhs, A, B, C, D, X, Y);
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, &mat, rhs,
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, mat.getPtr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), d,
             escript::Data(), y);
 
-    Assemble_PDE(mesh->Nodes, mesh->ContactElements, &mat, rhs,
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, mat.getPtr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), d_contact,
             escript::Data(), y_contact);
 
-    Assemble_PDE(mesh->Nodes, mesh->Points, &mat, rhs, escript::Data(),
+    Assemble_PDE(mesh->Nodes, mesh->Points, mat.getPtr(), rhs, escript::Data(),
             escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
 #ifdef USE_TRILINOS
     if (tm) {
@@ -813,32 +813,31 @@ void MeshAdapter::addPDEToTransportProblem(
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     source.expand();
-/*
     Mesh* mesh=m_finleyMesh.get();
     paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
         throw ValueError("finley only supports Paso transport problems.");
 
-    Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowMassMatrix(), source,
-                        escript::Data(), escript::Data(), escript::Data(),
-                        M, escript::Data(), escript::Data());
+    escript::ASM_ptr mm(boost::static_pointer_cast<escript::AbstractSystemMatrix>(
+                ptp->borrowMassMatrix()));
+    escript::ASM_ptr tm(boost::static_pointer_cast<escript::AbstractSystemMatrix>(
+                ptp->borrowTransportMatrix()));
+    Assemble_PDE(mesh->Nodes, mesh->Elements, mm, source, escript::Data(),
+                 escript::Data(), escript::Data(), M, escript::Data(),
+                 escript::Data());
 
-    Assemble_PDE(mesh->Nodes, mesh->Elements, ptp->borrowTransportMatrix(),
-                 source, A, B, C, D, X, Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, tm, source, A, B, C, D, X, Y);
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, ptp->borrowTransportMatrix(),
-                 source, escript::Data(), escript::Data(), escript::Data(),
-                 d, escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, tm, source, escript::Data(),
+                 escript::Data(), escript::Data(), d, escript::Data(), y);
 
-    Assemble_PDE(mesh->Nodes, mesh->ContactElements,
-                 ptp->borrowTransportMatrix(), source, escript::Data(),
-                 escript::Data(), escript::Data(), d_contact, escript::Data(),
-                 y_contact);
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, tm, source,
+                 escript::Data(), escript::Data(), escript::Data(), d_contact,
+                 escript::Data(), y_contact);
 
-    Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
-                 source, escript::Data(), escript::Data(), escript::Data(),
-                 d_dirac, escript::Data(), y_dirac);
-    */
+    Assemble_PDE(mesh->Nodes, mesh->Points, tm, source, escript::Data(),
+                 escript::Data(), escript::Data(), d_dirac, escript::Data(),
+                 y_dirac);
 }
 
 //

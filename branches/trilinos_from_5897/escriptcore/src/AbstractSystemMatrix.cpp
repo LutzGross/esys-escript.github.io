@@ -38,6 +38,24 @@ AbstractSystemMatrix::AbstractSystemMatrix(int row_blocksize,
 
 }
 
+ASM_ptr AbstractSystemMatrix::getPtr()
+{
+    try {
+        return shared_from_this();
+    } catch (boost::bad_weak_ptr p) {
+        return ASM_ptr(this);
+    }
+}
+
+const_ASM_ptr AbstractSystemMatrix::getPtr() const 
+{  
+    try {
+        return shared_from_this();
+    } catch (boost::bad_weak_ptr p) {
+        return const_ASM_ptr(this);
+    }
+}
+
 Data operator*(const AbstractSystemMatrix& left, const Data& right)
 {
     return left.vectorMultiply(right);
