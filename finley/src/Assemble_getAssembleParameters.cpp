@@ -28,7 +28,7 @@ namespace finley {
 
 AssembleParameters::AssembleParameters(const NodeFile* nodes,
                                        const ElementFile* ef,
-                                       escript::AbstractSystemMatrix* sm,
+                                       escript::ASM_ptr sm,
                                        escript::Data& rhs,
                                        bool reducedOrder)
     : elements(ef),
@@ -37,7 +37,8 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
 {
     int numSub, numQuadSub;
     
-    paso::SystemMatrix* pasoMat = (sm ? dynamic_cast<paso::SystemMatrix*>(sm) : NULL);
+    paso::SystemMatrix* pasoMat = (
+            sm ? dynamic_cast<paso::SystemMatrix*>(sm.get()) : NULL);
 
     if (!rhs.isEmpty() && !rhs.actsExpanded()) {
         throw escript::ValueError("AssembleParameters: Right hand side is not expanded.");

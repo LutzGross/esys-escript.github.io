@@ -33,13 +33,13 @@ namespace finley {
 
 struct AssembleParameters {
     AssembleParameters(const NodeFile* nodes, const ElementFile* ef,
-                       escript::AbstractSystemMatrix* sm, escript::Data& rhs,
+                       escript::ASM_ptr sm, escript::Data& rhs,
                        bool reducedOrder);
 
     /// element file these parameters apply to
     const ElementFile* elements;
     /// system matrix to be updated
-    escript::AbstractSystemMatrix* S;
+    escript::ASM_ptr S;
     /// right-hand side to be updated
     escript::Data& F;
     /// total number of quadrature nodes = numQuadSub * numQuadSub
@@ -78,7 +78,7 @@ struct AssembleParameters {
 /// AssembleParameters structure and calls appropriate method for the actual
 /// work.
 void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
-                  escript::AbstractSystemMatrix* S, escript::Data& F,
+                  escript::ASM_ptr S, escript::Data& F,
                   const escript::Data& A, const escript::Data& B,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y);
@@ -122,7 +122,7 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
 void Assemble_PDE_System_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y);
 
-void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* S, int NN_Equa,
+void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
                   const index_t* Nodes_Equa, int num_Equa, int NN_Sol,
                   const index_t* Nodes_Sol, int num_Sol, const double* array);
 

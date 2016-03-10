@@ -56,13 +56,13 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix* in, int NN_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array);
 
-void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* in, int NN_Equa,
+void Assemble_addToSystemMatrix(escript::ASM_ptr in, int NN_Equa,
                                 const index_t* Nodes_Equa, int num_Equa,
                                 int NN_Sol, const index_t* Nodes_Sol,
                                 int num_Sol, const double* array)
 {
     using paso::SystemMatrix;
-    SystemMatrix* pmat(dynamic_cast<SystemMatrix*>(in));
+    SystemMatrix* pmat(dynamic_cast<SystemMatrix*>(in.get()));
 
     if (pmat) {
         // call the right function depending on storage type
@@ -78,7 +78,7 @@ void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* in, int NN_Equa,
         return;
     }
 #ifdef USE_TRILINOS
-    TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(in));
+    TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(in.get()));
     if (tmat) {
         Assemble_addToSystemMatrix_Trilinos(tmat, NN_Equa, Nodes_Equa,
                                             num_Equa, NN_Sol, Nodes_Sol,
