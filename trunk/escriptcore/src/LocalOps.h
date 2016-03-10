@@ -613,37 +613,37 @@ inline void tensor_binary_operation(const int size,
 }
 
 // following the form of negate from <functional>
-template <typename T>
-struct sin_func
-{
-    T operator() (const T& x) const {return sin(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
+// template <typename T>
+// struct sin_func
+// {
+//     T operator() (const T& x) const {return sin(x);}
+//     typedef T argument_type;
+//     typedef T result_type;
+// };
 
-template <typename T>
-struct cos_func
-{
-    T operator() (const T& x) const {return cos(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
+// template <typename T>
+// struct cos_func
+// {
+//     T operator() (const T& x) const {return cos(x);}
+//     typedef T argument_type;
+//     typedef T result_type;
+// };
 
-template <typename T>
-struct tan_func
-{
-    T operator() (const T& x) const {return tan(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
+// template <typename T>
+// struct tan_func
+// {
+//     T operator() (const T& x) const {return tan(x);}
+//     typedef T argument_type;
+//     typedef T result_type;
+// };
 
-template <typename T>
-struct asin_func
-{
-    T operator() (const T& x) const {return asin(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
+// template <typename T>
+// struct asin_func
+// {
+//     T operator() (const T& x) const {return asin(x);}
+//     typedef T argument_type;
+//     typedef T result_type;
+// };
 
 template <typename T>
 struct acos_func
@@ -703,6 +703,18 @@ struct erf_func<escript::DataTypes::cplx_t>             // dummy instantiation
     typedef DataTypes::cplx_t argument_type;
     typedef DataTypes::cplx_t result_type;
 };
+
+inline
+DataTypes::real_t calc_erf(DataTypes::real_t x)
+{
+    return ::erf(x);
+}
+
+inline
+DataTypes::cplx_t calc_erf(DataTypes::cplx_t x)
+{
+    return makeNaN();
+}
 
 #endif
     
@@ -782,6 +794,18 @@ struct sign_func<DataTypes::cplx_t>     // dummy instantiation
     typedef DataTypes::cplx_t argument_type;
     typedef DataTypes::cplx_t result_type;
 };
+
+
+inline DataTypes::real_t calc_sign(DataTypes::real_t x)
+{
+    return escript::fsign(x);
+}
+
+inline DataTypes::cplx_t calc_sign(DataTypes::cplx_t x)
+{
+    return makeNaN();
+}
+
 
 inline escript::DataTypes::real_t fabs(const escript::DataTypes::cplx_t c)
 {
@@ -915,6 +939,20 @@ struct gtzero_func<DataTypes::cplx_t>           // to keep the templater happy
     typedef DataTypes::cplx_t result_type;
 };
 
+
+inline DataTypes::real_t calc_gtzero(const DataTypes::real_t& x) {return x>0;}
+inline DataTypes::cplx_t calc_gtzero(const DataTypes::cplx_t& x) {return makeNaN();}
+
+
+inline DataTypes::real_t calc_gezero(const DataTypes::real_t& x) {return x>=0;}
+inline DataTypes::cplx_t calc_gezero(const DataTypes::cplx_t& x) {return makeNaN();}
+
+
+inline DataTypes::real_t calc_ltzero(const DataTypes::real_t& x) {return x<0;}
+inline DataTypes::cplx_t calc_ltzero(const DataTypes::cplx_t& x) {return makeNaN();}
+
+inline DataTypes::real_t calc_lezero(const DataTypes::real_t& x) {return x<=0;}
+inline DataTypes::cplx_t calc_lezero(const DataTypes::cplx_t& x) {return makeNaN();}
 
 
 template <typename T>
@@ -1069,29 +1107,116 @@ inline void tensor_unary_array_operation(const size_t size,
               argRes[i] = -arg1[i];
           }
           break;
-    case SINF: tensor_unary_operation_helper(size, arg1, argRes, sin_func<IN>()); break;
-    case COSF: tensor_unary_operation_helper(size, arg1, argRes, cos_func<IN>()); break;
-    case TANF: tensor_unary_operation_helper(size, arg1, argRes, tan_func<IN>()); break;
-    case ASINF: tensor_unary_operation_helper(size, arg1, argRes, asin_func<IN>()); break;
-    case ACOSF: tensor_unary_operation_helper(size, arg1, argRes, acos_func<IN>()); break;
-    case ATANF: tensor_unary_operation_helper(size, arg1, argRes, atan_func<IN>()); break;
-    case SINHF: tensor_unary_operation_helper(size, arg1, argRes, sinh_func<IN>()); break; 
-    case COSHF: tensor_unary_operation_helper(size, arg1, argRes, cosh_func<IN>()); break;
-    case TANHF: tensor_unary_operation_helper(size, arg1, argRes, tanh_func<IN>()); break;
-    case ERFF: tensor_unary_operation_helper(size, arg1, argRes, erf_func<IN>()); break;
-    case ASINHF: tensor_unary_operation_helper(size, arg1, argRes, asinh_func<IN>()); break;
-    case ACOSHF: tensor_unary_operation_helper(size, arg1, argRes, acosh_func<IN>()); break;
-    case ATANHF: tensor_unary_operation_helper(size, arg1, argRes, atanh_func<IN>()); break;
-    case LOG10F: tensor_unary_operation_helper(size, arg1, argRes, log10_func<IN>()); break;
-    case LOGF: tensor_unary_operation_helper(size, arg1, argRes, log_func<IN>()); break;
-    case SIGNF: tensor_unary_operation_helper(size, arg1, argRes, sign_func<IN>()); break;
-    case EXPF: tensor_unary_operation_helper(size, arg1, argRes, exp_func<IN>()); break;
-    case SQRTF: tensor_unary_operation_helper(size, arg1, argRes, sqrt_func<IN>()); break;
-
-    case GTZEROF: tensor_unary_operation_helper(size, arg1, argRes, gtzero_func<IN>()); break;
-    case GEZEROF: tensor_unary_operation_helper(size, arg1, argRes, gezero_func<IN>()); break;
-    case LTZEROF: tensor_unary_operation_helper(size, arg1, argRes, ltzero_func<IN>()); break;
-    case LEZEROF: tensor_unary_operation_helper(size, arg1, argRes, lezero_func<IN>()); break;   
+    case SINF: 
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = sin(arg1[i]);
+          }
+          break;
+    case COSF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = cos(arg1[i]);
+          }
+          break;
+    case TANF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = tan(arg1[i]);
+          }
+          break;
+    case ASINF: 
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = asin(arg1[i]);
+          }
+          break;
+    case ACOSF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = acos(arg1[i]);
+          }
+          break;
+    case ATANF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = atan(arg1[i]);
+          }
+          break;
+    case SINHF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = sinh(arg1[i]);
+          }
+          break;
+    case COSHF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = cosh(arg1[i]);
+          }
+          break;
+    case TANHF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = tanh(arg1[i]);
+          }
+          break;
+    case ERFF: 
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = calc_erf(arg1[i]);
+          }
+          break;
+    case ASINHF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = asinh(arg1[i]);
+          }
+          break;
+    case ACOSHF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = acosh(arg1[i]);
+          }
+          break;
+    case ATANHF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = atanh(arg1[i]);
+          }
+          break;
+    case LOG10F:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = log10(arg1[i]);
+          }
+          break;
+    case LOGF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = log(arg1[i]);
+          }
+          break;      
+    case SIGNF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = calc_sign(arg1[i]);
+          }
+          break;      
+    case EXPF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = exp(arg1[i]);
+          }
+          break;      
+    case SQRTF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = sqrt(arg1[i]);
+          }
+          break;      
+    case GTZEROF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = calc_gtzero(arg1[i]);
+          }
+          break;      
+    case GEZEROF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = calc_gezero(arg1[i]);
+          }
+          break;            
+    case LTZEROF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = calc_ltzero(arg1[i]);
+          }
+          break;            
+    case LEZEROF:
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = calc_lezero(arg1[i]);
+          }
+          break;            
     case CONJF: 
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = conjugate<OUT,IN>(arg1[i]);
