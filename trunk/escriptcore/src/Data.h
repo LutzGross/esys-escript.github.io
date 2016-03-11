@@ -1836,7 +1836,7 @@ const DataReady*
 Data::getReady() const
 {
    const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
-   ESYS_ASSERT_MPI(dr!=0, "error casting to DataReady.", getFunctionSpace().getDomain()->getMPI());
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -1845,7 +1845,7 @@ DataReady*
 Data::getReady()
 {
    DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
-   ESYS_ASSERT_MPI(dr!=0, "error casting to DataReady.", getFunctionSpace().getDomain()->getMPI());
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -1857,7 +1857,7 @@ DataReady_ptr
 Data::getReadyPtr()
 {
    DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
-   ESYS_ASSERT_MPI(dr.get()!=0, "error casting to DataReady.", getFunctionSpace().getDomain()->getMPI());
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -1867,7 +1867,7 @@ const_DataReady_ptr
 Data::getReadyPtr() const
 {
    const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
-   ESYS_ASSERT_MPI(dr.get()!=0, "error casting to DataReady.", getFunctionSpace().getDomain()->getMPI());
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
 }
 
@@ -2115,15 +2115,15 @@ Data::algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-    ESYS_ASSERT_MPI(leftC!=0, "Programming error - casting to DataExpanded.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-    ESYS_ASSERT_MPI(leftC!=0, "Programming error - casting to DataTagged.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-    ESYS_ASSERT_MPI(leftC!=0, "Programming error - casting to DataConstant.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
     return escript::algorithm(*leftC,operation,initial_value);
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
@@ -2154,14 +2154,14 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
-    ESYS_ASSERT_MPI(dataE!=0, "Programming error - casting data to DataExpanded.", getFunctionSpace().getDomain()->getMPI());
-    ESYS_ASSERT_MPI(resultE!=0, "Programming error - casting result to DataExpanded.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(dataE!=0, "Programming error - casting data to DataExpanded.");
+    ESYS_ASSERT(resultE!=0, "Programming error - casting result to DataExpanded.");
     escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
     return result;
   }
   else if (isTagged()) {
     DataTagged* dataT=dynamic_cast<DataTagged*>(m_data.get());
-    ESYS_ASSERT_MPI(dataT!=0, "Programming error - casting data to DataTagged.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(dataT!=0, "Programming error - casting data to DataTagged.");
     DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
@@ -2172,8 +2172,8 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
-    ESYS_ASSERT_MPI(dataC!=0, "Programming error - casting data to DataConstant.", getFunctionSpace().getDomain()->getMPI());
-    ESYS_ASSERT_MPI(resultC!=0, "Programming error - casting result to DataConstant.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(dataC!=0, "Programming error - casting data to DataConstant.");
+    ESYS_ASSERT(resultC!=0, "Programming error - casting result to DataConstant.");
     escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
   } else if (isLazy()) {
