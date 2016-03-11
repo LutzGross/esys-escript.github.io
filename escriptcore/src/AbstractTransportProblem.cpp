@@ -34,7 +34,7 @@ AbstractTransportProblem::AbstractTransportProblem(int blocksize,
       m_blocksize(blocksize),
       m_functionspace(functionspace)
 {
-    ESYS_ASSERT(blocksize>0, "non-positive block size given");
+    ESYS_ASSERT_MPI(blocksize>0, "non-positive block size given", functionspace.getDomain()->getMPI());
 }
 
 AbstractTransportProblem::~AbstractTransportProblem() {

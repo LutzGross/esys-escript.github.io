@@ -367,8 +367,8 @@ inline dim_t Rectangle::getNumDataPointsGlobal() const
 
 inline double Rectangle::getLocalCoordinate(index_t index, int dim) const
 {
-    ESYS_ASSERT(dim>=0 && dim<2, "'dim' out of bounds");
-    ESYS_ASSERT(index>=0 && index<m_NN[dim], "'index' out of bounds");
+    ESYS_ASSERT_MPI(dim>=0 && dim<2, "'dim' out of bounds", m_mpiInfo);
+    ESYS_ASSERT_MPI(index>=0 && index<m_NN[dim], "'index' out of bounds", m_mpiInfo);
     return m_origin[dim]                                    //origin
             + m_dx[dim]*(m_offset[dim] + index/m_order      //elements
             + point_locations[m_order-2][index%m_order]);   //quads
