@@ -1034,8 +1034,9 @@ void MultiBrick::populateSampleIds()
             m_nodeDistribution[rank] = accu;
             accu += n;
         }
-        ESYS_ASSERT(accu == getNumDataPointsGlobal(),
-                "something went wrong computing the DOF distribution!");
+        ESYS_ASSERT_MPI(accu == getNumDataPointsGlobal(),
+                "something went wrong computing the DOF distribution!",
+                m_mpiInfo);
 
         m_nodeDistribution[m_mpiInfo->size] = accu;
 #endif
