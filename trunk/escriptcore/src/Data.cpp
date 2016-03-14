@@ -4948,7 +4948,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   
   // Declare output Data object
   Data res;
-
+  bool emptyResult=(arg_0_Z.getNumSamples()==0);
   if (arg_0_Z.isConstant()) {
     if (arg_0_Z.isComplex())                    // this is not taking into account cplx->real
     {
@@ -4957,12 +4957,20 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         if (always_real(operation))
         {
+	    if (emptyResult)
+	    {
+		return res;
+	    }
             DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, (real_t)(0)));
             tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);       
         }
         else
         {
             res.complicate();
+	    if (emptyResult)
+	    {
+		return res;
+	    }	    
             DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
             tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
         }
@@ -4973,6 +4981,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         // functions like .real() and .imag() but they are caught in the Data interface
         DataTypes::real_t dummy=0;
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+	if (emptyResult)
+	{
+	    return res;
+	}
+	
         const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
         if (always_real(operation))
@@ -4999,6 +5012,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         if (always_real(operation))
         {
             res.tag();
+	    if (emptyResult)
+	    {
+		return res;
+	    }
+	    
             DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
           
             DataTypes::cplx_t dummy=0;
@@ -5021,6 +5039,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         {
             res.complicate();
             res.tag();
+	    if (emptyResult)
+	    {
+		return res;
+	    }
+	    
             DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
           
             DataTypes::cplx_t dummy=0;
@@ -5044,6 +5067,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     {
       
         res.tag();
+	if (emptyResult)
+	{
+	    return res;
+	}
+	
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
       
         // Get the pointers to the actual data
@@ -5076,13 +5104,19 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         }
     }
   }
-  else if (arg_0_Z.isExpanded()) {
+  else if (arg_0_Z.isExpanded()) 
+  {
 
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
     if (arg_0_Z.isComplex() && !always_real(operation))
     {
         res.complicate();
     }
+    if (emptyResult)
+    {
+	return res;
+    }
+    
     DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
 
@@ -5208,63 +5242,89 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
   DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
   
   DataTypes::ShapeType resultshape=((arg_0_Z.getDataPointRank()!=0)?shape0:shape1);
-  
+
+  bool emptyResult=((arg_0_Z.getNumSamples()==0) || (arg_1_Z.getNumSamples()==0));
   if ((shape0==shape1) || (arg_0_Z.getDataPointRank()==0) || (arg_1_Z.getDataPointRank()==0))
   {
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataConstant output
-      binaryOpDataCCC(*dynamic_cast<DataConstant*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {      
+          binaryOpDataCCC(*dynamic_cast<DataConstant*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataTagged output
       res.tag();
-      binaryOpDataTCT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataTCT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      binaryOpDataECE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataECE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant())
     {
       Data res(0.0, resultshape, arg_0_Z.getFunctionSpace());      // DataTagged output
       res.tag();
-      binaryOpDataTTC(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataTTC(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());
       res.tag();        // DataTagged output
-      binaryOpDataTTT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataTTT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      
-      binaryOpDataETE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataETE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      binaryOpDataEEC(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataEEC(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-
-      binaryOpDataEET(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataEET(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      binaryOpDataEEE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataEEE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else {
