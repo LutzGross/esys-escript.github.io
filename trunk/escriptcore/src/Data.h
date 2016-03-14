@@ -678,7 +678,7 @@ If false, the result is a list of scalars [1, 2, ...]
   bool
   hasNoSamples() const
   {
-        return getLength()==0;
+        return m_data->getNumSamples()==0;
   }
 
   /**
