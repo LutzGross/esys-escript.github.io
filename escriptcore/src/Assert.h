@@ -52,6 +52,14 @@
 // MPI aware version that throws on all ranks
 #define ESYS_ASSERT_MPI(assert_test, assert_msg, __mpi__)\
     do {\
+	try\
+	{\
+	    (void)__mpi__;\
+	} catch (...)\
+	{\
+	    ESYS_ASSERT(assert_test, assert_msg);\
+	    break;\
+	}\
         const int result = (assert_test) ? 0 : 1;\
         int gresult = result;\
         escript::checkResult(result, gresult, __mpi__);\
