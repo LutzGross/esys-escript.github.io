@@ -120,29 +120,7 @@ Note that vector in this context refers to a data vector storing datapoints not 
 
 
   
-  /**
-     \brief
-     Perform the binary operation on the data points specified by the given
-     offsets in the "left" and "right" vectors. Applies the specified operation
-     to corresponding values in both data points. Operation must be a pointer
-     to a function.
 
-     Called by escript::binaryOp.
-     \param left,right - vectors containing the datapoints
-     \param leftShape,rightShape - shapes of datapoints in the vectors
-     \param leftOffset,rightOffset - beginnings of datapoints in the vectors
-     \param operation - Input -
-                  Operation to apply. Must be a pointer to a function.
-  */
-  template <class LVEC, class RVEC>
-  void
-  binaryOpVector(LVEC& left, 
-	   const DataTypes::ShapeType& leftShape, 
-           typename LVEC::size_type leftOffset,
-           const RVEC& right, 
-           const DataTypes::ShapeType& rightShape,
-           typename RVEC::size_type rightOffset,
-           escript::ESFunction operation);
 
   /**
      \brief
@@ -1725,40 +1703,6 @@ binaryOpVectorHelper(LVEC& left,
 
 
 
-template <class LVEC, class RVEC>
-inline
-void
-binaryOpVector(LVEC& left, 
-			const DataTypes::ShapeType& leftShape,
-			typename LVEC::size_type leftOffset,
-                        const RVEC& right,
-			const DataTypes::ShapeType& rightShape,
-                        typename RVEC::size_type rightOffset,
-                        escript::ESFunction operation)
-{
-  typedef typename LVEC::ElementType ltype;
-  typedef typename RVEC::ElementType rtype;
-  ESYS_ASSERT(leftShape==rightShape,
-	     "Couldn't perform binaryOp due to shape mismatch,");
-  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape, leftOffset),
-         "Couldn't perform binaryOp due to insufficient storage in left object.");
-  ESYS_ASSERT((right.size()>0)&&checkOffset(right,rightShape,rightOffset),
-         "Couldn't perform binaryOp due to insufficient storage in right object.");
-  switch (operation)
-  {
-    case POWF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, pow_func<ltype,rtype,ltype>()); break; 
-    case PLUSF: binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, plus_func<ltype,rtype,ltype>()); break;
-    case MINUSF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, minus_func<ltype,rtype,ltype>()); break;
-    case MULTIPLIESF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, multiplies_func<ltype,rtype,ltype>()); break;
-    case DIVIDESF:binaryOpVectorHelper(left, leftShape, leftOffset, right, rightShape, rightOffset, divides_func<ltype,rtype,ltype>()); break;
-    case LESSF:
-    case GREATERF:
-    case GREATER_EQUALF:
-    case LESS_EQUALF:
-    default:
-      throw DataException("Unsupported binary operation");    
-  }
-}
 
 
 template <class LVEC, typename SCALAR, class BinaryFunction>
@@ -1775,35 +1719,6 @@ binaryOpVectorHelper(LVEC& left,
   }
 }
 
-
-template <class LVEC, typename SCALAR>
-inline
-void
-binaryOpVector(LVEC& left, 
-			const DataTypes::ShapeType& leftShape,
-			typename LVEC::size_type offset,
-                        SCALAR right,
-                        escript::ESFunction operation)
-{
-  typedef typename LVEC::ElementType ltype;
-  typedef SCALAR rtype;  
-  ESYS_ASSERT((left.size()>0)&&checkOffset(left,leftShape,offset),
-         "Couldn't perform binaryOp due to insufficient storage in left object.");
-  switch (operation)
-  {
-    case POWF: binaryOpVectorHelper(left, leftShape, offset, right, pow_func<ltype,rtype,ltype>()); break;
-    case PLUSF: binaryOpVectorHelper(left, leftShape, offset, right, plus_func<ltype,rtype,ltype>()); break;
-    case MINUSF:binaryOpVectorHelper(left, leftShape, offset, right, minus_func<ltype,rtype,ltype>()); break;
-    case MULTIPLIESF:binaryOpVectorHelper(left, leftShape, offset, right, multiplies_func<ltype,rtype,ltype>()); break;
-    case DIVIDESF:binaryOpVectorHelper(left, leftShape, offset, right, divides_func<ltype,rtype,ltype>()); break;
-    case LESSF:
-    case GREATERF:
-    case GREATER_EQUALF:
-    case LESS_EQUALF:
-    default:
-      throw DataException("Unsupported binary operation");    
-  }  
-}
 
 
 // -------------------

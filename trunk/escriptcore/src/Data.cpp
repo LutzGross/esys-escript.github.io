@@ -3540,7 +3540,7 @@ DataReady_ptr
 Data::borrowReadyPtr() const
 {
     DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
-    ESYS_ASSERT_MPI(dr!=NULL, "Casting to DataReady.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(dr!=NULL, "Casting to DataReady.");
     return dr;
 }
 
@@ -5434,6 +5434,7 @@ Data::TensorSelfUpdateBinaryOperation(const Data& right,
    }  
 }
 
+#if 0
 void
 Data::binaryDataOp(const Data& right,
                    escript::ESFunction operation)
@@ -5518,3 +5519,4 @@ Data::binaryDataOp(const Data& right,
    }  
 }
 
+#endif
