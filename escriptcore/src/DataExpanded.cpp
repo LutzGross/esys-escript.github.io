@@ -479,17 +479,17 @@ DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
                                                         int dataPointNo) const
 {
     DataTypes::RealVectorType::size_type blockSize=getNoValues();
-    ESYS_ASSERT_MPI((isComplex()?
+    ESYS_ASSERT((isComplex()?
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_c.size() > 0))
 		:
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
-	       "(DataBlocks2D) Index value out of range.", getFunctionSpace().getDomain()->getMPI());
+	       "(DataBlocks2D) Index value out of range." /*, getFunctionSpace().getDomain()->getMPI()*/);
     DataTypes::RealVectorType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
-    ESYS_ASSERT_MPI((isComplex()?
+    ESYS_ASSERT((isComplex()?
 		  (temp <= (m_data_c.size()-blockSize))
 		:
-		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range.",
-            getFunctionSpace().getDomain()->getMPI());
+		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range."
+            /*,getFunctionSpace().getDomain()->getMPI()*/);
 
     return temp;
 }

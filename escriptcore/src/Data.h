@@ -1622,9 +1622,9 @@ template <class BinaryOp>
   dp_algorithm(BinaryFunction operation,
                DataTypes::real_t initial_value) const;
 
-  void
-  binaryDataOp(const Data& right,
-                   escript::ESFunction operation); 
+//   void
+//   binaryDataOp(const Data& right,
+//                    escript::ESFunction operation); 
   
 
   /**

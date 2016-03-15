@@ -22,6 +22,7 @@
 #include <escript/EscriptParams.h>
 #include <escript/EsysException.h>
 #include <escript/FunctionSpace.h>
+#include <escript/TestDomain.h>
 
 #include <cmath>
 #include <cppunit/TestCaller.h>
@@ -63,7 +64,9 @@ void DataTestCase::testCopyingWorker(bool delayed)
 
   using namespace escript::DataTypes;
   cout << endl;
-
+  TestDomain* tdp=new TestDomain(2,3,2);	// 2 points per sample, 3 samples, 2D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());  
   DataTypes::ShapeType shape;
   shape.push_back(2);
   shape.push_back(3);
@@ -71,9 +74,9 @@ void DataTestCase::testCopyingWorker(bool delayed)
   const int NUMDATS=3;
   Data* dats[NUMDATS];
   const char* strs[]={"DataConstant", "DataTagged", "DataExpanded"};
-  dats[0]=new Data(new DataConstant(FunctionSpace(),shape,data));
-  dats[1]=new Data(new DataTagged(FunctionSpace(),shape,data));
-  dats[2]=new Data(new DataExpanded(FunctionSpace(),shape,data));
+  dats[0]=new Data(new DataConstant(fs,shape,data));
+  dats[1]=new Data(new DataTagged(fs,shape,data));
+  dats[2]=new Data(new DataExpanded(fs,shape,data));
   if (delayed)
   {
     dats[0]->delaySelf();
@@ -135,6 +138,9 @@ void DataTestCase::testSlicingWorker(bool delayed)
 {
 
   using namespace escript::DataTypes;
+  TestDomain* tdp=new TestDomain(2,3,2);	// 2 points per sample, 3 samples, 2D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());    
   cout << endl;
   {
    DataTypes::ShapeType viewShape;
@@ -147,7 +153,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
    Data* dats[NUMDATS];
    for (int k=0;k<NUMDATS;++k)
    {
-    	dats[k]=new Data(1.3, viewShape);
+    	dats[k]=new Data(1.3, viewShape, fs);
    }
    dats[1]->tag();
    dats[2]->expand();
@@ -228,7 +234,10 @@ void DataTestCase::testSlicingWorker(bool delayed)
    region.push_back(DataTypes::RegionType::value_type(0,3));
 
    Data slice4(dats[1]->getSlice(region));
-
+   tdp->addUsedTag(1);
+   vector<int> ts(3,1);
+   tdp->assignTags(ts);
+   
    CPPUNIT_ASSERT(slice4.isTagged());
    CPPUNIT_ASSERT(slice4.getDataPointRank()==2);
    CPPUNIT_ASSERT(getRef(slice4,0,0,0,0)==0);
@@ -255,8 +264,8 @@ void DataTestCase::testSlicingWorker(bool delayed)
   Data* src[NUMDATS];
   for (int k=0;k<NUMDATS;++k)
   {
- 	dats[k]=new Data(1.3, viewShape);
-    	src[k]=new Data(10,DataTypes::scalarShape);
+ 	dats[k]=new Data(1.3, viewShape,fs);
+    	src[k]=new Data(10,DataTypes::scalarShape,fs);
   }
   dats[1]->tag();
   src[1]->tag();
@@ -280,7 +289,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
   for (int k=0;k<NUMDATS;++k)
   {
 	cout << "\t\tTest set-slicing " << strs[k] << endl;
-	Data target(1.3,viewShape);
+	Data target(1.3,viewShape,fs);
 	if (k==2) {target.expand();}
 	DataTypes::RegionType region;
 	region.push_back(DataTypes::RegionType::value_type(1,1));
@@ -299,7 +308,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	viewData[i]=i;
   }
 
-  Data target(1.3,viewShape,FunctionSpace(),false);
+  Data target(1.3,viewShape,fs,false);
   target.tag();
   target.setTaggedValueFromCPP(1, viewShape, viewData);
 
@@ -397,6 +406,9 @@ void DataTestCase::testSlicing()
 void DataTestCase::testSomeDriver(bool autolazy)
 {
   cout << endl;
+  TestDomain* tdp=new TestDomain(2,3,2);	// 2 points per sample, 3 samples, 2D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());    
   SAVELAZYSTATE
   if (autolazy)
   {
@@ -413,8 +425,8 @@ void DataTestCase::testSomeDriver(bool autolazy)
   }
 
   bool expanded=true;
-  Data exData(viewData,viewShape,FunctionSpace(),expanded);
-  Data cData(viewData,viewShape);
+  Data exData(viewData,viewShape, fs,expanded);
+  Data cData(viewData,viewShape, fs);
   Data result;
 
   CPPUNIT_ASSERT(exData.isExpanded());
@@ -457,6 +469,9 @@ void DataTestCase::testResolveType()
 {
   cout << endl;
   cout << "\tTesting resolve()\n";
+  TestDomain* tdp=new TestDomain(2,3,2);	// 2 points per sample, 3 samples, 2D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());    
   DataTypes::ShapeType viewShape;
   viewShape.push_back(2);
   viewShape.push_back(3);
@@ -465,9 +480,9 @@ void DataTestCase::testResolveType()
   for (int i=0;i<DataTypes::noValues(viewShape);++i) {
     viewData[i]=i;
   }
-  Data c1(viewData,viewShape);
-  Data t1(viewData,viewShape);
-  Data e1(viewData,viewShape);
+  Data c1(viewData,viewShape,fs);
+  Data t1(viewData,viewShape,fs);
+  Data e1(viewData,viewShape,fs);
   t1.tag();
   e1.expand();
   c1.delaySelf();
@@ -507,9 +522,9 @@ void DataTestCase::testResolveType()
   CPPUNIT_ASSERT(t1.isTagged());
   CPPUNIT_ASSERT_THROW(e1.tag(), DataException);
   cout << "\tTesting expand()\n";
-  Data c2(viewData,viewShape);
-  Data t2(viewData,viewShape);
-  Data e2(viewData,viewShape);
+  Data c2(viewData,viewShape,fs);
+  Data t2(viewData,viewShape,fs);
+  Data e2(viewData,viewShape,fs);
   t2.tag();
   e2.expand();
   c2.delaySelf();
@@ -699,23 +714,29 @@ void DataTestCase::testDataTaggedExceptions()
 void DataTestCase::testConstructors()
 {
   cout << endl;
-
+  TestDomain* tdp=new TestDomain(2,3,2);	// 2 points per sample, 3 samples, 2D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());    
   DataTypes::ShapeType viewShape;
   {
     cout << "\tCreate an Empty Data object" << endl;
-    Data temp(1.3,viewShape,FunctionSpace(),false);
+    Data temp(1.3,viewShape,fs,false);
   }
   {
     cout << "\tCreate a rank 2 Data object" << endl;
     viewShape.push_back(2);
     viewShape.push_back(3);
-    Data temp(1.3,viewShape,FunctionSpace(),false);
+    Data temp(1.3,viewShape,fs,false);
   }
 }
 
 void DataTestCase::testMoreOperations()
 {
    cout << endl;
+  TestDomain* tdp=new TestDomain(2,3,2);	// 2 points per sample, 3 samples, 2D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode());    
+   
    DataTypes::ShapeType shape;
    shape.push_back(3);
    shape.push_back(3);
@@ -732,12 +753,12 @@ void DataTestCase::testMoreOperations()
 
 
 
-  Data dats[]={Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),true),
-		Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),true)};
+  Data dats[]={Data(data,shape,fs,false),
+		Data(data,shape,fs,false),
+		Data(data,shape,fs,true),
+		Data(data,shape,fs,false),
+		Data(data,shape,fs,false),
+		Data(data,shape,fs,true)};
   const int NUMDATS=6;
 //  const int LAZY=3;		// where do the lazy objects start?
 
@@ -781,7 +802,10 @@ void DataTestCase::testOperations()
 {
 
   cout << endl;
-
+  TestDomain* tdp=new TestDomain(1,1,1);	// 1 points per sample, 1 samples, 1D coords
+  Domain_ptr p(tdp);
+  FunctionSpace fs=FunctionSpace(p, tdp->getContinuousFunctionCode()); 
+  
   // define the shape for the test data
   DataTypes::ShapeType shape;
   shape.push_back(2);
@@ -799,18 +823,16 @@ void DataTestCase::testOperations()
 
 
 
-  Data dats[]={Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),true),
-		Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),false),
-		Data(data,shape,FunctionSpace(),true)};
+
+  Data dats[]={Data(data,shape,fs,false),
+		Data(data,shape,fs,false),
+		Data(data,shape,fs,true),
+		Data(data,shape,fs,false),
+		Data(data,shape,fs,false),
+		Data(data,shape,fs,true)};
   const int NUMDATS=6;
   const int LAZY=3;		// where do the lazy objects start?
 
-//   Data baseEx(data,shape,FunctionSpace(),true);
-//   Data baseCon(data,shape,FunctionSpace(),false);
-//   Data baseTag(data,shape,FunctionSpace(),false);
   Data& baseCon=dats[0];
   Data& baseTag=dats[1];
   Data& baseEx=dats[2];
@@ -825,9 +847,6 @@ void DataTestCase::testOperations()
   CPPUNIT_ASSERT(baseTag.isTagged());
 
   Data results[NUMDATS];
-//   Data& resultEx=results[0];
-//   Data& resultCon=results[1];
-//   Data& resultTag=results[2];
 
   // create 0 <= smalldata <= 1 for testing trig functions
 
@@ -839,12 +858,12 @@ void DataTestCase::testOperations()
       smalldata[getRelIndex(shape,i,j)]=(i==0 && j==0)?0:1.0/(getRelIndex(shape,i,j)+1);
     }
   }
-  Data sdats[]={Data(smalldata,shape,FunctionSpace(),false),
-		Data(smalldata,shape,FunctionSpace(),false),
-		Data(smalldata,shape,FunctionSpace(),true),
-		Data(smalldata,shape,FunctionSpace(),false),
-		Data(smalldata,shape,FunctionSpace(),false),
-		Data(smalldata,shape,FunctionSpace(),true)};
+  Data sdats[]={Data(smalldata,shape,fs,false),
+		Data(smalldata,shape,fs,false),
+		Data(smalldata,shape,fs,true),
+		Data(smalldata,shape,fs,false),
+		Data(smalldata,shape,fs,false),
+		Data(smalldata,shape,fs,true)};
   sdats[1].tag();
   sdats[4].tag();
   sdats[3].delaySelf();		// 3 is a lazy constant
@@ -857,7 +876,7 @@ void DataTestCase::testOperations()
 
   double tmp;
   cout << "\tTest Data::pow." << endl;
-  Data power(3.0,shape,FunctionSpace(),true);
+  Data power(3.0,shape,fs,true);
   for (int z=0;z<NUMDATS;++z)
   {
     results[z].copy(dats[z].powD(power));
@@ -871,11 +890,15 @@ void DataTestCase::testOperations()
       tmp=pow((double)data[getRelIndex(shape,i,j)],(double)3.0);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= (REL_TOL*std::abs(tmp)+0.00000001));
+	}
       }
     }
   }
-
+cerr << "Ending pow" << endl;
   cout << "\tTest Data::sin." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
@@ -885,12 +908,17 @@ void DataTestCase::testOperations()
 	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
+cerr << "Ending sin" << endl;  
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=sin((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -909,7 +937,11 @@ void DataTestCase::testOperations()
       tmp=cos((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -928,7 +960,11 @@ void DataTestCase::testOperations()
       tmp=tan((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -947,7 +983,11 @@ void DataTestCase::testOperations()
       tmp=asin((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -966,7 +1006,11 @@ void DataTestCase::testOperations()
       tmp=acos((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -985,7 +1029,11 @@ void DataTestCase::testOperations()
       tmp=atan((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1004,7 +1052,11 @@ void DataTestCase::testOperations()
       tmp=sinh((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1023,7 +1075,11 @@ void DataTestCase::testOperations()
       tmp=cosh((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1042,7 +1098,11 @@ void DataTestCase::testOperations()
       tmp=tanh((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}    
       }
     }
   }
@@ -1062,7 +1122,11 @@ void DataTestCase::testOperations()
       tmp=data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1082,7 +1146,11 @@ void DataTestCase::testOperations()
       tmp=data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1101,7 +1169,11 @@ void DataTestCase::testOperations()
       tmp=data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1121,7 +1193,11 @@ void DataTestCase::testOperations()
       tmp=log((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1141,7 +1217,11 @@ void DataTestCase::testOperations()
       tmp=log10((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1163,7 +1243,11 @@ void DataTestCase::testOperations()
       tmp=erf((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1184,7 +1268,11 @@ void DataTestCase::testOperations()
       tmp=abs((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1203,7 +1291,11 @@ void DataTestCase::testOperations()
       tmp=(i==0 && j==0)?0:1;
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();	
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   } 
@@ -1222,7 +1314,11 @@ void DataTestCase::testOperations()
       tmp=(i==0 && j==0)?0:-1;
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   } 
@@ -1242,7 +1338,11 @@ void DataTestCase::testOperations()
       tmp=exp((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1261,7 +1361,11 @@ void DataTestCase::testOperations()
       tmp=sqrt((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1280,7 +1384,11 @@ void DataTestCase::testOperations()
       tmp=-data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   }
@@ -1298,7 +1406,11 @@ void DataTestCase::testOperations()
     for (int j=0;j<shape[1];j++) {
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - getRelIndex(shape,i,j)) <= REL_TOL*std::abs(data[getRelIndex(shape,i,j)]));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - getRelIndex(shape,i,j)) <= REL_TOL*std::abs(data[getRelIndex(shape,i,j)]));
+	}
       }
     }
   }
@@ -1332,7 +1444,11 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 0) <= REL_TOL*0); 
+      results[z].resolve();		
+      if (!results[z].hasNoSamples())
+      {    
+	  CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 0) <= REL_TOL*0); 
+      }
   }
   
 
@@ -1343,7 +1459,11 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
+    results[z].resolve();		
+    if (!results[z].hasNoSamples())
+    {    
+	CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
+    }
   }
 
   cout << "\tTest Data::whereZero." << endl;
@@ -1356,7 +1476,11 @@ void DataTestCase::testOperations()
       tmp=(getRelIndex(shape,i,j)<=2);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   } 
@@ -1371,7 +1495,11 @@ void DataTestCase::testOperations()
       tmp=!(getRelIndex(shape,i,j)<=2);
       for (int z=0;z<NUMDATS;++z)
       {
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{	
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	}
       }
     }
   } 
@@ -1385,8 +1513,12 @@ void DataTestCase::testOperations()
     for (int j=0;j<shape[1];j++) {
      for (int z=0;z<NUMDATS;++z)
      {
-        tmp=getRef(dats[z],i,j);
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{       
+	    tmp=getRef(dats[z],i,j);
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+	}
      }
     }
   } 
@@ -1400,8 +1532,12 @@ void DataTestCase::testOperations()
     for (int j=0;j<shape[1];j++) {
      for (int z=0;z<NUMDATS;++z)
      {
-        tmp=getRef(dats[z],i,j);
-	CPPUNIT_ASSERT(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+	results[z].resolve();		
+	if (!results[z].hasNoSamples())
+	{       
+	    tmp=getRef(dats[z],i,j);
+	    CPPUNIT_ASSERT(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+	}
      }
     }
   } 

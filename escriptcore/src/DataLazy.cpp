@@ -1061,115 +1061,106 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
   const double* left=&((*leftres)[roffset]);
   roffset=m_samplesize*tid;
   double* result=&(m_samples[roffset]);
+  escript::ESFunction operation=SINF;
   switch (m_op)
   {
-    case SIN:   
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sin);
-        break;
+    case SIN:
+	operation=SINF;
+	break;
     case COS:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::cos);
-        break;
+        operation=COSF;
+	break;
     case TAN:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tan);
-        break;
+        operation=TANF;
+	break;
     case ASIN:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::asin);
-        break;
+        operation=ASINF;
+	break;
     case ACOS:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::acos);
-        break;
+        operation=ACOSF;
+	break;
     case ATAN:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::atan);
-        break;
+        operation=ATANF;
+	break;
     case SINH:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sinh);
-        break;
+        operation=SINHF;
+	break;
     case COSH:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::cosh);
-        break;
+        operation=COSHF;
+	break;
     case TANH:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tanh);
-        break;
+        operation=TANHF;
+	break;
     case ERF:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::erf);
-        break;
-#endif
+        operation=ERFF;
+	break;
    case ASINH:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        tensor_unary_operation(m_samplesize, left, result, escript::asinh_substitute);
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::asinh);
-#endif   
-        break;
+        operation=ASINHF;
+	break;
    case ACOSH:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        tensor_unary_operation(m_samplesize, left, result, escript::acosh_substitute);
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::acosh);
-#endif   
-        break;
+        operation=ACOSHF;
+	break;
    case ATANH:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        tensor_unary_operation(m_samplesize, left, result, escript::atanh_substitute);
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::atanh);
-#endif   
-        break;
+        operation=ATANHF;
+	break;
     case LOG10:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::log10);
-        break;
+        operation=LOG10F;
+	break;
     case LOG:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::log);
-        break;
+        operation=LOGF;
+	break;
     case SIGN:
-        tensor_unary_operation(m_samplesize, left, result, escript::fsign);
-        break;
+        operation=SIGNF;
+	break;
     case ABS:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::fabs);
-        break;
+        operation=ABSF;
+	break;
     case NEG:
-        tensor_unary_operation(m_samplesize, left, result, negate<double>());
-        break;
+        operation=NEGF;
+	break;
     case POS:
         // it doesn't mean anything for delayed.
         // it will just trigger a deep copy of the lazy object
         throw DataException("Programmer error - POS not supported for lazy data.");
         break;
     case EXP:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::exp);
-        break;
+        operation=EXPF;
+	break;
     case SQRT:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sqrt);
-        break;
+        operation=SQRTF;
+	break;
     case RECIP:
-        tensor_unary_operation(m_samplesize, left, result, bind1st(divides<double>(),1.));
-        break;
+        operation=INVF;
+	break;
     case GZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(greater<double>(),0.0));
-        break;
+        operation=GTZEROF;
+	break;
     case LZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(less<double>(),0.0));
-        break;
+        operation=LTZEROF;
+	break;
     case GEZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(greater_equal<double>(),0.0));
-        break;
+        operation=GEZEROF;
+	break;
     case LEZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
-        break;
+        operation=LEZEROF;
+	break;
 // There are actually G_UNARY_P but I don't see a compelling reason to treat them differently
     case NEZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsGT(),m_tol));
-        break;
+        operation=NEQZEROF;
+	break;
     case EZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsLTE(),m_tol));
-        break;
-
+        operation=EQZEROF;
+cerr << "Trying to evaluate " << m_tol << endl; 
+	
+	break;
     default:
         throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
   }
+  tensor_unary_array_operation(m_samplesize,
+                             left,
+                             result,
+                             operation,
+                             m_tol);  
   return &(m_samples);
 }
 
