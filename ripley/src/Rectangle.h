@@ -337,8 +337,8 @@ inline dim_t Rectangle::getNumDataPointsGlobal() const
 
 inline double Rectangle::getLocalCoordinate(index_t index, int dim) const
 {
-    ESYS_ASSERT_MPI(dim>=0 && dim<2, "'dim' out of bounds", m_mpiInfo);
-    ESYS_ASSERT_MPI(index>=0 && index<m_NN[dim], "'index' out of bounds", m_mpiInfo);
+    ESYS_ASSERT(dim>=0 && dim<2, "'dim' out of bounds");
+    ESYS_ASSERT(index>=0 && index<m_NN[dim], "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
 }
 
@@ -359,7 +359,7 @@ inline dim_t Rectangle::getNumDOF() const
 //protected
 inline dim_t Rectangle::getNumDOFInAxis(unsigned axis) const
 {
-    ESYS_ASSERT_MPI(axis < m_numDim, "Invalid axis", m_mpiInfo);
+    ESYS_ASSERT(axis < m_numDim, "Invalid axis");
     return (m_gNE[axis]+1)/m_NX[axis];
 }
 
