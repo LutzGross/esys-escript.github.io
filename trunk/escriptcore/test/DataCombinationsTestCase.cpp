@@ -21,6 +21,8 @@
 #include <escript/TestDomain.h>
 #include <cppunit/TestCaller.h>
 
+#include <escript/Utils.h>
+
 using namespace escript;
 using namespace DataTypes;
 using namespace std;
@@ -547,17 +549,22 @@ void DataCombinationsTestCase::testNonUpdate()
   shape.push_back(3);        
   
   DataTypes::RealVectorType dat=getVector(shape, 9);  
-
+  bool mismatch=false;
   for (int i=0;i<2;++i)
   {
       for (int j=0;j<3;++j)
       {
-	  if (getRef(res1,i,j)!=dat[getRelIndex(shape,i,j)]) {
-	      cout << "Mismatch at " << i << ',' << j << "::" << getRef(res1,i,j) << dat[getRelIndex(shape,i,j)] << endl;
-	      CPPUNIT_ASSERT(false);
+	  if (!res1.hasNoSamples())
+	  {	
+	      if (getRef(res1,i,j)!=dat[getRelIndex(shape,i,j)]) {
+		  cout << "Mismatch at " << i << ',' << j << "::" << getRef(res1,i,j) << dat[getRelIndex(shape,i,j)] << endl;
+		  mismatch=true;
+	      }
 	  }
       }
   }
+  // need to do a global check to see if anyone mismatched
+  assert(getMPIWorldMax(mismatch)==0);  
   
   res1=(c1+c5);
   res2=(c5+c1);
@@ -565,16 +572,23 @@ void DataCombinationsTestCase::testNonUpdate()
   CPPUNIT_ASSERT(rr<0.01);
   dat=getVector(shape, 1);
   auto dat2=getVector(shape,5);
+  mismatch=false;
   for (int i=0;i<2;++i)
   {
       for (int j=0;j<3;++j)
       {
-	  if (getRef(res1,i,j)!=(dat[getRelIndex(shape,i,j)]+dat2[getRelIndex(shape,i,j)])) {
-	      cout << "Mismatch at " << i << ',' << j << endl;
-	      CPPUNIT_ASSERT(false);
+	  if (!res1.hasNoSamples())
+	  {
+	      if (getRef(res1,i,j)!=(dat[getRelIndex(shape,i,j)]+dat2[getRelIndex(shape,i,j)])) {
+		  cout << "Mismatch at " << i << ',' << j << endl;
+		  mismatch=true;
+	      }
 	  }
       }
   }
+  // need to do a global check to see if anyone mismatched
+  assert(getMPIWorldMax(mismatch)==0);
+  
   cout << "CCC looks good\n";
 
   // will test EEE next
