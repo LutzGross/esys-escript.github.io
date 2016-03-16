@@ -158,6 +158,7 @@ void DataVectorTestCase::testAll()
 
     CPPUNIT_ASSERT(vec1 != vec2);
   }
+/*  
   #if defined DOASSERT
   {
     cout << "\tCheck DataVector index exception." << endl;
@@ -167,7 +168,7 @@ void DataVectorTestCase::testAll()
     CPPUNIT_ASSERT_THROW( (void) vec[1001],  EsysException);
   }
   #endif
-
+*/
 }
 
 TestSuite* DataVectorTestCase::suite()

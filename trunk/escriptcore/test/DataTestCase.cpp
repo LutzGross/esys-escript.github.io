@@ -93,10 +93,13 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{
 	  CPPUNIT_ASSERT(deep.isLazy());
 	}
-	for (int i=0;i<DataTypes::noValues(shape);++i)
+	if (!d->hasNoSamples())
 	{
-	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
-    }
+	    for (int i=0;i<DataTypes::noValues(shape);++i)
+	    {
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
+	    }
+	}
 	if (delayed)
 	{
 	   d->delaySelf();
@@ -106,11 +109,14 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{
 	  CPPUNIT_ASSERT(d->isLazy());
 	}
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
+	if (!d->hasNoSamples())
+	{	
+	    for (int i=0;i<DataTypes::noValues(shape);++i)
+	    {
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
+	    }
 	}
-    if (delayed)
+	if (delayed)
 	{
 	   d->delaySelf();
 	   deep.delaySelf();
@@ -120,14 +126,20 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{
 	  CPPUNIT_ASSERT(d->isLazy());
 	}
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
+	if (!d->hasNoSamples())
+	{	
+	    for (int i=0;i<DataTypes::noValues(shape);++i)
+	    {
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
+	    }
 	}
 	d->setToZero();
-	for (int i=0;i<DataTypes::noValues(shape);++i)
-	{
-	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
+	if (!d->hasNoSamples())
+	{	
+	    for (int i=0;i<DataTypes::noValues(shape);++i)
+	    {
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
+	    }
 	}
 	delete dats[k];
   }
@@ -788,11 +800,14 @@ void DataTestCase::testMoreOperations()
   for (int z=0;z<NUMDATS;++z)
   {
 	tmp=0;
-	for (int i=0;i<shape[0];++i)
-	{
-	   tmp+=getRef(dats[z],i,i);
+	if (!dats[z].hasNoSamples())
+	{	
+	    for (int i=0;i<shape[0];++i)
+	    {
+	      tmp+=getRef(dats[z],i,i);
+	    }
+	    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - tmp) <= REL_TOL*std::abs(tmp));
 	}
-	CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - tmp) <= REL_TOL*std::abs(tmp));
   }
 
 
