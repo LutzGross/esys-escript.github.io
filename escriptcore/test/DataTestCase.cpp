@@ -179,9 +179,11 @@ void DataTestCase::testSlicingWorker(bool delayed)
    {
 	cout << "\t\tTest get-slicing " << strs[k] << endl;
 	dats[k]->requireWrite();
-    	dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
-    	dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
-
+	if (!dats[k]->hasNoSamples())
+	{
+	    dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
+	    dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
+	}
     	DataTypes::RegionType region;
     	region.push_back(DataTypes::RegionType::value_type(0,0));
     	region.push_back(DataTypes::RegionType::value_type(0,0));
@@ -189,8 +191,11 @@ void DataTestCase::testSlicingWorker(bool delayed)
     	Data slice1(dats[k]->getSlice(region));
 
     	if (tags[k]) { CPPUNIT_ASSERT(slice1.isTagged()); }
-    	CPPUNIT_ASSERT(slice1.getDataPointRank()==0);
-    	CPPUNIT_ASSERT(slice1.getDataPointRO(0,0)==1.0);
+	if (!slice1.hasNoSamples())
+	{    	
+	    CPPUNIT_ASSERT(slice1.getDataPointRank()==0);
+	    CPPUNIT_ASSERT(slice1.getDataPointRO(0,0)==1.0);
+	}    
 
 	//
 	// create a rank 2 slice with one value
@@ -206,8 +211,10 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	if (tags[k]) {CPPUNIT_ASSERT(slice2.isTagged());}
 	CPPUNIT_ASSERT(slice2.getDataPointRank()==2);
 	
-	CPPUNIT_ASSERT(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
-
+	if (!dats[k]->hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
+	}
 	//
 	// create a rank 2 slice with four values
 	
@@ -221,10 +228,13 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	
 	if (tags[k]) {CPPUNIT_ASSERT(slice3.isTagged());}
 	CPPUNIT_ASSERT(slice3.getDataPointRank()==2);
-	CPPUNIT_ASSERT(getRef(slice3,0,0,0,0)==1.0);
-	CPPUNIT_ASSERT(getRef(slice3,0,0,0,1)==1.3);
-	CPPUNIT_ASSERT(getRef(slice3,0,0,1,0)==1.3);
-	CPPUNIT_ASSERT(getRef(slice3,0,0,1,1)==2.0);
+	if (!slice3.hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(getRef(slice3,0,0,0,0)==1.0);
+	    CPPUNIT_ASSERT(getRef(slice3,0,0,0,1)==1.3);
+	    CPPUNIT_ASSERT(getRef(slice3,0,0,1,0)==1.3);
+	    CPPUNIT_ASSERT(getRef(slice3,0,0,1,1)==2.0);
+	}
    }
 
    // now some extra tests for tagged data (dats[1])
@@ -252,13 +262,15 @@ void DataTestCase::testSlicingWorker(bool delayed)
    
    CPPUNIT_ASSERT(slice4.isTagged());
    CPPUNIT_ASSERT(slice4.getDataPointRank()==2);
-   CPPUNIT_ASSERT(getRef(slice4,0,0,0,0)==0);
-   CPPUNIT_ASSERT(getRef(slice4,0,0,0,1)==2);
-   CPPUNIT_ASSERT(getRef(slice4,0,0,0,2)==4);
-   CPPUNIT_ASSERT(getRef(slice4,0,0,1,0)==1);
-   CPPUNIT_ASSERT(getRef(slice4,0,0,1,1)==3);
-   CPPUNIT_ASSERT(getRef(slice4,0,0,1,2)==5);
-
+    if (!slice4.hasNoSamples())
+    {
+	CPPUNIT_ASSERT(getRef(slice4,0,0,0,0)==0);
+	CPPUNIT_ASSERT(getRef(slice4,0,0,0,1)==2);
+	CPPUNIT_ASSERT(getRef(slice4,0,0,0,2)==4);
+	CPPUNIT_ASSERT(getRef(slice4,0,0,1,0)==1);
+	CPPUNIT_ASSERT(getRef(slice4,0,0,1,1)==3);
+	CPPUNIT_ASSERT(getRef(slice4,0,0,1,2)==5);
+    }
    for (int k=0;k<NUMDATS;++k)
    {
 	delete dats[k];
@@ -307,7 +319,10 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	region.push_back(DataTypes::RegionType::value_type(1,1));
 	region.push_back(DataTypes::RegionType::value_type(1,1));
 	target.setSlice(*(src[k]),region);
-	CPPUNIT_ASSERT(getRef(target,0,0,1,1)==src[k]->getDataPointRO(0,0));
+	if (!target.hasNoSamples())
+	{
+	    CPPUNIT_ASSERT(getRef(target,0,0,1,1)==src[k]->getDataPointRO(0,0));
+	}
   }
   
   // some extra tests on tagged data
@@ -337,13 +352,15 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
   CPPUNIT_ASSERT(target.isTagged());
   CPPUNIT_ASSERT(target.getDataPointRank()==2);
-  CPPUNIT_ASSERT(getRef(target,0,0,0,0)==0);
-  CPPUNIT_ASSERT(getRef(target,0,0,0,1)==src[1]->getDataPointRO(0,0));
-  CPPUNIT_ASSERT(getRef(target,0,0,0,2)==4);
-  CPPUNIT_ASSERT(getRef(target,0,0,1,0)==1);
-  CPPUNIT_ASSERT(getRef(target,0,0,1,1)==3);
-  CPPUNIT_ASSERT(getRef(target,0,0,1,2)==5);
-
+  if (!target.hasNoSamples())
+  {
+      CPPUNIT_ASSERT(getRef(target,0,0,0,0)==0);
+      CPPUNIT_ASSERT(getRef(target,0,0,0,1)==src[1]->getDataPointRO(0,0));
+      CPPUNIT_ASSERT(getRef(target,0,0,0,2)==4);
+      CPPUNIT_ASSERT(getRef(target,0,0,1,0)==1);
+      CPPUNIT_ASSERT(getRef(target,0,0,1,1)==3);
+      CPPUNIT_ASSERT(getRef(target,0,0,1,2)==5);
+  }
   //
   // add a value for tag "2" to source
 
