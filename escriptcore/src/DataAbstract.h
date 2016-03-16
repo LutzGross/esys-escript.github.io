@@ -144,6 +144,12 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   int
   getNumSamples() const;
+  
+  bool
+  hasNoSamples() const
+  {
+      return getNumSamples()==0;
+  }
 
   /**
      \brief

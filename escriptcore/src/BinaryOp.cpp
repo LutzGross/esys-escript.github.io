@@ -686,6 +686,11 @@ inline void binaryOpDataReadyHelperEEC(DataExpanded& res, const DataExpanded& le
   LSCALAR dummyl=0;
   RSCALAR dummyr=0;
   DataTypes::RealVectorType::size_type valcount=res.getNumDPPSample()*DataTypes::noValues(res.getShape());
+
+  if (left.hasNoSamples() || right.hasNoSamples())
+  {
+      return;
+  }
   
   if (right.getRank()==0) 
   {	
@@ -758,6 +763,11 @@ inline void binaryOpDataReadyHelperEEE(DataExpanded& res, const DataExpanded& le
   LSCALAR dummyl=0;
   RSCALAR dummyr=0;
   DataTypes::RealVectorType::size_type valcount=res.getNumDPPSample()*DataTypes::noValues(res.getShape());
+  
+  if (left.hasNoSamples() || right.hasNoSamples())
+  {
+      return;
+  }
   
   if (left.getRank()==right.getRank())
   {
