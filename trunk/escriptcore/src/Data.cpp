@@ -2161,7 +2161,14 @@ Data::supWorker() const
     //
     // set the initial maximum value to min possible real_t
     FMax fmax_func;
-    localValue = algorithm(fmax_func,numeric_limits<real_t>::infinity()*-1);
+    if (hasNoSamples())
+    {
+	localValue = numeric_limits<real_t>::infinity()*-1;
+    }
+    else
+    {
+	localValue = algorithm(fmax_func,numeric_limits<real_t>::infinity()*-1);      
+    }
     #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     return globalValue;
@@ -2196,7 +2203,14 @@ Data::infWorker() const
     //
     // set the initial minimum value to max possible real_t
     FMin fmin_func;
-    localValue = algorithm(fmin_func,numeric_limits<real_t>::infinity());
+    if (hasNoSamples())
+    {
+	localValue = numeric_limits<real_t>::infinity();
+    }
+    else
+    {
+	localValue = algorithm(fmin_func,numeric_limits<real_t>::infinity());
+    }
 #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, getDomain()->getMPIComm() );
     return globalValue;
