@@ -31,13 +31,30 @@
 #if DOASSERT
 
 //
-// DOASSERT is defined, replace ESYS_ASSERT with Exception throw
+// DOASSERT is defined, evaluate assertions and abort on failure.
 //
 
 #include <escript/EsysException.h>
 #include <sstream>
 
-// use this if you don't have a JMPI instance handy
+#if ESYS_MPI
+
+#include <mpi.h>
+
+#define ESYS_ASSERT(assert_test, assert_msg)\
+    do {\
+        const bool result = (assert_test);\
+        if (!result) {\
+            std::ostringstream message;\
+            message << assert_msg << "\n\n"\
+            << __FILE__ << ":" << __LINE__ << ": " << #assert_test << "\n";\
+            std::cerr << message.str();\
+            MPI_Abort(MPI_COMM_WORLD, 455347);\
+        }\
+    } while (0)
+
+#else
+
 #define ESYS_ASSERT(assert_test, assert_msg)\
     do {\
         const bool result = (assert_test);\
@@ -49,39 +66,15 @@
         }\
     } while (0)
 
-// MPI aware version that throws on all ranks
-#define ESYS_ASSERT_MPI(assert_test, assert_msg, __mpi__)\
-    do {\
-	try\
-	{\
-	    (void)__mpi__;\
-	} catch (...)\
-	{\
-	    ESYS_ASSERT(assert_test, assert_msg);\
-	    break;\
-	}\
-        const int result = (assert_test) ? 0 : 1;\
-        int gresult = result;\
-        escript::checkResult(result, gresult, __mpi__);\
-        if (gresult > 0) {\
-            std::ostringstream message;\
-            message << assert_msg << "\n\n"\
-            << __FILE__ << ":" << __LINE__ << ": " << #assert_test;\
-            if (!result)\
-                message << " (on other rank(s))";\
-            message << "\n";\
-            throw escript::AssertException(message.str());\
-        }\
-    } while (0)
+#endif // ESYS_MPI
 
 #else // !DOASSERT
 
 //
-// DOASSERT is not defined, replace ESYS_ASSERT macros with no-op
+// DOASSERT is not defined, replace ESYS_ASSERT macro with no-op
 //
 
 #define ESYS_ASSERT(a,b)
-#define ESYS_ASSERT_MPI(a,b,c)
 
 #endif
 

@@ -1983,7 +1983,7 @@ Data::lazyAlgWorker(real_t init)
         throw DataException("Error - lazyAlgWorker can only be called on lazy(expanded) data.");
     }
     DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
-    ESYS_ASSERT_MPI(dl!=NULL, "Programming error - casting to DataLazy.", getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(dl!=NULL, "Programming error - casting to DataLazy.");
     real_t val=init;
     int i=0;
     const size_t numsamples=getNumSamples();
@@ -5389,7 +5389,7 @@ Data::TensorSelfUpdateBinaryOperation(const Data& right,
      // Expanded data will be done in parallel, the right hand side can be
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     ESYS_ASSERT_MPI(leftC!=NULL, "Programming error - casting to DataExpanded.", getFunctionSpace().getDomain()->getMPI());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataExpanded.");
      
      if (right.isExpanded())
      {
@@ -5410,25 +5410,22 @@ Data::TensorSelfUpdateBinaryOperation(const Data& right,
      // Tagged data is operated on serially, the right hand side can be
      // either DataConstant or DataTagged
      DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     ESYS_ASSERT_MPI(leftC!=NULL, "Programming error - casting to DataTagged.",
-                     getFunctionSpace().getDomain()->getMPI());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataTagged.");
      if (right.isTagged()) {
        DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
-       ESYS_ASSERT_MPI(rightC!=NULL, "Programming error - casting to DataTagged.",
-                       getFunctionSpace().getDomain()->getMPI());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataTagged.");
        binaryOpDataTTT(*leftC, *leftC, *rightC, operation);
        //escript::binaryOpDataReady(*leftC,*rightC,operation);
      } else {
        DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-       ESYS_ASSERT_MPI(rightC!=NULL, "Programming error - casting to DataConstant.",
-                       getFunctionSpace().getDomain()->getMPI());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataConstant.");
        binaryOpDataTTC(*leftC, *leftC, *rightC, operation);
        //escript::binaryOpDataReady(*leftC,*rightC,operation);
      }
    } else if (isConstant()) {
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
      DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-     ESYS_ASSERT_MPI(leftC!=NULL && rightC!=NULL, "Programming error - casting to DataConstant.", getFunctionSpace().getDomain()->getMPI());
+     ESYS_ASSERT(leftC!=NULL && rightC!=NULL, "Programming error - casting to DataConstant.");
      binaryOpDataCCC(*leftC, *leftC, *rightC, operation);
      //escript::binaryOpDataReady(*leftC,*rightC,operation);
    }  
@@ -5488,33 +5485,28 @@ Data::binaryDataOp(const Data& right,
      // Expanded data will be done in parallel, the right hand side can be
      // of any data type
      DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     ESYS_ASSERT_MPI(leftC!=NULL, "Programming error - casting to DataExpanded.",
-                     getFunctionSpace().getDomain()->getMPI());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataExpanded.");
      escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
    } else if (isTagged()) {
      //
      // Tagged data is operated on serially, the right hand side can be
      // either DataConstant or DataTagged
      DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     ESYS_ASSERT_MPI(leftC!=NULL, "Programming error - casting to DataTagged.",
-                     getFunctionSpace().getDomain()->getMPI());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataTagged.");
      if (right.isTagged()) {
        DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
-       ESYS_ASSERT_MPI(rightC!=NULL, "Programming error - casting to DataTagged.",
-                       getFunctionSpace().getDomain()->getMPI());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataTagged.");
        escript::binaryOpDataReady(*leftC,*rightC,operation);
      } else {
        DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-       ESYS_ASSERT_MPI(rightC!=NULL, "Programming error - casting to DataConstant.",
-                       getFunctionSpace().getDomain()->getMPI());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataConstant.");
        escript::binaryOpDataReady(*leftC,*rightC,operation);
      }
    } else if (isConstant()) {
      DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
      DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-     ESYS_ASSERT_MPI(leftC!=NULL && rightC!=NULL,
-             "Programming error - casting to DataConstant.",
-             getFunctionSpace().getDomain()->getMPI());
+     ESYS_ASSERT(leftC!=NULL && rightC!=NULL,
+             "Programming error - casting to DataConstant.");
      escript::binaryOpDataReady(*leftC,*rightC,operation);
    }  
 }

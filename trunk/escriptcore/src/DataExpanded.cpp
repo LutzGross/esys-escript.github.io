@@ -164,8 +164,8 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::RealVectorType &data)
   : parent(what,shape)
 {
-    ESYS_ASSERT_MPI(data.size()%getNoValues()==0,
-                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.", what.getDomain()->getMPI());
+    ESYS_ASSERT(data.size()%getNoValues()==0,
+                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
         RealVectorType& vec=m_data_r;
@@ -188,8 +188,8 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
                            const DataTypes::CplxVectorType &data)
   : parent(what,shape)
 {
-    ESYS_ASSERT_MPI(data.size()%getNoValues()==0,
-                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.", what.getDomain()->getMPI());
+    ESYS_ASSERT(data.size()%getNoValues()==0,
+                 "DataExpanded Constructor - size of supplied data is not a multiple of shape size.");
 
     if (data.size() == getNoValues()) {
         CplxVectorType& vec=m_data_c;
@@ -293,8 +293,8 @@ void DataExpanded::setSlice(const DataAbstract* value,
 
 void DataExpanded::copy(const DataConstant& value)
 {
-    ESYS_ASSERT_MPI((checkShape(getShape(), value.getShape())),
-                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()), getFunctionSpace().getDomain()->getMPI());
+    ESYS_ASSERT(checkShape(getShape(), value.getShape()),
+                 createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
     if (isComplex())
     {
 	if (value.isComplex())
@@ -483,13 +483,12 @@ DataTypes::RealVectorType::size_type DataExpanded::getPointOffset(int sampleNo,
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_c.size() > 0))
 		:
 		  ((sampleNo >= 0) && (dataPointNo >= 0) && (m_data_r.size() > 0))), 
-	       "(DataBlocks2D) Index value out of range." /*, getFunctionSpace().getDomain()->getMPI()*/);
+	       "(DataBlocks2D) Index value out of range.");
     DataTypes::RealVectorType::size_type temp=(sampleNo*m_noDataPointsPerSample+dataPointNo)*blockSize;
     ESYS_ASSERT((isComplex()?
 		  (temp <= (m_data_c.size()-blockSize))
 		:
-		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range."
-            /*,getFunctionSpace().getDomain()->getMPI()*/);
+		  (temp <= (m_data_r.size()-blockSize))), "Index value out of range.");
 
     return temp;
 }
