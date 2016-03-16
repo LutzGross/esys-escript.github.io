@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#include <sstream>
+
 #include "TestDomain.h"
 #include "Data.h"
 #include "DomainException.h"
@@ -204,7 +206,9 @@ int TestDomain::getTagFromSampleNo(int functionSpaceType, DataTypes::index_t sam
 {
     if (sampleNo>=tag_assignment.size())
     {
-	throw DataException("invalid sample number");
+	std::ostringstream oss;
+	oss << "invalid sample number " << sampleNo << " of " << tag_assignment.size();
+	throw DataException(oss.str());
     }
     return tag_assignment[sampleNo];
 }
