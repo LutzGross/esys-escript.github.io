@@ -853,7 +853,13 @@ void DataTestCase::testOperations()
     }
   }
 
-
+  DataTypes::RealVectorType data2(DataTypes::noValues(shape),0);
+  // assign values to the data
+  for (int i=0;i<shape[0];i++) {
+    for (int j=0;j<shape[1];j++) {
+      data2[getRelIndex(shape,i,j)]=12345678.8976+getRelIndex(shape,i,j);
+    }
+  }
 
 
   Data dats[]={Data(data,shape,fs,false),
@@ -861,7 +867,8 @@ void DataTestCase::testOperations()
 		Data(data,shape,fs,true),
 		Data(data,shape,fs,false),
 		Data(data,shape,fs,false),
-		Data(data,shape,fs,true)};
+		Data(data,shape,fs,true)
+  };
   const int NUMDATS=6;
   const int LAZY=3;		// where do the lazy objects start?
 
@@ -920,6 +927,7 @@ void DataTestCase::testOperations()
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       tmp=pow((double)data[getRelIndex(shape,i,j)],(double)3.0);
+cerr << tmp << endl;      
       for (int z=0;z<NUMDATS;++z)
       {
 	results[z].resolve();
@@ -1308,7 +1316,11 @@ cerr << "Ending sin" << endl;
       }
     }
   }
-
+  {
+      Data inp(data2, shape, fs, true);
+      Data res=inp.abs();
+      CPPUNIT_ASSERT(res.inf()>12345678);
+  }
   cout << "\tTest Data::sign (positive)." << endl;
   for (int z=0;z<NUMDATS;++z)
   {

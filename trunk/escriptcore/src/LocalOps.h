@@ -967,6 +967,7 @@ inline DataTypes::real_t conjugate(const DataTypes::real_t r)
     return r;
 }
 
+// No openmp because it's called by Lazy
 // In most cases, IN and OUT will be the same
 // but not ruling out putting Re() and Im()
 // through this
@@ -1016,7 +1017,7 @@ inline void tensor_unary_array_operation(const size_t size,
           break;
     case ABSF:
 	  for (size_t i = 0; i < size; ++i) {
-              argRes[i] = abs(arg1[i]);
+              argRes[i] = std::abs(arg1[i]);
           }
           break;      
     case SINHF:
