@@ -1150,8 +1150,6 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
 	break;
     case EZ:
         operation=EQZEROF;
-cerr << "Trying to evaluate " << m_tol << endl; 
-	
 	break;
     default:
         throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
