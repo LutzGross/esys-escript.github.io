@@ -18,7 +18,6 @@
 
 #include "DataTypesTestCase.h"
 
-#include <escript/DataAlgorithm.h>
 #include <escript/DataVector.h>
 #include <escript/EsysException.h>
 

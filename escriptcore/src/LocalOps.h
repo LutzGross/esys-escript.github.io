@@ -86,6 +86,47 @@ INVF
 bool always_real(ESFunction operation);
 
 
+/**
+   \brief
+   Return the maximum value of the two given values.
+*/
+struct FMax : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::max(x,y);
+  }
+};
+
+/**
+   \brief
+   Return the minimum value of the two given values.
+*/
+struct FMin : public std::binary_function<double,double,double>
+{
+  inline double operator()(double x, double y) const
+  {
+    return std::min(x,y);
+  }
+};
+
+/**
+   \brief
+   Return the absolute maximum value of the two given values.
+*/
+template<typename T>
+struct AbsMax 
+{
+  inline DataTypes::real_t operator()(T x, T y) const
+  {
+    return std::max(std::abs(x),std::abs(y));
+  }
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef DataTypes::real_t result_type;
+};
+
+
 inline
 double
 fsign(double x)

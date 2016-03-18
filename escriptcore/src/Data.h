@@ -22,7 +22,6 @@
 #include "system_dep.h"
 #include "BinaryOp.h"
 #include "DataAbstract.h"
-#include "DataAlgorithm.h"
 #include "DataException.h"
 #include "DataTypes.h"
 #include "EsysMPI.h"
@@ -1605,7 +1604,7 @@ template <class BinaryOp>
   template <class BinaryFunction>
   inline
   DataTypes::real_t
-  algorithm(BinaryFunction operation,
+  reduction(BinaryFunction operation,
             DataTypes::real_t initial_value) const;
 
   /**
@@ -2105,20 +2104,68 @@ Data::rtruedivO(const boost::python::object& left)
 template <class BinaryFunction>
 inline
 DataTypes::real_t
-Data::algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
+Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
-    return escript::algorithm(*leftC,operation,initial_value);
+
+    DataExpanded& data=*leftC;
+    int i,j;
+    int numDPPSample=data.getNumDPPSample();
+    int numSamples=data.getNumSamples();
+    DataTypes::real_t global_current_value=initial_value;
+    DataTypes::real_t local_current_value;
+    const auto& vec=data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0));
+    const DataTypes::ShapeType& shape=data.getShape();
+    // calculate the reduction operation value for each data point
+    // reducing the result for each data-point into the current_value variables
+    #pragma omp parallel private(local_current_value)
+    {
+	local_current_value=initial_value;
+	#pragma omp for private(i,j) schedule(static)
+	for (i=0;i<numSamples;i++) {
+	  for (j=0;j<numDPPSample;j++) {
+	    local_current_value=operation(local_current_value,DataMaths::reductionOp(vec,shape,data.getPointOffset(i,j),operation,initial_value));
+
+	  }
+	}
+	#pragma omp critical
+	global_current_value=operation(global_current_value,local_current_value);
+    }
+    return global_current_value;
   } else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
-    return escript::algorithm(*leftC,operation,initial_value);
+    
+    DataTagged& data=*leftC;
+    DataTypes::real_t current_value=initial_value;
+
+    const auto& vec=data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0));
+    const DataTypes::ShapeType& shape=data.getShape();
+    const DataTagged::DataMapType& lookup=data.getTagLookup();
+    const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
+    for (std::list<int>::const_iterator i=used.begin();i!=used.end();++i)
+    {
+      int tag=*i;
+      if (tag==0)	// check for the default tag
+      {
+	  current_value=operation(current_value,DataMaths::reductionOp(vec,shape,data.getDefaultOffset(),operation,initial_value));
+      }
+      else
+      {
+	  DataTagged::DataMapType::const_iterator it=lookup.find(tag);
+	  if (it!=lookup.end())
+	  {
+		  current_value=operation(current_value,DataMaths::reductionOp(vec,shape,it->second,operation,initial_value));
+	  }
+      }
+    }
+    return current_value;    
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
-    return escript::algorithm(*leftC,operation,initial_value);
+    return DataMaths::reductionOp(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
   } else if (isLazy()) {
@@ -2150,7 +2197,28 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     ESYS_ASSERT(dataE!=0, "Programming error - casting data to DataExpanded.");
     ESYS_ASSERT(resultE!=0, "Programming error - casting result to DataExpanded.");
-    escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
+    
+    
+    
+    int i,j;
+    int numSamples=dataE->getNumSamples();
+    int numDPPSample=dataE->getNumDPPSample();
+  //  DataArrayView dataView=data.getPointDataView();
+  //  DataArrayView resultView=result.getPointDataView();
+    const auto& dataVec=dataE->getTypedVectorRO(initial_value);
+    const DataTypes::ShapeType& shape=dataE->getShape();
+    auto& resultVec=resultE->getTypedVectorRW(initial_value);
+    // perform the operation on each data-point and assign
+    // this to the corresponding element in result
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
+	resultVec[resultE->getPointOffset(i,j)] =
+	  DataMaths::reductionOp(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
+
+      }
+    }    
+    //escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
     return result;
   }
   else if (isTagged()) {
@@ -2159,7 +2227,21 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
-    escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
+    
+    
+    const DataTypes::ShapeType& shape=dataT->getShape();
+    const auto& vec=dataT->getTypedVectorRO(initial_value);
+    const DataTagged::DataMapType& lookup=dataT->getTagLookup();
+    for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
+      resultT->getDataByTagRW(i->first,0) =
+	  DataMaths::reductionOp(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
+    }    
+    resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = DataMaths::reductionOp(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
+    
+    
+    
+    
+    //escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
     return Data(resultT);   // note: the Data object now owns the resultT pointer
   } 
   else if (isConstant()) {
@@ -2168,7 +2250,12 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     ESYS_ASSERT(dataC!=0, "Programming error - casting data to DataConstant.");
     ESYS_ASSERT(resultC!=0, "Programming error - casting result to DataConstant.");
-    escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
+    
+    DataConstant& data=*dataC;
+    resultC->getTypedVectorRW(initial_value)[0] =
+	DataMaths::reductionOp(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
+    
+    //escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
   } else if (isLazy()) {
     throw DataException("Error - Operations not permitted on instances of DataLazy.");
