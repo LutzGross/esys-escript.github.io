@@ -77,7 +77,6 @@ headers = """
     BinaryOp.h
     Data.h
     DataAbstract.h
-    DataAlgorithm.h
     DataConstant.h
     DataEmpty.h
     DataException.h

@@ -2107,7 +2107,7 @@ Data::LsupWorker() const
     {
         AbsMax<cplx_t> abs_max_func;
         real_t localValue=0;
-        localValue = algorithm(abs_max_func,0);
+        localValue = reduction(abs_max_func,0);
 
     #ifdef ESYS_MPI
         real_t globalValue=0;
@@ -2121,7 +2121,7 @@ Data::LsupWorker() const
     {  
         AbsMax<real_t> abs_max_func;
         real_t localValue=0;
-        localValue = algorithm(abs_max_func,0);
+        localValue = reduction(abs_max_func,0);
 
     #ifdef ESYS_MPI
         real_t globalValue=0;   
@@ -2166,7 +2166,7 @@ Data::supWorker() const
     }
     else
     {
-	localValue = algorithm(fmax_func,numeric_limits<real_t>::infinity()*-1);      
+	localValue = reduction(fmax_func,numeric_limits<real_t>::infinity()*-1);      
     }
     #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
@@ -2208,7 +2208,7 @@ Data::infWorker() const
     }
     else
     {
-	localValue = algorithm(fmin_func,numeric_limits<real_t>::infinity());
+	localValue = reduction(fmin_func,numeric_limits<real_t>::infinity());
     }
 #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, getDomain()->getMPIComm() );
