@@ -118,8 +118,6 @@ headers = """
     Taipan.h
     TestDomain.h
     TransportProblemException.h
-    UnaryFuncs.h
-    UnaryOp.h
     Utils.h
     WrappedArray.h
     index.h

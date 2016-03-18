@@ -19,7 +19,6 @@
 #include "DataTypes.h"
 #include "EscriptParams.h"
 #include "FunctionSpace.h"
-#include "UnaryFuncs.h"    // for escript::fsign
 #include "Utils.h"
 #include "DataMaths.h"
 

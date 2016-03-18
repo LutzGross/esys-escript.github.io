@@ -34,55 +34,6 @@ namespace escript {
 
 /**
    \brief
-   Adapt binary algorithms so they may be used in DataArrayView reduction operations.
-
-   Description:
-   This functor adapts the given BinaryFunction operation by starting with the
-   given inital value applying this operation to successive values, storing the
-   rolling result in m_currentValue - which can be accessed or reset by getResult
-   and resetResult respectively.
-*/
-template <class BinaryFunction>
-class DataAlgorithmAdapter {
-  public:
-    DataAlgorithmAdapter(double initialValue):
-      m_initialValue(initialValue),
-      m_currentValue(initialValue)
-    {
-    }
-    DataAlgorithmAdapter(const DataAlgorithmAdapter& other):
-      m_initialValue(other.m_initialValue),
-      m_currentValue(other.m_initialValue),
-      operation(other.operation)
-    {
-    }
-    inline void operator()(double value)
-    {
-      m_currentValue=operation(m_currentValue,value);
-      return;
-    }
-    inline void resetResult()
-    {
-      m_currentValue=m_initialValue;
-    }
-    inline double getResult() const
-    {
-      return m_currentValue;
-    }
-  private:
-    //
-    // the initial operation value
-    double m_initialValue;
-    //
-    // the current operation value
-    double m_currentValue;
-    //
-    // The operation to perform
-    BinaryFunction operation;
-};
-
-/**
-   \brief
    Return the maximum value of the two given values.
 */
 struct FMax : public std::binary_function<double,double,double>
@@ -119,68 +70,6 @@ struct AbsMax
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef DataTypes::real_t result_type;
-};
-
-/**
-   \brief
-   Return the absolute minimum value of the two given values.
-*/
-template<typename T>
-struct AbsMin 
-{
-  inline DataTypes::real_t operator()(T x, T y) const
-  {
-    return min(abs(x),abs(y));
-  }
-  typedef T first_argument_type;
-  typedef T second_argument_type;
-  typedef DataTypes::real_t result_type;
-};
-
-/**
-   \brief
-   Return the length between the two given values.
-*/
-struct Length : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return std::sqrt(std::pow(x,2)+std::pow(y,2));
-  }
-};
-
-/**
-   \brief
-   Return the trace of the two given values.
-*/
-struct Trace : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return x+y;
-  }
-};
-
-/**
-   \brief Return 1 if abs(x)>y, otherwise return 0.
-*/
-struct AbsGT : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return fabs(x)>y;
-  }
-};
-
-/**
-   \brief Return 1 if abs(x)<=y, otherwise return 0.
-*/
-struct AbsLTE : public std::binary_function<double,double,double>
-{
-  inline double operator()(double x, double y) const
-  {
-    return fabs(x)<=y;
-  }
 };
 
 

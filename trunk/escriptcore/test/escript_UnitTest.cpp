@@ -16,7 +16,7 @@
 
 #include <escript/EsysMPI.h>
 
-#include "DataAlgorithmAdapterTestCase.h"
+//#include "DataAlgorithmAdapterTestCase.h"
 #include "DataConstantTestCase.h"
 #include "DataEmptyTestCase.h"
 #include "DataExpandedTestCase.h"
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 	runner.addTest(DataExpandedTestCase::suite());
 	runner.addTest(DataVectorTestCase::suite());
 	runner.addTest(DataMathsTestCase::suite());
- 	runner.addTest(DataAlgorithmAdapterTestCase::suite());
+ 	//runner.addTest(DataAlgorithmAdapterTestCase::suite());
 	runner.addTest(FileWriterTestCase::suite());
 	runner.addTest(TaipanTestCase::suite());
 	runner.addTest(FunctionSpaceTestCase::suite());
