@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 
 using std::vector;

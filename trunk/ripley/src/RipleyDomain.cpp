@@ -29,6 +29,7 @@
 #include <paso/Transport.h>
 
 #include <iomanip>
+#include <iostream>
 
 namespace bp = boost::python;
 
@@ -773,6 +774,7 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
 
 void RipleyDomain::Print_Mesh_Info(bool full) const
 {
+    using namespace std;
     cout << "Print_Mesh_Info for " << getDescription() << " running on CPU "
         << m_mpiInfo->rank << ". MPI size: " << m_mpiInfo->size << endl;
     cout << "Number of dimensions: " << m_numDim << endl;

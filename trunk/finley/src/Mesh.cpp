@@ -25,7 +25,7 @@
 #include "IndexList.h"
 
 #include <boost/scoped_array.hpp>
-
+#include <iostream>
 
 namespace finley {
 
