@@ -27,6 +27,7 @@
 
 #include <limits>
 #include <sstream>
+#include <iostream>
 
 namespace finley {
 

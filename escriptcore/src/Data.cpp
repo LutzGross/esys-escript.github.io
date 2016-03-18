@@ -35,6 +35,7 @@
 #include <functional>
 #include <sstream>      // so we can throw messages about ranks
 #include <vector>
+#include <iostream>
 
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
@@ -4323,7 +4324,7 @@ Data::dump(const std::string fileName) const
     }
     catch (std::exception& e)
     {
-        cout << e.what() << endl;
+        std::cout << e.what() << std::endl;
     }
 }
 
