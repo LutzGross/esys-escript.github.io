@@ -27,7 +27,6 @@
 #include "DataTypes.h"
 #include "EsysMPI.h"
 #include "FunctionSpace.h"
-#include "UnaryOp.h"
 
 #include <algorithm>
 #include <string>
@@ -1621,11 +1620,6 @@ template <class BinaryOp>
   Data
   dp_algorithm(BinaryFunction operation,
                DataTypes::real_t initial_value) const;
-
-//   void
-//   binaryDataOp(const Data& right,
-//                    escript::ESFunction operation); 
-  
 
   /**
      \brief

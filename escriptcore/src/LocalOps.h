@@ -20,7 +20,6 @@
 
 #include "DataTypes.h"
 #include "DataException.h"
-#include "UnaryFuncs.h"
 
 #include <cmath>
 #include <complex>
@@ -85,6 +84,18 @@ INVF
 } ESFunction;
 
 bool always_real(ESFunction operation);
+
+
+inline
+double
+fsign(double x)
+{
+  if (x == 0) {
+    return 0;
+  } else {
+    return x/fabs(x);
+  }
+}
 
 /**
 \brief acts as a wrapper to isnan.
@@ -556,149 +567,8 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
   }
 }
 
-
-// template <typename UnaryFunction>
-// inline void tensor_unary_operation(const int size,
-//                              const double *arg1,
-//                              double * argRes,
-//                              UnaryFunction operation)
-// {
-//   for (int i = 0; i < size; ++i) {
-//     argRes[i] = operation(arg1[i]);
-//   }
-//   return;
-// }
-
-// template <typename BinaryFunction, typename T, typename U, typename V>
-// inline void tensor_binary_operation(const int size,
-//                              const T *arg1,
-//                              const U *arg2,
-//                              V * argRes,
-//                              BinaryFunction operation)
-// {
-//   for (int i = 0; i < size; ++i) {
-//     argRes[i] = operation(arg1[i], arg2[i]);
-//   }
-//   return;
-// }
-
-// template <typename BinaryFunction, typename T, typename U, typename V>
-// inline void tensor_binary_operation(const int size,
-//                              T arg1,
-//                              const U *arg2,
-//                              V *argRes,
-//                              BinaryFunction operation)
-// {
-//   for (int i = 0; i < size; ++i) {
-//     argRes[i] = operation(arg1, arg2[i]);
-//   }
-//   return;
-// }
-
-// template <typename BinaryFunction, typename T, typename U, typename V>
-// inline void tensor_binary_operation(const int size,
-//                              const T *arg1,
-//                              U arg2,
-//                              V *argRes,
-//                              BinaryFunction operation)
-// {
-//   for (int i = 0; i < size; ++i) {
-//     argRes[i] = operation(arg1[i], arg2);
-//   }
-//   return;
-// }
-
-// following the form of negate from <functional>
-// template <typename T>
-// struct sin_func
-// {
-//     T operator() (const T& x) const {return sin(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct cos_func
-// {
-//     T operator() (const T& x) const {return cos(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct tan_func
-// {
-//     T operator() (const T& x) const {return tan(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct asin_func
-// {
-//     T operator() (const T& x) const {return asin(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct acos_func
-// {
-//     T operator() (const T& x) const {return acos(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <typename T>
-// struct atan_func
-// {
-//     T operator() (const T& x) const {return atan(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <typename T>
-// struct sinh_func
-// {
-//     T operator() (const T& x) const {return sinh(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <typename T>
-// struct cosh_func
-// {
-//     T operator() (const T& x) const {return cosh(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// 
-// template <typename T>
-// struct tanh_func
-// {
-//     T operator() (const T& x) const {return tanh(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
 #if defined (_WIN32) && !defined(__INTEL_COMPILER)
 #else
-// template <typename T>
-// struct erf_func
-// {
-//     T operator() (const T& x) const {return ::erf(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <>
-// struct erf_func<escript::DataTypes::cplx_t>             // dummy instantiation
-// {
-//     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
-//     typedef DataTypes::cplx_t argument_type;
-//     typedef DataTypes::cplx_t result_type;
-// };
 
 inline
 DataTypes::real_t calc_erf(DataTypes::real_t x)
@@ -713,84 +583,6 @@ DataTypes::cplx_t calc_erf(DataTypes::cplx_t x)
 }
 
 #endif
-    
-// template <typename T>
-// struct asinh_func
-// {
-//     T operator() (const T& x) const
-//     {
-// #if defined (_WIN32) && !defined(__INTEL_COMPILER)
-//     return escript::asinh_substitute(x);
-// #else
-//     return asinh(x);
-// #endif      
-//     }
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct acosh_func
-// {
-//     T operator() (const T& x) const
-//     {
-// #if defined (_WIN32) && !defined(__INTEL_COMPILER)
-//     return escript::acosh_substitute(x);
-// #else
-//     return acosh(x);
-// #endif
-//     }
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct atanh_func
-// {
-//     T operator() (const T& x) const
-//     {
-// #if defined (_WIN32) && !defined(__INTEL_COMPILER)
-//     return escript::atanh_substitute(x);
-// #else
-//     return atanh(x);
-// #endif
-//     }    
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-
-// template <typename T>
-// struct log10_func
-// {
-//     T operator() (const T& x) const {return log10(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <typename T>
-// struct log_func
-// {
-//     T operator() (const T& x) const {return log(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <typename T>
-// struct sign_func
-// {
-//     T operator() (const T& x) const {return escript::fsign(x);}
-//     typedef T argument_type;
-//     typedef T result_type;
-// };
-// 
-// template <>
-// struct sign_func<DataTypes::cplx_t>     // dummy instantiation
-// {
-//     DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
-//     typedef DataTypes::cplx_t argument_type;
-//     typedef DataTypes::cplx_t result_type;
-// };
-
 
 inline DataTypes::real_t calc_sign(DataTypes::real_t x)
 {
@@ -807,41 +599,6 @@ inline escript::DataTypes::real_t fabs(const escript::DataTypes::cplx_t c)
 {
     return abs(c);
 }
-
-
-template <typename T>
-struct abs_func
-{
-    T operator() (const T& x) const {return fabs(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
-
-template <typename T>
-struct exp_func
-{
-    T operator() (const T& x) const {return exp(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
-
-template <typename T>
-struct sqrt_func
-{
-    T operator() (const T& x) const {return sqrt(x);}
-    typedef T argument_type;
-    typedef T result_type;
-};
-
-
-
-
-
-
-
-
-
-
 
 
 

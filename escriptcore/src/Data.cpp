@@ -25,7 +25,6 @@
 #include "EscriptParams.h"
 #include "FunctionSpaceException.h"
 #include "FunctionSpaceFactory.h"
-#include "UnaryFuncs.h"
 
 #ifdef IKNOWWHATIMDOING
 #include "Dodgy.h"
