@@ -22,7 +22,6 @@
   are relabeled accordingly but the mesh is not redistributed yet.
 
 *****************************************************************************/
-#include <iostream>
 #include "Mesh.h"
 #include "IndexList.h"
 
@@ -33,6 +32,7 @@ typedef float real_t;
 #endif
 #endif
 
+#include <iostream>
 #include <boost/scoped_array.hpp>
 
 namespace finley {
