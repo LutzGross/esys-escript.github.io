@@ -60,7 +60,6 @@
 #include "Dudley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
-#include "TagMap.h"
 #include "Util.h"
 
 #include <paso/SystemMatrixPattern.h>
