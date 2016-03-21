@@ -14,12 +14,6 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-
-/*   Dudley: Mesh: optimizes the labeling of the DOFs on each processor */
-
-/****************************************************************************/
-
 #include "Mesh.h"
 #include "IndexList.h"
 
@@ -27,93 +21,78 @@
 
 namespace dudley {
 
-void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh* in, dim_t* distribution)
+/// optimizes the labeling of the DOFs on each processor
+void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
 {
-    if (in == NULL)
-        return;
-    if (in->Nodes == NULL)
-        return;
-
-    index_t myFirstVertex, myLastVertex, *newGlobalDOFID = NULL, firstVertex, lastVertex;
-    index_t k;
-    dim_t mpiSize, myNumVertices, len, p, i;
-    paso::Pattern_ptr pattern;
-    int myRank, current_rank;
-#ifdef ESYS_MPI
-    int dest, source;
-    MPI_Status status;
-#endif
-
-    myRank = in->MPIInfo->rank;
-    mpiSize = in->MPIInfo->size;
-    myFirstVertex = distribution[myRank];
-    myLastVertex = distribution[myRank + 1];
-    myNumVertices = myLastVertex - myFirstVertex;
-    len = 0;
-    for (p = 0; p < mpiSize; ++p)
-        len = std::max(len, distribution[p + 1] - distribution[p]);
+    const int myRank = MPIInfo->rank;
+    const int mpiSize = MPIInfo->size;
+    const index_t myFirstVertex = distribution[myRank];
+    const index_t myLastVertex = distribution[myRank+1];
+    const dim_t myNumVertices = myLastVertex-myFirstVertex;
+    dim_t len = 0;
+    for (int p=0; p<mpiSize; ++p)
+        len=std::max(len, distribution[p+1]-distribution[p]);
 
     boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-    newGlobalDOFID = new index_t[len];
+    std::vector<index_t> newGlobalDOFID(len);
 
-    /* create the adjacency structure xadj and adjncy */
-#pragma omp parallel private(i)
+    // create the adjacency structure xadj and adjncy
+#pragma omp parallel
     {
-        /*  insert contributions from element matrices into columns index index_list: */
-        Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-            myFirstVertex, myLastVertex, in->Elements,
-            in->Nodes->globalDegreesOfFreedom, in->Nodes->globalDegreesOfFreedom);
-        Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-            myFirstVertex, myLastVertex, in->FaceElements,
-            in->Nodes->globalDegreesOfFreedom,
-            in->Nodes->globalDegreesOfFreedom);
-        Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-            myFirstVertex, myLastVertex, in->Points,
-            in->Nodes->globalDegreesOfFreedom,
-            in->Nodes->globalDegreesOfFreedom);
+        // insert contributions from element matrices into columns index
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            myFirstVertex, myLastVertex, Elements,
+            Nodes->globalDegreesOfFreedom);
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            myFirstVertex, myLastVertex, FaceElements,
+            Nodes->globalDegreesOfFreedom);
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
+            myFirstVertex, myLastVertex, Points,
+            Nodes->globalDegreesOfFreedom);
     }
-    /* create the local matrix pattern */
-    pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list.get(),
-        myFirstVertex, myLastVertex, -myFirstVertex);
+    // create the local matrix pattern
+    paso::Pattern_ptr pattern = paso::Pattern::fromIndexListArray(0,
+            myNumVertices, index_list.get(), myFirstVertex, myLastVertex,
+            -myFirstVertex);
 
-    pattern->reduceBandwidth(newGlobalDOFID);
+    pattern->reduceBandwidth(&newGlobalDOFID[0]);
 
-    /* shift new labeling to create a global id */
-#pragma omp parallel for private(i)
-    for (i = 0; i < myNumVertices; ++i)
+    // shift new labeling to create a global id
+#pragma omp parallel for
+    for (index_t i = 0; i < myNumVertices; ++i)
         newGlobalDOFID[i] += myFirstVertex;
 
-    /* distribute new labeling to other processors */
+    // distribute new labeling to other processors
 #ifdef ESYS_MPI
-    dest = in->MPIInfo->mod_rank(myRank + 1);
-    source = in->MPIInfo->mod_rank(myRank - 1);
+    const int dest = MPIInfo->mod_rank(myRank + 1);
+    const int source = MPIInfo->mod_rank(myRank - 1);
 #endif
-    current_rank = myRank;
-    for (p = 0; p < mpiSize; ++p) {
-        firstVertex = distribution[current_rank];
-        lastVertex = distribution[current_rank + 1];
-#pragma omp parallel for private(i,k)
-        for (i = 0; i < in->Nodes->numNodes; ++i) {
-            k = in->Nodes->globalDegreesOfFreedom[i];
-            if ((firstVertex <= k) && (k < lastVertex)) {
-                in->Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
+    int current_rank = myRank;
+    for (int p = 0; p < mpiSize; ++p) {
+        const index_t firstVertex = distribution[current_rank];
+        const index_t lastVertex = distribution[current_rank + 1];
+#pragma omp parallel for
+        for (index_t i = 0; i < Nodes->getNumNodes(); ++i) {
+            const index_t k = Nodes->globalDegreesOfFreedom[i];
+            if (firstVertex <= k && k < lastVertex) {
+                Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
             }
         }
 
-        if (p < mpiSize - 1) { /* the final send can be skipped */
+        if (p < mpiSize - 1) { // the final send can be skipped
 #ifdef ESYS_MPI
-            MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
-                                 dest, in->MPIInfo->counter(),
-                                 source, in->MPIInfo->counter(), in->MPIInfo->comm, &status);
-            in->MPIInfo->incCounter();
+            MPI_Status status;
+            MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
+                                 dest, MPIInfo->counter(), source,
+                                 MPIInfo->counter(), MPIInfo->comm, &status);
+            MPIInfo->incCounter();
 #endif
-            current_rank = in->MPIInfo->mod_rank(current_rank - 1);
+            current_rank = MPIInfo->mod_rank(current_rank - 1);
         }
     }
-    delete[] newGlobalDOFID;
 #if 0
-    for (i = 0; i < in->Nodes->numNodes; ++i)
-        printf("%d ", in->Nodes->globalDegreesOfFreedom[i]);
+    for (index_t i = 0; i < Nodes->getNumNodes(); ++i)
+        printf("%d ", Nodes->globalDegreesOfFreedom[i]);
     printf("\n");
 #endif
 }

@@ -14,12 +14,6 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  assemblage routines: copies node coordinates into an expanded Data Object.
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "Util.h"
 
@@ -27,20 +21,20 @@
 
 namespace dudley {
 
-void Assemble_NodeCoordinates(Dudley_NodeFile* nodes, escript::Data* x)
+void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
 {
     if (nodes == NULL)
         return;
 
     const escript::DataTypes::ShapeType expectedShape(1, nodes->numDim);
 
-    if (!x->numSamplesEqual(1, nodes->numNodes)) {
+    if (!x.numSamplesEqual(1, nodes->getNumNodes())) {
         throw DudleyException("Assemble_NodeCoordinates: illegal number of samples of Data object");
-    } else if (x->getFunctionSpace().getTypeCode() != DUDLEY_NODES) {
+    } else if (x.getFunctionSpace().getTypeCode() != DUDLEY_NODES) {
         throw DudleyException("Assemble_NodeCoordinates: Data object is not defined on nodes.");
-    } else if (!x->actsExpanded()) {
+    } else if (!x.actsExpanded()) {
         throw DudleyException("Assemble_NodeCoordinates: expanded Data object expected");
-    } else if (x->getDataPointShape() != expectedShape) {
+    } else if (x.getDataPointShape() != expectedShape) {
         std::stringstream ss;
         ss << "Assemble_NodeCoordinates: Data object of shape ("
             << nodes->numDim << ",) expected.";
@@ -48,10 +42,10 @@ void Assemble_NodeCoordinates(Dudley_NodeFile* nodes, escript::Data* x)
         throw DudleyException(errorMsg);
     } else {
         const size_t dim_size = nodes->numDim * sizeof(double);
-        x->requireWrite();
+        x.requireWrite();
 #pragma omp parallel for
-        for (dim_t n = 0; n < nodes->numNodes; n++)
-            memcpy(x->getSampleDataRW(n),
+        for (dim_t n = 0; n < nodes->getNumNodes(); n++)
+            memcpy(x.getSampleDataRW(n),
                     &nodes->Coordinates[INDEX2(0, n, nodes->numDim)], dim_size);
     }
 }

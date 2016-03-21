@@ -14,69 +14,52 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assemblage routines: interpolates nodal data in a data array onto elements
-  (=integration points)
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_interpolate(Dudley_NodeFile* nodes,
-                          Dudley_ElementFile* elements,
-                          const escript::Data* data,
-                          escript::Data* interpolated_data)
+void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
+                          const escript::Data& data,
+                          escript::Data& interpolated_data)
 {
     if (!nodes || !elements)
         return;
 
-    const int data_type = data->getFunctionSpace().getTypeCode();
-    const bool reduced_integration = Assemble_reducedIntegrationOrder(interpolated_data);
+    const int data_type = data.getFunctionSpace().getTypeCode();
+    const bool reduced_integration = hasReducedIntegrationOrder(interpolated_data);
 
     dim_t numNodes = 0;
-    index_t *map = NULL;
+    const index_t* map = NULL;
 
     if (data_type == DUDLEY_NODES) {
-        numNodes = Dudley_NodeFile_getNumNodes(nodes);
-        map = Dudley_NodeFile_borrowTargetNodes(nodes);
-    } else if (data_type == DUDLEY_REDUCED_NODES) {
-        numNodes = Dudley_NodeFile_getNumReducedNodes(nodes);
-        map = Dudley_NodeFile_borrowTargetReducedNodes(nodes);
+        numNodes = nodes->getNumNodes();
+        map = nodes->borrowTargetNodes();
     } else if (data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
             throw DudleyException("Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
         }
-        numNodes = Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
-        map = Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
-    } else if (data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
-        if (elements->MPIInfo->size > 1) {
-            throw DudleyException("Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
-        }
-        numNodes = Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
-        map = Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
+        numNodes = nodes->getNumDegreesOfFreedom();
+        map = nodes->borrowTargetDegreesOfFreedom();
     } else {
         throw DudleyException("Assemble_interpolate: Cannot interpolate data");
     }
 
-    const dim_t numComps = data->getDataPointSize();
+    const dim_t numComps = data.getDataPointSize();
     const int NN = elements->numNodes;
-    const int numQuad = reduced_integration ? 1 : (elements->numDim + 1);
+    const int numQuad = reduced_integration ? 1 : elements->numNodes;
     const int NS_DOF = elements->numDim + 1;
     const double *shapeFns = NULL;
 
     // check the dimensions of interpolated_data and data
-    if (!interpolated_data->numSamplesEqual(numQuad, elements->numElements)) {
+    if (!interpolated_data.numSamplesEqual(numQuad, elements->numElements)) {
         throw DudleyException("Assemble_interpolate: illegal number of samples of output Data object");
-    } else if (!data->numSamplesEqual(1, numNodes)) {
+    } else if (!data.numSamplesEqual(1, numNodes)) {
         throw DudleyException("Assemble_interpolate: illegal number of samples of input Data object");
-    } else if (numComps != interpolated_data->getDataPointSize()) {
+    } else if (numComps != interpolated_data.getDataPointSize()) {
         throw DudleyException("Assemble_interpolate: number of components of input and interpolated Data do not match.");
-    } else if (!interpolated_data->actsExpanded()) {
+    } else if (!interpolated_data.actsExpanded()) {
         throw DudleyException("Assemble_interpolate: expanded Data object is expected for output data.");
     }
 
@@ -84,23 +67,23 @@ void Assemble_interpolate(Dudley_NodeFile* nodes,
         throw DudleyException("Assemble_interpolate: unable to locate shape function.");
     }
 
-    interpolated_data->requireWrite();
+    interpolated_data.requireWrite();
 #pragma omp parallel
     {
         std::vector<double> local_data(NS_DOF * numComps);
         const size_t numComps_size = numComps *sizeof(double);
-        /* open the element loop */
+        // open the element loop
 #pragma omp for
         for (index_t e = 0; e < elements->numElements; e++) {
             for (int q = 0; q < NS_DOF; q++) {
                 const index_t i = elements->Nodes[INDEX2(q, e, NN)];
-                const double* data_array = data->getSampleDataRO(map[i]);
+                const double* data_array = data.getSampleDataRO(map[i]);
                 memcpy(&local_data[INDEX3(0, q, 0, numComps, NS_DOF)],
                        data_array, numComps_size);
             }
             // calculate interpolated_data=local_data*S
-            Dudley_Util_SmallMatSetMult1(1, numComps, numQuad,
-                            interpolated_data->getSampleDataRW(e), NS_DOF,
+            util::smallMatSetMult1(1, numComps, numQuad,
+                            interpolated_data.getSampleDataRW(e), NS_DOF,
                             &local_data[0], shapeFns);
         } // end of element loop
     } // end of parallel region

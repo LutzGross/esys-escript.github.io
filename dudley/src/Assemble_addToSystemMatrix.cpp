@@ -14,20 +14,6 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Dudley: SystemMatrix and SystemVector
-
-  adds the matrix array[Equa,Sol,NN,NN] onto the matrix in.
-  the rows/columns are given by
-  i_Equa+Equa*Nodes_Equa[Nodes[j_Equa]] (i_Equa=0:Equa; j_Equa=0:NN_Equa).
-  the routine has to be called from a parallel region
-
-  This routine assumes that in->Equa=in->Sol=1, i.e.
-  array is fully packed.
-
-*****************************************************************************/
-
 #include "Assemble.h"
 
 #include <paso/SystemMatrix.h>

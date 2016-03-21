@@ -14,22 +14,13 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assembles the mass matrix in lumped form.
-
-  The coefficient D has to be defined on the integration points or not present.
-  lumpedMat has to be initialized before the routine is called.
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
+void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
                            bool useHRZ)
 {
@@ -52,7 +43,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     }
 
     // initialize parameters
-    Assemble_Parameters p;
+    AssembleParameters p;
     Assemble_getAssembleParameters(nodes, elements, escript::ASM_ptr(),
                                       lumpedMat, reducedIntegrationOrder, &p);
 
@@ -95,7 +86,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                 for (index_t e=0; e<elements->numElements; e++) {
                     if (elements->Color[e]==color) {
                         const double* D_p = D.getSampleDataRO(e);
-                        Dudley_Util_AddScatter(1,
+                        util::addScatter(1,
                                       &p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]],
                                       p.numEqu, D_p, lumpedMat_p, 
                                       p.row_DOF_UpperBound);
@@ -153,7 +144,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
                                     row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
                                        p.row_DOF_UpperBound);
                             } // end color check
@@ -195,7 +186,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
                                     row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
                                        p.row_DOF_UpperBound);
                             } // end color check
@@ -250,7 +241,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
                                     row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
                                        p.row_DOF_UpperBound);
                             } // end color check
@@ -296,7 +287,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
                                     row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
                                        p.row_DOF_UpperBound);
                             } // end color check

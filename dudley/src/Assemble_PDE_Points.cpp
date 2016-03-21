@@ -39,8 +39,8 @@
 
 namespace dudley {
 
-void Assemble_PDE_Points(const Assemble_Parameters& p,
-                         const Dudley_ElementFile* elements,
+void Assemble_PDE_Points(const AssembleParameters& p,
+                         const ElementFile* elements,
                          escript::ASM_ptr mat, escript::Data& F,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac)
@@ -61,8 +61,8 @@ void Assemble_PDE_Points(const Assemble_Parameters& p,
                     const index_t row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
                         const double* y_dirac_p=y_dirac.getSampleDataRO(e);
-                        Dudley_Util_AddScatter(1, &row_index, p.numEqu,
-                                        y_dirac_p, F_p, p.row_DOF_UpperBound);
+                        util::addScatter(1, &row_index, p.numEqu,
+                                         y_dirac_p, F_p, p.row_DOF_UpperBound);
                     }
                    
                     if (!d_dirac.isEmpty()) {

@@ -140,7 +140,7 @@ class Test_CSVOnDudley(Test_saveCSV):
         NE0=NE
         NE1=NE+1
         self.domain=Rectangle(NE0,NE1)
-        self.functionspaces=[ContinuousFunction, ReducedContinuousFunction]
+        self.functionspaces=[ ContinuousFunction ]
         # number of total data points for each function space
         self.linecounts=[ (NE0+1)*(NE1+1)+1, (NE0+1)*(NE1+1)+1 ]
         # number of masked points, i.e. where X[0] is non-zero
