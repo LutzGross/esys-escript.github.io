@@ -1832,7 +1832,7 @@ int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
 #ifdef USE_TRILINOS
         return (int)SMT_TRILINOS;
 #else
-        throw FinleyAdapterException("Trilinos requested but not built with Trilinos.");       
+        throw FinleyException("Trilinos requested but not built with Trilinos.");       
 #endif
     }
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(

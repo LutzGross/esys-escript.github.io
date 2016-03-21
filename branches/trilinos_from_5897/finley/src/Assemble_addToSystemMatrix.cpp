@@ -46,10 +46,12 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix* in, int NN_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array);
 
+#if USE_TRILINOS
 void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* in,
                         int NN_Equa, const index_t* Nodes_Equa, int num_Equa,
                         int NN_Sol, const index_t* Nodes_Sol, int num_Sol,
                         const double* array);
+#endif
 
 void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix* in, int NN_Equa,
                                     const index_t* Nodes_Equa, int num_Equa,
