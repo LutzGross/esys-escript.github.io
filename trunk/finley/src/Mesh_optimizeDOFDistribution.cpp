@@ -22,7 +22,7 @@
   are relabeled accordingly but the mesh is not redistributed yet.
 
 *****************************************************************************/
-
+#include <iostream>
 #include "Mesh.h"
 #include "IndexList.h"
 
