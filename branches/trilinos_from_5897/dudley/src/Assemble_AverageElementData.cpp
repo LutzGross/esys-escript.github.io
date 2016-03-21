@@ -14,59 +14,54 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assemblage routines: averages data
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_AverageElementData(Dudley_ElementFile* elements, escript::Data* out, const escript::Data* in)
+void Assemble_AverageElementData(const ElementFile* elements,
+                                 escript::Data& out, const escript::Data& in)
 {
     if (!elements)
         return;
 
     double wq;
     int numQuad_in, numQuad_out;
-    if (Assemble_reducedIntegrationOrder(in)) {
+    if (hasReducedIntegrationOrder(in)) {
         numQuad_in = QuadNums[elements->numDim][0];
         wq = QuadWeight[elements->numDim][0];
     } else {
         numQuad_in = QuadNums[elements->numDim][1];
         wq = QuadWeight[elements->numDim][1];
     }
-    if (Assemble_reducedIntegrationOrder(out)) {
+    if (hasReducedIntegrationOrder(out)) {
         numQuad_out = QuadNums[elements->numDim][0];
     } else {
         numQuad_out = QuadNums[elements->numDim][1];
     }
 
-    const int numComps = out->getDataPointSize();
-    const dim_t numElements = elements->numElements;
-
     // check out and in
-    if (numComps != in->getDataPointSize()) {
+    const dim_t numElements = elements->numElements;
+    const int numComps = out.getDataPointSize();
+
+    if (numComps != in.getDataPointSize()) {
         throw DudleyException("Assemble_AverageElementData: number of components of input and output Data do not match.");
-    } else if (!in->numSamplesEqual(numQuad_in, numElements)) {
+    } else if (!in.numSamplesEqual(numQuad_in, numElements)) {
         throw DudleyException("Assemble_AverageElementData: illegal number of samples of input Data object");
-    } else if (!out->numSamplesEqual(numQuad_out, numElements)) {
+    } else if (!out.numSamplesEqual(numQuad_out, numElements)) {
         throw DudleyException("Assemble_AverageElementData: illegal number of samples of output Data object");
-    } else if (!out->actsExpanded()) {
+    } else if (!out.actsExpanded()) {
         throw DudleyException("Assemble_AverageElementData: expanded Data object is expected for output data.");
     } else {
-        out->requireWrite();
-        if (in->actsExpanded()) {
+        out.requireWrite();
+        if (in.actsExpanded()) {
             const double vol = wq * numQuad_in;
             const double volinv = 1. / vol;
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in->getSampleDataRO(n);
-                double* out_array = out->getSampleDataRW(n);
+                const double* in_array = in.getSampleDataRO(n);
+                double* out_array = out.getSampleDataRW(n);
                 for (int i = 0; i < numComps; ++i) {
                     double rtmp = 0.;
                     for (int q = 0; q < numQuad_in; ++q)
@@ -80,8 +75,8 @@ void Assemble_AverageElementData(Dudley_ElementFile* elements, escript::Data* ou
             const size_t numComps_size = numComps * sizeof(double);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in->getSampleDataRO(n);
-                double* out_array = out->getSampleDataRW(n);
+                const double* in_array = in.getSampleDataRO(n);
+                double* out_array = out.getSampleDataRW(n);
                 for (int q = 0; q < numQuad_out; q++)
                     memcpy(out_array + q * numComps, in_array, numComps_size);
             }

@@ -14,13 +14,6 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Dudley: Mesh
-
-*****************************************************************************/
-
 #ifdef USE_TRILINOS
 
 #include "Mesh.h"
@@ -34,7 +27,7 @@ namespace dudley {
 
 typedef std::vector<index_t> IndexVector;
 
-esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(Dudley_Mesh* mesh)
+esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
 {
     throw DudleyException("createTrilinosGraph: Not implemented");
 }

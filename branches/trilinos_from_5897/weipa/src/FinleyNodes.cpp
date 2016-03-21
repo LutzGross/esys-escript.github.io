@@ -130,11 +130,11 @@ FinleyNodes::~FinleyNodes()
 //
 //
 //
-bool FinleyNodes::initFromDudley(const dudley::Dudley_NodeFile* dudleyFile)
+bool FinleyNodes::initFromDudley(const dudley::NodeFile* dudleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numDims = dudleyFile->numDim;
-    numNodes = dudleyFile->numNodes;
+    numNodes = dudleyFile->getNumNodes();
 
     int mpisize = dudleyFile->MPIInfo->size;
     int* iPtr = dudleyFile->nodesDistribution->first_component;
@@ -174,16 +174,12 @@ bool FinleyNodes::initFromDudley(const dudley::Dudley_NodeFile* dudleyFile)
         iPtr = dudleyFile->globalDegreesOfFreedom;
         nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGDOF.begin());
+        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
 
         iPtr = dudleyFile->globalNodesIndex;
         nodeGNI.insert(nodeGNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGNI.begin());
-
-        iPtr = dudleyFile->globalReducedDOFIndex;
-        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
-
-        iPtr = dudleyFile->globalReducedNodesIndex;
         nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
 

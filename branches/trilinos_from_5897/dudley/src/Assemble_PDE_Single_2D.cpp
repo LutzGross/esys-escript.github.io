@@ -39,7 +39,7 @@
 
 namespace dudley {
 
-void Assemble_PDE_Single_2D(const Assemble_Parameters& p, const Dudley_ElementFile* elements,
+void Assemble_PDE_Single_2D(const AssembleParameters& p, const ElementFile* elements,
                             escript::ASM_ptr mat, escript::Data& F,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
@@ -291,7 +291,7 @@ void Assemble_PDE_Single_2D(const Assemble_Parameters& p, const Dudley_ElementFi
                     for (int q = 0; q < p.numShapes; q++)
                         row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
                     if (add_EM_F)
-                        Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                        util::addScatter(p.numShapes, &row_index[0],
                                 p.numEqu, &EM_F[0], F_p, p.row_DOF_UpperBound);
                     if (add_EM_S)
                         Assemble_addToSystemMatrix(mat, p.numShapes,

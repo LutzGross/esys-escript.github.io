@@ -34,13 +34,8 @@ from esys.dudley import Rectangle, Brick
 
 from math import pi
 import numpy, os, sys, tempfile
-#======================================================================
-try:
-     DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
-except KeyError:
-     DUDLEY_WORKDIR='.'
 
-#======================================================================
+
 class Darcy(unittest.TestCase): #subclassing required
     # this is a simple test for the darcy flux problem
     #

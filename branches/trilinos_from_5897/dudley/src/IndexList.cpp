@@ -21,37 +21,35 @@
 /****************************************************************************/
 
 #include "IndexList.h"
+#include "ElementFile.h"
 
 namespace dudley {
 
 /* Translate from distributed/local array indices to global indices */
 
-/* inserts the contributions from the element matrices of elements
-   into the row index col. If symmetric is set, only the upper
-   triangle of the matrix is stored. */
-void Dudley_IndexList_insertElements(IndexList* index_list,
-                                     Dudley_ElementFile * elements,
-                                     bool reduce_row_order, index_t* row_map,
-                                     bool reduce_col_order, index_t* col_map)
+/// inserts the contributions from the element matrices of elements
+/// into the row index col.
+void IndexList_insertElements(IndexList* index_list,
+                              const ElementFile* elements, const index_t* map)
 {
-    /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
-    index_t color;
-    dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN;
-    if (elements != NULL) {
-        NN = elements->numNodes;
-        NN_col = (elements->numShapes);
-        NN_row = (elements->numShapes);
+    // index_list is an array of linked lists. Each entry is a row (DOF) and
+    // contains the indices to the non-zero columns
+    if (!elements)
+        return;
 
-        for (color = elements->minColor; color <= elements->maxColor; color++) {
-#pragma omp for private(e,irow,kr,kc,icol) schedule(static)
-            for (e = 0; e < elements->numElements; e++) {
-                if (elements->Color[e] == color) {
-                    for (kr = 0; kr < NN_row; kr++) {
-                        irow = row_map[elements->Nodes[INDEX2(kr, e, NN)]];
-                        for (kc = 0; kc < NN_col; kc++) {
-                            icol = col_map[elements->Nodes[INDEX2(kc, e, NN)]];
-                            index_list[irow].insertIndex(icol);
-                        }
+    const int NN = elements->numNodes;
+    // number of element nodes for both column and row
+    const int NN_rowcol = elements->numShapes;
+
+    for (index_t color = elements->minColor; color <= elements->maxColor; color++) {
+#pragma omp for
+        for (index_t e = 0; e < elements->numElements; e++) {
+            if (elements->Color[e] == color) {
+                for (int kr = 0; kr < NN_rowcol; kr++) {
+                    const index_t irow = map[elements->Nodes[INDEX2(kr, e, NN)]];
+                    for (int kc = 0; kc < NN_rowcol; kc++) {
+                        const index_t icol = map[elements->Nodes[INDEX2(kc, e, NN)]];
+                        index_list[irow].insertIndex(icol);
                     }
                 }
             }
@@ -59,55 +57,26 @@ void Dudley_IndexList_insertElements(IndexList* index_list,
     }
 }
 
-void Dudley_IndexList_insertElementsWithRowRange(IndexList* index_list,
-        index_t firstRow, index_t lastRow, Dudley_ElementFile* elements,
-        index_t* row_map, index_t* col_map)
+void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* indexList,
+                              index_t firstRow, index_t lastRow,
+                              const ElementFile* elements, const index_t* map)
 {
-    index_t color;
-    dim_t e, kr, kc, icol, irow, NN;
-    if (elements != NULL) {
-        NN = elements->numNodes;
-        for (color = elements->minColor; color <= elements->maxColor; color++) {
-#pragma omp for private(e,irow,kr,kc,icol) schedule(static)
-            for (e = 0; e < elements->numElements; e++) {
-                if (elements->Color[e] == color) {
-                    for (kr = 0; kr < NN; kr++) {
-                        irow = row_map[elements->Nodes[INDEX2(kr, e, NN)]];
-                        if ((firstRow <= irow) && (irow < lastRow)) {
-                            irow -= firstRow;
-                            for (kc = 0; kc < NN; kc++) {
-                                icol = col_map[elements->Nodes[INDEX2(kc, e, NN)]];
-                                index_list[irow].insertIndex(icol);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+    if (!elements)
+        return;
 
-void Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(
-        IndexList* index_list, index_t firstRow, index_t lastRow,
-        Dudley_ElementFile* elements, index_t* row_map, index_t* col_map)
-{
-    index_t color;
-    dim_t e, kr, kc, icol, irow, NN, irow_loc;
-    if (elements != NULL) {
-        NN = elements->numNodes;
-        for (color = elements->minColor; color <= elements->maxColor; color++) {
-#pragma omp for private(e,irow,kr,kc,icol,irow_loc) schedule(static)
-            for (e = 0; e < elements->numElements; e++) {
-                if (elements->Color[e] == color) {
-                    for (kr = 0; kr < NN; kr++) {
-                        irow = row_map[elements->Nodes[INDEX2(kr, e, NN)]];
-                        if ((firstRow <= irow) && (irow < lastRow)) {
-                            irow_loc = irow - firstRow;
-                            for (kc = 0; kc < NN; kc++) {
-                                icol = col_map[elements->Nodes[INDEX2(kc, e, NN)]];
-                                if (icol != irow)
-                                    index_list[irow_loc].insertIndex(icol);
-                            }
+    const int NN = elements->numNodes;
+    for (index_t color = elements->minColor; color <= elements->maxColor; color++) {
+#pragma omp for
+        for (index_t e = 0; e < elements->numElements; e++) {
+            if (elements->Color[e] == color) {
+                for (int kr = 0; kr < NN; kr++) {
+                    const index_t irow = map[elements->Nodes[INDEX2(kr, e, NN)]];
+                    if (firstRow <= irow && irow < lastRow) {
+                        const index_t irow_loc = irow - firstRow;
+                        for (int kc = 0; kc < NN; kc++) {
+                            const index_t icol = map[elements->Nodes[INDEX2(kc, e, NN)]];
+                            if (icol != irow)
+                                indexList[irow_loc].insertIndex(icol);
                         }
                     }
                 }

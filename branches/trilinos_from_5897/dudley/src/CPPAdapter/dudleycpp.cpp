@@ -141,7 +141,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 );
 
   class_<dudley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
-      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <dudley::Dudley_Mesh*> >())
+      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <dudley::Mesh*> >())
       .def(init<const dudley::MeshAdapter&>())
       .def("write",&dudley::MeshAdapter::write,args("filename"),
 "Write the current mesh to a file with the given name.")

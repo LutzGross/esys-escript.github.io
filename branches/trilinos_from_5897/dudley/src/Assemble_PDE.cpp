@@ -77,7 +77,7 @@ inline void setShapeError(const char* c, int num, const int* dims)
     throw DudleyException(errorMsg);
 }
 
-void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elements,
+void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   escript::ASM_ptr S, escript::Data& F,
                   const escript::Data& A, const escript::Data& B,
                   const escript::Data& C, const escript::Data& D,
@@ -103,7 +103,7 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
     if (!X.isEmpty()) funcspace=X.getFunctionSpace().getTypeCode();
     if (!Y.isEmpty()) funcspace=Y.getFunctionSpace().getTypeCode();
     if (funcspace == -1)
-        return; // all  data are empty
+        return; // all data are empty
 
     // check if all function spaces are the same
     if (!A.isEmpty() && A.getFunctionSpace().getTypeCode()!=funcspace) {
@@ -136,7 +136,7 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
     }
 
     // get assemblage parameters
-    Assemble_Parameters p;
+    AssembleParameters p;
     Assemble_getAssembleParameters(nodes, elements, S, F, reducedIntegrationOrder, &p);
 
     // check if sample numbers are the same

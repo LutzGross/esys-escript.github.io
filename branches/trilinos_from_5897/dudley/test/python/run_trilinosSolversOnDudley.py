@@ -49,7 +49,7 @@ class SimpleSolveSingleOnly(SimpleSolveTestCase):
 
 class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -59,7 +59,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly)
 
 class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -71,7 +71,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly
 
 class Test_SimpleSolveDudleyRect_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -81,7 +81,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -93,7 +93,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_TFQMR_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.JACOBI
@@ -103,7 +103,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_TFQMR_Jacobi(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.JACOBI
@@ -115,7 +115,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_Jacobi(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -125,7 +125,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -137,7 +137,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
@@ -147,7 +147,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveSingle
 
 class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
@@ -159,7 +159,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveSingl
 
 class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -169,7 +169,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -181,7 +181,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_TFQMR_GaussSeidel(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
@@ -191,7 +191,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_TFQMR_GaussSeidel(SimpleSolveSingleOnl
 
 class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_GaussSeidel(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
@@ -203,7 +203,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_GaussSeidel(SimpleSolveSingleOn
 
 class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.AMG
@@ -213,7 +213,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.AMG
@@ -225,7 +225,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.RILU
@@ -235,7 +235,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.RILU
@@ -247,7 +247,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_PCG_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.RILU
@@ -257,7 +257,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_PCG_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.RILU
@@ -279,7 +279,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -291,7 +291,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_MINRES_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.RILU
@@ -301,7 +301,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_MINRES_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_RILU(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.RILU
@@ -313,7 +313,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_RILU(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyRect_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -323,7 +323,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
 
 class Test_SimpleSolveDudleyBrick_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT

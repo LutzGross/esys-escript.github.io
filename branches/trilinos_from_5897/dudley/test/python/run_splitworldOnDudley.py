@@ -26,11 +26,9 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.dudley import Rectangle, Brick, ReadMesh, ReadGmsh
+from esys.dudley import Rectangle, Brick
 from test_splitworld import Test_SplitWorld, sw_testing
 
-
-mpisize=getMPISizeWorld()
 NE=4 # number elements, must be even
 
 class Test_SplitOnDudley(Test_SplitWorld):

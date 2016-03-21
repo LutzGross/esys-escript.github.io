@@ -17,121 +17,94 @@
 
 namespace dudley {
 
-/*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
-/*   the most appropriate order is selected independently. */
-
-Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, escript::JMPI& mpi_info)
+/// constructor
+Mesh::Mesh(const std::string name, int numDim, escript::JMPI mpi_info) :
+    m_name(name),
+    // order of shapeFunctions is always 1 in Dudley
+    approximationOrder(1),
+    integrationOrder(2),
+    reducedIntegrationOrder(0),
+    Elements(NULL),
+    FaceElements(NULL),
+    Points(NULL),
+    MPIInfo(mpi_info)
 {
-    Dudley_Mesh *out;
-
-    /*  allocate the return value */
-
-    out = new Dudley_Mesh;
-    out->Name = NULL;
-    out->Nodes = NULL;
-    out->Elements = NULL;
-    out->FaceElements = NULL;
-    out->Points = NULL;
-    out->TagMap = NULL;
-    out->reference_counter = 0;
-    out->MPIInfo = mpi_info;
-
-    /*   copy name: */
-    out->Name = new char[strlen(name) + 1];
-    strcpy(out->Name, name);
-
-    /*   allocate node table: */
-    out->Nodes = Dudley_NodeFile_alloc(numDim, mpi_info);
-    out->approximationOrder = -1;
-    out->reducedApproximationOrder = -1;
-    out->integrationOrder = -1;
-    out->reducedIntegrationOrder = -1;
-
-    out->Elements = NULL;
-    out->FaceElements = NULL;
-    out->Points = NULL;
-    out->reference_counter++;
-    return out;
+    // allocate node table
+    Nodes = new NodeFile(numDim, mpi_info);
 }
 
-/* returns a reference to Dudley_Mesh in */
-
-Dudley_Mesh *Dudley_Mesh_reference(Dudley_Mesh * in)
+/// destructor
+Mesh::~Mesh()
 {
-    if (in != NULL)
-        ++(in->reference_counter);
-    return in;
+    delete Nodes;
+    delete FaceElements;
+    delete Elements;
+    delete Points;
 }
 
-/*   frees a mesh: */
-
-void Dudley_Mesh_free(Dudley_Mesh * in)
+void Mesh::setElements(ElementFile* elements)
 {
-    if (in != NULL)
-    {
-        in->reference_counter--;
-        if (in->reference_counter < 1)
-        {
-            delete[] in->Name;
-            Dudley_NodeFile_free(in->Nodes);
-            Dudley_ElementFile_free(in->FaceElements);
-            Dudley_ElementFile_free(in->Elements);
-            Dudley_ElementFile_free(in->Points);
-            Dudley_TagMap_free(in->TagMap);
-            delete in;
-        }
+    delete Elements;
+    Elements = elements;
+}
+
+void Mesh::setFaceElements(ElementFile* elements)
+{
+    delete FaceElements;
+    FaceElements = elements;
+}
+
+void Mesh::setPoints(ElementFile* elements)
+{
+    delete Points;
+    Points = elements;
+}
+
+void Mesh::createMappings(const std::vector<index_t>& dofDist,
+                          const std::vector<index_t>& nodeDist)
+{
+    Nodes->createNodeMappings(dofDist, nodeDist);
+}
+
+void Mesh::markNodes(std::vector<short>& mask, index_t offset) const
+{
+    Elements->markNodes(mask, offset);
+    FaceElements->markNodes(mask, offset);
+    Points->markNodes(mask, offset);
+}
+
+void Mesh::relabelElementNodes(const index_t* newNode, index_t offset)
+{
+    Elements->relabelNodes(newNode, offset);
+    FaceElements->relabelNodes(newNode, offset);
+    Points->relabelNodes(newNode, offset);
+}
+
+void Mesh::setCoordinates(const escript::Data& newX)
+{
+    Nodes->setCoordinates(newX);
+}
+
+void Mesh::addTagMap(const std::string& name, int tag_key)
+{
+    tagMap[name] = tag_key;
+}
+
+int Mesh::getTag(const std::string& name) const
+{
+    TagMap::const_iterator it = tagMap.find(name);
+    if (it == tagMap.end()) {
+        std::stringstream ss;
+        ss << "getTag: unknown tag name " << name << ".";
+        const std::string errorMsg(ss.str());
+        throw escript::ValueError(errorMsg);
     }
+    return it->second;
 }
 
-/************************************************************************************/
-
-/*  returns the spatial dimension of the mesh: */
-
-dim_t Dudley_Mesh_getDim(Dudley_Mesh * in)
+bool Mesh::isValidTagName(const std::string& name) const
 {
-    return in->Nodes->numDim;
-}
-
-void Dudley_Mesh_setElements(Dudley_Mesh * self, Dudley_ElementFile * elements)
-{
-    Dudley_ElementFile_free(self->Elements);
-    self->Elements = elements;
-}
-
-void Dudley_Mesh_setFaceElements(Dudley_Mesh * self, Dudley_ElementFile * elements)
-{
-    Dudley_ElementFile_free(self->FaceElements);
-    self->FaceElements = elements;
-}
-
-void Dudley_Mesh_setPoints(Dudley_Mesh * self, Dudley_ElementFile * elements)
-{
-    Dudley_ElementFile_free(self->Points);
-    self->Points = elements;
-}
-
-int Dudley_Mesh_getStatus(Dudley_Mesh * in)
-{
-    if (in == NULL)
-    {
-        return -1;
-    }
-    else if (in->Nodes == NULL)
-    {
-        return -1;
-    }
-    else
-    {
-        return in->Nodes->status;
-    }
-}
-
-void Dudley_Mesh_setOrders(Dudley_Mesh * in)
-{
-    in->approximationOrder = 1; /* order of shapeFunctions is always 1 in Dudley */
-    in->reducedApproximationOrder = 1;
-    in->integrationOrder = 2;
-    in->reducedIntegrationOrder = 0;
+    return (tagMap.count(name) > 0);
 }
 
 } // namespace dudley

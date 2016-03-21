@@ -14,200 +14,204 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-/*                                                             */
-/*   Dudley: Mesh : NodeFile                                   */
-/*                                                             */
-/*   allocates and frees node files                            */
-/*                                                             */
-/****************************************************************************/
-
 #include "NodeFile.h"
 
 namespace dudley {
 
-/*   allocates a node file to hold nodes */
-/*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinates). */
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, escript::JMPI& MPIInfo)
+static std::pair<index_t,index_t> getGlobalRange(dim_t n, const index_t* id,
+                                                 escript::JMPI mpiInfo)
 {
-    Dudley_NodeFile *out;
+    std::pair<index_t,index_t> result(util::getMinMaxInt(1, n, id));
 
-    out = new Dudley_NodeFile;
-    out->numNodes = 0;
-    out->numDim = numDim;
-    out->numTagsInUse = 0;
-    out->Id = NULL;
-    out->globalDegreesOfFreedom = NULL;
-    out->Tag = NULL;
-    out->Coordinates = NULL;
-    out->status = DUDLEY_INITIAL_STATUS;
-
-    out->nodesMapping = NULL;
-    out->reducedNodesMapping = NULL;
-    out->degreesOfFreedomMapping = NULL;
-    out->reducedDegreesOfFreedomMapping = NULL;
-
-    out->globalReducedDOFIndex = NULL;
-    out->globalReducedNodesIndex = NULL;
-    out->globalNodesIndex = NULL;
-    out->reducedNodesId = NULL;
-    out->degreesOfFreedomId = NULL;
-    out->reducedDegreesOfFreedomId = NULL;
-    out->tagsInUse = NULL;
-
-    out->MPIInfo = MPIInfo;
-    return out;
+#ifdef ESYS_MPI
+    index_t global_id_range[2];
+    index_t id_range[2] = { -result.first, result.second };
+    MPI_Allreduce(id_range, global_id_range, 2, MPI_DIM_T, MPI_MAX,
+                  mpiInfo->comm);
+    result.first = -global_id_range[0];
+    result.second = global_id_range[1];
+#endif
+    if (result.second < result.first) {
+        result.first = -1;
+        result.second = 0;
+    }
+    return result;
 }
 
-/*  frees a node file: */
-
-void Dudley_NodeFile_free(Dudley_NodeFile * in)
+NodeFile::NodeFile(int nDim, escript::JMPI mpiInfo) :
+    numNodes(0),
+    MPIInfo(mpiInfo),
+    numDim(nDim),
+    Id(NULL),
+    Tag(NULL),
+    globalDegreesOfFreedom(NULL),
+    Coordinates(NULL),
+    globalNodesIndex(NULL),
+    degreesOfFreedomId(NULL),
+    status(DUDLEY_INITIAL_STATUS)
 {
-    if (in != NULL)
-    {
-        Dudley_NodeFile_freeTable(in);
-        delete in;
+}
+
+NodeFile::~NodeFile()
+{
+    freeTable();
+}
+
+void NodeFile::allocTable(dim_t NN)
+{
+    if (numNodes > 0)
+        freeTable();
+
+    Id = new index_t[NN];
+    Coordinates = new escript::DataTypes::real_t[NN*numDim];
+    Tag = new int[NN];
+    globalDegreesOfFreedom = new index_t[NN];
+    globalNodesIndex = new index_t[NN];
+    degreesOfFreedomId = new index_t[NN];
+    numNodes = NN;
+
+    // this initialization makes sure that data are located on the right
+    // processor
+#pragma omp parallel for
+    for (index_t n=0; n<numNodes; n++) {
+        Id[n] = -1;
+        for (int i=0; i<numDim; i++)
+            Coordinates[INDEX2(i,n,numDim)] = 0.;
+        Tag[n] = -1;
+        globalDegreesOfFreedom[n] = -1;
+        globalNodesIndex[n] = -1;
+        degreesOfFreedomId[n] = -1;
     }
 }
 
-index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile * in)
+void NodeFile::freeTable()
 {
-    if (in != NULL)
-        return in->reducedNodesDistribution->getFirstComponent();
-    return 0;
+    delete[] Id;
+    delete[] Coordinates;
+    delete[] globalDegreesOfFreedom;
+    delete[] globalNodesIndex;
+    delete[] Tag;
+    delete[] degreesOfFreedomId;
+    nodesMapping.clear();
+    degreesOfFreedomMapping.clear();
+    nodesDistribution.reset();
+    dofDistribution.reset();
+    degreesOfFreedomConnector.reset();
+    numNodes = 0;
 }
 
-index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile * in)
+void NodeFile::copyTable(index_t offset, index_t idOffset, index_t dofOffset,
+                         const NodeFile* in)
 {
-    if (in != NULL)
-        return in->reducedNodesDistribution->getLastComponent();
-    return 0;
+    // check number of dimensions and table size
+    if (numDim != in->numDim)
+        throw escript::ValueError("NodeFile::copyTable: dimensions of node files don't match");
+
+    if (numNodes < in->numNodes + offset)
+        throw escript::ValueError("NodeFile::copyTable: node table is too small.");
+
+#pragma omp parallel for
+    for (index_t n = 0; n < in->numNodes; n++) {
+        Id[offset + n] = in->Id[n] + idOffset;
+        Tag[offset + n] = in->Tag[n];
+        globalDegreesOfFreedom[offset + n] = in->globalDegreesOfFreedom[n] + dofOffset;
+        for (int i = 0; i < numDim; i++)
+            Coordinates[INDEX2(i, offset + n, numDim)] =
+                                    in->Coordinates[INDEX2(i, n, in->numDim)];
+    }
 }
 
-dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile * in)
+std::pair<index_t,index_t> NodeFile::getDOFRange() const
 {
-    if (in != NULL)
-        return in->reducedNodesDistribution->getGlobalNumComponents();
-    return 0;
+    std::pair<index_t,index_t> result(util::getMinMaxInt(
+                                        1, numNodes, globalDegreesOfFreedom));
+    if (result.second < result.first) {
+        result.first = -1;
+        result.second = 0;
+    }
+    return result;
 }
 
-index_t *Dudley_NodeFile_borrowGlobalReducedNodesIndex(Dudley_NodeFile * in)
+std::pair<index_t,index_t> NodeFile::getGlobalIdRange() const
 {
-    if (in != NULL)
-        return in->globalReducedNodesIndex;
-    return NULL;
+    return getGlobalRange(numNodes, Id, MPIInfo);
 }
 
-index_t Dudley_NodeFile_getFirstNode(Dudley_NodeFile * in)
+std::pair<index_t,index_t> NodeFile::getGlobalDOFRange() const
 {
-    if (in != NULL)
-        return in->nodesDistribution->getFirstComponent();
-    return 0;
+    return getGlobalRange(numNodes, globalDegreesOfFreedom, MPIInfo);
 }
 
-index_t Dudley_NodeFile_getLastNode(Dudley_NodeFile * in)
+std::pair<index_t,index_t> NodeFile::getGlobalNodeIDIndexRange() const
 {
-    if (in != NULL)
-        return in->nodesDistribution->getLastComponent();
-    return 0;
+    return getGlobalRange(numNodes, globalNodesIndex, MPIInfo);
 }
 
-dim_t Dudley_NodeFile_getGlobalNumNodes(Dudley_NodeFile * in)
+void NodeFile::setCoordinates(const escript::Data& newX)
 {
-    if (in != NULL)
-        return in->nodesDistribution->getGlobalNumComponents();
-    return 0;
+    if (newX.getDataPointSize() != numDim) {
+        std::stringstream ss;
+        ss << "NodeFile::setCoordinates: number of dimensions of new "
+            "coordinates has to be " << numDim;
+        throw escript::ValueError(ss.str());
+    } else if (newX.getNumDataPointsPerSample() != 1 ||
+            newX.getNumSamples() != numNodes) {
+        std::stringstream ss;
+        ss << "NodeFile::setCoordinates: number of given nodes must be "
+            << numNodes;
+        throw escript::ValueError(ss.str());
+    } else {
+        const size_t numDim_size = numDim * sizeof(double);
+        ++status;
+#pragma omp parallel for
+        for (index_t n = 0; n < numNodes; n++) {
+            memcpy(&Coordinates[INDEX2(0, n, numDim)],
+                    newX.getSampleDataRO(n), numDim_size);
+        }
+    }
 }
 
-index_t *Dudley_NodeFile_borrowGlobalNodesIndex(Dudley_NodeFile * in)
+void NodeFile::setTags(int newTag, const escript::Data& mask)
 {
-    if (in != NULL)
-        return in->globalNodesIndex;
-    return NULL;
+    if (1 != mask.getDataPointSize()) {
+        throw escript::ValueError("NodeFile::setTags: number of components of mask must be 1.");
+    } else if (mask.getNumDataPointsPerSample() != 1 ||
+            mask.getNumSamples() != numNodes) {
+        throw escript::ValueError("NodeFile::setTags: illegal number of samples of mask Data object");
+    }
+
+#pragma omp parallel for
+    for (index_t n = 0; n < numNodes; n++) {
+        if (mask.getSampleDataRO(n)[0] > 0)
+            Tag[n] = newTag;
+    }
+    updateTagList();
 }
 
-dim_t Dudley_NodeFile_getNumReducedNodes(Dudley_NodeFile * in)
+void NodeFile::assignMPIRankToDOFs(int* mpiRankOfDOF,
+                                   const std::vector<index_t>& distribution)
 {
-    if (in != NULL)
-        return in->reducedNodesMapping->numTargets;
-    return 0;
-}
+    int p_min = MPIInfo->size, p_max = -1;
+    // first we calculate the min and max DOF on this processor to reduce
+    // costs for searching
+    const std::pair<index_t,index_t> dofRange(getDOFRange());
 
-dim_t Dudley_NodeFile_getNumDegreesOfFreedom(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->degreesOfFreedomDistribution->getMyNumComponents();
-    return 0;
-}
-
-dim_t Dudley_NodeFile_getNumNodes(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->nodesMapping->numNodes;
-    return 0;
-}
-
-dim_t Dudley_NodeFile_getNumReducedDegreesOfFreedom(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->reducedDegreesOfFreedomDistribution->getMyNumComponents();
-    return 0;
-}
-
-index_t *Dudley_NodeFile_borrowTargetReducedNodes(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->reducedNodesMapping->target;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowTargetDegreesOfFreedom(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->degreesOfFreedomMapping->target;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowTargetNodes(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->nodesMapping->target;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(Dudley_NodeFile* in)
-{
-    if (in != NULL)
-        return in->reducedDegreesOfFreedomMapping->target;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowReducedNodesTarget(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->reducedNodesMapping->map;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowDegreesOfFreedomTarget(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->degreesOfFreedomMapping->map;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowNodesTarget(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->nodesMapping->map;
-    return NULL;
-}
-
-index_t *Dudley_NodeFile_borrowReducedDegreesOfFreedomTarget(Dudley_NodeFile * in)
-{
-    if (in != NULL)
-        return in->reducedDegreesOfFreedomMapping->map;
-    return NULL;
+    for (int p = 0; p < MPIInfo->size; ++p) {
+        if (distribution[p] <= dofRange.first)
+            p_min = p;
+        if (distribution[p] <= dofRange.second)
+            p_max = p;
+    }
+#pragma omp parallel for
+    for (index_t n = 0; n < numNodes; ++n) {
+        const index_t k = globalDegreesOfFreedom[n];
+        for (int p = p_min; p <= p_max; ++p) {
+            if (k < distribution[p + 1]) {
+                mpiRankOfDOF[n] = p;
+                break;
+            }
+        }
+    }
 }
 
 } // namespace dudley
