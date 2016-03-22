@@ -25,7 +25,7 @@
 #include "DataTypes.h"
 #include "EsysMPI.h"
 #include "FunctionSpace.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 #include <algorithm>
 #include <string>
 

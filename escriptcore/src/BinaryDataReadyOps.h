@@ -21,11 +21,11 @@
 #include "DataTypes.h"
 #include "DataConstant.h"
 #include "DataExpanded.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 #include "DataTagged.h"
 
 /**
-\file BinaryOp.h 
+\file BinaryDataReadyOps.h 
 \brief Describes binary operations performed on instances of DataAbstract.
 
 For operations on DataVector see DataMaths.h.

@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 
-#include "LocalOps.h"
+#include "ArrayOps.h"
 
 using namespace escript;
 

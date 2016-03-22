@@ -25,7 +25,7 @@
 #include "EscriptParams.h"
 #include "FunctionSpaceException.h"
 #include "FunctionSpaceFactory.h"
-#include "BinaryOp.h"
+#include "BinaryDataReadyOps.h"
 
 #ifdef IKNOWWHATIMDOING
 #include "Dodgy.h"

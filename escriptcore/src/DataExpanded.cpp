@@ -18,7 +18,7 @@
 #include "DataConstant.h"
 #include "DataException.h"
 #include "DataExpanded.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 #include "DataTagged.h"
 
 #include <limits>
