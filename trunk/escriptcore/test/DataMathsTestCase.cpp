@@ -98,8 +98,8 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMax fmax_func;
-//       CPPUNIT_ASSERT(std::abs(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
-      CPPUNIT_ASSERT(std::abs(reductionOp(data,shape,offset,fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
+//       CPPUNIT_ASSERT(std::abs(dataView.reductionOpVector(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
+      CPPUNIT_ASSERT(std::abs(reductionOpVector(data,shape,offset,fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
 
 
 
@@ -137,7 +137,7 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMin fmin_func;
-      CPPUNIT_ASSERT(std::abs(reductionOp(data,shape,offset,fmin_func,numeric_limits<double>::max())-offset)<=REL_TOL*std::abs(offset));
+      CPPUNIT_ASSERT(std::abs(reductionOpVector(data,shape,offset,fmin_func,numeric_limits<double>::max())-offset)<=REL_TOL*std::abs(offset));
 
       if (p<npoints-1) {
         offset+=noValues(shape);
@@ -179,7 +179,7 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       AbsMax<DataTypes::real_t> absmax_func;
-      CPPUNIT_ASSERT(reductionOp(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
+      CPPUNIT_ASSERT(reductionOpVector(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
 
       if (p<npoints-1) {
         offset+=noValues(shape);

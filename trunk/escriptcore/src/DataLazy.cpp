@@ -1191,7 +1191,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
           for (unsigned int z=0;z<ndpps;++z)
           {
             FMin op;
-            *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
+            *result=DataMaths::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
             loffset+=psize;
             result++;
           }
@@ -1202,7 +1202,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
           for (unsigned int z=0;z<ndpps;++z)
           {
           FMax op;
-          *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
+          *result=DataMaths::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
           loffset+=psize;
           result++;
           }
