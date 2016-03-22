@@ -42,8 +42,7 @@
 
 namespace dudley {
 
-void Assemble_PDE_System_3D(const AssembleParameters& p, const ElementFile* elements,
-                            escript::ASM_ptr mat, escript::Data& F,
+void Assemble_PDE_System_3D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y)
@@ -56,9 +55,9 @@ void Assemble_PDE_System_3D(const AssembleParameters& p, const ElementFile* elem
     bool expandedX = X.actsExpanded();
     bool expandedY = Y.actsExpanded();
     double* F_p = NULL;
-    if (!F.isEmpty()) {
-        F.requireWrite();
-        F_p = F.getSampleDataRW(0);
+    if (!p.F.isEmpty()) {
+        p.F.requireWrite();
+        F_p = p.F.getSampleDataRW(0);
     }
     const double* S = p.shapeFns;
     const size_t len_EM_S = p.numShapes * p.numShapes * p.numEqu * p.numComp;
@@ -70,13 +69,13 @@ void Assemble_PDE_System_3D(const AssembleParameters& p, const ElementFile* elem
         std::vector<double> EM_F(len_EM_F);
         std::vector<index_t> row_index(p.numShapes);
 
-        for (int color = elements->minColor; color <= elements->maxColor; color++) {
+        for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for (index_t e = 0; e < elements->numElements; e++) {
-                if (elements->Color[e] == color) {
-                    const double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-                    const double* DSDX = &p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)];
+            for (index_t e = 0; e < p.elements->numElements; e++) {
+                if (p.elements->Color[e] == color) {
+                    const double vol = p.jac->absD[e] * p.jac->quadweight;
+                    const double* DSDX = &p.jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)];
                     std::fill(EM_S.begin(), EM_S.end(), 0);
                     std::fill(EM_F.begin(), EM_F.end(), 0);
                     bool add_EM_F = false;
@@ -394,13 +393,13 @@ void Assemble_PDE_System_3D(const AssembleParameters& p, const ElementFile* elem
                     // add the element matrices onto the matrix and right
                     // hand side
                     for (int q = 0; q < p.numShapes; q++)
-                        row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+                        row_index[q] = p.DOF[p.elements->Nodes[INDEX2(q, e, p.NN)]];
 
                     if (add_EM_F)
-                        util::addScatter(p.numShapes, &row_index[0],
-                                p.numEqu, &EM_F[0], F_p, p.row_DOF_UpperBound);
+                        util::addScatter(p.numShapes, &row_index[0], p.numEqu,
+                                         &EM_F[0], F_p, p.DOF_UpperBound);
                     if (add_EM_S)
-                        Assemble_addToSystemMatrix(mat, p.numShapes,
+                        Assemble_addToSystemMatrix(p.S, p.numShapes,
                                 &row_index[0], p.numEqu, p.numShapes,
                                 &row_index[0], p.numComp, &EM_S[0]);
                 } // end color check

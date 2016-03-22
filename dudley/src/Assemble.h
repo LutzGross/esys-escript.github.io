@@ -26,37 +26,40 @@
 #include "Dudley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
-#include "escript/AbstractSystemMatrix.h"
+#include <escript/AbstractSystemMatrix.h>
 
 namespace dudley {
 
 struct AssembleParameters
 {
-    // number of quadrature nodes
+    AssembleParameters(const NodeFile* nodes, const ElementFile* ef,
+                       escript::ASM_ptr sm, escript::Data& rhs,
+                       bool reducedOrder);
+
+    /// element file these parameters apply to
+    const ElementFile* elements;
+    /// system matrix to be updated
+    escript::ASM_ptr S;
+    /// right-hand side to be updated
+    escript::Data& F;
+    /// number of quadrature nodes
     int numQuad;
-    // number of spatial dimensions
+    /// number of spatial dimensions
     int numDim;
-    // leading dimension of element node table
+    /// leading dimension of element node table
     int NN;
-    // number of elements
-    dim_t numElements;
-
+    /// number of equations (= matrix row block size)
     int numEqu;
-    const index_t* row_DOF;
-    dim_t row_DOF_UpperBound;
-    const ElementFile_Jacobians* row_jac;
-    int numShapes;
-
+    /// number of components (= matrix column block size)
     int numComp;
-    const index_t* col_DOF;
-    dim_t col_DOF_UpperBound;
-
+    /// row and column degrees of freedom
+    const index_t* DOF;
+    dim_t DOF_UpperBound;
+    /// reference to jacobians
+    const ElementFile_Jacobians* jac;
+    int numShapes;
     const double* shapeFns;
 };
-
-void Assemble_getAssembleParameters(const NodeFile*, const ElementFile*,
-                                    escript::ASM_ptr, const escript::Data&,
-                                    bool, AssembleParameters*);
 
 void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   escript::ASM_ptr S, escript::Data& F,
@@ -64,31 +67,26 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Points(const AssembleParameters& p, const ElementFile*,
-                         escript::ASM_ptr S, escript::Data& F,
+void Assemble_PDE_Points(const AssembleParameters& p,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac);
 
-void Assemble_PDE_Single_2D(const AssembleParameters& p, const ElementFile*,
-                            escript::ASM_ptr S, escript::Data& F,
+void Assemble_PDE_Single_2D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Single_3D(const AssembleParameters& p, const ElementFile*,
-                            escript::ASM_ptr S, escript::Data& F,
+void Assemble_PDE_Single_3D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_System_2D(const AssembleParameters& p, const ElementFile*,
-                            escript::ASM_ptr S, escript::Data& F,
+void Assemble_PDE_System_2D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_System_3D(const AssembleParameters& p, const ElementFile*,
-                            escript::ASM_ptr S, escript::Data& F,
+void Assemble_PDE_System_3D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);

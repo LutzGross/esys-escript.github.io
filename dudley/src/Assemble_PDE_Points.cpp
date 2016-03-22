@@ -40,34 +40,32 @@
 namespace dudley {
 
 void Assemble_PDE_Points(const AssembleParameters& p,
-                         const ElementFile* elements,
-                         escript::ASM_ptr mat, escript::Data& F,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac)
 {
     double* F_p = NULL;
-    if (!F.isEmpty()) {
-        F.requireWrite();
-        F_p = F.getSampleDataRW(0);
+    if (!p.F.isEmpty()) {
+        p.F.requireWrite();
+        F_p = p.F.getSampleDataRW(0);
     }
 
 #pragma omp parallel
     {
-        for (int color=elements->minColor;color<=elements->maxColor;color++) {
+        for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for(index_t e=0; e<elements->numElements; e++) {
-                if (elements->Color[e]==color) {
-                    const index_t row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
+            for(index_t e = 0; e < p.elements->numElements; e++) {
+                if (p.elements->Color[e] == color) {
+                    const index_t row_index = p.DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
-                        const double* y_dirac_p=y_dirac.getSampleDataRO(e);
+                        const double* y_dirac_p = y_dirac.getSampleDataRO(e);
                         util::addScatter(1, &row_index, p.numEqu,
-                                         y_dirac_p, F_p, p.row_DOF_UpperBound);
+                                         y_dirac_p, F_p, p.DOF_UpperBound);
                     }
                    
                     if (!d_dirac.isEmpty()) {
-                        const double* d_dirac_p=d_dirac.getSampleDataRO(e);
-                        Assemble_addToSystemMatrix(mat, 1, &row_index,
+                        const double* d_dirac_p = d_dirac.getSampleDataRO(e);
+                        Assemble_addToSystemMatrix(p.S, 1, &row_index,
                                p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
                     }
                 } // end color check

@@ -136,8 +136,7 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     }
 
     // get assemblage parameters
-    AssembleParameters p;
-    Assemble_getAssembleParameters(nodes, elements, S, F, reducedIntegrationOrder, &p);
+    AssembleParameters p(nodes, elements, S, F, reducedIntegrationOrder);
 
     // check if sample numbers are the same
     if (!A.numSamplesEqual(p.numQuad, elements->numElements)) {
@@ -194,24 +193,24 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
             throw DudleyException("Dudley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
         } else {
-            Assemble_PDE_Points(p, elements, S, F, D, Y);
+            Assemble_PDE_Points(p, D, Y);
         }
     } else {
         if (p.numEqu > 1) {
             // system of PDEs
             if (p.numDim == 3) {
-                Assemble_PDE_System_3D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim == 2) {
-                Assemble_PDE_System_2D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");
             }
         } else {
             // single PDE
             if (p.numDim == 3) {
-                Assemble_PDE_Single_3D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim == 2) {
-                Assemble_PDE_Single_2D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_Single_2D(p, A, B, C, D, X, Y);
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");
             }
