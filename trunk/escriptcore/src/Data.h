@@ -2109,7 +2109,7 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
 	#pragma omp for private(i,j) schedule(static)
 	for (i=0;i<numSamples;i++) {
 	  for (j=0;j<numDPPSample;j++) {
-	    local_current_value=operation(local_current_value,DataMaths::reductionOpVector(vec,shape,data.getPointOffset(i,j),operation,initial_value));
+	    local_current_value=operation(local_current_value,escript::reductionOpVector(vec,shape,data.getPointOffset(i,j),operation,initial_value));
 
 	  }
 	}
@@ -2133,14 +2133,14 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
       int tag=*i;
       if (tag==0)	// check for the default tag
       {
-	  current_value=operation(current_value,DataMaths::reductionOpVector(vec,shape,data.getDefaultOffset(),operation,initial_value));
+	  current_value=operation(current_value,escript::reductionOpVector(vec,shape,data.getDefaultOffset(),operation,initial_value));
       }
       else
       {
 	  DataTagged::DataMapType::const_iterator it=lookup.find(tag);
 	  if (it!=lookup.end())
 	  {
-		  current_value=operation(current_value,DataMaths::reductionOpVector(vec,shape,it->second,operation,initial_value));
+		  current_value=operation(current_value,escript::reductionOpVector(vec,shape,it->second,operation,initial_value));
 	  }
       }
     }
@@ -2148,7 +2148,7 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
-    return DataMaths::reductionOpVector(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
+    return escript::reductionOpVector(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
   } else if (isLazy()) {
@@ -2197,7 +2197,7 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
 	resultVec[resultE->getPointOffset(i,j)] =
-	  DataMaths::reductionOpVector(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
+	  escript::reductionOpVector(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
 
       }
     }    
@@ -2217,9 +2217,9 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     const DataTagged::DataMapType& lookup=dataT->getTagLookup();
     for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
       resultT->getDataByTagRW(i->first,0) =
-	  DataMaths::reductionOpVector(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
+	  escript::reductionOpVector(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
     }    
-    resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = DataMaths::reductionOpVector(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
+    resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = escript::reductionOpVector(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
     
     
     
@@ -2236,7 +2236,7 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     
     DataConstant& data=*dataC;
     resultC->getTypedVectorRW(initial_value)[0] =
-	DataMaths::reductionOpVector(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
+	escript::reductionOpVector(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
     
     //escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;

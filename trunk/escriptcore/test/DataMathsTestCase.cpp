@@ -27,7 +27,6 @@ using namespace CppUnit;
 using namespace escript;
 using namespace std;
 using namespace escript::DataTypes;
-using namespace escript::DataMaths;
 
 
 void DataMathsTestCase::testMatMult()
@@ -47,7 +46,7 @@ void DataMathsTestCase::testMatMult()
     DataTypes::RealVectorType rightData(DataTypes::noValues(rightShape),0);
 //     DataArrayView rightDataView(rightData,rightShape);
 
-    DataTypes::ShapeType resultShape=DataMaths::determineResultShape(leftShape,rightShape);
+    DataTypes::ShapeType resultShape=determineResultShape(leftShape,rightShape);
 
     CPPUNIT_ASSERT(resultShape.size()==2);
     CPPUNIT_ASSERT(resultShape[0]==1);
@@ -69,7 +68,7 @@ void DataMathsTestCase::testMatMult()
       }
     }
 
-    DataMaths::matMult(leftData,leftShape,0,rightData,rightShape,0,resultData, resultShape);
+    matMult(leftData,leftShape,0,rightData,rightShape,0,resultData, resultShape);
     CPPUNIT_ASSERT((resultData[0]==22) && (resultData[1]==28));
 
     cout << endl;

@@ -1191,7 +1191,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
           for (unsigned int z=0;z<ndpps;++z)
           {
             FMin op;
-            *result=DataMaths::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
+            *result=escript::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
             loffset+=psize;
             result++;
           }
@@ -1202,7 +1202,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
           for (unsigned int z=0;z<ndpps;++z)
           {
           FMax op;
-          *result=DataMaths::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
+          *result=escript::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
           loffset+=psize;
           result++;
           }
@@ -1240,7 +1240,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case SYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::symmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::symmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
@@ -1248,7 +1248,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case NSYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::nonsymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::nonsymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
@@ -1287,7 +1287,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     case TRACE:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::trace(*leftres,m_left->getShape(),subroffset, m_samples ,getShape(),offset,m_axis_offset);
+            escript::trace(*leftres,m_left->getShape(),subroffset, m_samples ,getShape(),offset,m_axis_offset);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1295,7 +1295,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     case TRANS:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::transpose(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset,m_axis_offset);
+            escript::transpose(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset,m_axis_offset);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1332,7 +1332,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
     case SWAP:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::swapaxes(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset, m_axis_offset, m_transpose);
+            escript::swapaxes(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset, m_axis_offset, m_transpose);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1520,7 +1520,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
   {
     case ADD:
         //PROC_OP(NO_ARG,plus<double>());
-      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
 			 &(*left)[0],
 			 &(*right)[0],
 			 chunksize,
@@ -1536,7 +1536,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 escript::ESFunction::PLUSF);	
         break;
     case SUB:
-      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
 			 &(*left)[0],
 			 &(*right)[0],
 			 chunksize,
@@ -1554,7 +1554,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
         break;
     case MUL:
         //PROC_OP(NO_ARG,multiplies<double>());
-      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
 			 &(*left)[0],
 			 &(*right)[0],
 			 chunksize,
@@ -1571,7 +1571,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
         break;
     case DIV:
         //PROC_OP(NO_ARG,divides<double>());
-      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
 			 &(*left)[0],
 			 &(*right)[0],
 			 chunksize,
@@ -1588,7 +1588,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
         break;
     case POW:
        //PROC_OP(double (double,double),::pow);
-      DataMaths::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
 			 &(*left)[0],
 			 &(*right)[0],
 			 chunksize,

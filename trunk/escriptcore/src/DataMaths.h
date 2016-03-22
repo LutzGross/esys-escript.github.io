@@ -35,8 +35,6 @@ For operations on double* see LocalOps.h.
 
 namespace escript
 {
-namespace DataMaths
-{
 
 /**
 \namespace escript::DataMaths
@@ -1336,7 +1334,6 @@ vectorHasNaN(const DataTypes::RealVectorType& in, DataTypes::RealVectorType::siz
 	return false;
 }
 
-}  // end namespace DataMath
 }  // end namespace escript
 
 #endif // __ESCRIPT_DATAMATHS_H__

@@ -889,9 +889,9 @@ DataTagged::symmetric(DataAbstract* ev)
       temp_ev->addTag(i->first);
       DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataMaths::symmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      escript::symmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
   }
-  DataMaths::symmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
+  escript::symmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
 }
 
 
@@ -911,9 +911,9 @@ DataTagged::nonsymmetric(DataAbstract* ev)
       temp_ev->addTag(i->first);
       DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataMaths::nonsymmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      escript::nonsymmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
   }
-  DataMaths::nonsymmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
+  escript::nonsymmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
 }
 
 
@@ -933,9 +933,9 @@ DataTagged::trace(DataAbstract* ev, int axis_offset)
       temp_ev->addTag(i->first);
       DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataMaths::trace(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
+      escript::trace(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
   }
-  DataMaths::trace(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
+  escript::trace(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
 }
 
 void
@@ -954,9 +954,9 @@ DataTagged::transpose(DataAbstract* ev, int axis_offset)
       temp_ev->addTag(i->first);
       DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataMaths::transpose(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
+      escript::transpose(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
   }
-  DataMaths::transpose(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
+  escript::transpose(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
 }
 
 void
@@ -975,9 +975,9 @@ DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
       temp_ev->addTag(i->first);
       DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataMaths::swapaxes(m_data_r,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
+      escript::swapaxes(m_data_r,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
   }
-  DataMaths::swapaxes(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis0,axis1);
+  escript::swapaxes(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis0,axis1);
 }
 
 void
@@ -998,9 +998,9 @@ DataTagged::eigenvalues(DataAbstract* ev)
 //       DataArrayView evView=temp_ev->getDataPointByTag(i->first);
       DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      DataMaths::eigenvalues(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      escript::eigenvalues(m_data_r,getShape(),offset,evVec, evShape, evoffset);
   }
-  DataMaths::eigenvalues(m_data_r,getShape(),getDefaultOffset(),evVec, evShape, temp_ev->getDefaultOffset());
+  escript::eigenvalues(m_data_r,getShape(),getDefaultOffset(),evVec, evShape, temp_ev->getDefaultOffset());
 }
 void
 DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
@@ -1030,10 +1030,10 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
       DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type Voffset=temp_V->getOffsetForTag(i->first);
 /*      DataArrayView::eigenvalues_and_eigenvectors(thisView,0,evView,0,VView,0,tol);*/
-      DataMaths::eigenvalues_and_eigenvectors(m_data_r,getShape(),offset,evVec, evShape, evoffset,VVec,VShape,Voffset,tol);
+      escript::eigenvalues_and_eigenvectors(m_data_r,getShape(),offset,evVec, evShape, evoffset,VVec,VShape,Voffset,tol);
 
   }
-  DataMaths::eigenvalues_and_eigenvectors(m_data_r,getShape(),getDefaultOffset(),evVec, evShape,
+  escript::eigenvalues_and_eigenvectors(m_data_r,getShape(),getDefaultOffset(),evVec, evShape,
                                           temp_ev->getDefaultOffset(),VVec,VShape,
                                           temp_V->getDefaultOffset(), tol);
 
@@ -1064,12 +1064,12 @@ DataTagged::matrixInverse(DataAbstract* out) const
       DataTypes::RealVectorType::size_type inoffset=getOffsetForTag(i->first);
       DataTypes::RealVectorType::size_type outoffset=temp->getOffsetForTag(i->first);
 
-      err=DataMaths::matrix_inverse(m_data_r, getShape(), inoffset, outVec, outShape, outoffset, 1, h);
+      err=escript::matrix_inverse(m_data_r, getShape(), inoffset, outVec, outShape, outoffset, 1, h);
       if (!err) break;
   }
   if (!err)
   {
-      DataMaths::matrix_inverse(m_data_r, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1, h);
+      escript::matrix_inverse(m_data_r, getShape(), getDefaultOffset(), outVec, outShape, temp->getDefaultOffset(), 1, h);
   }
   return err;
 }
