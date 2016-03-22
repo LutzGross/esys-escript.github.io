@@ -33,8 +33,6 @@ const int ERRINVERT=7;
 
 namespace escript
 {
-namespace DataMaths
-{
 
   void
   matMult(const DataTypes::RealVectorType& left, 
@@ -902,8 +900,5 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
   }  
 }
 
-
-
-}    // end namespace
 }    // end namespace
 

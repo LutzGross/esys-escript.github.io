@@ -38,21 +38,21 @@ inline void binaryOpDataReadyHelperCCC(DataConstant& res, const DataConstant& le
   
   if (right.getRank()==0) 
   {		
-    DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
+    escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
 			      left.getTypedVectorRO(dummyl), 0,
 			      &right.getTypedVectorRO(dummyr)[0], true,
 			      operation, true);
   }
   else if (left.getRank()==0)
   {
-    DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
+    escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
 			      &left.getTypedVectorRO(dummyl)[0], true,		// left is const so it only has one sample of one data point (and from the if we know that sample is rank0)
 			      right.getTypedVectorRO(dummyr), 0,
 			      operation, true);
   }
   else
   {
-    DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
+    escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
 			      left.getTypedVectorRO(dummyl), 0, false,
 			      right.getTypedVectorRO(dummyr), 0, false,
 			      operation);
@@ -121,7 +121,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
   if (right.getRank()==0) 	// scalar op on the right
   {		
       // This will process the default value (which we know is stored in location 0)
-      DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
+      escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
 				1, valcount,
 			      left.getTypedVectorRO(dummyl), 0,
 			      &right.getTypedVectorRO(dummyr)[0], 0,
@@ -132,7 +132,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
       {
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type rightoffset=right.getOffsetForTag(i->first);
-	  DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), resoffset, 
+	  escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), resoffset, 
 				    1, valcount,
 				  left.getTypedVectorRO(dummyl), 0,
 				  &right.getTypedVectorRO(dummyr)[rightoffset], 0,
@@ -141,7 +141,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
   }
   else if (left.getRank()==0)	// scalar op on the left
   {
-      DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 
+      escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 
 				1, valcount,
 			      &left.getTypedVectorRO(dummyl)[0], 0,
 			      right.getTypedVectorRO(dummyr), 0,
@@ -152,7 +152,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
       {
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type rightoffset=right.getOffsetForTag(i->first);	  
-	  DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), resoffset, 
+	  escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), resoffset, 
 				    1, valcount, 
 				  &left.getTypedVectorRO(dummyl)[0], 0,
 				  right.getTypedVectorRO(dummyr), rightoffset,
@@ -162,7 +162,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
   else
   {
       // This will process the default value (which we know is stored in location 0)
-      DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
+      escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
 			      left.getTypedVectorRO(dummyl), 0, true,
 			      right.getTypedVectorRO(dummyr), 0, false,
 			      operation);
@@ -171,7 +171,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
       for (i=lookup_1.begin();i!=lookup_1.end();i++)
       {
 	  DataTypes::RealVectorType::size_type resoffset=right.getOffsetForTag(i->first);
-	  DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 1, valcount, 
+	  escript::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 1, valcount, 
 				  left.getTypedVectorRO(dummyl), 0, true,
 				  right.getTypedVectorRO(dummyr), i->second, false,
 				  operation);	  
@@ -229,7 +229,7 @@ inline void binaryOpDataReadyHelperECE(DataExpanded& res, const DataConstant& le
 
   if (right.getRank()==left.getRank())		// both zero or both equal and non-zero 
   {
-    DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
+    escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
 			      res.getNumSamples()*res.getNumDPPSample(),DataTypes::noValues(res.getShape()) , 
 			      left.getTypedVectorRO(dummyl), 0, true,
 			      right.getTypedVectorRO(dummyr), 0, false,
@@ -239,7 +239,7 @@ inline void binaryOpDataReadyHelperECE(DataExpanded& res, const DataConstant& le
       // This is a tricky one. There are lots of individual scalars on the RHS, each of which need to be 
       // multiplied by a number of values which make up a single const
       // fiddling by pretending samples are smaller but there are more of them
-    DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
+    escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
 					 res.getNumSamples()*res.getNumDPPSample(), DataTypes::noValues(res.getShape()), 
 			      left.getTypedVectorRO(dummyl), 0,
 			      &right.getTypedVectorRO(dummyr)[0], false,
@@ -248,7 +248,7 @@ inline void binaryOpDataReadyHelperECE(DataExpanded& res, const DataConstant& le
   }
   else  // if (left.getRank()==0)
   {
-    DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, right.getNumSamples(), valcount, 
+    escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, right.getNumSamples(), valcount, 
 			      &left.getTypedVectorRO(dummyl)[0], true,
 			      right.getTypedVectorRO(dummyr), false,
 			      operation,
@@ -299,7 +299,7 @@ inline void binaryOpDataReadyHelperEET(DataExpanded& res, const DataExpanded& le
   RSCALAR dummyr=0;
   DataTypes::RealVectorType::size_type valcount=res.getNumDPPSample()*DataTypes::noValues(res.getShape());
 
-    DataMaths::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
+    escript::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
 			      res.getNumSamples(),res.getNumDPPSample(), DataTypes::noValues(res.getShape()), 
 			      left.getTypedVectorRO(dummyl), left.getRank()==0,
 			      right.getTypedVectorRO(dummyr), right.getRank()==0,
@@ -353,7 +353,7 @@ inline void binaryOpDataReadyHelperETE(DataExpanded& res, const DataTagged& left
   RSCALAR dummyr=0;
   DataTypes::RealVectorType::size_type valcount=res.getNumDPPSample()*DataTypes::noValues(res.getShape());
 
-    DataMaths::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
+    escript::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
 			      res.getNumSamples(),res.getNumDPPSample(), DataTypes::noValues(res.getShape()), 
 			      left.getTypedVectorRO(dummyl), left.getRank()==0,
 			      right.getTypedVectorRO(dummyr), right.getRank()==0,
@@ -437,7 +437,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
   {
     
         // This will process the default value (which we know is stored in location 0)
-      DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
+      escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
 				1, valcount,
 			      left.getTypedVectorRO(dummyl), 0,
 			      &right.getTypedVectorRO(dummyr)[0], 0,
@@ -448,7 +448,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
       {
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type leftoffset=left.getOffsetForTag(i->first);
-	  DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), resoffset, 
+	  escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), resoffset, 
 				    1, valcount,
 				  left.getTypedVectorRO(dummyl), leftoffset,
 				  &right.getTypedVectorRO(dummyr)[0], 0,
@@ -457,7 +457,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
   }
   else if (left.getRank()==0)	// scalar op on the left
   {
-      DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 
+      escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 
 				1, valcount,
 			      &left.getTypedVectorRO(dummyl)[0], 0,
 			      right.getTypedVectorRO(dummyr), 0,
@@ -468,7 +468,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
       {
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type leftoffset=left.getOffsetForTag(i->first);	  
-	  DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), resoffset, 
+	  escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), resoffset, 
 				    1, valcount, 
 				  &left.getTypedVectorRO(dummyl)[leftoffset], 0,
 				  right.getTypedVectorRO(dummyr), 0,
@@ -478,7 +478,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
   else
   {
       // This will process the default value (which we know is stored in location 0)
-      DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
+      escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
 			      left.getTypedVectorRO(dummyl), 0, true,
 			      right.getTypedVectorRO(dummyr), 0, false,
 			      operation);
@@ -488,7 +488,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
       {
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type leftoffset=left.getOffsetForTag(i->first);	  
-	  DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 1, valcount, 
+	  escript::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 1, valcount, 
 				  left.getTypedVectorRO(dummyl), leftoffset, true,
 				  right.getTypedVectorRO(dummyr), 0, false,
 				  operation);	  
@@ -582,7 +582,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
   if (right.getRank()==0) 	// scalar op on the right
   {		// we'll reuse this code by pretending samples are 1 value long
       // This will process the default value (which we know is stored in location 0)
-      DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
+      escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
 				valcount, 1,	// (arguments reversed from normal) 
 			      left.getTypedVectorRO(dummyl), 0, false,
 			      right.getTypedVectorRO(dummyr), 0, true,
@@ -594,7 +594,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type leftoffset=left.getOffsetForTag(i->first);
 	  DataTypes::RealVectorType::size_type rightoffset=right.getOffsetForTag(i->first);	
-	  DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 
+	  escript::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 
 				    valcount, 1, // (arguments reversed from normal) 
 				  left.getTypedVectorRO(dummyl), leftoffset, false,
 				  right.getTypedVectorRO(dummyr), rightoffset, true,
@@ -603,7 +603,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
   }
   else if (left.getRank()==0)	// scalar op on the left
   {
-      DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
+      escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
 				valcount, 1,	// (arguments reversed from normal) 
 			      left.getTypedVectorRO(dummyl), 0, true,
 			      right.getTypedVectorRO(dummyr), 0, false,
@@ -615,7 +615,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
 	  DataTypes::RealVectorType::size_type resoffset=i->second;
 	  DataTypes::RealVectorType::size_type leftoffset=left.getOffsetForTag(i->first);
 	  DataTypes::RealVectorType::size_type rightoffset=right.getOffsetForTag(i->first);	  
-	  DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 
+	  escript::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 
 				    valcount, 1, // (arguments reversed from normal) 
 				  left.getTypedVectorRO(dummyl), leftoffset, true,
 				  right.getTypedVectorRO(dummyr), rightoffset, false,
@@ -625,7 +625,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
   else
   {
       // This will process the default value (which we know is stored in location 0)
-      DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
+      escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 1, valcount, 
 			      left.getTypedVectorRO(dummyl), 0, false,
 			      right.getTypedVectorRO(dummyr), 0, false,
 			      operation);
@@ -636,7 +636,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
 	  DataTypes::RealVectorType::size_type resoffset=res.getOffsetForTag(i->first);
 	  DataTypes::RealVectorType::size_type leftoffset=left.getOffsetForTag(i->first);
 	  DataTypes::RealVectorType::size_type rightoffset=right.getOffsetForTag(i->first);
-	  DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 1, valcount, 
+	  escript::binaryOpVector(res.getTypedVectorRW(resdummy), resoffset, 1, valcount, 
 				  left.getTypedVectorRO(dummyl), leftoffset, false,
 				  right.getTypedVectorRO(dummyr), rightoffset, false,
 				  operation);	  
@@ -694,7 +694,7 @@ inline void binaryOpDataReadyHelperEEC(DataExpanded& res, const DataExpanded& le
   
   if (right.getRank()==0) 
   {	
-    DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, res.getNumSamples(), valcount,
+    escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, res.getNumSamples(), valcount,
 			      left.getTypedVectorRO(dummyl), 0,
 			      &right.getTypedVectorRO(dummyr)[0], true,
 			      operation,
@@ -702,7 +702,7 @@ inline void binaryOpDataReadyHelperEEC(DataExpanded& res, const DataExpanded& le
   }
   else if (left.getRank()==0)
   {
-    DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 	// "shrink" the samples to make this work
+    escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 	// "shrink" the samples to make this work
 					res.getNumSamples()*res.getNumDPPSample(),DataTypes::noValues(res.getShape()) , 
 			      &left.getTypedVectorRO(dummyl)[0], 0,
 			      right.getTypedVectorRO(dummyr), false,
@@ -711,7 +711,7 @@ inline void binaryOpDataReadyHelperEEC(DataExpanded& res, const DataExpanded& le
   } 
   else //(right.getRank()==left.getRank())
   {
-    DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
+    escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, 
 			      res.getNumSamples()*res.getNumDPPSample(),DataTypes::noValues(res.getShape()) ,
 			      left.getTypedVectorRO(dummyl), 0, false,
 			      right.getTypedVectorRO(dummyr), 0, true,
@@ -771,7 +771,7 @@ inline void binaryOpDataReadyHelperEEE(DataExpanded& res, const DataExpanded& le
   
   if (left.getRank()==right.getRank())
   {
-    DataMaths::binaryOpVector(res.getTypedVectorRW(resdummy), 0, res.getNumSamples(), valcount,
+    escript::binaryOpVector(res.getTypedVectorRW(resdummy), 0, res.getNumSamples(), valcount,
 			      left.getTypedVectorRO(dummyl), 0, false,
 			      right.getTypedVectorRO(dummyr), 0, false,
 			      operation);
@@ -782,7 +782,7 @@ inline void binaryOpDataReadyHelperEEE(DataExpanded& res, const DataExpanded& le
       // but for this case, we need to change arguments once per datapoint.
       // To get around this, we'll pretend that the samples are smaller (and only contain one datapoint)
       // this should hopefully lead to the same openmp thread division
-    DataMaths::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
+    escript::binaryOpVectorRightScalar(res.getTypedVectorRW(resdummy), 0, 
 					 res.getNumSamples()*res.getNumDPPSample(), DataTypes::noValues(res.getShape()), 
 			      left.getTypedVectorRO(dummyl), 0, 
 			      &right.getTypedVectorRO(dummyr)[0], false,
@@ -790,7 +790,7 @@ inline void binaryOpDataReadyHelperEEE(DataExpanded& res, const DataExpanded& le
   }
   else // if (left.getRank()==0)
   {
-    DataMaths::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 
+    escript::binaryOpVectorLeftScalar(res.getTypedVectorRW(resdummy), 0, 
 					res.getNumSamples()*res.getNumDPPSample(), DataTypes::noValues(res.getShape()),
 			      &left.getTypedVectorRO(dummyl)[0], false,
 			      right.getTypedVectorRO(dummyr), 0,

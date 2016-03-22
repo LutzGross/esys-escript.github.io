@@ -2004,7 +2004,7 @@ Data::lazyAlgWorker(real_t init)
             {
                 localtot=operation(localtot,(*v)[j+roffset]);
             }
-            if (DataMaths::vectorHasNaN(*v,roffset, samplesize))
+            if (escript::vectorHasNaN(*v,roffset, samplesize))
             {
                 #pragma omp critical
                 {
@@ -2839,7 +2839,7 @@ Data::matrixInverse() const
 #endif
     if (errcode)
     {
-        DataMaths::matrixInverseError(errcode); // throws exceptions
+        escript::matrixInverseError(errcode); // throws exceptions
     }
     return out;
 }
