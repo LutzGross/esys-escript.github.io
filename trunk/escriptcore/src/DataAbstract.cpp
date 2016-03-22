@@ -66,7 +66,19 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
 // invasive pointers which can answer these questions faster
 bool DataAbstract::checkNoSharing() const
 {
-
+  try
+  {
+      return shared_from_this().use_count()<=2;	// since shared_from_this increments count
+  }
+  catch (...)
+  {
+      return true;
+  }
+  if (!(!m_lazyshared && (m_owners.size()<2)))
+  {
+      std::cerr << m_lazyshared << " " << m_owners.size() << " " << shared_from_this().use_count() << std::endl;
+    
+  }
   return !m_lazyshared && (m_owners.size()<2);
 
 /*  if (_internal_weak_this.expired())  // there is no shared_ptr for this object yet

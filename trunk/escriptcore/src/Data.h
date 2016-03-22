@@ -28,6 +28,7 @@
 #include "DataVectorOps.h"
 #include <algorithm>
 #include <string>
+#include <sstream>
 
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
@@ -1732,7 +1733,8 @@ template <class BinaryOp>
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-        return m_shared;
+        //return m_shared;
+	return !m_data.unique();
 /*      if (m_shared) return true;
         if (m_data->isShared())                 
         {                                       

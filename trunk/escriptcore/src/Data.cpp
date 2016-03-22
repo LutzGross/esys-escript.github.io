@@ -2831,7 +2831,9 @@ Data::matrixInverse() const
     THROWONCOMPLEX
     Data out(0.,getDataPointShape(),getFunctionSpace());
     out.typeMatchRight(*this);
-    int errcode=m_data->matrixInverse(out.getReadyPtr().get());
+
+    DataReady* drp=out.getReadyPtr().get();
+    int errcode=m_data->matrixInverse(drp);
 #ifdef ESYS_MPI
     int globalval=0;
     MPI_Allreduce( &errcode, &globalval, 1, MPI_INT, MPI_MAX, get_MPIComm() );

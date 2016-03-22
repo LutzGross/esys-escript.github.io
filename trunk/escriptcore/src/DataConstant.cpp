@@ -29,6 +29,15 @@
     std::ostringstream ss;\
     ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
     ss << " num owners=" << m_owners.size();\
+    int nn=17;\
+    try\
+    {\
+	nn=shared_from_this().use_count();\
+	ss << "use count=" << nn << "\n";\
+    } catch (...)\
+    {\
+	ss << "Failed to get a use count\n";\
+    }\
     std::cerr << ss.str() << std::endl;\
     throw DataException(ss.str());}
 
