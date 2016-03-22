@@ -18,7 +18,7 @@
 
 #include "DataTaggedTestCase.h"
 
-#include <escript/BinaryOp.h>
+#include <escript/BinaryDataReadyOps.h>
 #include <escript/DataConstant.h>
 #include <escript/DataFactory.h>
 #include <escript/DataTagged.h>

@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #include <escript/DataTypes.h>
-#include <escript/DataMaths.h>
+#include <escript/DataVectorOps.h>
 #include "DataMathsTestCase.h"
 #include <escript/DataTypes.h>
 #include <escript/DataVector.h>
