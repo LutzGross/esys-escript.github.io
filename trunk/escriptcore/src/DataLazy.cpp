@@ -20,7 +20,7 @@
 #include "EscriptParams.h"
 #include "FunctionSpace.h"
 #include "Utils.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>

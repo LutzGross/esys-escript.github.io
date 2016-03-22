@@ -19,7 +19,7 @@
 
 #include "system_dep.h"
 #include "DataAbstract.h"
-#include "LocalOps.h"		// for tensor_binary_op
+#include "ArrayOps.h"		// for tensor_binary_op
 #include "DataVector.h"		// for ElementType
 
 #include <functional>

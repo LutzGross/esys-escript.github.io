@@ -19,17 +19,17 @@
 
 #include "DataAbstract.h"
 #include "DataException.h"
-#include "LocalOps.h"
+#include "ArrayOps.h"
 #include "LapackInverseHelper.h"
 #include "DataTagged.h"
 
 /**
-\file DataMaths.h 
+\file DataVectorOps.h 
 \brief Describes binary operations performed on DataVector.
 
 
-For operations on DataAbstract see BinaryOp.h.
-For operations on double* see LocalOps.h.
+For operations on DataReady see BinaryDataReadyOp.h.
+For operations on double* see ArrayOps.h.
 */
 
 
@@ -37,9 +37,6 @@ namespace escript
 {
 
 /**
-\namespace escript::DataMaths
-\brief Contains maths operations performed on data vectors.
-
 In order to properly identify the datapoints, in most cases, the vector, shape and offset of the point must all be supplied.
 Note that vector in this context refers to a data vector storing datapoints not a mathematical vector. (However, datapoints within the data vector could represent scalars, vectors, matricies, ...).
 */

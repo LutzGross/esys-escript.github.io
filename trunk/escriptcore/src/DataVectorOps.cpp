@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 #include "DataTypes.h"
 
 #include <sstream>

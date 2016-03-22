@@ -30,7 +30,8 @@ sources = """
     AbstractReducer.cpp
     AbstractSystemMatrix.cpp
     AbstractTransportProblem.cpp
-    BinaryOp.cpp    
+    ArrayOps.cpp    
+    BinaryDataReadyOps.cpp    
     Data.cpp
     DataAbstract.cpp
     DataConstant.cpp
@@ -38,12 +39,12 @@ sources = """
     DataExpanded.cpp
     DataFactory.cpp
     DataLazy.cpp
-    DataMaths.cpp
     DataReady.cpp
     DataTagged.cpp
     DataTypes.cpp
     DataVector.cpp
     DataVectorAlt.cpp
+    DataVectorOps.cpp
     DataVectorTaipan.cpp    
     EscriptParams.cpp
     EsysMPI.cpp
@@ -51,7 +52,6 @@ sources = """
     FunctionSpace.cpp
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
-    LocalOps.cpp
     NonReducedVariable.cpp
     NullDomain.cpp
     MPIDataReducer.cpp
@@ -73,8 +73,9 @@ headers = """
     AbstractReducer.h
     AbstractSystemMatrix.h
     AbstractTransportProblem.h
+    ArrayOps.h    
     Assert.h
-    BinaryOp.h
+    BinaryDataReadyOps.h
     Data.h
     DataAbstract.h
     DataConstant.h
@@ -83,12 +84,12 @@ headers = """
     DataExpanded.h
     DataFactory.h
     DataLazy.h
-    DataMaths.h
     DataReady.h
     DataTagged.h
     DataTypes.h
     DataVector.h
     DataVectorAlt.h
+    DataVectorOps.h    
     DataVectorTaipan.h    
     Dodgy.h
     DomainException.h
@@ -102,7 +103,6 @@ headers = """
     FunctionSpaceFactory.h
     IndexList.h
     LapackInverseHelper.h
-    LocalOps.h
     NonReducedVariable.h
     NullDomain.h
     MPIDataReducer.h

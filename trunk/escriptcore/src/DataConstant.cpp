@@ -17,7 +17,7 @@
 #include "DataConstant.h"
 #include "Data.h"
 #include "DataException.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 
 #include <iostream>
 

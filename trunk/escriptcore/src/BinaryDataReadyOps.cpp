@@ -17,7 +17,7 @@
 
 
 
-#include "BinaryOp.h"
+#include "BinaryDataReadyOps.h"
 #include "DataTagged.h"
 
 using namespace escript;
