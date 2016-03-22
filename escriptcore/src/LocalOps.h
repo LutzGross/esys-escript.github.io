@@ -90,24 +90,30 @@ bool always_real(ESFunction operation);
    \brief
    Return the maximum value of the two given values.
 */
-struct FMax : public std::binary_function<double,double,double>
+struct FMax 
 {
-  inline double operator()(double x, double y) const
+  inline DataTypes::real_t operator()(DataTypes::real_t x, DataTypes::real_t y) const
   {
     return std::max(x,y);
   }
+  typedef DataTypes::real_t first_argument_type;
+  typedef DataTypes::real_t second_argument_type;
+  typedef DataTypes::real_t result_type;
 };
 
 /**
    \brief
    Return the minimum value of the two given values.
 */
-struct FMin : public std::binary_function<double,double,double>
+struct FMin
 {
-  inline double operator()(double x, double y) const
+  inline DataTypes::real_t operator()(DataTypes::real_t x, DataTypes::real_t y) const
   {
     return std::min(x,y);
   }
+  typedef DataTypes::real_t first_argument_type;
+  typedef DataTypes::real_t second_argument_type;
+  typedef DataTypes::real_t result_type;  
 };
 
 /**
@@ -128,8 +134,8 @@ struct AbsMax
 
 
 inline
-double
-fsign(double x)
+DataTypes::real_t
+fsign(DataTypes::real_t x)
 {
   if (x == 0) {
     return 0;
@@ -143,7 +149,7 @@ fsign(double x)
 \warning if compiler does not support FP_NAN this function will always return false.
 */
 inline
-bool nancheck(double d)
+bool nancheck(DataTypes::real_t d)
 {
                 // Q: so why not just test d!=d?
                 // A: Coz it doesn't always work [I've checked].
@@ -156,7 +162,7 @@ bool nancheck(double d)
 \warning Should probably only used where you know you can test for NaNs
 */
 inline
-double makeNaN()
+DataTypes::real_t makeNaN()
 {
 #ifdef nan
     return nan("");
@@ -175,7 +181,7 @@ double makeNaN()
    \param ev0 Output - eigenvalue
 */
 inline
-void eigenvalues1(const double A00,double* ev0) {
+void eigenvalues1(const DataTypes::real_t A00,DataTypes::real_t* ev0) {
 
    *ev0=A00;
 
@@ -191,12 +197,12 @@ void eigenvalues1(const double A00,double* ev0) {
    \param ev1 Output - largest eigenvalue
 */
 inline
-void eigenvalues2(const double A00,const double A01,const double A11,
-                 double* ev0, double* ev1) {
-      const double trA=(A00+A11)/2.;
-      const double A_00=A00-trA;
-      const double A_11=A11-trA;
-      const double s=sqrt(A01*A01-A_00*A_11);
+void eigenvalues2(const DataTypes::real_t A00,const DataTypes::real_t A01,const DataTypes::real_t A11,
+                 DataTypes::real_t* ev0, DataTypes::real_t* ev1) {
+      const DataTypes::real_t trA=(A00+A11)/2.;
+      const DataTypes::real_t A_00=A00-trA;
+      const DataTypes::real_t A_11=A11-trA;
+      const DataTypes::real_t s=sqrt(A01*A01-A_00*A_11);
       *ev0=trA-s;
       *ev1=trA+s;
 }
@@ -215,34 +221,34 @@ void eigenvalues2(const double A00,const double A01,const double A11,
    \param ev2 Output - largest eigenvalue
 */
 inline
-void eigenvalues3(const double A00, const double A01, const double A02,
-                                   const double A11, const double A12,
-                                                     const double A22,
-                 double* ev0, double* ev1,double* ev2) {
+void eigenvalues3(const DataTypes::real_t A00, const DataTypes::real_t A01, const DataTypes::real_t A02,
+                                   const DataTypes::real_t A11, const DataTypes::real_t A12,
+                                                     const DataTypes::real_t A22,
+                 DataTypes::real_t* ev0, DataTypes::real_t* ev1,DataTypes::real_t* ev2) {
 
-      const double trA=(A00+A11+A22)/3.;
-      const double A_00=A00-trA;
-      const double A_11=A11-trA;
-      const double A_22=A22-trA;
-      const double A01_2=A01*A01;
-      const double A02_2=A02*A02;
-      const double A12_2=A12*A12;
-      const double p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
+      const DataTypes::real_t trA=(A00+A11+A22)/3.;
+      const DataTypes::real_t A_00=A00-trA;
+      const DataTypes::real_t A_11=A11-trA;
+      const DataTypes::real_t A_22=A22-trA;
+      const DataTypes::real_t A01_2=A01*A01;
+      const DataTypes::real_t A02_2=A02*A02;
+      const DataTypes::real_t A12_2=A12*A12;
+      const DataTypes::real_t p=A02_2+A12_2+A01_2+(A_00*A_00+A_11*A_11+A_22*A_22)/2.;
       if (p<=0.) {
          *ev2=trA;
          *ev1=trA;
          *ev0=trA;
 
       } else {
-         const double q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
-         const double sq_p=sqrt(p/3.);
-         double z=-q/(2*pow(sq_p,3));
+         const DataTypes::real_t q=(A02_2*A_11+A12_2*A_00+A01_2*A_22)-(A_00*A_11*A_22+2*A01*A12*A02);
+         const DataTypes::real_t sq_p=sqrt(p/3.);
+         DataTypes::real_t z=-q/(2*pow(sq_p,3));
          if (z<-1.) {
             z=-1.;
          } else if (z>1.) {
             z=1.;
          }
-         const double alpha_3=acos(z)/3.;
+         const DataTypes::real_t alpha_3=acos(z)/3.;
          *ev2=trA+2.*sq_p*cos(alpha_3);
          *ev1=trA-2.*sq_p*cos(alpha_3+M_PI/3.);
          *ev0=trA-2.*sq_p*cos(alpha_3-M_PI/3.);
@@ -258,7 +264,7 @@ void eigenvalues3(const double A00, const double A01, const double A02,
    \param tol Input - tolerance to identify to eigenvalues
 */
 inline
-void  eigenvalues_and_eigenvectors1(const double A00,double* ev0,double* V00,const double tol)
+void  eigenvalues_and_eigenvectors1(const DataTypes::real_t A00,DataTypes::real_t* ev0,DataTypes::real_t* V00,const DataTypes::real_t tol)
 {
       eigenvalues1(A00,ev0);
       *V00=1.;
@@ -276,14 +282,14 @@ void  eigenvalues_and_eigenvectors1(const double A00,double* ev0,double* V00,con
    \param V1 Output - vector component
 */
 inline
-void  vectorInKernel2(const double A00,const double A10,const double A01,const double A11,
-                      double* V0, double*V1)
+void  vectorInKernel2(const DataTypes::real_t A00,const DataTypes::real_t A10,const DataTypes::real_t A01,const DataTypes::real_t A11,
+                      DataTypes::real_t* V0, DataTypes::real_t*V1)
 {
-      double absA00=fabs(A00);
-      double absA10=fabs(A10);
-      double absA01=fabs(A01);
-      double absA11=fabs(A11);
-      double m=absA11>absA10 ? absA11 : absA10;
+      DataTypes::real_t absA00=fabs(A00);
+      DataTypes::real_t absA10=fabs(A10);
+      DataTypes::real_t absA01=fabs(A01);
+      DataTypes::real_t absA11=fabs(A11);
+      DataTypes::real_t m=absA11>absA10 ? absA11 : absA10;
       if (absA00>m || absA01>m) {
          *V0=-A01;
          *V1=A00;
@@ -316,15 +322,15 @@ void  vectorInKernel2(const double A00,const double A10,const double A01,const d
    \param V2 Output - vector component
 */
 inline
-void  vectorInKernel3__nonZeroA00(const double A00,const double A10,const double A20,
-                                const double A01,const double A11,const double A21,
-                                const double A02,const double A12,const double A22,
-                                double* V0,double* V1,double* V2)
+void  vectorInKernel3__nonZeroA00(const DataTypes::real_t A00,const DataTypes::real_t A10,const DataTypes::real_t A20,
+                                const DataTypes::real_t A01,const DataTypes::real_t A11,const DataTypes::real_t A21,
+                                const DataTypes::real_t A02,const DataTypes::real_t A12,const DataTypes::real_t A22,
+                                DataTypes::real_t* V0,DataTypes::real_t* V1,DataTypes::real_t* V2)
 {
-    double TEMP0,TEMP1;
-    const double I00=1./A00;
-    const double IA10=I00*A10;
-    const double IA20=I00*A20;
+    DataTypes::real_t TEMP0,TEMP1;
+    const DataTypes::real_t I00=1./A00;
+    const DataTypes::real_t IA10=I00*A10;
+    const DataTypes::real_t IA20=I00*A20;
     vectorInKernel2(A11-IA10*A01,A12-IA10*A02,
                     A21-IA20*A01,A22-IA20*A02,&TEMP0,&TEMP1);
     *V0=-(A10*TEMP0+A20*TEMP1);
@@ -350,16 +356,16 @@ void  vectorInKernel3__nonZeroA00(const double A00,const double A10,const double
    \param tol Input - tolerance to identify to eigenvalues
 */
 inline
-void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const double A11,
-                                    double* ev0, double* ev1,
-                                    double* V00, double* V10, double* V01, double* V11,
-                                    const double tol)
+void  eigenvalues_and_eigenvectors2(const DataTypes::real_t A00,const DataTypes::real_t A01,const DataTypes::real_t A11,
+                                    DataTypes::real_t* ev0, DataTypes::real_t* ev1,
+                                    DataTypes::real_t* V00, DataTypes::real_t* V10, DataTypes::real_t* V01, DataTypes::real_t* V11,
+                                    const DataTypes::real_t tol)
 {
-     double TEMP0,TEMP1;
+     DataTypes::real_t TEMP0,TEMP1;
      eigenvalues2(A00,A01,A11,ev0,ev1);
-     const double absev0=fabs(*ev0);
-     const double absev1=fabs(*ev1);
-     double max_ev=absev0>absev1 ? absev0 : absev1;
+     const DataTypes::real_t absev0=fabs(*ev0);
+     const DataTypes::real_t absev1=fabs(*ev1);
+     DataTypes::real_t max_ev=absev0>absev1 ? absev0 : absev1;
      if (fabs((*ev0)-(*ev1))<tol*max_ev) {
         *V00=1.;
         *V10=0.;
@@ -367,7 +373,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
         *V11=1.;
      } else {
         vectorInKernel2(A00-(*ev0),A01,A01,A11-(*ev0),&TEMP0,&TEMP1);
-        const double scale=1./sqrt(TEMP0*TEMP0+TEMP1*TEMP1);
+        const DataTypes::real_t scale=1./sqrt(TEMP0*TEMP0+TEMP1*TEMP1);
         if (TEMP0<0.) {
             *V00=-TEMP0*scale;
             *V10=-TEMP1*scale;
@@ -405,9 +411,9 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
    \param V2 - vector componenent
 */
 inline
-void  normalizeVector3(double* V0,double* V1,double* V2)
+void  normalizeVector3(DataTypes::real_t* V0,DataTypes::real_t* V1,DataTypes::real_t* V2)
 {
-    double s;
+    DataTypes::real_t s;
     if (*V0>0) {
         s=1./sqrt((*V0)*(*V0)+(*V1)*(*V1)+(*V2)*(*V2));
         *V0*=s;
@@ -459,19 +465,19 @@ void  normalizeVector3(double* V0,double* V1,double* V2)
    \param tol Input - tolerance to identify to eigenvalues
 */
 inline
-void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const double A02,
-                                    const double A11, const double A12, const double A22,
-                                    double* ev0, double* ev1, double* ev2,
-                                    double* V00, double* V10, double* V20,
-                                    double* V01, double* V11, double* V21,
-                                    double* V02, double* V12, double* V22,
-                                    const double tol)
+void  eigenvalues_and_eigenvectors3(const DataTypes::real_t A00, const DataTypes::real_t A01, const DataTypes::real_t A02,
+                                    const DataTypes::real_t A11, const DataTypes::real_t A12, const DataTypes::real_t A22,
+                                    DataTypes::real_t* ev0, DataTypes::real_t* ev1, DataTypes::real_t* ev2,
+                                    DataTypes::real_t* V00, DataTypes::real_t* V10, DataTypes::real_t* V20,
+                                    DataTypes::real_t* V01, DataTypes::real_t* V11, DataTypes::real_t* V21,
+                                    DataTypes::real_t* V02, DataTypes::real_t* V12, DataTypes::real_t* V22,
+                                    const DataTypes::real_t tol)
 {
-      const double absA01=fabs(A01);
-      const double absA02=fabs(A02);
-      const double m=absA01>absA02 ? absA01 : absA02;
+      const DataTypes::real_t absA01=fabs(A01);
+      const DataTypes::real_t absA02=fabs(A02);
+      const DataTypes::real_t m=absA01>absA02 ? absA01 : absA02;
       if (m<=0) {
-        double TEMP_V00,TEMP_V10,TEMP_V01,TEMP_V11,TEMP_EV0,TEMP_EV1;
+        DataTypes::real_t TEMP_V00,TEMP_V10,TEMP_V01,TEMP_V11,TEMP_EV0,TEMP_EV1;
         eigenvalues_and_eigenvectors2(A11,A12,A22,
                                       &TEMP_EV0,&TEMP_EV1,
                                       &TEMP_V00,&TEMP_V10,&TEMP_V01,&TEMP_V11,tol);
@@ -517,14 +523,14 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
         }
       } else {
          eigenvalues3(A00,A01,A02,A11,A12,A22,ev0,ev1,ev2);
-         const double absev0=fabs(*ev0);
-         const double absev1=fabs(*ev1);
-         const double absev2=fabs(*ev2);
-         double max_ev=absev0>absev1 ? absev0 : absev1;
+         const DataTypes::real_t absev0=fabs(*ev0);
+         const DataTypes::real_t absev1=fabs(*ev1);
+         const DataTypes::real_t absev2=fabs(*ev2);
+         DataTypes::real_t max_ev=absev0>absev1 ? absev0 : absev1;
          max_ev=max_ev>absev2 ? max_ev : absev2;
-         const double d_01=fabs((*ev0)-(*ev1));
-         const double d_12=fabs((*ev1)-(*ev2));
-         const double max_d=d_01>d_12 ? d_01 : d_12;
+         const DataTypes::real_t d_01=fabs((*ev0)-(*ev1));
+         const DataTypes::real_t d_12=fabs((*ev1)-(*ev2));
+         const DataTypes::real_t max_d=d_01>d_12 ? d_01 : d_12;
          if (max_d<=tol*max_ev) {
              *V00=1.;
              *V10=0;
@@ -536,8 +542,8 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
              *V12=0;
              *V22=1.;
          } else {
-            const double S00=A00-(*ev0);
-            const double absS00=fabs(S00);
+            const DataTypes::real_t S00=A00-(*ev0);
+            const DataTypes::real_t absS00=fabs(S00);
             if (absS00>m) {
                 vectorInKernel3__nonZeroA00(S00,A01,A02,A01,A11-(*ev0),A12,A02,A12,A22-(*ev0),V00,V10,V20);
             } else if (absA02<m) {
@@ -546,8 +552,8 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
                 vectorInKernel3__nonZeroA00(A02,A12,A22-(*ev0),S00,A01,A02,A01,A11-(*ev0),A12,V00,V10,V20);
             }
             normalizeVector3(V00,V10,V20);;
-            const double T00=A00-(*ev2);
-            const double absT00=fabs(T00);
+            const DataTypes::real_t T00=A00-(*ev2);
+            const DataTypes::real_t absT00=fabs(T00);
             if (absT00>m) {
                  vectorInKernel3__nonZeroA00(T00,A01,A02,A01,A11-(*ev2),A12,A02,A12,A22-(*ev2),V02,V12,V22);
             } else if (absA02<m) {
@@ -555,7 +561,7 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
             } else {
                  vectorInKernel3__nonZeroA00(A02,A12,A22-(*ev2),T00,A01,A02,A01,A11-(*ev2),A12,V02,V12,V22);
             }
-            const double dot=(*V02)*(*V00)+(*V12)*(*V10)+(*V22)*(*V20);
+            const DataTypes::real_t dot=(*V02)*(*V00)+(*V12)*(*V10)+(*V22)*(*V20);
             *V02-=dot*(*V00);
             *V12-=dot*(*V10);
             *V22-=dot*(*V20);
@@ -571,12 +577,12 @@ void  eigenvalues_and_eigenvectors3(const double A00, const double A01, const do
 // General tensor product: arg_2(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
 // SM is the product of the last axis_offset entries in arg_0.getShape().
 inline
-void matrix_matrix_product(const int SL, const int SM, const int SR, const double* A, const double* B, double* C, int transpose)
+void matrix_matrix_product(const int SL, const int SM, const int SR, const DataTypes::real_t* A, const DataTypes::real_t* B, DataTypes::real_t* C, int transpose)
 {
   if (transpose == 0) {
     for (int i=0; i<SL; i++) {
       for (int j=0; j<SR; j++) {
-        double sum = 0.0;
+        DataTypes::real_t sum = 0.0;
         for (int l=0; l<SM; l++) {
           sum += A[i+SL*l] * B[l+SM*j];
         }
@@ -587,7 +593,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
   else if (transpose == 1) {
     for (int i=0; i<SL; i++) {
       for (int j=0; j<SR; j++) {
-        double sum = 0.0;
+        DataTypes::real_t sum = 0.0;
         for (int l=0; l<SM; l++) {
           sum += A[i*SM+l] * B[l+SM*j];
         }
@@ -598,7 +604,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const doubl
   else if (transpose == 2) {
     for (int i=0; i<SL; i++) {
       for (int j=0; j<SR; j++) {
-        double sum = 0.0;
+        DataTypes::real_t sum = 0.0;
         for (int l=0; l<SM; l++) {
           sum += A[i+SL*l] * B[l*SR+j];
         }
@@ -656,43 +662,6 @@ inline DataTypes::cplx_t calc_ltzero(const DataTypes::cplx_t& x) {return makeNaN
 
 inline DataTypes::real_t calc_lezero(const DataTypes::real_t& x) {return x<=0;}
 inline DataTypes::cplx_t calc_lezero(const DataTypes::cplx_t& x) {return makeNaN();}
-
-
-
-
-
-
-
-
-
-template <typename T>
-struct lezero_func
-{
-    T operator() (const T& x) const {return x<=0;}
-    typedef T first_argument_type;
-    typedef T result_type;
-};
-
-template <>
-struct lezero_func<DataTypes::cplx_t>           // to keep the templater happy
-{
-    DataTypes::cplx_t operator() (const DataTypes::cplx_t& x) const {return makeNaN();}
-    typedef DataTypes::cplx_t first_argument_type;
-    typedef DataTypes::cplx_t result_type;
-};
-
-
-template <class IN, typename OUT, class UnaryFunction>
-inline void tensor_unary_operation_helper(const size_t size,
-                             const IN *arg1,
-                             OUT * argRes,
-                             UnaryFunction operation)
-{
-
-  for (int i = 0; i < size; ++i) {
-    argRes[i] = operation(arg1[i]);
-  }
-}
 
 template <typename IN>
 inline DataTypes::real_t abs_f(IN i)

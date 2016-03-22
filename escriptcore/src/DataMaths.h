@@ -47,54 +47,6 @@ Note that vector in this context refers to a data vector storing datapoints not 
 */
 
 
-  /**
-     \brief
-     Perform the binary operation on the data point specified by the given
-     offset in the vector using the scalar value "right". Applies the specified
-     operation to values in the data point. Operation must be a pointer
-     to a function.
-
-     Called by escript::binaryOp.
-
-     \param left - vector containing the datapoints
-     \param shape - shape of datapoint in the vector
-     \param offset - beginning of datapoint in the vector
-     \param right - scalar value for the right hand side of the operation
-     \param operation - Input -
-                  Operation to apply. Must be a pointer to a function.
-  */
-  template <class LVEC, class SCALAR>
-  void
-  binaryOpVector(LVEC& left, 
-           const DataTypes::ShapeType& shape,
- 	   typename LVEC::size_type offset,
-           SCALAR right,
-           escript::ESFunction operation);
-
-  /**
-     \brief
-     Perform the given data point reduction operation on the data point
-     specified by the given offset into the view. Reduces all elements of
-     the data point using the given operation, returning the result as a 
-     scalar. Operation must be a pointer to a function.
-
-     Called by escript::algorithm.
-
-     \param left - vector containing the datapoint
-     \param shape - shape of datapoints in the vector
-     \param offset - beginning of datapoint in the vector
-     \param operation - Input -
-                  Operation to apply. Must be a pointer to a function.
-     \param initial_value 
-  */
-  template <class BinaryFunction>
-  double
-  reductionOp(const DataTypes::RealVectorType& left, 
-	      const DataTypes::ShapeType& shape,
- 	      DataTypes::RealVectorType::size_type offset,
-              BinaryFunction operation,
-              double initial_value);
-
  /**
      \brief
      Perform a matrix multiply of the given views.
@@ -1274,10 +1226,29 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	  const DataTagged& tagsource,			// where to get tag offsets from
 	  escript::ESFunction operation);
 
+
+
+
+  /**
+     \brief
+     Perform the given data point reduction operation on the data point
+     specified by the given offset into the view. Reduces all elements of
+     the data point using the given operation, returning the result as a 
+     scalar. Operation must be a pointer to a function.
+
+     Called by escript::algorithm.
+
+     \param left - vector containing the datapoint
+     \param shape - shape of datapoints in the vector
+     \param offset - beginning of datapoint in the vector
+     \param operation - Input -
+                  Operation to apply. Must be a pointer to a function.
+     \param initial_value 
+  */
 template <class BinaryFunction>
 inline
 DataTypes::real_t
-reductionOp(const DataTypes::RealVectorType& left, 
+reductionOpVector(const DataTypes::RealVectorType& left, 
 			   const DataTypes::ShapeType& leftShape,
 			   DataTypes::RealVectorType::size_type offset,
                            BinaryFunction operation,
@@ -1295,7 +1266,7 @@ reductionOp(const DataTypes::RealVectorType& left,
 template <class BinaryFunction>
 inline
 DataTypes::real_t
-reductionOp(const DataTypes::CplxVectorType& left, 
+reductionOpVector(const DataTypes::CplxVectorType& left, 
 			   const DataTypes::ShapeType& leftShape,
 			   DataTypes::CplxVectorType::size_type offset,
                            BinaryFunction operation,

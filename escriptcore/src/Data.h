@@ -20,13 +20,12 @@
 #define __ESCRIPT_DATA_H__
 
 #include "system_dep.h"
-#include "BinaryOp.h"
 #include "DataAbstract.h"
 #include "DataException.h"
 #include "DataTypes.h"
 #include "EsysMPI.h"
 #include "FunctionSpace.h"
-
+#include "DataMaths.h"
 #include <algorithm>
 #include <string>
 
@@ -1672,21 +1671,40 @@ template <class BinaryOp>
 // If possible please use getReadyPtr instead.
 // But see warning below.
   const DataReady*
-  getReady() const;
+  getReady() const
+{
+   const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
+   return dr;
+}  
 
   DataReady*
-  getReady();
+  getReady()
+{
+   DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
+   return dr;
+}  
 
 
 // Be wary of using this for local operations since it (temporarily) increases reference count.
 // If you are just using this to call a method on DataReady instead of DataAbstract consider using 
 // getReady() instead
   DataReady_ptr
-  getReadyPtr();
+  getReadyPtr()
+{
+   DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
+   return dr;
+}  
 
   const_DataReady_ptr
-  getReadyPtr() const;
-
+  getReadyPtr() const
+{
+   const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
+   return dr;
+}    
 
   /**
    \brief Update the Data's shared flag
@@ -1820,49 +1838,14 @@ Data randomData(const boost::python::tuple& shape,
 // so that I can dynamic cast between them below.
 #include "DataReady.h"
 #include "DataLazy.h"
+#include "DataExpanded.h"
+#include "DataConstant.h"
+#include "DataTagged.h"
 
 namespace escript
 {
 
-inline
-const DataReady*
-Data::getReady() const
-{
-   const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
-   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
-   return dr;
-}
 
-inline
-DataReady*
-Data::getReady()
-{
-   DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
-   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
-   return dr;
-}
-
-// Be wary of using this for local operations since it (temporarily) increases reference count.
-// If you are just using this to call a method on DataReady instead of DataAbstract consider using 
-// getReady() instead
-inline
-DataReady_ptr
-Data::getReadyPtr()
-{
-   DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
-   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
-   return dr;
-}
-
-
-inline
-const_DataReady_ptr
-Data::getReadyPtr() const
-{
-   const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
-   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
-   return dr;
-}
 
 inline
 DataTypes::real_t*
@@ -2126,7 +2109,7 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
 	#pragma omp for private(i,j) schedule(static)
 	for (i=0;i<numSamples;i++) {
 	  for (j=0;j<numDPPSample;j++) {
-	    local_current_value=operation(local_current_value,DataMaths::reductionOp(vec,shape,data.getPointOffset(i,j),operation,initial_value));
+	    local_current_value=operation(local_current_value,DataMaths::reductionOpVector(vec,shape,data.getPointOffset(i,j),operation,initial_value));
 
 	  }
 	}
@@ -2150,14 +2133,14 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
       int tag=*i;
       if (tag==0)	// check for the default tag
       {
-	  current_value=operation(current_value,DataMaths::reductionOp(vec,shape,data.getDefaultOffset(),operation,initial_value));
+	  current_value=operation(current_value,DataMaths::reductionOpVector(vec,shape,data.getDefaultOffset(),operation,initial_value));
       }
       else
       {
 	  DataTagged::DataMapType::const_iterator it=lookup.find(tag);
 	  if (it!=lookup.end())
 	  {
-		  current_value=operation(current_value,DataMaths::reductionOp(vec,shape,it->second,operation,initial_value));
+		  current_value=operation(current_value,DataMaths::reductionOpVector(vec,shape,it->second,operation,initial_value));
 	  }
       }
     }
@@ -2165,7 +2148,7 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
-    return DataMaths::reductionOp(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
+    return DataMaths::reductionOpVector(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
   } else if (isLazy()) {
@@ -2214,7 +2197,7 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     for (i=0;i<numSamples;i++) {
       for (j=0;j<numDPPSample;j++) {
 	resultVec[resultE->getPointOffset(i,j)] =
-	  DataMaths::reductionOp(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
+	  DataMaths::reductionOpVector(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
 
       }
     }    
@@ -2234,9 +2217,9 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     const DataTagged::DataMapType& lookup=dataT->getTagLookup();
     for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
       resultT->getDataByTagRW(i->first,0) =
-	  DataMaths::reductionOp(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
+	  DataMaths::reductionOpVector(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
     }    
-    resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = DataMaths::reductionOp(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
+    resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = DataMaths::reductionOpVector(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
     
     
     
@@ -2253,7 +2236,7 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     
     DataConstant& data=*dataC;
     resultC->getTypedVectorRW(initial_value)[0] =
-	DataMaths::reductionOp(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
+	DataMaths::reductionOpVector(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
     
     //escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
