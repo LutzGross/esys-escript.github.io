@@ -18,18 +18,56 @@
 
 #include <paso/SystemMatrix.h>
 
+#if USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+
+using esys_trilinos::TrilinosMatrixAdapter;
+#endif
+
 namespace dudley {
 
-void Assemble_addToSystemMatrix(escript::ASM_ptr S, dim_t NN_Equa,
-                                const index_t* Nodes_Equa, dim_t num_Equa,
-                                dim_t NN_Sol, const index_t* Nodes_Sol,
-                                dim_t num_Sol, const double *array)
+static void Assemble_addToSystemMatrix_Paso(paso::SystemMatrix* S,
+                        int NN_Equa, const index_t* Nodes_Equa, int num_Equa,
+                        int NN_Sol, const index_t* Nodes_Sol, int num_Sol,
+                        const double* array);
+
+#if USE_TRILINOS
+static void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* S,
+                        int NN_Equa, const index_t* Nodes_Equa, int num_Equa,
+                        int NN_Sol, const index_t* Nodes_Sol, int num_Sol,
+                        const double* array);
+#endif
+
+void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
+                                const index_t* Nodes_Equa, int num_Equa,
+                                int NN_Sol, const index_t* Nodes_Sol,
+                                int num_Sol, const double* array)
 {
-    paso::SystemMatrix* in = dynamic_cast<paso::SystemMatrix*>(S.get());
-    if (!in) {
-        throw DudleyException(
-            "Assemble_addToSystemMatrix: unsupported matrix type.");
+    paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S.get());
+    if (pmat) {
+        Assemble_addToSystemMatrix_Paso(pmat, NN_Equa, Nodes_Equa,
+                                        num_Equa, NN_Sol, Nodes_Sol,
+                                        num_Sol, array);
+        return;
     }
+#if USE_TRILINOS
+    TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(S.get()));
+    if (tmat) {
+        Assemble_addToSystemMatrix_Trilinos(tmat, NN_Equa, Nodes_Equa,
+                                            num_Equa, NN_Sol, Nodes_Sol,
+                                            num_Sol, array);
+        return;
+    }
+#endif
+    throw DudleyException("Assemble_addToSystemMatrix: unsupported system "
+                          "matrix type.");
+}
+
+void Assemble_addToSystemMatrix_Paso(paso::SystemMatrix* in, int NN_Equa,
+                                     const index_t* Nodes_Equa, int num_Equa,
+                                     int NN_Sol, const index_t* Nodes_Sol,
+                                     int num_Sol, const double* array)
+{
     index_t index_offset = (in->type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     dim_t k_Equa, j_Equa, j_Sol, k_Sol, i_Equa, i_Sol, l_col, l_row, ic, ir, k, i_row, i_col;
     index_t *mainBlock_ptr, *mainBlock_index, *col_coupleBlock_ptr, *col_coupleBlock_index, *row_coupleBlock_ptr,
@@ -269,6 +307,19 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S, dim_t NN_Equa,
     }
     }
 }
+
+#if USE_TRILINOS
+void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* S, int NN_Equa,
+                                         const index_t* Nodes_Equa,
+                                         int num_Equa, int NN_Sol,
+                                         const index_t* Nodes_Sol, int num_Sol,
+                                         const double* array)
+{
+    std::vector<index_t> rowIdx(Nodes_Equa, Nodes_Equa+NN_Equa);
+    std::vector<double> arr(array, array+(NN_Equa*NN_Sol*num_Sol*num_Equa));
+    S->add(rowIdx, arr);
+}
+#endif
 
 } // namespace dudley
 

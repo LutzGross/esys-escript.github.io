@@ -32,11 +32,11 @@ struct ElementFile_Jacobians
     /// status of mesh when jacobians where updated last time
     int status;
     /// number of spatial dimensions
-    dim_t numDim;
+    int numDim;
     /// number of quadrature nodes used to calculate jacobians
-    dim_t numQuad;
+    int numQuad;
     /// number of shape functions
-    dim_t numShapes;
+    int numShapes;
     /// number of elements
     dim_t numElements;
     /// used to compute volume
@@ -51,7 +51,7 @@ struct ElementFile_Jacobians
 class ElementFile
 {
 public:
-    ElementFile(ElementTypeId etype, escript::JMPI MPIInfo);
+    ElementFile(ElementTypeId etype, escript::JMPI mpiInfo);
     ~ElementFile();
 
     /// allocates the element table within an element file to hold NE elements
@@ -140,10 +140,10 @@ public:
     index_t maxColor;
 
     /// number of spatial dimensions of the domain
-    dim_t numDim;
+    int numDim;
 
     /// dimension of the element e.g. 2 for a line in 2D or 3D
-    dim_t numLocalDim;
+    int numLocalDim;
 
     /// element type ID
     ElementTypeId etype;
@@ -152,8 +152,9 @@ public:
     const char *ename;
 
     /// number of shape functions
-    dim_t numShapes;
+    int numShapes;
 
+private:
     /// jacobians of the shape function used for solution approximation
     ElementFile_Jacobians* jacobians;
 
