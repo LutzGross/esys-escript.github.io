@@ -29,7 +29,6 @@ dim_t NodeFile::createDenseDOFLabeling()
     std::vector<index_t> distribution(MPIInfo->size + 1);
     dim_t bufferLen = MPIInfo->setDistribution(idRange.first, idRange.second,
                                               &distribution[0]);
-    const dim_t myDOFs = distribution[MPIInfo->rank + 1] - distribution[MPIInfo->rank];
 
     index_t* DOF_buffer = new index_t[bufferLen];
     // fill buffer by the UNSET_ID marker to check if nodes are defined
@@ -65,6 +64,7 @@ dim_t NodeFile::createDenseDOFLabeling()
         }
     }
     // count the entries in the buffer
+    const dim_t myDOFs = distribution[MPIInfo->rank + 1] - distribution[MPIInfo->rank];
     // TODO: OMP parallel
     dim_t myNewDOFs = 0;
     for (index_t n = 0; n < myDOFs; ++n) {
