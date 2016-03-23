@@ -478,7 +478,6 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    }
    else
    {
-        p->makeLazyShared();
         DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
         makeIdentity(dr);
 LAZYDEBUG(cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;)

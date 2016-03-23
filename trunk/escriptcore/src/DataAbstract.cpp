@@ -74,23 +74,6 @@ bool DataAbstract::checkNoSharing() const
   {
       return true;
   }
-  if (!(!m_lazyshared && (m_owners.size()<2)))
-  {
-      std::cerr << m_lazyshared << " " << m_owners.size() << " " << shared_from_this().use_count() << std::endl;
-    
-  }
-  return !m_lazyshared && (m_owners.size()<2);
-
-/*  if (_internal_weak_this.expired())  // there is no shared_ptr for this object yet
-  {
-    return true;
-  }
-  if (shared_from_this().use_count()==2)    // shared_from_this will increase the ref count
-  {                     // which is the reason .unique is no use.
-    return true;
-  }
-std::cerr << "-<"<<shared_from_this().use_count() << ">-" << endl;
-  return false;*/
 }
 
 bool
@@ -107,7 +90,6 @@ DataAbstract::isComplex() const
 
 
 DataAbstract::DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty, bool isCplx):
-    m_lazyshared(false),
     m_noSamples(what.getNumSamples()),
     m_noDataPointsPerSample(what.getNumDPPSample()),
     m_iscompl(isCplx),
@@ -299,53 +281,6 @@ DataAbstract::reorderByReferenceIDs(DataTypes::dim_t* reference_ids)
 {
     throw DataException("Error - DataAbstract:: cannot reorder by reference ids.");
 }
-
-
-void DataAbstract::addOwner(Data* d)
-{
-  for (size_t i=0;i<m_owners.size();++i)
-  {
-    if (m_owners[i]==d)
-    {
-        return;
-    }
-  }
-  m_owners.push_back(d);
-// cerr << "Adding " << d << " as an owner of " << this << " now O=" << m_owners.size() << endl;
-  if (m_owners.size()==2)   // Means it used to be 1 so we need to tell people
-  {
-    for (size_t i=0;i<m_owners.size();++i)
-    {
-        m_owners[i]->updateShareStatus(true);
-    }
-  }
-}
-
-void DataAbstract::removeOwner(Data* d)
-{
-  for (size_t i=0;i<m_owners.size();++i)
-  {
-    if (m_owners[i]==d)
-    {
-        m_owners.erase(m_owners.begin()+i,m_owners.begin()+(i+1));  // remove the element
-        break;
-    }
-  }
-  if (m_owners.size()==1)   // Means it used to be 2 so we need to tell people
-  {
-    m_owners[0]->updateShareStatus(isShared());     // could still be lazy shared
-  }
-}
-
-
-void DataAbstract::makeLazyShared()
-{
-    m_lazyshared=true;  // now we need to inform all the owners
-    for (size_t i=0;i<m_owners.size();++i)
-    {
-        m_owners[i]->updateShareStatus(true);
-    }
-}   
 
 void DataAbstract::complicate()
 {
