@@ -476,26 +476,20 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   bool isComplex() const;
 
-
-  /**
-        \warning should only be used in single threaded code (or inside a single/critical section)
-  */
-  void
-  addOwner(Data*);
-
-  /**
-        \warning should only be used in single threaded code (or inside a single/critical section)
-  */
-  void
-  removeOwner(Data*);
-
   /**
         \brief Is this object owned by more than one Data object
   */
   bool
   isShared() const
   {
-        return m_lazyshared || (m_owners.size()>1);
+      try
+      {
+	  return (shared_from_this().use_count()>2);
+      }
+      catch (...)
+      {
+	  return false;
+      }
   }
 
 #ifdef EXWRITECHK
@@ -519,17 +513,7 @@ protected:
     */
     bool checkNoSharing() const;
 
-    /**
-    \brief Marks this DataAbstract shared as LazyData
-    For internal use only.
-    */
-    void
-    makeLazyShared();
-
     friend class DataLazy;
-
-    std::vector<Data*> m_owners;
-    bool m_lazyshared;
 
   //
   // The number of samples in this Data object.

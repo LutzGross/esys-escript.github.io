@@ -247,7 +247,7 @@ pointToTuple( const DataTypes::ShapeType& shape,ARR v)
 }  // anonymous namespace
 
 Data::Data()
-    : m_shared(false), m_lazy(false)
+    :  m_lazy(false)
 {
     //
     // Default data is type DataEmpty
@@ -260,7 +260,7 @@ Data::Data(real_t value,
            const boost::python::tuple& shape,
            const FunctionSpace& what,
            bool expanded)
-    : m_shared(false), m_lazy(false)
+    :  m_lazy(false)
 {
     DataTypes::ShapeType dataPointShape;
     for (int i = 0; i < shape.attr("__len__")(); ++i) {
@@ -277,14 +277,14 @@ Data::Data(real_t value,
            const DataTypes::ShapeType& dataPointShape,
            const FunctionSpace& what,
            bool expanded)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     initialise(value, dataPointShape, what, expanded);
     m_protected=false;
 }
 
 Data::Data(const Data& inData)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     set_m_data(inData.m_data);
     m_protected=inData.isProtected();
@@ -293,7 +293,7 @@ Data::Data(const Data& inData)
 
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     DataAbstract_ptr dat=inData.m_data;
     if (inData.isLazy())
@@ -314,7 +314,7 @@ Data::Data(const Data& inData,
 
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     if (inData.isEmpty())
     {
@@ -355,14 +355,14 @@ Data::Data(const Data& inData,
 }
 
 Data::Data(DataAbstract* underlyingdata)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     set_m_data(underlyingdata->getPtr());
     m_protected=false;
 }
 
 Data::Data(DataAbstract_ptr underlyingdata)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     set_m_data(underlyingdata);
     m_protected=false;
@@ -372,7 +372,7 @@ Data::Data(const DataTypes::RealVectorType& value,
            const DataTypes::ShapeType& shape,
            const FunctionSpace& what,
            bool expanded)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     initialise(value,shape,what,expanded);
     m_protected=false;
@@ -382,7 +382,7 @@ Data::Data(const DataTypes::RealVectorType& value,
 Data::Data(const boost::python::object& value,
            const FunctionSpace& what,
            bool expanded)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     WrappedArray w(value);
     initialise(w,what,expanded);
@@ -392,7 +392,7 @@ Data::Data(const boost::python::object& value,
 
 Data::Data(const WrappedArray& w, const FunctionSpace& what,
            bool expanded)
-           :m_shared(false), m_lazy(false)
+           : m_lazy(false)
 {
     initialise(w,what,expanded);  
     m_protected=false; 
@@ -401,7 +401,7 @@ Data::Data(const WrappedArray& w, const FunctionSpace& what,
 
 Data::Data(const boost::python::object& value,
            const Data& other)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     WrappedArray w(value);
 
@@ -440,15 +440,9 @@ Data::~Data()
 // This method should be atomic
 void Data::set_m_data(DataAbstract_ptr p)
 {
-    if (m_data.get()!=0)  // release old ownership
-    {
-        m_data->removeOwner(this);
-    }
     if (p.get()!=0)
     {
         m_data=p;
-        m_data->addOwner(this);
-        m_shared=m_data->isShared();
         m_lazy=m_data->isLazy();
     }
 }

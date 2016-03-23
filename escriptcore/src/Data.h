@@ -1661,7 +1661,6 @@ template <class BinaryOp>
   //
   // flag to protect the data object against any update
   bool m_protected;
-  mutable bool m_shared;
   bool m_lazy;
 
   //
@@ -1707,16 +1706,6 @@ template <class BinaryOp>
    return dr;
 }    
 
-  /**
-   \brief Update the Data's shared flag
-   This indicates that the DataAbstract used by this object is now shared (or no longer shared).
-   For internal use only.
-  */
-  void updateShareStatus(bool nowshared) const
-  {
-        m_shared=nowshared;             // m_shared is mutable
-  }
-
   // In the isShared() method below:
   // A problem would occur if m_data (the address pointed to) were being modified 
   // while the call m_data->is_shared is being executed.
@@ -1733,15 +1722,7 @@ template <class BinaryOp>
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-        //return m_shared;
 	return !m_data.unique();
-/*      if (m_shared) return true;
-        if (m_data->isShared())                 
-        {                                       
-                updateShareStatus(true);
-                return true;
-        }
-        return false;*/
   }
 
   void forceResolve()

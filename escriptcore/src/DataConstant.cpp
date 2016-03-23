@@ -28,7 +28,6 @@
 #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {\
     std::ostringstream ss;\
     ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
-    ss << " num owners=" << m_owners.size();\
     int nn=17;\
     try\
     {\
