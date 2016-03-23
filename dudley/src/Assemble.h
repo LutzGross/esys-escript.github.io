@@ -48,12 +48,11 @@ struct AssembleParameters
     int numDim;
     /// leading dimension of element node table
     int NN;
-    /// number of equations (= matrix row block size)
+    /// number of equations (= matrix row/column block size)
     int numEqu;
-    /// number of components (= matrix column block size)
-    int numComp;
     /// row and column degrees of freedom
     const index_t* DOF;
+    /// number of local degrees of freedom
     dim_t DOF_UpperBound;
     /// reference to jacobians
     const ElementFile_Jacobians* jac;
@@ -92,15 +91,14 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
                             const escript::Data& X, const escript::Data& Y);
 
 
-/// Adds the matrix array[Equa,Sol,NN,NN] onto the matrix S.
-/// The rows/columns are given by i_Equa+Equa*Nodes_Equa[Nodes[j_Equa]]
-/// (i_Equa=0:Equa; j_Equa=0:NN_Equa).
+/// Adds the matrix array[Eq,Eq,NN,NN] onto the matrix S.
+/// The rows/columns are given by i_Eq+Eq*Nodes[Nodes[j_Eq]]
+/// (i_Eq=0:Eq; j_Eq=0:NN_Eq).
 /// The routine has to be called from a parallel region and assumes that
-/// Equa=Sol=1, i.e. array is fully packed.
-void Assemble_addToSystemMatrix(escript::ASM_ptr S, dim_t NN_Equa,
-                                const index_t* Nodes_Equa, dim_t num_Equa,
-                                dim_t NN_Sol, const index_t* Nodes_Sol,
-                                dim_t num_Sol, const double* array);
+/// array is fully packed.
+void Assemble_addToSystemMatrix(escript::ASM_ptr S,
+                                const std::vector<index_t>& Nodes, int numEq,
+                                const std::vector<double>& array);
 
 /// Assembles the mass matrix in lumped form.
 /// The coefficient D has to be defined on the integration points or not

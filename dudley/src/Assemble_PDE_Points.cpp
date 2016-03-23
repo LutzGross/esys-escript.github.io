@@ -22,13 +22,13 @@
 
       d_dirac_{k,m} u_m and y_dirac_k
 
-  u has p.numComp components in a 3D domain.
+  u has p.numEqu components in a 3D domain.
   The shape functions for test and solution must be identical and
   row_NS == row_NN.
 
   Shape of the coefficients:
 
-      d_dirac = p.numEqu x p.numComp
+      d_dirac = p.numEqu x p.numEqu
       y_dirac = p.numEqu
 
 
@@ -51,22 +51,26 @@ void Assemble_PDE_Points(const AssembleParameters& p,
 
 #pragma omp parallel
     {
+        std::vector<index_t> rowIndex(1);
+        std::vector<double> values(p.numEqu*p.numEqu);
+
         for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for(index_t e = 0; e < p.elements->numElements; e++) {
+            for (index_t e = 0; e < p.elements->numElements; e++) {
                 if (p.elements->Color[e] == color) {
-                    const index_t row_index = p.DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
+                    rowIndex[0] = p.DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
                         const double* y_dirac_p = y_dirac.getSampleDataRO(e);
-                        util::addScatter(1, &row_index, p.numEqu,
+                        util::addScatter(1, &rowIndex[0], p.numEqu,
                                          y_dirac_p, F_p, p.DOF_UpperBound);
                     }
                    
                     if (!d_dirac.isEmpty()) {
-                        const double* d_dirac_p = d_dirac.getSampleDataRO(e);
-                        Assemble_addToSystemMatrix(p.S, 1, &row_index,
-                               p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
+                        const double* EM_S = d_dirac.getSampleDataRO(e);
+                        values.assign(EM_S, EM_S+p.numEqu*p.numEqu);
+                        Assemble_addToSystemMatrix(p.S, rowIndex, p.numEqu,
+                                                   values);
                     }
                 } // end color check
             } // end element loop
