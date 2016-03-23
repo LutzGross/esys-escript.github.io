@@ -23,8 +23,7 @@ namespace dudley {
 /// but will not create any mappings.
 void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dofDistribution)
 {
-    const dim_t numNodes = Nodes->getNumNodes();
-    int* mpiRankOfDOF = new int[numNodes];
+    int* mpiRankOfDOF = new int[Nodes->getNumNodes()];
     Nodes->assignMPIRankToDOFs(mpiRankOfDOF, dofDistribution);
 
     // first, the elements are redistributed according to mpiRankOfDOF
@@ -35,6 +34,7 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dofDistribution)
     FaceElements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
     Points->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
 
+    // this will replace the node file!
     resolveNodeIds();
 
     // create a local labeling of the DOFs
@@ -42,22 +42,24 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dofDistribution)
     const dim_t len = dofRange.second - dofRange.first + 1;
     // local mask for used nodes
     index_t* localDOF_mask = new index_t[len];
-    index_t* localDOF_map = new index_t[numNodes];
+    index_t* localDOF_map = new index_t[Nodes->getNumNodes()];
 
 #pragma omp parallel for
     for (index_t n = 0; n < len; n++)
         localDOF_mask[n] = -1;
 
 #pragma omp parallel for
-    for (index_t n = 0; n < numNodes; n++)
+    for (index_t n = 0; n < Nodes->getNumNodes(); n++)
         localDOF_map[n] = -1;
 
 #pragma omp parallel for
-    for (index_t n = 0; n < numNodes; n++) {
+    for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
 #ifdef BOUNDS_CHECK
         if ((Nodes->globalDegreesOfFreedom[n] - dofRange.first) >= len
             || (Nodes->globalDegreesOfFreedom[n] - dofRange.first) < 0) {
-            printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__);
+            printf("BOUNDS_CHECK %s:%d, n=%d, gDOF[n]=%d, min_id=%d, len=%d\n",
+                   __FILE__, __LINE__, n, Nodes->globalDegreesOfFreedom[n],
+                   dofRange.first, len);
             exit(1);
         }
 #endif
@@ -73,7 +75,7 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dofDistribution)
         }
     }
 #pragma omp parallel for
-    for (index_t n = 0; n < numNodes; n++) {
+    for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
         localDOF_map[n] = localDOF_mask[
                             Nodes->globalDegreesOfFreedom[n] - dofRange.first];
     }

@@ -67,6 +67,7 @@ void Mesh::resolveNodeIds()
     // by packing the mask usedMask
     std::vector<index_t> newLocalToGlobalNodeLabels =  util::packMask(usedMask);
     const dim_t newNumNodes = newLocalToGlobalNodeLabels.size();
+
     usedMask.clear();
 
     // invert the new labeling and shift the index newLocalToGlobalNodeLabels
