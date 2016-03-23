@@ -23,13 +23,13 @@
 
       -(A_{k,i,m,j} u_m,j)_i-(B_{k,i,m} u_m)_i+C_{k,m,j} u_m,j-D_{k,m} u_m = -(X_{k,i})_i + Y_k
 
-  u has numComp components.
+  u has numEqu components.
   Shape of the coefficients:
 
-      A = numEqu x numDim x numComp x numDim
-      B = numDim x numEqu x numComp
-      C = numEqu x numDim x numComp
-      D = numEqu x numComp
+      A = numEqu x numDim x numEqu x numDim
+      B = numDim x numEqu x numEqu
+      C = numEqu x numDim x numEqu
+      D = numEqu x numEqu
       X = numEqu x numDim
       Y = numEqu
 
@@ -154,9 +154,7 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     }
 
     // check the dimensions
-    if (p.numEqu != p.numComp) {
-        throw DudleyException("Assemble_PDE requires number of equations == number of solutions.");
-    } else if (p.numEqu == 1) {
+    if (p.numEqu == 1) {
         const int dimensions[2] = { p.numDim, p.numDim };
         if (!A.isDataPointShapeEqual(2, dimensions)) {
             setShapeError("A", 2, dimensions);
@@ -172,8 +170,8 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             throw DudleyException("Assemble_PDE: coefficient Y must be rank 0.");
         }
     } else {
-        const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
-        const int dimCD[3] = { p.numEqu, p.numComp, p.numDim };
+        const int dimAB[4] = { p.numEqu, p.numDim, p.numEqu, p.numDim };
+        const int dimCD[3] = { p.numEqu, p.numEqu, p.numDim };
         if (!A.isDataPointShapeEqual(4, dimAB)) {
             setShapeError("A", 4, dimAB);
         } else if (!B.isDataPointShapeEqual(3, dimAB)) {

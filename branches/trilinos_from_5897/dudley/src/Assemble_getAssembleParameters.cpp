@@ -60,17 +60,18 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     // get the number of equations and components
     if (sm == NULL) {
         if (rhs.isEmpty()) {
-            numEqu = numComp = 1;
+            numEqu = 1;
         } else {
-            numEqu = numComp = rhs.getDataPointSize();
+            numEqu = rhs.getDataPointSize();
         }
     } else {
         if (!rhs.isEmpty() && rhs.getDataPointSize() != sm->getRowBlockSize()) {
             throw DudleyException("AssembleParameters: matrix row block size "
                    "and number of components of right hand side don't match.");
         }
+        if (sm->getRowBlockSize() != sm->getColumnBlockSize())
+            throw DudleyException("Dudley requires number of equations == number of solutions.");
         numEqu = sm->getRowBlockSize();
-        numComp = sm->getColumnBlockSize();
     }
     DOF = nodes->borrowTargetDegreesOfFreedom();
     DOF_UpperBound = nodes->getNumDegreesOfFreedom();
@@ -88,7 +89,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
                                   "degrees of freedom in mesh");
         }
         // Make sure # cols in matrix == num local DOF
-        if (numCols != numComp * nodes->getNumDegreesOfFreedom()) {
+        if (numCols != numRows) {
             throw DudleyException("AssembleParameters: number of columns in "
                                   "matrix does not match the number of "
                                   "degrees of freedom in mesh");
