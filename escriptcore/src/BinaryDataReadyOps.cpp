@@ -20,7 +20,9 @@
 #include "BinaryDataReadyOps.h"
 #include "DataTagged.h"
 
+#include <sstream>
 using namespace escript;
+using namespace std;
 
 namespace escript
 {
@@ -66,7 +68,11 @@ void binaryOpDataCCC(DataConstant& result, const DataConstant& left, const DataC
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -187,7 +193,11 @@ void binaryOpDataTCT(DataTagged& result, const DataConstant& left, const DataTag
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -263,7 +273,11 @@ void binaryOpDataECE(DataExpanded& result, const DataConstant& left, const DataE
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -316,7 +330,11 @@ void binaryOpDataEET(DataExpanded& result, const DataExpanded& left, const DataT
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -370,7 +388,11 @@ void binaryOpDataETE(DataExpanded& result, const DataTagged& left, const DataExp
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -503,7 +525,11 @@ void binaryOpDataTTC(DataTagged& result, const DataTagged& left, const DataConst
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -651,7 +677,11 @@ void binaryOpDataTTT(DataTagged& result, const DataTagged& left, const DataTagge
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -727,7 +757,11 @@ void binaryOpDataEEC(DataExpanded& result, const DataExpanded& left, const DataC
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
@@ -805,7 +839,11 @@ void binaryOpDataEEE(DataExpanded& result, const DataExpanded& left, const DataE
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
   {
-      throw DataException("Programming error: result has unexpected complexity");
+      ostringstream oss;
+      oss << "Programming error: result has unexpected complexity ";
+      oss << result.isComplex() << "==" << left.isComplex() << "||";
+      oss << right.isComplex();
+      throw DataException(oss.str());
   }
   
   if (left.isComplex())
