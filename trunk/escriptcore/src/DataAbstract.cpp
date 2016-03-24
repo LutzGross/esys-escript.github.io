@@ -66,14 +66,19 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
 // invasive pointers which can answer these questions faster
 bool DataAbstract::checkNoSharing() const
 {
-  try
-  {
-      return shared_from_this().use_count()<=2;	// since shared_from_this increments count
-  }
-  catch (...)
-  {
-      return true;
-  }
+    bool unique=false;
+    #pragma omp critical		// because two treads could try 
+    {					// this check at the same time
+	try
+	{
+	    unique=shared_from_this().use_count()<=2;
+	}
+	catch (...)
+	{
+	    unique=true;
+	}
+    }   
+    return unique;	// since shared_from_this increments count
 }
 
 bool
