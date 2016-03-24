@@ -5260,6 +5260,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataConstant output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       if (!emptyResult)
       {      
           binaryOpDataCCC(*dynamic_cast<DataConstant*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
@@ -5269,6 +5273,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataTagged output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       res.tag();
       if (!emptyResult)
       {
@@ -5279,6 +5287,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       if (!emptyResult)
       {
           binaryOpDataECE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
@@ -5288,6 +5300,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant())
     {
       Data res(0.0, resultshape, arg_0_Z.getFunctionSpace());      // DataTagged output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       res.tag();
       if (!emptyResult)
       {
@@ -5298,6 +5314,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       res.tag();        // DataTagged output
       if (!emptyResult)
       {
@@ -5308,6 +5328,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       if (!emptyResult)
       {
           binaryOpDataETE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
@@ -5316,6 +5340,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       if (!emptyResult)
       {
           binaryOpDataEEC(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
@@ -5324,6 +5352,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       if (!emptyResult)
       {
           binaryOpDataEET(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
@@ -5332,6 +5364,10 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       if (!emptyResult)
       {
           binaryOpDataEEE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);

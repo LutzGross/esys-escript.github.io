@@ -39,6 +39,8 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest
 import numpy
+import math
+import cmath
 from esys.escript import *
 from test_util_base import Test_util_base
 
@@ -46,6 +48,36 @@ class Test_util_unary_no_tagged_data(Test_util_base):
    """
    test for unary operations. No tagged data are tested.
    """
+   def iterateops(self, ops, vals):
+      for p in ops:
+          o,c,z=p
+          for v in vals:
+            res=o(v)
+            if isinstance(v,complex):
+               ref=z(v)
+            else:
+               ref=c(v)
+            self.assertTrue(isinstance(res,type(ref)),"wrong type of result.")
+            self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+            d=Data(v)
+            res=o(d)
+            self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result for data")
+
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_complex_nonzero(self):
+      #Compare results of unary ops provided by util and their python equivalents
+      ops=[(sin,math.sin,cmath.sin), (cos,math.cos,cmath.cos), (tan,math.tan,cmath.tan), (log,math.log,cmath.log), (log10, math.log10, cmath.log10), (Abs, abs, abs),
+(acos,math.acos,cmath.acos), (acosh,math.acosh,cmath.acosh), (asin,math.asin,cmath.asin), (asinh, math.asinh,cmath.asinh),
+(cosh, math.cosh, cmath.cosh), (exp, math.exp, cmath.exp), (sinh, math.sinh, cmath.sinh), (sqrt, math.sqrt, cmath.sqrt)]
+      vals=[1+0j,-1+0j,1j, -1j, math.pi*1j,3+4j]
+      self.iterateops(ops,vals)
+      ops=[(atan,math.atan,cmath.atan)]
+      vals=[1+0j,-1+0j, math.pi*1j,3+4j]
+      self.iterateops(ops,vals)
+      ops=[(atanh,math.atanh,cmath.atanh)]
+      vals=[1j, -1j, math.pi*1j,3+4j]
+      self.iterateops(ops,vals)
+
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log10_float_rank0(self):
       arg=52.2519689858
