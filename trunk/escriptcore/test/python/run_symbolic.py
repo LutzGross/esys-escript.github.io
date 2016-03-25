@@ -37,6 +37,7 @@ Test suite for the escript.symbolic module
 __author__="Cihan Altinay"
 
 from esys.escript import *
+from esys.escript.symbolic import *
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 import numpy
