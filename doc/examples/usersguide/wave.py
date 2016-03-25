@@ -26,6 +26,7 @@ matplotlib.use('agg')    #For interactive use, you can comment out this line
 #It's just here to make testing easier
 import matplotlib.pyplot as plt
 from numpy import zeros,ones
+import numpy
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.pdetools import Locator
