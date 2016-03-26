@@ -44,6 +44,7 @@ from esys.weipa import saveVTK
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import *
+import os
 try:
     # This imports the rectangle domain function 
     from esys.finley import Rectangle
