@@ -27,7 +27,7 @@
 #endif
 
 
-#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
+#define CHECK_FOR_EX_WRITE if (isShared()) {throw DataException("Attempt to modify shared object");}
 
 // #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; throw DataException(ss.str());}
 
