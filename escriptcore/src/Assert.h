@@ -35,6 +35,7 @@
 //
 
 #include <escript/EsysException.h>
+#include <iostream>
 #include <sstream>
 
 #if ESYS_MPI
