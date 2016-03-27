@@ -482,14 +482,18 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   bool
   isShared() const
   {
-      try
+    bool shared=false;
+    #pragma omp critical        // because two treads could try
+    {                   // this check at the same time
+      try               // and shared_from_this increments count
       {
-	  return (shared_from_this().use_count()>2);
+        shared=shared_from_this().use_count()>2;
       }
       catch (...)
       {
-	  return false;
       }
+    }
+    return shared;
   }
 
 #ifdef EXWRITECHK
@@ -507,12 +511,6 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
  virtual void complicate();
 
 protected:
-    /**
-    \brief Returns true if this object is not shared.
-    For internal use only. - It may not be particularly fast
-    */
-    bool checkNoSharing() const;
-
     friend class DataLazy;
 
   //

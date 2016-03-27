@@ -31,7 +31,7 @@ using namespace std;
 using namespace escript::DataTypes;
 
 #define CHECK_FOR_EX_WRITE do {\
-    if (!checkNoSharing()) {\
+    if (isShared()) {\
         std::ostringstream ss;\
         ss << "Attempt to modify shared object. Line " << __LINE__ << " in "\
            << __FILE__;\

@@ -1722,7 +1722,7 @@ template <class BinaryOp>
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-	return !m_data.unique();
+	return m_data->isShared();      // single threadsafe check for this
   }
 
   void forceResolve()
@@ -1769,7 +1769,9 @@ template <class BinaryOp>
   {
         if  (isLazy() || isShared())
         {
-                throw DataException("Programming error. ExclusiveWrite required - please call requireWrite()");
+                std::ostringstream oss;
+                oss << "Programming error. ExclusiveWrite required - please call requireWrite() isLazy=" << isLazy() << " isShared()=" << isShared(); 
+                throw DataException(oss.str());
         }
   }
 

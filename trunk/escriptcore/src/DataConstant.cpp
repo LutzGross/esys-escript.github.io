@@ -25,7 +25,7 @@
 #include <netcdfcpp.h>
 #endif
 
-#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {\
+#define CHECK_FOR_EX_WRITE if (isShared()) {\
     std::ostringstream ss;\
     ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
     int nn=17;\

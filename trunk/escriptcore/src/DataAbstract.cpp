@@ -59,28 +59,6 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
   }
 }
 
-
-// Warning - this method uses .use_count() which the boost doco labels inefficient.
-// If this method needs to be called in debug contexts, we may need to do some
-// timing experiments to determine how inefficient and possibly switch over to
-// invasive pointers which can answer these questions faster
-bool DataAbstract::checkNoSharing() const
-{
-    bool unique=false;
-    #pragma omp critical		// because two treads could try 
-    {					// this check at the same time
-	try
-	{
-	    unique=shared_from_this().use_count()<=2;
-	}
-	catch (...)
-	{
-	    unique=true;
-	}
-    }   
-    return unique;	// since shared_from_this increments count
-}
-
 bool
 DataAbstract::isLazy() const
 {
