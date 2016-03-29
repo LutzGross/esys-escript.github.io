@@ -582,7 +582,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    const double ZERO = 0.0;
    double *RAP_main_val=NULL, *RAP_couple_val=NULL, *RAP_ext_val=NULL;
    double rtmp, *RAP_val, *RA_val, *R_val, *temp_val=NULL, *t1_val, *t2_val;
-   index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
+   index_t size=mpi_info->size, rank=mpi_info->rank;
    index_t *RAP_main_ptr=NULL, *RAP_couple_ptr=NULL, *RAP_ext_ptr=NULL;
    index_t *RAP_main_idx=NULL, *RAP_couple_idx=NULL, *RAP_ext_idx=NULL;
    index_t *offsetInShared=NULL, *row_couple_ptr=NULL, *row_couple_idx=NULL;
@@ -1677,7 +1677,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    /* Start to create the coarse level System Matrix A_c */
    /******************************************************/
    /* first, prepare the sender/receiver for the col_connector */
-   dist = P->pattern->input_distribution->first_component;
+   const std::vector<index_t> dist(P->pattern->input_distribution->first_component);
    recv_len = new dim_t[size];
    send_len = new dim_t[size];
    neighbor = new int[size];
@@ -1999,7 +1999,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    const double ZERO = 0.0;
    double *RAP_main_val=NULL, *RAP_couple_val=NULL, *RAP_ext_val=NULL;
    double rtmp, *RAP_val, *RA_val, *R_val, *temp_val=NULL;
-   index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
+   index_t size=mpi_info->size, rank=mpi_info->rank;
    index_t *RAP_main_ptr=NULL, *RAP_couple_ptr=NULL, *RAP_ext_ptr=NULL;
    index_t *RAP_main_idx=NULL, *RAP_couple_idx=NULL, *RAP_ext_idx=NULL;
    index_t *offsetInShared=NULL, *row_couple_ptr=NULL, *row_couple_idx=NULL;
@@ -3073,7 +3073,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    /* Start to create the coarse level System Matrix A_c */
    /******************************************************/
    /* first, prepare the sender/receiver for the col_connector */
-   dist = P->pattern->input_distribution->first_component;
+   const std::vector<index_t> dist(P->pattern->input_distribution->first_component);
    recv_len = new dim_t[size];
    send_len = new dim_t[size];
    neighbor = new int[size];

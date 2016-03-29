@@ -54,7 +54,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    const dim_t col_block_size=P->col_block_size;
    const dim_t n=P->mainBlock->numRows;
    const dim_t n_C=P->mainBlock->numCols;
-   index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
+   index_t size=mpi_info->size, rank=mpi_info->rank;
    index_t *ptr=NULL, *idx=NULL, *degree_set=NULL, *offset_set=NULL;
    index_t *send_ptr=NULL, *recv_ptr=NULL, *recv_idx=NULL;
    index_t *temp=NULL, *where_p=NULL;
@@ -299,7 +299,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    }
 
    /* prepare the receiver for the col_connector */
-   dist = P->pattern->output_distribution->first_component;
+   const std::vector<index_t> dist(P->pattern->output_distribution->first_component);
    offsetInShared = new index_t[size+1];
    shared = new index_t[num_Rcouple_cols];
    numNeighbors = send->numNeighbors;
@@ -361,8 +361,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
                         num_Rcouple_cols, ptr, idx));
 
    input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-   dist = P->pattern->input_distribution->first_component;
-   output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
+   output_dist.reset(new Distribution(mpi_info, P->pattern->input_distribution->first_component, 1, 0));
 
     /* now we need to create the System Matrix
        TO BE FIXED: at this stage, we only construction col_couple_pattern

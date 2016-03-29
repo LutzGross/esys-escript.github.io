@@ -38,9 +38,8 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
 {
     const dim_t n = getNumRows();
     const dim_t m = getNumCols();
-    const index_t me = mpi_info->rank;
-    const index_t row_offset = row_distribution->first_component[me];
-    const index_t col_offset = col_distribution->first_component[me];
+    const index_t row_offset = row_distribution->getFirstComponent();
+    const index_t col_offset = col_distribution->getFirstComponent();
     double* cols = new double[m];
     double* rows = new double[n];
     Coupler_ptr col_couple(new Coupler(col_coupler->connector, 1));
