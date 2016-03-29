@@ -30,7 +30,8 @@
 using namespace std;
 using namespace escript::DataTypes;
 
-#define CHECK_FOR_EX_WRITE do {\
+#ifdef SLOWSHARECHECK
+  #define CHECK_FOR_EX_WRITE do {\
     if (isShared()) {\
         std::ostringstream ss;\
         ss << "Attempt to modify shared object. Line " << __LINE__ << " in "\
@@ -38,8 +39,10 @@ using namespace escript::DataTypes;
         abort();\
         throw DataException(ss.str());\
     }\
-} while(0);
-
+  } while(0);
+#else
+  #define CHECK_FOR_EX_WRITE
+#endif
 
 namespace escript {
 

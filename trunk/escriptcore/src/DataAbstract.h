@@ -476,6 +476,10 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   bool isComplex() const;
 
+#ifdef SLOWSHARECHECK   
+  
+  // For this to be threadsafe, we need to be sure that this is the
+  // only way shared-ness is tested.
   /**
         \brief Is this object owned by more than one Data object
   */
@@ -495,6 +499,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
     }
     return shared;
   }
+#endif    
 
 #ifdef EXWRITECHK
   bool exclusivewritecalled;    // used to check for some potential programming faults

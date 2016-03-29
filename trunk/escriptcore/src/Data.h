@@ -1722,7 +1722,11 @@ template <class BinaryOp>
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
+#ifdef SLOWSHARECHECK        
 	return m_data->isShared();      // single threadsafe check for this
+#else
+	return !m_data.unique();
+#endif	
   }
 
   void forceResolve()
