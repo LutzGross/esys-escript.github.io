@@ -25,7 +25,9 @@
 #include <netcdfcpp.h>
 #endif
 
-#define CHECK_FOR_EX_WRITE if (isShared()) {\
+
+#ifdef SLOWSHARECHECK
+  #define CHECK_FOR_EX_WRITE if (isShared()) {\
     std::ostringstream ss;\
     ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
     int nn=17;\
@@ -39,7 +41,11 @@
     }\
     std::cerr << ss.str() << std::endl;\
     throw DataException(ss.str());}
-
+#else
+  #define CHECK_FOR_EX_WRITE 
+#endif
+    
+    
 using namespace std;
 using namespace boost::python;
 
