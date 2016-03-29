@@ -95,13 +95,12 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
     }
 
     double* rows = NULL;
-    const index_t rank = mpi_info->rank;
     Coupler_ptr coupler;
     if (global_id == NULL) {
         // prepare for global coordinates in colCoupleBlock, the results are
         // in coupler->recv_buffer
         rows = new double[main_num_rows];
-        const index_t row_offset = row_distribution->first_component[rank];
+        const index_t row_offset = row_distribution->getFirstComponent();
 #pragma omp parallel for
         for (index_t i=0; i<main_num_rows; ++i)
             rows[i] = row_offset+i;
@@ -113,7 +112,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
     index_t* couple_ptr = col_coupleBlock->pattern->ptr;
     index_t* couple_idx = col_coupleBlock->pattern->index;
     double*  couple_val = col_coupleBlock->val;
-    const index_t col_offset = col_distribution->first_component[rank];
+    const index_t col_offset = col_distribution->getFirstComponent();
     const index_t main_num_vals = main_ptr[main_num_rows]-main_ptr[0];
     const index_t couple_num_vals = couple_ptr[couple_num_rows]-couple_ptr[0];
     const index_t num_vals = main_num_vals + couple_num_vals;
@@ -203,13 +202,12 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     }
 
     double* rows = NULL;
-    const index_t rank = mpi_info->rank;
     Coupler_ptr coupler;
     if (global_id == NULL) {
         // prepare for global coordinates in colCoupleBlock, the results are
         // in coupler->recv_buffer
         rows = new double[main_num_rows];
-        const index_t row_offset = row_distribution->first_component[rank];
+        const index_t row_offset = row_distribution->getFirstComponent();
 #pragma omp parallel for
         for (index_t i=0; i<main_num_rows; ++i)
             rows[i]=row_offset+i;
@@ -221,7 +219,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     index_t* couple_ptr = col_coupleBlock->pattern->ptr;
     index_t* couple_idx = col_coupleBlock->pattern->index;
     double*  couple_val = col_coupleBlock->val;
-    const index_t col_offset = col_distribution->first_component[rank];
+    const index_t col_offset = col_distribution->getFirstComponent();
     const index_t main_num_vals = main_ptr[main_num_rows]-main_ptr[0];
     const index_t couple_num_vals = couple_ptr[couple_num_rows]-couple_ptr[0];
     const index_t num_vals = main_num_vals + couple_num_vals;

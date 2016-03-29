@@ -41,18 +41,14 @@ typedef boost::shared_ptr<const Distribution> const_Distribution_ptr;
 PASO_DLL_API
 struct Distribution
 {
-    Distribution(const escript::JMPI& mpiInfo, const index_t* firstComponent,
-                 index_t m, index_t b) :
+    Distribution(const escript::JMPI& mpiInfo,
+                 const std::vector<index_t>& firstComponent, index_t m,
+                 index_t b) :
         mpi_info(mpiInfo)
     {
-        first_component = new index_t[mpi_info->size+1];
-        for (dim_t i=0; i < mpi_info->size+1; ++i)
+        first_component.resize(mpi_info->size+1);
+        for (int i=0; i < mpi_info->size+1; ++i)
             first_component[i] = m*firstComponent[i]+b;
-    }
-
-    ~Distribution()
-    {
-        delete[] first_component;
     }
 
     inline index_t getFirstComponent() const
@@ -114,7 +110,7 @@ struct Distribution
 
 #pragma omp parallel for schedule(static)
         for (index_t i=0; i<my_n; ++i) {
-            out[i]=fmod(random_seed*(n_0+i+1), 1.);
+            out[i] = fmod(random_seed*(n_0+i+1), 1.);
         }
 
         random_seed = fmod(random_seed * (n+1.7), 1.);
@@ -123,9 +119,8 @@ struct Distribution
 
     // process i has nodes with global indices first_component[i] to
     // first_component[i+1].
-    index_t* first_component;
-    dim_t reference_counter;
-    const escript::JMPI mpi_info;
+    std::vector<index_t> first_component;
+    escript::JMPI mpi_info;
     static double random_seed;
 };
 

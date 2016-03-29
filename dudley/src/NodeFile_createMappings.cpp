@@ -248,11 +248,10 @@ void NodeFile::createNodeMappings(const std::vector<index_t>& dofDist,
                                   const std::vector<index_t>& nodeDist)
 {
     // ==== distribution of Nodes ====
-    nodesDistribution.reset(new paso::Distribution(
-                                                MPIInfo, &nodeDist[0], 1, 0));
+    nodesDistribution.reset(new paso::Distribution(MPIInfo, nodeDist, 1, 0));
 
     // ==== distribution of DOFs ====
-    dofDistribution.reset(new paso::Distribution(MPIInfo, &dofDist[0], 1, 0));
+    dofDistribution.reset(new paso::Distribution(MPIInfo, dofDist, 1, 0));
 
     index_t* nodeMask = new index_t[numNodes];
     const index_t UNUSED = -1;

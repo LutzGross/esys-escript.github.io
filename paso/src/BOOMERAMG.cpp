@@ -81,10 +81,10 @@ Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A,
     /* set up inputs for BoomerAMG */
     nrows = A->mainBlock->numRows;
 
-    ilower = A->row_distribution->first_component[A->mpi_info->rank];
+    ilower = A->row_distribution->getFirstComponent();
     iupper = ilower + nrows - 1;
 
-    jlower = A->col_distribution->first_component[A->mpi_info->rank];
+    jlower = A->col_distribution->getFirstComponent();
     jupper = ilower + A->mainBlock->numCols - 1;
 
     rows = new index_t[nrows];
@@ -255,7 +255,7 @@ void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr A,
 
     /* set up inputs for BoomerAMG */
     nrows = A->mainBlock->numRows;
-    ilower = A->row_distribution->first_component[A->mpi_info->rank];
+    ilower = A->row_distribution->getFirstComponent();
     iupper = ilower + nrows - 1;
     rows = new index_t[nrows];
     #pragma omp parallel for schedule(static) private(i)

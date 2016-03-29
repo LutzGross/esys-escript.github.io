@@ -2437,7 +2437,7 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
 
     // allocate paso distribution
     paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
+                                                    m_nodeDistribution, 1, 0));
 
     // finally create the system matrix pattern
     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
