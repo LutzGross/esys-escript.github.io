@@ -124,8 +124,12 @@ void SharedDataTestCase::testGetSampleRW()
 {
   Data d((double)42,DataTypes::scalarShape, getSharedFs());
   Data L=d.delay();
+  
+  
+#ifdef SLOWSHARECHECK
   // now change the data directly
   CPPUNIT_ASSERT_THROW(*d.getSampleDataRW(0)=17, DataException);
+#endif  
   // Now try again properly 
   d.requireWrite();
   *d.getSampleDataRW(0)=17;
