@@ -20,9 +20,13 @@
 
 #include "DataTypes.h"
 #include "DataException.h"
-
+#include <iostream>
 #include <cmath>
 #include <complex>
+
+#ifdef BROKENACOS
+#include <boost/math/complex/acos.hpp>	// std::acos for complex on OSX (elcapitan) is wrong
+#endif
 
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
@@ -641,6 +645,22 @@ inline DataTypes::cplx_t calc_sign(DataTypes::cplx_t x)
     return makeNaN();
 }
 
+inline 
+DataTypes::real_t calc_acos(DataTypes::real_t x)
+{
+    return acos(x);
+}
+
+inline 
+DataTypes::cplx_t calc_acos(DataTypes::cplx_t x)
+{
+#ifdef BROKENACOS
+              return boost::math::acos(x);
+#else
+              return acos(x);
+#endif  
+}
+
 
 inline escript::DataTypes::real_t fabs(const escript::DataTypes::cplx_t c)
 {
@@ -774,7 +794,7 @@ inline void tensor_unary_array_operation(const size_t size,
           break;
     case ACOSF:
 	  for (size_t i = 0; i < size; ++i) {
-              argRes[i] = acos(arg1[i]);
+              argRes[i]=calc_acos(arg1[i]);
           }
           break;
     case ATANF:
