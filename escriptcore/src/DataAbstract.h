@@ -144,6 +144,12 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   int
   getNumSamples() const;
+  
+  bool
+  hasNoSamples() const
+  {
+      return getNumSamples()==0;
+  }
 
   /**
      \brief
@@ -470,27 +476,30 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   bool isComplex() const;
 
-
-  /**
-        \warning should only be used in single threaded code (or inside a single/critical section)
-  */
-  void
-  addOwner(Data*);
-
-  /**
-        \warning should only be used in single threaded code (or inside a single/critical section)
-  */
-  void
-  removeOwner(Data*);
-
+#ifdef SLOWSHARECHECK   
+  
+  // For this to be threadsafe, we need to be sure that this is the
+  // only way shared-ness is tested.
   /**
         \brief Is this object owned by more than one Data object
   */
   bool
   isShared() const
   {
-        return m_lazyshared || (m_owners.size()>1);
+    bool shared=false;
+    #pragma omp critical        // because two treads could try
+    {                   // this check at the same time
+      try               // and shared_from_this increments count
+      {
+        shared=shared_from_this().use_count()>2;
+      }
+      catch (...)
+      {
+      }
+    }
+    return shared;
   }
+#endif    
 
 #ifdef EXWRITECHK
   bool exclusivewritecalled;    // used to check for some potential programming faults
@@ -507,23 +516,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
  virtual void complicate();
 
 protected:
-    /**
-    \brief Returns true if this object is not shared.
-    For internal use only. - It may not be particularly fast
-    */
-    bool checkNoSharing() const;
-
-    /**
-    \brief Marks this DataAbstract shared as LazyData
-    For internal use only.
-    */
-    void
-    makeLazyShared();
-
     friend class DataLazy;
-
-    std::vector<Data*> m_owners;
-    bool m_lazyshared;
 
   //
   // The number of samples in this Data object.

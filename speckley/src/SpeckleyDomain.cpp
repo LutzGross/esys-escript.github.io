@@ -22,6 +22,7 @@
 #include <escript/index.h>
 
 #include <iomanip>
+#include <iostream>
 
 namespace bp = boost::python;
 

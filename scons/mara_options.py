@@ -21,8 +21,8 @@ escript_opts_version = 202
 #cxx = 'g++-4.8'
 #cc_flags = ''
 cc_optim = '-O3 -march=native'
-cc_debug = "-g3 -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -D_GLIBCXX_DEBUG -fno-omit-frame-pointer -fsanitize=address --param=max-vartrack-size=90000000"
-cxx_extra = '-std=c++11 -Wextra -Wno-unused-parameter -g'
+cc_debug = "-g3 -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -D_GLIBCXX_DEBUG -fno-omit-frame-pointer" #-fsanitize=address 
+cxx_extra = '-Wextra -Wno-unused-parameter -Wno-deprecated-declarations -g'
 nvccflags = "-arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 #ld_extra = ''
 #werror = False

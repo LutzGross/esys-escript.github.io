@@ -15,8 +15,8 @@
 *****************************************************************************/
 
 #include <escript/DataTypes.h>
+#include <escript/DataVectorOps.h>
 #include "DataMathsTestCase.h"
-#include <escript/DataAlgorithm.h>
 #include <escript/DataTypes.h>
 #include <escript/DataVector.h>
 
@@ -27,7 +27,6 @@ using namespace CppUnit;
 using namespace escript;
 using namespace std;
 using namespace escript::DataTypes;
-using namespace escript::DataMaths;
 
 
 void DataMathsTestCase::testMatMult()
@@ -47,7 +46,7 @@ void DataMathsTestCase::testMatMult()
     DataTypes::RealVectorType rightData(DataTypes::noValues(rightShape),0);
 //     DataArrayView rightDataView(rightData,rightShape);
 
-    DataTypes::ShapeType resultShape=DataMaths::determineResultShape(leftShape,rightShape);
+    DataTypes::ShapeType resultShape=determineResultShape(leftShape,rightShape);
 
     CPPUNIT_ASSERT(resultShape.size()==2);
     CPPUNIT_ASSERT(resultShape[0]==1);
@@ -69,426 +68,10 @@ void DataMathsTestCase::testMatMult()
       }
     }
 
-    DataMaths::matMult(leftData,leftShape,0,rightData,rightShape,0,resultData, resultShape);
+    matMult(leftData,leftShape,0,rightData,rightShape,0,resultData, resultShape);
     CPPUNIT_ASSERT((resultData[0]==22) && (resultData[1]==28));
 
     cout << endl;
-}
-
-void DataMathsTestCase::testUnaryOp()
-{
-
-  // This typedef allows function names to be cast to pointers
-  // to unary functions of the appropriate type.
-  typedef double (*UnaryDFunPtr)(double);
-
-  {
-    cout << endl;
-    cout << "\tTest unaryOp on scalar Data.";
-
-    // define the shape for the Data
-    DataTypes::ShapeType shape;
-
-    // allocate the data for the Data
-    int npoints=4;
-    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
-
-    double tmp;
-    int offset=0;
-    // step the view along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data point
-      data[offset]=p;
-
-      // apply a unary operation to this data point
-      unaryOp(data,shape,offset,(UnaryDFunPtr)std::sin);
-
-      // check the results
-      tmp = std::sin((double)p);
-      CPPUNIT_ASSERT(std::abs(data[offset]-tmp)<=REL_TOL*std::abs(tmp));
-
-      if (p<npoints-1) {
-        offset++;
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest unaryOp on shape (2,3) Data.";
-
-    // define the shape for the DataArrayView
-    DataTypes::ShapeType shape;
-    shape.push_back(2);
-    shape.push_back(3);
-
-    // allocate the data for the DataArrayView
-    int npoints=4;
-    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
-
-
-    int offset=0;
-    // step the view along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data point
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          data[offset+getRelIndex(shape,i,j)]=offset+getRelIndex(shape,i,j);
-        }
-      }
-
-      // apply a unary operation to this data point
-//      dataView.unaryOp((UnaryDFunPtr)std::sqrt);
-      unaryOp(data,shape,offset,(UnaryDFunPtr)std::sqrt);
-
-      // check the results
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-//           CPPUNIT_ASSERT(std::abs(dataView(i,j)-std::sqrt((double)dataView.index(i,j)))<=REL_TOL*std::sqrt((double)dataView.index(i,j)));
-          CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j)]-std::sqrt((double)offset+getRelIndex(shape,i,j)))<=REL_TOL*std::sqrt((double)offset+getRelIndex(shape,i,j)));
-        }
-      }
-
-      if (p<npoints-1) {
-        offset++;
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest unaryOp on shape (9,8,5,11) Data.";
-
-    // define the shape for the DataArrayView
-    DataTypes::ShapeType shape;
-    shape.push_back(9);
-    shape.push_back(8);
-    shape.push_back(5);
-    shape.push_back(11);
-
-    // allocate the data for the DataArrayView
-    int npoints=4;
-    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the view along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data point
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          for (int k=0;k<shape[2];k++) {
-            for (int l=0;l<shape[3];l++) {
-              data[offset+getRelIndex(shape,i,j,k,l)]=data[offset+getRelIndex(shape,i,j,k,l)]+1;
-            }
-          }
-        }
-      }
-
-      // apply a unary operation to this data point
-//       dataView.unaryOp((UnaryDFunPtr)std::log);
-      unaryOp(data,shape,offset,(UnaryDFunPtr)std::log);
-
-      // check the results
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          for (int k=0;k<shape[2];k++) {
-            for (int l=0;l<shape[3];l++) {
-              CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j,k,l)]-std::log(1+(double)data[offset+getRelIndex(shape,i,j,k,l)]))<=REL_TOL*std::abs(std::log(1+(double)data[offset+getRelIndex(shape,i,j,k,l)])));
-            }
-          }
-        }
-      }
-
-      if (p<npoints-1) {
-        offset++;
-      }
-
-    }
-
-  }
-
-  cout << endl;
-
-}
-
-void DataMathsTestCase::testBinaryOp()
-{
-  {
-    cout << endl;
-    cout << "\tTest binaryOp on scalar Data.";
-
-    // define the shape for the DataArrayViews
-    DataTypes::ShapeType shape;
-
-    // allocate the data for the DataArrayViews
-    int npoints=4;
-    DataTypes::RealVectorType data1(DataTypes::noValues(shape)*npoints,0);
-    DataTypes::RealVectorType data2(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the views along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data points
-      data1[offset]=p;
-      data2[offset]=p;
-
-      // apply a binary operation to these data points
-      binaryOp(data1,scalarShape,offset,data2,scalarShape,offset, plus<double>());
-
-      // check the results
-      CPPUNIT_ASSERT(data1[offset]==p+p);
-
-      if (p<npoints-1) {
-	++offset;
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest binaryOp on shape (2,3) Data.";
-
-    // define the shape for the DataArrayViews
-    DataTypes::ShapeType shape;
-    shape.push_back(2);
-    shape.push_back(3);
-
-    // allocate the data for the DataArrayViews
-    int npoints=4;
-    DataTypes::RealVectorType data1(DataTypes::noValues(shape)*npoints,0);
-    DataTypes::RealVectorType data2(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the views along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data points
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          data1[offset+getRelIndex(shape,i,j)]=offset+getRelIndex(shape,i,j);
-          data2[offset+getRelIndex(shape,i,j)]=offset+getRelIndex(shape,i,j);
-        }
-      }
-
-      // apply a binary operation to these data points
-/*      dataView1.binaryOp(dataView2,multiplies<double>());*/
-      binaryOp(data1,shape,offset,data2,shape,offset,multiplies<double>());
-
-      // check the results
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          CPPUNIT_ASSERT(data1[offset+getRelIndex(shape,i,j)]==(offset+getRelIndex(shape,i,j))*(offset+getRelIndex(shape,i,j)));
-        }
-      }
-
-      if (p<npoints-1) {
-	offset+=noValues(shape);
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest binaryOp on shape (9,8,5,11) Data.";
-
-    // define the shape for the DataArrayViews
-    DataTypes::ShapeType shape;
-    shape.push_back(9);
-    shape.push_back(8);
-    shape.push_back(5);
-    shape.push_back(11);
-
-    // allocate the data for the DataArrayViews
-    int npoints=4;
-    DataTypes::RealVectorType data1(DataTypes::noValues(shape)*npoints,0);
-    DataTypes::RealVectorType data2(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the views along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data points
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          for (int k=0;k<shape[2];k++) {
-            for (int l=0;l<shape[3];l++) {
-              data1[offset+getRelIndex(shape,i,j,k,l)]=offset+getRelIndex(shape,i,j,k,l);
-              data2[offset+getRelIndex(shape,i,j,k,l)]=offset+getRelIndex(shape,i,j,k,l);
-            }
-          }
-        }
-      }
-
-      // apply a binary operation to these data points
-//      dataView1.binaryOp(dataView2,multiplies<double>());
-      binaryOp(data1,shape,offset,data2,shape,offset,multiplies<double>());
-
-      // check the results
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          for (int k=0;k<shape[2];k++) {
-            for (int l=0;l<shape[3];l++) {
-              CPPUNIT_ASSERT(data1[offset+getRelIndex(shape,i,j,k,l)]==(offset+getRelIndex(shape,i,j,k,l))*(offset+getRelIndex(shape,i,j,k,l)));
-            }
-          }
-        }
-      }
-
-      if (p<npoints-1) {
-	offset+=noValues(shape);
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest binaryOp on scalar Data and single value.";
-
-    // define the shape for the DataArrayView
-    DataTypes::ShapeType shape;
-
-    // allocate the data for the DataArrayView
-    int npoints=4;
-    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the view along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data point
-      data[offset]=p;
-
-      // apply a binary operation to this data point
-//       dataView.binaryOp(4.9,plus<double>());
-      binaryOp(data,shape,offset,4.9,plus<double>());
-
-      // check the results
-      CPPUNIT_ASSERT(data[offset]==4.9+p);
-
-      if (p<npoints-1) {
-        ++offset;
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest binaryOp on shape (2,3) Data and single value.";
-
-    // define the shape for the DataArrayView
-    DataTypes::ShapeType shape;
-    shape.push_back(2);
-    shape.push_back(3);
-
-    // allocate the data for the DataArrayView
-    int npoints=4;
-    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the view along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data point
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          data[offset+getRelIndex(shape,i,j)]=offset+getRelIndex(shape,i,j);
-        }
-      }
-
-      // apply a binary operation to the data point
-//       dataView.binaryOp(5.8,multiplies<double>());
-      binaryOp(data,shape,offset,5.8,multiplies<double>());
-
-      double tmp;
-      // check the results
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          tmp=5.8*(offset+getRelIndex(shape,i,j));
-          CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j)]-tmp)<=REL_TOL*std::abs(tmp));
-        }
-      }
-
-      if (p<npoints-1) {
-        offset+=noValues(shape);
-      }
-
-    }
-
-  }
-
-  {
-    cout << endl;
-    cout << "\tTest binaryOp on shape (9,8,5,11) Data and single value.";
-
-    // define the shape for the DataArrayView
-    DataTypes::ShapeType shape;
-    shape.push_back(9);
-    shape.push_back(8);
-    shape.push_back(5);
-    shape.push_back(11);
-
-    // allocate the data for the DataArrayView
-    int npoints=4;
-    DataTypes::RealVectorType data(DataTypes::noValues(shape)*npoints,0);
-
-    int offset=0;
-    // step the view along each data point in the underlying data
-    for (int p=0;p<npoints;p++) {
-
-      // assign values to the data point
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          for (int k=0;k<shape[2];k++) {
-            for (int l=0;l<shape[3];l++) {
-              data[offset+getRelIndex(shape,i,j,k,l)]=offset+getRelIndex(shape,i,j,k,l);
-            }
-          }
-        }
-      }
-
-      // apply a binary operation to the data point
-//       dataView.binaryOp(5.4,multiplies<double>());
-      binaryOp(data,shape,offset,5.4,multiplies<double>());
-
-      double tmp;
-      // check the results
-      for (int i=0;i<shape[0];i++) {
-        for (int j=0;j<shape[1];j++) {
-          for (int k=0;k<shape[2];k++) {
-            for (int l=0;l<shape[3];l++) {
-              tmp=5.4*(offset+getRelIndex(shape,i,j,k,l));
-              CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j,k,l)]-tmp)<=REL_TOL*std::abs(tmp));
-            }
-          }
-        }
-      }
-
-      if (p<npoints-1) {
-        offset+=noValues(shape);
-      }
-
-    }
-
-  }
-
-  cout << endl;
-
 }
 
 void DataMathsTestCase::testReductionOp()
@@ -514,8 +97,8 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMax fmax_func;
-//       CPPUNIT_ASSERT(std::abs(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
-      CPPUNIT_ASSERT(std::abs(reductionOp(data,shape,offset,fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
+//       CPPUNIT_ASSERT(std::abs(dataView.reductionOpVector(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
+      CPPUNIT_ASSERT(std::abs(reductionOpVector(data,shape,offset,fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
 
 
 
@@ -553,7 +136,7 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMin fmin_func;
-      CPPUNIT_ASSERT(std::abs(reductionOp(data,shape,offset,fmin_func,numeric_limits<double>::max())-offset)<=REL_TOL*std::abs(offset));
+      CPPUNIT_ASSERT(std::abs(reductionOpVector(data,shape,offset,fmin_func,numeric_limits<double>::max())-offset)<=REL_TOL*std::abs(offset));
 
       if (p<npoints-1) {
         offset+=noValues(shape);
@@ -595,7 +178,7 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       AbsMax<DataTypes::real_t> absmax_func;
-      CPPUNIT_ASSERT(reductionOp(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
+      CPPUNIT_ASSERT(reductionOpVector(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
 
       if (p<npoints-1) {
         offset+=noValues(shape);
@@ -613,11 +196,6 @@ TestSuite* DataMathsTestCase::suite()
 {
   // create the suite of tests to perform.
   TestSuite *testSuite = new TestSuite("DataMathsTestCase");
-
-  testSuite->addTest(new TestCaller<DataMathsTestCase>(
-              "testUnaryOp",&DataMathsTestCase::testUnaryOp));
-  testSuite->addTest(new TestCaller<DataMathsTestCase>(
-              "testBinaryOp",&DataMathsTestCase::testBinaryOp));
   testSuite->addTest(new TestCaller<DataMathsTestCase>(
               "testReductionOp",&DataMathsTestCase::testReductionOp));
   testSuite->addTest(new TestCaller<DataMathsTestCase>(

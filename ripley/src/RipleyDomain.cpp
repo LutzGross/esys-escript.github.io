@@ -32,6 +32,7 @@
 #include <paso/Transport.h>
 
 #include <iomanip>
+#include <iostream>
 
 namespace bp = boost::python;
 

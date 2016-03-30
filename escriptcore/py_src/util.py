@@ -41,9 +41,10 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
 import math
-import numpy
+import cmath
 import os
 import warnings
+import numpy
 warnings.simplefilter('default', category=DeprecationWarning)
 
 from . import escriptcpp as escore
@@ -430,7 +431,7 @@ def Lsup(arg):
         return sup(abs(arg))
     elif isinstance(arg,escore.Data):
         return arg._Lsup()
-    elif isinstance(arg,float):
+    elif isinstance(arg,float) or isinstance(arg, complex):
         return abs(arg)
     elif isinstance(arg,int):
         return abs(float(arg))
@@ -455,6 +456,8 @@ def sup(arg):
         return arg
     elif isinstance(arg,int):
         return float(arg)
+    elif isinstance(arg,complex):
+        raise TypeError("sup:  Operation not supported for complex.")
     else:
         raise TypeError("sup: Unknown argument type.")
 
@@ -476,6 +479,8 @@ def inf(arg):
         return arg
     elif isinstance(arg,int):
         return float(arg)
+    elif isinstance(arg,complex):
+        raise TypeError("inf:  Operation not supported for complex.")
     else:
       raise TypeError("inf: Unknown argument type.")
 
@@ -499,9 +504,7 @@ def getRank(arg):
         return arg.ndim
     elif isinstance(arg,escore.Data):
         return arg.getRank()
-    elif isinstance(arg,float):
-        return 0
-    elif isinstance(arg,int):
+    elif isinstance(arg,float) or isinstance(arg,int) or isinstance(arg,complex):
         return 0
     elif isinstance(arg,sym.Symbol):
         return arg.getRank()
@@ -526,9 +529,7 @@ def getShape(arg):
         return numpy.array(arg).shape
     elif isinstance(arg,escore.Data):
         return arg.getShape()
-    elif isinstance(arg,float):
-        return ()
-    elif isinstance(arg,int):
+    elif isinstance(arg,float) or isinstance(arg,int) or isinstance(arg,complex):
         return ()
     elif isinstance(arg,sym.Symbol):
         return arg.getShape()
@@ -613,9 +614,7 @@ def testForZero(arg):
        return not Lsup(arg)>0.
     elif isinstance(arg,escore.Data):
        return False
-    elif isinstance(arg,float):
-       return not Lsup(arg)>0.
-    elif isinstance(arg,int):
+    elif isinstance(arg,float) or isinstance(arg,int) or isinstance(arg,complex):
        return not Lsup(arg)>0.
     else:
        return False
@@ -744,10 +743,10 @@ def log10(arg):
       return numpy.log10(arg)
    elif isinstance(arg,escore.Data):
       return arg._log10()
-   elif isinstance(arg,float):
+   elif isinstance(arg,complex):
+      return cmath.log10(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.log10(arg)
-   elif isinstance(arg,int):
-      return math.log10(float(arg))
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.log10)
    else:
@@ -781,6 +780,8 @@ def wherePositive(arg):
         return 0.
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.wherePositive)
+   elif isinstance(arg,complex):
+      raise TypeError("wherePositive: operation not supported for complex");
    else:
       raise TypeError("wherePositive: Unknown argument type.")
 
@@ -812,6 +813,8 @@ def whereNegative(arg):
         return 0.
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.whereNegative)
+   elif isinstance(arg,complex):
+      raise TypeError("whereNegative: operation not supported for complex");
    else:
       raise TypeError("whereNegative: Unknown argument type.")
 
@@ -843,6 +846,8 @@ def whereNonNegative(arg):
         return 1.
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.whereNonNegative)
+   elif isinstance(arg,complex):
+      raise TypeError("whereNonNegative: operation not supported for complex");
    else:
       raise TypeError("whereNonNegative: Unknown argument type.")
 
@@ -874,6 +879,8 @@ def whereNonPositive(arg):
         return 1.
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.whereNonPositive)
+   elif isinstance(arg,complex):
+      raise TypeError("whereNonPositive: operation not supported for complex");
    else:
       raise TypeError("whereNonPositive: Unknown argument type.")
 
@@ -902,13 +909,8 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereZero(tol)
-   elif isinstance(arg,float):
+   elif isinstance(arg,float) or isinstance(arg,complex) or isinstance(arg, int):
       if abs(arg)<=tol:
-        return 1.
-      else:
-        return 0.
-   elif isinstance(arg,int):
-      if abs(float(arg))<=tol:
         return 1.
       else:
         return 0.
@@ -940,13 +942,8 @@ def whereNonZero(arg,tol=0.):
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNonZero(tol)
-   elif isinstance(arg,float):
+   elif isinstance(arg,float) or isinstance(arg,complex) or isinstance(arg, int):
       if abs(arg)>tol:
-        return 1.
-      else:
-        return 0.
-   elif isinstance(arg,int):
-      if abs(float(arg))>tol:
         return 1.
       else:
         return 0.
@@ -1001,9 +998,9 @@ def sin(arg):
       return numpy.sin(arg)
    elif isinstance(arg,escore.Data):
       return arg._sin()
-   elif isinstance(arg,float):
-      return math.sin(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.sin(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.sin(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.sin)
@@ -1024,9 +1021,9 @@ def cos(arg):
       return numpy.cos(arg)
    elif isinstance(arg,escore.Data):
       return arg._cos()
-   elif isinstance(arg,float):
-      return math.cos(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.cos(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.cos(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.cos)
@@ -1047,9 +1044,9 @@ def tan(arg):
       return numpy.tan(arg)
    elif isinstance(arg,escore.Data):
       return arg._tan()
-   elif isinstance(arg,float):
-      return math.tan(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.tan(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.tan(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.tan)
@@ -1070,9 +1067,9 @@ def asin(arg):
       return numpy.arcsin(arg)
    elif isinstance(arg,escore.Data):
       return arg._asin()
-   elif isinstance(arg,float):
-      return math.asin(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.asin(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.asin(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.asin)
@@ -1093,9 +1090,9 @@ def acos(arg):
       return numpy.arccos(arg)
    elif isinstance(arg,escore.Data):
       return arg._acos()
-   elif isinstance(arg,float):
-      return math.acos(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.acos(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.acos(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.acos)
@@ -1116,9 +1113,9 @@ def atan(arg):
       return numpy.arctan(arg)
    elif isinstance(arg,escore.Data):
       return arg._atan()
-   elif isinstance(arg,float):
-      return math.atan(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.atan(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.atan(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.atan)
@@ -1147,9 +1144,9 @@ def sinh(arg):
       return numpy.sinh(arg)
    elif isinstance(arg,escore.Data):
       return arg._sinh()
-   elif isinstance(arg,float):
-      return math.sinh(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.sinh(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.sinh(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.sinh)
@@ -1170,9 +1167,9 @@ def cosh(arg):
       return numpy.cosh(arg)
    elif isinstance(arg,escore.Data):
       return arg._cosh()
-   elif isinstance(arg,float):
-      return math.cosh(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.cosh(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.cosh(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.cosh)
@@ -1193,9 +1190,9 @@ def tanh(arg):
       return numpy.tanh(arg)
    elif isinstance(arg,escore.Data):
       return arg._tanh()
-   elif isinstance(arg,float):
-      return math.tanh(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.tanh(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.tanh(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.tanh)
@@ -1216,9 +1213,9 @@ def asinh(arg):
       return numpy.arcsinh(arg)
    elif isinstance(arg,escore.Data):
       return arg._asinh()
-   elif isinstance(arg,float):
-      return numpy.arcsinh(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return numpy.arcsinh(complex(arg))
+   elif isinstance(arg,float) or isinstance(arg,int):
       return numpy.arcsinh(float(arg))
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.asinh)
@@ -1239,9 +1236,9 @@ def acosh(arg):
       return numpy.arccosh(arg)
    elif isinstance(arg,escore.Data):
       return arg._acosh()
-   elif isinstance(arg,float):
-      return numpy.arccosh(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return numpy.arccosh(complex(arg))
+   elif isinstance(arg,float) or isinstance(arg,int):
       return numpy.arccosh(float(arg))
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.acosh)
@@ -1262,9 +1259,9 @@ def atanh(arg):
       return numpy.arctanh(arg)
    elif isinstance(arg,escore.Data):
       return arg._atanh()
-   elif isinstance(arg,float):
-      return numpy.arctanh(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return numpy.arctanh(complex(arg))
+   elif isinstance(arg,float) or isinstance(arg,int):
       return numpy.arctanh(float(arg))
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.atanh)
@@ -1285,9 +1282,9 @@ def exp(arg):
       return numpy.exp(arg)
    elif isinstance(arg,escore.Data):
       return arg._exp()
-   elif isinstance(arg,float):
-      return math.exp(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.exp(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.exp(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.exp)
@@ -1308,9 +1305,9 @@ def sqrt(arg):
       return numpy.sqrt(arg)
    elif isinstance(arg,escore.Data):
       return arg._sqrt()
-   elif isinstance(arg,float):
-      return math.sqrt(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.sqrt(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.sqrt(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.sqrt)
@@ -1331,9 +1328,9 @@ def log(arg):
       return numpy.log(arg)
    elif isinstance(arg,escore.Data):
       return arg._log()
-   elif isinstance(arg,float):
-      return math.log(arg)
-   elif isinstance(arg,int):
+   elif isinstance(arg,complex):
+      return cmath.log(arg)
+   elif isinstance(arg,float) or isinstance(arg,int):
       return math.log(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.log)
@@ -1354,17 +1351,10 @@ def sign(arg):
       return wherePositive(arg)-whereNegative(arg)
    elif isinstance(arg,escore.Data):
       return arg._sign()
-   elif isinstance(arg,float):
+   elif isinstance(arg,float) or isinstance(arg,complex) or isinstance(arg,int):
       if arg>0:
         return 1.
       elif arg<0:
-        return -1.
-      else:
-        return 0.
-   elif isinstance(arg,int):
-      if float(arg)>0:
-        return 1.
-      elif float(arg)<0:
         return -1.
       else:
         return 0.
@@ -1486,6 +1476,8 @@ def trace(arg,axis_offset=0):
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       return arg.trace(axis_offset)
+   elif isinstance(arg,complex):
+      raise TypeError("illegal argument type complex.")
    elif isinstance(arg,float):
       raise TypeError("illegal argument type float.")
    elif isinstance(arg,int):
@@ -1519,6 +1511,10 @@ def transpose(arg,axis_offset=None):
       if axis_offset<0 or axis_offset>r:
         raise ValueError("axis_offset must be between 0 and %s"%r)
       return arg._transpose(axis_offset)
+   elif isinstance(arg,complex):
+      if not ( axis_offset==0 or axis_offset is None):
+        raise ValueError("axis_offset must be 0 for complex argument")
+      return arg
    elif isinstance(arg,float):
       if not ( axis_offset==0 or axis_offset is None):
         raise ValueError("axis_offset must be 0 for float argument")
@@ -1560,6 +1556,8 @@ def swap_axes(arg,axis0=0,axis1=1):
       return arg._swap_axes(axis0,axis1)
    elif isinstance(arg,sym.Symbol):
       return arg.swap_axes(axis0,axis1)
+   elif isinstance(arg,complex):
+      raise TypeError("complex argument is not supported.")
    elif isinstance(arg,float):
       raise TypeError("float argument is not supported.")
    elif isinstance(arg,int):
@@ -1608,6 +1606,8 @@ def symmetric(arg):
         else:
             raise ValueError("symmetric: rank 2 or 4 is required.")
         return (arg+transpose(arg))/2
+    elif isinstance(arg,complex):
+      return arg
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
@@ -1656,6 +1656,8 @@ def nonsymmetric(arg):
         else:
             raise ValueError("nonsymmetric: rank 2 or 4 is required.")
         return (arg-transpose(arg))/2
+    elif isinstance(arg,complex):
+        return arg
     elif isinstance(arg,float):
         return arg
     elif isinstance(arg,int):
@@ -1680,6 +1682,8 @@ def inverse(arg):
       return numpy.linalg.tensorinv(arg,ind=1)
     elif isinstance(arg,escore.Data):
       return escript_inverse(arg)
+    elif isinstance(arg,complex):
+      return 1./arg
     elif isinstance(arg,float):
       return 1./arg
     elif isinstance(arg,int):
@@ -1762,6 +1766,8 @@ def eigenvalues(arg):
       return out
     elif isinstance(arg,escore.Data):
       return arg._eigenvalues()
+    elif isinstance(arg,complex):
+      return arg
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
@@ -1790,6 +1796,8 @@ def eigenvalues_and_eigenvectors(arg):
       raise TypeError("eigenvalues_and_eigenvectors does not support numpy.ndarray arguments")
     elif isinstance(arg,escore.Data):
       return arg._eigenvalues_and_eigenvectors()
+    elif isinstance(arg,complex):
+      return (numpy.array([[arg]],numpy.complex_),numpy.ones((1,1),numpy.complex_))
     elif isinstance(arg,float):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
@@ -2377,7 +2385,9 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
              each data point
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
-    if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
+    if ((isinstance(arg0,float) or isinstance(arg0,complex)) and 
+        (isinstance(arg1,float) or isinstance(arg1,complex))):
+            return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
     # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
     # or one is a Symbol and the other either of the allowed types
@@ -2387,7 +2397,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        r1=getRank(arg1)
        if not sh0[arg0.getRank()-axis_offset:]==sh1[r1-axis_offset:]:
           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
-       if isinstance(arg1,float):
+       if isinstance(arg1,float) or isinstance(arg1,complex):
           return arg0*arg1
        elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, sym.Symbol):
           return arg0.tensorTransposedProduct(arg1, axis_offset)

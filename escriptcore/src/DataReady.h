@@ -46,12 +46,21 @@ public:
      Return the sample data for the given sample number.
   */
   ESCRIPT_DLL_API
-  double*
-  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
+  DataTypes::real_t*
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0);
+  
+  ESCRIPT_DLL_API
+  DataTypes::cplx_t*
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy);  
 
   ESCRIPT_DLL_API
-  const double*
-  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
+  const DataTypes::real_t*
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0) const;
+  
+  ESCRIPT_DLL_API
+  const DataTypes::cplx_t*
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const;
+  
 
   /**
 	\brief Provide access to underlying storage. Internal use only!
@@ -169,16 +178,31 @@ public:
 
 inline
 DataTypes::real_t*
-DataReady::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
+DataReady::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy)
 {
   return &(getVectorRW()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVectorRW()
 }
 
+inline
+DataTypes::cplx_t*
+DataReady::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy)
+{
+  return &(getVectorRWC()[getPointOffset(sampleNo,0)]);		// exclusive write checks will be done in getVectorRW()
+}
+
+
 inline const DataTypes::real_t*
-DataReady::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
+DataReady::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy) const
 {
   return &(getVectorRO()[getPointOffset(sampleNo,0)]);		
 }
+
+inline const DataTypes::cplx_t*
+DataReady::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const
+{
+  return &(getVectorROC()[getPointOffset(sampleNo,0)]);		
+}
+
 
 
 inline

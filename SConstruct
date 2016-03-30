@@ -155,7 +155,8 @@ vars.AddVariables(
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)',
-False)
+False),
+  BoolVariable('broken_cppacos', 'Use boost acos instead of std version', False)
 )
 
 ##################### Create environment and help text #######################
@@ -262,7 +263,7 @@ if cc_name == 'icpc':
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
     cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
-    cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
+    cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK"
     omp_flags   = "-openmp"
     omp_ldflags = "-openmp -openmp_report=1"
     fatalwarning = "-Werror"
@@ -273,7 +274,7 @@ elif cc_name[:3] == 'g++':
     cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = "-g3 -O0 -D_GLIBCXX_DEBUG -DDOASSERT -DDOPROF -DBOUNDS_CHECK --param=max-vartrack-size=100000000"
+    cc_debug     = "-g3 -O0 -D_GLIBCXX_DEBUG -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
@@ -320,6 +321,9 @@ if env['forcelazy'] == 'on':
     env.Append(CPPDEFINES=['FAUTOLAZYON'])
 elif env['forcelazy'] == 'off':
     env.Append(CPPDEFINES=['FAUTOLAZYOFF'])
+
+if env['broken_cppacos']:
+    env.Append(CPPDEFINES=['BROKENACOS'])
 
 # set up the collective resolve values
 if env['forcecollres'] == 'on':
@@ -377,6 +381,8 @@ if env['launcher'] == 'default':
         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
     elif env['mpi'] == 'OPENMPI':
         env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
+        #newer OpenMPI version:
+        #env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --map-by node:pe=%t -bind-to core -np %N %b"
     elif env['mpi'] == 'MPT':
         env['launcher'] = "mpirun %h -np %p %b"
     elif env['mpi'] == 'MPICH':

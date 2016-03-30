@@ -32245,7 +32245,7 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       arg1=numpy.array(-7.0)
       res=generalTensorTransposedProduct(arg0,arg1,axis_offset=0)
       ref=numpy.array(-0.0)
-      self.assertTrue(isinstance(res,numpy.ndarray),"wrong type of result.")
+      self.assertTrue(isinstance(res,numpy.ndarray),"wrong type of result."+str(type(res)))
       self.assertEqual(res.shape,(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

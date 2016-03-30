@@ -25,7 +25,7 @@
 #include "EscriptParams.h"
 #include "FunctionSpaceException.h"
 #include "FunctionSpaceFactory.h"
-#include "UnaryFuncs.h"
+#include "BinaryDataReadyOps.h"
 
 #ifdef IKNOWWHATIMDOING
 #include "Dodgy.h"
@@ -36,6 +36,7 @@
 #include <functional>
 #include <sstream>      // so we can throw messages about ranks
 #include <vector>
+#include <iostream>
 
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
@@ -114,36 +115,6 @@ using DataTypes::cplx_t;
 
 #define CHECK_DO_CRES escriptParams.getRESOLVE_COLLECTIVE()
 
-
-
-#define BINOPTENSOR(L,T) \
-    if (!(L).isComplex()) \
-    { \
-        if (!right.isComplex()) /* both are real */ \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::real_t, DataTypes::real_t>()); \
-        } \
-        else \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::real_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
-        } \
-    } \
-    else        /* L isComplex */\
-    { \
-        if (!right.isComplex())  \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>()); \
-        } \
-        else \
-        { \
-            return C_TensorBinaryOperation((L), right, T<DataTypes::cplx_t, DataTypes::cplx_t, DataTypes::cplx_t>()); \
-        } \
-    } 
-
-
-    
-    
-    
 
 namespace
 {
@@ -276,7 +247,7 @@ pointToTuple( const DataTypes::ShapeType& shape,ARR v)
 }  // anonymous namespace
 
 Data::Data()
-    : m_shared(false), m_lazy(false)
+    :  m_lazy(false)
 {
     //
     // Default data is type DataEmpty
@@ -289,7 +260,7 @@ Data::Data(real_t value,
            const boost::python::tuple& shape,
            const FunctionSpace& what,
            bool expanded)
-    : m_shared(false), m_lazy(false)
+    :  m_lazy(false)
 {
     DataTypes::ShapeType dataPointShape;
     for (int i = 0; i < shape.attr("__len__")(); ++i) {
@@ -306,14 +277,14 @@ Data::Data(real_t value,
            const DataTypes::ShapeType& dataPointShape,
            const FunctionSpace& what,
            bool expanded)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     initialise(value, dataPointShape, what, expanded);
     m_protected=false;
 }
 
 Data::Data(const Data& inData)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     set_m_data(inData.m_data);
     m_protected=inData.isProtected();
@@ -322,7 +293,7 @@ Data::Data(const Data& inData)
 
 Data::Data(const Data& inData,
            const DataTypes::RegionType& region)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     DataAbstract_ptr dat=inData.m_data;
     if (inData.isLazy())
@@ -343,7 +314,7 @@ Data::Data(const Data& inData,
 
 Data::Data(const Data& inData,
            const FunctionSpace& functionspace)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     if (inData.isEmpty())
     {
@@ -384,14 +355,14 @@ Data::Data(const Data& inData,
 }
 
 Data::Data(DataAbstract* underlyingdata)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     set_m_data(underlyingdata->getPtr());
     m_protected=false;
 }
 
 Data::Data(DataAbstract_ptr underlyingdata)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     set_m_data(underlyingdata);
     m_protected=false;
@@ -401,7 +372,7 @@ Data::Data(const DataTypes::RealVectorType& value,
            const DataTypes::ShapeType& shape,
            const FunctionSpace& what,
            bool expanded)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     initialise(value,shape,what,expanded);
     m_protected=false;
@@ -411,7 +382,7 @@ Data::Data(const DataTypes::RealVectorType& value,
 Data::Data(const boost::python::object& value,
            const FunctionSpace& what,
            bool expanded)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     WrappedArray w(value);
     initialise(w,what,expanded);
@@ -421,7 +392,7 @@ Data::Data(const boost::python::object& value,
 
 Data::Data(const WrappedArray& w, const FunctionSpace& what,
            bool expanded)
-           :m_shared(false), m_lazy(false)
+           : m_lazy(false)
 {
     initialise(w,what,expanded);  
     m_protected=false; 
@@ -430,7 +401,7 @@ Data::Data(const WrappedArray& w, const FunctionSpace& what,
 
 Data::Data(const boost::python::object& value,
            const Data& other)
-        : m_shared(false), m_lazy(false)
+        :  m_lazy(false)
 {
     WrappedArray w(value);
 
@@ -469,15 +440,9 @@ Data::~Data()
 // This method should be atomic
 void Data::set_m_data(DataAbstract_ptr p)
 {
-    if (m_data.get()!=0)  // release old ownership
-    {
-        m_data->removeOwner(this);
-    }
     if (p.get()!=0)
     {
         m_data=p;
-        m_data->addOwner(this);
-        m_shared=m_data->isShared();
         m_lazy=m_data->isLazy();
     }
 }
@@ -2013,7 +1978,7 @@ Data::lazyAlgWorker(real_t init)
         throw DataException("Error - lazyAlgWorker can only be called on lazy(expanded) data.");
     }
     DataLazy* dl=dynamic_cast<DataLazy*>(m_data.get());
-    ESYS_ASSERT(dl!=0, "Programming error - casting to DataLazy.");
+    ESYS_ASSERT(dl!=NULL, "Programming error - casting to DataLazy.");
     real_t val=init;
     int i=0;
     const size_t numsamples=getNumSamples();
@@ -2033,7 +1998,7 @@ Data::lazyAlgWorker(real_t init)
             {
                 localtot=operation(localtot,(*v)[j+roffset]);
             }
-            if (DataMaths::vectorHasNaN(*v,roffset, samplesize))
+            if (escript::vectorHasNaN(*v,roffset, samplesize))
             {
                 #pragma omp critical
                 {
@@ -2138,7 +2103,7 @@ Data::LsupWorker() const
     {
         AbsMax<cplx_t> abs_max_func;
         real_t localValue=0;
-        localValue = algorithm(abs_max_func,0);
+        localValue = reduction(abs_max_func,0);
 
     #ifdef ESYS_MPI
         real_t globalValue=0;
@@ -2152,7 +2117,7 @@ Data::LsupWorker() const
     {  
         AbsMax<real_t> abs_max_func;
         real_t localValue=0;
-        localValue = algorithm(abs_max_func,0);
+        localValue = reduction(abs_max_func,0);
 
     #ifdef ESYS_MPI
         real_t globalValue=0;   
@@ -2191,7 +2156,14 @@ Data::supWorker() const
     //
     // set the initial maximum value to min possible real_t
     FMax fmax_func;
-    localValue = algorithm(fmax_func,numeric_limits<real_t>::infinity()*-1);
+    if (hasNoSamples())
+    {
+	localValue = numeric_limits<real_t>::infinity()*-1;
+    }
+    else
+    {
+	localValue = reduction(fmax_func,numeric_limits<real_t>::infinity()*-1);      
+    }
     #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     return globalValue;
@@ -2226,7 +2198,14 @@ Data::infWorker() const
     //
     // set the initial minimum value to max possible real_t
     FMin fmin_func;
-    localValue = algorithm(fmin_func,numeric_limits<real_t>::infinity());
+    if (hasNoSamples())
+    {
+	localValue = numeric_limits<real_t>::infinity();
+    }
+    else
+    {
+	localValue = reduction(fmin_func,numeric_limits<real_t>::infinity());
+    }
 #ifdef ESYS_MPI
     MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, getDomain()->getMPIComm() );
     return globalValue;
@@ -2721,7 +2700,8 @@ Data::operator+=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::PLUSF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::PLUSF);  
+    //binaryDataOp(right, escript::ESFunction::PLUSF);
     return (*this);
 }
 
@@ -2757,7 +2737,8 @@ Data::operator-=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::MINUSF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::MINUSF);
+    //binaryDataOp(right, escript::ESFunction::MINUSF);
     return (*this);
 }
 
@@ -2784,7 +2765,8 @@ Data::operator*=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::MULTIPLIESF);
+    //binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
     return (*this);
 }
 
@@ -2811,7 +2793,8 @@ Data::operator/=(const Data& right)
     {
         complicate();
     }
-    binaryDataOp(right, escript::ESFunction::DIVIDESF);
+    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::DIVIDESF);
+    //binaryDataOp(right, escript::ESFunction::DIVIDESF);
     return (*this);
 }
 
@@ -2842,7 +2825,9 @@ Data::matrixInverse() const
     THROWONCOMPLEX
     Data out(0.,getDataPointShape(),getFunctionSpace());
     out.typeMatchRight(*this);
-    int errcode=m_data->matrixInverse(out.getReadyPtr().get());
+
+    DataReady* drp=out.getReadyPtr().get();
+    int errcode=m_data->matrixInverse(drp);
 #ifdef ESYS_MPI
     int globalval=0;
     MPI_Allreduce( &errcode, &globalval, 1, MPI_INT, MPI_MAX, get_MPIComm() );
@@ -2850,7 +2835,7 @@ Data::matrixInverse() const
 #endif
     if (errcode)
     {
-        DataMaths::matrixInverseError(errcode); // throws exceptions
+        escript::matrixInverseError(errcode); // throws exceptions
     }
     return out;
 }
@@ -2874,7 +2859,10 @@ Data
 Data::powD(const Data& right) const
 {
     MAKELAZYBIN(right,POW);
-    BINOPTENSOR(*this, pow_func);
+    //BINOPTENSOR(*this, pow_func);
+    
+    return C_TensorBinaryOperation(*this, right, ESFunction::POWF);    
+    
 }
 
 
@@ -2884,11 +2872,10 @@ Data
 escript::operator+(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,ADD);
-    BINOPTENSOR(left,plus_func)
+//    BINOPTENSOR(left,plus_func)
     
     
-//    return C_TensorBinaryOperation(left, right, ESFunction::PLUSF);
-//     BINOPTENSOR(left,plus_func)
+    return C_TensorBinaryOperation(left, right, ESFunction::PLUSF);
 }
 
 //
@@ -2897,7 +2884,9 @@ Data
 escript::operator-(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,SUB);
-    BINOPTENSOR(left,minus_func)
+//    BINOPTENSOR(left,minus_func)
+    
+    return C_TensorBinaryOperation(left, right, ESFunction::MINUSF);    
 }
 
 //
@@ -2905,8 +2894,10 @@ escript::operator-(const Data& left, const Data& right)
 Data
 escript::operator*(const Data& left, const Data& right)
 {
-    MAKELAZYBIN2(left,right,MUL);
-    BINOPTENSOR(left,multiplies_func);
+    MAKELAZYBIN2(left,right,MUL);    
+//    BINOPTENSOR(left,multiplies_func);
+    
+    return C_TensorBinaryOperation(left, right, ESFunction::MULTIPLIESF);        
 }
 
 //
@@ -2915,7 +2906,9 @@ Data
 escript::operator/(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,DIV);
-    BINOPTENSOR(left,divides_func);
+//    BINOPTENSOR(left,divides_func);
+        
+    return C_TensorBinaryOperation(left, right, ESFunction::DIVIDESF);        
 }
 
 //
@@ -3558,7 +3551,7 @@ DataReady_ptr
 Data::borrowReadyPtr() const
 {
     DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
-    ESYS_ASSERT((dr!=0), "Error - casting to DataReady.");
+    ESYS_ASSERT(dr!=NULL, "Casting to DataReady.");
     return dr;
 }
 
@@ -4328,7 +4321,7 @@ Data::dump(const std::string fileName) const
     }
     catch (std::exception& e)
     {
-        cout << e.what() << endl;
+        std::cout << e.what() << std::endl;
     }
 }
 
@@ -4966,7 +4959,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   
   // Declare output Data object
   Data res;
-
+  bool emptyResult=(arg_0_Z.getNumSamples()==0);
   if (arg_0_Z.isConstant()) {
     if (arg_0_Z.isComplex())                    // this is not taking into account cplx->real
     {
@@ -4975,12 +4968,20 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         if (always_real(operation))
         {
+	    if (emptyResult)
+	    {
+		return res;
+	    }
             DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, (real_t)(0)));
             tensor_unary_array_operation_real(size0, ptr_0, ptr_2, operation, tol);       
         }
         else
         {
             res.complicate();
+	    if (emptyResult)
+	    {
+		return res;
+	    }	    
             DataTypes::cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
             tensor_unary_array_operation(size0, ptr_0, ptr_2, operation, tol);
         }
@@ -4991,6 +4992,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         // functions like .real() and .imag() but they are caught in the Data interface
         DataTypes::real_t dummy=0;
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+	if (emptyResult)
+	{
+	    return res;
+	}
+	
         const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummy));
         if (always_real(operation))
@@ -5017,6 +5023,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         if (always_real(operation))
         {
             res.tag();
+	    if (emptyResult)
+	    {
+		return res;
+	    }
+	    
             DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
           
             DataTypes::cplx_t dummy=0;
@@ -5039,6 +5050,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         {
             res.complicate();
             res.tag();
+	    if (emptyResult)
+	    {
+		return res;
+	    }
+	    
             DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
           
             DataTypes::cplx_t dummy=0;
@@ -5062,6 +5078,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     {
       
         res.tag();
+	if (emptyResult)
+	{
+	    return res;
+	}
+	
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());      
       
         // Get the pointers to the actual data
@@ -5094,13 +5115,19 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         }
     }
   }
-  else if (arg_0_Z.isExpanded()) {
+  else if (arg_0_Z.isExpanded()) 
+  {
 
     res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
     if (arg_0_Z.isComplex() && !always_real(operation))
     {
         res.complicate();
     }
+    if (emptyResult)
+    {
+	return res;
+    }
+    
     DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
     DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
 
@@ -5226,63 +5253,125 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
   DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
   
   DataTypes::ShapeType resultshape=((arg_0_Z.getDataPointRank()!=0)?shape0:shape1);
-  
+
+  bool emptyResult=((arg_0_Z.getNumSamples()==0) || (arg_1_Z.getNumSamples()==0));
   if ((shape0==shape1) || (arg_0_Z.getDataPointRank()==0) || (arg_1_Z.getDataPointRank()==0))
   {
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataConstant output
-      binaryOpDataCCC(*dynamic_cast<DataConstant*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
+      if (!emptyResult)
+      {      
+          binaryOpDataCCC(*dynamic_cast<DataConstant*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataTagged output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       res.tag();
-      binaryOpDataTCT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataTCT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      binaryOpDataECE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
+      if (!emptyResult)
+      {
+          binaryOpDataECE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataConstant*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant())
     {
       Data res(0.0, resultshape, arg_0_Z.getFunctionSpace());      // DataTagged output
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       res.tag();
-      binaryOpDataTTC(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataTTC(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
       res.tag();        // DataTagged output
-      binaryOpDataTTT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      if (!emptyResult)
+      {
+          binaryOpDataTTT(*dynamic_cast<DataTagged*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded())
     {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      
-      binaryOpDataETE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
+      if (!emptyResult)
+      {
+          binaryOpDataETE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataTagged*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      binaryOpDataEEC(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
+      if (!emptyResult)
+      {
+          binaryOpDataEEC(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataConstant*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-
-      binaryOpDataEET(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
+      if (!emptyResult)
+      {
+          binaryOpDataEET(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataTagged*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
       Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      binaryOpDataEEE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
+      {
+        res.complicate();
+      }
+      if (!emptyResult)
+      {
+          binaryOpDataEEE(*dynamic_cast<DataExpanded*>(res.borrowData()), *dynamic_cast<const DataExpanded*>(arg_0_Z.borrowData()), *dynamic_cast<const DataExpanded*>(arg_1_Z.borrowData()), operation);
+      }
       return res;
     }
     else {
@@ -5293,3 +5382,180 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
   }
 }
 
+
+void
+Data::TensorSelfUpdateBinaryOperation(const Data& right,
+                   escript::ESFunction operation)
+{
+   //
+   // if this has a rank of zero promote it to the rank of the RHS
+   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
+     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
+   }
+
+   if (isLazy() || right.isLazy())
+   {
+     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
+   }
+   //
+   // initially make the temporary a shallow copy
+   Data tempRight(right);
+   FunctionSpace fsl=getFunctionSpace();
+   FunctionSpace fsr=right.getFunctionSpace();
+   if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
+         msg+=fsl.toString();
+         msg+="  ";
+         msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
+       // an interpolation is required so create a new Data
+       tempRight=Data(right,fsl);
+     }
+     else       // reverse interpolation preferred
+     {
+        // interpolate onto the RHS function space
+       Data tempLeft(*this,fsr);
+       set_m_data(tempLeft.m_data);
+     }
+   }
+   operandCheck(tempRight);
+   //
+   // ensure this has the right type for the RHS
+   typeMatchRight(tempRight);
+   //
+   // Need to cast to the concrete types so that the correct binaryOp
+   // is called.
+   if (isExpanded()) {
+     //
+     // Expanded data will be done in parallel, the right hand side can be
+     // of any data type
+     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataExpanded.");
+     
+     if (right.isExpanded())
+     {
+	binaryOpDataEEE(*leftC, *leftC, *dynamic_cast<const DataExpanded*>(tempRight.getReady()), operation);
+     }
+     else if (right.isTagged())
+     {
+	binaryOpDataEET(*leftC, *leftC, *dynamic_cast<const DataTagged*>(tempRight.getReady()), operation);
+     }
+     else	// it's constant
+     {
+	binaryOpDataEEC(*leftC, *leftC, *dynamic_cast<const DataConstant*>(tempRight.getReady()), operation);
+     }
+       
+     //escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
+   } else if (isTagged()) {
+     //
+     // Tagged data is operated on serially, the right hand side can be
+     // either DataConstant or DataTagged
+     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataTagged.");
+     if (right.isTagged()) {
+       DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataTagged.");
+       binaryOpDataTTT(*leftC, *leftC, *rightC, operation);
+       //escript::binaryOpDataReady(*leftC,*rightC,operation);
+     } else {
+       DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataConstant.");
+       binaryOpDataTTC(*leftC, *leftC, *rightC, operation);
+       //escript::binaryOpDataReady(*leftC,*rightC,operation);
+     }
+   } else if (isConstant()) {
+     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
+     DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+     ESYS_ASSERT(leftC!=NULL && rightC!=NULL, "Programming error - casting to DataConstant.");
+     binaryOpDataCCC(*leftC, *leftC, *rightC, operation);
+     //escript::binaryOpDataReady(*leftC,*rightC,operation);
+   }  
+}
+
+#if 0
+void
+Data::binaryDataOp(const Data& right,
+                   escript::ESFunction operation)
+{
+   //
+   // if this has a rank of zero promote it to the rank of the RHS
+   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
+     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
+   }
+
+   if (isLazy() || right.isLazy())
+   {
+     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
+   }
+   //
+   // initially make the temporary a shallow copy
+   Data tempRight(right);
+   FunctionSpace fsl=getFunctionSpace();
+   FunctionSpace fsr=right.getFunctionSpace();
+   if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
+         msg+=fsl.toString();
+         msg+="  ";
+         msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
+       // an interpolation is required so create a new Data
+       tempRight=Data(right,fsl);
+     }
+     else       // reverse interpolation preferred
+     {
+        // interpolate onto the RHS function space
+       Data tempLeft(*this,fsr);
+       set_m_data(tempLeft.m_data);
+     }
+   }
+   operandCheck(tempRight);
+   //
+   // ensure this has the right type for the RHS
+   typeMatchRight(tempRight);
+   //
+   // Need to cast to the concrete types so that the correct binaryOp
+   // is called.
+   if (isExpanded()) {
+     //
+     // Expanded data will be done in parallel, the right hand side can be
+     // of any data type
+     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataExpanded.");
+     escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
+   } else if (isTagged()) {
+     //
+     // Tagged data is operated on serially, the right hand side can be
+     // either DataConstant or DataTagged
+     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
+     ESYS_ASSERT(leftC!=NULL, "Programming error - casting to DataTagged.");
+     if (right.isTagged()) {
+       DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataTagged.");
+       escript::binaryOpDataReady(*leftC,*rightC,operation);
+     } else {
+       DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+       ESYS_ASSERT(rightC!=NULL, "Programming error - casting to DataConstant.");
+       escript::binaryOpDataReady(*leftC,*rightC,operation);
+     }
+   } else if (isConstant()) {
+     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
+     DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
+     ESYS_ASSERT(leftC!=NULL && rightC!=NULL,
+             "Programming error - casting to DataConstant.");
+     escript::binaryOpDataReady(*leftC,*rightC,operation);
+   }  
+}
+
+#endif

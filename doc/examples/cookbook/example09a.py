@@ -154,7 +154,7 @@ if HAVE_FINLEY:
     yx=(cos(length(xb-xc)*3.1415/src_rad)+1)*whereNegative(length(xb-xc)-src_rad)
     stop=Scalar(0.0,FunctionOnBoundary(domain))
     stop.setTaggedValue("stop",1.0)
-    src_dir=numpy.array([0.,0.,1.0]) # defines direction of point source as down
+    src_dir=np.array([0.,0.,1.0]) # defines direction of point source as down
 
     mypde.setValue(y=source[0]*yx*src_dir*stop) #set the source as a function on the boundary
     # initial value of displacement at point source is constant (U0=0.01)
