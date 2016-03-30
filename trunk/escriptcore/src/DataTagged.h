@@ -633,6 +633,9 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   size_t
   getTagCount() const;
   
+  void
+  complicate();
+  
  protected:
 
  private:

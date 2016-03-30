@@ -1235,5 +1235,16 @@ DataTagged::getTagCount() const
     return m_offsetLookup.size();
 }
 
+
+void DataTagged::complicate()
+{
+    if (!isComplex())
+    {
+        fillComplexFromReal(m_data_r, m_data_c);
+        this->m_iscompl=true;
+        m_data_r.resize(0,0,1);
+    }
+}
+
 }  // end of namespace
 

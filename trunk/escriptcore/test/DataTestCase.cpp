@@ -1647,6 +1647,31 @@ void DataTestCase::testBinary()
 }
 
 
+void DataTestCase::testComplexSamples()
+{
+    FunctionSpace fs=getTestDomainFunctionSpace(4,1,1);	// 4 points per sample, there is one sample and each point has one value in it
+    Data x(5, DataTypes::scalarShape, fs);
+    x.complicate();
+    
+    const DataTypes::cplx_t* r=x.getSampleDataRO(0, DataTypes::cplx_t(0));
+    CPPUNIT_ASSERT(r[0]==DataTypes::cplx_t(5,0));
+    
+    RealVectorType v(1);
+    Data t(0,DataTypes::scalarShape, fs);
+    t.tag();
+    for (int i=1;i<5;++i)
+    {
+        v[0]=i;
+        t.setTaggedValueFromCPP(i,DataTypes::scalarShape, v);
+    }	
+    t.complicate();
+    r=t.getSampleDataRO(0, DataTypes::cplx_t(0));	// relies on knowing how tags are stored
+    for (int i=1;i<5;++i)
+    {
+	CPPUNIT_ASSERT(r[i]==DataTypes::cplx_t(i,0));
+    }
+}
+
 void DataTestCase::testMemAlloc()
 {
   //
@@ -1677,6 +1702,8 @@ TestSuite* DataTestCase::suite()
 {
   // create the suite of tests to perform.
   TestSuite *testSuite = new TestSuite("DataTestCase");
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testComplexSamples",&DataTestCase::testComplexSamples));
   testSuite->addTest(new TestCaller<DataTestCase>(
               "testCopying",&DataTestCase::testCopying));
   testSuite->addTest(new TestCaller<DataTestCase>(

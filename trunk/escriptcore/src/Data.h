@@ -560,10 +560,12 @@ If false, the result is a list of scalars [1, 2, ...]
     \param sampleNo - Input - the given sample no.
     \return pointer to the sample data.
 */
-  inline
   const DataTypes::real_t*
-  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0) const;
 
+  const DataTypes::cplx_t*
+  getSampleDataRO(DataTypes::CplxVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const;
+  
 
   /**
      \brief
@@ -572,10 +574,13 @@ If false, the result is a list of scalars [1, 2, ...]
      \param sampleNo - Input - the given sample no.
      \return pointer to the sample data.
   */
-  inline
   DataTypes::real_t*
-  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0);
 
+  DataTypes::cplx_t*
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy);  
+  
+  
 
  /**
     \brief
@@ -1838,7 +1843,7 @@ namespace escript
 
 inline
 DataTypes::real_t*
-Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
+Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy)
 {
    if (isLazy())
    {
@@ -1850,12 +1855,30 @@ Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
         throw DataException("Error, call to Data::getSampleDataRW without a preceeding call to requireWrite/exclusiveWrite.");
    }
 #endif
-   return getReady()->getSampleDataRW(sampleNo);
+   return getReady()->getSampleDataRW(sampleNo, dummy);
 }
 
 inline
+DataTypes::cplx_t*
+Data::getSampleDataRW(DataTypes::CplxVectorType::size_type sampleNo, DataTypes::cplx_t dummy)
+{
+   if (isLazy())
+   {
+        throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
+   }
+#ifdef EXWRITECHK
+   if (!getReady()->exclusivewritecalled)
+   {
+        throw DataException("Error, call to Data::getSampleDataRW without a preceeding call to requireWrite/exclusiveWrite.");
+   }
+#endif
+   return getReady()->getSampleDataRW(sampleNo, dummy);
+}
+
+
+inline
 const DataTypes::real_t*
-Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
+Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo,DataTypes::real_t dummy) const
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
@@ -1864,8 +1887,21 @@ Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
         const DataTypes::RealVectorType* res=l->resolveSample(sampleNo,offset);
         return &((*res)[offset]);
    }
-   return getReady()->getSampleDataRO(sampleNo);
+   return getReady()->getSampleDataRO(sampleNo, dummy);
 }
+
+inline
+const DataTypes::cplx_t*
+Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const
+{
+   DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
+   if (l!=0)
+   {
+	throw DataException("Programming error: complex lazy objects are not supported.");	
+   }
+   return getReady()->getSampleDataRO(sampleNo, dummy);
+}
+
 
 inline
 const DataTypes::real_t*
