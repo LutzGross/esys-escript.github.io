@@ -152,7 +152,8 @@ vars.AddVariables(
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)',
-False)
+False),
+  BoolVariable('broken_cppacos', 'Use boost acos instead of std version', False)
 )
 
 ##################### Create environment and help text #######################
@@ -317,6 +318,9 @@ if env['forcelazy'] == 'on':
     env.Append(CPPDEFINES=['FAUTOLAZYON'])
 elif env['forcelazy'] == 'off':
     env.Append(CPPDEFINES=['FAUTOLAZYOFF'])
+
+if env['broken_cppacos']:
+    env.Append(CPPDEFINES=['BROKENACOS'])
 
 # set up the collective resolve values
 if env['forcecollres'] == 'on':

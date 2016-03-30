@@ -222,6 +222,8 @@ silo_libs = ['siloh5']
 #domains = 'finley,ripley'
 
 
+broken_cppacos= True
+
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 
