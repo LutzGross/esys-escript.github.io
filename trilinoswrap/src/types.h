@@ -21,13 +21,13 @@
 
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_CrsMatrix.hpp>
-#include <Amesos2_Solver_decl.hpp>
-#include <BelosSolverManager.hpp>
 
 namespace esys_trilinos {
 
-/// Scalar type
-typedef double  ST;
+/// Scalar types
+typedef escript::DataTypes::real_t  real_t;
+typedef escript::DataTypes::cplx_t  cplx_t;
+
 /// Global Ordinal type
 typedef escript::DataTypes::index_t GO;
 /// Local Ordinal type
@@ -36,26 +36,30 @@ typedef escript::DataTypes::index_t LO;
 #ifdef _OPENMP
 typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
 #elif USE_CUDA
-typedef Kokkos::Compat::KokkosCudaWrapperNode NT;
+typedef Kokkos::Compat::KokkosCudaWrapperNode   NT;
 #else
 typedef Kokkos::Compat::KokkosSerialWrapperNode NT;
 #endif
 
-typedef Tpetra::CrsGraph<LO,GO,NT>                 GraphType;
-typedef Tpetra::CrsMatrix<ST,LO,GO,NT>             MatrixType;
-typedef Tpetra::MultiVector<ST,LO,GO,NT>           VectorType;
-typedef Tpetra::Operator<ST,LO,GO,NT>              OpType;
-typedef Belos::LinearProblem<ST,VectorType,OpType> ProblemType;
-typedef Belos::SolverManager<ST,VectorType,OpType> SolverType;
-typedef Amesos2::Solver<MatrixType,VectorType>     DirectSolverType;
-typedef MatrixType::map_type                       MapType;
-typedef Tpetra::Import<LO,GO,NT>                   ImportType;
-
-typedef Teuchos::RCP<MapType> TrilinosMap_ptr;
-typedef Teuchos::RCP<const MapType> const_TrilinosMap_ptr;
-
-typedef Teuchos::RCP<GraphType> TrilinosGraph_ptr;
+typedef Tpetra::CrsGraph<LO,GO,NT>    GraphType;
+typedef Tpetra::Import<LO,GO,NT>      ImportType;
+typedef Teuchos::RCP<GraphType>       TrilinosGraph_ptr;
 typedef Teuchos::RCP<const GraphType> const_TrilinosGraph_ptr;
+typedef GraphType::map_type           MapType;
+typedef Teuchos::RCP<MapType>         TrilinosMap_ptr;
+typedef Teuchos::RCP<const MapType>   const_TrilinosMap_ptr;
+
+template<typename ST> using MatrixType = Tpetra::CrsMatrix<ST,LO,GO,NT>;
+template<typename ST> using VectorType = Tpetra::MultiVector<ST,LO,GO,NT>;
+template<typename ST> using OpType     = Tpetra::Operator<ST,LO,GO,NT>;
+
+typedef VectorType<real_t> RealVector;
+typedef MatrixType<real_t> RealMatrix;
+typedef OpType<real_t>     RealOperator;
+
+typedef VectorType<cplx_t> ComplexVector;
+typedef MatrixType<cplx_t> ComplexMatrix;
+typedef OpType<cplx_t>     ComplexOperator;
 
 inline
 Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
