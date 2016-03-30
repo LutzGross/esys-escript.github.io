@@ -42,7 +42,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 from numpy import array
-
+import numpy
 
 class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
    RES_TOL=1.e-8

@@ -17,7 +17,7 @@
 #include "DataConstant.h"
 #include "Data.h"
 #include "DataException.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 
 #include <iostream>
 
@@ -25,13 +25,27 @@
 #include <netcdfcpp.h>
 #endif
 
-#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {\
+
+#ifdef SLOWSHARECHECK
+  #define CHECK_FOR_EX_WRITE if (isShared()) {\
     std::ostringstream ss;\
     ss << "Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__;\
-    ss << " num owners=" << m_owners.size();\
+    int nn=17;\
+    try\
+    {\
+	nn=shared_from_this().use_count();\
+	ss << "use count=" << nn << "\n";\
+    } catch (...)\
+    {\
+	ss << "Failed to get a use count\n";\
+    }\
     std::cerr << ss.str() << std::endl;\
     throw DataException(ss.str());}
-
+#else
+  #define CHECK_FOR_EX_WRITE 
+#endif
+    
+    
 using namespace std;
 using namespace boost::python;
 
@@ -286,7 +300,7 @@ DataConstant::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::symmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  escript::symmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -296,7 +310,7 @@ DataConstant::nonsymmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::nonsymmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  escript::nonsymmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 
 void
@@ -308,7 +322,7 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
   }
   DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  DataMaths::trace(m_data_r,getShape(),0,evVec,evShape,0,axis_offset);
+  escript::trace(m_data_r,getShape(),0,evVec,evShape,0,axis_offset);
 }
 
 void
@@ -318,7 +332,7 @@ DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::swapaxes(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
+  escript::swapaxes(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
 }
 
 void
@@ -328,7 +342,7 @@ DataConstant::transpose(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::transpose(m_data_r, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
+  escript::transpose(m_data_r, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
 }
 
 void
@@ -338,7 +352,7 @@ DataConstant::eigenvalues(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::eigenvalues(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  escript::eigenvalues(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
 void
 DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
@@ -351,7 +365,7 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   if (temp_V==0) {
     throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (probably a programming error).");
   }
-  DataMaths::eigenvalues_and_eigenvectors(m_data_r, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
+  escript::eigenvalues_and_eigenvectors(m_data_r, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
 }
 
 
@@ -369,7 +383,7 @@ DataConstant::matrixInverse(DataAbstract* out) const
         throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
   }
   LapackInverseHelper h(getShape()[0]);
-  int res=DataMaths::matrix_inverse(m_data_r, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
+  int res=escript::matrix_inverse(m_data_r, getShape(), 0, temp->getVectorRW(), temp->getShape(), 0, 1, h);
   return res;
 }
 

@@ -31,6 +31,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 import sys
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
+import os
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE

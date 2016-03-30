@@ -49,7 +49,7 @@ typedef DataReady parent;
      \param what - Input - A description of what this data object represents.
   */
   ESCRIPT_DLL_API
-  DataConstant(const WrappedArray& value,
+  explicit DataConstant(const WrappedArray& value,
                const FunctionSpace& what);
 
 
@@ -71,7 +71,7 @@ typedef DataReady parent;
      \param region - Input - region to copy.
   */
   ESCRIPT_DLL_API
-  DataConstant(const DataConstant& other,
+  explicit DataConstant(const DataConstant& other,
                const DataTypes::RegionType& region);
 
   /**
@@ -85,12 +85,12 @@ typedef DataReady parent;
      \param data - the data values for each data-point.
   */
   ESCRIPT_DLL_API
-  DataConstant(const FunctionSpace& what,
+  explicit DataConstant(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::RealVectorType &data);
 
   ESCRIPT_DLL_API
-  DataConstant(const FunctionSpace& what,
+  explicit DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
                            const double v);
                

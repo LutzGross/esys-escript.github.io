@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#include <sstream>
+
 #include "TestDomain.h"
 #include "Data.h"
 #include "DomainException.h"
@@ -29,7 +31,8 @@ const int TestDomainFS=1;     // Null domains only support 1 functionspace type.
 }
 
 TestDomain::TestDomain(int pointspersample, int numsamples, int dpsize)
-        : m_totalsamples(numsamples), m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
+        : m_totalsamples(numsamples), m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize),
+        myworld(makeInfo(MPI_COMM_WORLD))
 {
     int world=getMPISizeWorld();
     int rank=getMPIRankWorld();
@@ -81,10 +84,19 @@ bool TestDomain::onMasterProcessor() const
     return getMPIRank() == 0;
 }
 
+/*
 MPI_Comm TestDomain::getMPIComm() const
 {
     return MPI_COMM_WORLD;
 }
+*/
+
+escript::JMPI TestDomain::getMPI() const
+{
+    return myworld;
+  
+}
+
 
 bool TestDomain::isValidFunctionSpaceType(int functionSpaceType) const
 {
@@ -194,7 +206,9 @@ int TestDomain::getTagFromSampleNo(int functionSpaceType, DataTypes::index_t sam
 {
     if (sampleNo>=tag_assignment.size())
     {
-	throw DataException("invalid sample number");
+	std::ostringstream oss;
+	oss << "invalid sample number " << sampleNo << " of " << tag_assignment.size();
+	throw DataException(oss.str());
     }
     return tag_assignment[sampleNo];
 }

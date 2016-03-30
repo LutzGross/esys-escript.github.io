@@ -31,11 +31,30 @@
 #if DOASSERT
 
 //
-// DOASSERT is defined, replace ESYS_ASSERT with Exception throw
+// DOASSERT is defined, evaluate assertions and abort on failure.
 //
 
 #include <escript/EsysException.h>
+#include <iostream>
 #include <sstream>
+
+#if ESYS_MPI
+
+#include <mpi.h>
+
+#define ESYS_ASSERT(assert_test, assert_msg)\
+    do {\
+        const bool result = (assert_test);\
+        if (!result) {\
+            std::ostringstream message;\
+            message << assert_msg << "\n\n"\
+            << __FILE__ << ":" << __LINE__ << ": " << #assert_test << "\n";\
+            std::cerr << message.str();\
+            MPI_Abort(MPI_COMM_WORLD, 455347);\
+        }\
+    } while (0)
+
+#else
 
 #define ESYS_ASSERT(assert_test, assert_msg)\
     do {\
@@ -48,10 +67,12 @@
         }\
     } while (0)
 
+#endif // ESYS_MPI
+
 #else // !DOASSERT
 
 //
-// DOASSERT os not defined, replace ESYS_ASSERT with no-op
+// DOASSERT is not defined, replace ESYS_ASSERT macro with no-op
 //
 
 #define ESYS_ASSERT(a,b)

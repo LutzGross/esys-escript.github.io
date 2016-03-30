@@ -188,7 +188,7 @@ if HAVE_FINLEY:
     src_length = 40; print("src_length = ",src_length)
     # set initial values for first two time steps with source terms
     y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)
-    src_dir=numpy.array([0.,1.]) # defines direction of point source as down
+    src_dir=np.array([0.,1.]) # defines direction of point source as down
     y=y*src_dir
     mypde.setValue(y=y) #set the source as a function on the boundary
     # turn lumping on for more efficient solving

@@ -20,17 +20,15 @@
 #define __ESCRIPT_DATA_H__
 
 #include "system_dep.h"
-#include "BinaryOp.h"
 #include "DataAbstract.h"
-#include "DataAlgorithm.h"
 #include "DataException.h"
 #include "DataTypes.h"
 #include "EsysMPI.h"
 #include "FunctionSpace.h"
-#include "UnaryOp.h"
-
+#include "DataVectorOps.h"
 #include <algorithm>
 #include <string>
+#include <sstream>
 
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
@@ -562,10 +560,12 @@ If false, the result is a list of scalars [1, 2, ...]
     \param sampleNo - Input - the given sample no.
     \return pointer to the sample data.
 */
-  inline
   const DataTypes::real_t*
-  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const;
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0) const;
 
+  const DataTypes::cplx_t*
+  getSampleDataRO(DataTypes::CplxVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const;
+  
 
   /**
      \brief
@@ -574,10 +574,13 @@ If false, the result is a list of scalars [1, 2, ...]
      \param sampleNo - Input - the given sample no.
      \return pointer to the sample data.
   */
-  inline
   DataTypes::real_t*
-  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo);
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0);
 
+  DataTypes::cplx_t*
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy);  
+  
+  
 
  /**
     \brief
@@ -678,7 +681,7 @@ If false, the result is a list of scalars [1, 2, ...]
   bool
   hasNoSamples() const
   {
-        return getLength()==0;
+        return m_data->getNumSamples()==0;
   }
 
   /**
@@ -1606,7 +1609,7 @@ template <class BinaryOp>
   template <class BinaryFunction>
   inline
   DataTypes::real_t
-  algorithm(BinaryFunction operation,
+  reduction(BinaryFunction operation,
             DataTypes::real_t initial_value) const;
 
   /**
@@ -1621,25 +1624,6 @@ template <class BinaryOp>
   Data
   dp_algorithm(BinaryFunction operation,
                DataTypes::real_t initial_value) const;
-
-  /**
-     \brief
-     Perform the given binary operation on all of the data's elements.
-     The underlying type of the right hand side (right) determines the final
-     type of *this after the operation. For example if the right hand side
-     is expanded *this will be expanded if necessary.
-     RHS is a Data object.
-  */
-  template <class BinaryFunction>
-  inline
-  void
-  binaryOp(const Data& right,
-           BinaryFunction operation);
-  
-  void
-  binaryDataOp(const Data& right,
-                   escript::ESFunction operation); 
-  
 
   /**
      \brief
@@ -1682,7 +1666,6 @@ template <class BinaryOp>
   //
   // flag to protect the data object against any update
   bool m_protected;
-  mutable bool m_shared;
   bool m_lazy;
 
   //
@@ -1693,31 +1676,40 @@ template <class BinaryOp>
 // If possible please use getReadyPtr instead.
 // But see warning below.
   const DataReady*
-  getReady() const;
+  getReady() const
+{
+   const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
+   return dr;
+}  
 
   DataReady*
-  getReady();
+  getReady()
+{
+   DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
+   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
+   return dr;
+}  
 
 
 // Be wary of using this for local operations since it (temporarily) increases reference count.
 // If you are just using this to call a method on DataReady instead of DataAbstract consider using 
 // getReady() instead
   DataReady_ptr
-  getReadyPtr();
+  getReadyPtr()
+{
+   DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
+   return dr;
+}  
 
   const_DataReady_ptr
-  getReadyPtr() const;
-
-
-  /**
-   \brief Update the Data's shared flag
-   This indicates that the DataAbstract used by this object is now shared (or no longer shared).
-   For internal use only.
-  */
-  void updateShareStatus(bool nowshared) const
-  {
-        m_shared=nowshared;             // m_shared is mutable
-  }
+  getReadyPtr() const
+{
+   const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
+   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
+   return dr;
+}    
 
   // In the isShared() method below:
   // A problem would occur if m_data (the address pointed to) were being modified 
@@ -1735,14 +1727,11 @@ template <class BinaryOp>
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-        return m_shared;
-/*      if (m_shared) return true;
-        if (m_data->isShared())                 
-        {                                       
-                updateShareStatus(true);
-                return true;
-        }
-        return false;*/
+#ifdef SLOWSHARECHECK        
+	return m_data->isShared();      // single threadsafe check for this
+#else
+	return !m_data.unique();
+#endif	
   }
 
   void forceResolve()
@@ -1789,7 +1778,9 @@ template <class BinaryOp>
   {
         if  (isLazy() || isShared())
         {
-                throw DataException("Programming error. ExclusiveWrite required - please call requireWrite()");
+                std::ostringstream oss;
+                oss << "Programming error. ExclusiveWrite required - please call requireWrite() isLazy=" << isLazy() << " isShared()=" << isShared(); 
+                throw DataException(oss.str());
         }
   }
 
@@ -1801,6 +1792,9 @@ template <class BinaryOp>
   */
   void set_m_data(DataAbstract_ptr p);
 
+  
+  void TensorSelfUpdateBinaryOperation(const Data& right, escript::ESFunction operation);  
+  
   friend class DataAbstract;            // To allow calls to updateShareStatus
   friend class TestDomain;              // so its getX will work quickly
 #ifdef IKNOWWHATIMDOING
@@ -1838,53 +1832,18 @@ Data randomData(const boost::python::tuple& shape,
 // so that I can dynamic cast between them below.
 #include "DataReady.h"
 #include "DataLazy.h"
+#include "DataExpanded.h"
+#include "DataConstant.h"
+#include "DataTagged.h"
 
 namespace escript
 {
 
-inline
-const DataReady*
-Data::getReady() const
-{
-   const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
-   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
-   return dr;
-}
 
-inline
-DataReady*
-Data::getReady()
-{
-   DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
-   ESYS_ASSERT(dr!=0, "error casting to DataReady.");
-   return dr;
-}
-
-// Be wary of using this for local operations since it (temporarily) increases reference count.
-// If you are just using this to call a method on DataReady instead of DataAbstract consider using 
-// getReady() instead
-inline
-DataReady_ptr
-Data::getReadyPtr()
-{
-   DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
-   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
-   return dr;
-}
-
-
-inline
-const_DataReady_ptr
-Data::getReadyPtr() const
-{
-   const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
-   ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
-   return dr;
-}
 
 inline
 DataTypes::real_t*
-Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
+Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy)
 {
    if (isLazy())
    {
@@ -1896,12 +1855,30 @@ Data::getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo)
         throw DataException("Error, call to Data::getSampleDataRW without a preceeding call to requireWrite/exclusiveWrite.");
    }
 #endif
-   return getReady()->getSampleDataRW(sampleNo);
+   return getReady()->getSampleDataRW(sampleNo, dummy);
 }
 
 inline
+DataTypes::cplx_t*
+Data::getSampleDataRW(DataTypes::CplxVectorType::size_type sampleNo, DataTypes::cplx_t dummy)
+{
+   if (isLazy())
+   {
+        throw DataException("Error, attempt to acquire RW access to lazy data. Please call requireWrite() first.");
+   }
+#ifdef EXWRITECHK
+   if (!getReady()->exclusivewritecalled)
+   {
+        throw DataException("Error, call to Data::getSampleDataRW without a preceeding call to requireWrite/exclusiveWrite.");
+   }
+#endif
+   return getReady()->getSampleDataRW(sampleNo, dummy);
+}
+
+
+inline
 const DataTypes::real_t*
-Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
+Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo,DataTypes::real_t dummy) const
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
@@ -1910,8 +1887,21 @@ Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo) const
         const DataTypes::RealVectorType* res=l->resolveSample(sampleNo,offset);
         return &((*res)[offset]);
    }
-   return getReady()->getSampleDataRO(sampleNo);
+   return getReady()->getSampleDataRO(sampleNo, dummy);
 }
+
+inline
+const DataTypes::cplx_t*
+Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const
+{
+   DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
+   if (l!=0)
+   {
+	throw DataException("Programming error: complex lazy objects are not supported.");	
+   }
+   return getReady()->getSampleDataRO(sampleNo, dummy);
+}
+
 
 inline
 const DataTypes::real_t*
@@ -2111,176 +2101,6 @@ Data::rtruedivO(const boost::python::object& left)
 }
 
 
-inline 
-void
-Data::binaryDataOp(const Data& right,
-                   escript::ESFunction operation)
-{
-   //
-   // if this has a rank of zero promote it to the rank of the RHS
-   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
-     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
-   }
-
-   if (isLazy() || right.isLazy())
-   {
-     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
-   }
-   //
-   // initially make the temporary a shallow copy
-   Data tempRight(right);
-   FunctionSpace fsl=getFunctionSpace();
-   FunctionSpace fsr=right.getFunctionSpace();
-   if (fsl!=fsr) {
-     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
-     if (intres==0)
-     {
-         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
-         msg+=fsl.toString();
-         msg+="  ";
-         msg+=fsr.toString();
-         throw DataException(msg.c_str());
-     } 
-     else if (intres==1)
-     {
-       // an interpolation is required so create a new Data
-       tempRight=Data(right,fsl);
-     }
-     else       // reverse interpolation preferred
-     {
-        // interpolate onto the RHS function space
-       Data tempLeft(*this,fsr);
-       set_m_data(tempLeft.m_data);
-     }
-   }
-   operandCheck(tempRight);
-   //
-   // ensure this has the right type for the RHS
-   typeMatchRight(tempRight);
-   //
-   // Need to cast to the concrete types so that the correct binaryOp
-   // is called.
-   if (isExpanded()) {
-     //
-     // Expanded data will be done in parallel, the right hand side can be
-     // of any data type
-     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
-     escript::binaryOpDataReady(*leftC,*(tempRight.getReady()),operation);
-   } else if (isTagged()) {
-     //
-     // Tagged data is operated on serially, the right hand side can be
-     // either DataConstant or DataTagged
-     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
-     if (right.isTagged()) {
-       DataTagged* rightC=dynamic_cast<DataTagged*>(tempRight.m_data.get());
-       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataTagged.");
-       escript::binaryOpDataReady(*leftC,*rightC,operation);
-     } else {
-       DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataConstant.");
-       escript::binaryOpDataReady(*leftC,*rightC,operation);
-     }
-   } else if (isConstant()) {
-     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-     DataConstant* rightC=dynamic_cast<DataConstant*>(tempRight.m_data.get());
-     ESYS_ASSERT(leftC!=0 && rightC!=0, "Programming error - casting to DataConstant.");
-     escript::binaryOpDataReady(*leftC,*rightC,operation);
-   }  
-}
-
-/**
-  \brief
-  Perform the given binary operation with this and right as operands.
-  Right is a Data object.
-*/
-template <class BinaryFunction>
-inline
-void
-Data::binaryOp(const Data& right,
-               BinaryFunction operation)
-{
-   //
-   // if this has a rank of zero promote it to the rank of the RHS
-   if (getDataPointRank()==0 && right.getDataPointRank()!=0) {
-     throw DataException("Error - attempt to update rank zero object with object with rank bigger than zero.");
-   }
-
-   if (isLazy() || right.isLazy())
-   {
-     throw DataException("Programmer error - attempt to call binaryOp with Lazy Data.");
-   }
-   //
-   // initially make the temporary a shallow copy
-   //Data tempRight(right);                             // unfortunately, this adds an owner and breaks d+=d
-   
-   DataAbstract_ptr rp=right.m_data;
-   
-   FunctionSpace fsl=getFunctionSpace();
-   FunctionSpace fsr=right.getFunctionSpace();
-   if (fsl!=fsr) {
-     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
-     if (intres==0)
-     {
-         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
-         msg+=fsl.toString();
-         msg+="  ";
-         msg+=fsr.toString();
-         throw DataException(msg.c_str());
-     } 
-     else if (intres==1)
-     {
-       // an interpolation is required so create a new Data
-       rp=Data(right,fsl).m_data;
-     }
-     else       // reverse interpolation preferred
-     {
-        // interpolate onto the RHS function space
-       Data tempLeft(*this,fsr);
-       set_m_data(tempLeft.m_data);
-     }
-   }
-   m_data->operandCheck(*rp.get());
-   //operandCheck(tempRight);
-   //
-   // ensure this has the right type for the RHS
-   typeMatchRight(right);               // yes we are actually processing rp 
-                              // (which may be pointing at a different object) not right.
-                              // but rp and right will be referring to the same type of data
-   //
-   // Need to cast to the concrete types so that the correct binaryOp
-   // is called.
-   if (isExpanded()) {
-     //
-     // Expanded data will be done in parallel, the right hand side can be
-     // of any data type
-     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
-     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
-     DataReady* dr=dynamic_cast<DataReady*>(rp.get());
-     escript::binaryOp(*leftC,*dr,operation);
-   } else if (isTagged()) {
-     //
-     // Tagged data is operated on serially, the right hand side can be
-     // either DataConstant or DataTagged
-     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
-     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
-     if (right.isTagged()) {
-       DataTagged* rightC=dynamic_cast<DataTagged*>(rp.get());
-       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataTagged.");
-       escript::binaryOp(*leftC,*rightC,operation);
-     } else {
-       DataConstant* rightC=dynamic_cast<DataConstant*>(rp.get());
-       ESYS_ASSERT(rightC!=0, "Programming error - casting to DataConstant.");
-       escript::binaryOp(*leftC,*rightC,operation);
-     }
-   } else if (isConstant()) {
-     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
-     DataConstant* rightC=dynamic_cast<DataConstant*>(rp.get());
-     ESYS_ASSERT(leftC!=0 && rightC!=0, "Programming error - casting to DataConstant.");
-     escript::binaryOp(*leftC,*rightC,operation);
-   }
-}
 
 /**
   \brief
@@ -2292,20 +2112,68 @@ Data::binaryOp(const Data& right,
 template <class BinaryFunction>
 inline
 DataTypes::real_t
-Data::algorithm(BinaryFunction operation, DataTypes::real_t initial_value) const
+Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
 {
   if (isExpanded()) {
     DataExpanded* leftC=dynamic_cast<DataExpanded*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataExpanded.");
-    return escript::algorithm(*leftC,operation,initial_value);
+
+    DataExpanded& data=*leftC;
+    int i,j;
+    int numDPPSample=data.getNumDPPSample();
+    int numSamples=data.getNumSamples();
+    DataTypes::real_t global_current_value=initial_value;
+    DataTypes::real_t local_current_value;
+    const auto& vec=data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0));
+    const DataTypes::ShapeType& shape=data.getShape();
+    // calculate the reduction operation value for each data point
+    // reducing the result for each data-point into the current_value variables
+    #pragma omp parallel private(local_current_value)
+    {
+	local_current_value=initial_value;
+	#pragma omp for private(i,j) schedule(static)
+	for (i=0;i<numSamples;i++) {
+	  for (j=0;j<numDPPSample;j++) {
+	    local_current_value=operation(local_current_value,escript::reductionOpVector(vec,shape,data.getPointOffset(i,j),operation,initial_value));
+
+	  }
+	}
+	#pragma omp critical
+	global_current_value=operation(global_current_value,local_current_value);
+    }
+    return global_current_value;
   } else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
-    return escript::algorithm(*leftC,operation,initial_value);
+    
+    DataTagged& data=*leftC;
+    DataTypes::real_t current_value=initial_value;
+
+    const auto& vec=data.getTypedVectorRO(typename BinaryFunction::first_argument_type(0));
+    const DataTypes::ShapeType& shape=data.getShape();
+    const DataTagged::DataMapType& lookup=data.getTagLookup();
+    const std::list<int> used=data.getFunctionSpace().getListOfTagsSTL();
+    for (std::list<int>::const_iterator i=used.begin();i!=used.end();++i)
+    {
+      int tag=*i;
+      if (tag==0)	// check for the default tag
+      {
+	  current_value=operation(current_value,escript::reductionOpVector(vec,shape,data.getDefaultOffset(),operation,initial_value));
+      }
+      else
+      {
+	  DataTagged::DataMapType::const_iterator it=lookup.find(tag);
+	  if (it!=lookup.end())
+	  {
+		  current_value=operation(current_value,escript::reductionOpVector(vec,shape,it->second,operation,initial_value));
+	  }
+      }
+    }
+    return current_value;    
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
-    return escript::algorithm(*leftC,operation,initial_value);
+    return escript::reductionOpVector(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
   } else if (isLazy()) {
@@ -2337,7 +2205,28 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     ESYS_ASSERT(dataE!=0, "Programming error - casting data to DataExpanded.");
     ESYS_ASSERT(resultE!=0, "Programming error - casting result to DataExpanded.");
-    escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
+    
+    
+    
+    int i,j;
+    int numSamples=dataE->getNumSamples();
+    int numDPPSample=dataE->getNumDPPSample();
+  //  DataArrayView dataView=data.getPointDataView();
+  //  DataArrayView resultView=result.getPointDataView();
+    const auto& dataVec=dataE->getTypedVectorRO(initial_value);
+    const DataTypes::ShapeType& shape=dataE->getShape();
+    auto& resultVec=resultE->getTypedVectorRW(initial_value);
+    // perform the operation on each data-point and assign
+    // this to the corresponding element in result
+    #pragma omp parallel for private(i,j) schedule(static)
+    for (i=0;i<numSamples;i++) {
+      for (j=0;j<numDPPSample;j++) {
+	resultVec[resultE->getPointOffset(i,j)] =
+	  escript::reductionOpVector(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
+
+      }
+    }    
+    //escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
     return result;
   }
   else if (isTagged()) {
@@ -2346,7 +2235,21 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
-    escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
+    
+    
+    const DataTypes::ShapeType& shape=dataT->getShape();
+    const auto& vec=dataT->getTypedVectorRO(initial_value);
+    const DataTagged::DataMapType& lookup=dataT->getTagLookup();
+    for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
+      resultT->getDataByTagRW(i->first,0) =
+	  escript::reductionOpVector(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
+    }    
+    resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = escript::reductionOpVector(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
+    
+    
+    
+    
+    //escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
     return Data(resultT);   // note: the Data object now owns the resultT pointer
   } 
   else if (isConstant()) {
@@ -2355,7 +2258,12 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     ESYS_ASSERT(dataC!=0, "Programming error - casting data to DataConstant.");
     ESYS_ASSERT(resultC!=0, "Programming error - casting result to DataConstant.");
-    escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
+    
+    DataConstant& data=*dataC;
+    resultC->getTypedVectorRW(initial_value)[0] =
+	escript::reductionOpVector(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
+    
+    //escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
   } else if (isLazy()) {
     throw DataException("Error - Operations not permitted on instances of DataLazy.");
@@ -2377,922 +2285,6 @@ C_TensorBinaryOperation(Data const &arg_0,
                         Data const &arg_1,
                         ESFunction operation);
 
-
-
-/**
-  \brief
-  Compute a tensor operation with two Data objects
-  \param arg_0 - Input - Data object
-  \param arg_1 - Input - Data object
-  \param operation - Input - Binary op functor
-*/
-template <typename BinaryFunction>
-inline
-Data
-C_TensorBinaryOperation(Data const &arg_0,
-                        Data const &arg_1,
-                        BinaryFunction operation)
-{
-  if (arg_0.isEmpty() || arg_1.isEmpty())
-  {
-     throw DataException("Error - Operations (C_TensorBinaryOperation) not permitted on instances of DataEmpty.");
-  }
-  if (arg_0.isLazy() || arg_1.isLazy())
-  {
-     throw DataException("Error - Operations not permitted on lazy data.");
-  }
-  
-  // for disambiguation of some methods later
-  typename decltype(operation)::first_argument_type dummy0=0;
-  typename decltype(operation)::second_argument_type dummy1=0;
-  typename decltype(operation)::result_type dummyr=0;  
-  
-  // Interpolate if necessary and find an appropriate function space
-  Data arg_0_Z, arg_1_Z;
-  FunctionSpace fsl=arg_0.getFunctionSpace();
-  FunctionSpace fsr=arg_1.getFunctionSpace();
-  if (fsl!=fsr) {
-     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
-     if (intres==0)
-     {
-         std::string msg="Error - C_TensorBinaryOperation: arguments have incompatible function spaces.";
-         msg+=fsl.toString();
-         msg+=" ";
-         msg+=fsr.toString();
-         throw DataException(msg.c_str());
-     } 
-     else if (intres==1)
-     {
-      arg_1_Z=arg_1.interpolate(arg_0.getFunctionSpace());
-      arg_0_Z =Data(arg_0);      
-     }
-     else       // reverse interpolation preferred
-     {
-      arg_0_Z = arg_0.interpolate(arg_1.getFunctionSpace());
-      arg_1_Z = Data(arg_1);
-     }    
-  } else {
-      arg_0_Z = Data(arg_0);
-      arg_1_Z = Data(arg_1);
-  }
-  // Get rank and shape of inputs
-  int rank0 = arg_0_Z.getDataPointRank();
-  int rank1 = arg_1_Z.getDataPointRank();
-  DataTypes::ShapeType shape0 = arg_0_Z.getDataPointShape();
-  DataTypes::ShapeType shape1 = arg_1_Z.getDataPointShape();
-  int size0 = arg_0_Z.getDataPointSize();
-  int size1 = arg_1_Z.getDataPointSize();
-  
-  
-  
-  // Declare output Data object
-  Data res;
-
-  if (shape0 == shape1) {
-    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
-      typename decltype(operation)::first_argument_type dummy=0;
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataConstant output
-      if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
-      {
-          res.complicate();     // It would be much better to create the Data object as complex to start with
-      }                         // But that would require more work so let's just get this case working first
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
-
-      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-    }
-    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
-
-      // Prepare the DataConstant input
-      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataTagged output
-      res.tag();
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-
-      
-      // Prepare offset into DataConstant
-      int offset_0 = tmp_0->getPointOffset(0,0);
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-
-      // Get the pointers to the actual data
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-      // Compute a result for the default
-      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTag(i->first);
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-
-        tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded()) {
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_1,dataPointNo_1;
-      int numSamples_1 = arg_1_Z.getNumSamples();
-      int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
-      int offset_0 = tmp_0->getPointOffset(0,0);
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
-      for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
-        for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1)); 
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr)); 
-          tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant()) {
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-      // Prepare the DataConstant input
-      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataTagged output
-      res.tag();
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Prepare offset into DataConstant
-      int offset_1 = tmp_1->getPointOffset(0,0);
-
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-      // Get the pointers to the actual data
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-      // Compute a result for the default
-      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTag(i->first);
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0,dummyr));
-        tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged()) {
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());
-      res.tag();        // DataTagged output
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Get the pointers to the actual data
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-      // Compute a result for the default
-      tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-      // Merge the tags
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTag(i->first); // use tmp_2 to get correct shape
-      }
-      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTag(i->first);
-      }
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
-      for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-
-        tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded()) {
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      int offset_1 = tmp_1->getPointOffset(0,0);
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-
-
-          tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0, ptr_0, ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-          dataPointNo_0=0;
-//        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_1, ptr_2, operation);
-//       }
-      }
-
-    }
-    else {
-      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
-    }
-
-  } else if (0 == rank0) {
-    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());      // DataConstant output
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy0));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
-      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-    }
-    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
-
-      // Prepare the DataConstant input
-      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());      // DataTagged output
-      res.tag();
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Prepare offset into DataConstant
-      int offset_0 = tmp_0->getPointOffset(0,0);
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-      // Compute a result for the default
-      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTag(i->first);
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-        tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded()) {
-
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_1;
-      int numSamples_1 = arg_1_Z.getNumSamples();
-      int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
-      int offset_0 = tmp_0->getPointOffset(0,0);
-      const typename decltype(operation)::first_argument_type *ptr_src = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-      typename decltype(operation)::first_argument_type ptr_0 = ptr_src[0];
-      int size = size1*numDataPointsPerSample_1;
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_1) schedule(static)
-      for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_1,0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_1,0);
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size, ptr_0, ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant()) {
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-      // Prepare the DataConstant input
-      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape1, arg_0_Z.getFunctionSpace());      // DataTagged output
-      res.tag();
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Prepare offset into DataConstant
-      int offset_1 = tmp_1->getPointOffset(0,0);
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-
-      // Get the pointers to the actual data
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-
-      // Compute a result for the default
-      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTag(i->first);
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-
-        tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged()) {
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace());
-      res.tag();        // DataTagged output
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Get the pointers to the actual data
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-      // Compute a result for the default
-      tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-      // Merge the tags
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTag(i->first); // use tmp_2 to get correct shape
-      }
-      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTag(i->first);
-      }
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
-      for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-
-        tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded()) {
-
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      int offset_1 = tmp_1->getPointOffset(0,0);
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-        }
-      }
-
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
-
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
-
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape1, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size1, ptr_0[0], ptr_1, ptr_2, operation);
-        }
-      }
-
-    }
-    else {
-      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
-    }
-
-  } else if (0 == rank1) {
-    if (arg_0_Z.isConstant()   && arg_1_Z.isConstant()) {
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataConstant output
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy0));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
-      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-    }
-    else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
-
-      // Prepare the DataConstant input
-      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());      // DataTagged output
-      res.tag();
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Prepare offset into DataConstant
-      int offset_0 = tmp_0->getPointOffset(0,0);
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-
-      //Get the pointers to the actual data
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-      // Compute a result for the default
-      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTag(i->first);
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-        tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-      }
-    }
-    else if (arg_0_Z.isConstant()   && arg_1_Z.isExpanded()) {
-
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_1,dataPointNo_1;
-      int numSamples_1 = arg_1_Z.getNumSamples();
-      int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
-      int offset_0 = tmp_0->getPointOffset(0,0);
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
-      for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
-        for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant()) {
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-      // Prepare the DataConstant input
-      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataTagged output
-      res.tag();
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Prepare offset into DataConstant
-      int offset_1 = tmp_1->getPointOffset(0,0);
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-      // Get the pointers to the actual data
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-      // Compute a result for the default
-      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTag(i->first);
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-        tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged()) {
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-      // Borrow DataTagged input from Data object
-      DataTagged* tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-
-      // Prepare a DataTagged output 2
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace());
-      res.tag();        // DataTagged output
-      DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-      // Get the pointers to the actual data
-      const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummy0));
-      const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummy1));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyr));
-
-      // Compute a result for the default
-      tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-      // Merge the tags
-      DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-      const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-      const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-      for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-        tmp_2->addTag(i->first); // use tmp_2 to get correct shape
-      }
-      for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-        tmp_2->addTag(i->first);
-      }
-      // Compute a result for each tag
-      const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
-      for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummy0));
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummy1));
-        typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyr));
-        tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-      }
-
-    }
-    else if (arg_0_Z.isTagged()     && arg_1_Z.isExpanded()) {
-
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-        const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isConstant()) {
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      int offset_1 = tmp_1->getPointOffset(0,0);
-      const typename decltype(operation)::second_argument_type *ptr_src = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-      typename decltype(operation)::second_argument_type ptr_1 = ptr_src[0];
-      int size = size0 * numDataPointsPerSample_0;
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size, ptr_0, ptr_1, ptr_2, operation);
-      }
-
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isTagged()) {
-
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-        const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-        }
-      }
-
-    }
-    else if (arg_0_Z.isExpanded()   && arg_1_Z.isExpanded()) {
-
-      // After finding a common function space above the two inputs have the same numSamples and num DPPS
-      res = Data(0.0, shape0, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-      DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-      DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-      DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-      int sampleNo_0,dataPointNo_0;
-      int numSamples_0 = arg_0_Z.getNumSamples();
-      int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-      res.requireWrite();
-      #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-      for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-          int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-          int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-          const typename decltype(operation)::first_argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummy0));
-          const typename decltype(operation)::second_argument_type *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummy1));
-          typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
-          tensor_binary_operation(size0, ptr_0, ptr_1[0], ptr_2, operation);
-        }
-      }
-
-    }
-    else {
-      throw DataException("Error - C_TensorBinaryOperation: unknown combination of inputs");
-    }
-
-  } else {
-    throw DataException("Error - C_TensorBinaryOperation: arguments have incompatible shapes");
-  }
-
-  return res;
-}
-
-/*
-template <typename UnaryFunction>
-Data
-C_TensorUnaryOperation(Data const &arg_0,
-                       UnaryFunction operation)
-{
-  if (arg_0.isEmpty())  // do this before we attempt to interpolate
-  {
-     throw DataException("Error - Operations (C_TensorUnaryOperation) not permitted on instances of DataEmpty.");
-  }
-  if (arg_0.isLazy())
-  {
-     throw DataException("Error - Operations not permitted on lazy data.");
-  }
-  // Interpolate if necessary and find an appropriate function space
-  Data arg_0_Z = Data(arg_0);
-
-  // Get rank and shape of inputs
-  const DataTypes::ShapeType& shape0 = arg_0_Z.getDataPointShape();
-  int size0 = arg_0_Z.getDataPointSize();
-
-  // Sanity check on the types of the function
-  if (typeid(typename UnaryFunction::argument_type)!=typeid(typename UnaryFunction::result_type))
-  {
-      throw DataException("Error - Types for C_TensorUnaryOperation must be consistent");
-  }
-  
-  // Declare output Data object
-  Data res;
-
-  if (arg_0_Z.isConstant()) {
-    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
-    const typename UnaryFunction::argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-    typename UnaryFunction::result_type *ptr_2 = &(res.getDataAtOffsetRW(0));
-    tensor_unary_operation(size0, ptr_0, ptr_2, operation);
-  }
-  else if (arg_0_Z.isTagged()) {
-
-    // Borrow DataTagged input from Data object
-    DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-
-    // Prepare a DataTagged output 2
-    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
-    res.tag();
-    DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-
-    // Get the pointers to the actual data
-    const typename decltype(operation)::argument_type *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-    typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDefaultValueRW(0));
-    // Compute a result for the default
-    tensor_unary_operation(size0, ptr_0, ptr_2, operation);
-    // Compute a result for each tag
-    const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-    DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-    for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-      tmp_2->addTag(i->first);
-      const typename decltype(operation)::argument_type *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-      typename decltype(operation)::result_type *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
-      tensor_unary_operation(size0, ptr_0, ptr_2, operation);
-    }
-
-  }
-  else if (arg_0_Z.isExpanded()) {
-
-    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),true); // DataExpanded output
-    DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
-    DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-
-    int sampleNo_0,dataPointNo_0;
-    int numSamples_0 = arg_0_Z.getNumSamples();
-    int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-    #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-    for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-        dataPointNo_0=0;
-        int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-        int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-        const typename decltype(operation)::argument_type *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-        typename decltype(operation)::result_type *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-        tensor_unary_operation(size0*numDataPointsPerSample_0, ptr_0, ptr_2, operation);
-    }
-  }
-  else {
-    throw DataException("Error - C_TensorUnaryOperation: unknown combination of inputs");
-  }
-
-  return res;
-}
-*/
 
 Data
 C_TensorUnaryOperation(Data const &arg_0,

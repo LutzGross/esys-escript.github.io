@@ -19,7 +19,7 @@
 
 #include "system_dep.h"
 #include "DataAbstract.h"
-#include "LocalOps.h"		// for tensor_binary_op
+#include "ArrayOps.h"		// for tensor_binary_op
 #include "DataVector.h"		// for ElementType
 
 #include <functional>
@@ -100,7 +100,6 @@ class DataLazy : public DataAbstract
 {
 
 typedef DataAbstract parent;
-typedef DataTypes::RealVectorType ValueType;
 typedef DataTypes::ShapeType ShapeType;
 
 public:
@@ -214,7 +213,7 @@ public:
      This method throws an exception. It does not really make sense to ask this question of lazy data.
   */
   ESCRIPT_DLL_API
-  ValueType::size_type
+  DataTypes::RealVectorType::size_type
   getLength() const;
 
 
@@ -247,7 +246,7 @@ public:
   The return value will be an existing vector so do not deallocate it.
   */
   ESCRIPT_DLL_API
-  const ValueType*
+  const DataTypes::RealVectorType*
   resolveSample(int sampleNo, size_t& roffset) const; 
 
   /**

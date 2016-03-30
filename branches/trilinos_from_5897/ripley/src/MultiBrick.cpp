@@ -24,6 +24,7 @@
 #define FIRST_QUAD 0.21132486540518711775
 #define SECOND_QUAD 0.78867513459481288225
 
+#include <iostream>
 #include <iomanip>
 #include <limits>
 

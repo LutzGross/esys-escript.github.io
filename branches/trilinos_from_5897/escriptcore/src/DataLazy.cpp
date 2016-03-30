@@ -19,8 +19,8 @@
 #include "DataTypes.h"
 #include "EscriptParams.h"
 #include "FunctionSpace.h"
-#include "UnaryFuncs.h"    // for escript::fsign
 #include "Utils.h"
+#include "DataVectorOps.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -478,7 +478,6 @@ DataLazy::DataLazy(DataAbstract_ptr p)
    }
    else
    {
-        p->makeLazyShared();
         DataReady_ptr dr=dynamic_pointer_cast<DataReady>(p);
         makeIdentity(dr);
 LAZYDEBUG(cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;)
@@ -990,28 +989,6 @@ DataLazy::collapse() const
   m_op=IDENTITY;
 }
 
-
-
-
-
-
-#define PROC_OP(TYPE,X)                               \
-        for (int j=0;j<onumsteps;++j)\
-        {\
-          for (int i=0;i<numsteps;++i,resultp+=resultStep) \
-          { \
-LAZYDEBUG(cout << "[left,right]=[" << lroffset << "," << rroffset << "]" << endl;)\
-LAZYDEBUG(cout << "{left,right}={" << (*left)[lroffset] << "," << (*right)[rroffset] << "}\n";)\
-             tensor_binary_operation< TYPE >(chunksize, &((*left)[lroffset]), &((*right)[rroffset]), resultp, X); \
-LAZYDEBUG(cout << " result=      " << resultp[0] << endl;) \
-             lroffset+=leftstep; \
-             rroffset+=rightstep; \
-          }\
-          lroffset+=oleftstep;\
-          rroffset+=orightstep;\
-        }
-
-
 // The result will be stored in m_samples
 // The return value is a pointer to the DataVector, offset is the offset within the return value
 const DataTypes::RealVectorType*
@@ -1025,7 +1002,7 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
   }
   if (m_op==IDENTITY)   
   {
-    const ValueType& vec=m_id->getVectorRO();
+    const RealVectorType& vec=m_id->getVectorRO();
     roffset=m_id->getPointOffset(sampleNo, 0);
 #ifdef LAZY_STACK_PROF
 int x;
@@ -1082,115 +1059,104 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
   const double* left=&((*leftres)[roffset]);
   roffset=m_samplesize*tid;
   double* result=&(m_samples[roffset]);
+  escript::ESFunction operation=SINF;
   switch (m_op)
   {
-    case SIN:   
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sin);
-        break;
+    case SIN:
+	operation=SINF;
+	break;
     case COS:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::cos);
-        break;
+        operation=COSF;
+	break;
     case TAN:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tan);
-        break;
+        operation=TANF;
+	break;
     case ASIN:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::asin);
-        break;
+        operation=ASINF;
+	break;
     case ACOS:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::acos);
-        break;
+        operation=ACOSF;
+	break;
     case ATAN:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::atan);
-        break;
+        operation=ATANF;
+	break;
     case SINH:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sinh);
-        break;
+        operation=SINHF;
+	break;
     case COSH:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::cosh);
-        break;
+        operation=COSHF;
+	break;
     case TANH:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::tanh);
-        break;
+        operation=TANHF;
+	break;
     case ERF:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::erf);
-        break;
-#endif
+        operation=ERFF;
+	break;
    case ASINH:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        tensor_unary_operation(m_samplesize, left, result, escript::asinh_substitute);
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::asinh);
-#endif   
-        break;
+        operation=ASINHF;
+	break;
    case ACOSH:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        tensor_unary_operation(m_samplesize, left, result, escript::acosh_substitute);
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::acosh);
-#endif   
-        break;
+        operation=ACOSHF;
+	break;
    case ATANH:
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-        tensor_unary_operation(m_samplesize, left, result, escript::atanh_substitute);
-#else
-        tensor_unary_operation(m_samplesize, left, result, ::atanh);
-#endif   
-        break;
+        operation=ATANHF;
+	break;
     case LOG10:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::log10);
-        break;
+        operation=LOG10F;
+	break;
     case LOG:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::log);
-        break;
+        operation=LOGF;
+	break;
     case SIGN:
-        tensor_unary_operation(m_samplesize, left, result, escript::fsign);
-        break;
+        operation=SIGNF;
+	break;
     case ABS:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::fabs);
-        break;
+        operation=ABSF;
+	break;
     case NEG:
-        tensor_unary_operation(m_samplesize, left, result, negate<double>());
-        break;
+        operation=NEGF;
+	break;
     case POS:
         // it doesn't mean anything for delayed.
         // it will just trigger a deep copy of the lazy object
         throw DataException("Programmer error - POS not supported for lazy data.");
         break;
     case EXP:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::exp);
-        break;
+        operation=EXPF;
+	break;
     case SQRT:
-        tensor_unary_operation<double (*)(double)>(m_samplesize, left, result, ::sqrt);
-        break;
+        operation=SQRTF;
+	break;
     case RECIP:
-        tensor_unary_operation(m_samplesize, left, result, bind1st(divides<double>(),1.));
-        break;
+        operation=INVF;
+	break;
     case GZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(greater<double>(),0.0));
-        break;
+        operation=GTZEROF;
+	break;
     case LZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(less<double>(),0.0));
-        break;
+        operation=LTZEROF;
+	break;
     case GEZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(greater_equal<double>(),0.0));
-        break;
+        operation=GEZEROF;
+	break;
     case LEZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(less_equal<double>(),0.0));
-        break;
+        operation=LEZEROF;
+	break;
 // There are actually G_UNARY_P but I don't see a compelling reason to treat them differently
     case NEZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsGT(),m_tol));
-        break;
+        operation=NEQZEROF;
+	break;
     case EZ:
-        tensor_unary_operation(m_samplesize, left, result, bind2nd(AbsLTE(),m_tol));
-        break;
-
+        operation=EQZEROF;
+	break;
     default:
         throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
   }
+  tensor_unary_array_operation(m_samplesize,
+                             left,
+                             result,
+                             operation,
+                             m_tol);  
   return &(m_samples);
 }
 
@@ -1224,7 +1190,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
           for (unsigned int z=0;z<ndpps;++z)
           {
             FMin op;
-            *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
+            *result=escript::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max());
             loffset+=psize;
             result++;
           }
@@ -1235,7 +1201,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
           for (unsigned int z=0;z<ndpps;++z)
           {
           FMax op;
-          *result=DataMaths::reductionOp(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
+          *result=escript::reductionOpVector(*leftres, m_left->getShape(), loffset, op, numeric_limits<double>::max()*-1);
           loffset+=psize;
           result++;
           }
@@ -1262,7 +1228,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     throw DataException("Programmer error - resolveNodeNP1OUT should not be called on identity nodes.");
   }
   size_t subroffset;
-  const ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
   roffset=m_samplesize*tid;
   size_t loop=0;
   size_t numsteps=(m_readytype=='E')?getNumDPPSample():1;
@@ -1273,7 +1239,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case SYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::symmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::symmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
@@ -1281,7 +1247,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case NSYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::nonsymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::nonsymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
@@ -1308,7 +1274,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
   }
   size_t subroffset;
   size_t offset;
-  const ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
   roffset=m_samplesize*tid;
   offset=roffset;
   size_t loop=0;
@@ -1320,7 +1286,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     case TRACE:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::trace(*leftres,m_left->getShape(),subroffset, m_samples ,getShape(),offset,m_axis_offset);
+            escript::trace(*leftres,m_left->getShape(),subroffset, m_samples ,getShape(),offset,m_axis_offset);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1328,7 +1294,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     case TRANS:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::transpose(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset,m_axis_offset);
+            escript::transpose(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset,m_axis_offset);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1353,7 +1319,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
   }
   size_t subroffset;
   size_t offset;
-  const ValueType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
   roffset=m_samplesize*tid;
   offset=roffset;
   size_t loop=0;
@@ -1365,7 +1331,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
     case SWAP:
         for (loop=0;loop<numsteps;++loop)
         {
-            DataMaths::swapaxes(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset, m_axis_offset, m_transpose);
+            escript::swapaxes(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset, m_axis_offset, m_transpose);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1389,8 +1355,8 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const
   }
   size_t subroffset;
 
-  const ValueType* maskres=m_mask->resolveNodeSample(tid, sampleNo, subroffset);
-  const ValueType* srcres=0;
+  const RealVectorType* maskres=m_mask->resolveNodeSample(tid, sampleNo, subroffset);
+  const RealVectorType* srcres=0;
   if ((*maskres)[subroffset]>0)
   {
         srcres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
@@ -1533,8 +1499,8 @@ LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 
   int resultStep=max(leftstep,rightstep);       // only one (at most) should be !=0
         // Get the values of sub-expressions
-  const ValueType* left=m_left->resolveNodeSample(tid,sampleNo,lroffset);       
-  const ValueType* right=m_right->resolveNodeSample(tid,sampleNo,rroffset);
+  const RealVectorType* left=m_left->resolveNodeSample(tid,sampleNo,lroffset);       
+  const RealVectorType* right=m_right->resolveNodeSample(tid,sampleNo,rroffset);
 LAZYDEBUG(cout << "Post sub calls in " << toString() << endl;)
 LAZYDEBUG(cout << "shapes=" << DataTypes::shapeToString(m_left->getShape()) << "," << DataTypes::shapeToString(m_right->getShape()) << endl;)
 LAZYDEBUG(cout << "chunksize=" << chunksize << endl << "leftstep=" << leftstep << " rightstep=" << rightstep;)
@@ -1552,19 +1518,89 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
   switch(m_op)
   {
     case ADD:
-        PROC_OP(NO_ARG,plus<double>());
+        //PROC_OP(NO_ARG,plus<double>());
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::PLUSF);	
         break;
     case SUB:
-        PROC_OP(NO_ARG,minus<double>());
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::MINUSF);	      
+        //PROC_OP(NO_ARG,minus<double>());
         break;
     case MUL:
-        PROC_OP(NO_ARG,multiplies<double>());
+        //PROC_OP(NO_ARG,multiplies<double>());
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::MULTIPLIESF);	      
         break;
     case DIV:
-        PROC_OP(NO_ARG,divides<double>());
+        //PROC_OP(NO_ARG,divides<double>());
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::DIVIDESF);	      
         break;
     case POW:
-       PROC_OP(double (double,double),::pow);
+       //PROC_OP(double (double,double),::pow);
+      escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
+			 &(*left)[0],
+			 &(*right)[0],
+			 chunksize,
+			 onumsteps,
+			 numsteps,
+			 resultStep,
+			 leftstep,
+			 rightstep,
+			 oleftstep,
+			 orightstep,
+			 lroffset,
+			 rroffset,
+			 escript::ESFunction::POWF);	      
         break;
     default:
         throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");
@@ -1594,9 +1630,9 @@ LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
   roffset=m_samplesize*tid;
   size_t offset=roffset;
 
-  const ValueType* left=m_left->resolveNodeSample(tid, sampleNo, lroffset);
+  const RealVectorType* left=m_left->resolveNodeSample(tid, sampleNo, lroffset);
 
-  const ValueType* right=m_right->resolveNodeSample(tid, sampleNo, rroffset);
+  const RealVectorType* right=m_right->resolveNodeSample(tid, sampleNo, rroffset);
 
 LAZYDEBUG(cerr << "[Left shape]=" << DataTypes::shapeToString(m_left->getShape()) << "\n[Right shape]=" << DataTypes::shapeToString(m_right->getShape()) << " result=" <<DataTypes::shapeToString(getShape()) <<  endl;
 cout << getNoValues() << endl;)
@@ -1733,14 +1769,14 @@ DataLazy::resolveGroupWorker(std::vector<DataLazy*>& dats)
   {             // it is possible that dats[0] is one of the objects which we discarded and
                 // all the other functionspaces match.
         vector<DataExpanded*> dep;
-        vector<ValueType*> vecs;
+        vector<RealVectorType*> vecs;
         for (int i=0;i<work.size();++i)
         {
-                dep.push_back(new DataExpanded(fs,work[i]->getShape(), ValueType(work[i]->getNoValues())));
+                dep.push_back(new DataExpanded(fs,work[i]->getShape(), RealVectorType(work[i]->getNoValues())));
                 vecs.push_back(&(dep[i]->getVectorRW()));
         }
         int totalsamples=work[0]->getNumSamples();
-        const ValueType* res=0; // Storage for answer
+        const RealVectorType* res=0; // Storage for answer
         int sample;
         #pragma omp parallel private(sample, res)
         {
@@ -1792,13 +1828,13 @@ DataLazy::resolveNodeWorker()
     return m_id;
   }
         // from this point on we must have m_op!=IDENTITY and m_readytype=='E'
-  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  ValueType(getNoValues()));
-  ValueType& resvec=result->getVectorRW();
+  DataExpanded* result=new DataExpanded(getFunctionSpace(),getShape(),  RealVectorType(getNoValues()));
+  RealVectorType& resvec=result->getVectorRW();
   DataReady_ptr resptr=DataReady_ptr(result);
 
   int sample;
   int totalsamples=getNumSamples();
-  const ValueType* res=0;       // Storage for answer
+  const RealVectorType* res=0;       // Storage for answer
 LAZYDEBUG(cout << "Total number of samples=" <<totalsamples << endl;)
   #pragma omp parallel private(sample,res)
   {

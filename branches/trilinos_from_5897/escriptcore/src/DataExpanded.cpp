@@ -18,7 +18,7 @@
 #include "DataConstant.h"
 #include "DataException.h"
 #include "DataExpanded.h"
-#include "DataMaths.h"
+#include "DataVectorOps.h"
 #include "DataTagged.h"
 
 #include <limits>
@@ -30,16 +30,19 @@
 using namespace std;
 using namespace escript::DataTypes;
 
-#define CHECK_FOR_EX_WRITE do {\
-    if (!checkNoSharing()) {\
+#ifdef SLOWSHARECHECK
+  #define CHECK_FOR_EX_WRITE do {\
+    if (isShared()) {\
         std::ostringstream ss;\
         ss << "Attempt to modify shared object. Line " << __LINE__ << " in "\
            << __FILE__;\
         abort();\
         throw DataException(ss.str());\
     }\
-} while(0);
-
+  } while(0);
+#else
+  #define CHECK_FOR_EX_WRITE
+#endif
 
 namespace escript {
 
@@ -293,7 +296,7 @@ void DataExpanded::setSlice(const DataAbstract* value,
 
 void DataExpanded::copy(const DataConstant& value)
 {
-    ESYS_ASSERT((checkShape(getShape(), value.getShape())),
+    ESYS_ASSERT(checkShape(getShape(), value.getShape()),
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
     if (isComplex())
     {
@@ -670,7 +673,7 @@ void DataExpanded::symmetric(DataAbstract* ev)
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::symmetric(vec, shape,
+            escript::symmetric(vec, shape,
                     getPointOffset(sampleNo,dataPointNo), evVec, evShape,
                     ev->getPointOffset(sampleNo,dataPointNo));
         }
@@ -692,7 +695,7 @@ void DataExpanded::nonsymmetric(DataAbstract* ev)
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::nonsymmetric(vec, shape,
+            escript::nonsymmetric(vec, shape,
                     getPointOffset(sampleNo,dataPointNo), evVec, evShape,
                     ev->getPointOffset(sampleNo,dataPointNo));
         }
@@ -714,7 +717,7 @@ void DataExpanded::trace(DataAbstract* ev, int axis_offset)
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::trace(vec, shape, getPointOffset(sampleNo,dataPointNo),
+            escript::trace(vec, shape, getPointOffset(sampleNo,dataPointNo),
                      evVec, evShape, ev->getPointOffset(sampleNo,dataPointNo),
                      axis_offset);
         }
@@ -736,7 +739,7 @@ void DataExpanded::transpose(DataAbstract* ev, int axis_offset)
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::transpose(vec, shape,
+            escript::transpose(vec, shape,
                     getPointOffset(sampleNo,dataPointNo), evVec, evShape,
                     ev->getPointOffset(sampleNo,dataPointNo), axis_offset);
         }
@@ -758,7 +761,7 @@ void DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::swapaxes(vec, shape,
+            escript::swapaxes(vec, shape,
                     getPointOffset(sampleNo,dataPointNo), evVec, evShape,
                     ev->getPointOffset(sampleNo,dataPointNo), axis0, axis1);
         }
@@ -780,7 +783,7 @@ void DataExpanded::eigenvalues(DataAbstract* ev)
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::eigenvalues(vec, shape,
+            escript::eigenvalues(vec, shape,
                     getPointOffset(sampleNo,dataPointNo), evVec, evShape,
                     ev->getPointOffset(sampleNo,dataPointNo));
         }
@@ -809,7 +812,7 @@ void DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,
 #pragma omp parallel for
     for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
         for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            DataMaths::eigenvalues_and_eigenvectors(vec, shape,
+            escript::eigenvalues_and_eigenvectors(vec, shape,
                     getPointOffset(sampleNo,dataPointNo), evVec, evShape,
                     ev->getPointOffset(sampleNo,dataPointNo), VVec, VShape,
                     V->getPointOffset(sampleNo,dataPointNo), tol);
@@ -840,7 +843,7 @@ int DataExpanded::matrixInverse(DataAbstract* out) const
         {
             // not sure I like all those virtual calls to getPointOffset
             DataTypes::RealVectorType::size_type offset=getPointOffset(sampleNo,0);
-            int res=DataMaths::matrix_inverse(vec, getShape(), offset,
+            int res=escript::matrix_inverse(vec, getShape(), offset,
                     temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
             if (res > errorcode) {
                 errorcode=res;
