@@ -19,10 +19,16 @@ Import('*')
 local_env = env.Clone()
 
 sources = """
+  Amesos2Wrapper.cpp
+  BelosWrapper.cpp
+  PreconditionerFactory.cpp
   TrilinosMatrixAdapter.cpp
 """.split()
 
 headers = """
+  Amesos2Wrapper.h
+  BelosWrapper.h
+  PreconditionerFactory.h
   TrilinosAdapterException.h
   TrilinosMatrixAdapter.h
   types.h

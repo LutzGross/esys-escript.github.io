@@ -15,6 +15,9 @@
 *****************************************************************************/
 
 #include "TrilinosMatrixAdapter.h" 
+#include "Amesos2Wrapper.h" 
+#include "BelosWrapper.h" 
+#include "PreconditionerFactory.h" 
 #include "TrilinosAdapterException.h" 
 
 #include <escript/index.h>
@@ -22,15 +25,12 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
 
-#include <Amesos2.hpp>
-#include <BelosSolverFactory.hpp>
 #include <BelosTpetraAdapter.hpp>
-#include <Ifpack2_Factory.hpp>
+#include <BelosTypes.hpp>
 #include <Kokkos_DefaultNode.hpp>
 #include <MatrixMarket_Tpetra.hpp>
 #include <Tpetra_DefaultPlatform.hpp>
 #include <Tpetra_Vector.hpp>
-#include <MueLu_CreateTpetraPreconditioner.hpp>
 
 namespace bp = boost::python;
 using Teuchos::RCP;
@@ -39,268 +39,34 @@ using Teuchos::rcpFromRef;
 
 namespace esys_trilinos {
 
-TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
-        int blocksize, const escript::FunctionSpace& fs,
-        const_TrilinosGraph_ptr graph) :
-    AbstractSystemMatrix(blocksize, fs, blocksize, fs),
-    m_mpiInfo(mpiInfo)
+template<typename ST>
+void ypAxWorker(RCP<MatrixType<ST> > A, const Teuchos::ArrayView<ST>& y,
+                const Teuchos::ArrayView<const ST>& x)
 {
-    mat = rcp(new MatrixType(graph));
-    mat->fillComplete();
-    importer = rcp(new ImportType(mat->getRowMap(), mat->getColMap()));
-}
-
-void TrilinosMatrixAdapter::fillComplete(bool localOnly)
-{
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("No Nonlocal Changes", localOnly);
-    mat->fillComplete(mat->getDomainMap(), mat->getRangeMap(), params);
-}
-
-void TrilinosMatrixAdapter::add(const std::vector<LO>& rowIdx,
-                                const std::vector<double>& array)
-{
-    const int blockSize = getBlockSize();
-    const size_t emSize = rowIdx.size();
-    RCP<const MapType> rowMap(mat->getRowMap());
-    const LO myLast = rowMap->getMaxLocalIndex();
-    std::vector<LO> cols(emSize*blockSize);
-    std::vector<ST> vals(emSize*blockSize);
-    for (size_t i=0; i<emSize; i++) {
-        for (int k=0; k<blockSize; k++) {
-            const LO row = rowIdx[i]*blockSize + k;
-            if (row <= myLast) {
-                cols.clear();
-                vals.clear();
-                for (int j=0; j<emSize; j++) {
-                    for (int m=0; m<blockSize; m++) {
-                        const LO col = rowIdx[j]*blockSize + m;
-                        cols.push_back(col);
-                        const size_t srcIdx =
-                            INDEX4(k, m, i, j, blockSize, blockSize, emSize);
-                        vals.push_back(array[srcIdx]);
-                        //std::cout << "A[" << row << ","<<col<<"("<<lclcol<<")"
-                        //    <<"]+="<<array[srcIdx]<<std::endl;
-                    }
-                }
-                mat->sumIntoLocalValues(row, cols, vals);
-            }
-        }
-    }
-}
-
-void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
-{
-    if (x.getDataPointSize() != getBlockSize()) {
-        throw TrilinosAdapterException("matrix vector product: block size does not match the number of components in input.");
-    } else if (y.getDataPointSize() != getBlockSize()) {
-        throw TrilinosAdapterException("matrix vector product: block size does not match the number of components in output.");
-    } else if (x.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw TrilinosAdapterException("matrix vector product: matrix function space and function space of input don't match.");
-    } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
-        throw TrilinosAdapterException("matrix vector product: matrix function space and function space of output don't match.");
-    }
-
-    // expand data object if necessary to be able to grab the whole data
-    x.expand();
-    y.expand();
-    y.requireWrite();
-
-    // we need remote values for x
-    const Teuchos::ArrayView<const ST> xView(x.getSampleDataRO(0), x.getNumDataPoints());
-    RCP<VectorType> lclX = rcp(new VectorType(mat->getRowMap(), xView, xView.size(), 1));
-    //RCP<VectorType> gblX = rcp(new VectorType(mat->getColMap(), 1));
-
-    //gblX->doImport(*lclX, *importer, Tpetra::INSERT);
+    RCP<VectorType<ST> > X = rcp(new VectorType<ST>(
+                                              A->getRowMap(), x, x.size(), 1));
+    RCP<VectorType<ST> > Y = rcp(new VectorType<ST>(
+                                              A->getRowMap(), y, y.size(), 1));
 
     const ST alpha = Teuchos::ScalarTraits<ST>::one();
     const ST beta = Teuchos::ScalarTraits<ST>::one();
-    const Teuchos::ArrayView<ST> yView(y.getSampleDataRW(0), y.getNumDataPoints());
-    RCP<VectorType> Y = rcp(new VectorType(mat->getRowMap(), yView, yView.size(), 1));
 
     // Y = beta*Y + alpha*A*X
-    //mat->localMultiply(*gblX, *Y, Teuchos::NO_TRANS, alpha, beta);
-    mat->apply(*lclX, *Y, Teuchos::NO_TRANS, alpha, beta);
-    Y->get1dCopy(yView, yView.size());
+    A->apply(*X, *Y, Teuchos::NO_TRANS, alpha, beta);
+    Y->get1dCopy(y, y.size());
 }
 
-RCP<DirectSolverType> TrilinosMatrixAdapter::createDirectSolver(
-                                                const escript::SolverBuddy& sb,
-                                                RCP<VectorType> X,
-                                                RCP<const VectorType> B) const
+template<typename ST>
+void solveWorker(RCP<MatrixType<ST> > A, const Teuchos::ArrayView<ST>& x,
+                 const Teuchos::ArrayView<const ST>& b,
+                 const escript::SolverBuddy& sb)
 {
-    RCP<DirectSolverType> solver;
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    RCP<VectorType<ST> > X = rcp(new VectorType<ST>(A->getDomainMap(), 1));
+    RCP<VectorType<ST> > B = rcp(new VectorType<ST>(A->getRangeMap(), b,
+                                                    b.size(), 1));
 
-    // TODO: options!
-    if (Amesos2::query("MUMPS")) {
-        solver = Amesos2::create<MatrixType,VectorType>("MUMPS", mat, X, B);
-        if (sb.isVerbose()) {
-            params->set("ICNTL(4)", 4);
-        }
-    } else if (Amesos2::query("klu2")) {
-        solver = Amesos2::create<MatrixType,VectorType>("klu2", mat, X, B);
-        params->set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        params->set("SymmetricMode", sb.isSymmetric());
-    } else if (Amesos2::query("superludist")) {
-        solver = Amesos2::create<MatrixType,VectorType>("superludist", mat, X, B);
-    } else if (Amesos2::query("superlu")) {
-        solver = Amesos2::create<MatrixType,VectorType>("superlu", mat, X, B);
-        params->set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        params->set("ILU_DropTol", sb.getDropTolerance());
-        params->set("SymmetricMode", sb.isSymmetric());
-    } else if (Amesos2::query("pardiso_mkl")) {
-        solver = Amesos2::create<MatrixType,VectorType>("pardiso_mkl", mat, X, B);
-    } else if (Amesos2::query("lapack")) {
-        solver = Amesos2::create<MatrixType,VectorType>("lapack", mat, X, B);
-    } else if (Amesos2::query("amesos2_cholmod")) {
-        solver = Amesos2::create<MatrixType,VectorType>("amesos2_cholmod", mat, X, B);
-    } else if (Amesos2::query("superlumt")) {
-        solver = Amesos2::create<MatrixType,VectorType>("superlumt", mat, X, B);
-        params->set("nprocs", omp_get_max_threads());
-        params->set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        params->set("SymmetricMode", sb.isSymmetric());
-    } else {
-        throw TrilinosAdapterException("Could not find an Amesos2 direct solver!");
-    }
-    solver->setParameters(params);
-    return solver;
-}
-
-RCP<SolverType> TrilinosMatrixAdapter::createSolver(
-                                         const escript::SolverBuddy& sb) const
-{
-    Belos::SolverFactory<ST, VectorType, OpType> factory;
-    RCP<SolverType> solver;
-    RCP<Teuchos::ParameterList> solverParams = Teuchos::parameterList();
-
-    solverParams->set("Convergence Tolerance", sb.getTolerance());
-    solverParams->set("Maximum Iterations", sb.getIterMax());
-    if (sb.isVerbose()) {
-        solverParams->set("Verbosity", Belos::Errors + Belos::Warnings +
-                Belos::TimingDetails + Belos::StatusTestDetails);
-    }
-
-    // TODO: options!
-    escript::SolverOptions method = sb.getSolverMethod();
-
-    if (method == escript::SO_DEFAULT) {
-        if (sb.isSymmetric()) {
-            method = escript::SO_METHOD_PCG;
-        } else {
-            method = escript::SO_METHOD_GMRES;
-        }
-    }
-
-    switch (method) {
-        case escript::SO_METHOD_BICGSTAB:
-            solver = factory.create("BICGSTAB", solverParams);
-            break;
-        case escript::SO_METHOD_PCG:
-            solver = factory.create("CG", solverParams);
-            break;
-        case escript::SO_METHOD_GMRES:
-            solver = factory.create("GMRES", solverParams);
-            break;
-        case escript::SO_METHOD_LSQR:
-            solver = factory.create("LSQR", solverParams);
-            break;
-        case escript::SO_METHOD_MINRES:
-            solver = factory.create("MINRES", solverParams);
-            break;
-        case escript::SO_METHOD_TFQMR:
-            solver = factory.create("TFQMR", solverParams);
-            break;
-        default:
-            throw TrilinosAdapterException("Unsupported solver type requested.");
-    }
-    return solver;
-}
-
-RCP<OpType> TrilinosMatrixAdapter::createPreconditioner(
-                                         const escript::SolverBuddy& sb) const
-{
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    Ifpack2::Factory factory;
-    RCP<OpType> prec;
-    RCP<Ifpack2::Preconditioner<ST,LO,GO,NT> > ifprec;
-
-    // TODO: options!
-    switch (sb.getPreconditioner()) {
-        case escript::SO_PRECONDITIONER_NONE:
-            break;
-        case escript::SO_PRECONDITIONER_AMG:
-            {
-                params->set("max levels", sb.getLevelMax());
-                params->set("number of equations", getBlockSize());
-                params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
-                params->set("problem: symmetric", sb.isSymmetric());
-                params->set("verbosity", sb.isVerbose()? "high":"low");
-                RCP<OpType> A(mat);
-                prec = MueLu::CreateTpetraPreconditioner(A, *params);
-            }
-            break;
-        case escript::SO_PRECONDITIONER_ILUT:
-            ifprec = factory.create<MatrixType>("ILUT", mat);
-            params->set("fact: drop tolerance", sb.getDropTolerance());
-            break;
-        case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
-        case escript::SO_PRECONDITIONER_JACOBI:
-            ifprec = factory.create<MatrixType>("RELAXATION", mat);
-            if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
-                params->set("relaxation: type", "Jacobi");
-            } else {
-                params->set("relaxation: type", (sb.isSymmetric() ?
-                            "Symmetric Gauss-Seidel" : "Gauss-Seidel"));
-            }
-            params->set("relaxation: sweeps", sb.getNumSweeps());
-            params->set("relaxation: damping factor", sb.getRelaxationFactor());
-            break;
-        case escript::SO_PRECONDITIONER_RILU:
-            ifprec = factory.create<MatrixType>("RILUK", mat);
-            params->set("fact: relax value", sb.getRelaxationFactor());
-            break;
-        default:
-            throw TrilinosAdapterException("Unsupported preconditioner requested.");
-    }
-    if (!ifprec.is_null()) {
-        ifprec->setParameters(*params);
-        ifprec->initialize();
-        ifprec->compute();
-        prec = ifprec;
-    }
-    return prec;
-}
-
-void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
-                                 bp::object& options) const
-{
-    if (out.getDataPointSize() != getBlockSize()) {
-        throw TrilinosAdapterException("solve: block size does not match the number of components of solution.");
-    } else if (in.getDataPointSize() != getBlockSize()) {
-        throw TrilinosAdapterException("solve: block size does not match the number of components of right hand side.");
-    } else if (out.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw TrilinosAdapterException("solve: matrix function space and function space of solution don't match.");
-    } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
-        throw TrilinosAdapterException("solve: matrix function space and function space of right hand side don't match.");
-    }
-
-    options.attr("resetDiagnostics")();
-    escript::SolverBuddy sb = bp::extract<escript::SolverBuddy>(options);
-    out.expand();
-    in.expand();
-
-    if (sb.isVerbose()) {
-        std::cout << "Matrix has " << mat->getGlobalNumEntries() << " entries." << std::endl;
-    }
-
-    const Teuchos::ArrayView<const ST> bView(in.getSampleDataRO(0), in.getNumDataPoints());
-    RCP<VectorType> B = rcp(new VectorType(mat->getRangeMap(), bView, bView.size(), 1));
-    RCP<VectorType> X = rcp(new VectorType(mat->getDomainMap(), 1));
-
-    //solve...
     if (sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
-        RCP<DirectSolverType> solver = createDirectSolver(sb, X, B);
+        RCP<DirectSolverType<ST> > solver = createDirectSolver<ST>(sb, A, X, B);
         if (sb.isVerbose()) {
             std::cout << solver->description() << std::endl;
             std::cout << "Performing symbolic factorization..." << std::flush;
@@ -320,10 +86,10 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
             solver->printTiming(*fos, Teuchos::VERB_HIGH);
         }
 
-    } else {
-        RCP<SolverType> solver = createSolver(sb);
-        RCP<OpType> prec = createPreconditioner(sb);
-        RCP<ProblemType> problem = rcp(new ProblemType(mat, X, B));
+    } else { // iterative solver
+        RCP<SolverType<ST> > solver = createSolver<ST>(sb);
+        RCP<OpType<ST> > prec = createPreconditioner<ST>(A, sb);
+        RCP<ProblemType<ST> > problem = rcp(new ProblemType<ST>(A, X, B));
 
         if (!prec.is_null()) {
             // Trilinos BiCGStab does not currently support left preconditioners
@@ -338,24 +104,193 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
         if (sb.isVerbose()) {
             const int numIters = solver->getNumIters();
             if (result == Belos::Converged) {
-                std::cout << "The Belos solve took " << numIters
+                std::cout << "The solver took " << numIters
                    << " iteration(s) to reach a relative residual tolerance of "
                    << sb.getTolerance() << "." << std::endl;
             } else {
-                std::cout << "The Belos solve took " << numIters
+                std::cout << "The solver took " << numIters
                    << " iteration(s), but did not reach a relative residual "
                    "tolerance of " << sb.getTolerance() << "." << std::endl;
             }
         }
     }
+    X->get1dCopy(x, x.size());
+}
 
-    const Teuchos::ArrayView<ST> outView(out.getSampleDataRW(0), out.getNumDataPoints());
-    X->get1dCopy(outView, outView.size());
+TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
+        int blocksize, const escript::FunctionSpace& fs,
+        const_TrilinosGraph_ptr graph, bool isComplex) :
+    AbstractSystemMatrix(blocksize, fs, blocksize, fs),
+    m_mpiInfo(mpiInfo),
+    m_isComplex(isComplex)
+{
+    if (blocksize != 1) {
+        throw escript::ValueError("Trilinos matrices only support blocksize 1 "
+                                  "at the moment!");
+    }
+    importer = rcp(new ImportType(graph->getRowMap(), graph->getColMap()));
+    if (isComplex) {
+        cmat = rcp(new ComplexMatrix(graph));
+        cmat->fillComplete();
+        std::cout << "Matrix has " << cmat->getGlobalNumEntries()
+                  << " entries." << std::endl;
+    } else {
+        mat = rcp(new RealMatrix(graph));
+        mat->fillComplete();
+        std::cout << "Matrix has " << mat->getGlobalNumEntries()
+                  << " entries." << std::endl;
+    }
+
+}
+
+void TrilinosMatrixAdapter::fillComplete(bool localOnly)
+{
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("No Nonlocal Changes", localOnly);
+    if (m_isComplex)
+        cmat->fillComplete(cmat->getDomainMap(), cmat->getRangeMap(), params);
+    else
+        mat->fillComplete(mat->getDomainMap(), mat->getRangeMap(), params);
+}
+
+template<>
+void TrilinosMatrixAdapter::add<real_t>(const std::vector<LO>& rowIdx,
+                                        const std::vector<real_t>& array)
+{
+    if (m_isComplex) {
+        throw escript::ValueError("Please use complex array to add to complex "
+                                  "matrix!");
+    } else {
+        addImpl<real_t>(mat, rowIdx, array);
+    }
+}
+
+template<>
+void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
+                                        const std::vector<cplx_t>& array)
+{
+    if (m_isComplex) {
+        addImpl<cplx_t>(cmat, rowIdx, array);
+    } else {
+        throw escript::ValueError("Please use real-valued array to add to "
+                                  "real-valued matrix!");
+    }
+}
+
+template<typename ST>
+void TrilinosMatrixAdapter::addImpl(RCP<MatrixType<ST> > A,
+                                    const std::vector<LO>& rowIdx,
+                                    const std::vector<ST>& array)
+{
+    const int blockSize = getBlockSize();
+    const size_t emSize = rowIdx.size();
+    const LO myLast = A->getRowMap()->getMaxLocalIndex();
+    std::vector<LO> cols(emSize*blockSize);
+    std::vector<ST> vals(emSize*blockSize);
+    for (size_t i = 0; i < emSize; i++) {
+        for (int k = 0; k < blockSize; k++) {
+            const LO row = rowIdx[i]*blockSize + k;
+            if (row <= myLast) {
+                cols.clear();
+                vals.clear();
+                for (int j = 0; j < emSize; j++) {
+                    for (int m = 0; m < blockSize; m++) {
+                        const LO col = rowIdx[j]*blockSize + m;
+                        cols.push_back(col);
+                        const size_t srcIdx =
+                            INDEX4(k, m, i, j, blockSize, blockSize, emSize);
+                        vals.push_back(array[srcIdx]);
+                    }
+                }
+                A->sumIntoLocalValues(row, cols, vals);
+            }
+        }
+    }
+}
+
+void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
+{
+    if (x.getDataPointSize() != getBlockSize()) {
+        throw TrilinosAdapterException("matrix vector product: block size "
+                        "does not match the number of components in input.");
+    } else if (y.getDataPointSize() != getBlockSize()) {
+        throw TrilinosAdapterException("matrix vector product: block size "
+                        "does not match the number of components in output.");
+    } else if (x.getFunctionSpace() != getColumnFunctionSpace()) {
+        throw TrilinosAdapterException("matrix vector product: matrix "
+                   "function space and function space of input don't match.");
+    } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
+        throw TrilinosAdapterException("matrix vector product: matrix "
+                  "function space and function space of output don't match.");
+    } else if (y.isComplex() != m_isComplex || x.isComplex() != m_isComplex) {
+        throw escript::ValueError("matrix vector product: matrix complexity "
+                  "must match vector complexity!");
+    }
+
+    // expand data object if necessary to be able to grab the whole data
+    x.expand();
+    y.expand();
+    y.requireWrite();
+
+    if (m_isComplex) {
+        throw escript::NotImplementedError("complex ypAx not implemented!");
+        // TODO: need complex version of getSampleDataRO/RW for this:
+        //const Teuchos::ArrayView<const cplx_t> xView(x.getSampleDataRO(0),
+        //                                             x.getNumDataPoints());
+        //const Teuchos::ArrayView<cplx_t> yView(y.getSampleDataRW(0),
+        //                                       y.getNumDataPoints());
+        //ypAxWorker<cplx_t>(cmat, yView, xView);
+    } else {
+        const Teuchos::ArrayView<const real_t> xView(x.getSampleDataRO(0),
+                                                     x.getNumDataPoints());
+        const Teuchos::ArrayView<real_t> yView(y.getSampleDataRW(0),
+                                               y.getNumDataPoints());
+        ypAxWorker<real_t>(mat, yView, xView);
+    }
+}
+
+void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
+                                 bp::object& options) const
+{
+    if (out.getDataPointSize() != getBlockSize()) {
+        throw TrilinosAdapterException("solve: block size does not match the number of components of solution.");
+    } else if (in.getDataPointSize() != getBlockSize()) {
+        throw TrilinosAdapterException("solve: block size does not match the number of components of right hand side.");
+    } else if (out.getFunctionSpace() != getColumnFunctionSpace()) {
+        throw TrilinosAdapterException("solve: matrix function space and function space of solution don't match.");
+    } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
+        throw TrilinosAdapterException("solve: matrix function space and function space of right hand side don't match.");
+    } else if (in.isComplex() != m_isComplex || out.isComplex() != m_isComplex) {
+        throw escript::ValueError("solve: matrix complexity must match vector "
+                                  "complexity!");
+    }
+
+    options.attr("resetDiagnostics")();
+    escript::SolverBuddy sb = bp::extract<escript::SolverBuddy>(options);
+    out.expand();
+    in.expand();
+
+    if (m_isComplex) {
+        throw escript::NotImplementedError("complex solve not implemented!");
+        // TODO: need complex version of getSampleDataRO/RW for this:
+        //const Teuchos::ArrayView<const cplx_t> bView(in.getSampleDataRO(0), in.getNumDataPoints());
+        //const Teuchos::ArrayView<cplx_t> outView(out.getSampleDataRW(0),
+        //                                         out.getNumDataPoints());
+        //solveWorker<cplx_t>(cmat, outView, bView, sb);
+
+    } else {
+        const Teuchos::ArrayView<const real_t> bView(in.getSampleDataRO(0),
+                                                     in.getNumDataPoints());
+        const Teuchos::ArrayView<real_t> outView(out.getSampleDataRW(0),
+                                                 out.getNumDataPoints());
+        solveWorker<real_t>(mat, outView, bView, sb);
+    }
+
 }
 
 void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
-                                      escript::Data& col_q,
-                                      double mdv)
+                                               escript::Data& col_q,
+                                               double mdv)
 {
     if (col_q.getDataPointSize() != getColumnBlockSize()) {
         throw TrilinosAdapterException("nullifyRowsAndCols: column block size does not match the number of components of column mask.");
@@ -369,31 +304,39 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
 
     col_q.expand();
     row_q.expand();
-    const Teuchos::ArrayView<const ST> rowMask(row_q.getSampleDataRO(0), row_q.getNumDataPoints());
+    const Teuchos::ArrayView<const real_t> rowMask(row_q.getSampleDataRO(0),
+                                                   row_q.getNumDataPoints());
     // we need remote values for col_q
-    const Teuchos::ArrayView<const ST> colView(col_q.getSampleDataRO(0), col_q.getNumDataPoints());
-    RCP<VectorType> lclCol = rcp(new VectorType(mat->getRowMap(), colView, colView.size(), 1));
-    RCP<VectorType> gblCol = rcp(new VectorType(mat->getColMap(), 1));
+    const Teuchos::ArrayView<const real_t> colView(col_q.getSampleDataRO(0),
+                                                   col_q.getNumDataPoints());
+
+    // TODO:
+    if (m_isComplex)
+        throw escript::NotImplementedError("nullifyRowsAndCols: complex "
+                                           "version not implemented");
+
+    RCP<RealVector> lclCol = rcp(new RealVector(mat->getRowMap(), colView, colView.size(), 1));
+    RCP<RealVector> gblCol = rcp(new RealVector(mat->getColMap(), 1));
 
     gblCol->doImport(*lclCol, *importer, Tpetra::INSERT);
-    Teuchos::ArrayRCP<const ST> colMask(gblCol->getData(0));
+    Teuchos::ArrayRCP<const real_t> colMask(gblCol->getData(0));
 
-    mat->resumeFill();
+    resumeFill();
 // Can't use OpenMP here as replaceLocalValues() is not thread-safe.
 //#pragma omp parallel for
-    for (LO lclrow=0; lclrow < mat->getNodeNumRows(); lclrow++) {
+    for (LO lclrow = 0; lclrow < mat->getNodeNumRows(); lclrow++) {
         Teuchos::ArrayView<const LO> indices;
-        Teuchos::ArrayView<const ST> values;
+        Teuchos::ArrayView<const real_t> values;
         std::vector<GO> cols;
-        std::vector<ST> vals;
+        std::vector<real_t> vals;
         mat->getLocalRowView(lclrow, indices, values);
         GO row = mat->getRowMap()->getGlobalElement(lclrow);
-        for (size_t c=0; c<indices.size(); c++) {
+        for (size_t c = 0; c < indices.size(); c++) {
             const LO lclcol = indices[c];
             const GO col = mat->getColMap()->getGlobalElement(lclcol);
             if (rowMask[lclrow] > 0. || colMask[lclcol] > 0.) {
                 cols.push_back(lclcol);
-                vals.push_back(row==col ? (ST)mdv : (ST)0);
+                vals.push_back(row==col ? (real_t)mdv : (real_t)0);
             }
         }
         if (cols.size() > 0)
@@ -404,19 +347,27 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
 
 void TrilinosMatrixAdapter::saveMM(const std::string& filename) const
 {
-    Tpetra::MatrixMarket::Writer<MatrixType>::writeSparseFile(filename, mat);
+    if (m_isComplex) {
+        Tpetra::MatrixMarket::Writer<RealMatrix>::writeSparseFile(filename, mat);
+    } else {
+        Tpetra::MatrixMarket::Writer<ComplexMatrix>::writeSparseFile(filename, cmat);
+    }
 }
 
 void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
 {
-    throw TrilinosAdapterException("Harwell-Boeing interface not available.");
+    throw escript::NotImplementedError("Harwell-Boeing interface not available.");
 }
 
 void TrilinosMatrixAdapter::resetValues()
 {
-    mat->resumeFill();
-    mat->setAllToScalar(static_cast<const ST>(0.));
-    mat->fillComplete();
+    resumeFill();
+    if (m_isComplex) {
+        cmat->setAllToScalar(static_cast<const cplx_t>(0.));
+    } else {
+        mat->setAllToScalar(static_cast<const real_t>(0.));
+    }
+    fillComplete(true);
 }
 
 }  // end of namespace
