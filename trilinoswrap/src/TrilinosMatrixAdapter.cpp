@@ -233,13 +233,11 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     y.requireWrite();
 
     if (m_isComplex) {
-        throw escript::NotImplementedError("complex ypAx not implemented!");
-        // TODO: need complex version of getSampleDataRO/RW for this:
-        //const Teuchos::ArrayView<const cplx_t> xView(x.getSampleDataRO(0),
-        //                                             x.getNumDataPoints());
-        //const Teuchos::ArrayView<cplx_t> yView(y.getSampleDataRW(0),
-        //                                       y.getNumDataPoints());
-        //ypAxWorker<cplx_t>(cmat, yView, xView);
+        const Teuchos::ArrayView<const cplx_t> xView(
+                x.getSampleDataRO(0, cplx_t(0)), x.getNumDataPoints());
+        const Teuchos::ArrayView<cplx_t> yView(y.getSampleDataRW(0, cplx_t(0)),
+                                               y.getNumDataPoints());
+        ypAxWorker<cplx_t>(cmat, yView, xView);
     } else {
         const Teuchos::ArrayView<const real_t> xView(x.getSampleDataRO(0),
                                                      x.getNumDataPoints());
@@ -272,11 +270,11 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
 
     if (m_isComplex) {
         throw escript::NotImplementedError("complex solve not implemented!");
-        // TODO: need complex version of getSampleDataRO/RW for this:
-        //const Teuchos::ArrayView<const cplx_t> bView(in.getSampleDataRO(0), in.getNumDataPoints());
-        //const Teuchos::ArrayView<cplx_t> outView(out.getSampleDataRW(0),
-        //                                         out.getNumDataPoints());
-        //solveWorker<cplx_t>(cmat, outView, bView, sb);
+        const Teuchos::ArrayView<const cplx_t> bView(in.getSampleDataRO(0,
+                                           cplx_t(0)), in.getNumDataPoints());
+        const Teuchos::ArrayView<cplx_t> outView(out.getSampleDataRW(0,
+                                           cplx_t(0)), out.getNumDataPoints());
+        solveWorker<cplx_t>(cmat, outView, bView, sb);
 
     } else {
         const Teuchos::ArrayView<const real_t> bView(in.getSampleDataRO(0),
