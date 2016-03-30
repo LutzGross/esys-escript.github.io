@@ -39,7 +39,7 @@ public:
   void testCopying();
   void testResolveType();
   void testBinary();
-
+  void testComplexSamples();
   static CppUnit::TestSuite* suite();
 
 private:

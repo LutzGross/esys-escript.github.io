@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     TestResultCollector result;
     controller.addListener(&result);
 	TestRunner runner;
-    runner.addTest(EsysExceptionTestCase::suite());
+	runner.addTest(EsysExceptionTestCase::suite());
 	runner.addTest(SharedDataTestCase::suite());
 	runner.addTest(DataTypesTestCase::suite());
 	runner.addTest(DataFactoryTestCase::suite());
