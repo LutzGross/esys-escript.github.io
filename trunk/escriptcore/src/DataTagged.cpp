@@ -675,8 +675,8 @@ DataTagged::addTag(int tagKey)
 }
 
 
-double*
-DataTagged::getSampleDataByTag(int tag)
+DataTypes::real_t*
+DataTagged::getSampleDataByTag(int tag, DataTypes::real_t dummy)
 {
   CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tag));
@@ -686,6 +686,20 @@ DataTagged::getSampleDataByTag(int tag)
   } else {
     // return the data-point corresponding to the given tag
     return &(m_data_r[pos->second]);
+  }
+}
+
+DataTypes::cplx_t*
+DataTagged::getSampleDataByTag(int tag, DataTypes::cplx_t dummy)
+{
+  CHECK_FOR_EX_WRITE
+  DataMapType::iterator pos(m_offsetLookup.find(tag));
+  if (pos==m_offsetLookup.end()) {
+    // tag couldn't be found so return the default value
+    return &(m_data_c[0]);
+  } else {
+    // return the data-point corresponding to the given tag
+    return &(m_data_c[pos->second]);
   }
 }
 

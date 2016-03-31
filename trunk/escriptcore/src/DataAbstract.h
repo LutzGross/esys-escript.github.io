@@ -199,7 +199,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   virtual
   DataTypes::real_t*
-  getSampleDataByTag(int tag);
+  getSampleDataByTag(int tag, DataTypes::real_t dummy=0);
 
   /**
      \brief
@@ -208,7 +208,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   virtual
   DataTypes::cplx_t*
-  getSampleDataByTag_C(int tag);
+  getSampleDataByTag(int tag, DataTypes::cplx_t dummy);
 
   /**
      \brief Return number of tagged values stored in the data object

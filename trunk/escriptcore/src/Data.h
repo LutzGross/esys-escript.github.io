@@ -604,10 +604,18 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   inline
   DataTypes::real_t*
-  getSampleDataByTag(int tag)
+  getSampleDataByTag(int tag, DataTypes::real_t dummy=0)
   {
-    return m_data->getSampleDataByTag(tag);
+    return m_data->getSampleDataByTag(tag, dummy);
   }
+  
+  inline
+  DataTypes::cplx_t*
+  getSampleDataByTag(int tag, DataTypes::cplx_t dummy)
+  {
+    return m_data->getSampleDataByTag(tag, dummy);
+  }  
+  
 
   /**
      \brief

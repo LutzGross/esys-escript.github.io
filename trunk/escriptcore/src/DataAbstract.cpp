@@ -141,14 +141,14 @@ DataAbstract::dump(const std::string fileName) const
 
 
 DataTypes::real_t*
-DataAbstract::getSampleDataByTag(int tag)
+DataAbstract::getSampleDataByTag(int tag, DataTypes::real_t dummy)
 {
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
 }
 
 
 DataTypes::cplx_t*
-DataAbstract::getSampleDataByTag_C(int tag)
+DataAbstract::getSampleDataByTag(int tag, DataTypes::cplx_t dummy)
 {
     throw DataException("Error - DataAbstract::getSampleDataByTag_C: Data type does not have complex tag values.");
 }

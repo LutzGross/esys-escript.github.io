@@ -195,9 +195,14 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     T
   */
   virtual
-  double*
-  getSampleDataByTag(int tag);
+  DataTypes::real_t*
+  getSampleDataByTag(int tag, DataTypes::real_t dummy=0);  
 
+  virtual
+  DataTypes::cplx_t*
+  getSampleDataByTag(int tag, DataTypes::cplx_t dummy);  
+  
+  
   /**
      \brief
      Write the data as a string.
