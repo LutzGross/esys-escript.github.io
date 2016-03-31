@@ -15,9 +15,8 @@
 ##############################################################################
 
 Import('*')
-local_env = env.Clone()
 
-lib_name = 'paso'
+module_name = 'paso'
 
 sources = """
     AMG.cpp
@@ -107,19 +106,18 @@ headers = """
     UMFPACK.h
 """.split()
 
+local_env = env.Clone()
+
 local_env.Prepend(LIBS = ['escript'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 
-lib = local_env.SharedLibrary(lib_name, sources)
-env.Alias('build_paso_lib', lib)
-
-include_path = Dir('paso', local_env['incinstall'])
-solvers_include_path = Dir('Solvers', include_path)
-
+include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
-env.Alias('install_paso_headers', hdr_inst)
 
+lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
-env.Alias('install_paso_lib', lib_inst)
+
+build = env.Alias('build_paso', [hdr_inst, lib])
+env.Alias('install_paso', [build, lib_inst])
 

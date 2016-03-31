@@ -20,7 +20,7 @@ local_env = env.Clone()
 
 if local_env['cppunit']:
     # get the test source file names
-    sources = Glob('*.cpp')+Glob('*.c')
+    sources = Glob('*.cpp')
     testname='weipa_UnitTest'
 
     # build the executable
@@ -55,5 +55,5 @@ if local_env['cppunit']:
     TestGroups.append(tgroup)
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/weipa/test/python'], variant_dir='python', duplicate=0)
+local_env.SConscript('python/SConscript', duplicate=0)
 

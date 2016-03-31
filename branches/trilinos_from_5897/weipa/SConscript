@@ -1,26 +1,26 @@
-
 ##############################################################################
 #
-# Copyright (c) 2013-2016 by The University of Queensland
+# Copyright (c) 2003-2016 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
 # Licensed under the Open Software License version 3.0
 # http://www.opensource.org/licenses/osl-3.0.php
 #
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
 
-Import('*')
+Import('env')
 
-# get the source file names
-sources = Glob('*.py')
+# configure C++ library
+env.SConscript('src/SConscript', duplicate=0)
 
-# compile
-pyc = env.PyCompile(sources)
+# configure python module
+env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
 
-# install
-py_inst = env.Install(Dir('escript', env['pyinstall']), pyc)
-env.Alias('install_escript', [py_inst])
+# configure unit tests
+env.SConscript('test/SConscript', duplicate=0)
+
