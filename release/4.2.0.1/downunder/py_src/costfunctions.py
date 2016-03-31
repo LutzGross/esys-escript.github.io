@@ -5,8 +5,8 @@
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
-# Licensed under the Open Software License version 3.0
-# http://www.opensource.org/licenses/osl-3.0.php
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
@@ -21,8 +21,8 @@ from __future__ import print_function, division
 __copyright__="""Copyright (c) 2003-2016 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-http://www.opensource.org/licenses/osl-3.0.php"""
+__license__="""Licensed under the Apache License, version 2.0
+http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 __all__ = [ 'CostFunction', 'MeteredCostFunction' ]
