@@ -125,6 +125,8 @@ vars.AddVariables(
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
   ListVariable('domains', 'Which domains to build', 'all',\
                ['dudley','finley','ripley','speckley']),
+  BoolVariable('paso', 'Build Paso solver library', True),
+  BoolVariable('weipa', 'Build Weipa data export library', True),
 # Advanced settings
   ('launcher', 'Launcher command (e.g. mpirun)', 'default'),
   ('prelaunch', 'Command to execute before launcher (e.g. mpdboot)', 'default'),
@@ -577,19 +579,36 @@ Export(
   ]
 )
 
-#do not auto build
+target_init = env.Command(os.path.join(env['pyinstall'],'__init__.py'), None, Touch('$TARGET'))
+env.Alias('target_init', [target_init])
+
+build_all_list = []
+install_all_list = ['target_init']
+
+# escript can't be turned off
+env.SConscript('escriptcore/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
+build_all_list += ['build_escript']
+install_all_list += ['install_escript']
+
+if env['weipa']:
+    env.SConscript('weipa/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
+    build_all_list += ['build_weipa']
+    install_all_list += ['install_weipa']
+
+if env['paso']:
+    env.SConscript('paso/src/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
+    build_all_list += ['build_paso']
+    install_all_list += ['install_paso']
+
+if env['trilinos']:
+    env.SConscript(dirs = ['trilinoswrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/trilinoswrap', duplicate=0)
+
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['tools/overlord'], variant_dir='$BUILD_DIR/$PLATFORM/tools/overlord', duplicate=0)
-env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
-env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
 env.SConscript(dirs = ['escript/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
 
 env.SConscript(dirs = ['cusplibrary'])
 
-#This will pull in the escriptcore/py_src and escriptcore/test
-env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
-if env['trilinos']:
-    env.SConscript(dirs = ['trilinoswrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/trilinoswrap', duplicate=0)
 if 'dudley' in env['domains']:
     env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 if 'finley' in env['domains']:
@@ -603,29 +622,19 @@ env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/mod
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
 
 
 ######################## Populate the buildvars file #########################
 
 write_buildvars(env)
+# delete buildvars upon cleanup - target_init is default so use it
+env.Clean('target_init', os.path.join(env['libinstall'], 'buildvars'))
 
 write_launcher(env)
 
 ################### Targets to build and install libraries ###################
 
-target_init = env.Command(os.path.join(env['pyinstall'],'__init__.py'), None, Touch('$TARGET'))
-env.Alias('target_init', [target_init])
-# delete buildvars upon cleanup
-env.Clean('target_init', os.path.join(env['libinstall'], 'buildvars'))
-
 # The headers have to be installed prior to build
-
-env.Alias('build_paso', ['install_paso_headers', 'build_paso_lib'])
-env.Alias('install_paso', ['build_paso', 'install_paso_lib'])
-
-env.Alias('build_escript', ['install_escript_headers', 'build_escript_lib', 'build_escriptcpp_lib'])
-env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_escriptcpp_lib', 'install_escriptcore_py', 'install_escript_py'])
 
 if env['trilinos']:
     env.Alias('build_trilinoswrap', ['install_trilinoswrap_headers', 'build_trilinoswrap_lib'])
@@ -647,16 +656,7 @@ if 'speckley' in env['domains']:
     env.Alias('build_speckley', ['install_speckley_headers', 'build_speckley_lib', 'build_speckleycpp_lib'])
     env.Alias('install_speckley', ['build_speckley', 'install_speckley_lib', 'install_speckleycpp_lib', 'install_speckley_py'])
 
-env.Alias('build_weipa', ['install_weipa_headers', 'build_weipa_lib', 'build_weipacpp_lib'])
-env.Alias('install_weipa', ['build_weipa', 'install_weipa_lib', 'install_weipacpp_lib', 'install_weipa_py'])
-
-env.Alias('build_escriptreader', ['install_weipa_headers', 'build_escriptreader_lib'])
-env.Alias('install_escriptreader', ['build_escriptreader', 'install_escriptreader_lib'])
-
 # Now gather all the above into some easy targets: build_all and install_all
-build_all_list = []
-build_all_list += ['build_paso']
-build_all_list += ['build_escript']
 if env['trilinos']: build_all_list += ['build_trilinoswrap']
 if 'dudley' in env['domains']: build_all_list += ['build_dudley']
 if 'finley' in env['domains']: build_all_list += ['build_finley']
@@ -669,16 +669,11 @@ if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
 env.Alias('build_all', build_all_list)
 
-install_all_list = []
-install_all_list += ['target_init']
-install_all_list += ['install_paso']
-install_all_list += ['install_escript']
 if env['trilinos']: install_all_list += ['install_trilinoswrap']
 if 'dudley' in env['domains']: install_all_list += ['install_dudley']
 if 'finley' in env['domains']: install_all_list += ['install_finley']
 if 'ripley' in env['domains']: install_all_list += ['install_ripley']
 if 'speckley' in env['domains']: install_all_list += ['install_speckley']
-install_all_list += ['install_weipa']
 if not IS_WINDOWS and 'finley' in env['domains']:
     install_all_list += ['install_escriptreader']
 install_all_list += ['install_downunder_py']
@@ -696,12 +691,8 @@ if env['osx_dependency_fix']:
 else:
     install_all=env.Alias('install_all', install_all_list)
 
-
-
-
 # Default target is install
 #env.Default('install_all')
-
 
 sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['build_dir'],'scripts', 'release_sanity.py')))
 env.Depends('dummy', install_all)
@@ -729,7 +720,6 @@ if not env['cppunit']:
 env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
-env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
 Requires('py_tests', 'install_all')
 
 ##################### Targets to build the documentation #####################
@@ -743,6 +733,8 @@ env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install_all'])
 # The test scripts are always generated, this target allows us to
 # generate the testscripts without doing a full build
 env.Alias('testscripts',[])
+
+#env.Alias('install', env['libinstall'])
 
 if not IS_WINDOWS:
     generateTestScripts(env, TestGroups)
