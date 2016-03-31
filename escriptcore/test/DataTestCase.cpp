@@ -1665,10 +1665,9 @@ void DataTestCase::testComplexSamples()
         t.setTaggedValueFromCPP(i,DataTypes::scalarShape, v);
     }	
     t.complicate();
-    r=t.getSampleDataRO(0, DataTypes::cplx_t(0));	// relies on knowing how tags are stored
     for (int i=1;i<5;++i)
     {
-	CPPUNIT_ASSERT(r[i]==DataTypes::cplx_t(i,0));
+	CPPUNIT_ASSERT(t.getSampleDataByTag(i,DataTypes::cplx_t(0))[0]==DataTypes::cplx_t(i,0));
     }
 }
 
