@@ -1006,11 +1006,11 @@ instead of manually manipulating process and point IDs.
 
   /**
      \brief
-     Return the nonsymmetric part of a matrix which is half the matrix minus its transpose.
+     Return the antisymmetric part of a matrix which is half the matrix minus its transpose.
      *
   */
   Data
-  nonsymmetric() const;
+  antisymmetric() const;
 
   /**
      \brief

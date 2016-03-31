@@ -645,7 +645,7 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("_log",&escript::Data::log)
     .def("_sign",&escript::Data::sign)
     .def("_symmetric",&escript::Data::symmetric)
-    .def("_nonsymmetric",&escript::Data::nonsymmetric)
+    .def("_antisymmetric",&escript::Data::antisymmetric)
     .def("_trace",&escript::Data::trace)
     .def("_swap_axes",&escript::Data::swapaxes)
     .def("_eigenvalues",&escript::Data::eigenvalues)

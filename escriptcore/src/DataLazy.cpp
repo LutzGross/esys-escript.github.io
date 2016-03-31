@@ -942,7 +942,7 @@ DataLazy::collapseToReady() const
         result=left.symmetric();
         break;
     case NSYM:
-        result=left.nonsymmetric();
+        result=left.antisymmetric();
         break;
     case PROD:
         result=C_GeneralTensorProduct(left,right,m_axis_offset, m_transpose);
