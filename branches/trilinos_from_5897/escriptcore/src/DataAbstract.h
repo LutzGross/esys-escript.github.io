@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -199,7 +199,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   virtual
   DataTypes::real_t*
-  getSampleDataByTag(int tag);
+  getSampleDataByTag(int tag, DataTypes::real_t dummy=0);
 
   /**
      \brief
@@ -208,7 +208,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   virtual
   DataTypes::cplx_t*
-  getSampleDataByTag_C(int tag);
+  getSampleDataByTag(int tag, DataTypes::cplx_t dummy);
 
   /**
      \brief Return number of tagged values stored in the data object
@@ -348,13 +348,13 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   /**
      \brief
-     Computes a nonsymmetric matrix (A - AT) / 2
+     Computes a antisymmetric matrix (A - AT) / 2
 
      \param ev - Output - a nonsymmetric matrix
 
   */
   virtual void
-  nonsymmetric(DataAbstract* ev);
+  antisymmetric(DataAbstract* ev);
 
   /**
      \brief

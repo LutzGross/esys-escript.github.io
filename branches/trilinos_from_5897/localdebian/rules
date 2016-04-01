@@ -32,6 +32,7 @@ endif
 
 override_dh_clean:
 	rm -rf build condif.log esys include lib release .sconf_tmp .sconsign.dblite config.log .sconf_temp
+	rm -f scons/templates/*pyc site_scons/*pyc
 	rm -rf $(BDEST)
 	rm -rf $(B3DEST)
 	rm -rf $(BMDEST)

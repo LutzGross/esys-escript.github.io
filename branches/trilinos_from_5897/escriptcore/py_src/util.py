@@ -6,8 +6,8 @@
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
-# Licensed under the Open Software License version 3.0
-# http://www.opensource.org/licenses/osl-3.0.php
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
@@ -20,8 +20,8 @@ from __future__ import print_function, division
 __copyright__="""Copyright (c) 2003-2016 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Open Software License version 3.0
-http://www.opensource.org/licenses/osl-3.0.php"""
+__license__="""Licensed under the Apache License, version 2.0
+http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 """
@@ -1617,44 +1617,50 @@ def symmetric(arg):
 
 def nonsymmetric(arg):
     """
-    Returns the non-symmetric part of the square matrix ``arg``. That is,
+    Deprecated alias for antisymmetric
+    """
+    return antisymmetric(arg)
+
+def antisymmetric(arg):
+    """
+    Returns the anti-symmetric part of the square matrix ``arg``. That is,
     *(arg-transpose(arg))/2*.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
-    :return: non-symmetric part of ``arg``
+    :return: anti-symmetric part of ``arg``
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
         if not (arg.shape[0]==arg.shape[1]):
-           raise ValueError("nonsymmetric: argument must be square.")
+           raise ValueError("antisymmetric: argument must be square.")
       elif arg.ndim==4:
         if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
-           raise ValueError("nonsymmetric: argument must be square.")
+           raise ValueError("antisymmetric: argument must be square.")
       else:
-        raise ValueError("nonsymmetric: rank 2 or 4 is required.")
+        raise ValueError("antisymmetric: rank 2 or 4 is required.")
       return (arg-transpose(arg))/2
     elif isinstance(arg,escore.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
            raise ValueError("argument must be square.")
-        return arg._nonsymmetric()
+        return arg._antisymmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
            raise ValueError("argument must be square.")
-        return arg._nonsymmetric()
+        return arg._antisymmetric()
       else:
         raise ValueError("rank 2 or 4 is required.")
     elif isinstance(arg, sym.Symbol):
         if arg.getRank()==2:
             if arg.getShape()[0]!=arg.getShape()[1]:
-                raise ValueError("nonsymmetric: argument must be square.")
+                raise ValueError("antisymmetric: argument must be square.")
         elif arg.getRank()==4:
             if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
-                raise ValueError("nonsymmetric: argument must be square.")
+                raise ValueError("antisymmetric: argument must be square.")
         else:
-            raise ValueError("nonsymmetric: rank 2 or 4 is required.")
+            raise ValueError("antisymmetric: rank 2 or 4 is required.")
         return (arg-transpose(arg))/2
     elif isinstance(arg,complex):
         return arg
@@ -1663,7 +1669,7 @@ def nonsymmetric(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-        raise TypeError("nonsymmetric: Unknown argument type.")
+        raise TypeError("antisymmetric: Unknown argument type.")
 
 def inverse(arg):
     """

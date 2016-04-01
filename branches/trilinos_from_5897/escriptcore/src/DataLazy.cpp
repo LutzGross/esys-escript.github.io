@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -155,7 +155,7 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
                         "asinh","acosh","atanh",
                         "log10","log","sign","abs","neg","pos","exp","sqrt",
                         "1/","where>0","where<0","where>=0","where<=0", "where<>0","where=0",
-                        "symmetric","nonsymmetric",
+                        "symmetric","antisymmetric",
                         "prod",
                         "transpose", "trace",
                         "swapaxes",
@@ -942,7 +942,7 @@ DataLazy::collapseToReady() const
         result=left.symmetric();
         break;
     case NSYM:
-        result=left.nonsymmetric();
+        result=left.antisymmetric();
         break;
     case PROD:
         result=C_GeneralTensorProduct(left,right,m_axis_offset, m_transpose);
@@ -1247,7 +1247,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case NSYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::nonsymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::antisymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }

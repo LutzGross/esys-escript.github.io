@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -141,14 +141,14 @@ DataAbstract::dump(const std::string fileName) const
 
 
 DataTypes::real_t*
-DataAbstract::getSampleDataByTag(int tag)
+DataAbstract::getSampleDataByTag(int tag, DataTypes::real_t dummy)
 {
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
 }
 
 
 DataTypes::cplx_t*
-DataAbstract::getSampleDataByTag_C(int tag)
+DataAbstract::getSampleDataByTag(int tag, DataTypes::cplx_t dummy)
 {
     throw DataException("Error - DataAbstract::getSampleDataByTag_C: Data type does not have complex tag values.");
 }
@@ -213,9 +213,9 @@ DataAbstract::symmetric(DataAbstract* ev)
 }
 
 void
-DataAbstract::nonsymmetric(DataAbstract* ev) 
+DataAbstract::antisymmetric(DataAbstract* ev) 
 {
-    throw DataException("Error - DataAbstract::nonsymmetric is not supported.");
+    throw DataException("Error - DataAbstract::antisymmetric is not supported.");
 }
 
 void
