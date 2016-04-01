@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -95,15 +95,15 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param evShape - expected shape of the output matrix
      \param evOffset - starting location for storing ev in vector ev
   */
-  ESCRIPT_DLL_API
+  template<typename VEC>
   inline
   void
-  symmetric(const DataTypes::RealVectorType& in, 
+  symmetric(const VEC& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::RealVectorType::size_type inOffset,
-            DataTypes::RealVectorType& ev, 
+            typename VEC::size_type inOffset,
+            VEC& ev, 
 	    const DataTypes::ShapeType& evShape,
-            DataTypes::RealVectorType::size_type evOffset)
+            typename VEC::size_type evOffset)
   {
    if (DataTypes::getRank(inShape) == 2) {
      int i0, i1;
@@ -135,7 +135,7 @@ Note that vector in this context refers to a data vector storing datapoints not 
 
   /**
      \brief
-     computes a nonsymmetric matrix from your square matrix A: (A - transpose(A)) / 2
+     computes a antisymmetric matrix from your square matrix A: (A - transpose(A)) / 2
 
      \param in - vector containing the matrix A
      \param inShape - shape of the matrix A
@@ -144,15 +144,15 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param evShape - expected shape of the output matrix
      \param evOffset - starting location for storing ev in vector ev
   */
-  ESCRIPT_DLL_API
+  template<typename VEC>  
   inline
   void
-  nonsymmetric(const DataTypes::RealVectorType& in, 
-	       const DataTypes::ShapeType& inShape,
-               DataTypes::RealVectorType::size_type inOffset,
-               DataTypes::RealVectorType& ev, 
-	       const DataTypes::ShapeType& evShape,
-               DataTypes::RealVectorType::size_type evOffset)
+  antisymmetric(const VEC& in, 
+	    const DataTypes::ShapeType& inShape,
+            typename VEC::size_type inOffset,
+            VEC& ev, 
+	    const DataTypes::ShapeType& evShape,
+            typename VEC::size_type evOffset)  
   {
    if (DataTypes::getRank(inShape) == 2) {
      int i0, i1;

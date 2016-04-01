@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -1665,10 +1665,9 @@ void DataTestCase::testComplexSamples()
         t.setTaggedValueFromCPP(i,DataTypes::scalarShape, v);
     }	
     t.complicate();
-    r=t.getSampleDataRO(0, DataTypes::cplx_t(0));	// relies on knowing how tags are stored
     for (int i=1;i<5;++i)
     {
-	CPPUNIT_ASSERT(r[i]==DataTypes::cplx_t(i,0));
+	CPPUNIT_ASSERT(t.getSampleDataByTag(i,DataTypes::cplx_t(0))[0]==DataTypes::cplx_t(i,0));
     }
 }
 

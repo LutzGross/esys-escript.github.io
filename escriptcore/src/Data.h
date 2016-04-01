@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -604,10 +604,18 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   inline
   DataTypes::real_t*
-  getSampleDataByTag(int tag)
+  getSampleDataByTag(int tag, DataTypes::real_t dummy=0)
   {
-    return m_data->getSampleDataByTag(tag);
+    return m_data->getSampleDataByTag(tag, dummy);
   }
+  
+  inline
+  DataTypes::cplx_t*
+  getSampleDataByTag(int tag, DataTypes::cplx_t dummy)
+  {
+    return m_data->getSampleDataByTag(tag, dummy);
+  }  
+  
 
   /**
      \brief
@@ -998,11 +1006,11 @@ instead of manually manipulating process and point IDs.
 
   /**
      \brief
-     Return the nonsymmetric part of a matrix which is half the matrix minus its transpose.
+     Return the antisymmetric part of a matrix which is half the matrix minus its transpose.
      *
   */
   Data
-  nonsymmetric() const;
+  antisymmetric() const;
 
   /**
      \brief

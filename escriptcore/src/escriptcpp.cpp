@@ -5,8 +5,8 @@
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
-* Licensed under the Open Software License version 3.0
-* http://www.opensource.org/licenses/osl-3.0.php
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
@@ -645,7 +645,7 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("_log",&escript::Data::log)
     .def("_sign",&escript::Data::sign)
     .def("_symmetric",&escript::Data::symmetric)
-    .def("_nonsymmetric",&escript::Data::nonsymmetric)
+    .def("_antisymmetric",&escript::Data::antisymmetric)
     .def("_trace",&escript::Data::trace)
     .def("_swap_axes",&escript::Data::swapaxes)
     .def("_eigenvalues",&escript::Data::eigenvalues)
