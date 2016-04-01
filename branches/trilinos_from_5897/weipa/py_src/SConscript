@@ -26,5 +26,5 @@ local_env.Depends(pyc, 'build_weipa')
 
 # install
 py_inst = local_env.Install(Dir('weipa', local_env['pyinstall']), pyc)
-env.Alias('install_weipa_py', py_inst)
+env.Alias('install_weipa', py_inst)
 

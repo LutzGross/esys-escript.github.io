@@ -14,10 +14,9 @@
 #
 ##############################################################################
 
-
 Import('*')
 local_env = env.Clone()
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/speckley/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript('python/SConscript', duplicate=0)
 

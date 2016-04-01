@@ -536,8 +536,10 @@ def checkOptionalLibraries(env):
                 ret = p.wait()
                 if ret == 0 and 'libmpi' in gmshlibs:
                     env['gmsh'] = 'm'
+                    env.Append(CPPDEFINES=['GMSH','GMSH_MPI'])
                 else:
                     env['gmsh'] = 's'
+                    env.Append(CPPDEFINES=['GMSH'])
             except OSError:
                 pass
     

@@ -13,10 +13,9 @@
 #
 ##############################################################################
 
-import os
 Import('*')
 
-local_env = env.Clone()
+module_name = 'trilinoswrap'
 
 sources = """
   Amesos2Wrapper.cpp
@@ -34,22 +33,21 @@ headers = """
   types.h
 """.split()
 
-local_env.Prepend(LIBS = ['escript'] + env['trilinos_libs'])
+local_env = env.Clone()
 
-module_name = 'trilinoswrap'
+# collect dependencies for other modules
+trilinoswraplibs = ['escript', env['trilinos_libs']]
 
-# specify to build shared object
+local_env.PrependUnique(LIBS = trilinoswraplibs)
+
+env['trilinoswrap_libs'] = [module_name] + trilinoswraplibs
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
-env.Alias('build_trilinoswrap_lib', lib)
-
-include_path = Dir('trilinoswrap', local_env['incinstall'])
-hdr_inst = local_env.Install(include_path, headers)
-env.Alias('install_trilinoswrap_headers', hdr_inst)
-
 lib_inst = local_env.Install(local_env['libinstall'], lib)
-env.Alias('install_trilinoswrap_lib', lib_inst)
 
-# configure unit tests
-#local_env.SConscript(dirs = ['#/trilinoswrap/test'], variant_dir='test', duplicate=0)
+build = env.Alias('build_trilinoswrap', [hdr_inst, lib])
+env.Alias('install_trilinoswrap', [build, lib_inst])
 

@@ -1,4 +1,3 @@
-
 ##############################################################################
 #
 # Copyright (c) 2003-2016 by The University of Queensland
@@ -14,19 +13,14 @@
 #
 ##############################################################################
 
-Import('*')
+Import('env')
 
-sources = ['ScriptMPI.cpp']
-sources_redirect = ['ScriptMPIredirect.cpp']
+# configure C++ library
+env.SConscript('src/SConscript', duplicate=0)
 
-local_env = env.Clone()
-local_env.PrependUnique(LIBS = ['escript'])
+# configure python module
+env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
 
-progs = local_env.Program('pythonMPI', sources)
-progs += local_env.Program('pythonMPIredirect', sources_redirect)
-
-inst = local_env.Install(local_env['libinstall'], progs)
-
-env.Alias('build_pythonMPI', progs)
-env.Alias('install_pythonMPI', inst)
+# configure unit tests
+env.SConscript('test/SConscript', duplicate=0)
 

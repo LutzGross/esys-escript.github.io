@@ -25,13 +25,16 @@ import matplotlib
 # you would like to display the final plot in a window instead.
 matplotlib.use('agg')
 
-
-import esys.downunder.magtel2d as mt2d
-import numpy
 import datetime
+import numpy
+import esys.downunder.magtel2d as mt2d
 import esys.escript            as escript
-import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
+try:
+    import esys.finley         as finley
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
 
 #-------------------------------------------------------------
 # The following functions create the mesh used by this example
@@ -355,96 +358,91 @@ def generateCommemi1Mesh():
 #-------------------------------------------------------------
 
 
+if HAVE_FINLEY:
+    # ---
+    # Initialisations
+    # ---
 
-# ---
-# Initialisations
-# ---
+    # Get timing:
+    startTime = datetime.datetime.now()
 
-# Get timing:
-startTime = datetime.datetime.now()
+    # Mode (TE includes air-layer, whereas TM does not):
+    mode = 'TE'
 
-# Mode (TE includes air-layer, whereas TM does not):
-mode = 'TE'
+    # Read the mesh file and define the 'finley' domain:
+    #mesh_file = "data/commemi1_te.fly"
+    #domain = finley.ReadMesh(mesh_file, numDim=2)
+    if escript.getEscriptParamInt('GMSH_SUPPORT'):
+        domain = generateCommemi1Mesh()
 
-# Read the mesh file and define the 'finley' domain:
-#mesh_file = "data/commemi1_te.fly"
-#domain = finley.ReadMesh(mesh_file, numDim=2)
-if escript.getEscriptParamInt('GMSH_SUPPORT'):
-    domain = generateCommemi1Mesh()
+    # Sounding frequencies (in Hz):
+    freq_def = {"high":1.0e+1,"low":1.0e+1,"step":1}
+    # Frequencies will be mapped on a log-scale from
+    # 'high' to 'low' with 'step' points per decade.
+    # (also only one frequency must be passed via dict)
 
-# Sounding frequencies (in Hz):
-freq_def = {"high":1.0e+1,"low":1.0e+1,"step":1}
-# Frequencies will be mapped on a log-scale from
-# 'high' to 'low' with 'step' points per decade.
-# (also only one frequency must be passed via dict)
+    # Step sizes for sampling along vertical and horizontal axis (in m):
+    xstep=400
+    zstep=200
 
-# Step sizes for sampling along vertical and horizontal axis (in m):
-xstep=400
-zstep=200
+    # ---
+    # Resistivity model
+    # ---
 
+    # Resistivity values assigned to tagged regions (in Ohm.m):
+    rho  = [
+            1.0e+14, # 0: air
+            100.0  , # 1: host
+              0.5    # 2: anomaly
+           ]
 
-
-# ---
-# Resistivity model
-# ---
-
-# Resistivity values assigned to tagged regions (in Ohm.m):
-rho  = [
-        1.0e+14, # 0: air
-        100.0  , # 1: host
-          0.5    # 2: anomaly
-       ]
-
-# Tags must match those in the file:
-tags = ["domain_air", "domain_host", "domain_anomaly"]
+    # Tags must match those in the file:
+    tags = ["domain_air", "domain_host", "domain_anomaly"]
 
 
-# ---
-# Layer definitions for 1D response at boundaries.
-# ---
+    # ---
+    # Layer definitions for 1D response at boundaries.
+    # ---
 
-# List with resistivity values for left and right boundary.
-rho_1d_left  = [ rho[0], rho[1] ]
-rho_1d_rght  = [ rho[0], rho[1] ]
+    # List with resistivity values for left and right boundary.
+    rho_1d_left  = [ rho[0], rho[1] ]
+    rho_1d_rght  = [ rho[0], rho[1] ]
 
-# Associated interfaces for 1D response left and right (must match the mesh file).
-ifc_1d_left = [ 20000, 0, -20000]
-ifc_1d_rght = [ 20000, 0, -20000]
+    # Associated interfaces for 1D response left and right (must match the mesh file).
+    ifc_1d_left = [ 20000, 0, -20000]
+    ifc_1d_rght = [ 20000, 0, -20000]
 
-# Save in dictionary with layer interfaces and resistivities left and right:
-ifc_1d = {"left":ifc_1d_left , "right":ifc_1d_rght}
-rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
+    # Save in dictionary with layer interfaces and resistivities left and right:
+    ifc_1d = {"left":ifc_1d_left , "right":ifc_1d_rght}
+    rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
 
+    # ---
+    # Run MT_2D
+    # ---
 
+    # Class options:
+    mt2d.MT_2D._solver = "DIRECT"
+    mt2d.MT_2D._debug   = False
 
-# ---
-# Run MT_2D
-# ---
+    if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
+        print("Direct solvers and multiple MPI processes are not currently supported")
+    elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
+        print("escript was not built with support for direct solvers, aborting")
+    elif not escript.getEscriptParamInt('GMSH_SUPPORT'):
+        print("This example requires gmsh")
+    else:
+        # Instantiate an MT_2D object with required & optional parameters:
+        obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
+                xstep=xstep ,zstep=zstep, maps=None, plot=True)
 
-# Class options:
-mt2d.MT_2D._solver = "DIRECT"
-mt2d.MT_2D._debug   = False
+        # Solve for fields, apparent resistivity and phase:
+        mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
 
-if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
-    print("Direct solvers and multiple MPI processes are not currently supported")
-elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
-    print("escript was not built with support for direct solvers, aborting")
-elif not escript.getEscriptParamInt('GMSH_SUPPORT'):
-    print("This example requires gmsh")
-else:
-    # Instantiate an MT_2D object with required & optional parameters:
-    obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
-            xstep=xstep ,zstep=zstep, maps=None, plot=True)
+        #
+        print(datetime.datetime.now()-startTime)
+        print("Done!")
 
-    # Solve for fields, apparent resistivity and phase:
-    mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
-
-
-    #
-    print(datetime.datetime.now()-startTime)
-
-
-    print("Done!")
-
+else: # no finley
+    print("Finley module not available.")
 
 
