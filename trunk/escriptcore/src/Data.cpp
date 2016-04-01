@@ -2318,7 +2318,6 @@ Data::swapaxes(const int axis0, const int axis1) const
 Data
 Data::symmetric() const
 {
-    THROWONCOMPLEX
     // check input
     DataTypes::ShapeType s=getDataPointShape();
     if (getDataPointRank()==2) {
@@ -2342,24 +2341,24 @@ Data::symmetric() const
 Data
 Data::antisymmetric() const
 {
-    THROWONCOMPLEX
-    MAKELAZYOP(NSYM);
     // check input
     DataTypes::ShapeType s=getDataPointShape();
     if (getDataPointRank()==2) {
         if(s[0] != s[1])
             throw DataException("Error - Data::antisymmetric can only be calculated for rank 2 object with equal first and second dimension.");
+	MAKELAZYOP(NSYM);
         DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
-        m_data->nonsymmetric(ev.m_data.get());
+        m_data->antisymmetric(ev.m_data.get());
         return ev;
     }
     else if (getDataPointRank()==4) {
         if(!(s[0] == s[2] && s[1] == s[3]))
             throw DataException("Error - Data::antisymmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
+	MAKELAZYOP(NSYM);
         DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
@@ -2367,7 +2366,7 @@ Data::antisymmetric() const
         ev_shape.push_back(s[3]);
         Data ev(0.,ev_shape,getFunctionSpace());
         ev.typeMatchRight(*this);
-        m_data->nonsymmetric(ev.m_data.get());
+        m_data->antisymmetric(ev.m_data.get());
         return ev;
     }
     else {
@@ -3078,6 +3077,10 @@ Data::typeMatchRight(const Data& right)
     {
         resolve();
     }
+    if (right.isComplex())
+    {
+	complicate();
+    }    
     if (isTagged()) {
         if (right.isExpanded()) {
             expand();

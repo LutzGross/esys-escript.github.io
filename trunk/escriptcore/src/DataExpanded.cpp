@@ -666,21 +666,37 @@ void DataExpanded::symmetric(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::symmetric: casting to DataExpanded failed (probably a programming error).");
 
-    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
-#pragma omp parallel for
-    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-        for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            escript::symmetric(vec, shape,
-                    getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-                    ev->getPointOffset(sampleNo,dataPointNo));
-        }
+    if (isComplex())
+    {
+	const DataTypes::CplxVectorType& vec = getTypedVectorRO((DataTypes::cplx_t)0);
+	DataTypes::CplxVectorType& evVec = temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		escript::symmetric(vec, shape,
+			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+			ev->getPointOffset(sampleNo,dataPointNo));
+	    }
+	}
+    }
+    else
+    {
+	const DataTypes::RealVectorType& vec = getTypedVectorRO(0.0);
+	DataTypes::RealVectorType& evVec = temp_ev->getTypedVectorRW(0.0);
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		escript::symmetric(vec, shape,
+			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+			ev->getPointOffset(sampleNo,dataPointNo));
+	    }
+	}
     }
 }
 
-void DataExpanded::nonsymmetric(DataAbstract* ev)
+void DataExpanded::antisymmetric(DataAbstract* ev)
 {
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
@@ -688,18 +704,37 @@ void DataExpanded::nonsymmetric(DataAbstract* ev)
     if (!temp_ev)
         throw DataException("DataExpanded::nonsymmetric: casting to DataExpanded failed (probably a programming error).");
 
-    const DataTypes::RealVectorType& vec = getVectorRO();
     const ShapeType& shape = getShape();
-    DataTypes::RealVectorType& evVec = temp_ev->getVectorRW();
     const ShapeType& evShape = temp_ev->getShape();
-#pragma omp parallel for
-    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-        for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            escript::nonsymmetric(vec, shape,
-                    getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-                    ev->getPointOffset(sampleNo,dataPointNo));
-        }
+    if (isComplex())
+    {
+	const DataTypes::CplxVectorType& vec = getTypedVectorRO((DataTypes::cplx_t)0);
+	DataTypes::CplxVectorType& evVec = temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) 
+	{
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++)
+	    {
+		escript::antisymmetric(vec, shape,
+			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+			ev->getPointOffset(sampleNo,dataPointNo));
+	    }
+	}
     }
+    else
+    {
+	const DataTypes::RealVectorType& vec = getTypedVectorRO(0.0);
+	DataTypes::RealVectorType& evVec = temp_ev->getTypedVectorRW(0.0);
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++)
+	    {
+		escript::antisymmetric(vec, shape,
+			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+			ev->getPointOffset(sampleNo,dataPointNo));
+	    }
+	}
+    }    
 }
 
 void DataExpanded::trace(DataAbstract* ev, int axis_offset)

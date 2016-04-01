@@ -652,24 +652,42 @@ DataTagged::addTag(int tagKey)
 {
   CHECK_FOR_EX_WRITE
   DataMapType::iterator pos(m_offsetLookup.find(tagKey));
-  if (pos!=m_offsetLookup.end()) {
-    // tag already exists so use setTaggedValue
-//    setTaggedValue(tagKey,value);
-  } else {
-    // save the key and the location of its data in the lookup tab
-    m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data_r.size()));
-    // add the data given in "value" at the end of m_data_r
-    // need to make a temp copy of m_data_r, resize m_data_r, then copy
-    // all the old values plus the value to be added back into m_data_r
-    DataTypes::RealVectorType m_data_r_temp(m_data_r);
-    int oldSize=m_data_r.size();
-    int newSize=m_data_r.size()+getNoValues();
-    m_data_r.resize(newSize,0.,newSize);
-    for (int i=0;i<oldSize;i++) {
-      m_data_r[i]=m_data_r_temp[i];
+  if (pos==m_offsetLookup.end()) {
+    if (isComplex())
+    {
+	// save the key and the location of its data in the lookup tab
+	m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data_c.size()));
+	// add the data given in "value" at the end of m_data_c
+	// need to make a temp copy of m_data_c, resize m_data_c, then copy
+	// all the old values plus the value to be added back into m_data_c
+	DataTypes::CplxVectorType m_data_c_temp(m_data_c);
+	int oldSize=m_data_c.size();
+	int newSize=m_data_c.size()+getNoValues();
+	m_data_c.resize(newSize,0.,newSize);
+	for (int i=0;i<oldSize;i++) {
+	  m_data_c[i]=m_data_c_temp[i];
+	}
+	for (unsigned int i=0;i<getNoValues();i++) {
+	  m_data_c[oldSize+i]=m_data_c[m_defaultValueOffset+i];
+	}
     }
-    for (unsigned int i=0;i<getNoValues();i++) {
-      m_data_r[oldSize+i]=m_data_r[m_defaultValueOffset+i];
+    else
+    {
+	// save the key and the location of its data in the lookup tab
+	m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data_r.size()));
+	// add the data given in "value" at the end of m_data_r
+	// need to make a temp copy of m_data_r, resize m_data_r, then copy
+	// all the old values plus the value to be added back into m_data_r
+	DataTypes::RealVectorType m_data_r_temp(m_data_r);
+	int oldSize=m_data_r.size();
+	int newSize=m_data_r.size()+getNoValues();
+	m_data_r.resize(newSize,0.,newSize);
+	for (int i=0;i<oldSize;i++) {
+	  m_data_r[i]=m_data_r_temp[i];
+	}
+	for (unsigned int i=0;i<getNoValues();i++) {
+	  m_data_r[oldSize+i]=m_data_r[m_defaultValueOffset+i];
+	}
     }
   }
 }
@@ -898,37 +916,66 @@ DataTagged::symmetric(DataAbstract* ev)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTag(i->first);
-      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      escript::symmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+
+  if (isComplex())
+  {
+      DataTypes::CplxVectorType& evVec=temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::CplxVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::CplxVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::symmetric(m_data_c,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::symmetric(m_data_c,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
   }
-  escript::symmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
+  else
+  {
+      DataTypes::RealVectorType& evVec=temp_ev->getTypedVectorRW(0.0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::symmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::symmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
+  }
 }
 
 
 void
-DataTagged::nonsymmetric(DataAbstract* ev)
+DataTagged::antisymmetric(DataAbstract* ev)
 {
   DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataTagged::nonsymmetric casting to DataTagged failed (probably a programming error).");
+    throw DataException("Error - DataTagged::antisymmetric casting to DataTagged failed (probably a programming error).");
   }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTag(i->first);
-      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      escript::nonsymmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+  if (isComplex())
+  {
+      DataTypes::CplxVectorType& evVec=temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::CplxVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::CplxVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::antisymmetric(m_data_c,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::antisymmetric(m_data_c,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
   }
-  escript::nonsymmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());
+  else
+  {
+      DataTypes::RealVectorType& evVec=temp_ev->getTypedVectorRW(0.0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::antisymmetric(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::antisymmetric(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
+  }  
 }
 
 

@@ -300,17 +300,31 @@ DataConstant::symmetric(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (probably a programming error).");
   }
-  escript::symmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  if (isComplex())
+  {
+      escript::symmetric(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
+  }
+  else
+  {
+      escript::symmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  }
 }
 
 void
-DataConstant::nonsymmetric(DataAbstract* ev)
+DataConstant::antisymmetric(DataAbstract* ev)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (probably a programming error).");
+    throw DataException("Error - DataConstant::antisymmetric: casting to DataConstant failed (probably a programming error).");
   }
-  escript::nonsymmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  if (isComplex())
+  {
+      escript::antisymmetric(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
+  }
+  else
+  {
+      escript::antisymmetric(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  }  
 }
 
 void

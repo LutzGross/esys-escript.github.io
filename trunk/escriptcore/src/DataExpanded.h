@@ -347,14 +347,14 @@ TODO Note that this constructor will also copy data to all points if it only con
 
   /**
      \brief
-     Computes a nonsymmetric matrix (A - AT) / 2
+     Computes a antisymmetric matrix (A - AT) / 2
 
      \param ev - Output - nonsymmetric matrix
 
   */
   ESCRIPT_DLL_API
   virtual void
-  nonsymmetric(DataAbstract* ev);
+  antisymmetric(DataAbstract* ev);
 
   /**
      \brief

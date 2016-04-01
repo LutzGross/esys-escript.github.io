@@ -155,7 +155,7 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
                         "asinh","acosh","atanh",
                         "log10","log","sign","abs","neg","pos","exp","sqrt",
                         "1/","where>0","where<0","where>=0","where<=0", "where<>0","where=0",
-                        "symmetric","nonsymmetric",
+                        "symmetric","antisymmetric",
                         "prod",
                         "transpose", "trace",
                         "swapaxes",
@@ -1247,7 +1247,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case NSYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::nonsymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::antisymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }

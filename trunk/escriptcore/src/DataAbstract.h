@@ -348,13 +348,13 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   /**
      \brief
-     Computes a nonsymmetric matrix (A - AT) / 2
+     Computes a antisymmetric matrix (A - AT) / 2
 
      \param ev - Output - a nonsymmetric matrix
 
   */
   virtual void
-  nonsymmetric(DataAbstract* ev);
+  antisymmetric(DataAbstract* ev);
 
   /**
      \brief
