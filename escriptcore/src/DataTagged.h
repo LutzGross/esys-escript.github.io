@@ -562,13 +562,13 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
   /**
      \brief
-     Computes a nonsymmetric matrix (A - AT) / 2
+     Computes a antisymmetric matrix (A - AT) / 2
 
      \param ev - Output - nonsymmetric matrix
 
   */
   virtual void
-  nonsymmetric(DataAbstract* ev);
+  antisymmetric(DataAbstract* ev);
 
   /**
      \brief

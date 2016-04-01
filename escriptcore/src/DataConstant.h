@@ -230,7 +230,7 @@ typedef DataReady parent;
   */
   ESCRIPT_DLL_API
   virtual void
-  nonsymmetric(DataAbstract* ev);
+  antisymmetric(DataAbstract* ev);
 
   /**
      \brief

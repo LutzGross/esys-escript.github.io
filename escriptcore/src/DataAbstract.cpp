@@ -213,9 +213,9 @@ DataAbstract::symmetric(DataAbstract* ev)
 }
 
 void
-DataAbstract::nonsymmetric(DataAbstract* ev) 
+DataAbstract::antisymmetric(DataAbstract* ev) 
 {
-    throw DataException("Error - DataAbstract::nonsymmetric is not supported.");
+    throw DataException("Error - DataAbstract::antisymmetric is not supported.");
 }
 
 void
