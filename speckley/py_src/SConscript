@@ -14,9 +14,7 @@
 #
 ##############################################################################
 
-import os
 Import('*')
-
 local_env = env.Clone()
 
 # get the source file names
@@ -26,6 +24,6 @@ sources = Glob('*.py')
 pyc = local_env.PyCompile(sources)
 
 # install
-py_inst = local_env.Install(local_env['pyinstall']+'/speckley', pyc)
-env.Alias('install_speckley_py', py_inst)
+py_inst = local_env.Install(Dir('speckley', local_env['pyinstall']), pyc)
+env.Alias('install_speckley', py_inst)
 

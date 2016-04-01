@@ -1249,15 +1249,15 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                                      const IndexVector& nodes, dim_t numEq,
                                      const DoubleVector& array) const
 {
-    paso::SystemMatrix* sm = dynamic_cast<paso::SystemMatrix*>(mat);
-    if (sm) {
-        addToPasoMatrix(sm, nodes, numEq, array);
+    paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
+    if (psm) {
+        addToPasoMatrix(psm, nodes, numEq, array);
         return;
     }
 #ifdef USE_CUDA
-    SystemMatrix* sm = dynamic_cast<SystemMatrix*>(mat);
-    if (sm) {
-        sm->add(nodes, array);
+    SystemMatrix* rsm = dynamic_cast<SystemMatrix*>(mat);
+    if (rsm) {
+        rsm->add(nodes, array);
         return;
     }
 #endif

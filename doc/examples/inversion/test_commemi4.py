@@ -24,17 +24,17 @@ import matplotlib
 # you would like to display the final plot in a window instead.
 matplotlib.use('agg')
 
+import datetime
+import numpy
 
 import esys.downunder.magtel2d as mt2d
-import numpy
-import datetime
 import esys.escript            as escript
-import esys.finley             as finley
 import esys.escript.pdetools   as pdetools
-
-
-
-
+try:
+    import esys.finley         as finley
+    HAVE_FINLEY = True
+except ImportError:
+    HAVE_FINLEY = False
 
 
 def setupMesh(mode, coord, elem_sizes):         
@@ -433,121 +433,117 @@ def generateCommemi4Mesh():
 
 
 
-# ---
-# Initialisations
-# ---
+if HAVE_FINLEY:
+    # ---
+    # Initialisations
+    # ---
 
-# Get timing:
-startTime = datetime.datetime.now()
+    # Get timing:
+    startTime = datetime.datetime.now()
 
-# Mode (TE includes air-layer, whereas TM does not):
-mode = 'TE'
+    # Mode (TE includes air-layer, whereas TM does not):
+    mode = 'TE'
 
-# Read the mesh file and define the 'finley' domain:
-#mesh_file = "commemi4_tm.fly"
-#domain = finley.ReadMesh(mesh_file, numDim=2)
-if escript.getEscriptParamInt('GMSH_SUPPORT'):
-    domain=generateCommemi4Mesh()
+    # Read the mesh file and define the 'finley' domain:
+    #mesh_file = "commemi4_tm.fly"
+    #domain = finley.ReadMesh(mesh_file, numDim=2)
+    if escript.getEscriptParamInt('GMSH_SUPPORT'):
+        domain=generateCommemi4Mesh()
 
-# Sounding frequencies (in Hz):
-freq_def = {"high":1.0e+0,"low":1.0e-0,"step":1}
-# Frequencies will be mapped on a log-scale from
-# 'high' to 'low' with 'step' points per decade.
-# (also only one frequency must be passed via dict)
+    # Sounding frequencies (in Hz):
+    freq_def = {"high":1.0e+0,"low":1.0e-0,"step":1}
+    # Frequencies will be mapped on a log-scale from
+    # 'high' to 'low' with 'step' points per decade.
+    # (also only one frequency must be passed via dict)
 
-# Step sizes for sampling along vertical and horizontal axis (in m):
-xstep=300
-zstep=250
-
-
-
-# ---
-# Resistivity model
-# ---
-
-# Resistivity values assigned to tagged regions (in Ohm.m):
-rho  = [
-        1.0e+14, # 0: air     1.0e-30
-        25.0   , # 1: lyr1    0.04
-        10.0   , # 2: slab    0.1
-        2.5    , # 3: basin   0.4
-        1000.0 , # 4: lyr2    0.001
-        5.0      # 5: lyr3    0.2
-       ]
-
-# Tags must match those in the file:
-tags = ["air", "lyr1", "slab", "basin", "lyr2", "lyr3"]
-
-# Optional user defined map of resistivity:
-def f4(x,z,r): return escript.sqrt(escript.sqrt(x*x+z*z))/r
-maps = [None, None, None, None, f4, None]
+    # Step sizes for sampling along vertical and horizontal axis (in m):
+    xstep=300
+    zstep=250
 
 
+    # ---
+    # Resistivity model
+    # ---
 
-# ---
-# Layer definitions for 1D response at boundaries.
-# ---
+    # Resistivity values assigned to tagged regions (in Ohm.m):
+    rho  = [
+            1.0e+14, # 0: air     1.0e-30
+            25.0   , # 1: lyr1    0.04
+            10.0   , # 2: slab    0.1
+            2.5    , # 3: basin   0.4
+            1000.0 , # 4: lyr2    0.001
+            5.0      # 5: lyr3    0.2
+           ]
 
-# List with resistivity values for left and right boundary.
-rho_1d_left  = [ rho[0], rho[1], rho[2], rho[4], rho[5] ]
-rho_1d_rght  = [ rho[0], rho[1], rho[3], rho[4], rho[5] ]
+    # Tags must match those in the file:
+    tags = ["air", "lyr1", "slab", "basin", "lyr2", "lyr3"]
 
-# Associated interfaces for 1D response left and right (must match the mesh file).
-ifc_1d_left = [ 50000, 0, -500, -2000, -25000, -50000]
-ifc_1d_rght = [ 50000, 0, -500, -1000, -25000, -50000]
-
-# Save in dictionary with layer interfaces and resistivities left and right:
-ifc_1d = {"left":ifc_1d_left , "right":ifc_1d_rght}
-rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
-
-
-
-# ---
-# Adjust parameters here for TM mode
-# ---
-
-# Simply delete first element from lists:
-if mode.upper() == 'TM':
-  tags.pop(0)
-  rho.pop(0)
-  rho_1d['left'].pop(0)
-  rho_1d['right'].pop(0)
-  ifc_1d['left'].pop(0)
-  ifc_1d['right'].pop(0)
-  if maps is not None:
-    maps.pop(0)
+    # Optional user defined map of resistivity:
+    def f4(x,z,r): return escript.sqrt(escript.sqrt(x*x+z*z))/r
+    maps = [None, None, None, None, f4, None]
 
 
+    # ---
+    # Layer definitions for 1D response at boundaries.
+    # ---
 
-# ---
-# Run MT_2D
-# ---
+    # List with resistivity values for left and right boundary.
+    rho_1d_left  = [ rho[0], rho[1], rho[2], rho[4], rho[5] ]
+    rho_1d_rght  = [ rho[0], rho[1], rho[3], rho[4], rho[5] ]
 
-# Class options:
-mt2d.MT_2D._solver = "DIRECT"
-mt2d.MT_2D._debug   = False
+    # Associated interfaces for 1D response left and right (must match the mesh file).
+    ifc_1d_left = [ 50000, 0, -500, -2000, -25000, -50000]
+    ifc_1d_rght = [ 50000, 0, -500, -1000, -25000, -50000]
 
-if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
-    print("Direct solvers and multiple MPI processes are not currently supported")
-elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
-    print("escript was not built with support for direct solvers, aborting")
-elif not escript.getEscriptParamInt('GMSH_SUPPORT'):
-    print("This example requires gmsh")
-else:
-
-    # Instantiate an MT_2D object with required & optional parameters:
-    obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
-            xstep=xstep ,zstep=zstep, maps=None, plot=True)
-
-    # Solve for fields, apparent resistivity and phase:
-    mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
+    # Save in dictionary with layer interfaces and resistivities left and right:
+    ifc_1d = {"left":ifc_1d_left , "right":ifc_1d_rght}
+    rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
 
 
-    #
-    print("Runtime:", datetime.datetime.now()-startTime)
+    # ---
+    # Adjust parameters here for TM mode
+    # ---
+
+    # Simply delete first element from lists:
+    if mode.upper() == 'TM':
+      tags.pop(0)
+      rho.pop(0)
+      rho_1d['left'].pop(0)
+      rho_1d['right'].pop(0)
+      ifc_1d['left'].pop(0)
+      ifc_1d['right'].pop(0)
+      if maps is not None:
+        maps.pop(0)
 
 
-    print("Done!")
+    # ---
+    # Run MT_2D
+    # ---
 
+    # Class options:
+    mt2d.MT_2D._solver = "DIRECT"
+    mt2d.MT_2D._debug   = False
+
+    if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
+        print("Direct solvers and multiple MPI processes are not currently supported")
+    elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
+        print("escript was not built with support for direct solvers, aborting")
+    elif not escript.getEscriptParamInt('GMSH_SUPPORT'):
+        print("This example requires gmsh")
+    else:
+
+        # Instantiate an MT_2D object with required & optional parameters:
+        obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
+                xstep=xstep ,zstep=zstep, maps=None, plot=True)
+
+        # Solve for fields, apparent resistivity and phase:
+        mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
+
+        #
+        print("Runtime:", datetime.datetime.now()-startTime)
+        print("Done!")
+
+else: # no finley
+    print("Finley module not available.")
 
 

@@ -18,7 +18,6 @@ from __future__ import print_function, division
 import os
 from esys.downunder import CartesianReferenceSystem
 from esys.escript import ReducedFunction
-from esys.ripley import readBinaryGrid, BYTEORDER_BIG_ENDIAN, DATATYPE_FLOAT32, DATATYPE_FLOAT64
 
 def readVoxet(domain, filename, voproperty=1, origin=None, fillValue=0.,
               referenceSystem=CartesianReferenceSystem()):
@@ -50,6 +49,7 @@ def readVoxet(domain, filename, voproperty=1, origin=None, fillValue=0.,
                             axis accordingly
     :type referenceSystem: `ReferenceSystem`
     """
+    from esys.ripley import readBinaryGrid, BYTEORDER_BIG_ENDIAN, DATATYPE_FLOAT32, DATATYPE_FLOAT64
     header=open(filename).readlines()
     if not header[0].startswith('GOCAD Voxet'):
         raise ValueError("Voxet header not found. Invalid Voxet file?!")
@@ -198,23 +198,31 @@ def readVoxet(domain, filename, voproperty=1, origin=None, fillValue=0.,
 
 
 if __name__ == "__main__":
-    from esys.escript import *
-    from esys.escript.linearPDEs import Poisson
-    from esys.ripley import Brick
-    from esys.weipa import saveSilo, saveVoxet
+    try:
+        from esys.ripley import Brick
+        HAVE_RIPLEY = True
+    except ImportError:
+        HAVE_RIPLEY = False
+        print("Ripley module not available")
 
-    dom = Brick(l0=1.,l1=1.,n0=9, n1=9, n2=9)
-    x = dom.getX()
-    gammaD = whereZero(x[0])+whereZero(x[1])
-    pde = Poisson(dom)
-    q = gammaD
-    pde.setValue(f=1, q=q)
-    u = pde.getSolution()
-    u=interpolate(u+dom.getX()[2], ReducedFunction(dom))
-    print(u)
-    saveVoxet('/tmp/poisson.vo', u=u)
-    print("-------")
-    dom = Brick(l0=1.,l1=1.,l2=4.,n0=18, n1=18, n2=36)
-    v=readVoxet(dom, '/tmp/poisson.vo', 'u', fillValue=0.5)
-    print(v)
-    #saveSilo('/tmp/poisson', v=v)
+    if HAVE_RIPLEY:
+        from esys.escript import *
+        from esys.escript.linearPDEs import Poisson
+        from esys.weipa import saveSilo, saveVoxet
+
+        dom = Brick(l0=1.,l1=1.,n0=9, n1=9, n2=9)
+        x = dom.getX()
+        gammaD = whereZero(x[0])+whereZero(x[1])
+        pde = Poisson(dom)
+        q = gammaD
+        pde.setValue(f=1, q=q)
+        u = pde.getSolution()
+        u=interpolate(u+dom.getX()[2], ReducedFunction(dom))
+        print(u)
+        saveVoxet('/tmp/poisson.vo', u=u)
+        print("-------")
+        dom = Brick(l0=1.,l1=1.,l2=4.,n0=18, n1=18, n2=36)
+        v=readVoxet(dom, '/tmp/poisson.vo', 'u', fillValue=0.5)
+        print(v)
+        #saveSilo('/tmp/poisson', v=v)
+

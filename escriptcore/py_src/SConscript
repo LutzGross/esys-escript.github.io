@@ -25,7 +25,7 @@ sym_sources = Glob(os.path.join('symbolic','*.py'))
 # compile
 pyc = local_env.PyCompile(sources)
 sym_pyc = local_env.PyCompile(sym_sources)
-build = env.Alias('build_escript', [pyc, sym_pyc])
+env.Alias('build_escript', [pyc, sym_pyc])
 
 # install
 runmodel_inst = local_env.Install(local_env['bininstall'], 'runmodel.py')
