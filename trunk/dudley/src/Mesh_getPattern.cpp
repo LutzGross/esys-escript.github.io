@@ -14,12 +14,6 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-
-/* Dudley: Mesh */
-
-/****************************************************************************/
-
 #include "Mesh.h"
 #include "IndexList.h"
 
@@ -27,111 +21,44 @@
 
 namespace dudley {
 
-/* returns a reference to the matrix pattern                  */
-paso::SystemMatrixPattern_ptr Dudley_getPattern(Dudley_Mesh* mesh, bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern_ptr Mesh::getPasoPattern()
 {
-    paso::SystemMatrixPattern_ptr out;
-    /* make sure that the requested pattern is available */
-    if (reduce_row_order) {
-        if (reduce_col_order) {
-            if (mesh->ReducedReducedPattern == NULL)
-                mesh->ReducedReducedPattern = Dudley_makePattern(mesh, reduce_row_order, reduce_col_order);
-        } else {
-            if (mesh->ReducedFullPattern == NULL)
-                mesh->ReducedFullPattern = Dudley_makePattern(mesh, reduce_row_order, reduce_col_order);
-        }
-    } else {
-        if (reduce_col_order) {
-            if (mesh->FullReducedPattern == NULL)
-                mesh->FullReducedPattern = Dudley_makePattern(mesh, reduce_row_order, reduce_col_order);
-        } else {
-            if (mesh->FullFullPattern == NULL)
-                mesh->FullFullPattern = Dudley_makePattern(mesh, reduce_row_order, reduce_col_order);
-        }
-    }
+    // make sure that the pattern is available
+    if (!pasoPattern)
+        pasoPattern = makePasoPattern();
 
-    if (reduce_row_order) {
-        if (reduce_col_order) {
-            out = mesh->ReducedReducedPattern;
-        } else {
-            out = mesh->ReducedFullPattern;
-        }
-    } else {
-        if (reduce_col_order) {
-            out = mesh->FullReducedPattern;
-        } else {
-            out = mesh->FullFullPattern;
-        }
-    }
-    return out;
+    return pasoPattern;
 }
 
-paso::SystemMatrixPattern_ptr Dudley_makePattern(Dudley_Mesh* mesh, bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern_ptr Mesh::makePasoPattern() const
 {
-    paso::SystemMatrixPattern_ptr out;
-    paso::Pattern_ptr main_pattern, col_couple_pattern, row_couple_pattern;
-    paso::Connector_ptr col_connector, row_connector;
-    Dudley_NodeMapping *colMap = NULL, *rowMap = NULL;
-    paso::Distribution_ptr colDistribution, rowDistribution;
-
-    if (reduce_col_order)
-    {
-        colMap = mesh->Nodes->reducedDegreesOfFreedomMapping;
-        colDistribution = mesh->Nodes->reducedDegreesOfFreedomDistribution;
-        col_connector = mesh->Nodes->reducedDegreesOfFreedomConnector;
-
-    }
-    else
-    {
-        colMap = mesh->Nodes->degreesOfFreedomMapping;
-        colDistribution = mesh->Nodes->degreesOfFreedomDistribution;
-        col_connector = mesh->Nodes->degreesOfFreedomConnector;
-    }
-
-    if (reduce_row_order)
-    {
-        rowMap = mesh->Nodes->reducedDegreesOfFreedomMapping;
-        rowDistribution = mesh->Nodes->reducedDegreesOfFreedomDistribution;
-        row_connector = mesh->Nodes->reducedDegreesOfFreedomConnector;
-    }
-    else
-    {
-        rowMap = mesh->Nodes->degreesOfFreedomMapping;
-        rowDistribution = mesh->Nodes->degreesOfFreedomDistribution;
-        row_connector = mesh->Nodes->degreesOfFreedomConnector;
-    }
-
-    boost::scoped_array<IndexList> index_list(new IndexList[rowMap->numTargets]);
+    const dim_t myNumTargets = Nodes->getNumDegreesOfFreedom();
+    const dim_t numTargets = Nodes->getNumDegreesOfFreedomTargets();
+    const index_t* target = Nodes->borrowTargetDegreesOfFreedom();
+    boost::scoped_array<IndexList> index_list(new IndexList[numTargets]);
 
 #pragma omp parallel
     {
-        /*  insert contributions from element matrices into columns index index_list: */
-        Dudley_IndexList_insertElements(index_list.get(), mesh->Elements,
-                                        reduce_row_order, rowMap->target, reduce_col_order, colMap->target);
-        Dudley_IndexList_insertElements(index_list.get(), mesh->FaceElements,
-                                        reduce_row_order, rowMap->target, reduce_col_order, colMap->target);
-        Dudley_IndexList_insertElements(index_list.get(), mesh->Points,
-                                        reduce_row_order, rowMap->target, reduce_col_order, colMap->target);
-
+        // insert contributions from element matrices into columns in indexlist
+        IndexList_insertElements(index_list.get(), Elements, target);
+        IndexList_insertElements(index_list.get(), FaceElements, target);
+        IndexList_insertElements(index_list.get(), Points, target);
     }
 
-    /* create pattern */
-    main_pattern = paso::Pattern::fromIndexListArray(0,
-        rowDistribution->getMyNumComponents(), index_list.get(),
-        0, colDistribution->getMyNumComponents(), 0);
-    col_couple_pattern = paso::Pattern::fromIndexListArray(0,
-        rowDistribution->getMyNumComponents(), index_list.get(),
-        colDistribution->getMyNumComponents(), colMap->numTargets,
-        -colDistribution->getMyNumComponents());
-    row_couple_pattern = paso::Pattern::fromIndexListArray(
-        rowDistribution->getMyNumComponents(), rowMap->numTargets,
-        index_list.get(), 0, colDistribution->getMyNumComponents(), 0);
+    // create pattern
+    paso::Pattern_ptr mainPattern(paso::Pattern::fromIndexListArray(0,
+              myNumTargets, index_list.get(), 0, myNumTargets, 0));
+    paso::Pattern_ptr colCouplePattern(paso::Pattern::fromIndexListArray(0,
+              myNumTargets, index_list.get(), myNumTargets, numTargets,
+              -myNumTargets));
+    paso::Pattern_ptr rowCouplePattern(paso::Pattern::fromIndexListArray(
+              myNumTargets, numTargets, index_list.get(), 0, myNumTargets, 0));
 
-    /* if everything is in order we can create the return value */
-    out.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-            rowDistribution, colDistribution, main_pattern,
-            col_couple_pattern, row_couple_pattern, col_connector,
-            row_connector));
+    paso::Connector_ptr connector(Nodes->degreesOfFreedomConnector);
+    paso::SystemMatrixPattern_ptr out(new paso::SystemMatrixPattern(
+                MATRIX_FORMAT_DEFAULT, Nodes->dofDistribution,
+                Nodes->dofDistribution, mainPattern, colCouplePattern,
+                rowCouplePattern, connector, connector));
     return out;
 }
 

@@ -25,10 +25,10 @@ sym_sources = Glob(os.path.join('symbolic','*.py'))
 # compile
 pyc = local_env.PyCompile(sources)
 sym_pyc = local_env.PyCompile(sym_sources)
+env.Alias('build_escript', [pyc, sym_pyc])
 
 # install
 runmodel_inst = local_env.Install(local_env['bininstall'], 'runmodel.py')
-py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escriptcore'), pyc)
+py_inst = local_env.Install(Dir('escriptcore', local_env['pyinstall']), pyc)
 sym_py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escriptcore','symbolic'), sym_pyc)
-env.Alias('install_escriptcore_py', [runmodel_inst, py_inst, sym_py_inst])
-
+env.Alias('install_escript', [runmodel_inst, py_inst, sym_py_inst])

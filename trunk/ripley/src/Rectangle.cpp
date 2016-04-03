@@ -1586,6 +1586,17 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
+#ifdef USE_TRILINOS
+//protected
+esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
+{
+    if (m_graph.is_null()) {
+        m_graph = createTrilinosGraph(m_dofId, m_nodeId);
+    }
+    return m_graph;
+}
+#endif
+
 //protected
 paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
@@ -1628,7 +1639,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
 
     // allocate paso distribution
     paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
+                                                    m_nodeDistribution, 1, 0));
 
     // finally create the system matrix pattern
     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
@@ -1800,25 +1811,51 @@ void Rectangle::populateSampleIds()
 }
 
 //private
-vector<IndexVector> Rectangle::getConnections() const
+vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices
-    // of DOFs connected to i (up to 9 in 2D)
+    // of DOFs connected to i (up to 9 in 2D).
+    // In other words this method returns the occupied (local) matrix columns
+    // for all (local) matrix rows.
+    // If includeShared==true then connections to non-owned DOFs are also
+    // returned (i.e. indices of the column couplings)
     const dim_t nDOF0 = getNumDOFInAxis(0);
     const dim_t nDOF1 = getNumDOFInAxis(1);
-    const dim_t M = nDOF0*nDOF1;
-    vector<IndexVector> indices(M);
+    const dim_t numMatrixRows = nDOF0*nDOF1;
+    vector<IndexVector> indices(numMatrixRows);
 
+    if (includeShared) {
+        const index_t left = getFirstInDim(0);
+        const index_t bottom = getFirstInDim(1);
+        const dim_t NN0 = m_NN[0];
+        const dim_t NN1 = m_NN[1];
 #pragma omp parallel for
-    for (index_t i=0; i < M; i++) {
-        const index_t x = i % nDOF0;
-        const index_t y = i / nDOF0;
-        // loop through potential neighbours and add to index if positions are
-        // within bounds
-        for (dim_t i1=y-1; i1<y+2; i1++) {
-            for (dim_t i0=x-1; i0<x+2; i0++) {
-                if (i0>=0 && i1>=0 && i0<nDOF0 && i1<nDOF1) {
-                    indices[i].push_back(i1*nDOF0 + i0);
+        for (index_t i=0; i < numMatrixRows; i++) {
+            const index_t x = left + i % nDOF0;
+            const index_t y = bottom + i / nDOF0;
+            // loop through potential neighbours and add to index if positions
+            // are within bounds
+            for (dim_t i1=y-1; i1<y+2; i1++) {
+                for (dim_t i0=x-1; i0<x+2; i0++) {
+                    if (i0>=0 && i1>=0 && i0<NN0 && i1<NN1) {
+                        indices[i].push_back(m_dofMap[i1*NN0 + i0]);
+                    }
+                }
+            }
+            sort(indices[i].begin(), indices[i].end());
+        }
+    } else {
+#pragma omp parallel for
+        for (index_t i=0; i < numMatrixRows; i++) {
+            const index_t x = i % nDOF0;
+            const index_t y = i / nDOF0;
+            // loop through potential neighbours and add to index if positions
+            // are within bounds
+            for (dim_t i1=y-1; i1<y+2; i1++) {
+                for (dim_t i0=x-1; i0<x+2; i0++) {
+                    if (i0>=0 && i1>=0 && i0<nDOF0 && i1<nDOF1) {
+                        indices[i].push_back(i1*nDOF0 + i0);
+                    }
                 }
             }
         }

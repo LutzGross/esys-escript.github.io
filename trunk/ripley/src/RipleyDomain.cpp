@@ -24,6 +24,9 @@
 #ifdef USE_CUDA
 #include <ripley/RipleySystemMatrix.h>
 #endif
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#endif
 
 #include <paso/SystemMatrix.h>
 #include <paso/Transport.h>
@@ -37,6 +40,11 @@ using namespace std;
 using escript::ValueError;
 using escript::NotImplementedError;
 using paso::TransportProblem;
+
+#ifdef USE_TRILINOS
+using esys_trilinos::TrilinosMatrixAdapter;
+using esys_trilinos::const_TrilinosGraph_ptr;
+#endif
 
 namespace ripley {
 
@@ -774,7 +782,6 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
 
 void RipleyDomain::Print_Mesh_Info(bool full) const
 {
-    using namespace std;
     cout << "Print_Mesh_Info for " << getDescription() << " running on CPU "
         << m_mpiInfo->rank << ". MPI size: " << m_mpiInfo->size << endl;
     cout << "Number of dimensions: " << m_numDim << endl;
@@ -834,6 +841,12 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         if (sb.isSymmetric())
             type |= (int)SMT_SYMMETRIC;
         return type;
+    } else if (package == escript::SO_PACKAGE_TRILINOS) {
+#ifdef USE_TRILINOS
+        return (int)SMT_TRILINOS;
+#else
+        throw RipleyException("Trilinos requested but not built with Trilinos.");
+#endif
     }
 
     // in all other cases we use PASO
@@ -891,7 +904,18 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
                     getDiagonalIndices(symmetric), symmetric));
         return sm;
 #else
-        throw RipleyException("newSystemMatrix: ripley was compiled without CUDA support so CUSP solvers & matrices are not available.");
+        throw RipleyException("newSystemMatrix: ripley was not compiled with "
+               "CUDA support so CUSP solvers & matrices are not available.");
+#endif
+    } else if (type & (int)SMT_TRILINOS) {
+#ifdef USE_TRILINOS
+        const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo, row_blocksize,
+                    row_functionspace, graph));
+        return sm;
+#else
+        throw RipleyException("newSystemMatrix: ripley was not compiled with "
+               "Trilinos support so the Trilinos solver stack cannot be used.");
 #endif
     } else if (type & (int)SMT_PASO) {
         paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
@@ -1175,26 +1199,76 @@ paso::Pattern_ptr RipleyDomain::createPasoPattern(
     return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptr, index));
 }
 
+#ifdef USE_TRILINOS
+//protected
+esys_trilinos::const_TrilinosGraph_ptr RipleyDomain::createTrilinosGraph(
+                                            const IndexVector& myRows,
+                                            const IndexVector& myColumns) const
+{
+    using namespace esys_trilinos;
+
+    const dim_t numMatrixRows = getNumDOF();
+
+    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), myRows,
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+
+    IndexVector columns(getNumNodes());
+    // order is important - our columns (=myRows) come first, followed by
+    // shared ones (=node Id for non-DOF)
+#pragma omp parallel for
+    for (size_t i=0; i<columns.size(); i++) {
+        columns[getDofOfNode(i)] = myColumns[i];
+    }
+    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), columns,
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+
+    // now build CSR arrays (rowPtr and colInd)
+    const vector<IndexVector>& conns(getConnections(true));
+    Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
+    for (size_t i=0; i < numMatrixRows; i++) {
+        rowPtr[i+1] = rowPtr[i] + conns[i].size();
+    }
+
+    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
+
+#pragma omp parallel for
+    for (index_t i=0; i < numMatrixRows; i++) {
+        copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
+    }
+
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
+    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("Optimize Storage", true);
+    graph->fillComplete(rowMap, rowMap, params);
+    return graph;
+}
+#endif
+
 //protected
 void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                                      const IndexVector& nodes, dim_t numEq,
                                      const DoubleVector& array) const
 {
-    paso::SystemMatrix* sm = dynamic_cast<paso::SystemMatrix*>(mat);
-    if (sm) {
-        addToPasoMatrix(sm, nodes, numEq, array);
-    } else {
-#ifdef USE_CUDA
-        SystemMatrix* sm = dynamic_cast<SystemMatrix*>(mat);
-        if (sm) {
-            sm->add(nodes, array);
-        } else {
-            throw RipleyException("addToSystemMatrix: unknown system matrix type");
-        }
-#else
-        throw RipleyException("addToSystemMatrix: unknown system matrix type");
-#endif
+    paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
+    if (psm) {
+        addToPasoMatrix(psm, nodes, numEq, array);
+        return;
     }
+#ifdef USE_CUDA
+    SystemMatrix* rsm = dynamic_cast<SystemMatrix*>(mat);
+    if (rsm) {
+        rsm->add(nodes, array);
+        return;
+    }
+#endif
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->add(nodes, array);
+        return;
+    }
+#endif
+    throw RipleyException("addToSystemMatrix: unknown system matrix type");
 }
 
 //private
@@ -1370,7 +1444,12 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     if (numEq != numComp)
         throw ValueError("assemblePDE: number of equations and number of solutions don't match");
 
-    //TODO: check shape and num samples of coeffs
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->resumeFill();
+    }
+#endif
 
     if (numEq==1) {
         if (fs==ReducedElements) {
@@ -1385,6 +1464,12 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
             assembler->assemblePDESystem(mat, rhs, coefs);
         }
     }
+
+#ifdef USE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
 //private
@@ -1428,7 +1513,12 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
     if (numEq != numComp)
         throw ValueError("assemblePDEBoundary: number of equations and number of solutions don't match");
 
-    //TODO: check shape and num samples of coeffs
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->resumeFill();
+    }
+#endif
 
     if (numEq==1) {
         if (fs==ReducedFaceElements)
@@ -1441,6 +1531,12 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
         else
             assembler->assemblePDEBoundarySystem(mat, rhs, coefs);
     }
+
+#ifdef USE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
 void RipleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,

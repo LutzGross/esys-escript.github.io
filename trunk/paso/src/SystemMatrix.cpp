@@ -149,14 +149,16 @@ SystemMatrix::~SystemMatrix()
 void SystemMatrix::setPreconditioner(Options* options)
 {
     if (!solver_p) {
-        solver_p = Preconditioner_alloc(shared_from_this(), options);
+        SystemMatrix_ptr mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
+        solver_p = Preconditioner_alloc(mat, options);
     }
 }
 
 void SystemMatrix::solvePreconditioner(double* x, double* b)
 {
     Preconditioner* prec=(Preconditioner*)solver_p;
-    Preconditioner_solve(prec, shared_from_this(), x, b);
+    SystemMatrix_ptr mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
+    Preconditioner_solve(prec, mat, x, b);
 }
 
 void SystemMatrix::freePreconditioner()

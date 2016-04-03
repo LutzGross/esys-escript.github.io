@@ -14,100 +14,70 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-/*   Dudley: Mesh */
-/*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
-/*   NodeFile. It is also not ensured that all nodes referred to by an element are actually available */
-/*   on the process.  At the output, a local node labelling is used and all nodes are available */
-/*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
-/*   The function does not create a distribution of the degrees of freedom. */
-
-/****************************************************************************/
-
 #include "Mesh.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in)
+void Mesh::resolveNodeIds()
 {
-    index_t min_id, max_id, min_id2, max_id2, global_min_id, global_max_id,
-        *globalToNewLocalNodeLabels = NULL, *newLocalToGlobalNodeLabels = NULL;
-    dim_t len, n, newNumNodes, numDim;
-    Dudley_NodeFile *newNodeFile = NULL;
-    numDim = Dudley_Mesh_getDim(in);
-    /*  find the minimum and maximum id used by elements: */
-    min_id = escript::DataTypes::index_t_max();
-    max_id = -escript::DataTypes::index_t_max();
-    Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->Elements);
-    max_id = std::max(max_id, max_id2);
-    min_id = std::min(min_id, min_id2);
-    Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->FaceElements);
-    max_id = std::max(max_id, max_id2);
-    min_id = std::min(min_id, min_id2);
-    Dudley_ElementFile_setNodeRange(&min_id2, &max_id2, in->Points);
-    max_id = std::max(max_id, max_id2);
-    min_id = std::min(min_id, min_id2);
+    // find the minimum and maximum id used by elements
+    index_t min_id = escript::DataTypes::index_t_max();
+    index_t max_id = -escript::DataTypes::index_t_max();
+    std::pair<index_t,index_t> range(Elements->getNodeRange());
+    max_id = std::max(max_id, range.second);
+    min_id = std::min(min_id, range.first);
+    range = FaceElements->getNodeRange();
+    max_id = std::max(max_id, range.second);
+    min_id = std::min(min_id, range.first);
+    range = Points->getNodeRange();
+    max_id = std::max(max_id, range.second);
+    min_id = std::min(min_id, range.first);
+#ifdef Dudley_TRACE
+    index_t global_min_id, global_max_id;
 #ifdef ESYS_MPI
     index_t id_range[2], global_id_range[2];
     id_range[0] = -min_id;
     id_range[1] = max_id;
-    MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm);
+    MPI_Allreduce(id_range, global_id_range, 2, MPI_DIM_T, MPI_MAX, MPIInfo->comm);
     global_min_id = -global_id_range[0];
     global_max_id = global_id_range[1];
 #else
     global_min_id = min_id;
     global_max_id = max_id;
 #endif
-#ifdef Dudley_TRACE
     printf("Node id range used by elements is %d:%d\n", global_min_id, global_max_id);
-#else
-    /* avoid unused var warning if Dudley_TRACE is not defined */
-    (void)global_min_id;
-    (void)global_max_id;
 #endif
-    if (min_id > max_id)
-    {
+    if (min_id > max_id) {
         max_id = -1;
         min_id = 0;
     }
 
-    /* allocate mappings for new local node labelling to global node labelling (newLocalToGlobalNodeLabels)
-       and global node labelling to the new local node labelling (globalToNewLocalNodeLabels[i-min_id] is the 
-       new local id of global node i) */
-    len = (max_id >= min_id) ? max_id - min_id + 1 : 0;
-    globalToNewLocalNodeLabels = new index_t[len]; /* local mask for used nodes */
-    newLocalToGlobalNodeLabels = new index_t[len];
+    // allocate mappings for new local node labeling to global node labeling
+    // (newLocalToGlobalNodeLabels) and global node labeling to the new local
+    // node labeling (globalToNewLocalNodeLabels[i-min_id] is the new local id
+    // of global node i)
+    index_t len = (max_id >= min_id) ? max_id - min_id + 1 : 0;
 
-#pragma omp parallel
-    {
-#pragma omp for private(n) schedule(static)
-        for (n = 0; n < len; n++)
-            newLocalToGlobalNodeLabels[n] = -1;
-#pragma omp for private(n) schedule(static)
-        for (n = 0; n < len; n++)
-            globalToNewLocalNodeLabels[n] = -1;
-    }
+    // mark the nodes referred by elements in usedMask
+    std::vector<short> usedMask(len, -1);
+    markNodes(usedMask, min_id);
 
-    /*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
-    Dudley_Mesh_markNodes(globalToNewLocalNodeLabels, min_id, in, false);
+    // create a local labeling newLocalToGlobalNodeLabels of the local nodes
+    // by packing the mask usedMask
+    std::vector<index_t> newLocalToGlobalNodeLabels =  util::packMask(usedMask);
+    const dim_t newNumNodes = newLocalToGlobalNodeLabels.size();
 
-    /* create a local labelling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels */
+    usedMask.clear();
 
-    newNumNodes = Dudley_Util_packMask(len, globalToNewLocalNodeLabels, newLocalToGlobalNodeLabels);
+    // invert the new labeling and shift the index newLocalToGlobalNodeLabels
+    // to global node IDs
+    index_t* globalToNewLocalNodeLabels = new index_t[len];
 
-    /* invert the new labelling and shift the index newLocalToGlobalNodeLabels to global node ids */
-#pragma omp parallel for private(n) schedule(static)
-    for (n = 0; n < newNumNodes; n++)
-    {
+#pragma omp parallel for
+    for (index_t n = 0; n < newNumNodes; n++) {
 #ifdef BOUNDS_CHECK
-        if (n >= len || n < 0)
-        {
-            printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n);
-            exit(1);
-        }
-        if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0)
-        {
+        if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0) {
             printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n);
             exit(1);
         }
@@ -115,16 +85,19 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in)
         globalToNewLocalNodeLabels[newLocalToGlobalNodeLabels[n]] = n;
         newLocalToGlobalNodeLabels[n] += min_id;
     }
-    /* create a new table */
-    newNodeFile = Dudley_NodeFile_alloc(numDim, in->MPIInfo);
-    Dudley_NodeFile_allocTable(newNodeFile, newNumNodes);
-    Dudley_NodeFile_gather_global(newLocalToGlobalNodeLabels, in->Nodes, newNodeFile);
-    Dudley_NodeFile_free(in->Nodes);
-    in->Nodes = newNodeFile;
-    /*  relabel nodes of the elements: */
-    Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels, min_id, in);
+    // create a new node file
+    NodeFile* newNodeFile = new NodeFile(getDim(), MPIInfo);
+    newNodeFile->allocTable(newNumNodes);
+    if (len)
+        newNodeFile->gather_global(&newLocalToGlobalNodeLabels[0], Nodes);
+    else
+        newNodeFile->gather_global(NULL, Nodes);
+
+    delete Nodes;
+    Nodes = newNodeFile;
+    // relabel nodes of the elements
+    relabelElementNodes(globalToNewLocalNodeLabels, min_id);
     delete[] globalToNewLocalNodeLabels;
-    delete[] newLocalToGlobalNodeLabels;
 }
 
 } // namespace dudley

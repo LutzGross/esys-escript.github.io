@@ -26,6 +26,10 @@
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"
 
+#ifdef USE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
+
 #include <boost/shared_ptr.hpp>
 
 #include <map>
@@ -33,7 +37,12 @@
 #include <string>
 
 namespace finley {
-  
+
+enum SystemMatrixType {
+    SMT_PASO = 1<<8,
+    SMT_TRILINOS = 1<<10
+};
+
 // These are friends implemented in MeshAdapterFactory.cpp  
 // They are only fwd declared here so that vis.studio will accept the friend
 // decls
@@ -578,9 +587,18 @@ public:
                                  const boost::python::tuple& filter) const;
 
 private:
+  
+#ifdef USE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
+
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+#endif
+
+
     /**
      \brief adds points to support more Dirac delta function.
-   
+
      Do NOT call these at any time other than construction!
      Using them later creates consistency problems
     */

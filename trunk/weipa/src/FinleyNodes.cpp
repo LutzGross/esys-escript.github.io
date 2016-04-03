@@ -25,6 +25,7 @@
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 #endif
+using escript::DataTypes::index_t;
 #endif // VISIT_PLUGIN
 
 #if USE_NETCDF
@@ -129,17 +130,12 @@ FinleyNodes::~FinleyNodes()
 //
 //
 //
-bool FinleyNodes::initFromDudley(const dudley::Dudley_NodeFile* dudleyFile)
+bool FinleyNodes::initFromDudley(const dudley::NodeFile* dudleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numDims = dudleyFile->numDim;
-    numNodes = dudleyFile->numNodes;
-
-    int mpisize = dudleyFile->MPIInfo->size;
-    int* iPtr = dudleyFile->nodesDistribution->first_component;
-    nodeDist.clear();
-    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
-    copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
+    numNodes = dudleyFile->getNumNodes();
+    nodeDist = dudleyFile->nodesDistribution->first_component;
 
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
@@ -162,7 +158,7 @@ bool FinleyNodes::initFromDudley(const dudley::Dudley_NodeFile* dudleyFile)
             }
         }
 
-        iPtr = dudleyFile->Id;
+        escript::DataTypes::index_t* iPtr = dudleyFile->Id;
         nodeID.insert(nodeID.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeID.begin());
 
@@ -173,16 +169,12 @@ bool FinleyNodes::initFromDudley(const dudley::Dudley_NodeFile* dudleyFile)
         iPtr = dudleyFile->globalDegreesOfFreedom;
         nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGDOF.begin());
+        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
 
         iPtr = dudleyFile->globalNodesIndex;
         nodeGNI.insert(nodeGNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGNI.begin());
-
-        iPtr = dudleyFile->globalReducedDOFIndex;
-        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
-
-        iPtr = dudleyFile->globalReducedNodesIndex;
         nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
 
@@ -201,12 +193,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 #if !defined VISIT_PLUGIN && defined USE_FINLEY
     numDims = finleyFile->numDim;
     numNodes = finleyFile->numNodes;
-
-    int mpisize = finleyFile->MPIInfo->size;
-    escript::DataTypes::index_t* idxPtr = finleyFile->nodesDistribution->first_component;
-    nodeDist.clear();
-    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
-    copy(idxPtr, idxPtr+mpisize+1, nodeDist.begin());
+    nodeDist = finleyFile->nodesDistribution->first_component;
 
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
@@ -229,7 +216,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
             }
         }
 
-        idxPtr = finleyFile->Id;
+        escript::DataTypes::index_t* idxPtr = finleyFile->Id;
         nodeID.insert(nodeID.end(), numNodes, 0);
         copy(idxPtr, idxPtr+numNodes, nodeID.begin());
 

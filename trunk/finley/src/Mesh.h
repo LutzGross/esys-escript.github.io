@@ -63,6 +63,10 @@
 
 #include <paso/SystemMatrixPattern.h>
 
+#ifdef USE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
+
 #include <map>
 #include <string>
 
@@ -100,7 +104,15 @@ public:
     bool isValidTagName(const char* name) const;
     paso::SystemMatrixPattern_ptr getPattern(bool reduce_row_order, bool reduce_col_order);
     paso::SystemMatrixPattern_ptr makePattern(bool reduce_row_order, bool reduce_col_order);
+
+#ifdef USE_TRILINOS
+    /// creates and returns a Trilinos CRS graph suitable to build a sparse
+    /// matrix
+    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;
+#endif
+
     void printInfo(bool);
+    void print();
 
     void setCoordinates(const escript::Data& newX);
     void setElements(ElementFile *elements);
@@ -121,7 +133,6 @@ public:
     void joinFaces(double safetyFactor, double tolerance, bool);
 
     void findMatchingFaces(double, double, int*, int*, int*, int*);
-    void print();
 
 private:
     void createColoring(const std::vector<index_t>& dofMap);

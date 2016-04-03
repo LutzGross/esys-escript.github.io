@@ -14,22 +14,13 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assembles the mass matrix in lumped form.
-
-  The coefficient D has to be defined on the integration points or not present.
-  lumpedMat has to be initialized before the routine is called.
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
+void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
                            bool useHRZ)
 {
@@ -52,9 +43,8 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
     }
 
     // initialize parameters
-    Assemble_Parameters p;
-    Assemble_getAssembleParameters(nodes, elements, escript::ASM_ptr(),
-                                      lumpedMat, reducedIntegrationOrder, &p);
+    AssembleParameters p(nodes, elements, escript::ASM_ptr(),
+                         lumpedMat, reducedIntegrationOrder);
 
     // check if all function spaces are the same
     if (!D.numSamplesEqual(p.numQuad, elements->numElements)) {
@@ -62,15 +52,14 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
         ss << "Assemble_LumpedSystem: sample points of coefficient D "
               "don't match (" << p.numQuad << ","
            << elements->numElements << ")";
-        const std::string msg(ss.str());
-        throw DudleyException(msg);
+        throw escript::ValueError(ss.str());
     }
 
     // check the dimensions
     if (p.numEqu == 1) {
         const escript::DataTypes::ShapeType dimensions; //dummy
         if (D.getDataPointShape() != dimensions) {
-            throw DudleyException("Assemble_LumpedSystem: coefficient D, rank 0 expected.");
+            throw escript::ValueError("Assemble_LumpedSystem: coefficient D, rank 0 expected.");
         }
     } else {
         const escript::DataTypes::ShapeType dimensions(1, p.numEqu);
@@ -78,8 +67,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
             std::stringstream ss;
             ss << "Assemble_LumpedSystem: coefficient D, expected "
                   "shape (" << p.numEqu << ",)";
-            const std::string msg(ss.str());
-            throw DudleyException(msg);
+            throw escript::ValueError(ss.str());
         }
     }
 
@@ -95,10 +83,10 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                 for (index_t e=0; e<elements->numElements; e++) {
                     if (elements->Color[e]==color) {
                         const double* D_p = D.getSampleDataRO(e);
-                        Dudley_Util_AddScatter(1,
-                                      &p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]],
+                        util::addScatter(1,
+                                      &p.DOF[elements->Nodes[INDEX2(0,e,p.NN)]],
                                       p.numEqu, D_p, lumpedMat_p, 
-                                      p.row_DOF_UpperBound);
+                                      p.DOF_UpperBound);
                     } // end color check
                 } // end element loop
             } // end color loop
@@ -121,7 +109,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
 #pragma omp for
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
-                                const double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+                                const double vol = p.jac->absD[e] * p.jac->quadweight;
                                 const double* D_p = D.getSampleDataRO(e);
                                 if (useHRZ) {
                                     double m_t = 0; // mass of the element
@@ -152,10 +140,10 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                     }
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
-                                    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                    row_index[q] = p.DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
-                                       p.row_DOF_UpperBound);
+                                       p.DOF_UpperBound);
                             } // end color check
                         } // end element loop
                     } // end color loop
@@ -165,7 +153,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
 #pragma omp for
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
-                                const double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+                                const double vol = p.jac->absD[e] * p.jac->quadweight;
                                 const double* D_p = D.getSampleDataRO(e);
                                 if (useHRZ) { // HRZ lumping
                                     // mass of the element
@@ -194,10 +182,10 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                     }
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
-                                    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                    row_index[q] = p.DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
-                                       p.row_DOF_UpperBound);
+                                       p.DOF_UpperBound);
                             } // end color check
                         } // end element loop
                     } // end color loop
@@ -210,7 +198,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
 #pragma omp for
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
-                                const double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+                                const double vol = p.jac->absD[e] * p.jac->quadweight;
                                 const double* D_p = D.getSampleDataRO(e);
 
                                 if (useHRZ) { // HRZ lumping
@@ -249,10 +237,10 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                     }
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
-                                    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                    row_index[q] = p.DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
-                                       p.row_DOF_UpperBound);
+                                       p.DOF_UpperBound);
                             } // end color check
                         } // end element loop
                     } // end color loop
@@ -262,7 +250,7 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
 #pragma omp for
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
-                                const double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+                                const double vol = p.jac->absD[e] * p.jac->quadweight;
                                 const double* D_p = D.getSampleDataRO(e);
 
                                 if (useHRZ) { // HRZ lumping
@@ -295,10 +283,10 @@ void Assemble_LumpedSystem(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                                     }
                                 }
                                 for (int q = 0; q < p.numShapes; q++)
-                                    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-                                Dudley_Util_AddScatter(p.numShapes, &row_index[0],
+                                    row_index[q] = p.DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+                                util::addScatter(p.numShapes, &row_index[0],
                                        p.numEqu, &EM_lumpedMat[0], lumpedMat_p,
-                                       p.row_DOF_UpperBound);
+                                       p.DOF_UpperBound);
                             } // end color check
                         } // end element loop
                     } // end color loop

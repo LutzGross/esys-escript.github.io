@@ -22,12 +22,13 @@
 *****************************************************************************/
 
 #include "Assemble.h"
+#include <paso/SystemMatrix.h>
 
 namespace finley {
 
 AssembleParameters::AssembleParameters(const NodeFile* nodes,
                                        const ElementFile* ef,
-                                       paso::SystemMatrix_ptr sm,
+                                       escript::ASM_ptr sm,
                                        escript::Data& rhs,
                                        bool reducedOrder)
     : elements(ef),
@@ -35,97 +36,102 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
       F(rhs)
 {
     int numSub, numQuadSub;
+    
+    paso::SystemMatrix* pasoMat = (
+            sm ? dynamic_cast<paso::SystemMatrix*>(sm.get()) : NULL);
 
     if (!rhs.isEmpty() && !rhs.actsExpanded()) {
         throw escript::ValueError("AssembleParameters: Right hand side is not expanded.");
     }
     // check the dimensions of S and rhs
-    if (sm.get()!=NULL && !rhs.isEmpty()) {
-        if (!rhs.numSamplesEqual(1, (sm->row_distribution->getMyNumComponents()
-                           * sm->row_block_size)/sm->logical_row_block_size)) {
+    if (pasoMat!=NULL && !rhs.isEmpty()) {
+        const index_t numRows = pasoMat->row_distribution->getMyNumComponents()*pasoMat->row_block_size;
+        if (!rhs.numSamplesEqual(1, numRows/pasoMat->logical_row_block_size)) {
             throw escript::ValueError("AssembleParameters: number of rows of matrix and length of right hand side don't match.");
         }
     }
 
     // get the number of equations and components
-    if (sm.get()==NULL) {
+    if (sm==NULL) {
         if (rhs.isEmpty()) {
-            this->numEqu=1;
-            this->numComp=1;
+            this->numEqu = this->numComp = 1;
         } else {
-            this->numEqu=rhs.getDataPointSize();
-            this->numComp=this->numEqu;
+            this->numEqu = this->numComp = rhs.getDataPointSize();
         }
     } else {
-        if (rhs.isEmpty()) {
-            this->numEqu=sm->logical_row_block_size;
-            this->numComp=sm->logical_col_block_size;
-        } else {
-            if (rhs.getDataPointSize() != sm->logical_row_block_size) {
-                throw escript::ValueError("AssembleParameters: matrix row block size and number of components of right hand side don't match.");
-            }
-            this->numEqu=sm->logical_row_block_size;
-            this->numComp=sm->logical_col_block_size;
+        if (!rhs.isEmpty() && rhs.getDataPointSize() != sm->getRowBlockSize()) {
+            throw escript::ValueError("AssembleParameters: matrix row block size and number of components of right hand side don't match.");
+            return;
         }
+        this->numEqu = sm->getRowBlockSize();
+        this->numComp = sm->getColumnBlockSize();
     }
-    this->col_DOF=nodes->borrowTargetDegreesOfFreedom();
-    this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
-    // get the information for the labeling of the degrees of freedom from
+    this->col_DOF = nodes->borrowTargetDegreesOfFreedom();
+    this->row_DOF = nodes->borrowTargetDegreesOfFreedom();
+
+    // get information for the labeling of the degrees of freedom from
     // the matrix
-    if (sm.get()) {
+    if (pasoMat) {
         // Make sure # rows in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
-        if (sm->row_distribution->getMyNumComponents()*sm->row_block_size ==
-                this->numEqu*nodes->getNumDegreesOfFreedom()) {
+        const index_t numRows = pasoMat->row_distribution->getMyNumComponents()*pasoMat->row_block_size;
+        const index_t numCols = pasoMat->col_distribution->getMyNumComponents()*pasoMat->col_block_size;
+        if (numRows == this->numEqu*nodes->getNumDegreesOfFreedom()) {
             this->row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
-            this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
-            this->row_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if (sm->row_distribution->getMyNumComponents()*sm->row_block_size ==
-                this->numEqu*nodes->getNumReducedDegreesOfFreedom()) {
+            this->row_DOF = nodes->borrowTargetDegreesOfFreedom();
+            this->row_jac = ef->borrowJacobians(nodes, false, reducedOrder);
+        } else if (numRows == this->numEqu*nodes->getNumReducedDegreesOfFreedom()) {
             this->row_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
-            this->row_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
-            this->row_jac=ef->borrowJacobians(nodes, true, reducedOrder);
+            this->row_DOF = nodes->borrowTargetReducedDegreesOfFreedom();
+            this->row_jac = ef->borrowJacobians(nodes, true, reducedOrder);
         } else {
             throw escript::ValueError("AssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
         }
         // Make sure # cols in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
-        if (sm->col_distribution->getMyNumComponents()*sm->col_block_size ==
-                this->numComp*nodes->getNumDegreesOfFreedom()) {
+        if (numCols == this->numComp*nodes->getNumDegreesOfFreedom()) {
             this->col_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
-            this->col_DOF=nodes->borrowTargetDegreesOfFreedom();
-            this->col_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if (sm->col_distribution->getMyNumComponents()*sm->col_block_size==this->numComp*nodes->getNumReducedDegreesOfFreedom()) {
+            this->col_DOF = nodes->borrowTargetDegreesOfFreedom();
+            this->col_jac = ef->borrowJacobians(nodes, false, reducedOrder);
+        } else if (numCols == this->numComp*nodes->getNumReducedDegreesOfFreedom()) {
             this->col_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
-            this->col_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
-            this->col_jac=ef->borrowJacobians(nodes, true, reducedOrder);
+            this->col_DOF = nodes->borrowTargetReducedDegreesOfFreedom();
+            this->col_jac = ef->borrowJacobians(nodes, true, reducedOrder);
         } else {
             throw escript::ValueError("AssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
         }
+    } else if (sm) {
+        // FIXME:
+        this->row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
+        this->row_DOF = nodes->borrowTargetDegreesOfFreedom();
+        this->row_jac = ef->borrowJacobians(nodes, false, reducedOrder);
+        this->col_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
+        this->col_DOF = nodes->borrowTargetDegreesOfFreedom();
+        this->col_jac = ef->borrowJacobians(nodes, false, reducedOrder);
     }
 
     // get the information from right hand side
     if (!rhs.isEmpty()) {
         if (rhs.numSamplesEqual(1, nodes->getNumDegreesOfFreedom())) {
             this->row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
-            this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
-            this->row_jac=ef->borrowJacobians(nodes, false, reducedOrder);
+            this->row_DOF = nodes->borrowTargetDegreesOfFreedom();
+            this->row_jac = ef->borrowJacobians(nodes, false, reducedOrder);
         } else if (rhs.numSamplesEqual(1, nodes->getNumReducedDegreesOfFreedom())) {
             this->row_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
-            this->row_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
-            this->row_jac=ef->borrowJacobians(nodes, true, reducedOrder);
+            this->row_DOF = nodes->borrowTargetReducedDegreesOfFreedom();
+            this->row_jac = ef->borrowJacobians(nodes, true, reducedOrder);
         } else {
             throw escript::ValueError("AssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
         }
-        if (sm.get()==NULL) {
-            this->col_DOF_UpperBound=this->row_DOF_UpperBound;
-            this->col_DOF=this->row_DOF;
-            this->col_jac=this->row_jac;
+        if (sm==NULL) {
+            this->col_DOF_UpperBound = this->row_DOF_UpperBound;
+            this->col_DOF = this->row_DOF;
+            this->col_jac = this->row_jac;
         }
     }
 
-    numSub=std::min(this->row_jac->numSub, this->col_jac->numSub);
-    numQuadSub=this->row_jac->numQuadTotal/numSub;
+    numSub = std::min(this->row_jac->numSub, this->col_jac->numSub);
+    numQuadSub = this->row_jac->numQuadTotal/numSub;
     if (this->row_jac->numSides != this->col_jac->numSides) {
         throw escript::ValueError("AssembleParameters: number of sides for row and column shape functions must match.");
     }
@@ -159,19 +165,19 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         throw escript::ValueError("AssembleParameters: Incorrect number of quadrature points for column.");
     }
 
-    this->numQuadSub=numQuadSub;
-    this->numSub=numSub;
-    this->numQuadTotal=this->row_jac->numQuadTotal;
-    this->NN=elements->numNodes;
-    this->numElements=elements->numElements;
-    this->numDim=this->row_jac->numDim;
-    this->col_node=this->col_jac->node_selection;
-    this->row_node=this->row_jac->node_selection;
-    this->numSides=this->row_jac->numSides;
-    this->row_numShapesTotal=this->row_jac->numShapesTotal;
-    this->row_numShapes=this->row_jac->BasisFunctions->Type->numShapes;
-    this->col_numShapesTotal=this->col_jac->numShapesTotal;
-    this->col_numShapes=this->col_jac->BasisFunctions->Type->numShapes;
+    this->numQuadSub = numQuadSub;
+    this->numSub = numSub;
+    this->numQuadTotal = this->row_jac->numQuadTotal;
+    this->NN = elements->numNodes;
+    this->numElements = elements->numElements;
+    this->numDim = this->row_jac->numDim;
+    this->col_node = this->col_jac->node_selection;
+    this->row_node = this->row_jac->node_selection;
+    this->numSides = this->row_jac->numSides;
+    this->row_numShapesTotal = this->row_jac->numShapesTotal;
+    this->row_numShapes = this->row_jac->BasisFunctions->Type->numShapes;
+    this->col_numShapesTotal = this->col_jac->numShapesTotal;
+    this->col_numShapes = this->col_jac->BasisFunctions->Type->numShapes;
 }
 
 } // namespace finley

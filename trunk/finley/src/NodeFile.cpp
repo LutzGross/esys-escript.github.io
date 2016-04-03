@@ -1072,14 +1072,14 @@ void NodeFile::createNodeMappings(const std::vector<index_t>& indexReducedNodes,
     rdofDist[mpiSize]=globalNumReducedDOF;
 
     // ==== distribution of Nodes ===============================
-    nodesDistribution.reset(new paso::Distribution(MPIInfo, &nodeDist[0], 1, 0));
+    nodesDistribution.reset(new paso::Distribution(MPIInfo, nodeDist, 1, 0));
     // ==== distribution of DOFs ================================
-    degreesOfFreedomDistribution.reset(new paso::Distribution(MPIInfo, &dofDist[0], 1, 0));
+    degreesOfFreedomDistribution.reset(new paso::Distribution(MPIInfo, dofDist, 1, 0));
     // ==== distribution of reduced Nodes =======================
-    reducedNodesDistribution.reset(new paso::Distribution(MPIInfo, &rnodeDist[0], 1, 0));
+    reducedNodesDistribution.reset(new paso::Distribution(MPIInfo, rnodeDist, 1, 0));
     // ==== distribution of reduced DOF =========================
     reducedDegreesOfFreedomDistribution.reset(new paso::Distribution(
-                                                MPIInfo, &rdofDist[0], 1, 0));
+                                                MPIInfo, rdofDist, 1, 0));
 
     std::vector<index_t> nodeMask(numNodes);
 

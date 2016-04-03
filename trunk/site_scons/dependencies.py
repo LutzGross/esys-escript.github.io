@@ -278,6 +278,44 @@ def checkOptionalModules(env):
 
     return env
 
+def checkForTrilinos(env):
+    trilinos_inc_path=''
+    trilinos_lib_path=''
+    if env['trilinos']:
+        havelibs = (len(env['trilinos_libs']) > 0)
+        trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
+                env['trilinos_libs'], 'Tpetra_CrsMatrix.hpp',
+                env['trilinos_prefix'], lang='c++', try_link=havelibs)
+        if not havelibs:
+            packages=['Tpetra','Kokkos','Belos','Amesos2','Zoltan2','Ifpack2','MueLu']
+            libs = []
+            for pk in packages:
+                # find out what libraries to link with...
+                makefile = os.path.join(trilinos_inc_path, 'Makefile.export.%s'%pk)
+                try:
+                    for l in open(makefile, 'r').readlines():
+                        if l.startswith("%s_LIBRARIES"%pk): # or l.startswith("Trilinos_TPL_LIBRARIES"):
+                            lst = l.split('=')[1].strip().split()
+                            lst = [e.replace('-l','',1) for e in lst]
+                            libs.append(lst)
+                        elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
+                            lst = l.split('=')[1].strip().split()
+                            lst = [e.replace('-I','',1) for e in lst]
+                            env.AppendUnique(CPPPATH = lst)
+
+                except Exception as e:
+                    raise RuntimeError('Error reading Trilinos export Makefile\n%s'%(e))
+            env['trilinos_libs'] = libs
+
+        env.AppendUnique(CPPPATH = [trilinos_inc_path])
+        env.AppendUnique(LIBPATH = [trilinos_lib_path])
+        env.Append(CPPDEFINES = ['USE_TRILINOS'])
+        # Note that we do not add the libs globally
+        env['buildvars']['trilinos_inc_path']=trilinos_inc_path
+        env['buildvars']['trilinos_lib_path']=trilinos_lib_path
+    env['buildvars']['trilinos']=int(env['trilinos'])
+    return env
+
 def checkOptionalLibraries(env):
     ######## netCDF
     netcdf_inc_path=''
@@ -498,12 +536,14 @@ def checkOptionalLibraries(env):
                 ret = p.wait()
                 if ret == 0 and 'libmpi' in gmshlibs:
                     env['gmsh'] = 'm'
+                    env.Append(CPPDEFINES=['GMSH','GMSH_MPI'])
                 else:
                     env['gmsh'] = 's'
+                    env.Append(CPPDEFINES=['GMSH'])
             except OSError:
                 pass
     
-######## boost::iostreams
+    ######## boost::iostreams
     if env['compressed_files']:
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
@@ -513,6 +553,8 @@ def checkOptionalLibraries(env):
             env['compressed_files'] = False
     env['buildvars']['compressed_files']=int(env['compressed_files'])
 
+    ######## Trilinos
+    env = checkForTrilinos(env)
     return env
 
 def checkPDFLatex(env):

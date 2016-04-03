@@ -14,19 +14,26 @@
 *
 *****************************************************************************/
 
-#ifndef INC_DUDLEY_TRIANGULARMESH
-#define INC_DUDLEY_TRIANGULARMESH
+#ifndef __DUDLEY_TRIANGULARMESH_H__
+#define __DUDLEY_TRIANGULARMESH_H__
 
 #include "Mesh.h"
 
 namespace dudley {
 
-Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-                    bool optimize, escript::JMPI& mpi_info);
-Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-                    bool optimize, escript::JMPI& mpi_info);
+/// Generates a 2-dimensional numElements[0] x numElements[1] x 2 mesh with
+/// Tri3 elements in the rectangle [0,length[0]] x [0,length[1]].
+/// The doubling of elements is due to splitting of rectangular elements.
+Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
+                          bool optimize, escript::JMPI mpiInfo);
+
+/// Generates a 3-dimensional numElements[0] x numElements[1] x numElements[2]
+/// mesh with Tet4 elements in the brick
+/// [0,length[0]] x [0,length[1]] x [0,length[2]].
+Mesh* TriangularMesh_Tet4(const dim_t* numElements, const double* length,
+                          bool optimize, escript::JMPI mpiInfo);
 
 } // namespace dudley
 
-#endif /* #ifndef INC_DUDLEY_TRIANGULARMESH */
+#endif // __DUDLEY_TRIANGULARMESH_H__
 

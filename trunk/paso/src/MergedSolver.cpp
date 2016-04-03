@@ -40,7 +40,7 @@ MergedSolver::MergedSolver(const_SystemMatrix_ptr M, const Options* options)
     const index_t size = M->mpi_info->size;
     const dim_t global_n = M->getGlobalNumRows();
     const dim_t n_block = M->mainBlock->row_block_size;
-    const dim_t* dist = M->pattern->input_distribution->first_component;
+    const std::vector<index_t> dist(M->pattern->input_distribution->first_component);
 
     SparseMatrix_ptr M_temp(M->mergeSystemMatrix());
 

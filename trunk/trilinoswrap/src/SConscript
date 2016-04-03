@@ -1,0 +1,53 @@
+##############################################################################
+#
+# Copyright (c) 2003-2016 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'trilinoswrap'
+
+sources = """
+  Amesos2Wrapper.cpp
+  BelosWrapper.cpp
+  PreconditionerFactory.cpp
+  TrilinosMatrixAdapter.cpp
+""".split()
+
+headers = """
+  Amesos2Wrapper.h
+  BelosWrapper.h
+  PreconditionerFactory.h
+  TrilinosAdapterException.h
+  TrilinosMatrixAdapter.h
+  types.h
+""".split()
+
+local_env = env.Clone()
+
+# collect dependencies for other modules
+trilinoswraplibs = ['escript', env['trilinos_libs']]
+
+local_env.PrependUnique(LIBS = trilinoswraplibs)
+
+env['trilinoswrap_libs'] = [module_name] + trilinoswraplibs
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+build = env.Alias('build_trilinoswrap', [hdr_inst, lib])
+env.Alias('install_trilinoswrap', [build, lib_inst])
+

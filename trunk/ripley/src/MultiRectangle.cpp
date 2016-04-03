@@ -472,236 +472,13 @@ void MultiRectangle::dump(const string& fileName) const
 
 void MultiRectangle::populateDofMap()
 {
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
-    const dim_t nDOF0 = getNumDOFInAxis(0);
-    const dim_t nDOF1 = getNumDOFInAxis(1);
-    // populate node->DOF mapping with own degrees of freedom.
-    // The rest is assigned in the loop further down
-    m_dofMap.assign(getNumNodes(), -7);
-#pragma omp parallel for
-    for (index_t i=bottom; i<bottom+nDOF1; i++) {
-        for (index_t j=left; j<left+nDOF0; j++) {
-            m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
-        }
-    }
-
-    // build list of shared components and neighbours by looping through
-    // all potential neighbouring ranks and checking if positions are
-    // within bounds
-    const dim_t numDOF=nDOF0*nDOF1;
-    m_colIndices.clear();
-    m_rowIndices.clear();
-    m_colIndices.resize(numDOF);
-    m_rowIndices.resize(getNumNodes() - numDOF);
-
-    RankVector neighbour;
-    IndexVector offsetInSharedSend(1,0);
-    IndexVector offsetInSharedRecv(1,0);
-    IndexVector sendShared, recvShared;
-    const int x=m_mpiInfo->rank%m_NX[0];
-    const int y=m_mpiInfo->rank/m_NX[0];
-    // numShared will contain the number of shared DOFs after the following
-    // blocks
-    dim_t numShared=0;
-    // sharing bottom edge
-    if (y > 0) {
-        neighbour.push_back((y-1)*m_NX[0] + x);
-        //joining edge, send and recv
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF0);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF0*m_subdivisions);
-        for (dim_t i=0; i < nDOF0; i++, numShared++) {
-            sendShared.push_back(i);
-            recvShared.push_back(numDOF+numShared);
-            m_dofMap[i+left]=numDOF + numShared;
-            const dim_t ind = i;
-            if (i > 0)
-                doublyLink(m_colIndices, m_rowIndices, ind - 1, numShared);
-            doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-            if (i < nDOF0 - 1)
-                doublyLink(m_colIndices, m_rowIndices, ind + 1, numShared);
-        }
-    
-        for (unsigned sy = 1; sy < m_subdivisions; sy++) {
-            for (dim_t i=0; i < nDOF0; i++, numShared++) {
-                recvShared.push_back(numDOF+numShared);
-                m_dofMap[left + i + sy*m_NN[0]] = numDOF + numShared;
-                const dim_t ind = i;
-                if (i > 0)
-                    doublyLink(m_colIndices, m_rowIndices, ind - 1, numShared);
-                doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-                if (i < nDOF0 - 1)
-                    doublyLink(m_colIndices, m_rowIndices, ind + 1, numShared);
-            }
-        }
-    }
-    // sharing top edge
-    if (y < m_NX[1] - 1) {
-        neighbour.push_back((y+1)*m_NX[0] + x);
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF0*m_subdivisions);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF0);
-        // add to send only
-        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
-            for (dim_t i=0; i < nDOF0; i++) {
-                sendShared.push_back(numDOF-nDOF0*(m_subdivisions - sy) + i);
-            }
-        }
-        for (dim_t i=0; i < nDOF0; i++, numShared++) {
-            recvShared.push_back(numDOF+numShared);
-            m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
-            const dim_t ind = numDOF-nDOF0+i;
-            if (i > 0)
-                doublyLink(m_colIndices, m_rowIndices, ind - 1, numShared);
-            doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-            if (i < nDOF0 - 1)
-                doublyLink(m_colIndices, m_rowIndices, ind + 1, numShared);
-        }
-    }
-    // sharing left edge
-    if (x > 0) {
-        neighbour.push_back(y*m_NX[0] + x-1);
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF1);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF1*m_subdivisions);
-        for (dim_t i=0; i < nDOF1; i++, numShared++) {
-            for (unsigned sx = 0; sx < m_subdivisions - 1; sx++, numShared++) {
-                recvShared.push_back(numDOF+numShared);
-                m_dofMap[(bottom+i)*m_NN[0] + sx] = numDOF + numShared;
-                const dim_t ind = i*nDOF0;
-                if (i > 0)
-                    doublyLink(m_colIndices, m_rowIndices, ind - nDOF0, numShared);
-                doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-                if (i < nDOF1 - 1)
-                    doublyLink(m_colIndices, m_rowIndices, ind + nDOF0, numShared);
-            }
-            sendShared.push_back(i*nDOF0);
-            recvShared.push_back(numDOF + numShared);
-            m_dofMap[(bottom+i)*m_NN[0] + m_subdivisions - 1]=numDOF + numShared;
-            const dim_t ind = i*nDOF0;
-            if (i > 0)
-                doublyLink(m_colIndices, m_rowIndices, ind - nDOF0, numShared);
-            doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-            if (i < nDOF1 - 1)
-                doublyLink(m_colIndices, m_rowIndices, ind + nDOF0, numShared);
-        }
-    }
-    // sharing right edge
-    if (x < m_NX[0] - 1) {
-        neighbour.push_back(y*m_NX[0] + x+1);
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF1*m_subdivisions);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF1);
-        for (dim_t i=0; i < nDOF1; i++, numShared++) {
-            for (unsigned sx = 0; sx < m_subdivisions - 1; sx++) {
-                sendShared.push_back((i+1)*nDOF0-(m_subdivisions - sx));
-            }
-            sendShared.push_back((i+1)*nDOF0-1);
-            recvShared.push_back(numDOF+numShared);
-            m_dofMap[(bottom+1+i)*m_NN[0]- 1]=numDOF+numShared;
-            const dim_t ind = (i+1)*nDOF0 - 1;
-            if (i > 0)
-                doublyLink(m_colIndices, m_rowIndices, ind - nDOF0, numShared);
-            doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-            if (i < nDOF1 - 1)
-                doublyLink(m_colIndices, m_rowIndices, ind + nDOF0, numShared);
-        }
-    }
-    // sharing bottom-left node
-    if (x > 0 && y > 0) {
-        neighbour.push_back((y-1)*m_NX[0] + x-1);
-        // sharing a node
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+1);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+m_subdivisions*m_subdivisions);
-        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
-            for (unsigned sx = 0; sx < m_subdivisions; sx++, numShared++) {
-                m_dofMap[sx + sy*m_NN[0]] = numDOF + numShared;
-                recvShared.push_back(numDOF+numShared);
-                doublyLink(m_colIndices, m_rowIndices, 0, numShared);
-            }
-        }
-        sendShared.push_back(0);
-    }
-    // sharing top-left node
-    if (x > 0 && y < m_NX[1]-1) {
-        neighbour.push_back((y+1)*m_NX[0] + x-1);
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+m_subdivisions);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+m_subdivisions);
-        for (int s = 0; s < m_subdivisions; s++, numShared++) {
-            sendShared.push_back(numDOF - (m_subdivisions - s)*nDOF0);
-            recvShared.push_back(numDOF + numShared);
-            m_dofMap[m_NN[0]*(m_NN[1]-1) + s] = numDOF + numShared;
-            if (s > 0)
-                doublyLink(m_colIndices, m_rowIndices, numDOF - (m_subdivisions - s + 1)*nDOF0, numShared);
-            doublyLink(m_colIndices, m_rowIndices, numDOF - (m_subdivisions - s)*nDOF0, numShared);
-            if (s < m_subdivisions - 1)
-                doublyLink(m_colIndices, m_rowIndices, numDOF - (m_subdivisions - s - 1)*nDOF0, numShared);            
-        }
-    }
-    // sharing bottom-right node
-    if (x < m_NX[0]-1 && y > 0) {
-        neighbour.push_back((y-1)*m_NX[0] + x+1);
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+m_subdivisions);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+m_subdivisions);
-        for (int s = 0; s < m_subdivisions; s++, numShared++) {
-            recvShared.push_back(numDOF+numShared);
-            m_dofMap[(s+1)*m_NN[0] - 1] = numDOF + numShared;
-            sendShared.push_back(nDOF0-(m_subdivisions-s));
-            const dim_t ind = nDOF0 - (m_subdivisions - s);
-            if (s > 0)
-                doublyLink(m_colIndices, m_rowIndices, ind - 1, numShared);
-            doublyLink(m_colIndices, m_rowIndices, ind, numShared);
-            if (s < m_subdivisions - 1)
-                doublyLink(m_colIndices, m_rowIndices, ind + 1, numShared);
-        }
-    }
-    // sharing top-right node
-    if (x < m_NX[0]-1 && y < m_NX[1]-1) {
-        neighbour.push_back((y+1)*m_NX[0] + x+1);
-        offsetInSharedSend.push_back(offsetInSharedSend.back()+m_subdivisions*m_subdivisions);
-        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+1);
-        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
-            for (unsigned sx = 0; sx < m_subdivisions; sx++) {
-                sendShared.push_back(numDOF-(m_subdivisions - sy - 1)*nDOF0 - (m_subdivisions - sx));
-            }
-        }
-        recvShared.push_back(numDOF+numShared);
-        m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
-        doublyLink(m_colIndices, m_rowIndices, numDOF-1, numShared);
-        ++numShared;
-    }
-
-    // TODO: paso::SharedComponents should take vectors to avoid this
-    int* neighPtr = NULL;
-    index_t* sendPtr = NULL;
-    index_t* recvPtr = NULL;
-    if (neighbour.size() > 0) {
-        neighPtr = &neighbour[0];
-        sendPtr = &sendShared[0];
-        recvPtr = &recvShared[0];
-    }
-    // create connector
-    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, sendPtr,
-            &offsetInSharedSend[0], 1, 0, m_mpiInfo));
-    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, recvPtr,
-            &offsetInSharedRecv[0], 1, 0, m_mpiInfo));
-    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-}
-
-void MultiRectangle::populateSampleIds()
-{
-    // degrees of freedom are numbered from left to right, bottom to top in
-    // each rank, continuing on the next rank (ranks also go left-right,
-    // bottom-top).
-    // This means rank 0 has id 0...n0-1, rank 1 has id n0...n1-1 etc. which
-    // helps when writing out data rank after rank.
-
     // build node distribution vector first.
     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes.
     // Unlike regular ripley domains this is NOT constant for all ranks so
     // we do an Allgather (we could have also computed per rank but it's a bit
     // involved)
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
-    dim_t numDOF=getNumDOF();
+    dim_t numDOF = getNumDOF();
     if (m_mpiInfo->size > 1) {
 #if ESYS_MPI
         MPI_Allgather(&numDOF, 1, MPI_DIM_T, &m_nodeDistribution[0], 1,
@@ -709,7 +486,7 @@ void MultiRectangle::populateSampleIds()
 
         // accumulate
         dim_t accu = 0;
-        for (int rank=0; rank<m_mpiInfo->size; rank++) {
+        for (int rank = 0; rank < m_mpiInfo->size; rank++) {
             const dim_t n = m_nodeDistribution[rank];
             m_nodeDistribution[rank] = accu;
             accu += n;
@@ -723,13 +500,276 @@ void MultiRectangle::populateSampleIds()
         m_nodeDistribution[m_mpiInfo->size] = numDOF;
     }
 
+    // degrees of freedom are numbered from left to right, bottom to top in
+    // each rank, continuing on the next rank (ranks also go left-right,
+    // bottom-top).
+    // This means rank 0 has id 0...n0-1, rank 1 has id n0...n1-1 etc. which
+    // helps when writing out data rank after rank.
+
     try {
-        m_nodeId.resize(getNumNodes());
-        m_dofId.resize(numDOF);
-        m_elementId.resize(getNumElements());
+        m_nodeId.assign(getNumNodes(), -1);
+        m_dofMap.assign(getNumNodes(), -1);
+        m_dofId.assign(numDOF, -1);
     } catch (const std::length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
+
+    const index_t left = getFirstInDim(0);
+    const index_t bottom = getFirstInDim(1);
+    const dim_t nDOF0 = getNumDOFInAxis(0);
+    const dim_t nDOF1 = getNumDOFInAxis(1);
+    // populate node->DOF mapping, DOF IDs and own node IDs.
+    // The rest of the node IDs are communicated further down.
+#pragma omp parallel for
+    for (dim_t i=0; i<nDOF1; i++) {
+        for (dim_t j=0; j<nDOF0; j++) {
+            const index_t nodeIdx = j+left + (i+bottom)*m_NN[0];
+            const index_t dofIdx = j + i*nDOF0;
+            m_dofMap[nodeIdx] = dofIdx;
+            m_dofId[dofIdx] = m_nodeId[nodeIdx]
+                = m_nodeDistribution[m_mpiInfo->rank] + dofIdx;
+        }
+    }
+
+    // build list of shared components and neighbours
+    m_colIndices.assign(numDOF, IndexVector());
+    m_rowIndices.assign(getNumNodes() - numDOF, IndexVector());
+
+    RankVector neighbour;
+    IndexVector offsetInSharedSend(1,0);
+    IndexVector offsetInSharedRecv(1,0);
+    IndexVector sendShared, recvShared;
+    const int x = m_mpiInfo->rank%m_NX[0];
+    const int y = m_mpiInfo->rank/m_NX[0];
+    // numShared will contain the number of shared DOFs after the following
+    // blocks
+    dim_t numShared = 0;
+    // sharing bottom edge
+    if (y > 0) {
+        neighbour.push_back((y-1)*m_NX[0] + x);
+        //joining edge, send and recv
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF0);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF0*m_subdivisions);
+        // add to send only
+        for (dim_t i=0; i < nDOF0; i++) {
+            sendShared.push_back(i);
+        }
+    
+        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
+            for (index_t i = 0; i < nDOF0; i++, numShared++) {
+                const index_t nodeIdx = left + i + sy*m_NN[0];
+                const index_t dofIdx = i;
+                recvShared.push_back(nodeIdx);
+                m_dofMap[nodeIdx] = numDOF + numShared;
+                if (i > 0)
+                    doublyLink(m_colIndices, m_rowIndices, dofIdx - 1, numShared);
+                doublyLink(m_colIndices, m_rowIndices, dofIdx, numShared);
+                if (i < nDOF0 - 1)
+                    doublyLink(m_colIndices, m_rowIndices, dofIdx + 1, numShared);
+            }
+        }
+    }
+    // sharing top edge
+    if (y < m_NX[1] - 1) {
+        neighbour.push_back((y+1)*m_NX[0] + x);
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF0*m_subdivisions);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF0);
+        // add to send only
+        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
+            for (index_t i = 0; i < nDOF0; i++) {
+                sendShared.push_back(numDOF-nDOF0*(m_subdivisions - sy) + i);
+            }
+        }
+        for (index_t i = 0; i < nDOF0; i++, numShared++) {
+            const index_t nodeIdx = left + i + m_NN[0]*(m_NN[1]-1);
+            const index_t dofIdx = numDOF - nDOF0 + i;
+            recvShared.push_back(nodeIdx);
+            m_dofMap[nodeIdx] = numDOF+numShared;
+            if (i > 0)
+                doublyLink(m_colIndices, m_rowIndices, dofIdx - 1, numShared);
+            doublyLink(m_colIndices, m_rowIndices, dofIdx, numShared);
+            if (i < nDOF0 - 1)
+                doublyLink(m_colIndices, m_rowIndices, dofIdx + 1, numShared);
+        }
+    }
+    // sharing left edge
+    if (x > 0) {
+        neighbour.push_back(y*m_NX[0] + x-1);
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF1);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF1*m_subdivisions);
+        for (index_t i = 0; i < nDOF1; i++) {
+            const index_t dofIdx = i*nDOF0;
+            sendShared.push_back(dofIdx);
+            for (unsigned sx = 0; sx < m_subdivisions; sx++, numShared++) {
+                const index_t nodeIdx = (bottom+i)*m_NN[0] + sx;
+                recvShared.push_back(nodeIdx);
+                m_dofMap[nodeIdx] = numDOF + numShared;
+                if (i > 0)
+                    doublyLink(m_colIndices, m_rowIndices, dofIdx - nDOF0, numShared);
+                doublyLink(m_colIndices, m_rowIndices, dofIdx, numShared);
+                if (i < nDOF1 - 1)
+                    doublyLink(m_colIndices, m_rowIndices, dofIdx + nDOF0, numShared);
+            }
+        }
+    }
+    // sharing right edge
+    if (x < m_NX[0] - 1) {
+        neighbour.push_back(y*m_NX[0] + x+1);
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+nDOF1*m_subdivisions);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+nDOF1);
+        for (index_t i = 0; i < nDOF1; i++, numShared++) {
+            for (unsigned sx = 0; sx < m_subdivisions - 1; sx++) {
+                sendShared.push_back((i+1)*nDOF0-(m_subdivisions - sx));
+            }
+            const index_t nodeIdx = (bottom+1+i)*m_NN[0] - 1;
+            const index_t dofIdx = (i+1)*nDOF0 - 1;
+            sendShared.push_back(dofIdx);
+            recvShared.push_back(nodeIdx);
+            m_dofMap[nodeIdx] = numDOF + numShared;
+            if (i > 0)
+                doublyLink(m_colIndices, m_rowIndices, dofIdx - nDOF0, numShared);
+            doublyLink(m_colIndices, m_rowIndices, dofIdx, numShared);
+            if (i < nDOF1 - 1)
+                doublyLink(m_colIndices, m_rowIndices, dofIdx + nDOF0, numShared);
+        }
+    }
+    // sharing bottom-left block
+    if (x > 0 && y > 0) {
+        neighbour.push_back((y-1)*m_NX[0] + x-1);
+        // sharing a node
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+1);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+m_subdivisions*m_subdivisions);
+        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
+            for (unsigned sx = 0; sx < m_subdivisions; sx++, numShared++) {
+                const index_t nodeIdx = sx + sy*m_NN[0];
+                m_dofMap[nodeIdx] = numDOF + numShared;
+                recvShared.push_back(nodeIdx);
+                doublyLink(m_colIndices, m_rowIndices, 0, numShared);
+            }
+        }
+        sendShared.push_back(0);
+    }
+    // sharing top-left block
+    if (x > 0 && y < m_NX[1]-1) {
+        neighbour.push_back((y+1)*m_NX[0] + x-1);
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+m_subdivisions);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+m_subdivisions);
+        for (int s = 0; s < m_subdivisions; s++, numShared++) {
+            const index_t nodeIdx = m_NN[0]*(m_NN[1]-1) + s;
+            const index_t dofIdx = numDOF - (m_subdivisions - s)*nDOF0;
+            sendShared.push_back(dofIdx);
+            recvShared.push_back(nodeIdx);
+            m_dofMap[nodeIdx] = numDOF + numShared;
+            if (s > 0)
+                doublyLink(m_colIndices, m_rowIndices, dofIdx - nDOF0, numShared);
+            doublyLink(m_colIndices, m_rowIndices, dofIdx, numShared);
+            if (s < m_subdivisions - 1)
+                doublyLink(m_colIndices, m_rowIndices, dofIdx + nDOF0, numShared);            
+        }
+    }
+    // sharing bottom-right block
+    if (x < m_NX[0]-1 && y > 0) {
+        neighbour.push_back((y-1)*m_NX[0] + x+1);
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+m_subdivisions);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+m_subdivisions);
+        for (int s = 0; s < m_subdivisions; s++, numShared++) {
+            const index_t nodeIdx = (s+1)*m_NN[0] - 1;
+            const dim_t ind = nDOF0 - (m_subdivisions - s);
+            recvShared.push_back(nodeIdx);
+            m_dofMap[nodeIdx] = numDOF + numShared;
+            sendShared.push_back(ind);
+            if (s > 0)
+                doublyLink(m_colIndices, m_rowIndices, ind - 1, numShared);
+            doublyLink(m_colIndices, m_rowIndices, ind, numShared);
+            if (s < m_subdivisions - 1)
+                doublyLink(m_colIndices, m_rowIndices, ind + 1, numShared);
+        }
+    }
+    // sharing top-right block
+    if (x < m_NX[0]-1 && y < m_NX[1]-1) {
+        neighbour.push_back((y+1)*m_NX[0] + x+1);
+        offsetInSharedSend.push_back(offsetInSharedSend.back()+m_subdivisions*m_subdivisions);
+        offsetInSharedRecv.push_back(offsetInSharedRecv.back()+1);
+        for (unsigned sy = 0; sy < m_subdivisions; sy++) {
+            for (unsigned sx = 0; sx < m_subdivisions; sx++) {
+                sendShared.push_back(numDOF-(m_subdivisions - sy - 1)*nDOF0 - (m_subdivisions - sx));
+            }
+        }
+        const dim_t nodeIdx = m_NN[0]*m_NN[1] - 1;
+        recvShared.push_back(nodeIdx);
+        m_dofMap[nodeIdx] = numDOF+numShared;
+        doublyLink(m_colIndices, m_rowIndices, numDOF-1, numShared);
+        ++numShared;
+    }
+
+#ifdef ESYS_MPI
+    if (m_mpiInfo->size > 1) {
+        // now send off shared DOF IDs so nodeId will become a global node
+        // labelling.
+        const dim_t numSend = offsetInSharedSend.back();
+        const dim_t numRecv = offsetInSharedRecv.back();
+        IndexVector recvBuffer(numRecv);
+        IndexVector sendBuffer(numSend);
+        std::vector<MPI_Request> reqs(2*neighbour.size());
+        std::vector<MPI_Status> stats(2*neighbour.size());
+
+        // prepare the send buffer
+#pragma omp parallel for
+        for (index_t i = 0; i < numSend; ++i) {
+            sendBuffer[i] = m_dofId[sendShared[i]];
+        }
+        for (index_t i = 0; i < neighbour.size(); i++) {
+            MPI_Irecv(&recvBuffer[offsetInSharedRecv[i]],
+                    offsetInSharedRecv[i+1] - offsetInSharedRecv[i],
+                    MPI_DIM_T, neighbour[i],
+                    m_mpiInfo->counter()+neighbour[i],
+                    m_mpiInfo->comm, &reqs[2*i]);
+            MPI_Issend(&sendBuffer[offsetInSharedSend[i]],
+                    offsetInSharedSend[i+1] - offsetInSharedSend[i],
+                    MPI_DIM_T, neighbour[i],
+                    m_mpiInfo->counter()+m_mpiInfo->rank, m_mpiInfo->comm,
+                    &reqs[2*i+1]);
+        }
+        m_mpiInfo->incCounter(m_mpiInfo->size);
+
+        // do something else here...
+
+        MPI_Waitall(2*neighbour.size(), &reqs[0], &stats[0]);
+
+        // now populate rest of node IDs
+#pragma omp parallel for
+        for (index_t i=0; i < numRecv; i++) {
+            const index_t nodeIdx = recvShared[i];
+            m_nodeId[nodeIdx] = recvBuffer[m_dofMap[nodeIdx]-numDOF];
+        }
+    }
+#endif // ESYS_MPI
+
+    // TODO: paso::SharedComponents should take vectors to avoid this
+    int* neighPtr = NULL;
+    index_t* sendPtr = NULL;
+    index_t* recvPtr = NULL;
+    if (neighbour.size() > 0) {
+        neighPtr = &neighbour[0];
+        sendPtr = &sendShared[0];
+        recvPtr = &recvShared[0];
+    }
+    // create Paso connector
+    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
+            numDOF, neighbour.size(), neighPtr, sendPtr,
+            &offsetInSharedSend[0], 1, 0, m_mpiInfo));
+    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
+            numDOF, neighbour.size(), neighPtr, recvPtr,
+            &offsetInSharedRecv[0], 1, 0, m_mpiInfo));
+    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+}
+
+void MultiRectangle::populateSampleIds()
+{
+    // label nodes and DOF first
+    populateDofMap();
+
+    m_elementId.assign(getNumElements(), -1);
 
     // populate face element counts
     //left
@@ -754,89 +794,24 @@ void MultiRectangle::populateSampleIds()
         m_faceCount[3]=0;
 
     const dim_t NFE = getNumFaceElements();
-    m_faceId.resize(NFE);
-
-    const index_t left = getFirstInDim(0);
-    const index_t bottom = getFirstInDim(1);
-    const dim_t nDOF0 = getNumDOFInAxis(0);
-    const dim_t nDOF1 = getNumDOFInAxis(1);
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
-
-#define globalNodeId(x,y) \
-    ((m_offset[0]+x)/nDOF0)*nDOF0*nDOF1+(m_offset[0]+x)%nDOF0 \
-    + ((m_offset[1]+y)/nDOF1)*nDOF0*nDOF1*m_NX[0]+((m_offset[1]+y)%nDOF1)*nDOF0
-
-    // set corner id's outside the parallel region
-    m_nodeId[0] = globalNodeId(0, 0);
-    m_nodeId[m_NN[0]-1] = globalNodeId(m_NN[0]-1, 0);
-    m_nodeId[m_NN[0]*(m_NN[1]-1)] = globalNodeId(0, m_NN[1]-1);
-    m_nodeId[m_NN[0]*m_NN[1]-1] = globalNodeId(m_NN[0]-1,m_NN[1]-1);
-#undef globalNodeId
+    m_faceId.resize(NFE);
 
 #pragma omp parallel
     {
-        // populate degrees of freedom and own nodes (identical id)
+        // populate element IDs
 #pragma omp for nowait
-        for (dim_t i=0; i<nDOF1; i++) {
-            for (dim_t j=0; j<nDOF0; j++) {
-                const index_t nodeIdx=j+left+(i+bottom)*m_NN[0];
-                const index_t dofIdx=j+i*nDOF0;
-                m_dofId[dofIdx] = m_nodeId[nodeIdx]
-                    = m_nodeDistribution[m_mpiInfo->rank]+dofIdx;
-            }
-        }
-
-        // populate the rest of the nodes (shared with other ranks)
-        if (m_faceCount[0]==0) { // left column
-#pragma omp for nowait
-            for (dim_t i=0; i<nDOF1; i++) {
-                const index_t nodeIdx=(i+bottom)*m_NN[0];
-                const index_t dofId=(i+1)*nDOF0-1;
-                m_nodeId[nodeIdx]
-                    = m_nodeDistribution[m_mpiInfo->rank-1]+dofId;
-            }
-        }
-        if (m_faceCount[1]==0) { // right column
-#pragma omp for nowait
-            for (dim_t i=0; i<nDOF1; i++) {
-                const index_t nodeIdx=(i+bottom+1)*m_NN[0]-1;
-                const index_t dofId=i*nDOF0;
-                m_nodeId[nodeIdx]
-                    = m_nodeDistribution[m_mpiInfo->rank+1]+dofId;
-            }
-        }
-        if (m_faceCount[2]==0) { // bottom row
-#pragma omp for nowait
-            for (dim_t i=0; i<nDOF0; i++) {
-                const index_t nodeIdx=i+left;
-                const index_t dofId=nDOF0*(nDOF1-1)+i;
-                m_nodeId[nodeIdx]
-                    = m_nodeDistribution[m_mpiInfo->rank-m_NX[0]]+dofId;
-            }
-        }
-        if (m_faceCount[3]==0) { // top row
-#pragma omp for nowait
-            for (dim_t i=0; i<nDOF0; i++) {
-                const index_t nodeIdx=m_NN[0]*(m_NN[1]-1)+i+left;
-                const index_t dofId=i;
-                m_nodeId[nodeIdx]
-                    = m_nodeDistribution[m_mpiInfo->rank+m_NX[0]]+dofId;
-            }
-        }
-
-        // populate element id's
-#pragma omp for nowait
-        for (dim_t i1=0; i1<NE1; i1++) {
-            for (dim_t i0=0; i0<NE0; i0++) {
+        for (index_t i1 = 0; i1 < NE1; i1++) {
+            for (index_t i0 = 0; i0 < NE0; i0++) {
                 m_elementId[i0+i1*NE0]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
             }
         }
 
         // face elements
 #pragma omp for
-        for (dim_t k=0; k<NFE; k++)
-            m_faceId[k]=k;
+        for (index_t k = 0; k < NFE; k++)
+            m_faceId[k] = k;
     } // end parallel section
 
     m_nodeTags.assign(getNumNodes(), 0);
@@ -850,11 +825,11 @@ void MultiRectangle::populateSampleIds()
     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
     m_faceOffset.assign(4, -1);
     m_faceTags.clear();
-    index_t offset=0;
+    index_t offset = 0;
     for (size_t i=0; i<4; i++) {
-        if (m_faceCount[i]>0) {
+        if (m_faceCount[i] > 0) {
             m_faceOffset[i]=offset;
-            offset+=m_faceCount[i];
+            offset += m_faceCount[i];
             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
         }
     }
@@ -864,37 +839,35 @@ void MultiRectangle::populateSampleIds()
     setTagMap("top", TOP);
     updateTagsInUse(FaceElements);
 
-    populateDofMap();
 }
 
 paso::SystemMatrixPattern_ptr MultiRectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const
 {
-    if (m_pattern.get())
-        return m_pattern;
-
-    // first call - create pattern, then return
-    const dim_t numDOF = getNumDOF();
-    const dim_t numShared = getNumNodes() - numDOF;
+    if (!m_pattern) {
+        // first call - create pattern, then return
+        const dim_t numDOF = getNumDOF();
+        const dim_t numShared = getNumNodes() - numDOF;
 #pragma omp parallel for
-    for (dim_t i = 0; i < numShared; i++) {
-        sort(m_rowIndices[i].begin(), m_rowIndices[i].end());
+        for (index_t i = 0; i < numShared; i++) {
+            sort(m_rowIndices[i].begin(), m_rowIndices[i].end());
+        }
+
+        // create main and couple blocks
+        paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+        paso::Pattern_ptr colPattern = createPasoPattern(m_colIndices, numShared);
+        paso::Pattern_ptr rowPattern = createPasoPattern(m_rowIndices, numDOF);
+
+        // allocate Paso distribution
+        paso::Distribution_ptr distribution(new paso::Distribution(
+                                    m_mpiInfo, m_nodeDistribution, 1, 0));
+
+        // finally create the system matrix pattern
+        m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+                distribution, distribution, mainPattern, colPattern, rowPattern,
+                m_connector, m_connector));
     }
-
-    // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
-    paso::Pattern_ptr colPattern = createPasoPattern(m_colIndices, numShared);
-    paso::Pattern_ptr rowPattern = createPasoPattern(m_rowIndices, numDOF);
-
-    // allocate paso distribution
-    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
-
-    // finally create the system matrix pattern
-    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-            distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector));
     return m_pattern;
 }
 

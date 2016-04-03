@@ -14,11 +14,10 @@
 *
 *****************************************************************************/
 
-#if !defined dudley_MeshAdapter_20040526_H
-#define dudley_MeshAdapter_20040526_H
+#ifndef __DUDLEY_MESHADAPTER_H__
+#define __DUDLEY_MESHADAPTER_H__
 #include "system_dep.h"
 
-#include <dudley/Assemble.h>
 #include <dudley/Dudley.h>
 #include <dudley/Mesh.h>
 
@@ -26,7 +25,9 @@
 #include <escript/FunctionSpace.h>
 #include <escript/FunctionSpaceFactory.h>
 
-#include <boost/python/dict.hpp>
+#ifdef USE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
 
 #include <map>
 #include <string>
@@ -34,13 +35,10 @@
 
 namespace dudley {
 
-struct null_deleter
-{
-  void operator()(void const *ptr) const
-  {
-  }
+enum SystemMatrixType {
+    SMT_PASO = 1<<8,
+    SMT_TRILINOS = 1<<10
 };
-
 
 /**
    \brief
@@ -54,22 +52,15 @@ struct null_deleter
 class DUDLEY_DLL_API MeshAdapter : public escript::AbstractContinuousDomain
 {
 public:
-
     //
     // Codes for function space types supported
     static const int DegreesOfFreedom;
-    static const int ReducedDegreesOfFreedom;
     static const int Nodes;
-    static const int ReducedNodes;
     static const int Elements;
     static const int ReducedElements;
     static const int FaceElements;
     static const int ReducedFaceElements;
     static const int Points;
-    static const int ContactElementsZero;
-    static const int ReducedContactElementsZero;
-    static const int ContactElementsOne;
-    static const int ReducedContactElementsOne;
 
     /**
      \brief
@@ -83,13 +74,10 @@ public:
      Throws:
      May throw an exception derived from EsysException
 
-     \param dudleyMesh Input - A pointer to the externally constructed 
-                               dudley mesh.The pointer passed to MeshAdapter
-                               is deleted using a call to 
-                               Dudley_Mesh_free in the MeshAdapter 
-                               destructor.
+     \param dudleyMesh Input - A pointer to the externally constructed
+                               dudley mesh.
     */
-    MeshAdapter(Dudley_Mesh* dudleyMesh=0);
+    MeshAdapter(Mesh* dudleyMesh=NULL);
 
     /**
      \brief
@@ -99,9 +87,7 @@ public:
 
     /**
      \brief
-     Destructor for MeshAdapter. As specified in the constructor
-     this calls Dudley_Mesh_free for the pointer given to the 
-     constructor.
+     Destructor for MeshAdapter.
     */
     ~MeshAdapter();
 
@@ -160,9 +146,9 @@ public:
 
     /**
      \brief
-     return the pointer to the underlying dudley mesh structure
+     return the pointer to the underlying dudley mesh class
     */
-    Dudley_Mesh* getDudley_Mesh() const;
+    Mesh* getMesh() const;
 
     /**
      \brief
@@ -170,14 +156,14 @@ public:
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
     */
-    int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+    int getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const;
 
     /**
      \brief
      Return the reference number of  the given sample number.
      \param functionSpaceType Input - The function space type.
     */
-    const int* borrowSampleReferenceIDs(int functionSpaceType) const;
+    const index_t* borrowSampleReferenceIDs(int functionSpaceType) const;
 
     /**
      \brief
@@ -294,9 +280,9 @@ public:
 
     /**
      \brief
-      Returns a status indicator of the domain. The status identifier should be unique over 
-      the live time if the object but may be updated if changes to the domain happen, e.g. 
-      modifications to its geometry. 
+      Returns a status indicator of the domain. The status identifier should be unique over
+      the live time if the object but may be updated if changes to the domain happen, e.g.
+      modifications to its geometry.
 
      This has to be implemented by the actual Domain adapter.
     */
@@ -306,14 +292,14 @@ public:
      \brief
      Return the number of data points summed across all MPI processes
     */
-    virtual int getNumDataPointsGlobal() const;
+    virtual dim_t getNumDataPointsGlobal() const;
 
     /**
      \brief
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
     */
-    virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
+    virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
     /**
      \brief
@@ -339,7 +325,7 @@ public:
 
     /**
      \brief
-     Returns true if name is a defined tage name. 
+     Returns true if name is a defined tage name.
      \param name Input - tag name to be checked.
     */
     virtual bool isValidTagName(const std::string& name) const;
@@ -381,7 +367,9 @@ public:
     /**
      \brief determines whether interpolation from source to target is possible.
   */
-  virtual bool probeInterpolationAcross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
+  virtual bool probeInterpolationAcross(int functionSpaceType_source,
+                                const escript::AbstractDomain& targetDomain,
+                                int functionSpaceType_target) const;
 
     /**
      \brief
@@ -416,7 +404,7 @@ public:
      return the identifier of the matrix type to be used for the global
      stiffness matrix when a particular solver, package, preconditioner,
      and symmetric matrix is used.
-     
+
      \param options a SolverBuddy instance with the desired options set
     */
     virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
@@ -425,17 +413,17 @@ public:
      \brief
      return the identifier of the transport problem type to be used when a particular solver, perconditioner, package
      and symmetric matrix is used.
-     \param solver 
+     \param solver
      \param preconditioner
      \param package
-     \param symmetry 
+     \param symmetry
     */
     virtual int getTransportTypeId(int solver, int preconditioner, int package,
                                    bool symmetry) const;
 
     /**
      \brief
-     returns true if data on this domain and a function space of type functionSpaceCode has to 
+     returns true if data on this domain and a function space of type functionSpaceCode has to
      considered as cell centered data.
     */
     virtual bool isCellOriented(int functionSpaceCode) const;
@@ -444,7 +432,7 @@ public:
 
     /**
      \brief
-     adds a PDE onto the stiffness matrix mat and a rhs 
+     adds a PDE onto the stiffness matrix mat and a rhs
     */
     virtual void addPDEToSystem(
                      escript::AbstractSystemMatrix& mat, escript::Data& rhs,
@@ -469,7 +457,7 @@ public:
 
     /**
      \brief
-     adds a PDE onto the stiffness matrix mat and a rhs 
+     adds a PDE onto the stiffness matrix mat and a rhs
     */
     virtual void addPDEToRHS(escript::Data& rhs, const escript::Data& X,
                              const escript::Data& Y, const escript::Data& y,
@@ -481,13 +469,16 @@ public:
      adds a PDE onto a transport problem
     */
     virtual void addPDEToTransportProblem(
-                     escript::AbstractTransportProblem& tp, escript::Data& source, 
-                     const escript::Data& M,
-                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
-                     const  escript::Data& X,const  escript::Data& Y,
+                     escript::AbstractTransportProblem& tp,
+                     escript::Data& source, const escript::Data& M,
+                     const escript::Data& A, const escript::Data& B,
+                     const escript::Data& C, const escript::Data& D,
+                     const  escript::Data& X,const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact,const escript::Data& y_contact,
-                     const escript::Data& d_dirac,const escript::Data& y_dirac) const;
+                     const escript::Data& d_contact,
+                     const escript::Data& y_contact,
+                     const escript::Data& d_dirac,
+                     const escript::Data& y_dirac) const;
 
     /**
      \brief
@@ -501,13 +492,12 @@ public:
                       int type) const;
 
     /**
-     \brief 
-      creates a TransportProblemAdapter 
+     \brief
+      creates a TransportProblemAdapter
     */
-    escript::ATP_ptr newTransportProblem(
-                      const int blocksize,
-                      const escript::FunctionSpace& functionspace,
-                      const int type) const;
+    escript::ATP_ptr newTransportProblem(const int blocksize,
+                                   const escript::FunctionSpace& functionspace,
+                                   int type) const;
 
     /**
      \brief returns locations in the FEM nodes
@@ -534,11 +524,13 @@ public:
      \brief assigns new tag newTag to all samples of functionspace with a positive
      value of mask for any its sample point.
     */
-    virtual void setTags(int functionSpaceType, int newTag, const escript::Data& mask) const;
+    virtual void setTags(int functionSpaceType, int newTag,
+                         const escript::Data& mask) const;
 
     /**
       \brief
-          return the number of tags in use and a pointer to an array with the number of tags in use
+       return the number of tags in use and a pointer to an array with the
+       number of tags in use
     */
     virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
 
@@ -557,22 +549,25 @@ public:
     bool supportsContactElements() const;
 
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;         
-  
+                                const escript::FunctionSpace& what, long seed,
+                                const boost::python::tuple& filter) const;
+
 private:
-    void extractArgsFromDict(const boost::python::dict& arg, int& numData,
-                             char**& names, escript::Data*& data,
-                             escript::Data**& dataPtr) const;
+#ifdef USE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
+
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+#endif
 
     //
     // pointer to the externally created dudley mesh
-    boost::shared_ptr<Dudley_Mesh> m_dudleyMesh;
- 
-    static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
+    boost::shared_ptr<Mesh> m_dudleyMesh;
 
+    static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 };
 
 } // end of namespace
 
-#endif
+#endif // __DUDLEY_MESHADAPTER_H__
 

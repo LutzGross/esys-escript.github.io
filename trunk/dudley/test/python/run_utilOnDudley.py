@@ -26,11 +26,10 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from test_util import Test_util as Test_util
-from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_util import Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 
 from esys.escript import *
 from esys.dudley import Rectangle,Brick,ReadMesh
-import sys
 import os
 
 if HAVE_SYMBOLS:
@@ -57,7 +56,7 @@ NE=4 # number elements, must be even
 
 class Test_UtilOnDudley(Test_util,Test_symfuncs):
    def setUp(self):
-       self.domain =Rectangle(NE,NE+1,1)
+       self.domain = Rectangle(NE,NE+1)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
        self.workdir=DUDLEY_WORKDIR
 
@@ -65,7 +64,7 @@ class Test_UtilOnDudley(Test_util,Test_symfuncs):
        del self.functionspace
        del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyTet2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet2D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
@@ -74,7 +73,7 @@ class Test_Util_SpatialFunctionsOnDudleyTet2DOrder1(Test_Util_SpatialFunctions_n
         del self.domain
 
 
-class Test_Util_SpatialFunctionsOnDudleyTet3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
@@ -82,19 +81,19 @@ class Test_Util_SpatialFunctionsOnDudleyTet3DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyRectOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyRect(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Rectangle(n0=NE,n1=NE,order=1)
+        self.domain = Rectangle(n0=NE,n1=NE)
     def tearDown(self):
         del self.order
         del self.domain
 
 
-class Test_Util_SpatialFunctionsOnDudleyBrickOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyBrick(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=1)
+        self.domain = Brick(n0=NE,n1=NE,n2=NE)
     def tearDown(self):
         del self.order
         del self.domain

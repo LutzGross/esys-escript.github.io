@@ -19,6 +19,7 @@
 
 #include "system_dep.h"
 #include "FunctionSpace.h"
+#include "Pointers.h"
 #include "SystemMatrixException.h"
 
 #include <boost/python/object.hpp>
@@ -27,13 +28,18 @@ namespace escript {
 
 //
 // Forward declaration
+class AbstractSystemMatrix;
 class Data;
+
+typedef POINTER_WRAPPER_CLASS(AbstractSystemMatrix) ASM_ptr;
+typedef POINTER_WRAPPER_CLASS(const AbstractSystemMatrix) const_ASM_ptr;
+
 
 /**
    \brief
    Base class for escript system matrices.
 */
-class ESCRIPT_DLL_API AbstractSystemMatrix
+class ESCRIPT_DLL_API AbstractSystemMatrix: public REFCOUNT_BASE_CLASS(AbstractSystemMatrix)
 {
 public:
 
@@ -53,6 +59,18 @@ public:
         Destructor.
     */
     virtual ~AbstractSystemMatrix() {}
+
+    /**
+        \brief Returns smart pointer which is managing this object.
+        If one does not exist yet it creates one.
+    */
+    ASM_ptr getPtr();
+
+    /**
+        \brief Returns smart pointer which is managing this object.
+        If one does not exist yet it creates one.
+    */
+    const_ASM_ptr getPtr() const; 
 
     /**
         \brief
@@ -165,8 +183,6 @@ private:
 
 ESCRIPT_DLL_API
 Data operator*(const AbstractSystemMatrix& left, const Data& right);
-
-typedef boost::shared_ptr<AbstractSystemMatrix> ASM_ptr;
 
 } // end of namespace
 

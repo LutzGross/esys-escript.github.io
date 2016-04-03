@@ -27,19 +27,19 @@
 #include "Finley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
-#include "paso/SystemMatrix.h"
+#include <escript/AbstractSystemMatrix.h>
 
 namespace finley {
 
 struct AssembleParameters {
     AssembleParameters(const NodeFile* nodes, const ElementFile* ef,
-                       paso::SystemMatrix_ptr sm, escript::Data& rhs,
+                       escript::ASM_ptr sm, escript::Data& rhs,
                        bool reducedOrder);
 
     /// element file these parameters apply to
     const ElementFile* elements;
     /// system matrix to be updated
-    paso::SystemMatrix_ptr S;
+    escript::ASM_ptr S;
     /// right-hand side to be updated
     escript::Data& F;
     /// total number of quadrature nodes = numQuadSub * numQuadSub
@@ -78,7 +78,7 @@ struct AssembleParameters {
 /// AssembleParameters structure and calls appropriate method for the actual
 /// work.
 void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
-                  paso::SystemMatrix_ptr S, escript::Data& F,
+                  escript::ASM_ptr S, escript::Data& F,
                   const escript::Data& A, const escript::Data& B,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y);
@@ -122,9 +122,9 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
 void Assemble_PDE_System_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y);
 
-void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr S, const int NN_Equa,
-        const index_t* Nodes_Equa, const int num_Equa, const int NN_Sol,
-        const index_t* Nodes_Sol, const int num_Sol, const double* array);
+void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
+                  const index_t* Nodes_Equa, int num_Equa, int NN_Sol,
+                  const index_t* Nodes_Sol, int num_Sol, const double* array);
 
 void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,

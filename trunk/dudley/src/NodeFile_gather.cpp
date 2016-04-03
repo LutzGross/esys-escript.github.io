@@ -14,170 +14,179 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
- *
- *   Dudley: Mesh: NodeFile
- *   gathers the NodeFile out from the NodeFile in using the entries
- *   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive)
- *   the node index[i]
- *
- ****************************************************************************/
-
 #include "NodeFile.h"
+
+using escript::DataTypes::real_t;
 
 namespace dudley {
 
-void Dudley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, index_t max_index,
-                                   index_t* Id_out, index_t* Id_in,
-                                   index_t* Tag_out, index_t* Tag_in,
-                                   index_t* globalDegreesOfFreedom_out, index_t* globalDegreesOfFreedom_in,
-                                   dim_t numDim, double* Coordinates_out, double* Coordinates_in)
+// helper function
+static void gatherEntries(dim_t n, const index_t* index,
+                          index_t min_index, index_t max_index,
+                          index_t* Id_out, const index_t* Id_in,
+                          int* Tag_out, const int* Tag_in,
+                          index_t* globalDegreesOfFreedom_out,
+                          const index_t* globalDegreesOfFreedom_in,
+                          int numDim, real_t* Coordinates_out,
+                          const real_t* Coordinates_in)
 {
-    dim_t i;
-    index_t k;
-    const index_t range = max_index - min_index;
-    const size_t numDim_size = (size_t) numDim * sizeof(double);
-#pragma omp parallel for private(i,k) schedule(static)
-    for (i = 0; i < n; i++)
-    {
-        k = index[i] - min_index;
-        if ((k >= 0) && (k < range))
-        {
+    const dim_t range = max_index - min_index;
+    const size_t numDim_size = numDim * sizeof(real_t);
+#pragma omp parallel for
+    for (index_t i = 0; i < n; i++) {
+        const index_t k = index[i] - min_index;
+        if (k >= 0 && k < range) {
             Id_out[i] = Id_in[k];
             Tag_out[i] = Tag_in[k];
             globalDegreesOfFreedom_out[i] = globalDegreesOfFreedom_in[k];
-            memcpy(&(Coordinates_out[INDEX2(0, i, numDim)]), &(Coordinates_in[INDEX2(0, k, numDim)]), numDim_size);
+            memcpy(&Coordinates_out[INDEX2(0, i, numDim)],
+                   &Coordinates_in[INDEX2(0, k, numDim)], numDim_size);
         }
     }
 }
 
-void Dudley_NodeFile_gather(index_t * index, Dudley_NodeFile * in, Dudley_NodeFile * out)
+// helper function
+static void scatterEntries(dim_t n, const index_t* index,
+                           index_t min_index, index_t max_index,
+                           index_t* Id_out, const index_t* Id_in,
+                           int* Tag_out, const int* Tag_in,
+                           index_t* globalDegreesOfFreedom_out,
+                           const index_t* globalDegreesOfFreedom_in,
+                           int numDim, real_t* Coordinates_out,
+                           const real_t* Coordinates_in)
 {
-    index_t min_id, max_id;
-    Dudley_NodeFile_setGlobalIdRange(&min_id, &max_id, in);
-    Dudley_NodeFile_gatherEntries(out->numNodes, index, min_id, max_id,
-                                  out->Id, in->Id,
-                                  out->Tag, in->Tag,
-                                  out->globalDegreesOfFreedom, in->globalDegreesOfFreedom,
-                                  out->numDim, out->Coordinates, in->Coordinates);
+    const dim_t range = max_index - min_index;
+    const size_t numDim_size = numDim * sizeof(real_t);
+
+#pragma omp parallel for
+    for (index_t i = 0; i < n; i++) {
+        const index_t k = index[i] - min_index;
+        if (k >= 0 && k < range) {
+            Id_out[k] = Id_in[i];
+            Tag_out[k] = Tag_in[i];
+            globalDegreesOfFreedom_out[k] = globalDegreesOfFreedom_in[i];
+            memcpy(&Coordinates_out[INDEX2(0, k, numDim)],
+                   &Coordinates_in[INDEX2(0, i, numDim)], numDim_size);
+        }
+    }
 }
 
-void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley_NodeFile * out)
+void NodeFile::gather(const index_t* index, const NodeFile* in)
 {
-    index_t min_id, max_id, undefined_node;
-    int buffer_rank, *distribution = NULL;
-    index_t *Id_buffer = NULL, *Tag_buffer = NULL, *globalDegreesOfFreedom_buffer = NULL;
-    double *Coordinates_buffer = NULL;
-    dim_t p, buffer_len, n;
-    char error_msg[100];
+    const std::pair<index_t,index_t> idRange(in->getGlobalIdRange());
+    gatherEntries(numNodes, index, idRange.first, idRange.second, Id, in->Id,
+             Tag, in->Tag, globalDegreesOfFreedom, in->globalDegreesOfFreedom,
+             numDim, Coordinates, in->Coordinates);
+}
+
+void NodeFile::gather_global(const index_t* index, const NodeFile* in)
+{
+    // get the global range of node IDs
+    const std::pair<index_t,index_t> idRange(in->getGlobalIdRange());
+    const index_t UNDEFINED = idRange.first - 1;
+    std::vector<index_t> distribution(in->MPIInfo->size + 1);
+
+    // distribute the range of node IDs
+    dim_t buffer_len = MPIInfo->setDistribution(idRange.first, idRange.second,
+                                                &distribution[0]);
+
+    // allocate buffers
+    index_t* Id_buffer = new index_t[buffer_len];
+    int* Tag_buffer = new int[buffer_len];
+    index_t* globalDegreesOfFreedom_buffer = new index_t[buffer_len];
+    real_t* Coordinates_buffer = new real_t[buffer_len * numDim];
+
+    // fill Id_buffer by the UNDEFINED marker to check if nodes are
+    // defined
+#pragma omp parallel for
+    for (index_t n = 0; n < buffer_len; n++)
+        Id_buffer[n] = UNDEFINED;
+
+    // fill the buffer by sending portions around in a circle
 #ifdef ESYS_MPI
-    int dest, source;
     MPI_Status status;
+    int dest = MPIInfo->mod_rank(MPIInfo->rank + 1);
+    int source = MPIInfo->mod_rank(MPIInfo->rank - 1);
 #endif
-
-    /* get the global range of node ids */
-    Dudley_NodeFile_setGlobalIdRange(&min_id, &max_id, in);
-    undefined_node = min_id - 1;
-
-    distribution = new index_t[in->MPIInfo->size + 1];
-
-    /* distribute the range of node ids */
-    buffer_len = in->MPIInfo->setDistribution(min_id, max_id, distribution);
-    /* allocate buffers */
-    Id_buffer = new  index_t[buffer_len];
-    Tag_buffer = new  index_t[buffer_len];
-    globalDegreesOfFreedom_buffer = new  index_t[buffer_len];
-    Coordinates_buffer = new  double[buffer_len * out->numDim];
-    /* fill Id_buffer by the undefined_node marker to check if nodes are defined */
-#pragma omp parallel for private(n) schedule(static)
-    for (n = 0; n < buffer_len; n++)
-        Id_buffer[n] = undefined_node;
-
-    /* fill the buffer by sending portions around in a circle */
+    int buffer_rank = MPIInfo->rank;
+    for (int p = 0; p < MPIInfo->size; ++p) {
 #ifdef ESYS_MPI
-    dest = in->MPIInfo->mod_rank(in->MPIInfo->rank + 1);
-    source = in->MPIInfo->mod_rank(in->MPIInfo->rank - 1);
-#endif
-    buffer_rank = in->MPIInfo->rank;
-    for (p = 0; p < in->MPIInfo->size; ++p)
-    {
-        if (p > 0)
-        {               /* the initial send can be skipped */
-#ifdef ESYS_MPI
-            MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_INT,
-                                 dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
-                                 in->MPIInfo->comm, &status);
-            MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT,
-                                 dest, in->MPIInfo->counter() + 1, source,
-                                 in->MPIInfo->counter() + 1, in->MPIInfo->comm, &status);
-            MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len, MPI_INT, dest,
-                                 in->MPIInfo->counter() + 2, source, in->MPIInfo->counter() + 2,
-                                 in->MPIInfo->comm, &status);
-            MPI_Sendrecv_replace(Coordinates_buffer, buffer_len * out->numDim, MPI_DOUBLE, dest,
-                                 in->MPIInfo->counter() + 3, source, in->MPIInfo->counter() + 3,
-                                 in->MPIInfo->comm, &status);
-            in->MPIInfo->incCounter(4);
-#endif
+        if (p > 0) { // the initial send can be skipped
+            MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_DIM_T, dest,
+                        MPIInfo->counter(), source, MPIInfo->counter(),
+                        MPIInfo->comm, &status);
+            MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT, dest,
+                        MPIInfo->counter() + 1, source,
+                        MPIInfo->counter() + 1, MPIInfo->comm, &status);
+            MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len,
+                        MPI_DIM_T, dest, MPIInfo->counter() + 2, source,
+                        MPIInfo->counter() + 2, MPIInfo->comm, &status);
+            MPI_Sendrecv_replace(Coordinates_buffer, buffer_len * numDim,
+                        MPI_DOUBLE, dest, MPIInfo->counter() + 3, source,
+                        MPIInfo->counter() + 3, MPIInfo->comm, &status);
+            MPIInfo->incCounter(4);
         }
-        buffer_rank = in->MPIInfo->mod_rank(buffer_rank - 1);
-        Dudley_NodeFile_scatterEntries(in->numNodes, in->Id,
-                                       distribution[buffer_rank], distribution[buffer_rank + 1],
-                                       Id_buffer, in->Id,
-                                       Tag_buffer, in->Tag,
-                                       globalDegreesOfFreedom_buffer, in->globalDegreesOfFreedom,
-                                       out->numDim, Coordinates_buffer, in->Coordinates);
+#endif
+        buffer_rank = MPIInfo->mod_rank(buffer_rank - 1);
+        scatterEntries(in->numNodes, in->Id, distribution[buffer_rank],
+                       distribution[buffer_rank + 1], Id_buffer, in->Id,
+                       Tag_buffer, in->Tag, globalDegreesOfFreedom_buffer,
+                       in->globalDegreesOfFreedom, numDim, Coordinates_buffer,
+                       in->Coordinates);
     }
-    /* now entries are collected from the buffer again by sending the entries around in a circle */
+    // now entries are collected from the buffer again by sending the entries
+    // around in a circle
 #ifdef ESYS_MPI
-    dest = in->MPIInfo->mod_rank(in->MPIInfo->rank + 1);
-    source = in->MPIInfo->mod_rank(in->MPIInfo->rank - 1);
+    dest = MPIInfo->mod_rank(MPIInfo->rank + 1);
+    source = MPIInfo->mod_rank(MPIInfo->rank - 1);
 #endif
-    buffer_rank = in->MPIInfo->rank;
-    for (p = 0; p < in->MPIInfo->size; ++p)
-    {
-        Dudley_NodeFile_gatherEntries(out->numNodes, index,
-                                      distribution[buffer_rank], distribution[buffer_rank + 1],
-                                      out->Id, Id_buffer,
-                                      out->Tag, Tag_buffer,
-                                      out->globalDegreesOfFreedom, globalDegreesOfFreedom_buffer,
-                                      out->numDim, out->Coordinates, Coordinates_buffer);
-        if (p < in->MPIInfo->size - 1)
-        {               /* the last send can be skipped */
+    buffer_rank = MPIInfo->rank;
+    for (int p = 0; p < MPIInfo->size; ++p) {
+        gatherEntries(numNodes, index, distribution[buffer_rank],
+                      distribution[buffer_rank + 1], Id, Id_buffer,
+                      Tag, Tag_buffer, globalDegreesOfFreedom,
+                      globalDegreesOfFreedom_buffer, numDim,
+                      Coordinates, Coordinates_buffer);
 #ifdef ESYS_MPI
-            MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_INT,
-                                 dest, in->MPIInfo->counter(), source, in->MPIInfo->counter(),
-                                 in->MPIInfo->comm, &status);
-            MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT,
-                                 dest, in->MPIInfo->counter() + 1, source,
-                                 in->MPIInfo->counter() + 1, in->MPIInfo->comm, &status);
-            MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len, MPI_INT, dest,
-                                 in->MPIInfo->counter() + 2, source, in->MPIInfo->counter() + 2,
-                                 in->MPIInfo->comm, &status);
-            MPI_Sendrecv_replace(Coordinates_buffer, buffer_len * out->numDim, MPI_DOUBLE, dest,
-                                 in->MPIInfo->counter() + 3, source, in->MPIInfo->counter() + 3,
-                                 in->MPIInfo->comm, &status);
-            in->MPIInfo->incCounter(4);
+        if (p < MPIInfo->size - 1) { // the last send can be skipped
+            MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_DIM_T, dest,
+                              MPIInfo->counter(), source,
+                              MPIInfo->counter(), MPIInfo->comm, &status);
+            MPI_Sendrecv_replace(Tag_buffer, buffer_len, MPI_INT, dest,
+                              MPIInfo->counter() + 1, source,
+                              MPIInfo->counter() + 1, MPIInfo->comm, &status);
+            MPI_Sendrecv_replace(globalDegreesOfFreedom_buffer, buffer_len,
+                              MPI_DIM_T, dest, MPIInfo->counter() + 2, source,
+                              MPIInfo->counter() + 2, MPIInfo->comm, &status);
+            MPI_Sendrecv_replace(Coordinates_buffer, buffer_len * numDim,
+                              MPI_DOUBLE, dest, MPIInfo->counter() + 3, source,
+                              MPIInfo->counter() + 3, MPIInfo->comm, &status);
+            MPIInfo->incCounter(4);
+        }
 #endif
-        }
-        buffer_rank = in->MPIInfo->mod_rank(buffer_rank - 1);
-    }
-    /* check if all nodes are set: */
-#pragma omp parallel for private(n) schedule(static)
-    for (n = 0; n < out->numNodes; ++n)
-    {
-        if (out->Id[n] == undefined_node)
-        {
-            sprintf(error_msg,
-                    "Dudley_NodeFile_gather_global: Node id %d at position %d is referenced but is not defined.",
-                    out->Id[n], n);
-            throw DudleyException(error_msg);
-        }
+        buffer_rank = MPIInfo->mod_rank(buffer_rank - 1);
     }
     delete[] Id_buffer;
     delete[] Tag_buffer;
     delete[] globalDegreesOfFreedom_buffer;
     delete[] Coordinates_buffer;
-    delete[] distribution;
+#if DOASSERT
+    // check if all nodes are set
+    index_t err = -1;
+#pragma omp parallel for
+    for (index_t n = 0; n < numNodes; ++n) {
+        if (Id[n] == UNDEFINED) {
+#pragma omp critical
+            err = n;
+        }
+    }
+    if (err >= 0) {
+        std::stringstream ss;
+        ss << "NodeFile::gather_global: Node id " << Id[err]
+            << " at position " << err << " is referenced but not defined.";
+        throw escript::AssertException(ss.str());
+    }
+#endif // DOASSERT
 }
 
 } // namespace dudley

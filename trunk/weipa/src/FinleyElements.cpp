@@ -154,7 +154,7 @@ FinleyElements::FinleyElements(const FinleyElements& e)
 //
 //
 //
-bool FinleyElements::initFromDudley(const dudley::Dudley_ElementFile* dudleyFile)
+bool FinleyElements::initFromDudley(const dudley::ElementFile* dudleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numElements = dudleyFile->numElements;
@@ -796,7 +796,7 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
 //
 //
 #ifdef USE_DUDLEY
-FinleyElementInfo FinleyElements::getDudleyTypeInfo(Dudley_ElementTypeId typeId)
+FinleyElementInfo FinleyElements::getDudleyTypeInfo(dudley::ElementTypeId typeId)
 {
     FinleyElementInfo ret;
     ret.multiCellIndices = NULL;
@@ -805,28 +805,28 @@ FinleyElementInfo FinleyElements::getDudleyTypeInfo(Dudley_ElementTypeId typeId)
     ret.quadDim = 0;
 
     switch (typeId) {
-        case Dudley_Line2Face://untested
-        case Dudley_Point1://untested
+        case dudley::Dudley_Line2Face://untested
+        case dudley::Dudley_Point1://untested
             cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
             ret.elementSize = 1;
             ret.elementType = ZONETYPE_POLYGON;
             break;
 
-        case Dudley_Tri3Face://untested
+        case dudley::Dudley_Tri3Face://untested
             cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
-        case Dudley_Line2:
+        case dudley::Dudley_Line2:
             ret.elementSize = ret.reducedElementSize = 2;
             ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
             break;
 
-        case Dudley_Tet4Face://untested
+        case dudley::Dudley_Tet4Face://untested
             cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
-        case Dudley_Tri3:
+        case dudley::Dudley_Tri3:
             ret.elementSize = ret.reducedElementSize = 3;
             ret.elementType = ret.reducedElementType = ZONETYPE_TRIANGLE;
             break;
 
-        case Dudley_Tet4:
+        case dudley::Dudley_Tet4:
             ret.elementSize = ret.reducedElementSize = 4;
             ret.elementType = ret.reducedElementType = ZONETYPE_TET;
             break;

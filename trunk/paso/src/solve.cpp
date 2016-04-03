@@ -52,7 +52,8 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
     switch (package) {
         case PASO_PASO:
             res = Solver(boost::const_pointer_cast<SystemMatrix>(
-                        shared_from_this()), out, in, options, &pp);
+                    boost::dynamic_pointer_cast<const SystemMatrix>(getPtr())),
+                    out, in, options, &pp);
             solver_package = PASO_PASO;
         break;
 

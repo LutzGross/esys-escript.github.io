@@ -14,17 +14,16 @@
 #
 ##############################################################################
 
-
 Import('*')
 local_env = env.Clone()
 
 if local_env['cppunit']:
     # get the test source file names
-    sources = Glob('*.cpp')+Glob('*.c')
-    testname='dudley_UnitTest'
+    sources = Glob('*.cpp')
+    testname = 'dudley_UnitTest'
 
     # build the executable
-    local_env.Prepend(LIBS=['dudley', 'paso', 'escript']+env['cppunit_libs'])
+    local_env.PrependUnique(LIBS=env['dudley_libs']+env['cppunit_libs'])
     program = local_env.Program(testname, sources)
 
     # run the tests - but only if test_targets are stale
@@ -40,5 +39,5 @@ if local_env['cppunit']:
     TestGroups.append(tgroup)
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/dudley/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript('python/SConscript', duplicate=0)
 

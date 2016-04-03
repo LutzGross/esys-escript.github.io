@@ -39,8 +39,7 @@
 
 namespace dudley {
 
-void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFile* elements,
-                            escript::ASM_ptr mat, escript::Data& F,
+void Assemble_PDE_Single_3D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y)
@@ -53,9 +52,9 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
     bool expandedX = X.actsExpanded();
     bool expandedY = Y.actsExpanded();
     double* F_p = NULL;
-    if (!F.isEmpty()) {
-        F.requireWrite();
-        F_p = F.getSampleDataRW(0);
+    if (!p.F.isEmpty()) {
+        p.F.requireWrite();
+        F_p = p.F.getSampleDataRW(0);
     }
     const double* S = p.shapeFns;
     const int len_EM_S = p.numShapes * p.numShapes;
@@ -67,13 +66,13 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
         std::vector<double> EM_F(len_EM_F);
         std::vector<index_t> row_index(len_EM_F);
 
-        for (int color = elements->minColor; color <= elements->maxColor; color++) {
+        for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for (index_t e = 0; e < elements->numElements; e++) {
-                if (elements->Color[e] == color) {
-                    const double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-                    const double* DSDX = &p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)];
+            for (index_t e = 0; e < p.elements->numElements; e++) {
+                if (p.elements->Color[e] == color) {
+                    const double vol = p.jac->absD[e] * p.jac->quadweight;
+                    const double* DSDX = &p.jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)];
                     std::fill(EM_S.begin(), EM_S.end(), 0);
                     std::fill(EM_F.begin(), EM_F.end(), 0);
                     bool add_EM_F = false;
@@ -121,7 +120,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                                    A_q[INDEX3(2, 2, q, DIM, DIM)] *
                                                    DSDX[INDEX3(r, 2, q, p.numShapes, DIM)]);
                                     }
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += f;
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] += f;
                                 }
                             }
                         } else {
@@ -153,7 +152,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                         f21 += f2 * DSDX[INDEX3(r, 1, q, p.numShapes, DIM)];
                                         f22 += f2 * DSDX[INDEX3(r, 2, q, p.numShapes, DIM)];
                                     }
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] +=
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] +=
                                         f00 * A_p[INDEX2(0, 0, DIM)] + f01 * A_p[INDEX2(0, 1, DIM)] +
                                         f02 * A_p[INDEX2(0, 2, DIM)] + f10 * A_p[INDEX2(1, 0, DIM)] +
                                         f11 * A_p[INDEX2(1, 1, DIM)] + f12 * A_p[INDEX2(1, 2, DIM)] +
@@ -182,7 +181,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                              B_q[INDEX2(1, q, DIM)] +
                                              DSDX[INDEX3(s, 2, q, p.numShapes, DIM)] * B_q[INDEX2(2, q, DIM)]);
                                     }
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += f;
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] += f;
                                 }
                             }
                         } else {
@@ -197,7 +196,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                         f1 += f * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
                                         f2 += f * DSDX[INDEX3(s, 2, q, p.numShapes, DIM)];
                                     }
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] +=
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] +=
                                         f0 * B_p[0] + f1 * B_p[1] + f2 * B_p[2];
                                 }
                             }
@@ -222,7 +221,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                              DSDX[INDEX3(r, 1, q, p.numShapes, DIM)] +
                                              C_q[INDEX2(2, q, DIM)] * DSDX[INDEX3(r, 2, q, p.numShapes, DIM)]);
                                     }
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += f;
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] += f;
                                 }
                             }
                         } else {
@@ -237,7 +236,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                         f1 += f * DSDX[INDEX3(r, 1, q, p.numShapes, DIM)];
                                         f2 += f * DSDX[INDEX3(r, 2, q, p.numShapes, DIM)];
                                     }
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] +=
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] +=
                                         f0 * C_p[0] + f1 * C_p[1] + f2 * C_p[2];
                                 }
                             }
@@ -258,7 +257,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                         f +=
                                             vol * S[INDEX2(s, q, p.numShapes)] * D_q[q] *
                                             S[INDEX2(r, q, p.numShapes)];
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += f;
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] += f;
                                 }
                             }
                         } else {
@@ -267,7 +266,7 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                                     double f = 0;
                                     for (int q = 0; q < p.numQuad; q++)
                                         f += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(r, q, p.numShapes)];
-                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += f * D_p[0];
+                                    EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numEqu, p.numShapes)] += f * D_p[0];
                                 }
                             }
                         }
@@ -332,14 +331,14 @@ void Assemble_PDE_Single_3D(const Assemble_Parameters& p, const Dudley_ElementFi
                     // add the element matrices onto the matrix and right
                     // hand side
                     for (int q = 0; q < p.numShapes; q++)
-                        row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+                        row_index[q] = p.DOF[p.elements->Nodes[INDEX2(q, e, p.NN)]];
 
                     if (add_EM_F)
-                        Dudley_Util_AddScatter(p.numShapes, &row_index[0], p.numEqu, &EM_F[0], F_p, p.row_DOF_UpperBound);
+                        util::addScatter(p.numShapes, &row_index[0], p.numEqu,
+                                         &EM_F[0], F_p, p.DOF_UpperBound);
                     if (add_EM_S)
-                        Assemble_addToSystemMatrix(mat, p.numShapes,
-                                &row_index[0], p.numEqu, p.numShapes,
-                                &row_index[0], p.numComp, &EM_S[0]);
+                        Assemble_addToSystemMatrix(p.S, row_index, p.numEqu,
+                                                   EM_S);
 
                 } // end color check
             } // end element loop

@@ -14,19 +14,13 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assemblage routines: calculates the minimum distance between two vertices
-  of elements and assigns the value to each quadrature point in out
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* out)
+void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
+                      escript::Data& out)
 {
     if (!nodes || !elements)
         return;
@@ -36,35 +30,30 @@ void Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escr
     // now we look up what type of elements we need based on the function space
     // of out. If it is DUDLEY_REDUCED_ELEMENTS or
     // DUDLEY_REDUCED_FACE_ELEMENTS then we have single quad point
-    int numQuad;
-    if (Assemble_reducedIntegrationOrder(out)) {
-        numQuad = 1;
-    } else {
-        numQuad = elements->numDim + 1;
-    }
+    int numQuad = (hasReducedIntegrationOrder(out) ? 1 : elements->numNodes);
     const int NN = elements->numNodes;
     const int NS = elements->numDim + 1;
     const int NVertices = elements->numDim + 1;
 
     // check the dimensions of out
-    if (!out->numSamplesEqual(numQuad, elements->numElements)) {
+    if (!out.numSamplesEqual(numQuad, elements->numElements)) {
         throw DudleyException("Assemble_getSize: illegal number of samples of element size Data object");
-    } else if (!out->isDataPointShapeEqual(0, &numDim)) {
+    } else if (!out.isDataPointShapeEqual(0, &numDim)) {
         throw DudleyException("Assemble_getSize: illegal data point shape of element size Data object");
-    } else if (!out->actsExpanded()) {
+    } else if (!out.actsExpanded()) {
         throw DudleyException("Assemble_getSize: expanded Data object is expected for element size.");
     }
 
     // now we can start
-    out->requireWrite();
+    out.requireWrite();
 #pragma omp parallel
     {
         std::vector<double> local_X(NN * numDim);
 #pragma omp for
         for (index_t e = 0; e < elements->numElements; e++) {
             // gather local coordinates of nodes into local_X(numDim,NN)
-            Dudley_Util_Gather_double(NS, &elements->Nodes[INDEX2(0, e, NN)],
-                                      numDim, nodes->Coordinates, &local_X[0]);
+            util::gather(NS, &elements->Nodes[INDEX2(0, e, NN)], numDim,
+                         nodes->Coordinates, &local_X[0]);
             // calculate minimal differences
             double max_diff = 0;
             for (int n0 = 0; n0 < NVertices; n0++) {
@@ -80,7 +69,7 @@ void Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escr
             }
             max_diff = sqrt(max_diff);
             // set all values to max_diff
-            double* out_array = out->getSampleDataRW(e);
+            double* out_array = out.getSampleDataRW(e);
             for (int q = 0; q < numQuad; q++)
                 out_array[q] = max_diff;
         }

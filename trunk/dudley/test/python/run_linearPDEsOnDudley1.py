@@ -39,38 +39,29 @@ import os
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE
-from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
-                            Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
-from test_pdetools import Test_pdetools, Test_pdetools_noLumping
+from test_linearPDEs import Test_LinearPDE, Test_TransportPDE
+from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
+from test_pdetools import Test_pdetools
 from esys.escript import *
-from esys.dudley import Rectangle,Brick, ReadMesh
+from esys.dudley import Rectangle, Brick
 import sys
-
-
-try:
-     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
-except KeyError:
-     DUDLEY_TEST_DATA='.'
-
-DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 NE=10 # number of element in each spatial direction (must be even)
 
-class Test_LinearPDEOnDudleyRectOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyRect(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,1)
+        self.domain = Rectangle(NE,NE)
         self.order = 1
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnDudleyBrickOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyBrick(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Brick(NE,NE,NE,1)
+        self.domain = Brick(NE,NE,NE)
         self.order = 1
    def tearDown(self):
         del self.domain

@@ -14,88 +14,76 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-
-/* Dudley: Mesh: this will redistribute the Nodes and Elements including overlap */
-/* according to the dof_distribution. It will create an element coloring but will not create any mappings. */
-
-/****************************************************************************/
-
 #include "Mesh.h"
 
 namespace dudley {
 
-void Dudley_Mesh_distributeByRankOfDOF(Dudley_Mesh* self, index_t* dof_distribution)
+/// redistributes the Nodes and Elements including overlap
+/// according to the DOF distribution. It will create an element colouring
+/// but will not create any mappings.
+void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dofDistribution)
 {
-    if (self == NULL)
-        return;
+    int* mpiRankOfDOF = new int[Nodes->getNumNodes()];
+    Nodes->assignMPIRankToDOFs(mpiRankOfDOF, dofDistribution);
 
-    index_t min_dof_id, max_dof_id, *tmp_node_localDOF_map = NULL, *tmp_node_localDOF_mask = NULL;
-    index_t k;
-    dim_t len, n, numDOFs;
+    // first, the elements are redistributed according to mpiRankOfDOF
+    // at the input the Node tables refer to a the local labeling of the nodes
+    // while at the output they refer to the global labeling which is rectified
+    // in the next step
+    Elements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
+    FaceElements->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
+    Points->distributeByRankOfDOF(mpiRankOfDOF, Nodes->Id);
 
-    int* mpiRankOfDOF = new int[self->Nodes->numNodes];
+    // this will replace the node file!
+    resolveNodeIds();
 
-    Dudley_NodeFile_assignMPIRankToDOFs(self->Nodes, mpiRankOfDOF, dof_distribution);
+    // create a local labeling of the DOFs
+    const std::pair<index_t,index_t> dofRange(Nodes->getDOFRange());
+    const dim_t len = dofRange.second - dofRange.first + 1;
+    // local mask for used nodes
+    index_t* localDOF_mask = new index_t[len];
+    index_t* localDOF_map = new index_t[Nodes->getNumNodes()];
 
-    /* first the elements are redistributed according to mpiRankOfDOF */
-    /* at the input the Node tables refering to a the local labeling of the nodes */
-    /* while at the output they refer to the global labeling which is rectified in the next step */
-    Dudley_ElementFile_distributeByRankOfDOF(self->Elements, mpiRankOfDOF, self->Nodes->Id);
-    Dudley_ElementFile_distributeByRankOfDOF(self->FaceElements, mpiRankOfDOF, self->Nodes->Id);
-    Dudley_ElementFile_distributeByRankOfDOF(self->Points, mpiRankOfDOF, self->Nodes->Id);
+#pragma omp parallel for
+    for (index_t n = 0; n < len; n++)
+        localDOF_mask[n] = -1;
 
-    Dudley_Mesh_resolveNodeIds(self);
+#pragma omp parallel for
+    for (index_t n = 0; n < Nodes->getNumNodes(); n++)
+        localDOF_map[n] = -1;
 
-    /* create a local labeling of the DOFs */
-    Dudley_NodeFile_setDOFRange(&min_dof_id, &max_dof_id, self->Nodes);
-    len = max_dof_id - min_dof_id + 1;
-    tmp_node_localDOF_mask = new  index_t[len];     /* local mask for used nodes */
-    tmp_node_localDOF_map = new  index_t[self->Nodes->numNodes];
-
-#pragma omp parallel for private(n) schedule(static)
-    for (n = 0; n < len; n++)
-        tmp_node_localDOF_mask[n] = -1;
-
-#pragma omp parallel for private (n) schedule(static)
-    for (n = 0; n < self->Nodes->numNodes; n++)
-        tmp_node_localDOF_map[n] = -1;
-
-#pragma omp parallel for private(n) schedule(static)
-    for (n = 0; n < self->Nodes->numNodes; n++)
-    {
+#pragma omp parallel for
+    for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
 #ifdef BOUNDS_CHECK
-        if ((self->Nodes->globalDegreesOfFreedom[n] - min_dof_id) >= len
-            || (self->Nodes->globalDegreesOfFreedom[n] - min_dof_id) < 0)
-        {
-            printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__);
+        if ((Nodes->globalDegreesOfFreedom[n] - dofRange.first) >= len
+            || (Nodes->globalDegreesOfFreedom[n] - dofRange.first) < 0) {
+            printf("BOUNDS_CHECK %s:%d, n=%d, gDOF[n]=%d, min_id=%d, len=%d\n",
+                   __FILE__, __LINE__, n, Nodes->globalDegreesOfFreedom[n],
+                   dofRange.first, len);
             exit(1);
         }
 #endif
-        tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n] - min_dof_id] = n;
+        localDOF_mask[Nodes->globalDegreesOfFreedom[n] - dofRange.first] = n;
     }
 
-    numDOFs = 0;
-    for (n = 0; n < len; n++)
-    {
-        k = tmp_node_localDOF_mask[n];
-        if (k >= 0)
-        {
-            tmp_node_localDOF_mask[n] = numDOFs;
+    dim_t numDOFs = 0;
+    for (index_t n = 0; n < len; n++) {
+        const index_t k = localDOF_mask[n];
+        if (k >= 0) {
+            localDOF_mask[n] = numDOFs;
             numDOFs++;
         }
     }
-#pragma omp parallel for private (n,k)
-    for (n = 0; n < self->Nodes->numNodes; n++)
-    {
-        k = tmp_node_localDOF_mask[self->Nodes->globalDegreesOfFreedom[n] - min_dof_id];
-        tmp_node_localDOF_map[n] = k;
+#pragma omp parallel for
+    for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
+        localDOF_map[n] = localDOF_mask[
+                            Nodes->globalDegreesOfFreedom[n] - dofRange.first];
     }
-    /* create element coloring */
-    Dudley_Mesh_createColoring(self, tmp_node_localDOF_map);
+    // create element coloring
+    createColoring(localDOF_map);
 
-    delete[] tmp_node_localDOF_mask;
-    delete[] tmp_node_localDOF_map;
+    delete[] localDOF_mask;
+    delete[] localDOF_map;
     delete[] mpiRankOfDOF;
 }
 

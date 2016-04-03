@@ -28,6 +28,10 @@
 
 #include <paso/SystemMatrix.h>
 
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#endif
+
 #include <boost/python/list.hpp>
 #include <boost/python/tuple.hpp>
 
@@ -40,9 +44,10 @@ enum assembler_t {
 };
 
 enum SystemMatrixType {
-    SMT_PASO = 1024,
-    SMT_CUSP = 2048,
-    SMT_SYMMETRIC = 4096
+    SMT_PASO = 1<<8,
+    SMT_CUSP = 1<<9,
+    SMT_TRILINOS = 1<<10,
+    SMT_SYMMETRIC = 1<<15
 };
 
 /**
@@ -761,6 +766,13 @@ protected:
     paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
                                         dim_t N) const;
 
+#ifdef USE_TRILINOS
+    /// creates and returns a Trilinos CRS graph suitable to build a sparse
+    /// matrix
+    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
+            const IndexVector& myRows, const IndexVector& myColumns) const;
+#endif
+
     void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                            const IndexVector& nodes, dim_t numEq,
                            const DoubleVector& array) const;
@@ -793,6 +805,14 @@ protected:
 
     /// copies the integrals of the function defined by 'arg' into 'integrals'
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
+
+#ifdef USE_TRILINOS
+    /// returns the Trilinos matrix graph
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
+#endif
+
+    /// returns occupied matrix column indices for all matrix rows
+    virtual std::vector<IndexVector> getConnections(bool includeShared) const = 0;
 
     /// returns the Paso system matrix pattern
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
