@@ -53,7 +53,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     const dim_t mpi_size = mpi_info->size;
     index_t num_main_cols = mainBlock->numCols;
     double* cols = new double[num_main_cols];
-    const index_t offset = col_distribution->first_component[rank];
+    const index_t offset = col_distribution->getFirstComponent();
 #pragma omp parallel for
     for (index_t i=0; i<num_main_cols; ++i)
         cols[i] = offset + i;

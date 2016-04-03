@@ -14,213 +14,164 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
- Dudley: ElementFile: this will redistribute the Elements including overlap by
-
-*****************************************************************************/
-
 #include "ElementFile.h"
 
 namespace dudley {
 
-void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, int* mpiRankOfDOF, index_t* Id)
+void ElementFile::distributeByRankOfDOF(const int* mpiRankOfDOF,
+                                        const index_t* nodesId)
 {
-    if (self == NULL)
-        return;
-    dim_t e, i;
-    int myRank = self->MPIInfo->rank;
-    dim_t NN = self->numNodes;
-    dim_t size = self->MPIInfo->size;
-    if (size > 1)
-    {
+    const int size = MPIInfo->size;
+    if (size > 1) {
 #ifdef ESYS_MPI
-        int p, *Owner_buffer = NULL, loc_proc_mask_max;
-        dim_t j, *send_count = NULL, *recv_count = NULL, *newOwner = NULL;
-        dim_t *loc_proc_mask = NULL, *loc_send_count = NULL;
-        dim_t newNumElements, numElementsInBuffer;
-        index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
-        bool *proc_mask = NULL;
-        size_t size_size = size * sizeof(dim_t);
-        dim_t numRequests = 0;
-        MPI_Request *mpi_requests = NULL;
-        MPI_Status *mpi_stati = NULL;
-        mpi_requests = new  MPI_Request[8 * size];
-        mpi_stati = new  MPI_Status[8 * size];
+        const int myRank = MPIInfo->rank;
+        int numRequests = 0;
+        std::vector<MPI_Request> mpi_requests(8 * size);
+        std::vector<MPI_Status> mpi_stati(8 * size);
+
         // count the number elements that have to be sent to each processor
         // (send_count) and define a new element owner as the processor with
         // the largest number of DOFs and the smallest id
-        send_count = new dim_t[size];
-        recv_count = new dim_t[size];
-        newOwner = new int[self->numElements];
-        memset(send_count, 0, size_size);
-#pragma omp parallel private(p,loc_proc_mask,loc_send_count)
+        std::vector<dim_t> send_count(size);
+        std::vector<dim_t> recv_count(size);
+        int* newOwner = new int[numElements];
+#pragma omp parallel
         {
-            loc_proc_mask = new dim_t[size];
-            loc_send_count = new dim_t[size];
-            memset(loc_send_count, 0, size_size);
-#pragma omp for private(e,j,loc_proc_mask_max) schedule(static)
-            for (e = 0; e < self->numElements; e++)
-            {
-                if (self->Owner[e] == myRank)
-                {
+            std::vector<dim_t> loc_proc_mask(size);
+            std::vector<dim_t> loc_send_count(size);
+#pragma omp for
+            for (index_t e = 0; e < numElements; e++) {
+                if (Owner[e] == myRank) {
                     newOwner[e] = myRank;
-                    memset(loc_proc_mask, 0, size_size);
-                    for (j = 0; j < NN; j++)
-                    {
-                        p = mpiRankOfDOF[self->Nodes[INDEX2(j, e, NN)]];
+                    loc_proc_mask.assign(size, 0);
+                    for (int j = 0; j < numNodes; j++) {
+                        const int p = mpiRankOfDOF[Nodes[INDEX2(j, e, numNodes)]];
                         loc_proc_mask[p]++;
                     }
-                    loc_proc_mask_max = 0;
-                    for (p = 0; p < size; ++p)
-                    {
+                    dim_t loc_proc_mask_max = 0;
+                    for (int p = 0; p < size; ++p) {
                         if (loc_proc_mask[p] > 0)
                             loc_send_count[p]++;
-                        if (loc_proc_mask[p] > loc_proc_mask_max)
-                        {
+                        if (loc_proc_mask[p] > loc_proc_mask_max) {
                             newOwner[e] = p;
                             loc_proc_mask_max = loc_proc_mask[p];
                         }
                     }
-                }
-                else
-                {
+                } else {
                     newOwner[e] = -1;
                 }
             }
 #pragma omp critical
             {
-                for (p = 0; p < size; ++p)
+                for (int p = 0; p < size; ++p)
                     send_count[p] += loc_send_count[p];
             }
-            delete[] loc_proc_mask;
-            delete[] loc_send_count;
-        }
-        MPI_Alltoall(send_count, 1, MPI_INT, recv_count, 1, MPI_INT, self->MPIInfo->comm);
-        /* get the new number of elements for this processor */
-        newNumElements = 0;
-        for (p = 0; p < size; ++p)
+        } // end parallel section
+        MPI_Alltoall(&send_count[0], 1, MPI_DIM_T, &recv_count[0], 1,
+                     MPI_DIM_T, MPIInfo->comm);
+        // get the new number of elements for this processor
+        dim_t newNumElements = 0;
+        dim_t numElementsInBuffer = 0;
+        for (int p = 0; p < size; ++p) {
             newNumElements += recv_count[p];
-
-        /* get the new number of elements for this processor */
-        numElementsInBuffer = 0;
-        for (p = 0; p < size; ++p)
             numElementsInBuffer += send_count[p];
-        /* allocate buffers */
-        Id_buffer = new  index_t[numElementsInBuffer];
-        Tag_buffer = new  index_t[numElementsInBuffer];
-        Owner_buffer = new  int[numElementsInBuffer];
-        Nodes_buffer = new  index_t[numElementsInBuffer * NN];
-        send_offset = new  index_t[size];
-        recv_offset = new  index_t[size];
-        proc_mask = new  bool[size];
+        }
 
-        /* calculate the offsets for the processor buffers */
-        recv_offset[0] = 0;
-        for (p = 0; p < size - 1; ++p)
+        std::vector<index_t> Id_buffer(numElementsInBuffer);
+        std::vector<int> Tag_buffer(numElementsInBuffer);
+        std::vector<int> Owner_buffer(numElementsInBuffer);
+        std::vector<index_t> Nodes_buffer(numElementsInBuffer * numNodes);
+        std::vector<index_t> send_offset(size);
+        std::vector<index_t> recv_offset(size);
+        std::vector<unsigned char> proc_mask(size);
+
+        // calculate the offsets for the processor buffers
+        for (int p = 0; p < size - 1; ++p) {
             recv_offset[p + 1] = recv_offset[p] + recv_count[p];
-        send_offset[0] = 0;
-        for (p = 0; p < size - 1; ++p)
             send_offset[p + 1] = send_offset[p] + send_count[p];
+        }
 
-        memset(send_count, 0, size_size);
-        /* copy element into buffers. proc_mask makes sure that an 
-         * element is copied once only for each processor */
-        for (e = 0; e < self->numElements; e++)
-        {
-            if (self->Owner[e] == myRank)
-            {
-                memset(proc_mask, true, size*sizeof(bool));
-                for (j = 0; j < NN; j++)
-                {
-                    p = mpiRankOfDOF[self->Nodes[INDEX2(j, e, NN)]];
-                    if (proc_mask[p])
-                    {
-                        k = send_offset[p] + send_count[p];
-                        Id_buffer[k] = self->Id[e];
-                        Tag_buffer[k] = self->Tag[e];
+        send_count.assign(size, 0);
+        // copy element into buffers. proc_mask makes sure that an element is
+        // copied once only for each processor
+        for (index_t e = 0; e < numElements; e++) {
+            if (Owner[e] == myRank) {
+                proc_mask.assign(size, 1);
+                for (int j = 0; j < numNodes; j++) {
+                    const int p = mpiRankOfDOF[Nodes[INDEX2(j, e, numNodes)]];
+                    if (proc_mask[p]) {
+                        const index_t k = send_offset[p] + send_count[p];
+                        Id_buffer[k] = Id[e];
+                        Tag_buffer[k] = Tag[e];
                         Owner_buffer[k] = newOwner[e];
-                        for (i = 0; i < NN; i++)
-                            Nodes_buffer[INDEX2(i, k, NN)] = Id[self->Nodes[INDEX2(i, e, NN)]];
+                        for (int i = 0; i < numNodes; i++)
+                            Nodes_buffer[INDEX2(i, k, numNodes)] =
+                                         nodesId[Nodes[INDEX2(i, e, numNodes)]];
                         send_count[p]++;
-                        proc_mask[p] = false;
+                        proc_mask[p] = 0;
                     }
                 }
             }
         }
-        /* allocate new tables */
-        Dudley_ElementFile_allocTable(self, newNumElements);
+        // allocate new tables
+        allocTable(newNumElements);
 
-        /* start to receive new elements */
-        for (p = 0; p < size; ++p)
-        {
-            if (recv_count[p] > 0)
-            {
-                MPI_Irecv(&(self->Id[recv_offset[p]]), recv_count[p],
-                          MPI_INT, p, self->MPIInfo->counter() + myRank,
-                          self->MPIInfo->comm, &mpi_requests[numRequests]);
+        // start to receive new elements
+        for (int p = 0; p < size; ++p) {
+            if (recv_count[p] > 0) {
+                MPI_Irecv(&Id[recv_offset[p]], recv_count[p], MPI_DIM_T, p,
+                          MPIInfo->counter() + myRank, MPIInfo->comm,
+                          &mpi_requests[numRequests]);
                 numRequests++;
-                MPI_Irecv(&(self->Tag[recv_offset[p]]), recv_count[p],
-                          MPI_INT, p, self->MPIInfo->counter() + size + myRank,
-                          self->MPIInfo->comm, &mpi_requests[numRequests]);
+                MPI_Irecv(&Tag[recv_offset[p]], recv_count[p], MPI_INT, p,
+                          MPIInfo->counter() + size + myRank, MPIInfo->comm,
+                          &mpi_requests[numRequests]);
                 numRequests++;
-                MPI_Irecv(&(self->Owner[recv_offset[p]]), recv_count[p],
-                          MPI_INT, p, self->MPIInfo->counter() + 2 * size + myRank,
-                          self->MPIInfo->comm, &mpi_requests[numRequests]);
+                MPI_Irecv(&Owner[recv_offset[p]], recv_count[p], MPI_INT, p,
+                          MPIInfo->counter() + 2 * size + myRank,
+                          MPIInfo->comm, &mpi_requests[numRequests]);
                 numRequests++;
-                MPI_Irecv(&(self->Nodes[recv_offset[p] * NN]), recv_count[p] * NN,
-                          MPI_INT, p, self->MPIInfo->counter() + 3 * size + myRank,
-                          self->MPIInfo->comm, &mpi_requests[numRequests]);
-                numRequests++;
-            }
-        }
-        /* now the buffers can be send away */
-        for (p = 0; p < size; ++p)
-        {
-            if (send_count[p] > 0)
-            {
-                MPI_Issend(&(Id_buffer[send_offset[p]]), send_count[p],
-                           MPI_INT, p, self->MPIInfo->counter() + p,
-                           self->MPIInfo->comm, &mpi_requests[numRequests]);
-                numRequests++;
-                MPI_Issend(&(Tag_buffer[send_offset[p]]), send_count[p],
-                           MPI_INT, p, self->MPIInfo->counter() + size + p,
-                           self->MPIInfo->comm, &mpi_requests[numRequests]);
-                numRequests++;
-                MPI_Issend(&(Owner_buffer[send_offset[p]]), send_count[p],
-                           MPI_INT, p, self->MPIInfo->counter() + 2 * size + p,
-                           self->MPIInfo->comm, &mpi_requests[numRequests]);
-                numRequests++;
-                MPI_Issend(&(Nodes_buffer[send_offset[p] * NN]), send_count[p] * NN,
-                           MPI_INT, p, self->MPIInfo->counter() + 3 * size + p,
-                           self->MPIInfo->comm, &mpi_requests[numRequests]);
+                MPI_Irecv(&Nodes[recv_offset[p] * numNodes],
+                          recv_count[p] * numNodes, MPI_DIM_T, p,
+                          MPIInfo->counter() + 3 * size + myRank,
+                          MPIInfo->comm, &mpi_requests[numRequests]);
                 numRequests++;
             }
         }
-        /* wait for the requests to be finalized */
-        self->MPIInfo->incCounter(4 * size);
-        MPI_Waitall(numRequests, mpi_requests, mpi_stati);
-        /* clear buffer */
-        delete[] Id_buffer;
-        delete[] Tag_buffer;
-        delete[] Owner_buffer;
-        delete[] Nodes_buffer;
-        delete[] send_offset;
-        delete[] recv_offset;
-        delete[] proc_mask;
-        delete[] mpi_requests;
-        delete[] mpi_stati;
-        delete[] send_count;
-        delete[] recv_count;
+        // now the buffers can be sent away
+        for (int p = 0; p < size; ++p) {
+            if (send_count[p] > 0) {
+                MPI_Issend(&Id_buffer[send_offset[p]], send_count[p],
+                           MPI_DIM_T, p, MPIInfo->counter() + p,
+                           MPIInfo->comm, &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Issend(&Tag_buffer[send_offset[p]], send_count[p],
+                           MPI_INT, p, MPIInfo->counter() + size + p,
+                           MPIInfo->comm, &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Issend(&Owner_buffer[send_offset[p]], send_count[p],
+                           MPI_INT, p, MPIInfo->counter() + 2 * size + p,
+                           MPIInfo->comm, &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Issend(&Nodes_buffer[send_offset[p] * numNodes],
+                           send_count[p] * numNodes, MPI_DIM_T, p,
+                           MPIInfo->counter() + 3 * size + p,
+                           MPIInfo->comm, &mpi_requests[numRequests]);
+                numRequests++;
+            }
+        }
+        MPIInfo->incCounter(4 * size);
+        // wait for the requests to be finalized
+        MPI_Waitall(numRequests, &mpi_requests[0], &mpi_stati[0]);
         delete[] newOwner;
 #endif
     } else { // single rank
-#pragma omp for private(e,i) schedule(static)
-        for (e = 0; e < self->numElements; e++)
-        {
-            self->Owner[e] = myRank;
-            for (i = 0; i < NN; i++)
-                self->Nodes[INDEX2(i, e, NN)] = Id[self->Nodes[INDEX2(i, e, NN)]];
+#pragma omp parallel for
+        for (index_t e = 0; e < numElements; e++) {
+            Owner[e] = 0;
+            for (int i = 0; i < numNodes; i++)
+                Nodes[INDEX2(i, e, numNodes)] =
+                                     nodesId[Nodes[INDEX2(i, e, numNodes)]];
         }
     }
 }

@@ -38,7 +38,7 @@ Test suite for input and output of meshes and data objects
 import esys.escriptcore.utestselect as unittest, sys
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh, ReadGmsh
+from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh
 
 try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
@@ -146,8 +146,8 @@ class Test_InputOutput(unittest.TestCase):
 
      def test_flyTags(self):
         dom=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest2.fly"))
-        tags=dom.showTagNames().split(', ')
-        self.assertEqual(tags,['tag1', 'tag2', 'tag3', 'tag4', 'All'])
+        tags=sorted(dom.showTagNames().split(', '))
+        self.assertEqual(tags,sorted(['tag1', 'tag2', 'tag3', 'tag4', 'All']))
         self.assertEqual(dom.getTag('tag1'),5,'error with tag1')
         self.assertEqual(dom.getTag('tag2'),8,'error with tag2,')
         self.assertEqual(dom.getTag('tag3'),6,'error with tag3')

@@ -193,6 +193,8 @@ public:
                                      long seed,
                                      const boost::python::tuple& filter) const;
 
+    virtual Assembler_ptr createAssembler(std::string type,
+                                          const DataMap& options) const;
     /**
        \brief
        returns the lengths of the domain
@@ -217,10 +219,20 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
+    virtual dim_t getNumDOFInAxis(unsigned axis) const;
+    virtual dim_t getFirstInDim(unsigned axis) const;
+
     virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
-    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
-    virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
+    virtual void assembleGradient(escript::Data& out,
+                                  const escript::Data& in) const;
+    virtual void assembleIntegrate(DoubleVector& integrals,
+                                   const escript::Data& arg) const;
+#ifdef USE_TRILINOS
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+#endif
+
+    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                              bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
@@ -231,11 +243,9 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
-    Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 
     void populateSampleIds();
     void populateDofMap();
-    std::vector<IndexVector> getConnections() const;
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
@@ -309,6 +319,11 @@ protected:
 
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
+
+#ifdef USE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
+#endif
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
@@ -344,6 +359,13 @@ inline dim_t Brick::getNumDOF() const
 }
 
 //protected
+inline dim_t Brick::getNumDOFInAxis(unsigned axis) const
+{
+    ESYS_ASSERT(axis < m_numDim, "Invalid axis");
+    return (m_gNE[axis]+1)/m_NX[axis];
+}
+
+//protected
 inline dim_t Brick::getNumNodes() const
 {
     return m_NN[0]*m_NN[1]*m_NN[2];
@@ -360,6 +382,12 @@ inline dim_t Brick::getNumFaceElements() const
 {
     return m_faceCount[0] + m_faceCount[1] + m_faceCount[2]
             + m_faceCount[3] + m_faceCount[4] + m_faceCount[5];
+}
+
+//protected
+inline index_t Brick::getFirstInDim(unsigned axis) const
+{
+    return m_offset[axis] == 0 ? 0 : 1;
 }
 
 } // end of namespace ripley

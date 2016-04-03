@@ -73,7 +73,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
 #else
    const int num_threads=1;
 #endif
-   index_t size=mpi_info->size, *dist=NULL;
+   index_t size=mpi_info->size;
    index_t *main_p=NULL, *couple_p=NULL, *main_idx=NULL, *couple_idx=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
    index_t *recv_shared=NULL, *send_shared=NULL;
@@ -118,14 +118,11 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
 
    /* create row distribution (output_distribution) and col distribution
       (input_distribution) */
-   /* ??? should I alloc an new Esys_MPIInfo object or reuse the one in
-      system matrix A. for now, I'm reuse A->mpi_info ??? */
-   dist = A_p->pattern->output_distribution->first_component;
-   output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-   dist = new index_t[size+1]; /* now prepare for col distribution */
-   #ifdef ESYS_MPI
-   MPI_Allgather(&my_n_C, 1, MPI_INT, dist, 1, MPI_INT, mpi_info->comm);
-   #endif
+   output_dist.reset(new Distribution(mpi_info, A_p->pattern->output_distribution->first_component, 1, 0));
+   std::vector<index_t> dist(size+1); /* now prepare for col distribution */
+#ifdef ESYS_MPI
+   MPI_Allgather(&my_n_C, 1, MPI_INT, &dist[0], 1, MPI_INT, mpi_info->comm);
+#endif
    global_label=0;
    for (i=0; i<size; i++) {
      k = dist[i];
@@ -135,7 +132,6 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
    dist[size] = global_label;
 
    input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-   delete[] dist;
 
    /* create pattern for mainBlock and coupleBlock */
    main_p = new index_t[my_n+1];

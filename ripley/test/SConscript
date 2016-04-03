@@ -14,7 +14,6 @@
 #
 ##############################################################################
 
-
 Import('*')
 local_env = env.Clone()
 
@@ -24,11 +23,10 @@ if local_env['cppunit'] and local_env['cuda']:
     testname='ripley_UnitTest'
 
     # build the executable
-    local_env.Prepend(LIBS=['ripley', 'pasowrap', 'paso', 'escript']+env['cppunit_libs'])
+    local_env.PrependUnique(LIBS=env['ripley_libs']+env['cppunit_libs'])
 
-    if local_env['silo']:
+    if env['silo']:
         local_env.Append(CPPDEFINES = ['USE_SILO'])
-        local_env.AppendUnique(LIBS = env['silo_libs'])
 
     if env['openmp']:
         local_env.Append(CPPDEFINES = ['THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP'])
@@ -38,7 +36,6 @@ if local_env['cppunit'] and local_env['cuda']:
     local_env.Append(CPPDEFINES = ['USE_CUDA', 'THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA'])
     #TODO: This needs a config option:
     local_env.Append(CPPDEFINES = ['CUSP_USE_TEXTURE_MEMORY'])
-    local_env.Append(LIBS = ['cudart'])
 
     program = local_env.Program(testname, sources)
 
@@ -55,5 +52,5 @@ if local_env['cppunit'] and local_env['cuda']:
     TestGroups.append(tgroup)
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/ripley/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript('python/SConscript', duplicate=0)
 

@@ -13,16 +13,14 @@
 #
 ##############################################################################
 
-import os
 Import('*')
-local_env = env.Clone()
 
 # get the source file names
 sources = Glob('*.py')
 
 # compile
-pyc = local_env.PyCompile(sources)
+pyc = env.PyCompile(sources)
 
 # install
-py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escript'), pyc)
-env.Alias('install_escript_py', [py_inst])
+py_inst = env.Install(Dir('escript', env['pyinstall']), pyc)
+env.Alias('install_escript', [py_inst])

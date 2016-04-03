@@ -27,10 +27,10 @@
 #include <boost/shared_ptr.hpp>
 
 #ifdef ESYS_MPI
-#define HAVE_MPI 1
+#define WEIPA_HAVE_MPI 1
 #endif
 
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
 #include <mpi.h>
 #endif
 

@@ -14,28 +14,21 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assemblage routines: calculates the normal vector at quadrature points on
-  face elements
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escript::Data* normal)
+void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
+                        escript::Data& normal)
 {
     if (!nodes || !elements)
         return;
 
     const int NN = elements->numNodes;
     const int numDim = nodes->numDim;
-    bool reduced_integration = Assemble_reducedIntegrationOrder(normal);
-    const int numQuad = (!reduced_integration) ? (elements->numDim + 1) : 1;
+    const int numQuad = (hasReducedIntegrationOrder(normal) ? 1 : NN);
     const int numDim_local = elements->numLocalDim;
     const int NS = elements->numDim + 1;
 
@@ -55,15 +48,15 @@ void Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, es
     // check the dimensions of normal
     if (!(numDim == numDim_local || numDim - 1 == numDim_local)) {
         throw DudleyException("Assemble_setNormal: Cannot calculate normal vector");
-    } else if (!normal->isDataPointShapeEqual(1, &numDim)) {
+    } else if (!normal.isDataPointShapeEqual(1, &numDim)) {
         throw DudleyException("Assemble_setNormal: illegal point data shape of normal Data object");
-    } else if (!normal->numSamplesEqual(numQuad, elements->numElements)) {
+    } else if (!normal.numSamplesEqual(numQuad, elements->numElements)) {
         throw DudleyException("Assemble_setNormal: illegal number of samples of normal Data object");
-    } else if (!normal->actsExpanded()) {
+    } else if (!normal.actsExpanded()) {
         throw DudleyException("Assemble_setNormal: expanded Data object is expected for normal.");
     }
 
-    normal->requireWrite();
+    normal.requireWrite();
 #pragma omp parallel
     {
         std::vector<double> local_X(NS * numDim);
@@ -71,16 +64,15 @@ void Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, es
 #pragma omp for
         for (index_t e = 0; e < elements->numElements; e++) {
             // gather local coordinates of nodes into local_X
-            Dudley_Util_Gather_double(NS,
-                    &elements->Nodes[INDEX2(0, e, NN)], numDim,
-                    nodes->Coordinates, &local_X[0]);
+            util::gather(NS, &elements->Nodes[INDEX2(0, e, NN)], numDim,
+                         nodes->Coordinates, &local_X[0]);
 
             // calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q)
-            Dudley_Util_SmallMatMult(numDim, numDim_local * numQuad,
+            util::smallMatMult(numDim, numDim_local * numQuad,
                                      &dVdv[0], NS, &local_X[0], dSdv);
             // get normalized vector
-            double* normal_array = normal->getSampleDataRW(e);
-            Dudley_NormalVector(numQuad, numDim, numDim_local, &dVdv[0], normal_array);
+            double* normal_array = normal.getSampleDataRW(e);
+            util::normalVector(numQuad, numDim, numDim_local, &dVdv[0], normal_array);
         }
     }
 }

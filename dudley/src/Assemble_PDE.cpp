@@ -23,13 +23,13 @@
 
       -(A_{k,i,m,j} u_m,j)_i-(B_{k,i,m} u_m)_i+C_{k,m,j} u_m,j-D_{k,m} u_m = -(X_{k,i})_i + Y_k
 
-  u has numComp components.
+  u has numEqu components.
   Shape of the coefficients:
 
-      A = numEqu x numDim x numComp x numDim
-      B = numDim x numEqu x numComp
-      C = numEqu x numDim x numComp
-      D = numEqu x numComp
+      A = numEqu x numDim x numEqu x numDim
+      B = numDim x numEqu x numEqu
+      C = numEqu x numDim x numEqu
+      D = numEqu x numEqu
       X = numEqu x numDim
       Y = numEqu
 
@@ -77,7 +77,7 @@ inline void setShapeError(const char* c, int num, const int* dims)
     throw DudleyException(errorMsg);
 }
 
-void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elements,
+void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   escript::ASM_ptr S, escript::Data& F,
                   const escript::Data& A, const escript::Data& B,
                   const escript::Data& C, const escript::Data& D,
@@ -103,7 +103,7 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
     if (!X.isEmpty()) funcspace=X.getFunctionSpace().getTypeCode();
     if (!Y.isEmpty()) funcspace=Y.getFunctionSpace().getTypeCode();
     if (funcspace == -1)
-        return; // all  data are empty
+        return; // all data are empty
 
     // check if all function spaces are the same
     if (!A.isEmpty() && A.getFunctionSpace().getTypeCode()!=funcspace) {
@@ -136,8 +136,7 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
     }
 
     // get assemblage parameters
-    Assemble_Parameters p;
-    Assemble_getAssembleParameters(nodes, elements, S, F, reducedIntegrationOrder, &p);
+    AssembleParameters p(nodes, elements, S, F, reducedIntegrationOrder);
 
     // check if sample numbers are the same
     if (!A.numSamplesEqual(p.numQuad, elements->numElements)) {
@@ -155,9 +154,7 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
     }
 
     // check the dimensions
-    if (p.numEqu != p.numComp) {
-        throw DudleyException("Assemble_PDE requires number of equations == number of solutions.");
-    } else if (p.numEqu == 1) {
+    if (p.numEqu == 1) {
         const int dimensions[2] = { p.numDim, p.numDim };
         if (!A.isDataPointShapeEqual(2, dimensions)) {
             setShapeError("A", 2, dimensions);
@@ -173,8 +170,8 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
             throw DudleyException("Assemble_PDE: coefficient Y must be rank 0.");
         }
     } else {
-        const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
-        const int dimCD[3] = { p.numEqu, p.numComp, p.numDim };
+        const int dimAB[4] = { p.numEqu, p.numDim, p.numEqu, p.numDim };
+        const int dimCD[3] = { p.numEqu, p.numEqu, p.numDim };
         if (!A.isDataPointShapeEqual(4, dimAB)) {
             setShapeError("A", 4, dimAB);
         } else if (!B.isDataPointShapeEqual(3, dimAB)) {
@@ -194,24 +191,24 @@ void Assemble_PDE(const Dudley_NodeFile* nodes, const Dudley_ElementFile* elemen
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
             throw DudleyException("Dudley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
         } else {
-            Assemble_PDE_Points(p, elements, S, F, D, Y);
+            Assemble_PDE_Points(p, D, Y);
         }
     } else {
         if (p.numEqu > 1) {
             // system of PDEs
             if (p.numDim == 3) {
-                Assemble_PDE_System_3D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim == 2) {
-                Assemble_PDE_System_2D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");
             }
         } else {
             // single PDE
             if (p.numDim == 3) {
-                Assemble_PDE_Single_3D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim == 2) {
-                Assemble_PDE_Single_2D(p, elements, S, F, A, B, C, D, X, Y);
+                Assemble_PDE_Single_2D(p, A, B, C, D, X, Y);
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");
             }

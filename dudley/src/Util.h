@@ -14,59 +14,64 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-
-/*   Some utility routines */
-
-/****************************************************************************/
+/// Some utility routines
 
 #ifndef __DUDLEY_UTIL_H__
 #define __DUDLEY_UTIL_H__
 
 #include "Dudley.h"
 
+#include <escript/Data.h>
+
 namespace dudley {
+namespace util {
 
-void Dudley_Util_Gather_double(dim_t len, index_t * index, dim_t numData, double *in, double *out);
-void Dudley_Util_Gather_int(dim_t len, index_t * index, dim_t numData, index_t * in, index_t * out);
-void Dudley_Util_AddScatter(const dim_t len, const index_t * index, const dim_t numData, const double *in, double *out, const index_t upperBound);
-void Dudley_Util_SmallMatMult(dim_t A1, dim_t A2, double *A, dim_t B2, const double *B, const double *C);
-void Dudley_Util_SmallMatSetMult(dim_t len, dim_t A1, dim_t A2, double *A, dim_t B2, const double *B, const double *C);
-void Dudley_Util_SmallMatSetMult1(dim_t len, dim_t A1, dim_t A2, double *A, dim_t B2, const double *B, const double *C);
-void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, double *det);
-void Dudley_Util_DetOfSmallMat(dim_t len, dim_t dim, double *A, double *det);
-void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *Normal);
-void Dudley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *length);
-void Dudley_Util_InvertMap(dim_t, index_t *, dim_t, index_t *);
-index_t Dudley_Util_getMaxInt(dim_t dim, dim_t N, index_t * values);
-index_t Dudley_Util_getMinInt(dim_t dim, dim_t N, index_t * values);
-index_t Dudley_Util_getFlaggedMaxInt(dim_t dim, dim_t N, index_t * values, index_t ignore);
-index_t Dudley_Util_getFlaggedMinInt(dim_t dim, dim_t N, index_t * values, index_t ignore);
-dim_t Dudley_Util_packMask(dim_t N, index_t * mask, index_t * index);
-bool Dudley_Util_isAny(dim_t N, index_t * array, index_t value);
-index_t Dudley_Util_cumsum(dim_t, index_t *);
-bool Dudley_Util_anyNonZeroDouble(dim_t N, double *values);
-void Dudley_Util_setValuesInUse(const index_t* values, dim_t numValues, dim_t* numValuesInUse,
-                                index_t** valuesInUse, escript::JMPI& mpiinfo);
+typedef std::pair<index_t,index_t> IndexPair;
+typedef std::vector<IndexPair> ValueAndIndexList;
 
-#ifdef ESYS_MPI
-void Dudley_printDoubleArray(FILE * fid, dim_t n, double *array, char *name);
-void Dudley_printIntArray(FILE * fid, dim_t n, int *array, char *name);
-void Dudley_printMaskArray(FILE * fid, dim_t n, int *array, char *name);
-#endif
+/// orders a ValueAndIndexList by value.
+void sortValueAndIndex(ValueAndIndexList& array);
 
-/* Dudley_Util_orderValueAndIndex is used to sort items by a value */
-/* index points to the location of the original item array. */
-/* it can be used to reorder the array */
-struct Dudley_Util_ValueAndIndex {
-    index_t index;
-    index_t value;
-};
-typedef struct Dudley_Util_ValueAndIndex Dudley_Util_ValueAndIndex;
+/// gathers values into array `out` from array `in` using `index`:
+///   out(1:numData, 1:len) := in(1:numData, index(1:len))
+void gather(int len, const index_t* index, int numData, const double* in,
+            double* out);
 
-void Dudley_Util_sortValueAndIndex(dim_t n, Dudley_Util_ValueAndIndex * array);
-int Dudley_Util_ValueAndIndex_compar(const void *, const void *);
+/// adds array `in` into `out` using an `index`:
+///   out(1:numData,index[p])+=in(1:numData,p) where
+///   p={k=1...len, index[k]<upperBound}
+void addScatter(int len, const index_t* index, int numData,
+                const double* in, double *out, index_t upperBound);
 
+/// multiplies two matrices: A(1:A1,1:A2) := B(1:A1,1:B2)*C(1:B2,1:A2)
+void smallMatMult(int A1, int A2, double* A, int B2, const double* B,
+                  const double* C);
+
+/// multiplies a set of matrices with a single matrix:
+///   A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) for i=1,len
+void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
+                      const double* B, const double* C);
+
+/// returns the normalized vector normal[dim,len] orthogonal to A(:,0,q) and
+/// A(:,1,q) in the case of dim=3, or the vector A(:,0,q) in the case of dim=2
+void normalVector(dim_t len, int dim, int dim1, const double* A, double* normal);
+
+/// calculates the minimum and maximum value from an integer array of length
+/// N x dim
+IndexPair getMinMaxInt(int dim, dim_t N, const index_t* values);
+
+/// calculates the minimum and maximum value from an integer array of length N
+/// disregarding the value `ignore`
+IndexPair getFlaggedMinMaxInt(dim_t N, const index_t* values, index_t ignore);
+
+/// extracts the positive entries in `mask` returning a contiguous vector of
+/// those entries
+std::vector<index_t> packMask(const std::vector<short>& mask);
+
+void setValuesInUse(const index_t* values, dim_t numValues,
+                    std::vector<int>& valuesInUse, escript::JMPI mpiInfo);
+
+} // namespace util
 } // namespace dudley
 
 #endif // __DUDLEY_UTIL_H__

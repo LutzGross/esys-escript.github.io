@@ -31,45 +31,67 @@
 *****************************************************************************/
 
 #include "Assemble.h"
+#include <paso/SystemMatrix.h>
+
+#ifdef USE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+
+using esys_trilinos::TrilinosMatrixAdapter;
+#endif
 
 namespace finley {
 
-void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in, int NN_Equa,
+void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix* in, int NN_Equa,
                                     const index_t* Nodes_Equa, int num_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array);
 
-void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
+#if USE_TRILINOS
+void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* in,
                         int NN_Equa, const index_t* Nodes_Equa, int num_Equa,
                         int NN_Sol, const index_t* Nodes_Sol, int num_Sol,
                         const double* array);
+#endif
 
-void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in, int NN_Equa,
+void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix* in, int NN_Equa,
                                     const index_t* Nodes_Equa, int num_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array);
 
-void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in, int NN_Equa,
+void Assemble_addToSystemMatrix(escript::ASM_ptr in, int NN_Equa,
                                 const index_t* Nodes_Equa, int num_Equa,
                                 int NN_Sol, const index_t* Nodes_Sol,
                                 int num_Sol, const double* array)
 {
-    // call the right function depending on storage type
-    if (in->type & MATRIX_FORMAT_CSC) {
-        Assemble_addToSystemMatrix_CSC(in, NN_Equa, Nodes_Equa,
-                                  num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
-    /*
-    } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
-        Assemble_addToSystemMatrix_Trilinos(in, NN_Equa, Nodes_Equa,
-                                  num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
-    */
-    } else { // type == CSR
-        Assemble_addToSystemMatrix_CSR(in, NN_Equa, Nodes_Equa,
-                                  num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
+    using paso::SystemMatrix;
+    SystemMatrix* pmat(dynamic_cast<SystemMatrix*>(in.get()));
+
+    if (pmat) {
+        // call the right function depending on storage type
+        if (pmat->type & MATRIX_FORMAT_CSC) {
+            Assemble_addToSystemMatrix_CSC(pmat, NN_Equa, Nodes_Equa,
+                                           num_Equa, NN_Sol, Nodes_Sol,
+                                           num_Sol, array);
+        } else { // type == CSR
+            Assemble_addToSystemMatrix_CSR(pmat, NN_Equa, Nodes_Equa,
+                                           num_Equa, NN_Sol, Nodes_Sol,
+                                           num_Sol, array);
+        }
+        return;
     }
+#ifdef USE_TRILINOS
+    TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(in.get()));
+    if (tmat) {
+        Assemble_addToSystemMatrix_Trilinos(tmat, NN_Equa, Nodes_Equa,
+                                            num_Equa, NN_Sol, Nodes_Sol,
+                                            num_Sol, array);
+        return;
+    }
+#endif
+    throw FinleyException("Assemble_addToSystemMatrix: unknown system matrix type.");
 }
 
-void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in, int NN_Equa,
+void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix* in, int NN_Equa,
                                     const index_t* Nodes_Equa, int num_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array)
@@ -163,39 +185,7 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in, int NN_Equa,
     }
 }
 
-void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
-                                         int NN_Equa, const index_t* Nodes_Equa,
-                                         int num_Equa, int NN_Sol,
-                                         const index_t* Nodes_Sol, int num_Sol,
-                                         const double* array)
-{
-    // FIXME: this needs to be modified
-#ifdef TRILINOS
-    const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-    const int row_block_size=in->row_block_size;
-    const int col_block_size=in->col_block_size;
-    const int num_subblocks_Equa=num_Equa/row_block_size;
-    for (int k_Equa=0;k_Equa<NN_Equa;++k_Equa) { // Down columns of array
-        const int j_Equa=Nodes_Equa[k_Equa];
-        if (j_Equa < in->mainBlock->pattern->output_node_distribution->numLocal) {
-            for (int k_Sol=0; k_Sol<NN_Sol; ++k_Sol) {
-                // Across rows of array
-                const int j_Sol=Nodes_Sol[k_Sol];
-                for (int l_row=0; l_row<num_subblocks_Equa; ++l_row) {
-                    const int irow=j_Equa*row_block_size+l_row;
-                    for (int l_col=0; l_col<col_block_size; ++l_col) {
-                        const int icol=j_Sol*col_block_size+index_offset+l_col;
-                        // irow is local and icol is global
-                        Trilinos_SumIntoMyValues(in->trilinos_data, irow, icol, array[INDEX4(l_row,l_col,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)]);
-                    }
-                }
-            }
-        }
-    }
-#endif
-}
-
-void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in, int NN_Equa,
+void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix* in, int NN_Equa,
                                     const index_t* Nodes_Equa, int num_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array)
@@ -295,6 +285,20 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in, int NN_Equa,
         }
     }
 }
+
+#ifdef USE_TRILINOS
+void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* in,
+                                         int NN_Equa, const index_t* Nodes_Equa,
+                                         int num_Equa, int NN_Sol,
+                                         const index_t* Nodes_Sol, int num_Sol,
+                                         const double* array)
+{
+    std::vector<index_t> rowIdx(Nodes_Equa, Nodes_Equa+NN_Equa);
+    //std::vector<index_t> colIdx(Nodes_Sol, Nodes_Sol+NN_Sol);
+    std::vector<double> arr(array, array+(NN_Equa*NN_Sol*num_Sol*num_Equa));
+    in->add(rowIdx, arr);
+}
+#endif
 
 } // namespace finley
 

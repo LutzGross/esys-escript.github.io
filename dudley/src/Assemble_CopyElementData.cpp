@@ -14,56 +14,46 @@
 *
 *****************************************************************************/
 
-/****************************************************************************
-
-  Assemblage routines: copies data between elements
-
-*****************************************************************************/
-
 #include "Assemble.h"
 #include "ShapeTable.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Assemble_CopyElementData(Dudley_ElementFile* elements, escript::Data* out, const escript::Data* in)
+void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
+                              const escript::Data& in)
 {
     if (!elements)
         return;
 
-    dim_t numQuad;
-    if (Assemble_reducedIntegrationOrder(in)) {
-        numQuad = QuadNums[elements->numDim][0];
-    } else {
-        numQuad = QuadNums[elements->numDim][1];
-    }
-
-    const dim_t numElements = elements->numElements;
-    const int numComps = out->getDataPointSize();
+    dim_t numQuad = (hasReducedIntegrationOrder(in) ?
+            QuadNums[elements->numDim][0] : QuadNums[elements->numDim][1]);
 
     // check out and in
-    if (numComps != in->getDataPointSize())
-    {
+    const dim_t numElements = elements->numElements;
+    const int numComps = out.getDataPointSize();
+
+    if (numComps != in.getDataPointSize()) {
         throw DudleyException("Assemble_CopyElementData: number of components of input and output Data do not match.");
-    } else if (!in->numSamplesEqual(numQuad, numElements)) {
+    } else if (!in.numSamplesEqual(numQuad, numElements)) {
         throw DudleyException("Assemble_CopyElementData: illegal number of samples of input Data object");
-    } else if (!out->numSamplesEqual(numQuad, numElements)) {
+    } else if (!out.numSamplesEqual(numQuad, numElements)) {
         throw DudleyException("Assemble_CopyElementData: illegal number of samples of output Data object");
-    } else if (!out->actsExpanded()) {
+    } else if (!out.actsExpanded()) {
         throw DudleyException("Assemble_CopyElementData: expanded Data object is expected for output data.");
     } else {
-        out->requireWrite();
-        if (in->actsExpanded()) {
+        out.requireWrite();
+        if (in.actsExpanded()) {
             const size_t len_size = numComps * numQuad * sizeof(double);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++)
-                memcpy(out->getSampleDataRW(n), in->getSampleDataRO(n), len_size);
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), len_size);
         } else {
             const size_t len_size = numComps * sizeof(double);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in->getSampleDataRO(n);
-                double* out_array = out->getSampleDataRW(n);
+                const double* in_array = in.getSampleDataRO(n);
+                double* out_array = out.getSampleDataRW(n);
                 for (int q = 0; q < numQuad; q++)
                     memcpy(out_array + q * numComps, in_array, len_size);
             }

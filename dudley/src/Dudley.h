@@ -27,8 +27,8 @@
 
 #include <dudley/DudleyException.h>
 
+#include <escript/Data.h>
 #include <escript/EsysMPI.h>
-#include <cstring>
 
 namespace dudley {
 
@@ -41,10 +41,14 @@ using escript::DataTypes::dim_t;
 #define DUDLEY_ELEMENTS 4
 #define DUDLEY_FACE_ELEMENTS 5
 #define DUDLEY_POINTS 6
-#define DUDLEY_REDUCED_DEGREES_OF_FREEDOM 2
-#define DUDLEY_REDUCED_NODES 14
 #define DUDLEY_REDUCED_ELEMENTS 10
 #define DUDLEY_REDUCED_FACE_ELEMENTS 11
+
+inline bool hasReducedIntegrationOrder(const escript::Data& in)
+{
+    const int fs = in.getFunctionSpace().getTypeCode();
+    return (fs == DUDLEY_REDUCED_ELEMENTS || fs == DUDLEY_REDUCED_FACE_ELEMENTS);
+}
 
 /* status stuff */
 typedef int Dudley_Status_t;

@@ -14,95 +14,79 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-/*                                                                                                         */
-/*   Dudley: ElementFile                                                                                   */
-/*                                                                                                         */
-/*   This routine tries to reduce the number of colors used to color elements in the Dudley_ElementFile in */
-/*                                                                                                         */
-/****************************************************************************/
-
 #include "ElementFile.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Dudley_ElementFile_createColoring(Dudley_ElementFile* in, dim_t numNodes, index_t* degreeOfFreedom)
+void ElementFile::createColoring(dim_t nNodes, const index_t* dofMap)
 {
-    dim_t e, i, numUncoloredElements, n, len, NN;
-    index_t *maskDOF, min_id, max_id;
-    bool independent;
-
-    if (in == NULL)
+    if (numElements < 1)
         return;
-    if (in->numElements < 1)
-        return;
-    NN = in->numNodes;
 
-    min_id = Dudley_Util_getMinInt(1, numNodes, degreeOfFreedom);
-    max_id = Dudley_Util_getMaxInt(1, numNodes, degreeOfFreedom);
-    len = max_id - min_id + 1;
-    maskDOF = new index_t[len];
-#pragma omp parallel for private(e) schedule(static)
-    for (e = 0; e < in->numElements; e++)
-        in->Color[e] = -1;
-    numUncoloredElements = in->numElements;
-    in->minColor = 0;
-    in->maxColor = in->minColor - 1;
-    while (numUncoloredElements > 0)
-    {
-        /* initialize the mask marking nodes used by a color */
-#pragma omp parallel for private(n) schedule(static)
-        for (n = 0; n < len; n++)
+    //const std::pair<index_t,index_t> idRange(util::getMinMaxInt(
+    //                                        1, dofMap.size(), &dofMap[0]));
+    const std::pair<index_t,index_t> idRange(util::getMinMaxInt(
+                                            1, nNodes, dofMap));
+
+    const int NN = numNodes;
+    const dim_t len = idRange.second - idRange.first + 1;
+
+#pragma omp parallel for
+    for (index_t e = 0; e < numElements; e++)
+        Color[e] = -1;
+
+    dim_t numUncoloredElements = numElements;
+    minColor = 0;
+    maxColor = -1;
+    index_t* maskDOF = new index_t[len];
+    while (numUncoloredElements > 0) {
+        // initialize the mask marking nodes used by a color
+#pragma omp parallel for
+        for (index_t n = 0; n < len; n++)
             maskDOF[n] = -1;
         numUncoloredElements = 0;
-        /* OMP ? */
-        for (e = 0; e < in->numElements; e++)
-        {
-            if (in->Color[e] < 0)
-            {
-                /* find out if element e is independent from the elements already colored: */
-                independent = true;
-                for (i = 0; i < NN; i++)
-                {
+
+        for (index_t e = 0; e < numElements; e++) {
+            if (Color[e] < 0) {
+                // find out if element e is independent from the elements
+                // already colored:
+                bool independent = true;
+                for (int i = 0; i < NN; i++) {
 #ifdef BOUNDS_CHECK
-                    if (in->Nodes[INDEX2(i, e, NN)] < 0 || in->Nodes[INDEX2(i, e, NN)] >= numNodes)
+                    if (Nodes[INDEX2(i, e, NN)] < 0 || Nodes[INDEX2(i, e, NN)] >= nNodes)
                     {
-                        printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d in->Nodes[INDEX2...]=%d\n", __FILE__,
-                               __LINE__, i, e, NN, min_id, in->Nodes[INDEX2(i, e, NN)]);
+                        printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d Nodes[INDEX2...]=%d\n", __FILE__,
+                               __LINE__, i, e, NN, idRange.first, Nodes[INDEX2(i, e, NN)]);
                         exit(1);
                     }
-                    if ((degreeOfFreedom[in->Nodes[INDEX2(i, e, NN)]] - min_id) >= len
-                        || (degreeOfFreedom[in->Nodes[INDEX2(i, e, NN)]] - min_id) < 0)
+                    if ((dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first) >= len
+                        || (dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first) < 0)
                     {
                         printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d dof=%d\n", __FILE__, __LINE__, i, e,
-                               NN, min_id, degreeOfFreedom[in->Nodes[INDEX2(i, e, NN)]] - min_id);
+                               NN, idRange.first, dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first);
                         exit(1);
                     }
 #endif
-                    if (maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i, e, NN)]] - min_id] > 0)
+                    if (maskDOF[dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first] > 0)
                     {
                         independent = false;
                         break;
                     }
                 }
-                /* if e is independent a new color is assigned and the nodes are marked as being used */
-                if (independent)
-                {
-                    for (i = 0; i < NN; i++)
-                        maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i, e, NN)]] - min_id] = 1;
-                    in->Color[e] = in->maxColor + 1;
-                }
-                else
-                {
+                // if e is independent a new color is assigned and the nodes
+                // are marked as being used
+                if (independent) {
+                    for (int i = 0; i < NN; i++)
+                        maskDOF[dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first] = 1;
+                    Color[e] = maxColor + 1;
+                } else {
                     numUncoloredElements++;
                 }
             }
-
-        }
-        in->maxColor++;
-    }                       /* end of while loop */
-    /* all done : */
+        } // for all elements
+        maxColor++;
+    } // end of while loop
     delete[] maskDOF;
 }
 

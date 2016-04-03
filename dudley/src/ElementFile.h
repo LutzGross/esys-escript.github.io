@@ -20,95 +20,158 @@
 #include "Dudley.h"
 #include "NodeFile.h"
 #include "ElementType.h"
+#include "Util.h"
 
 namespace dudley {
 
-typedef struct {
-    Dudley_Status_t status;     /* status of mesh when jacobians where updated last time */
-    dim_t numDim;               /* spatial dimension */
-    dim_t numQuad;              /* number of quadrature nodes used to calculate jacobians */
-    dim_t numShapes;            /* number of shape functions */
-    dim_t numElements;          /* number of elements */
-    double *absD;               /* used to compute volume */
-    double quadweight;          /* used to compute volume */
-    double *DSDX;               /* derivatives of shape functions in global coordinates at quadrature points */
-} Dudley_ElementFile_Jacobians;
+struct ElementFile_Jacobians
+{
+    ElementFile_Jacobians();
+    ~ElementFile_Jacobians();
 
-struct Dudley_ElementFile {
-    escript::JMPI MPIInfo;
-    int *Owner;
-
-    dim_t numElements;          /* number of elements. */
-
-    index_t *Id;                /* Id[i] is the id nmber of
-                                   node i. this number is not
-                                   used but useful when
-                                   elements are resorted. in
-                                   the entire code the term
-                                   'element id' refers to i
-                                   but nor to Id[i] if not
-                                   explicitly stated
-                                   otherwise. */
-
-    index_t *Tag;               /* Tag[i] is the tag of element i. */
-
-    index_t *tagsInUse;         /* array of tags which are actually used */
-    dim_t numTagsInUse;         /* number of tags used */
-
-    dim_t numNodes;             /* number of nodes per element */
-    index_t *Nodes;             /* Nodes[INDEX(k, i, numNodes)]
-                                   is the k-the node in the
-                                   i-the element. note that
-                                   in the way the nodes are
-                                   ordered Nodes[INDEX(k, i, numNodes)
-                                   is k-the node of element i
-                                   when refering to the
-                                   linear version of the
-                                   mesh. */
-    index_t minColor;           /* minimum color */
-    index_t maxColor;           /* maximum color */
-    index_t *Color;             /* assigns each element a color. elements with the same color     
-                                   are don't share a node so they can be processed simultaneously 
-                                   at anytime Color must provide a valid value. In any case one can set  
-                                   Color[e]=e  for all e */
-
-    Dudley_ElementFile_Jacobians *jacobians;    /* jacobians of the shape function used for solution approximation */
-    Dudley_ElementFile_Jacobians *jacobians_reducedQ;   /* jacobians of the shape function used for solution approximation for reduced integration order */
-    dim_t numDim;               /* spatial dimension of the domain */
-    dim_t numLocalDim;          /* dimension of the element eg 2 for A line in 2D or 3D */
-    Dudley_ElementTypeId etype; /* element type */
-    const char *ename;          /* name of element type */
-    dim_t numShapes;            /* number of shape functions */
+    /// status of mesh when jacobians where updated last time
+    int status;
+    /// number of spatial dimensions
+    int numDim;
+    /// number of quadrature nodes used to calculate jacobians
+    int numQuad;
+    /// number of shape functions
+    int numShapes;
+    /// number of elements
+    dim_t numElements;
+    /// used to compute volume
+    double *absD;
+    /// used to compute volume
+    double quadweight;
+    /// derivatives of shape functions in global coordinates at quadrature
+    /// points
+    double* DSDX;
 };
 
-typedef struct Dudley_ElementFile Dudley_ElementFile;
-Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, escript::JMPI& MPIInfo);
-void Dudley_ElementFile_free(Dudley_ElementFile *);
-void Dudley_ElementFile_allocTable(Dudley_ElementFile *, dim_t);
-void Dudley_ElementFile_freeTable(Dudley_ElementFile *);
-void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * distribution);
-dim_t Dudley_ElementFile_getGlobalNumElements(Dudley_ElementFile * in);
-dim_t Dudley_ElementFile_getMyNumElements(Dudley_ElementFile * in);
-index_t Dudley_ElementFile_getFirstElement(Dudley_ElementFile * in);
-void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, int * mpiRankOfDOF, index_t * Id);
+class ElementFile
+{
+public:
+    ElementFile(ElementTypeId etype, escript::JMPI mpiInfo);
+    ~ElementFile();
 
-void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, dim_t * degreeOfFreedom);
-void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in);
-void Dudley_ElementFile_setNodeRange(dim_t *, dim_t *, Dudley_ElementFile *);
-void Dudley_ElementFile_relableNodes(dim_t *, dim_t, Dudley_ElementFile *);
-void Dudley_ElementFile_markNodes(dim_t *, dim_t, dim_t, Dudley_ElementFile *, bool);
-void Dudley_ElementFile_scatter(dim_t *, Dudley_ElementFile *, Dudley_ElementFile *);
-void Dudley_ElementFile_gather(dim_t *, Dudley_ElementFile *, Dudley_ElementFile *);
-void Dudley_ElementFile_copyTable(dim_t, Dudley_ElementFile *, dim_t, dim_t, Dudley_ElementFile *);
-void Dudley_ElementFile_markDOFsConnectedToRange(index_t * mask, index_t offset, index_t marker, index_t firstDOF,
-                                                 index_t lastDOF, index_t * dofIndex, Dudley_ElementFile * in,
-                                                 bool useLinear);
+    /// allocates the element table within an element file to hold NE elements
+    void allocTable(dim_t numElements);
 
-void Dudley_ElementFile_setTags(Dudley_ElementFile *, const int, const escript::Data *);
-Dudley_ElementFile_Jacobians *Dudley_ElementFile_Jacobians_alloc(void);
-void Dudley_ElementFile_Jacobians_dealloc(Dudley_ElementFile_Jacobians *);
-Dudley_ElementFile_Jacobians *Dudley_ElementFile_borrowJacobians(const Dudley_ElementFile*, const Dudley_NodeFile*, bool);
-void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in);
+    /// deallocates the element table within an element file
+    void freeTable();
+
+    /// copies element file `in` into this element file starting from `offset`.
+    /// The elements `offset` to in->numElements+offset-1 will be overwritten.
+    void copyTable(index_t offset, index_t nodeOffset, index_t idOffset,
+                   const ElementFile* in);
+
+    /// redistributes the elements including overlap by rank
+    void distributeByRankOfDOF(const int* mpiRankOfDOF,
+                               const index_t* nodesId);
+
+    /// Tries to reduce the number of colors used to color elements in this
+    /// ElementFile
+    void createColoring(dim_t numNodes, const index_t* degreeOfFreedom);
+
+    /// reorders the elements so that they are stored close to the nodes
+    void optimizeOrdering();
+
+    /// assigns new node reference numbers to the elements.
+    /// If k is the old node, the new node is newNode[k-offset].
+    void relabelNodes(const index_t* newNode, index_t offset);
+
+    void markNodes(std::vector<short>& mask, index_t offset) const;
+
+    /// gathers the elements from the element file `in` using
+    /// index[0:out->elements-1]. `index` has to be between 0 and
+    /// in->numElements-1. A conservative assumption on the colouring is made.
+    void gather(const index_t* index, const ElementFile* in);
+
+    /// sets element tags to newTag where mask > 0
+    void setTags(int newTag, const escript::Data& mask);
+
+    ElementFile_Jacobians* borrowJacobians(const NodeFile* nodes,
+                                           bool reducedOrder) const;
+
+    /// returns the minimum and maximum node reference number of nodes
+    /// describing the elements
+    inline std::pair<index_t,index_t> getNodeRange() const;
+
+    void updateTagList();
+
+private:
+    void swapTable(ElementFile* other);
+
+public:
+    escript::JMPI MPIInfo;
+
+    /// number of elements
+    dim_t numElements;
+
+    /// Id[i] is the id number of node i. this number is used when elements
+    /// are resorted. In the entire code the term 'element id' refers to i and
+    /// not to Id[i] unless explicitly stated otherwise.
+    index_t* Id;
+
+    /// Tag[i] is the tag of element i
+    int* Tag;
+
+    /// Owner[i] contains the rank that owns element i
+    int* Owner;
+
+    /// array of tags which are actually used
+    std::vector<int> tagsInUse;
+
+    /// number of nodes per element
+    int numNodes;
+
+    /// Nodes[INDEX(k, i, numNodes)] is the k-th node in the i-the element.
+    index_t* Nodes;
+
+    /// assigns each element a color. Elements with the same color don't share
+    /// a node so they can be processed simultaneously. At any time Color must
+    /// provide a valid value. In any case one can set Color[e]=e for all e.
+    index_t* Color;
+
+    /// minimum color value
+    index_t minColor;
+
+    /// maximum color value
+    index_t maxColor;
+
+    /// number of spatial dimensions of the domain
+    int numDim;
+
+    /// dimension of the element e.g. 2 for a line in 2D or 3D
+    int numLocalDim;
+
+    /// element type ID
+    ElementTypeId etype;
+
+    /// name of element type
+    const char *ename;
+
+    /// number of shape functions
+    int numShapes;
+
+private:
+    /// jacobians of the shape function used for solution approximation
+    ElementFile_Jacobians* jacobians;
+
+    /// jacobians of the shape function used for solution approximation for
+    /// reduced integration order
+    ElementFile_Jacobians* jacobians_reducedQ;
+};
+
+inline void ElementFile::updateTagList()
+{
+    util::setValuesInUse(Tag, numElements, tagsInUse, MPIInfo);
+}
+
+inline std::pair<index_t,index_t> ElementFile::getNodeRange() const
+{
+    return util::getMinMaxInt(numNodes, numElements, Nodes);
+}
 
 } // namespace dudley
 

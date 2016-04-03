@@ -16,218 +16,172 @@
 
 #include "Mesh.h"
 
+#include <iomanip>
+
+using std::cout;
+using std::endl;
+using std::ios;
+using std::setw;
+using std::string;
+
 namespace dudley {
 
-/// writes the mesh to the external file fname using the Dudley file format
-void Dudley_Mesh_write(Dudley_Mesh* in, char* fname)
+// private
+void Mesh::writeElementInfo(std::ostream& stream, const ElementFile* e,
+                            const string& defaultType) const
 {
-    char error_msg[1024];
-    FILE *f;
-    int NN, i, j, numDim;
-    Dudley_TagMap *tag_map = in->TagMap;
-
-    if (in->MPIInfo->size > 1)
-        throw DudleyException("Mesh_write: only single processor runs are supported.");
-
-    /* open file */
-    f = fopen(fname, "w");
-    if (f == NULL)
-    {
-        sprintf(error_msg, "Mesh_write: Opening file %s for writing failed.", fname);
-        throw DudleyException(error_msg);
-    }
-
-    /* write header */
-
-    fprintf(f, "%s\n", in->Name);
-
-    /*  write nodes: */
-    if (in->Nodes != NULL) {
-        numDim = Dudley_Mesh_getDim(in);
-        fprintf(f, "%1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
-        for (i = 0; i < in->Nodes->numNodes; i++)
-        {
-            fprintf(f, "%d %d %d", in->Nodes->Id[i], in->Nodes->globalDegreesOfFreedom[i], in->Nodes->Tag[i]);
-            for (j = 0; j < numDim; j++)
-                fprintf(f, " %20.15e", in->Nodes->Coordinates[INDEX2(j, i, numDim)]);
-            fprintf(f, "\n");
+    if (e != NULL) {
+        stream << e->ename << " " << e->numElements << endl;
+        const int NN = e->numNodes;
+        for (index_t i=0; i < e->numElements; i++) {
+            stream << e->Id[i] << " " << e->Tag[i];
+            for (int j=0; j<NN; j++)
+                stream << " " << Nodes->Id[e->Nodes[INDEX2(j,i,NN)]];
+            stream << endl;
         }
     } else {
-        fprintf(f, "0D-Nodes 0\n");
+        stream << defaultType << " 0" << endl;
     }
+}
 
-    /*  write elements: */
-    if (in->Elements != NULL) {
-        fprintf(f, "%s %d\n", in->Elements->ename /*referenceElementSet->referenceElement->Type->Name */ ,
-                in->Elements->numElements);
-        NN = in->Elements->numNodes;
-        for (i = 0; i < in->Elements->numElements; i++) {
-            fprintf(f, "%d %d", in->Elements->Id[i], in->Elements->Tag[i]);
-            for (j = 0; j < NN; j++)
-                fprintf(f, " %d", in->Nodes->Id[in->Elements->Nodes[INDEX2(j, i, NN)]]);
-            fprintf(f, "\n");
+// private
+void Mesh::printElementInfo(const ElementFile* e, const string& title,
+                            const string& defaultType, bool full) const
+{
+    if (e != NULL) {
+        dim_t mine=0, overlap=0;
+        for (index_t i=0; i < e->numElements; i++) {
+            if (e->Owner[i] == MPIInfo->rank)
+                mine++;
+            else
+                overlap++;
+        }
+        cout << "\t" << title << ": "
+            << e->ename << " " << e->numElements << " (TypeId=" << e->etype
+            << ") owner=" << mine << " overlap=" << overlap << endl;
+        if (full) {
+            const int NN = e->numNodes;
+            cout << "\t     Id   Tag Owner Color:  Nodes" << endl;
+            for (index_t i=0; i < e->numElements; i++) {
+                cout << "\t" << setw(7) << e->Id[i]
+                     << setw(6) << e->Tag[i]
+                     << setw(6) << e->Owner[i]
+                     << setw(6) << e->Color[i] << ": ";
+                for (int j=0; j<NN; j++)
+                    cout << setw(6) << Nodes->Id[e->Nodes[INDEX2(j,i,NN)]];
+                cout << endl;
+            }
         }
     } else {
-        fprintf(f, "Tet4 0\n");
+        cout << "\t" << title << ": " << defaultType << " 0" << endl;
+    }
+}
+
+
+void Mesh::write(const std::string& filename) const
+{
+    if (MPIInfo->size > 1)
+        throw escript::NotImplementedError("Mesh::write: only single rank "
+                                           "runs are supported.");
+
+    std::ofstream f(filename.c_str());
+    if (!f.is_open()) {
+        std::stringstream ss;
+        ss << "Mesh::write: Opening file " << filename << " for writing failed";
+        throw escript::IOError(ss.str());
     }
 
-    /*  write face elements: */
-    if (in->FaceElements != NULL) {
-        fprintf(f, "%s %d\n", in->FaceElements->ename /*referenceElementSet->referenceElement->Type->Name */ ,
-                in->FaceElements->numElements);
-        NN = in->FaceElements->numNodes;
-        for (i = 0; i < in->FaceElements->numElements; i++) {
-            fprintf(f, "%d %d", in->FaceElements->Id[i], in->FaceElements->Tag[i]);
-            for (j = 0; j < NN; j++)
-                fprintf(f, " %d", in->Nodes->Id[in->FaceElements->Nodes[INDEX2(j, i, NN)]]);
-            fprintf(f, "\n");
+    // write header
+    f << m_name << endl;
+
+    //  write nodes
+    if (Nodes != NULL) {
+        const int numDim = getDim();
+        f << numDim << "D-Nodes " << Nodes->getNumNodes() << endl;
+        for (index_t i=0; i<Nodes->getNumNodes(); i++) {
+            f << Nodes->Id[i] << " " << Nodes->globalDegreesOfFreedom[i]
+              << " " << Nodes->Tag[i];
+            f.setf(ios::scientific, ios::floatfield);
+            f.precision(15);
+            for (int j=0; j<numDim; j++)
+                f << " " << Nodes->Coordinates[INDEX2(j,i,numDim)];
+            f << endl;
         }
     } else {
-        fprintf(f, "Tri3 0\n");
+        f << "0D-Nodes 0" << endl;
     }
 
-    /*  write points: */
-    if (in->Points != NULL) {
-        fprintf(f, "%s %d\n", in->Points->ename /*referenceElementSet->referenceElement->Type->Name */ ,
-                in->Points->numElements);
-        for (i = 0; i < in->Points->numElements; i++) {
-            fprintf(f, "%d %d %d\n", in->Points->Id[i], in->Points->Tag[i],
-                    in->Nodes->Id[in->Points->Nodes[INDEX2(0, i, 1)]]);
-        }
-    } else {
-        fprintf(f, "Point1 0\n");
-    }
+    // write elements
+    writeElementInfo(f, Elements, "Tet4");
 
-    /*  write tags: */
-    if (tag_map) {
-        fprintf(f, "Tags\n");
-        while (tag_map) {
-            fprintf(f, "%s %d\n", tag_map->name, tag_map->tag_key);
-            tag_map = tag_map->next;
+    // write face elements
+    writeElementInfo(f, FaceElements, "Tri3");
+
+    // write points
+    writeElementInfo(f, Points, "Point1");
+
+    // write tags
+    if (tagMap.size() > 0) {
+        f <<  "Tags" << endl;
+        TagMap::const_iterator it;
+        for (it=tagMap.begin(); it!=tagMap.end(); it++) {
+            f << it->first << " " << it->second << endl;
         }
     }
-    fclose(f);
+    f.close();
 #ifdef Dudley_TRACE
-    printf("mesh %s has been written to file %s\n", in->Name, fname);
+    cout << "mesh " << m_name << " has been written to file " << filename << endl;
 #endif
 }
 
-void Dudley_PrintMesh_Info(Dudley_Mesh * in, bool full)
+void Mesh::printInfo(bool full)
 {
-    int NN, i, j, numDim;
-    Dudley_TagMap *tag_map = in->TagMap;
+    cout << "PrintMeshInfo running on CPU " << MPIInfo->rank << " of "
+              << MPIInfo->size << endl;
+    cout << "\tMesh name '" << m_name << "'\n";
+    cout << "\tApproximation order " << approximationOrder << endl;
+    cout << "\tIntegration order " << integrationOrder << endl;
+    cout << "\tReduced Integration order " << reducedIntegrationOrder << endl;
 
-    fprintf(stdout, "Dudley_PrintMesh_Info running on CPU %d of %d\n", in->MPIInfo->rank, in->MPIInfo->size);
-    fprintf(stdout, "\tMesh name '%s'\n", in->Name);
-    fprintf(stdout, "\tApproximation order %d\n", in->approximationOrder);
-    fprintf(stdout, "\tReduced Approximation order %d\n", in->reducedApproximationOrder);
-    fprintf(stdout, "\tIntegration order %d\n", in->integrationOrder);
-    fprintf(stdout, "\tReduced Integration order %d\n", in->reducedIntegrationOrder);
-
-    /* write nodes: */
-    if (in->Nodes != NULL) {
-        numDim = Dudley_Mesh_getDim(in);
-        fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
+    // write nodes
+    if (Nodes != NULL) {
+        const int numDim = getDim();
+        cout << "\tNodes: " << numDim << "D-Nodes " << Nodes->getNumNodes() << endl;
         if (full) {
-            fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n");
-            for (i = 0; i < in->Nodes->numNodes; i++) {
-                fprintf(stdout, "\t  %5d %5d %5d %5d %5d %5d: ", in->Nodes->Id[i], in->Nodes->Tag[i],
-                        in->Nodes->globalDegreesOfFreedom[i], in->Nodes->globalNodesIndex[i],
-                        in->Nodes->globalReducedDOFIndex[i], in->Nodes->globalReducedNodesIndex[i]);
-                for (j = 0; j < numDim; j++)
-                    fprintf(stdout, " %20.15e", in->Nodes->Coordinates[INDEX2(j, i, numDim)]);
-                fprintf(stdout, "\n");
+            cout << "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n";
+            for (index_t i=0; i < Nodes->getNumNodes(); i++) {
+                cout << "\t" << setw(7) << Nodes->Id[i]
+                     << setw(6) << Nodes->Tag[i]
+                     << setw(6) << Nodes->globalDegreesOfFreedom[i]
+                     << setw(6) << Nodes->globalNodesIndex[i]
+                     << setw(6) << Nodes->globalDegreesOfFreedom[i]
+                     << setw(6) << Nodes->globalNodesIndex[i] << ": ";
+                cout.setf(ios::scientific, ios::floatfield);
+                cout.precision(15);
+                for (int j=0; j<numDim; j++)
+                    cout << " " << Nodes->Coordinates[INDEX2(j,i,numDim)];
+                cout << endl;
             }
         }
     } else {
-        fprintf(stdout, "\tNodes: 0D-Nodes 0\n");
+        cout << "\tNodes: 0D-Nodes 0\n";
     }
 
-    /* write elements: */
-    if (in->Elements != NULL) {
-        int mine = 0, overlap = 0;
-        for (i = 0; i < in->Elements->numElements; i++) {
-            if (in->Elements->Owner[i] == in->MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        fprintf(stdout, "\tElements: %s %d (TypeId=%d) owner=%d overlap=%d\n",
-                in->Elements->ename /*referenceElementSet->referenceElement->Type->Name */ , in->Elements->numElements,
-                in->Elements->etype /*referenceElementSet->referenceElement->Type->TypeId */ , mine, overlap);
-        NN = in->Elements->numNodes;
-        if (full) {
-            fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-            for (i = 0; i < in->Elements->numElements; i++) {
-                fprintf(stdout, "\t  %5d %5d %5d %5d: ", in->Elements->Id[i], in->Elements->Tag[i],
-                        in->Elements->Owner[i], in->Elements->Color[i]);
-                for (j = 0; j < NN; j++)
-                    fprintf(stdout, " %5d", in->Nodes->Id[in->Elements->Nodes[INDEX2(j, i, NN)]]);
-                fprintf(stdout, "\n");
-            }
-        }
-    } else {
-        fprintf(stdout, "\tElements: Tet4 0\n");
-    }
+    // write elements
+    printElementInfo(Elements, "Elements", "Tet4", full);
 
-    /* write face elements: */
-    if (in->FaceElements != NULL) {
-        int mine = 0, overlap = 0;
-        for (i = 0; i < in->FaceElements->numElements; i++) {
-            if (in->FaceElements->Owner[i] == in->MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        fprintf(stdout, "\tFace elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",
-                in->FaceElements->ename /*referenceElementSet->referenceElement->Type->Name */ ,
-                in->FaceElements->numElements,
-                in->FaceElements->etype /*->referenceElementSet->referenceElement->Type->TypeId*/ , mine, overlap);
-        NN = in->FaceElements->numNodes;
-        if (full) {
-            fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-            for (i = 0; i < in->FaceElements->numElements; i++) {
-                fprintf(stdout, "\t  %5d %5d %5d %5d: ", in->FaceElements->Id[i], in->FaceElements->Tag[i],
-                        in->FaceElements->Owner[i], in->FaceElements->Color[i]);
-                for (j = 0; j < NN; j++)
-                    fprintf(stdout, " %5d", in->Nodes->Id[in->FaceElements->Nodes[INDEX2(j, i, NN)]]);
-                fprintf(stdout, "\n");
-            }
-        }
-    } else {
-        fprintf(stdout, "\tFace elements: Tri3 0\n");
-    }
+    // write face elements
+    printElementInfo(FaceElements, "Face elements", "Tri3", full);
 
-    /* write points: */
-    if (in->Points != NULL) {
-        int mine = 0, overlap = 0;
-        for (i = 0; i < in->Points->numElements; i++) {
-            if (in->Points->Owner[i] == in->MPIInfo->rank)
-                mine++;
-            else
-                overlap++;
-        }
-        fprintf(stdout, "\tPoints: %s %d (TypeId=%d) owner=%d overlap=%d\n",
-                in->Points->ename /*->referenceElementSet->referenceElement->Type->Name*/ , in->Points->numElements,
-                in->Points->etype /*referenceElementSet->referenceElement->Type->TypeId */ , mine, overlap);
-        if (full) {
-            fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-            for (i = 0; i < in->Points->numElements; i++)
-            {
-                fprintf(stdout, "\t  %5d %5d %5d %5d %5d\n", in->Points->Id[i], in->Points->Tag[i],
-                        in->Points->Owner[i], in->Points->Color[i], in->Nodes->Id[in->Points->Nodes[INDEX2(0, i, 1)]]);
-            }
-        }
-    } else {
-        fprintf(stdout, "\tPoints: Point1 0\n");
-    }
+    // write points
+    printElementInfo(Points, "Points", "Point1", full);
 
-    /* write tags: */
-    if (tag_map) {
-        fprintf(stdout, "\tTags:\n");
-        while (tag_map) {
-            fprintf(stdout, "\t  %5d %s\n", tag_map->tag_key, tag_map->name);
-            tag_map = tag_map->next;
+    // write tags
+    if (tagMap.size() > 0) {
+        cout << "\tTags:\n";
+        TagMap::const_iterator it;
+        for (it=tagMap.begin(); it!=tagMap.end(); it++) {
+            cout << "\t" << setw(7) << it->second << " " << it->first << endl;
         }
     }
 }

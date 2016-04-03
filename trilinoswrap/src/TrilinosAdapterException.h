@@ -14,20 +14,22 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
+#ifndef __TRILINOSADAPTEREXCEPTION_H__
+#define __TRILINOSADAPTEREXCEPTION_H__
 
-/*   Dudley: Mesh: sets new coordinates for nodes */
+#include <escript/EsysException.h>
 
-/****************************************************************************/
+namespace esys_trilinos {
 
-#include "Mesh.h"
-
-namespace dudley {
-
-void Dudley_Mesh_setCoordinates(Dudley_Mesh * self, const escript::Data* newX)
+class TrilinosAdapterException : public escript::EsysException
 {
-    Dudley_NodeFile_setCoordinates(self->Nodes, newX);
-}
+public:
+    TrilinosAdapterException(const std::string& str)
+        : escript::EsysException(str) {}
+};
 
-} // namespace dudley
+
+} // namespace esys_trilinos
+
+#endif // __TRILINOSADAPTEREXCEPTION_H__
 

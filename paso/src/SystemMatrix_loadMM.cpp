@@ -170,17 +170,16 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     row_ptr[M] = nz;
 
     // create return value
-    index_t dist[2];
-    dist[0]=0;
-    dist[1]=M;
+    std::vector<index_t> dist(2);
+    dist[1] = M;
     Distribution_ptr output_dist(new Distribution(mpi_info, dist, 1, 0));
-    dist[1]=N;
+    dist[1] = N;
     Distribution_ptr input_dist(new Distribution(mpi_info, dist, 1, 0));
     Pattern_ptr mainPattern(new Pattern(MATRIX_FORMAT_DEFAULT, M, N, row_ptr, col_ind));
     Pattern_ptr couplePattern(new Pattern(MATRIX_FORMAT_DEFAULT, M, N, NULL, NULL));
-    dist[0]=M;
+    dist[0] = M;
     SharedComponents_ptr send(new SharedComponents(
-                                    M, 0, NULL, NULL, dist, 1, 0, mpi_info));
+                                  M, 0, NULL, NULL, &dist[0], 1, 0, mpi_info));
     Connector_ptr connector(new Connector(send, send));
     SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
                 MATRIX_FORMAT_DEFAULT, output_dist, input_dist, mainPattern,
@@ -270,12 +269,11 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     }
     col_ptr[N] = nz;
 
-    index_t dist[2];
-    dist[0]=0;
-    dist[1]=N;
-    Distribution_ptr output_dist(new Distribution(mpi_info, dist,1,0));
-    dist[1]=M;
-    Distribution_ptr input_dist(new Distribution(mpi_info, dist,1,0));
+    std::vector<index_t> dist(2);
+    dist[1] = N;
+    Distribution_ptr output_dist(new Distribution(mpi_info, dist, 1, 0));
+    dist[1] = M;
+    Distribution_ptr input_dist(new Distribution(mpi_info, dist, 1, 0));
     mainPattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT,N,M,col_ptr,col_ind));
     couplePattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT,N,M,NULL,NULL));
     SharedComponents_ptr send(new SharedComponents(

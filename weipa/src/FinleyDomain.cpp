@@ -115,9 +115,9 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 #endif
 #ifdef USE_DUDLEY
     else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
-        const dudley::Dudley_Mesh* dudleyMesh =
+        const dudley::Mesh* dudleyMesh =
             dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)
-                ->getDudley_Mesh();
+                ->getMesh();
 
         nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
         cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
@@ -182,7 +182,7 @@ Centering FinleyDomain::getCenteringForFunctionSpace(int fsCode) const
         ret = NODE_CENTERED;
 #endif
 #ifdef USE_DUDLEY
-    if (fsCode==DUDLEY_REDUCED_NODES || fsCode==DUDLEY_NODES)
+    if (fsCode==DUDLEY_NODES)
         ret = NODE_CENTERED;
 #endif
     return ret;
@@ -265,10 +265,6 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
 
     if (fsCode == DUDLEY_NODES) {
         result = cells;
-    } else if (fsCode == DUDLEY_REDUCED_NODES) {
-        result = cells->getReducedElements();
-        if (!result)
-            result = cells;
     } else {
         switch (fsCode) {
             case DUDLEY_REDUCED_ELEMENTS:

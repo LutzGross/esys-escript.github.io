@@ -22,9 +22,9 @@ sources = Glob('*.py')
 
 # compile
 pyc = local_env.PyCompile(sources)
-local_env.Depends(pyc, py_wrapper_lib)
+local_env.Depends(pyc, 'build_weipa')
 
 # install
-py_inst = local_env.Install(local_env['pyinstall']+'/weipa', pyc)
-env.Alias('install_weipa_py', py_inst)
+py_inst = local_env.Install(Dir('weipa', local_env['pyinstall']), pyc)
+env.Alias('install_weipa', py_inst)
 

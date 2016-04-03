@@ -20,26 +20,26 @@ local_env = env.Clone()
 
 if local_env['cppunit']:
     # get the test source file names
-    sources = Glob('*.cpp')+Glob('*.c')
+    sources = Glob('*.cpp')
     testname='weipa_UnitTest'
 
     # build the executable
     local_env.Append(LIBS=['weipa', 'escript']+env['cppunit_libs'])
     if 'dudley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
-        local_env.Prepend(LIBS = ['dudley'])
+        local_env.PrependUnique(LIBS = env['dudley_libs'])
     if 'finley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_FINLEY'])
-        local_env.Prepend(LIBS = ['finley'])
+        local_env.PrependUnique(LIBS = env['finley_libs'])
     if 'ripley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
-        local_env.Prepend(LIBS = ['ripley'])
+        local_env.PrependUnique(LIBS = env['ripley_libs'])
     if 'speckley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
-        local_env.Prepend(LIBS = ['speckley'])
+        local_env.PrependUnique(LIBS = env['speckley_libs'])
     if local_env['silo']:
         local_env.Append(CPPDEFINES = ['USE_SILO'])
-        local_env.AppendUnique(LIBS = [env['silo_libs']])
+        local_env.AppendUnique(LIBS = env['silo_libs'])
     program = local_env.Program(testname, sources)
 
     # run the tests - but only if test_targets are stale
@@ -55,5 +55,5 @@ if local_env['cppunit']:
     TestGroups.append(tgroup)
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/weipa/test/python'], variant_dir='python', duplicate=0)
+local_env.SConscript('python/SConscript', duplicate=0)
 

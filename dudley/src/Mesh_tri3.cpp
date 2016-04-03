@@ -14,82 +14,68 @@
 *
 *****************************************************************************/
 
-/****************************************************************************/
-
-/*   Dudley: generates triangular meshes by splitting rectangles */
-
-/*   Generates a numElements[0] x numElements[1] x 2 mesh with first order elements (Tri3) in the rectangle */
-/*   [0,Length[0]] x [0,Length[1]]. order is the desired accuracy of the integration scheme. */
-
-/****************************************************************************/
-
 #include "TriangularMesh.h"
+
+using escript::DataTypes::real_t;
 
 namespace dudley {
 
-Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
-                 index_t order, index_t reduced_order, bool optimize,
-                 escript::JMPI& mpi_info)
+Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
+                          bool optimize, escript::JMPI mpiInfo)
 {
-#define N_PER_E 1
-#define DIM 2
-    dim_t N0, N1, NE0, NE1, i0, i1, Nstride0 = 0, Nstride1 = 0, local_NE0, local_NE1, local_N0 = 0, local_N1 = 0;
-    index_t offset0 = 0, offset1 = 0, e_offset0 = 0, e_offset1 = 0;
-    dim_t totalNECount, faceNECount, NDOF0 = 0, NDOF1 = 0, NFaceElements;
-    index_t myRank;
-    Dudley_Mesh *out;
-    char name[50];
-    const int LEFTTAG = 1;      /* boundary x1=0 */
-    const int RIGHTTAG = 2;     /* boundary x1=1 */
-    const int BOTTOMTAG = 10;   /* boundary x2=0 */
-    const int TOPTAG = 20;      /* boundary x2=1 */
+    const int DIM = 2;
+    const int LEFTTAG = 1;    // boundary x1=0
+    const int RIGHTTAG = 2;   // boundary x1=1
+    const int BOTTOMTAG = 10; // boundary x2=0
+    const int TOPTAG = 20;    // boundary x2=1
 
 #ifdef Dudley_TRACE
     double time0 = Dudley_timer();
 #endif
 
-    /* get MPI information */
-    myRank = mpi_info->rank;
+    const int myRank = mpiInfo->rank;
 
-    /* set up the global dimensions of the mesh */
+    // set up the global dimensions of the mesh
+    const dim_t NE0 = std::max(1, numElements[0]);
+    const dim_t NE1 = std::max(1, numElements[1]);
+    const dim_t N0 = NE0 + 1;
+    const dim_t N1 = NE1 + 1;
 
-    NE0 = std::max(1, numElements[0]);
-    NE1 = std::max(1, numElements[1]);
-    N0 = N_PER_E * NE0 + 1;
-    N1 = N_PER_E * NE1 + 1;
+    // This code was originally copied from Finley's Rec4 constructor.
+    // NE? refers to the number of rectangular elements in each direction.
+    // The number of nodes produced is the same but the number of non-face
+    // elements will double since each "rectangle" is split into two triangles.
 
-    /* This code was originally copied from Finley's Rec4 constructor.
-       NE? refers to the number of rectangular elements in each direction.
-       The number of nodes produced is the same but the number of non-face
-       elements will double.
-     */
+    // allocate mesh
+    std::stringstream name;
+    name << "Triangular " << N0 << " x " << N1 << " (x 2) mesh";
+    Mesh* out = new Mesh(name.str(), DIM, mpiInfo);
 
-    /*  allocate mesh: */
-    sprintf(name, "Triangular %d x %d (x 2) mesh", N0, N1);
-    out = Dudley_Mesh_alloc(name, DIM, mpi_info);
+    out->setPoints(new ElementFile(Dudley_Point1, mpiInfo));
+    out->setFaceElements(new ElementFile(Dudley_Line2, mpiInfo));
+    out->setElements(new ElementFile(Dudley_Tri3, mpiInfo));
 
-    Dudley_Mesh_setPoints(out, Dudley_ElementFile_alloc(Dudley_Point1, mpi_info));
-    Dudley_Mesh_setFaceElements(out, Dudley_ElementFile_alloc(Dudley_Line2, mpi_info));
-    Dudley_Mesh_setElements(out, Dudley_ElementFile_alloc(Dudley_Tri3, mpi_info));
-    Nstride0 = 1;
-    Nstride1 = N0;
+    const dim_t Nstride0 = 1;
+    const dim_t Nstride1 = N0;
+    dim_t local_NE0, local_NE1;
+    index_t e_offset0 = 0, e_offset1 = 0;
     if (N1 == std::max(N0, N1)) {
         local_NE0 = NE0;
         e_offset0 = 0;
-        mpi_info->split(NE1, &local_NE1, &e_offset1);
+        mpiInfo->split(NE1, &local_NE1, &e_offset1);
     } else {
-        mpi_info->split(NE0, &local_NE0, &e_offset0);
+        mpiInfo->split(NE0, &local_NE0, &e_offset0);
         local_NE1 = NE1;
         e_offset1 = 0;
     }
-    offset0 = e_offset0 * N_PER_E;
-    offset1 = e_offset1 * N_PER_E;
-    local_N0 = local_NE0 > 0 ? local_NE0 * N_PER_E + 1 : 0;
-    local_N1 = local_NE1 > 0 ? local_NE1 * N_PER_E + 1 : 0;
+    const index_t offset0 = e_offset0;
+    const index_t offset1 = e_offset1;
+    const dim_t local_N0 = local_NE0 > 0 ? local_NE0 + 1 : 0;
+    const dim_t local_N1 = local_NE1 > 0 ? local_NE1 + 1 : 0;
 
-    /* get the number of surface elements */
-
-    NFaceElements = 0;
+    // get the number of surface elements
+    dim_t NFaceElements = 0;
+    dim_t NDOF0, NDOF1;
     if (local_NE0 > 0) {
         NDOF0 = N0;
         if (e_offset0 == 0)
@@ -109,52 +95,52 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
         NDOF1 = N1 - 1;
     }
 
-    Dudley_NodeFile_allocTable(out->Nodes, local_N0 * local_N1);
+    out->Nodes->allocTable(local_N0 * local_N1);
+    out->Elements->allocTable(local_NE0 * local_NE1 * 2);
+    out->FaceElements->allocTable(NFaceElements);
 
-    /* This code was originally copied from Finley's rec4 generator 
-       We double these numbers because each "rectangle" will be split into
-       two triangles. So the number of nodes is the same but the 
-       number of elements will double */
-    Dudley_ElementFile_allocTable(out->Elements, local_NE0 * local_NE1 * 2);
-    Dudley_ElementFile_allocTable(out->FaceElements, NFaceElements);
-
-    dim_t NN;
-    index_t global_adjustment;
-    /* create nodes */
-#pragma omp parallel for private(i0,i1)
-    for (i1 = 0; i1 < local_N1; i1++) {
-        for (i0 = 0; i0 < local_N0; i0++) {
-            dim_t k = i0 + local_N0 * i1;
-            dim_t global_i0 = i0 + offset0;
-            dim_t global_i1 = i1 + offset1;
-            out->Nodes->Coordinates[INDEX2(0, k, DIM)] = (double)global_i0 / (double)(N0 - 1) * Length[0];
-            out->Nodes->Coordinates[INDEX2(1, k, DIM)] = (double)global_i1 / (double)(N1 - 1) * Length[1];
+    // create nodes
+#pragma omp parallel for
+    for (index_t i1 = 0; i1 < local_N1; i1++) {
+        for (index_t i0 = 0; i0 < local_N0; i0++) {
+            const dim_t k = i0 + local_N0 * i1;
+            const dim_t global_i0 = i0 + offset0;
+            const dim_t global_i1 = i1 + offset1;
+            out->Nodes->Coordinates[INDEX2(0, k, DIM)] = (real_t)global_i0 / (real_t)(N0 - 1) * length[0];
+            out->Nodes->Coordinates[INDEX2(1, k, DIM)] = (real_t)global_i1 / (real_t)(N1 - 1) * length[1];
             out->Nodes->Id[k] = Nstride0 * global_i0 + Nstride1 * global_i1;
             out->Nodes->Tag[k] = 0;
-            out->Nodes->globalDegreesOfFreedom[k] = Nstride0 * (global_i0 % NDOF0) + Nstride1 * (global_i1 % NDOF1);
+            out->Nodes->globalDegreesOfFreedom[k] =
+                                                Nstride0 * (global_i0 % NDOF0)
+                                              + Nstride1 * (global_i1 % NDOF1);
         }
     }
-    /*   set the elements: */
-    NN = out->Elements->numNodes;
-    global_adjustment = (offset0 + offset1) % 2;
-#pragma omp parallel for private(i0,i1)
-    for (i1 = 0; i1 < local_NE1; i1++) {
-        for (i0 = 0; i0 < local_NE0; i0++) {
-            index_t a, b, c, d;
-            /* we will split this "rectangle" into two triangles */
-            dim_t k = 2 * (i0 + local_NE0 * i1);
-            index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (i1 + e_offset1);
 
-            out->Elements->Id[k] = 2 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1));
+    // set the elements
+    dim_t NN = out->Elements->numNodes;
+    const index_t global_adjustment = (offset0 + offset1) % 2;
+
+#pragma omp parallel for
+    for (index_t i1 = 0; i1 < local_NE1; i1++) {
+        for (index_t i0 = 0; i0 < local_NE0; i0++) {
+            // we will split this "rectangle" into two triangles
+            const dim_t k = 2 * (i0 + local_NE0 * i1);
+            const index_t node0 = Nstride0 * (i0 + e_offset0)
+                                + Nstride1 * (i1 + e_offset1);
+
+            out->Elements->Id[k] = 2 * (i0 + e_offset0) + NE0*(i1 + e_offset1);
             out->Elements->Tag[k] = 0;
             out->Elements->Owner[k] = myRank;
             out->Elements->Id[k + 1] = out->Elements->Id[k] + 1;
             out->Elements->Tag[k + 1] = 0;
             out->Elements->Owner[k + 1] = myRank;
 
-            /* a,b,c,d gives the nodes in the rectangle in clockwise order */
-            a = node0; b = node0 + Nstride0; c = node0 + Nstride1 + Nstride0; d = node0 + Nstride1;
-            /* For a little bit of variety  */
+            // a,b,c,d gives the nodes of the rectangle in clockwise order
+            const index_t a = node0;
+            const index_t b = node0 + Nstride0;
+            const index_t c = node0 + Nstride1 + Nstride0;
+            const index_t d = node0 + Nstride1;
+            // For a little bit of variety
             if ((global_adjustment + node0) % 2) {
                 out->Elements->Nodes[INDEX2(0, k, NN)] = a;
                 out->Elements->Nodes[INDEX2(1, k, NN)] = b;
@@ -172,19 +158,18 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
             }
         }
     }
-    /* face elements */
+
+    // face elements
     NN = out->FaceElements->numNodes;
-    totalNECount = 2 * NE0 * NE1;   /* because we have split the rectangles */
-    faceNECount = 0;
+    dim_t totalNECount = 2 * NE0 * NE1; // because we have split the rectangles
+    dim_t faceNECount = 0;
     if (local_NE0 > 0) {
-        /* **  elements on boundary 001 (x1=0): */
-
+        // ** elements on boundary 001 (x1=0)
         if (e_offset0 == 0) {
-#pragma omp parallel for private(i1)
-            for (i1 = 0; i1 < local_NE1; i1++) {
-                dim_t k = i1 + faceNECount;
-                index_t node0 = Nstride1 * N_PER_E * (i1 + e_offset1);
-
+#pragma omp parallel for
+            for (index_t i1 = 0; i1 < local_NE1; i1++) {
+                const dim_t k = i1 + faceNECount;
+                const index_t node0 = Nstride1 * (i1 + e_offset1);
                 out->FaceElements->Id[k] = i1 + e_offset1 + totalNECount;
                 out->FaceElements->Tag[k] = LEFTTAG;
                 out->FaceElements->Owner[k] = myRank;
@@ -194,12 +179,13 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
             faceNECount += local_NE1;
         }
         totalNECount += NE1;
-        /* **  elements on boundary 002 (x1=1): */
+        // ** elements on boundary 002 (x1=1)
         if (local_NE0 + e_offset0 == NE0) {
-#pragma omp parallel for private(i1)
-            for (i1 = 0; i1 < local_NE1; i1++) {
-                dim_t k = i1 + faceNECount;
-                index_t node0 = Nstride0 * N_PER_E * (NE0 - 1) + Nstride1 * N_PER_E * (i1 + e_offset1);
+#pragma omp parallel for
+            for (index_t i1 = 0; i1 < local_NE1; i1++) {
+                const dim_t k = i1 + faceNECount;
+                const index_t node0 = Nstride0 * (NE0 - 1)
+                                    + Nstride1 * (i1 + e_offset1);
 
                 out->FaceElements->Id[k] = (i1 + e_offset1) + totalNECount;
                 out->FaceElements->Tag[k] = RIGHTTAG;
@@ -212,51 +198,49 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t* numElements, double* Length,
         totalNECount += NE1;
     }
     if (local_NE1 > 0) {
-        /* **  elements on boundary 010 (x2=0): */
+        // ** elements on boundary 010 (x2=0)
         if (e_offset1 == 0) {
-#pragma omp parallel for private(i0)
-            for (i0 = 0; i0 < local_NE0; i0++) {
-                dim_t k = i0 + faceNECount;
-                index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0);
-
+#pragma omp parallel for
+            for (index_t i0 = 0; i0 < local_NE0; i0++) {
+                const dim_t k = i0 + faceNECount;
+                const index_t node0 = Nstride0 * (i0 + e_offset0);
                 out->FaceElements->Id[k] = e_offset0 + i0 + totalNECount;
                 out->FaceElements->Tag[k] = BOTTOMTAG;
                 out->FaceElements->Owner[k] = myRank;
-
                 out->FaceElements->Nodes[INDEX2(0, k, NN)] = node0;
                 out->FaceElements->Nodes[INDEX2(1, k, NN)] = node0 + Nstride0;
             }
             faceNECount += local_NE0;
         }
         totalNECount += NE0;
-        /* **  elements on boundary 020 (x2=1): */
+        // ** elements on boundary 020 (x2=1)
         if (local_NE1 + e_offset1 == NE1) {
-#pragma omp parallel for private(i0)
-            for (i0 = 0; i0 < local_NE0; i0++) {
-                dim_t k = i0 + faceNECount;
-                index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (NE1 - 1);
+#pragma omp parallel for
+            for (index_t i0 = 0; i0 < local_NE0; i0++) {
+                const dim_t k = i0 + faceNECount;
+                const index_t node0 = Nstride0 * (i0 + e_offset0)
+                                    + Nstride1 * (NE1 - 1);
 
                 out->FaceElements->Id[k] = i0 + e_offset0 + totalNECount;
                 out->FaceElements->Tag[k] = TOPTAG;
                 out->FaceElements->Owner[k] = myRank;
-
                 out->FaceElements->Nodes[INDEX2(0, k, NN)] = node0 + Nstride1 + Nstride0;
                 out->FaceElements->Nodes[INDEX2(1, k, NN)] = node0 + Nstride1;
-/*printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); */
             }
             faceNECount += local_NE0;
         }
         totalNECount += NE0;
     }
-    /* add tag names */
-    Dudley_Mesh_addTagMap(out, "top", TOPTAG);
-    Dudley_Mesh_addTagMap(out, "bottom", BOTTOMTAG);
-    Dudley_Mesh_addTagMap(out, "left", LEFTTAG);
-    Dudley_Mesh_addTagMap(out, "right", RIGHTTAG);
-    /* prepare mesh for further calculations: */
-    Dudley_Mesh_resolveNodeIds(out);
-    Dudley_Mesh_prepare(out, optimize);
+
+    // add tag names
+    out->addTagMap("top", TOPTAG);
+    out->addTagMap("bottom", BOTTOMTAG);
+    out->addTagMap("left", LEFTTAG);
+    out->addTagMap("right", RIGHTTAG);
+
+    // prepare mesh for further calculations
+    out->resolveNodeIds();
+    out->prepare(optimize);
     return out;
 }
 

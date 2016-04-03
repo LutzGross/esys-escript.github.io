@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#if !defined  dudley_MeshAdapterFactory_20040526_H
-#define dudley_MeshAdapterFactory_20040526_H
+#ifndef __DUDLEY_MESHADAPTERFACTORY_H__
+#define __DUDLEY_MESHADAPTERFACTORY_H__
 
 #include "system_dep.h"
 #include "MeshAdapter.h"
@@ -56,9 +56,9 @@ namespace dudley {
   DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
    escript::Domain_ptr readMesh(const std::string& fileName,
-				     int integrationOrder=-1,
-                                     int reducedIntegrationOrder=-1,
-                                     int optimize=0);
+                                int integrationOrder=-1,
+                                int reducedIntegrationOrder=-1,
+                                bool optimize=false);
   /**
      \brief
      Read a gmsh mesh file
@@ -72,12 +72,12 @@ namespace dudley {
   */
   DUDLEY_DLL_API
   escript::Domain_ptr readGmsh(const std::string& fileName,
-				     int numDim, 
-				     int integrationOrder=-1,
-				     int reducedIntegrationOrder=-1, 
-				     int optimize=0);
-				     
-				     
+                               int numDim, 
+                               int integrationOrder=-1,
+                               int reducedIntegrationOrder=-1, 
+                               bool optimize=false);
+                                     
+                                     
    /**
    \brief Python driver for brick()
    \param args see brick() definition for order of params
@@ -119,7 +119,7 @@ namespace dudley {
                     int reducedIntegrationOrder=-1,
                     int useElementsOnFace=0,
                     int useFullElementOrder=0,
-                    int optimize=0);
+                    bool optimize=false);
 
   /**
      \brief
@@ -148,7 +148,7 @@ namespace dudley {
                                       int reducedIntegrationOrder=-1,
                                       int useElementsOnFace=0,
                                       int useFullElementOrder=0,
-                                      int optimize=0);
+                                      bool optimize=false);
 
 //  /**
 //     \brief
@@ -161,4 +161,6 @@ namespace dudley {
 
  
 } // end of namespace
-#endif
+
+#endif // __DUDLEY_MESHADAPTERFACTORY_H__
+

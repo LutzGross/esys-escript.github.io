@@ -14,8 +14,12 @@
 *
 *****************************************************************************/
 
-#ifndef DUDLEY_TYPEID_H
-#define DUDLEY_TYPEID_H
+#ifndef __DUDLEY_ELEMENTTYPE_H__
+#define __DUDLEY_ELEMENTTYPE_H__
+
+#include <string>
+
+namespace dudley {
 
 typedef enum {
     Dudley_Point1 = 0,
@@ -25,8 +29,30 @@ typedef enum {
     Dudley_Line2Face = 4,
     Dudley_Tri3Face = 5,
     Dudley_Tet4Face = 6,
-    Dudley_NoRef = 7			/* marks end of list */
-} Dudley_ElementTypeId;
+    Dudley_NoRef = 7      // marks end of list
+} ElementTypeId;
 
-Dudley_ElementTypeId eltTypeFromString(const char *s);
-#endif
+inline ElementTypeId eltTypeFromString(const std::string& s)
+{
+    if (s == "Point1")
+        return Dudley_Point1;
+    else if (s == "Line2")
+        return Dudley_Line2;
+    else if (s == "Tri3")
+        return Dudley_Tri3;
+    else if (s == "Tet4")
+        return Dudley_Tet4;
+    else if (s == "Line2Face")
+        return Dudley_Line2Face;
+    else if (s == "Tri3Face")
+        return Dudley_Tri3Face;
+    else if (s == "Tet4Face")
+        return Dudley_Tet4Face;
+    else
+        return Dudley_NoRef;
+}
+
+}
+
+#endif // __DUDLEY_ELEMENTTYPE_H__
+

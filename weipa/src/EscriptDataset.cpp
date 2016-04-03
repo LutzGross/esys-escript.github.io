@@ -55,7 +55,7 @@ using escript::FileWriter;
 #if USE_SILO
 #include <silo.h>
 
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
 #include <pmpio.h>
 const int NUM_SILO_FILES = 1; // number of Silo files to produce per save
 #endif
@@ -84,7 +84,7 @@ EscriptDataset::EscriptDataset() :
 //
 // Constructor with communicator
 //
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
 EscriptDataset::EscriptDataset(MPI_Comm comm) :
     cycle(0),
     time(0.),
@@ -120,7 +120,7 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         cerr << "Domain is NULL!" << endl;
         myError = 1;
     } else {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         mpiComm = domain->getMPIComm();
         mpiRank = domain->getMPIRank();
         mpiSize = domain->getMPISize();
@@ -189,7 +189,7 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
     }
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
 #else
         gError = myError;
@@ -319,7 +319,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     //Unidata has been contacted, Ticket ID: YTC-894489.
     //When this issue is resolved, remove the following line.
     driver = DB_PDB;
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
     PMPIO_baton_t* baton = NULL;
 #endif
 
@@ -328,7 +328,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     }
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE,
                     mpiComm, 0x1337, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
                     PMPIO_DefaultClose, (void*)&driver);
@@ -361,7 +361,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     if (!dbfile) {
         cerr << "Could not create Silo file." << endl;
         if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
             PMPIO_HandOffBaton(baton, dbfile);
             PMPIO_Finish(baton);
 #endif
@@ -464,7 +464,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     }
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         PMPIO_HandOffBaton(baton, dbfile);
         PMPIO_Finish(baton);
 #endif
@@ -506,7 +506,7 @@ bool EscriptDataset::saveVTK(string fileName)
         // We assume rank 0 always has samples, if this turns out to be a
         // wrong assumption then a bit more work is needed to get the correct
         // mesh name to all ranks.
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         if (mpiSize > 1) {
             char name[100];
             if (mpiRank == 0) {
@@ -622,7 +622,7 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     boost::scoped_ptr<FileWriter> fw(NULL);
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         fw.reset(new FileWriter(mpiComm));
         domainChunks[0]->removeGhostZones(mpiRank);
         ElementData_ptr elements = domainChunks[0]->getElementsByName(meshName);
@@ -890,7 +890,7 @@ bool EscriptDataset::loadDomain(const string filePattern, int nChunks)
     }
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
 #else
         gError = myError;
@@ -927,7 +927,7 @@ bool EscriptDataset::setExternalDomain(const DomainChunks& domain)
     }
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
 #else
         gError = myError;
@@ -982,7 +982,7 @@ bool EscriptDataset::loadData(const string filePattern, const string name,
         delete[] str;
 
         if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
             MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
 #else
             gError = myError;
@@ -1037,7 +1037,7 @@ void EscriptDataset::updateSampleDistribution(VarInfo& vi)
     const DataChunks& varChunks = vi.dataChunks;
 
     if (mpiSize > 1) {
-#if HAVE_MPI
+#if WEIPA_HAVE_MPI
         int myNumSamples = varChunks[0]->getNumberOfSamples();
         sampleDist.insert(sampleDist.end(), mpiSize, 0);
         MPI_Allgather(

@@ -273,13 +273,14 @@ void Assemble_PDE_Single_2D(const AssembleParameters& p,
                         }
                         // add the element matrices onto the matrix and
                         // right hand side
-                        for (int q=0; q<p.row_numShapesTotal; q++)
+                        for (int q=0; q<p.row_numShapesTotal; q++) {
                             row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
-
-                        if (add_EM_F)
+                        }
+                        if (add_EM_F) {
                             util::addScatter(p.row_numShapesTotal,
                                     &row_index[0], p.numEqu, &EM_F[0], F_p,
                                     p.row_DOF_UpperBound);
+                        }
                         if (add_EM_S)
                             Assemble_addToSystemMatrix(p.S,
                                     p.row_numShapesTotal, &row_index[0],

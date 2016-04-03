@@ -1,0 +1,10 @@
+
+For the impatient:
+- Install at least g++, python, scons, boost, numpy
+- Copy a suitable template options file from scons/templates/ to
+  scons/`hostname`_options.py and modify as required.
+- type: scons to build escript
+
+For more information read the install guide (scons install_pdf)
+and to get started using escript see the user guide and the cookbook.
+
