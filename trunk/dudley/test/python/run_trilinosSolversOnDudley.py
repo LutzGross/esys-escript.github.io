@@ -32,7 +32,10 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.dudley import Rectangle, Brick
+from esys.escript import getEscriptParamInt, SolverOptions
 from esys.escript.linearPDEs import SolverOptions
+
+HAVE_TRILINOS = getEscriptParamInt('HAVE_TRILINOS')
 
 # number of elements in the spatial directions
 NE0=12
@@ -40,6 +43,7 @@ NE1=12
 NE2=8
 OPTIMIZE=True
 
+@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
 class SimpleSolveSingleOnly(SimpleSolveTestCase):
     @unittest.skip("PDE systems not supported with Trilinos yet")
     def test_system(self):

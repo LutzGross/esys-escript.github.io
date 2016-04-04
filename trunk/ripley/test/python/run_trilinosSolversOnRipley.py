@@ -31,9 +31,11 @@ from test_simplesolve import SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
-from esys.escript import getMPISizeWorld, sqrt
+from esys.escript import getEscriptParamInt, getMPISizeWorld, sqrt
 from esys.ripley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
+
+HAVE_TRILINOS = getEscriptParamInt('HAVE_TRILINOS')
 
 # number of elements in the spatial directions
 NE0=12
@@ -53,6 +55,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
+@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
 class SimpleSolveSingleOnly(SimpleSolveTestCase):
     @unittest.skip("PDE systems not supported with Trilinos yet")
     def test_system(self):
