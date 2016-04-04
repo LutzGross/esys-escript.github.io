@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef escript_EscriptParams_H
-#define escript_EscriptParams_H
+#ifndef __ESCRIPT_PARAMS_H__
+#define __ESCRIPT_PARAMS_H__
 
 #include "system_dep.h"
 #include "Data.h"    // for the operators
@@ -31,13 +31,10 @@ class DataLazy;
 class EscriptParams
 {
 public:
-  ESCRIPT_DLL_API
   EscriptParams();
 
-  ESCRIPT_DLL_API
   int getInt(const char* name, int sentinel=0) const;
   
-  ESCRIPT_DLL_API
   void setInt(const char* name, int value);
 
   boost::python::list
@@ -46,18 +43,19 @@ public:
 private:
 
   // If we get more params we can replace this with a map
-	int too_many_lines;
-	int autolazy;
-	int too_many_levels;
-	int resolve_collective;
-	int lazy_str_fmt;
-	int lapack_support;
-	int lazy_verbose;
-	int amg_disabled;
-	int has_netcdf;
-	int gmsh;
-	int gmsh_mpi;
-	mutable int temp_direct_solver;
+    int too_many_lines;
+    int autolazy;
+    int too_many_levels;
+    int resolve_collective;
+    int lazy_str_fmt;
+    int lapack_support;
+    int lazy_verbose;
+    int amg_disabled;
+    int has_netcdf;
+    int have_trilinos;
+    int gmsh;
+    int gmsh_mpi;
+    mutable int temp_direct_solver;
 
 protected: 
   // This is to provide fast access for methods in Data.
@@ -97,27 +95,24 @@ extern EscriptParams escriptParams;
   \brief Set the value of a named parameter.
   See listEscriptParams() (showEscriptParams() in python) for available parameters.
 */
-ESCRIPT_DLL_API
 void setEscriptParamInt(const char* name, int value);
 
 /**
   \brief get the value of a named parameter.
   See listEscriptParams() (showEscriptParams() in python) for available parameters.
 */
-ESCRIPT_DLL_API
 int getEscriptParamInt(const char* name, int sentinel=0);
 
 /**
   \brief describe available paramters.
   \return a list of tuples (parameter name, value, description)
 */
-ESCRIPT_DLL_API
 inline boost::python::list listEscriptParams()
 {
    return escriptParams.listEscriptParams();
 }
 
+} // namespace escript
 
+#endif // __ESCRIPT_PARAMS_H__
 
-}
-#endif
