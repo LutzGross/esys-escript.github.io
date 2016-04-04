@@ -68,7 +68,7 @@ IndexPair getFlaggedMinMaxInt(dim_t N, const index_t* values, index_t ignore);
 /// those entries
 std::vector<index_t> packMask(const std::vector<short>& mask);
 
-void setValuesInUse(const index_t* values, dim_t numValues,
+void setValuesInUse(const int* values, dim_t numValues,
                     std::vector<int>& valuesInUse, escript::JMPI mpiInfo);
 
 } // namespace util

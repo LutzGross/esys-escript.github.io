@@ -203,7 +203,7 @@ double TransportProblem::getSafeTimeStepSize() const
         int fail = 0;
 #pragma omp parallel
         {
-            index_t fail_loc = 0;
+            int fail_loc = 0;
 #pragma omp for
             for (index_t i=0; i<n; ++i) {
                 const double m_i = lumped_mass_matrix[i];
