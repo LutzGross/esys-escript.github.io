@@ -142,11 +142,11 @@ class Test_CSVOnDudley(Test_saveCSV):
         self.domain=Rectangle(NE0,NE1)
         self.functionspaces=[ ContinuousFunction ]
         # number of total data points for each function space
-        self.linecounts=[ (NE0+1)*(NE1+1)+1, (NE0+1)*(NE1+1)+1 ]
+        self.linecounts=[ (NE0+1)*(NE1+1)+1 ]
         # number of masked points, i.e. where X[0] is non-zero
-        self.linecounts_masked=[ NE0*(NE1+1)+1, NE0*(NE1+1)+1 ]
+        self.linecounts_masked=[ NE0*(NE1+1)+1 ]
         # expected values in first line of masked data = [ X[:], X[0] ]
-        self.firstline=[ [1./NE0, 0., 1./NE0], [1./NE0, 0., 1./NE0] ]
+        self.firstline=[ [1./NE0, 0., 1./NE0] ]
 
         if getMPISizeWorld() == 1:
             self.functionspaces += [ Function, ReducedFunction,
