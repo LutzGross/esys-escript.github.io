@@ -478,6 +478,11 @@ except KeyError:
 
 ######################## Add some custom builders ############################
 
+# Takes care of prefix and suffix for Python modules:
+def build_python_module(env, target, source):
+    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX='.so')
+env.AddMethod(build_python_module, "PythonModule")
+
 if env['pythoncmd']=='python':
     py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 else:

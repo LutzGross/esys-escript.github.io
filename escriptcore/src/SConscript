@@ -142,7 +142,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 py_env = env.Clone()
 py_env.Prepend(LIBS = [module_name])
 py_lib_name = module_name + 'cpp'
-py_lib = py_env.SharedLibrary(py_lib_name, 'escriptcpp.cpp', SHLIBPREFIX='')
+py_lib = py_env.PythonModule(py_lib_name, 'escriptcpp.cpp')
 
 mod_path = Dir('escriptcore', local_env['pyinstall'])
 mod_inst = py_env.Install(mod_path, py_lib)
