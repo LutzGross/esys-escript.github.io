@@ -2466,23 +2466,23 @@ class Test_SymbolicTestCase(unittest.TestCase):
         self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
 
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    def test_nonsymmetric_Symbol_rank2(self):
+    def test_antisymmetric_Symbol_rank2(self):
         shape=(4, 4)
         x=Symbol('x', shape)
-        y=nonsymmetric(x)
+        y=antisymmetric(x)
         self.assertTrue(isinstance(y, Symbol), "wrong type of result")
         xx=numpy.array([[-0.66708916764681492, -0.74238465201633974, -0.079353161755557622, 0.30257601442541904], 
 [0.20925829383746208, -0.022009924374370327, 0.10502873236092491, -0.15884250966193902], [0.1797060494083087, 
 0.023139755304512288, 0.45170178441767739, 0.48507784807517917], [0.059968719280828253, -0.41251906740163857, 
 0.2910687977002866, -0.63445501785955627]])
-        ref=nonsymmetric(xx)
+        ref=antisymmetric(xx)
         res=Evaluator(y)(x=xx)
         self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    def test_nonsymmetric_Symbol_rank4(self):
+    def test_antisymmetric_Symbol_rank4(self):
         shape=(2, 3, 2, 3)
         x=Symbol('x', shape)
-        y=nonsymmetric(x)
+        y=antisymmetric(x)
         self.assertTrue(isinstance(y, Symbol), "wrong type of result")
         xx=numpy.array([[[[0.55376735565955926, -0.26986726052539045, 0.99540130065296051], [-0.66278909769325844, 
 0.47418600478729656, -0.57224349831177945]], [[0.26869674765376628, 0.87439268666551895, -0.58960755596620462], 
@@ -2492,7 +2492,7 @@ class Test_SymbolicTestCase(unittest.TestCase):
 [[0.38794533456732516, 0.68280080521959974, 0.95500219859151003], [-0.58249140643372388, -0.38374270163626578, 
 0.49303266750299435]], [[-0.34681269192922426, -0.24778438052869323, 0.72024308366404277], [0.768229749916157, 
 -0.79962778314547212, 0.70336464030375567]]]])
-        ref=nonsymmetric(xx)
+        ref=antisymmetric(xx)
         res=Evaluator(y)(x=xx)
         self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
