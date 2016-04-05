@@ -36,8 +36,8 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
     const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
-    const dim_t NE0 = std::max(1, numElements[0]);
-    const dim_t NE1 = std::max(1, numElements[1]);
+    const dim_t NE0 = std::max((dim_t)1, numElements[0]);
+    const dim_t NE1 = std::max((dim_t)1, numElements[1]);
     const dim_t N0 = NE0 + 1;
     const dim_t N1 = NE1 + 1;
 

@@ -535,7 +535,7 @@ int MeshAdapter::getDim() const
 //
 // Return the number of data points summed across all MPI processes
 //
-int MeshAdapter::getNumDataPointsGlobal() const
+dim_t MeshAdapter::getNumDataPointsGlobal() const
 {
     return m_dudleyMesh->Nodes->getGlobalNumNodes();
 }
