@@ -32,6 +32,14 @@ class Test_util_NaN_funcs(unittest.TestCase):
         self.assertTrue(sclNaN.hasNaN(),"sclNaN should contain NaN but its doesn't")
         sclNaN.replaceNaN(15.0)
         self.assertEqual(es.Lsup(sclNaN), 15.0)
+        scl=es.Scalar(0,es.ContinuousFunction(dom))
+        scl.expand()
+        scl.promote()
+        sclNaN=scl/0
+        self.assertTrue(sclNaN.hasNaN(),"sclNaN should contain NaN but its doesn't")
+        sclNaN.replaceNaN(3+4j)
+        self.assertEqual(es.Lsup(sclNaN), 5.0)
+
     
     def test_replaceNaNConstant(self):
         dom=self.domain
@@ -40,6 +48,12 @@ class Test_util_NaN_funcs(unittest.TestCase):
         self.assertTrue(dat.hasNaN(),"dat should contain NaN but its doesn't")
         dat.replaceNaN(10)
         self.assertEqual(es.Lsup(dat), 10)
+        dat = es.Data(10,es.ContinuousFunction(dom))
+        dat.promote()
+        dat=(dat*0)/0
+        self.assertTrue(dat.hasNaN(),"dat should contain NaN but its doesn't")
+        dat.replaceNaN(4+3j)
+        self.assertEqual(es.Lsup(dat), 5)
 
     def test_replaceNaNTagged(self):
         dom=self.domain
@@ -48,3 +62,9 @@ class Test_util_NaN_funcs(unittest.TestCase):
         sigma.setTaggedValue(1 , es.Lsup(dat))
         sigma.replaceNaN(10)
         self.assertEqual(es.Lsup(sigma), 10)
+        sigma = es.Scalar(0,es.FunctionOnBoundary(dom))
+        sigma.promote()
+        dat=(sigma*0)/0
+        sigma.setTaggedValue(1 , es.Lsup(dat))
+        sigma.replaceNaN(3+4j)
+        self.assertEqual(es.Lsup(sigma), 5)

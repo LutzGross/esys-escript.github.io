@@ -630,10 +630,10 @@ DataTagged::addTaggedValue(int tagKey,
     setTaggedValue(tagKey,pointshape, value, dataOffset);
   } else {
     // save the key and the location of its data in the lookup tab
-    m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data_r.size()));
-    // add the data given in "value" at the end of m_data_r
-    // need to make a temp copy of m_data_r, resize m_data_r, then copy
-    // all the old values plus the value to be added back into m_data_r
+    m_offsetLookup.insert(DataMapType::value_type(tagKey,m_data_c.size()));
+    // add the data given in "value" at the end of m_data_c
+    // need to make a temp copy of m_data_c, resize m_data_c, then copy
+    // all the old values plus the value to be added back into m_data_c
     DataTypes::CplxVectorType m_data_c_temp(m_data_c);
     int oldSize=m_data_c.size();
     int newSize=m_data_c.size()+getNoValues();
