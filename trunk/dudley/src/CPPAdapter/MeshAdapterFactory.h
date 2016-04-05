@@ -37,12 +37,12 @@ namespace dudley {
  
   /**
      \brief
-     recovers mesg from a dump file
+     recovers mesh from a dump file
      \param fileName Input -  The name of the file.
   */
   DUDLEY_DLL_API
-/*  escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);*/
   escript::Domain_ptr loadMesh(const std::string& fileName);
+
   /**
      \brief
      Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.
@@ -54,11 +54,11 @@ namespace dudley {
      \param optimize Input - switches on the optimization of node labels 
   */
   DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
-   escript::Domain_ptr readMesh(const std::string& fileName,
-                                int integrationOrder=-1,
-                                int reducedIntegrationOrder=-1,
-                                bool optimize=false);
+  escript::Domain_ptr readMesh(const std::string& fileName,
+                               int integrationOrder=-1,
+                               int reducedIntegrationOrder=-1,
+                               bool optimize=false);
+
   /**
      \brief
      Read a gmsh mesh file
@@ -104,21 +104,15 @@ namespace dudley {
      If integrationOrder<0 the integration order is selected independently.
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param useElementsOnFace Input - whether or not to use elements on face
-     \param periodic0, periodic1, periodic2 Input - whether or not boundary 
-     conditions of the dimension are periodic
-     \param useFullElementOrder
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr brick(escript::JMPI& mpi_info, double n0=1,double n1=1,double n2=1,int order=1,
-                    double l0=1.0,double l1=1.0,double l2=1.0,
-                    int periodic0=0,int periodic1=0,
-                    int periodic2=0,
-                    int integrationOrder=-1,
-                    int reducedIntegrationOrder=-1,
-                    int useElementsOnFace=0,
-                    int useFullElementOrder=0,
+  escript::Domain_ptr brick(escript::JMPI& mpi_info, dim_t n0=1, dim_t n1=1,
+                    dim_t n2=1, int order=1,
+                    double l0=1.0, double l1=1.0, double l2=1.0,
+                    int periodic0=0, int periodic1=0, int periodic2=0,
+                    int integrationOrder=-1, int reducedIntegrationOrder=-1,
+                    int useElementsOnFace=0, int useFullElementOrder=0,
                     bool optimize=false);
 
   /**
@@ -134,32 +128,19 @@ namespace dudley {
      independently.
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
-     \param periodic0, periodic1 Input - whether or not the boundary
-     conditions of the dimension are periodic
-     \param useElementsOnFace Input - whether or not to use elements on face
-     \param useFullElementOrder
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr rectangle(escript::JMPI& mpi_info, double n0=1,double n1=1,int order=1,
-                                      double l0=1.0, double l1=1.0,
-                                      int periodic0=false,int periodic1=false,
-                                      int integrationOrder=-1,
-                                      int reducedIntegrationOrder=-1,
-                                      int useElementsOnFace=0,
-                                      int useFullElementOrder=0,
-                                      bool optimize=false);
+  escript::Domain_ptr rectangle(escript::JMPI& mpi_info, dim_t n0=1,
+                                dim_t n1=1, int order=1,
+                                double l0=1.0, double l1=1.0,
+                                int periodic0=false, int periodic1=false,
+                                int integrationOrder=-1,
+                                int reducedIntegrationOrder=-1,
+                                int useElementsOnFace=0,
+                                int useFullElementOrder=0,
+                                bool optimize=false);
 
-//  /**
-//     \brief
-//     Merges a list of meshes into one list.
-//     \param meshList Input - The list of meshes.
-//  */
-//  DUDLEY_DLL_API
-// //   escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
-//  escript::Domain_ptr meshMerge(const boost::python::list& meshList);
-
- 
 } // end of namespace
 
 #endif // __DUDLEY_MESHADAPTERFACTORY_H__

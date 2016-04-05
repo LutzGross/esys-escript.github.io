@@ -54,7 +54,7 @@ void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
 
 /// returns the normalized vector normal[dim,len] orthogonal to A(:,0,q) and
 /// A(:,1,q) in the case of dim=3, or the vector A(:,0,q) in the case of dim=2
-void normalVector(dim_t len, int dim, int dim1, const double* A, double* normal);
+void normalVector(int len, int dim, int dim1, const double* A, double* normal);
 
 /// calculates the minimum and maximum value from an integer array of length
 /// N x dim

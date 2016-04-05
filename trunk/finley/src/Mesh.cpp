@@ -192,7 +192,7 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
 void Mesh::print()
 {
     // write header
-    printf("Mesh name: %s\n", m_name.c_str());
+    std::cout << "Mesh name: " << m_name << std::endl;
   
     // write nodes
     Nodes->print();

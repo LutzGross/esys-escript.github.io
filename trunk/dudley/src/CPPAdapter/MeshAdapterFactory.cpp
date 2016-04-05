@@ -382,20 +382,20 @@ Domain_ptr readGmsh(const std::string& fileName, int numDim,
     return temp->getPtr();
 }
 
-Domain_ptr brick(escript::JMPI& mpi_info, double n0, double n1,double n2,
+Domain_ptr brick(escript::JMPI& mpi_info, dim_t n0, dim_t n1, dim_t n2,
                  int order, double l0, double l1, double l2, int periodic0,
                  int periodic1, int periodic2, int integrationOrder,
                  int reducedIntegrationOrder, int useElementsOnFace,
                  int useFullElementOrder, bool optimize)
 {
-    int numElements[]={static_cast<int>(n0),static_cast<int>(n1),static_cast<int>(n2)};
-    double length[]={l0,l1,l2};
+    dim_t numElements[] = { n0, n1, n2 };
+    double length[] = { l0, l1, l2 };
 
     // we don't support periodic boundary conditions
     if (periodic0 || periodic1)
         throw DudleyException("Dudley does not support periodic boundary conditions.");
 
-    if (integrationOrder>3 || reducedIntegrationOrder>1)
+    if (integrationOrder > 3 || reducedIntegrationOrder > 1)
         throw DudleyException("Dudley does not support the requested integrationOrders.");
 
     if (useElementsOnFace || useFullElementOrder)
@@ -405,7 +405,6 @@ Domain_ptr brick(escript::JMPI& mpi_info, double n0, double n1,double n2,
         throw DudleyException("Dudley does not support element order greater than 1.");
 
     Mesh* fMesh = TriangularMesh_Tet4(numElements, length, optimize, mpi_info);
-
     AbstractContinuousDomain* temp(new MeshAdapter(fMesh));
     return temp->getPtr();
 }
@@ -425,9 +424,9 @@ Domain_ptr brick_driver(const boost::python::list& args)
           info=escript::makeInfo(MPI_COMM_WORLD);
 
       }
-      return brick(info, static_cast<int>(extract<float>(args[0])),
-                   static_cast<int>(extract<float>(args[1])),
-                   static_cast<int>(extract<float>(args[2])),
+      return brick(info, static_cast<dim_t>(extract<float>(args[0])),
+                   static_cast<dim_t>(extract<float>(args[1])),
+                   static_cast<dim_t>(extract<float>(args[2])),
                    extract<int>(args[3]), extract<double>(args[4]),
                    extract<double>(args[5]), extract<double>(args[6]),
                    extract<int>(args[7]), extract<int>(args[8]),
@@ -453,8 +452,8 @@ Domain_ptr rectangle_driver(const boost::python::list& args)
           info=escript::makeInfo(MPI_COMM_WORLD);
       }
 
-      return rectangle(info, static_cast<int>(extract<float>(args[0])),
-                       static_cast<int>(extract<float>(args[1])),
+      return rectangle(info, static_cast<dim_t>(extract<float>(args[0])),
+                       static_cast<dim_t>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),
@@ -465,21 +464,21 @@ Domain_ptr rectangle_driver(const boost::python::list& args)
   
   
   
-Domain_ptr rectangle(escript::JMPI& mpi_info, double n0, double n1, int order,
+Domain_ptr rectangle(escript::JMPI& mpi_info, dim_t n0, dim_t n1, int order,
                      double l0, double l1,
-                     int periodic0,int periodic1,
+                     int periodic0, int periodic1,
                      int integrationOrder,
                      int reducedIntegrationOrder,
                      int useElementsOnFace,
                      int useFullElementOrder,
                      bool optimize)
 {
-    int numElements[]={static_cast<int>(n0), static_cast<int>(n1)};
-    double length[]={l0,l1};
+    dim_t numElements[] = { n0, n1 };
+    double length[] = { l0, l1 };
 
     if (periodic0 || periodic1) // we don't support periodic boundary conditions
         throw DudleyException("Dudley does not support periodic boundary conditions.");
-    if (integrationOrder>3 || reducedIntegrationOrder>1)
+    if (integrationOrder > 3 || reducedIntegrationOrder > 1)
         throw DudleyException("Dudley does not support the requested integrationOrders.");
     if (useElementsOnFace || useFullElementOrder)
         throw DudleyException("Dudley does not support useElementsOnFace or useFullElementOrder.");
@@ -487,10 +486,8 @@ Domain_ptr rectangle(escript::JMPI& mpi_info, double n0, double n1, int order,
     if (order > 1)
         throw DudleyException("Dudley does not support element order greater than 1.");
     Mesh* fMesh = TriangularMesh_Tri3(numElements, length, optimize, mpi_info);
-    //
-    // Convert any dudley errors into a C++ exception
-    MeshAdapter* ma = new MeshAdapter(fMesh);
-    return Domain_ptr(ma);
+    AbstractContinuousDomain* temp(new MeshAdapter(fMesh));
+    return temp->getPtr();
 }
 
 
