@@ -334,14 +334,11 @@ DataConstant::hermitian(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::hermitian: casting to DataConstant failed (probably a programming error).");
   }
-  if (isComplex())
+  if (!isComplex() || !temp_ev->isComplex())
   {
-      escript::hermitian(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
-  }
-  else
-  {
-      escript::hermitian(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
-  }
+      throw DataException("DataTagged::hermitian: do not call this method with real data");
+  }  
+  escript::hermitian(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
 }
 
 void
@@ -351,14 +348,11 @@ DataConstant::antihermitian(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::antihermitian: casting to DataConstant failed (probably a programming error).");
   }
-  if (isComplex())
+  if (!isComplex() || !temp_ev->isComplex())
   {
-      escript::antihermitian(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
-  }
-  else
-  {
-      escript::antihermitian(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
-  }
+      throw DataException("DataTagged::antihermitian: do not call this method with real data");
+  }  
+  escript::antihermitian(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
 }
 
 

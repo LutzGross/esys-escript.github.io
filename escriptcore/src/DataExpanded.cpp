@@ -745,33 +745,20 @@ void DataExpanded::hermitian(DataAbstract* ev)
     DataExpanded* temp_ev = dynamic_cast<DataExpanded*>(ev);
     if (!temp_ev)
         throw DataException("DataExpanded::hermitian: casting to DataExpanded failed (probably a programming error).");
-
+    if (!isComplex() || !temp_ev->isComplex())
+    {
+	throw DataException("DataExpanded::hermitian: do not call this method with real data");
+    }
     const ShapeType& shape = getShape();
     const ShapeType& evShape = temp_ev->getShape();
-    if (isComplex())
-    {
-	const DataTypes::CplxVectorType& vec = getTypedVectorRO((DataTypes::cplx_t)0);
-	DataTypes::CplxVectorType& evVec = temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+    const DataTypes::CplxVectorType& vec = getTypedVectorRO((DataTypes::cplx_t)0);
+    DataTypes::CplxVectorType& evVec = temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
     #pragma omp parallel for
-	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-		escript::hermitian(vec, shape,
-			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-			ev->getPointOffset(sampleNo,dataPointNo));
-	    }
-	}
-    }
-    else
-    {
-	const DataTypes::RealVectorType& vec = getTypedVectorRO(0.0);
-	DataTypes::RealVectorType& evVec = temp_ev->getTypedVectorRW(0.0);
-    #pragma omp parallel for
-	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-		escript::hermitian(vec, shape,
-			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-			ev->getPointOffset(sampleNo,dataPointNo));
-	    }
+    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+	    escript::hermitian(vec, shape,
+		    getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+		    ev->getPointOffset(sampleNo,dataPointNo));
 	}
     }
 }
@@ -783,38 +770,24 @@ void DataExpanded::antihermitian(DataAbstract* ev)
     DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
     if (!temp_ev)
         throw DataException("DataExpanded::antihermitian: casting to DataExpanded failed (probably a programming error).");
-
+    if (!isComplex() || !temp_ev->isComplex())
+    {
+	throw DataException("DataExpanded::antihermitian: do not call this method with real data");
+    }
     const ShapeType& shape = getShape();
     const ShapeType& evShape = temp_ev->getShape();
-    if (isComplex())
-    {
-	const DataTypes::CplxVectorType& vec = getTypedVectorRO((DataTypes::cplx_t)0);
-	DataTypes::CplxVectorType& evVec = temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+    const DataTypes::CplxVectorType& vec = getTypedVectorRO((DataTypes::cplx_t)0);
+    DataTypes::CplxVectorType& evVec = temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
     #pragma omp parallel for
-	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) 
+    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) 
+    {
+	for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++)
 	{
-	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++)
-	    {
-		escript::antihermitian(vec, shape,
-			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-			ev->getPointOffset(sampleNo,dataPointNo));
-	    }
+	    escript::antihermitian(vec, shape,
+		    getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+		    ev->getPointOffset(sampleNo,dataPointNo));
 	}
     }
-    else
-    {
-	const DataTypes::RealVectorType& vec = getTypedVectorRO(0.0);
-	DataTypes::RealVectorType& evVec = temp_ev->getTypedVectorRW(0.0);
-    #pragma omp parallel for
-	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++)
-	    {
-		escript::antihermitian(vec, shape,
-			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-			ev->getPointOffset(sampleNo,dataPointNo));
-	    }
-	}
-    }    
 }
 
 
