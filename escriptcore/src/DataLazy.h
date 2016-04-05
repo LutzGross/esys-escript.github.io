@@ -75,7 +75,9 @@ enum ES_optype
 	SWAP=TRACE+1,
 	MINVAL=SWAP+1,
 	MAXVAL=MINVAL+1,
-	CONDEVAL=MAXVAL+1
+	CONDEVAL=MAXVAL+1,
+	HER=CONDEVAL+1,		// hermitian
+	NHER=HER+1              // antihermitian
 };
 
 ESCRIPT_DLL_API

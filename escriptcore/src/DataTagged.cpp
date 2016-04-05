@@ -978,6 +978,78 @@ DataTagged::antisymmetric(DataAbstract* ev)
   }  
 }
 
+void
+DataTagged::hermitian(DataAbstract* ev)
+{
+  DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataTagged::hermitian casting to DataTagged failed (probably a programming error).");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  const ShapeType& evShape=temp_ev->getShape();
+
+  if (isComplex())
+  {
+      DataTypes::CplxVectorType& evVec=temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::CplxVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::CplxVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::hermitian(m_data_c,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::hermitian(m_data_c,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
+  }
+  else
+  {
+      DataTypes::RealVectorType& evVec=temp_ev->getTypedVectorRW(0.0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::hermitian(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::hermitian(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
+  }
+}
+
+
+void
+DataTagged::antihermitian(DataAbstract* ev)
+{
+  DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataTagged::antihermitian casting to DataTagged failed (probably a programming error).");
+  }
+  const DataTagged::DataMapType& thisLookup=getTagLookup();
+  DataTagged::DataMapType::const_iterator i;
+  DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+  const ShapeType& evShape=temp_ev->getShape();
+  if (isComplex())
+  {
+      DataTypes::CplxVectorType& evVec=temp_ev->getTypedVectorRW((DataTypes::cplx_t)0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::CplxVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::CplxVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::antihermitian(m_data_c,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::antihermitian(m_data_c,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
+  }
+  else
+  {
+      DataTypes::RealVectorType& evVec=temp_ev->getTypedVectorRW(0.0);
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::antihermitian(m_data_r,getShape(),offset,evVec, evShape, evoffset);
+      }
+      escript::antihermitian(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset());      
+  }  
+}
+
 
 void
 DataTagged::trace(DataAbstract* ev, int axis_offset)

@@ -358,6 +358,30 @@ TODO Note that this constructor will also copy data to all points if it only con
 
   /**
      \brief
+     Computes an hermitian matrix (A + A*) / 2
+
+     \param ev - Output - hermitian matrix
+
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  hermitian(DataAbstract* ev);
+
+  /**
+     \brief
+     Computes an antihermitian matrix (A - A*) / 2
+
+     \param ev - Output - antihermitian matrix
+
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  antihermitian(DataAbstract* ev);
+
+
+
+  /**
+     \brief
      Computes the trace of a matrix
 
      \param ev - Output - trace of your matrix

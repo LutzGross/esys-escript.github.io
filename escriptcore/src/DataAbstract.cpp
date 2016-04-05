@@ -219,6 +219,18 @@ DataAbstract::antisymmetric(DataAbstract* ev)
 }
 
 void
+DataAbstract::hermitian(DataAbstract* ev) 
+{
+    throw DataException("Error - DataAbstract::hermitian is not supported.");
+}
+
+void
+DataAbstract::antihermitian(DataAbstract* ev) 
+{
+    throw DataException("Error - DataAbstract::antihermitian is not supported.");
+}
+
+void
 DataAbstract::trace(DataAbstract* ev, int axis_offset) 
 {
     throw DataException("Error - DataAbstract::trace is not supported.");

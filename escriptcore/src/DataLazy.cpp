@@ -160,8 +160,10 @@ string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
                         "transpose", "trace",
                         "swapaxes",
                         "minval", "maxval",
-                        "condEval"};
-int ES_opcount=44;
+                        "condEval",
+                        "hermitian","antihermitian"
+};
+int ES_opcount=46;
 ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
                         G_UNARY,G_UNARY,G_UNARY, //10
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 17
@@ -173,7 +175,9 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
                         G_NP1OUT_P, G_NP1OUT_P,
                         G_NP1OUT_2P,
                         G_REDUCTION, G_REDUCTION,
-                        G_CONDEVAL};
+                        G_CONDEVAL,
+                        G_UNARY,G_UNARY
+};
 inline
 ES_opgroup
 getOpgroup(ES_optype op)
@@ -962,6 +966,9 @@ DataLazy::collapseToReady() const
     case MAXVAL:
         result=left.minval();
         break;
+    case HER:
+	result=left.hermitian();
+	break;
     default:
         throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
   }

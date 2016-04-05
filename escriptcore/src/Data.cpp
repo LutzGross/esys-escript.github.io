@@ -2375,6 +2375,73 @@ Data::antisymmetric() const
 }
 
 Data
+Data::hermitian() const
+{
+    if (!isComplex())
+    {
+        return symmetric();
+    }
+    // check input
+    DataTypes::ShapeType s=getDataPointShape();
+    if (getDataPointRank()==2) {
+        if(s[0] != s[1])
+            throw DataException("Error - Data::hermitian can only be calculated for rank 2 object with equal first and second dimension.");
+    }
+    else if (getDataPointRank()==4) {
+        if(!(s[0] == s[2] && s[1] == s[3]))
+            throw DataException("Error - Data::hermitian can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
+    }
+    else {
+        throw DataException("Error - Data::hermitian can only be calculated for rank 2 or 4 object.");
+    }
+    MAKELAZYOP(HER);
+    Data ev(0.,getDataPointShape(),getFunctionSpace());
+    ev.typeMatchRight(*this);
+    m_data->hermitian(ev.m_data.get());
+    return ev;
+}
+
+Data
+Data::antihermitian() const
+{
+    if (!isComplex())
+    {
+        return antisymmetric();
+    }  
+    // check input
+    DataTypes::ShapeType s=getDataPointShape();
+    if (getDataPointRank()==2) {
+        if(s[0] != s[1])
+            throw DataException("Error - Data::antisymmetric can only be calculated for rank 2 object with equal first and second dimension.");
+	MAKELAZYOP(NHER);
+        DataTypes::ShapeType ev_shape;
+        ev_shape.push_back(s[0]);
+        ev_shape.push_back(s[1]);
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+        m_data->antihermitian(ev.m_data.get());
+        return ev;
+    }
+    else if (getDataPointRank()==4) {
+        if(!(s[0] == s[2] && s[1] == s[3]))
+            throw DataException("Error - Data::antisymmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
+	MAKELAZYOP(NHER);
+        DataTypes::ShapeType ev_shape;
+        ev_shape.push_back(s[0]);
+        ev_shape.push_back(s[1]);
+        ev_shape.push_back(s[2]);
+        ev_shape.push_back(s[3]);
+        Data ev(0.,ev_shape,getFunctionSpace());
+        ev.typeMatchRight(*this);
+        m_data->antihermitian(ev.m_data.get());
+        return ev;
+    }
+    else {
+        throw DataException("Error - Data::antisymmetric can only be calculated for rank 2 or 4 object.");
+    }
+}
+
+Data
 Data::trace(int axis_offset) const
 {
     THROWONCOMPLEX     
