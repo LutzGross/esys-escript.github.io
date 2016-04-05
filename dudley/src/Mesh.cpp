@@ -66,6 +66,15 @@ void Mesh::createMappings(const std::vector<index_t>& dofDist,
     Nodes->createNodeMappings(dofDist, nodeDist);
 }
 
+void Mesh::print()
+{
+    std::cout << "Mesh name: " << m_name << std::endl;
+    Nodes->print();
+    Elements->print(Nodes->Id);
+    FaceElements->print(Nodes->Id);
+    Points->print(Nodes->Id);
+}
+
 void Mesh::markNodes(std::vector<short>& mask, index_t offset) const
 {
     Elements->markNodes(mask, offset);

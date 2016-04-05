@@ -100,6 +100,23 @@ void NodeFile::freeTable()
     numNodes = 0;
 }
 
+void NodeFile::print() const
+{
+    std::cout << "=== " << numDim << "D-Nodes:\nnumber of nodes=" << numNodes
+        << std::endl;
+    std::cout << "Id,Tag,globalDegreesOfFreedom,degreesOfFreedom,node,Coordinates" << std::endl;
+    for (index_t i=0; i<numNodes; i++) {
+        std::cout << Id[i] << "," << Tag[i] << "," << globalDegreesOfFreedom[i]
+            << "," << degreesOfFreedomMapping.target[i]
+            << "," << nodesMapping.target[i] << " ";
+        std::cout.precision(15);
+        std::cout.setf(std::ios::scientific, std::ios::floatfield);
+        for (int j=0; j<numDim; j++)
+            std:: cout << Coordinates[INDEX2(j,i,numDim)];
+        std::cout << std::endl;
+    }
+}
+
 void NodeFile::copyTable(index_t offset, index_t idOffset, index_t dofOffset,
                          const NodeFile* in)
 {
