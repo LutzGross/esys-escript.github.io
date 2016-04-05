@@ -111,6 +111,23 @@ void ElementFile::copyTable(index_t offset, index_t nodeOffset,
     }
 }
 
+void ElementFile::print(const index_t* nodesId) const
+{
+    std::cout << "=== " << ename << ":\nnumber of elements=" << numElements
+              << "\ncolor range=[" << minColor << "," << maxColor << "]\n";
+
+    if (numElements > 0) {
+        std::cout << "Id,Tag,Owner,Color,Nodes" << std::endl;
+        for (index_t i = 0; i < numElements; i++) {
+            std::cout << Id[i] << "," << Tag[i] << ","
+                << Owner[i] << "," << Color[i] << ",";
+            for (int j = 0; j < numNodes; j++)
+                std::cout << " " << nodesId[Nodes[INDEX2(j, i, numNodes)]];
+            std::cout << std::endl;
+        }
+    }
+}
+
 void ElementFile::gather(const index_t* index, const ElementFile* in)
 {
     const int NN_in = in->numNodes;

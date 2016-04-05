@@ -22,18 +22,22 @@ namespace {
 
 using namespace dudley;
 
-ElementFile* readElementFile(FILE* fileHandle, escript::JMPI mpiInfo)
+ElementFile* readElementFile(std::ifstream& fileHandle, escript::JMPI mpiInfo)
 {
-    dim_t numEle;
+    dim_t numEle = 0;
     ElementTypeId typeID = Dudley_NoRef;
-    char elementType[1024];
-    int scan_ret;
+    std::string elementType, line;
 
     // Read the element typeID and number of elements
     if (mpiInfo->rank == 0) {
-        scan_ret = fscanf(fileHandle, "%s %d\n", elementType, &numEle);
-        if (scan_ret == EOF)
-            throw IOError("Mesh::read: Scan error while reading file");
+        std::getline(fileHandle, line);
+        if (!fileHandle.good())
+            throw IOError("Mesh::read: Scan error while reading file - expected <ElementType> <numEle>");
+        size_t pos = line.find(' ');
+        if (pos == std::string::npos)
+            throw IOError("Mesh::read: Scan error reading file - expected <ElementType> <numEle>");
+        elementType = line.substr(0, pos);
+        numEle = std::stol(line.substr(pos+1));
         typeID = eltTypeFromString(elementType);
     }
 #ifdef ESYS_MPI
@@ -77,20 +81,16 @@ ElementFile* readElementFile(FILE* fileHandle, escript::JMPI mpiInfo)
             for (index_t i0 = 0; i0 < chunkSize; i0++) {
                 if (totalEle >= numEle)
                     break; // End inner loop
-                scan_ret = fscanf(fileHandle, "%d %d",
-                                  &tempInts[i0 * (2 + numNodes) + 0],
-                                  &tempInts[i0 * (2 + numNodes) + 1]);
-                if (scan_ret == EOF)
-                    throw IOError("Mesh::read: Scan error while reading file");
+                std::getline(fileHandle, line);
+                if (!fileHandle.good())
+                    throw IOError("Mesh::read: Scan error while reading element data");
+                std::stringstream ss;
+                ss << line;
+                ss >> tempInts[i0 * (2 + numNodes) + 0]
+                   >> tempInts[i0 * (2 + numNodes) + 1];
                 for (int i1 = 0; i1 < numNodes; i1++) {
-                    scan_ret = fscanf(fileHandle, " %d",
-                                      &tempInts[i0 * (2 + numNodes) + 2 + i1]);
-                    if (scan_ret == EOF)
-                        throw IOError("Mesh::read: Scan error while reading file");
+                    ss >> tempInts[i0 * (2 + numNodes) + 2 + i1];
                 }
-                scan_ret = fscanf(fileHandle, "\n");
-                if (scan_ret == EOF)
-                    throw IOError("Mesh::read: Scan error while reading file");
                 totalEle++;
                 chunkEle++;
             }
@@ -147,32 +147,33 @@ namespace dudley {
 Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
                  bool optimize)
 {
-    dim_t numNodes;
+    dim_t numNodes = 0;
     int numDim = 0;
-    char name[1024], frm[20];
-    FILE *fileHandle = NULL;
-    int scan_ret;
+    std::string name, line, token;
+    std::ifstream fileHandle;
 
     if (mpiInfo->rank == 0) {
         // open file
-        fileHandle = fopen(filename.c_str(), "r");
-        if (!fileHandle) {
+        fileHandle.open(filename.c_str());
+        if (!fileHandle.good()) {
             std::stringstream ss;
             ss << "Mesh::read: Opening file " << filename
                << " for reading failed.";
-            throw DudleyException(ss.str());
+            throw IOError(ss.str());
         }
 
         // read header
-        sprintf(frm, "%%%d[^\n]", 1023);
-        scan_ret = fscanf(fileHandle, frm, name);
-        if (scan_ret == EOF)
-            throw IOError("Mesh::read: Scan error while reading file");
+        std::getline(fileHandle, name);
+        if (!fileHandle.good())
+            throw IOError("Mesh::read: Scan error while reading file header");
 
-        // get the number of nodes
-        scan_ret = fscanf(fileHandle, "%1d%*s %d\n", &numDim, &numNodes);
-        if (scan_ret == EOF)
-            throw IOError("Mesh::read: Scan error while reading file");
+        // get the number of dimensions and nodes
+        std::getline(fileHandle, line);
+        if (!fileHandle.good())
+            throw IOError("Mesh::read: Scan error while reading file - expected <?D-Nodes> <numNodes>");
+        numDim = std::stoi(line.substr(0, 1));
+        token = line.substr(line.find(' ')+1);
+        numNodes = std::stoi(token);
     }
 
 #ifdef ESYS_MPI
@@ -182,7 +183,7 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
         if (mpiInfo->rank == 0) {
             temp1[0] = numDim;
             temp1[1] = numNodes;
-            temp1[2] = strlen(name) + 1;
+            temp1[2] = name.length() + 1;
         } else {
             temp1[0] = 0;
             temp1[1] = 0;
@@ -191,7 +192,8 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
         MPI_Bcast(temp1, 3, MPI_DIM_T, 0, mpiInfo->comm);
         numDim = temp1[0];
         numNodes = temp1[1];
-        MPI_Bcast(name, temp1[2], MPI_CHAR, 0, mpiInfo->comm);
+        name.resize(temp1[2]);
+        MPI_Bcast(&name[0], temp1[2], MPI_CHAR, 0, mpiInfo->comm);
     }
 #endif
 
@@ -229,30 +231,18 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
             for (index_t i1 = 0; i1 < chunkSize; i1++) {
                 if (totalNodes >= numNodes)
                     break;  // End of inner loop
-                if (1 == numDim) {
-                    scan_ret = fscanf(fileHandle, "%d %d %d %le\n",
-                                      &tempInts[0 + i1],
-                                      &tempInts[chunkSize + i1],
-                                      &tempInts[chunkSize * 2 + i1],
-                                      &tempCoords[i1 * numDim + 0]);
-                } else if (2 == numDim) {
-                    scan_ret = fscanf(fileHandle, "%d %d %d %le %le\n",
-                                      &tempInts[0 + i1],
-                                      &tempInts[chunkSize + i1],
-                                      &tempInts[chunkSize * 2 + i1],
-                                      &tempCoords[i1 * numDim + 0],
-                                      &tempCoords[i1 * numDim + 1]);
-                } else if (3 == numDim) {
-                    scan_ret = fscanf(fileHandle, "%d %d %d %le %le %le\n",
-                                      &tempInts[0 + i1],
-                                      &tempInts[chunkSize + i1],
-                                      &tempInts[chunkSize * 2 + i1],
-                                      &tempCoords[i1 * numDim + 0],
-                                      &tempCoords[i1 * numDim + 1],
-                                      &tempCoords[i1 * numDim + 2]);
-                }
-                if (scan_ret == EOF)
-                    throw IOError("Mesh::read: Scan error while reading file");
+                std::getline(fileHandle, line);
+                if (!fileHandle.good())
+                    throw IOError("Mesh::read: Scan error while reading node data");
+                std::stringstream ss;
+                ss << line;
+                ss >> tempInts[0 + i1] >> tempInts[chunkSize + i1]
+                   >> tempInts[chunkSize * 2 + i1];
+                ss >> tempCoords[i1 * numDim];
+                if (numDim > 1)
+                    ss >> tempCoords[i1 * numDim + 1];
+                if (numDim > 2)
+                    ss >> tempCoords[i1 * numDim + 2];
                 totalNodes++; // When do we quit the infinite loop?
                 chunkNodes++; // How many nodes do we actually have in this chunk? It may be smaller than chunkSize.
             }
@@ -312,34 +302,30 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
     mesh->Points = readElementFile(fileHandle, mpiInfo);
 
     /************************  get the name tags ****************************/
-    char *remainder = NULL, *ptr;
+    std::string remainder;
     size_t len = 0;
     int tag_key;
     if (mpiInfo->rank == 0) { // Master
-        // Read the word 'Tag'
-        if (!feof(fileHandle)) {
-            scan_ret = fscanf(fileHandle, "%s\n", name);
-            if (scan_ret == EOF)
-                throw IOError("Mesh::read: Scan error while reading file");
+        // Read the word 'Tags'
+        if (!fileHandle.eof()) {
+            std::getline(fileHandle, name);
+            if (!fileHandle.good())
+                throw IOError("Mesh::read: Scan error while reading tag header");
         }
         // Read rest of file in one chunk, after using seek to find length
-        long cur_pos = ftell(fileHandle);
-        fseek(fileHandle, 0L, SEEK_END);
-        long end_pos = ftell(fileHandle);
-        fseek(fileHandle, (long)cur_pos, SEEK_SET);
-        remainder = new char[end_pos - cur_pos + 1];
-        if (!feof(fileHandle)) {
-            scan_ret = fread(remainder, (size_t) end_pos - cur_pos,
-                             sizeof(char), fileHandle);
-            if (scan_ret == EOF)
-                throw IOError("Mesh::read: Scan error while reading file");
+        std::ios::pos_type cur_pos = fileHandle.tellg();
+        fileHandle.seekg(0, std::ios::end);
+        std::ios::pos_type end_pos = fileHandle.tellg();
+        fileHandle.seekg(cur_pos);
+        remainder.resize(end_pos - cur_pos + 1);
+        if (!fileHandle.eof()) {
+            fileHandle.read(&remainder[0], end_pos-cur_pos);
+            if (fileHandle.bad())
+                throw IOError("Mesh::read: Error reading remainder");
             remainder[end_pos - cur_pos] = 0;
         }
-        len = strlen(remainder);
-        while (len > 1 && isspace(remainder[--len])) {
-            remainder[len] = 0;
-        }
-        len = strlen(remainder);
+        len = remainder.find_last_not_of(' ');
+        remainder = remainder.substr(0, len+1);
     } // Master
 
 #ifdef ESYS_MPI
@@ -347,27 +333,26 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
     MPI_Bcast(&len_i, 1, MPI_INT, 0, mpiInfo->comm);
     len = static_cast<size_t>(len_i);
     if (mpiInfo->rank != 0) {
-        remainder = new char[len + 1];
-        remainder[0] = 0;
+        remainder.resize(len + 1);
     }
-    if (MPI_Bcast(remainder, len+1, MPI_CHAR, 0, mpiInfo->comm) != MPI_SUCCESS)
+    if (MPI_Bcast(&remainder[0], len+1, MPI_CHAR, 0, mpiInfo->comm) != MPI_SUCCESS)
         throw DudleyException("Mesh::read: broadcast of remainder failed");
 #endif
 
-    if (remainder[0]) {
-        ptr = remainder;
-        do {
-            sscanf(ptr, "%s %d\n", name, &tag_key);
-            if (*name)
-                mesh->addTagMap(name, tag_key);
-            ptr++;
-        } while (NULL != (ptr = strchr(ptr, '\n')) && *ptr);
+    std::stringstream rem;
+    rem << remainder;
+    while (std::getline(rem, line)) {
+        size_t pos = line.find(' ');
+        if (pos != std::string::npos) {
+            name = line.substr(0, pos);
+            tag_key = std::stoi(line.substr(pos+1));
+            mesh->addTagMap(name, tag_key);
+        }
     }
-    delete[] remainder;
 
     // close file
     if (mpiInfo->rank == 0)
-        fclose(fileHandle);
+        fileHandle.close();
 
     mesh->resolveNodeIds();
     mesh->prepare(optimize);

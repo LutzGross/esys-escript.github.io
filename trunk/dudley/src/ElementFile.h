@@ -65,6 +65,9 @@ public:
     void copyTable(index_t offset, index_t nodeOffset, index_t idOffset,
                    const ElementFile* in);
 
+    /// prints information about this element file to stdout
+    void print(const index_t* nodesId) const;
+
     /// redistributes the elements including overlap by rank
     void distributeByRankOfDOF(const int* mpiRankOfDOF,
                                const index_t* nodesId);

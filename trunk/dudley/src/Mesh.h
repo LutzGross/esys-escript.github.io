@@ -99,6 +99,8 @@ public:
     paso::SystemMatrixPattern_ptr getPasoPattern();
 
     void printInfo(bool);
+
+    /// prints the mesh details to standard output
     void print();
 
     /// assigns new coordinates to the nodes
