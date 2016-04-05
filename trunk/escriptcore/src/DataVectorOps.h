@@ -22,7 +22,7 @@
 #include "ArrayOps.h"
 #include "LapackInverseHelper.h"
 #include "DataTagged.h"
-
+#include <complex>
 /**
 \file DataVectorOps.h 
 \brief Describes binary operations performed on DataVector.
@@ -84,10 +84,11 @@ Note that vector in this context refers to a data vector storing datapoints not 
   determineResultShape(const DataTypes::ShapeType& left,
                        const DataTypes::ShapeType& right);
 
-  /**
-     \brief
-     computes a symmetric matrix from your square matrix A: (A + transpose(A)) / 2
 
+   /**
+      \brief
+      computes a symmetric matrix from your square matrix A: (A + transpose(A)) / 2
+ 
      \param in - vector containing the matrix A
      \param inShape - shape of the matrix A
      \param inOffset - the beginning of A within the vector in
@@ -114,56 +115,56 @@ Note that vector in this context refers to a data vector storing datapoints not 
          ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1)] + in[inOffset+DataTypes::getRelIndex(inShape,i1,i0)]) / 2.0;
        }
      }
+    }
+    else if (DataTypes::getRank(inShape) == 4) {
+      int i0, i1, i2, i3;
+      int s0=inShape[0];
+      int s1=inShape[1];
+      int s2=inShape[2];
+      int s3=inShape[3];
+      for (i0=0; i0<s0; i0++) {
+        for (i1=0; i1<s1; i1++) {
+          for (i2=0; i2<s2; i2++) {
+            for (i3=0; i3<s3; i3++) {
+              ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1,i2,i3)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1,i2,i3)] + in[inOffset+DataTypes::getRelIndex(inShape,i2,i3,i0,i1)]) / 2.0;
+            }
+          }
+        }
+      }
+    }
    }
-   else if (DataTypes::getRank(inShape) == 4) {
-     int i0, i1, i2, i3;
-     int s0=inShape[0];
-     int s1=inShape[1];
-     int s2=inShape[2];
-     int s3=inShape[3];
-     for (i0=0; i0<s0; i0++) {
-       for (i1=0; i1<s1; i1++) {
-         for (i2=0; i2<s2; i2++) {
-           for (i3=0; i3<s3; i3++) {
-             ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1,i2,i3)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1,i2,i3)] + in[inOffset+DataTypes::getRelIndex(inShape,i2,i3,i0,i1)]) / 2.0;
-           }
-         }
-       }
-     }
-   }
-  }
 
   /**
-     \brief
-     computes a antisymmetric matrix from your square matrix A: (A - transpose(A)) / 2
-
-     \param in - vector containing the matrix A
-     \param inShape - shape of the matrix A
-     \param inOffset - the beginning of A within the vector in
-     \param ev - vector to store the output matrix
-     \param evShape - expected shape of the output matrix
-     \param evOffset - starting location for storing ev in vector ev
-  */
-  template<typename VEC>  
-  inline
-  void
-  antisymmetric(const VEC& in, 
-	    const DataTypes::ShapeType& inShape,
-            typename VEC::size_type inOffset,
-            VEC& ev, 
-	    const DataTypes::ShapeType& evShape,
-            typename VEC::size_type evOffset)  
-  {
-   if (DataTypes::getRank(inShape) == 2) {
-     int i0, i1;
-     int s0=inShape[0];
-     int s1=inShape[1];
-     for (i0=0; i0<s0; i0++) {
-       for (i1=0; i1<s1; i1++) {
-         ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1)] - in[inOffset+DataTypes::getRelIndex(inShape,i1,i0)]) / 2.0;
-       }
-     }
-   }
+      \brief
+      computes a antisymmetric matrix from your square matrix A: (A - transpose(A)) / 2
+ 
+      \param in - vector containing the matrix A
+      \param inShape - shape of the matrix A
+      \param inOffset - the beginning of A within the vector in
+      \param ev - vector to store the output matrix
+      \param evShape - expected shape of the output matrix
+      \param evOffset - starting location for storing ev in vector ev
+   */
+   template<typename VEC>  
+   inline
+   void
+   antisymmetric(const VEC& in, 
+ 	    const DataTypes::ShapeType& inShape,
+             typename VEC::size_type inOffset,
+             VEC& ev, 
+ 	    const DataTypes::ShapeType& evShape,
+             typename VEC::size_type evOffset)  
+   {
+    if (DataTypes::getRank(inShape) == 2) {
+      int i0, i1;
+      int s0=inShape[0];
+      int s1=inShape[1];
+      for (i0=0; i0<s0; i0++) {
+        for (i1=0; i1<s1; i1++) {
+          ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1)] - in[inOffset+DataTypes::getRelIndex(inShape,i1,i0)]) / 2.0;
+        }
+      }
+    }
    else if (DataTypes::getRank(inShape) == 4) {
      int i0, i1, i2, i3;
      int s0=inShape[0];
@@ -175,6 +176,106 @@ Note that vector in this context refers to a data vector storing datapoints not 
          for (i2=0; i2<s2; i2++) {
            for (i3=0; i3<s3; i3++) {
              ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1,i2,i3)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1,i2,i3)] - in[inOffset+DataTypes::getRelIndex(inShape,i2,i3,i0,i1)]) / 2.0;
+           }
+         }
+       }
+     }
+   }
+  }
+
+
+
+  /**
+     \brief
+     computes an hermitian matrix from your square matrix A: (A + adjoint(A)) / 2
+
+     \param in - vector containing the matrix A
+     \param inShape - shape of the matrix A
+     \param inOffset - the beginning of A within the vector in
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing ev in vector ev
+  */
+  template<typename VEC>
+  inline
+  void
+   hermitian(const VEC& in, 
+	    const DataTypes::ShapeType& inShape,
+            typename VEC::size_type inOffset,
+            VEC& ev, 
+	    const DataTypes::ShapeType& evShape,
+            typename VEC::size_type evOffset)
+  {
+   if (DataTypes::getRank(inShape) == 2) {
+     int i0, i1;
+     int s0=inShape[0];
+     int s1=inShape[1];
+     for (i0=0; i0<s0; i0++) {
+       for (i1=0; i1<s1; i1++) {
+         ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1)] + std::conj(in[inOffset+DataTypes::getRelIndex(inShape,i1,i0)])) / 2.0;
+       }
+     }
+    }
+    else if (DataTypes::getRank(inShape) == 4) {
+      int i0, i1, i2, i3;
+      int s0=inShape[0];
+      int s1=inShape[1];
+      int s2=inShape[2];
+      int s3=inShape[3];
+      for (i0=0; i0<s0; i0++) {
+        for (i1=0; i1<s1; i1++) {
+          for (i2=0; i2<s2; i2++) {
+            for (i3=0; i3<s3; i3++) {
+              ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1,i2,i3)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1,i2,i3)] + std::conj(in[inOffset+DataTypes::getRelIndex(inShape,i2,i3,i0,i1)])) / 2.0;
+            }
+          }
+        }
+      }
+    }
+   }
+
+  /**
+     \brief
+     computes a antihermitian matrix from your square matrix A: (A - adjoint(A)) / 2
+
+     \param in - vector containing the matrix A
+     \param inShape - shape of the matrix A
+     \param inOffset - the beginning of A within the vector in
+     \param ev - vector to store the output matrix
+     \param evShape - expected shape of the output matrix
+     \param evOffset - starting location for storing ev in vector ev
+  */
+   template<typename VEC>  
+   inline
+   void
+   antihermitian(const VEC& in, 
+ 	    const DataTypes::ShapeType& inShape,
+             typename VEC::size_type inOffset,
+             VEC& ev, 
+ 	    const DataTypes::ShapeType& evShape,
+             typename VEC::size_type evOffset)  
+   {
+    if (DataTypes::getRank(inShape) == 2) {
+      int i0, i1;
+      int s0=inShape[0];
+      int s1=inShape[1];
+      for (i0=0; i0<s0; i0++) {
+        for (i1=0; i1<s1; i1++) {
+          ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1)] - std::conj(in[inOffset+DataTypes::getRelIndex(inShape,i1,i0)])) / 2.0;
+        }
+      }
+    }
+   else if (DataTypes::getRank(inShape) == 4) {
+     int i0, i1, i2, i3;
+     int s0=inShape[0];
+     int s1=inShape[1];
+     int s2=inShape[2];
+     int s3=inShape[3];
+     for (i0=0; i0<s0; i0++) {
+       for (i1=0; i1<s1; i1++) {
+         for (i2=0; i2<s2; i2++) {
+           for (i3=0; i3<s3; i3++) {
+             ev[evOffset+DataTypes::getRelIndex(evShape,i0,i1,i2,i3)] = (in[inOffset+DataTypes::getRelIndex(inShape,i0,i1,i2,i3)] - std::conj(in[inOffset+DataTypes::getRelIndex(inShape,i2,i3,i0,i1)])) / 2.0;
            }
          }
        }

@@ -1012,6 +1012,23 @@ instead of manually manipulating process and point IDs.
   Data
   antisymmetric() const;
 
+
+  /**
+     \brief
+     Return the hermitian part of a matrix which is half the matrix plus its adjoint.
+     *
+  */
+  Data
+  hermitian() const;
+
+  /**
+     \brief
+     Return the anti-hermitian part of a matrix which is half the matrix minus its hermitian.
+     *
+  */
+  Data
+  antihermitian() const;
+
   /**
      \brief
      Return the trace of a matrix

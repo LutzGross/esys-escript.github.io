@@ -358,6 +358,26 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   /**
      \brief
+     Computes a symmetric matrix (A + A*) / 2
+
+     \param ev - Output - an hermitian matrix
+
+  */
+  virtual void
+  hermitian(DataAbstract* ev);
+
+  /**
+     \brief
+     Computes a antisymmetric matrix (A - A*) / 2
+
+     \param ev - Output - an antihermitian matrix
+
+  */
+  virtual void
+  antihermitian(DataAbstract* ev);
+
+  /**
+     \brief
      Computes the trace of a matrix
 
      \param ev - Output - the trace of a matrix

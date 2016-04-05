@@ -328,6 +328,41 @@ DataConstant::antisymmetric(DataAbstract* ev)
 }
 
 void
+DataConstant::hermitian(DataAbstract* ev)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::hermitian: casting to DataConstant failed (probably a programming error).");
+  }
+  if (isComplex())
+  {
+      escript::hermitian(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
+  }
+  else
+  {
+      escript::hermitian(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  }
+}
+
+void
+DataConstant::antihermitian(DataAbstract* ev)
+{
+  DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
+  if (temp_ev==0) {
+    throw DataException("Error - DataConstant::antihermitian: casting to DataConstant failed (probably a programming error).");
+  }
+  if (isComplex())
+  {
+      escript::antihermitian(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);
+  }
+  else
+  {
+      escript::antihermitian(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  }
+}
+
+
+void
 DataConstant::trace(DataAbstract* ev, int axis_offset)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);

@@ -564,11 +564,31 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \brief
      Computes a antisymmetric matrix (A - AT) / 2
 
-     \param ev - Output - nonsymmetric matrix
+     \param ev - Output - antisymmetric matrix
 
   */
   virtual void
   antisymmetric(DataAbstract* ev);
+
+  /**
+     \brief
+     Computes an hermitian matrix (A + A*) / 2
+
+     \param ev - Output - hermitian matrix
+
+  */
+  virtual void
+  hermitian(DataAbstract* ev);
+
+  /**
+     \brief
+     Computes an antihermitian matrix (A - A*) / 2
+
+     \param ev - Output - anti-hermitian matrix
+
+  */
+  virtual void
+  antihermitian(DataAbstract* ev);
 
   /**
      \brief

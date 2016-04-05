@@ -1663,14 +1663,115 @@ def antisymmetric(arg):
             raise ValueError("antisymmetric: rank 2 or 4 is required.")
         return (arg-transpose(arg))/2
     elif isinstance(arg,complex):
-        return arg
+        return complex(0)
     elif isinstance(arg,float):
-        return arg
+        return float(0)
     elif isinstance(arg,int):
-        return float(arg)
+        return float(0)
     else:
         raise TypeError("antisymmetric: Unknown argument type.")
 
+def hermitian(arg):
+    """
+    Returns the hermitian part of the square matrix ``arg``. That is,
+    *(arg+adjoint(arg))/2*.
+
+    :param arg: input matrix. Must have rank 2 or 4 and be square.
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
+    :return: hermitian part of ``arg``
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
+    """
+    if isinstance(arg,numpy.ndarray):
+      if arg.ndim==2:
+        if not (arg.shape[0]==arg.shape[1]):
+           raise ValueError("argument must be square.")
+      elif arg.ndim==4:
+        if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
+           raise ValueError("argument must be square.")
+      else:
+        raise ValueError("rank 2 or 4 is required.")
+      return (arg+arg.transpose().conj())/2
+    elif isinstance(arg,escore.Data):
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError("argument must be square.")
+        return arg._hermitian()
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError("argument must be square.")
+        return arg._hermitian()
+      else:
+        raise ValueError("rank 2 or 4 is required.")
+    elif isinstance(arg, sym.Symbol):
+        if arg.getRank()==2:
+            if arg.getShape()[0]!=arg.getShape()[1]:
+                raise ValueError("hermitian: argument must be square.")
+        elif arg.getRank()==4:
+            if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
+                raise ValueError("hermitian: argument must be square.")
+        else:
+            raise ValueError("hermitian: rank 2 or 4 is required.")
+        return (arg+adjoint(arg))/2
+    elif isinstance(arg,complex):
+      return complex(arg.real)
+    elif isinstance(arg,float):
+      return arg
+    elif isinstance(arg,int):
+      return float(arg)
+    else:
+      raise TypeError("hermitian: Unknown argument type.")
+
+def antihermitian(arg):
+    """
+    Returns the anti-symmetric part of the square matrix ``arg``. That is,
+    *(arg-adjoint(arg))/2*.
+
+    :param arg: input matrix. Must have rank 2 or 4 and be square.
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
+    :return: anti-hermitian part of ``arg``
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
+    """
+    if isinstance(arg,numpy.ndarray):
+      if arg.ndim==2:
+        if not (arg.shape[0]==arg.shape[1]):
+           raise ValueError("antihermitian: argument must be square.")
+      elif arg.ndim==4:
+        if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
+           raise ValueError("antihermitian: argument must be square.")
+      else:
+        raise ValueError("antihermitian: rank 2 or 4 is required.")
+      return (arg-arg.transpose().conj())/2
+    elif isinstance(arg,escore.Data):
+      if arg.getRank()==2:
+        if not (arg.getShape()[0]==arg.getShape()[1]):
+           raise ValueError("argument must be square.")
+        return arg._antihermitian()
+      elif arg.getRank()==4:
+        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
+           raise ValueError("argument must be square.")
+        return arg._antihermitian()
+      else:
+        raise ValueError("rank 2 or 4 is required.")
+    elif isinstance(arg, sym.Symbol):
+        if arg.getRank()==2:
+            if arg.getShape()[0]!=arg.getShape()[1]:
+                raise ValueError("antihermitian: argument must be square.")
+        elif arg.getRank()==4:
+            if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
+                raise ValueError("antihermitian: argument must be square.")
+        else:
+            raise ValueError("antihermitian: rank 2 or 4 is required.")
+        return (arg-hermitian(arg))/2
+    elif isinstance(arg,complex):
+        return complex(arg.imag*1j)
+    elif isinstance(arg,float):
+        return float(0)
+    elif isinstance(arg,int):
+        return float(0)
+    else:
+        raise TypeError("antihermitian: Unknown argument type.")        
+        
+        
 def inverse(arg):
     """
     Returns the inverse of the square matrix ``arg``.
