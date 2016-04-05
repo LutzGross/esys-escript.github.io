@@ -3196,10 +3196,29 @@ Data::setTaggedValue(int tagKey,
     if (isConstant()) tag();
     WrappedArray w(value);
 
-    RealVectorType temp_data2;
-    temp_data2.copyFromArray(w,1);
+    if (w.isComplex())
+    {
+        CplxVectorType temp_data2;
+        temp_data2.copyFromArray(w,1);
 
-    m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
+        m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
+
+    }
+    else
+    {
+        RealVectorType temp_data2;
+        temp_data2.copyFromArray(w,1);
+        if (isComplex())	// set real value in complex
+        {
+	    CplxVectorType temp_data3;
+            fillComplexFromReal(temp_data2,temp_data3);
+            m_data->setTaggedValue(tagKey,w.getShape(), temp_data3);
+        }
+        else
+        {
+            m_data->setTaggedValue(tagKey,w.getShape(), temp_data2);
+        }
+    }
 }
 
 
