@@ -375,7 +375,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
             if (solver == PASO_DIRECT) {
                 // these packages require CSC which is not supported with MPI
                 if (mpi_info->size == 1) {
-#if defined MKL
+#ifdef ESYS_HAVE_MKL
                     out = PASO_MKL;
 #elif defined USE_UMFPACK
                     out = PASO_UMFPACK;
@@ -383,7 +383,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
                     out = PASO_PASTIX
 #endif
                 } else{
-#if defined MKL
+#ifdef ESYS_HAVE_MKL
                     throw PasoException("MKL does not currently support MPI");
 #elif defined USE_UMFPACK
                     throw PasoException("UMFPACK does not currently support MPI");

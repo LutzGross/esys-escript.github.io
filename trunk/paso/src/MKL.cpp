@@ -34,7 +34,7 @@ namespace paso {
 
 void MKL_free(SparseMatrix* A)
 {
-#ifdef MKL
+#ifdef ESYS_HAVE_MKL
     if (A && A->solver_p && A->solver_package==PASO_MKL) {
         ES_MKL_INT mtype = MKL_MTYPE_REAL_UNSYM;
         ES_MKL_INT n = A->numRows;
@@ -66,7 +66,7 @@ void MKL_free(SparseMatrix* A)
 void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
                dim_t numRefinements, bool verbose)
 {
-#ifdef MKL
+#ifdef ESYS_HAVE_MKL
     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         throw PasoException("Paso: MKL requires CSR format with index offset 1 and block size 1.");
     }

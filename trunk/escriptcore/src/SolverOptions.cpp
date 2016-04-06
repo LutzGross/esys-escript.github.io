@@ -478,7 +478,7 @@ void SolverBuddy::setSolverMethod(int method)
 #elif defined USE_TRILINOS
             this->method = meth;
             break;
-#elif defined MKL
+#elif defined ESYS_HAVE_MKL
             this->method = meth;
             break;
 #elif defined PASTIX

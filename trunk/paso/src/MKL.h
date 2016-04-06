@@ -41,7 +41,7 @@ namespace paso {
 #define ES_MKL_INT MKL_INT
 #endif
 
-#ifdef MKL
+#ifdef ESYS_HAVE_MKL
 #include <mkl_pardiso.h>
 #endif
 
