@@ -16,7 +16,7 @@
 
 from templates.trusty_options import *
 
-mpi = 'OPENMPI'
+openmp = 0
 boost_libs = ['boost_python-py27']
 parmetis = True
 umfpack = True
@@ -24,5 +24,4 @@ lapack = 'clapack'
 lapack_libs = ['lapack']
 silo = True
 silo_libs = ['siloh5', 'hdf5']
-launcher = "mpirun --gmca mpi_warn_on_fork 0 ${EE} -np %N %b"
 
