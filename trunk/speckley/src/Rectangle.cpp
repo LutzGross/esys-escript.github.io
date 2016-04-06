@@ -339,10 +339,10 @@ void Rectangle::readBinaryGrid(escript::Data& out, std::string filename,
     }
 }
 
-#ifdef USE_BOOSTIO
 void Rectangle::readBinaryGridFromZipped(escript::Data& out, std::string filename,
                                const ReaderParameters& params) const
 {
+#ifdef ESYS_HAVE_BOOST_IO
     // the mapping is not universally correct but should work on our
     // supported platforms
     switch (params.dataType) {
@@ -358,8 +358,10 @@ void Rectangle::readBinaryGridFromZipped(escript::Data& out, std::string filenam
         default:
             throw SpeckleyException("readBinaryGridFromZipped(): invalid or unsupported datatype");
     }
-}
+#else
+    throw SpeckleyException("readBinaryGridFromZipped(): not built with zip support");
 #endif
+}
 
 template<typename ValueType>
 void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filename,
@@ -484,7 +486,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filena
     interpolateFromCorners(out);
 }
 
-#ifdef USE_BOOSTIO
+#ifdef ESYS_HAVE_BOOST_IO
 template<typename ValueType>
 void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const std::string& filename,
                                    const ReaderParameters& params) const

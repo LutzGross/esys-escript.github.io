@@ -59,13 +59,12 @@ inline void doublyLink(std::vector<ripley::IndexVector>& va,
 */
 void factorise(std::vector<int>& factors, int product);
 
-
-#ifdef USE_BOOSTIO
+#ifdef ESYS_HAVE_BOOST_IO
 /**
     converts the given gzip compressed char vector into an uncompressed form 
 */
 std::vector<char> unzip(const std::vector<char>& compressed);
-#endif // USE_BOOSTIO
+#endif // ESYS_HAVE_BOOST_IO
 
 } // namespace ripley
 

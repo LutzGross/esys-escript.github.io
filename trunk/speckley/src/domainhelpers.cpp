@@ -19,7 +19,7 @@
 
 #include <cmath>
 
-#ifdef USE_BOOSTIO
+#ifdef ESYS_HAVE_BOOST_IO
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #endif
@@ -40,7 +40,7 @@ void factorise(std::vector<int>& factors, int product)
     }
 }
 
-#ifdef USE_BOOSTIO
+#ifdef ESYS_HAVE_BOOST_IO
 std::vector<char> unzip(const std::vector<char>& compressed)
 {
     std::vector<char> decompressed = std::vector<char>();

@@ -84,12 +84,12 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     return res;
 }
 
-#ifdef USE_BOOSTIO
 escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSpace fs,
         const object& pyShape, double fill, int byteOrder, int dataType,
         const object& pyFirst, const object& pyNum, const object& pyMultiplier,
         const object& pyReverse)
 {
+#ifdef ESYS_HAVE_BOOST_IO
     int dim=fs.getDim();
     ReaderParameters params;
 
@@ -108,8 +108,10 @@ escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSp
     escript::Data res(fill, shape, fs, true);
     dom->readBinaryGridFromZipped(res, filename, params);
     return res;
-}
+#else
+    throw RipleyException("Ripley was not compiled with zip support!");
 #endif
+}
 
 escript::Data readNcGrid(std::string filename, std::string varname,
         escript::FunctionSpace fs, const object& pyShape, double fill,
@@ -562,13 +564,11 @@ BOOST_PYTHON_MODULE(ripleycpp)
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
             "Reads a binary Grid");
-#ifdef USE_BOOSTIO
     def("_readBinaryGridFromZipped", &ripley::readBinaryGridFromZipped, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
             "Reads a binary Grid");
-#endif
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"),
                 arg("functionspace"), arg("shape"), arg("fill"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),

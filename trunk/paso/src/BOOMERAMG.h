@@ -33,7 +33,7 @@
 
 #include "SystemMatrix.h"
 
-#ifdef BOOMERAMG
+#ifdef ESYS_HAVE_BOOMERAMG
 #include <HYPRE_krylov.h>
 #include <HYPRE.h>
 #include <HYPRE_parcsr_ls.h>
@@ -43,7 +43,7 @@ namespace paso {
 
 struct Preconditioner_BoomerAMG
 {
-#ifdef BOOMERAMG
+#ifdef ESYS_HAVE_BOOMERAMG
     HYPRE_IJMatrix A;
     HYPRE_ParCSRMatrix parcsr_A;
     HYPRE_IJVector b;

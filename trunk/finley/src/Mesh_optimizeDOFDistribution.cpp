@@ -25,7 +25,7 @@
 #include "Mesh.h"
 #include "IndexList.h"
 
-#ifdef USE_PARMETIS
+#ifdef ESYS_HAVE_PARMETIS
 #include <parmetis.h>
 #ifndef REALTYPEWIDTH
 typedef float real_t;
@@ -37,7 +37,7 @@ typedef float real_t;
 
 namespace finley {
 
-#ifdef USE_PARMETIS
+#ifdef ESYS_HAVE_PARMETIS
 // Checks whether there is any rank which has no vertex. In case 
 // such a rank exists, we don't use parmetis since parmetis requires
 // that every rank has at least 1 vertex (at line 129 of file
@@ -84,7 +84,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         len=std::max(len, distribution[p+1]-distribution[p]);
     std::vector<index_t> partition(len);
 
-#ifdef USE_PARMETIS
+#ifdef ESYS_HAVE_PARMETIS
     if (mpiSize>1 && allRanksHaveNodes(MPIInfo, distribution)) {
         boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
         int dim=Nodes->numDim;

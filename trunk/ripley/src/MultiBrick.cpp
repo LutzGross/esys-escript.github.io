@@ -585,7 +585,6 @@ void MultiBrick::readBinaryGrid(escript::Data& out, string filename,
     Brick::readBinaryGrid(out, filename, params);
 }
 
-#ifdef USE_BOOSTIO
 void MultiBrick::readBinaryGridFromZipped(escript::Data& out, string filename,
                                const ReaderParameters& params) const
 {
@@ -593,7 +592,6 @@ void MultiBrick::readBinaryGridFromZipped(escript::Data& out, string filename,
         throw RipleyException("Non-parent MultiBricks cannot read datafiles");
     Brick::readBinaryGridFromZipped(out, filename, params);
 }
-#endif
 
 void MultiBrick::writeBinaryGrid(const escript::Data& in, string filename,
                                 int byteOrder, int dataType) const

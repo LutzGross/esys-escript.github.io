@@ -90,10 +90,8 @@ public:
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const;
 
-#ifdef USE_BOOSTIO
-    virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
-                                const ReaderParameters& params) const;
-#endif
+    virtual void readBinaryGridFromZipped(escript::Data& out,
+                   std::string filename, const ReaderParameters& params) const;
 
     /**
     */
@@ -286,9 +284,12 @@ private:
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
                             const ReaderParameters& params) const;
+
+#ifdef ESYS_HAVE_BOOST_IO
     template<typename ValueType>
     void readBinaryGridZippedImpl(escript::Data& out, 
             const std::string& filename, const ReaderParameters& params) const;
+#endif
 
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,

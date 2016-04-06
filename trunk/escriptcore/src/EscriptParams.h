@@ -53,6 +53,7 @@ private:
     int amg_disabled;
     int has_netcdf;
     int have_trilinos;
+    int have_unzip;
     int gmsh;
     int gmsh_mpi;
     mutable int temp_direct_solver;

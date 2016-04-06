@@ -35,6 +35,7 @@ try:
 except KeyError:
      RIPLEY_WORKDIR='/tmp'
 
+HAVE_UNZIP = getEscriptParamInt('HAVE_UNZIP')
 
 mpiSize = getMPISizeWorld()
 mpiRank = getMPIRankWorld()
@@ -377,7 +378,7 @@ class Test_readBinaryGridZippedRipley(unittest.TestCase):
             return readBinaryGrid(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)
 
-        if not hasattr(ripleycpp, "_readBinaryGridFromZipped"):
+        if not HAVE_UNZIP:
             raise unittest.SkipTest("unzip library not available (boost_iostreams)")
         return ripleycpp._readBinaryGridFromZipped(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)

@@ -17,7 +17,7 @@
 #include "Mesh.h"
 #include "IndexList.h"
 
-#ifdef USE_PARMETIS
+#ifdef ESYS_HAVE_PARMETIS
 #include "parmetis.h"
 #ifndef REALTYPEWIDTH
 typedef float real_t;
@@ -28,7 +28,7 @@ typedef float real_t;
 
 namespace dudley {
 
-#ifdef USE_PARMETIS
+#ifdef ESYS_HAVE_PARMETIS
 // Check whether there is any rank which has no vertex. In case 
 // such a rank exists, we don't use parmetis since parmetis requires
 // that every rank has at least 1 vertex (at line 129 of file
@@ -74,7 +74,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 
     index_t* partition = new index_t[len];
 
-#ifdef USE_PARMETIS
+#ifdef ESYS_HAVE_PARMETIS
     if (mpiSize > 1 && allRanksHaveNodes(MPIInfo, distribution)) {
         boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
         index_t dim = Nodes->numDim;
@@ -131,7 +131,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 #pragma omp parallel for
     for (index_t i = 0; i < myNumVertices; ++i)
         partition[i] = myRank;
-#endif // USE_PARMETIS
+#endif // ESYS_HAVE_PARMETIS
 
     // create a new distribution and labeling of the DOF
     std::vector<index_t> new_distribution(mpiSize + 1);
