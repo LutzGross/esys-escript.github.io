@@ -640,13 +640,13 @@ Note that vector in this context refers to a data vector storing datapoints not 
   void
   eigenvalues(const DataTypes::RealVectorType& in, 
 	      const DataTypes::ShapeType& inShape,
-              DataTypes::RealVectorType::size_type inOffset,
+              typename DataTypes::RealVectorType::size_type inOffset,
               DataTypes::RealVectorType& ev,
 	      const DataTypes::ShapeType& evShape,
-              DataTypes::RealVectorType::size_type evOffset)
+              typename DataTypes::RealVectorType::size_type evOffset)
   {
-   double in00,in10,in20,in01,in11,in21,in02,in12,in22;
-   double ev0,ev1,ev2;
+   typename DataTypes::RealVectorType::ElementType in00,in10,in20,in01,in11,in21,in02,in12,in22;
+   typename DataTypes::RealVectorType::ElementType ev0,ev1,ev2;
    int s=inShape[0];
    if (s==1) {
       in00=in[inOffset+DataTypes::getRelIndex(inShape,0,0)];
@@ -680,6 +680,53 @@ Note that vector in this context refers to a data vector storing datapoints not 
 
    }
   }
+  
+  inline
+  void
+  eigenvalues(const DataTypes::CplxVectorType& in, 
+	      const DataTypes::ShapeType& inShape,
+              typename DataTypes::CplxVectorType::size_type inOffset,
+              DataTypes::CplxVectorType& ev,
+	      const DataTypes::ShapeType& evShape,
+              typename DataTypes::CplxVectorType::size_type evOffset)
+  {
+   typename DataTypes::CplxVectorType::ElementType in00,in10,in20,in01,in11,in21,in02,in12,in22;
+   typename DataTypes::CplxVectorType::ElementType ev0,ev1,ev2;
+   int s=inShape[0];
+   if (s==1) {
+      in00=in[inOffset+DataTypes::getRelIndex(inShape,0,0)];
+      eigenvalues1(in00,&ev0);
+      ev[evOffset+DataTypes::getRelIndex(evShape,0)]=ev0;
+
+   } else  if (s==2) {
+      in00=in[inOffset+DataTypes::getRelIndex(inShape,0,0)];
+      in10=in[inOffset+DataTypes::getRelIndex(inShape,1,0)];
+      in01=in[inOffset+DataTypes::getRelIndex(inShape,0,1)];
+      in11=in[inOffset+DataTypes::getRelIndex(inShape,1,1)];
+      eigenvalues2(in00,(in01+in10)/2.,in11,&ev0,&ev1);
+      ev[evOffset+DataTypes::getRelIndex(evShape,0)]=ev0;
+      ev[evOffset+DataTypes::getRelIndex(evShape,1)]=ev1;
+
+   } else  if (s==3) {
+     // this doesn't work yet
+//       in00=in[inOffset+DataTypes::getRelIndex(inShape,0,0)];
+//       in10=in[inOffset+DataTypes::getRelIndex(inShape,1,0)];
+//       in20=in[inOffset+DataTypes::getRelIndex(inShape,2,0)];
+//       in01=in[inOffset+DataTypes::getRelIndex(inShape,0,1)];
+//       in11=in[inOffset+DataTypes::getRelIndex(inShape,1,1)];
+//       in21=in[inOffset+DataTypes::getRelIndex(inShape,2,1)];
+//       in02=in[inOffset+DataTypes::getRelIndex(inShape,0,2)];
+//       in12=in[inOffset+DataTypes::getRelIndex(inShape,1,2)];
+//       in22=in[inOffset+DataTypes::getRelIndex(inShape,2,2)];
+//       eigenvalues3(in00,(in01+in10)/2.,(in02+in20)/2.,in11,(in21+in12)/2.,in22,
+//                  &ev0,&ev1,&ev2);
+//       ev[evOffset+DataTypes::getRelIndex(evShape,0)]=ev0;
+//       ev[evOffset+DataTypes::getRelIndex(evShape,1)]=ev1;
+//       ev[evOffset+DataTypes::getRelIndex(evShape,2)]=ev2;
+
+   }
+  }  
+  
 
   /**
      \brief
