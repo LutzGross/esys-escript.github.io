@@ -261,18 +261,20 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
             std::getline(fileHandle, line);
             if (fileHandle.eof())
                 throw IOError("readGmsh: early EOF while reading file");
-            std::stringstream ss(line);
-            std::string name;
-            int tag_key;
-            ss >> numTags;
+            numTags = std::stoi(line);
             for (int i0 = 0; i0 < numTags; i0++) {
+                std::getline(fileHandle, line);
+                if (fileHandle.eof())
+                    throw IOError("readGmsh: early EOF while reading file");
+                std::stringstream ss(line);
+                int tag_key;
                 ss >> itmp >> tag_key;
-                name = ss.str();
+                std::string name = line.substr((int)ss.tellg()+1);
                 if (itmp != 2)
                     throw IOError("readGmsh: expecting two entries per physical name.");
                 if (name.length() < 3)
                     throw IOError("readGmsh: illegal tagname (\" missing?)");
-                name = name.substr(1, name.length()-1);
+                name = name.substr(1, name.length()-2);
                 mesh->addTagMap(name, tag_key);
             }
         }
