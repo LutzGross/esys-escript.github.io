@@ -186,10 +186,15 @@ DataTypes::real_t makeNaN()
 */
 inline
 void eigenvalues1(const DataTypes::real_t A00,DataTypes::real_t* ev0) {
-
    *ev0=A00;
-
 }
+
+inline
+void eigenvalues1(const DataTypes::cplx_t A00,DataTypes::cplx_t* ev0) {
+   *ev0=A00;
+}
+
+
 /**
    \brief
    solves a 2x2 eigenvalue A*V=ev*V problem for symmetric A
@@ -200,13 +205,14 @@ void eigenvalues1(const DataTypes::real_t A00,DataTypes::real_t* ev0) {
    \param ev0 Output - smallest eigenvalue
    \param ev1 Output - largest eigenvalue
 */
+template <class T>
 inline
-void eigenvalues2(const DataTypes::real_t A00,const DataTypes::real_t A01,const DataTypes::real_t A11,
-                 DataTypes::real_t* ev0, DataTypes::real_t* ev1) {
-      const DataTypes::real_t trA=(A00+A11)/2.;
-      const DataTypes::real_t A_00=A00-trA;
-      const DataTypes::real_t A_11=A11-trA;
-      const DataTypes::real_t s=sqrt(A01*A01-A_00*A_11);
+void eigenvalues2(const T A00,const T A01,const T A11,
+                 T* ev0, T* ev1) {
+      const T trA=(A00+A11)/2.;
+      const T A_00=A00-trA;
+      const T A_11=A11-trA;
+      const T s=sqrt(A01*A01-A_00*A_11);
       *ev0=trA-s;
       *ev1=trA+s;
 }

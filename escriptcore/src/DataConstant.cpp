@@ -415,8 +415,16 @@ DataConstant::eigenvalues(DataAbstract* ev)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (probably a programming error).");
   }
-  escript::eigenvalues(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  if (isComplex())
+  {
+      escript::eigenvalues(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0);    
+  }
+  else
+  {
+      escript::eigenvalues(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
+  }
 }
+
 void
 DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol)
 {

@@ -2522,7 +2522,6 @@ Data::transpose(int axis_offset) const
 Data
 Data::eigenvalues() const
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         Data temp(*this);       // to get around the fact that you can't resolve a const Data
@@ -2535,6 +2534,10 @@ Data::eigenvalues() const
         throw DataException("Error - Data::eigenvalues can only be calculated for rank 2 object.");
     if(s[0] != s[1])
         throw DataException("Error - Data::eigenvalues can only be calculated for object with equal first and second dimension.");
+    if (isComplex() && (s[0]>2))
+    {
+        throw DataException("Error - Data::eigenvalues not supported for complex 3x3.");
+    }
     // create return
     DataTypes::ShapeType ev_shape(1,s[0]);
     Data ev(0.,ev_shape,getFunctionSpace());
