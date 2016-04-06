@@ -381,7 +381,14 @@ DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (probably a programming error).");
   }
-  escript::swapaxes(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
+  if (isComplex())
+  {
+      escript::swapaxes(m_data_c,getShape(),0,temp_ev->getVectorRWC(), temp_ev->getShape(),0,axis0,axis1);
+  }
+  else
+  {
+      escript::swapaxes(m_data_r,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
+  }
 }
 
 void
