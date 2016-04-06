@@ -799,18 +799,35 @@ void DataExpanded::trace(DataAbstract* ev, int axis_offset)
     DataExpanded* temp_ev = dynamic_cast<DataExpanded*>(ev);
     if (!temp_ev)
         throw DataException("DataExpanded::trace: casting to DataExpanded failed (probably a programming error).");
-
-    const DataTypes::RealVectorType& vec=getVectorRO();
     const ShapeType& shape=getShape();
-    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
-    const ShapeType& evShape=temp_ev->getShape();
-#pragma omp parallel for
-    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-        for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            escript::trace(vec, shape, getPointOffset(sampleNo,dataPointNo),
-                     evVec, evShape, ev->getPointOffset(sampleNo,dataPointNo),
-                     axis_offset);
-        }
+    const ShapeType& evShape=temp_ev->getShape(); 
+    if (isComplex())
+    {
+	const DataTypes::CplxVectorType& vec=getVectorROC();
+	DataTypes::CplxVectorType& evVec=temp_ev->getVectorRWC();
+
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		escript::trace(vec, shape, getPointOffset(sampleNo,dataPointNo),
+			evVec, evShape, ev->getPointOffset(sampleNo,dataPointNo),
+			axis_offset);
+	    }
+	}
+    }
+    else
+    {
+	const DataTypes::RealVectorType& vec=getVectorRO();
+	DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
+
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		escript::trace(vec, shape, getPointOffset(sampleNo,dataPointNo),
+			evVec, evShape, ev->getPointOffset(sampleNo,dataPointNo),
+			axis_offset);
+	    }
+	}
     }
 }
 

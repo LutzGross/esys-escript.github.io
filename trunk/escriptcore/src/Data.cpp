@@ -2498,8 +2498,7 @@ Data::trace(int axis_offset) const
 
 Data
 Data::transpose(int axis_offset) const
-{
-    THROWONCOMPLEX     
+{   
     MAKELAZYOPOFF(TRANS,axis_offset);
     DataTypes::ShapeType s=getDataPointShape();
     DataTypes::ShapeType ev_shape;

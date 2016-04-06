@@ -1042,15 +1042,29 @@ DataTagged::trace(DataAbstract* ev, int axis_offset)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTag(i->first);
-      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      escript::trace(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
+  if (isComplex())
+  {
+      DataTypes::CplxVectorType& evVec=temp_ev->getVectorRWC();  
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::CplxVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::CplxVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::trace(m_data_c,getShape(),offset,evVec, evShape, evoffset, axis_offset);
+      }
+      escript::trace(m_data_c,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
   }
-  escript::trace(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
+  else
+  {
+      DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();  
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::trace(m_data_r,getShape(),offset,evVec, evShape, evoffset, axis_offset);
+      }
+      escript::trace(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis_offset);
+  }
 }
 
 void
