@@ -235,14 +235,15 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param evOffset - starting location for storing the output matrix in vector ev
      \param axis_offset
   */
+  template <class VEC>
   inline
   void
-  trace(const DataTypes::RealVectorType& in, 
+  trace(const VEC& in, 
 	    const DataTypes::ShapeType& inShape,
-            DataTypes::RealVectorType::size_type inOffset,
-            DataTypes::RealVectorType& ev,
+            typename VEC::size_type inOffset,
+            VEC& ev,
 	    const DataTypes::ShapeType& evShape,
-            DataTypes::RealVectorType::size_type evOffset,
+            typename VEC::size_type evOffset,
 	    int axis_offset)
   {
    for (int j=0;j<DataTypes::noValues(evShape);++j)
@@ -320,6 +321,10 @@ Note that vector in this context refers to a data vector storing datapoints not 
      }
    }
   }
+  
+  
+  
+  
 
   /**
      \brief
