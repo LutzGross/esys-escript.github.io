@@ -134,7 +134,7 @@ class Test_InputOutput(unittest.TestCase):
         mydomain2=LoadMesh(dumpfile)
         self.domainsEqual(mydomain1, mydomain2)
 
-     @unittest.skipIf(getEscriptParamInt('MPIBUILD', 0), "MPI build")
+     @unittest.skipIf(getMPISizeWorld()>1, "number of MPI ranks > 1")
      def test_gmshTags(self):
         dom=ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest.msh"),2)
         tags=dom.showTagNames().split(', ')
