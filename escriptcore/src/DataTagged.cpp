@@ -1112,15 +1112,29 @@ DataTagged::swapaxes(DataAbstract* ev, int axis0, int axis1)
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
   DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
-      temp_ev->addTag(i->first);
-      DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
-      DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
-      escript::swapaxes(m_data_r,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
+  if (isComplex())
+  {
+      DataTypes::CplxVectorType& evVec=temp_ev->getVectorRWC();  
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::CplxVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::CplxVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::swapaxes(m_data_c,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
+      }
+      escript::swapaxes(m_data_c,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis0,axis1);    
   }
-  escript::swapaxes(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis0,axis1);
+  else
+  {
+      DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();  
+      for (i=thisLookup.begin();i!=thisLookupEnd;i++) {
+	  temp_ev->addTag(i->first);
+	  DataTypes::RealVectorType::size_type offset=getOffsetForTag(i->first);
+	  DataTypes::RealVectorType::size_type evoffset=temp_ev->getOffsetForTag(i->first);
+	  escript::swapaxes(m_data_r,getShape(),offset,evVec, evShape, evoffset,axis0,axis1);
+      }
+      escript::swapaxes(m_data_r,getShape(),getDefaultOffset(),evVec,evShape,temp_ev->getDefaultOffset(),axis0,axis1);
+  }
 }
 
 void

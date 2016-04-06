@@ -2260,7 +2260,6 @@ Data::minval() const
 Data
 Data::swapaxes(const int axis0, const int axis1) const
 {
-    THROWONCOMPLEX
     int axis0_tmp,axis1_tmp;
     DataTypes::ShapeType s=getDataPointShape();
     DataTypes::ShapeType ev_shape;

@@ -876,18 +876,35 @@ void DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
     DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
     if (!temp_ev)
         throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (probably a programming error).");
-
-    const DataTypes::RealVectorType& vec=getVectorRO();
-    const ShapeType& shape=getShape();
-    DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
+    const ShapeType& shape=getShape();    
     const ShapeType& evShape=temp_ev->getShape();
-#pragma omp parallel for
-    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-        for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            escript::swapaxes(vec, shape,
-                    getPointOffset(sampleNo,dataPointNo), evVec, evShape,
-                    ev->getPointOffset(sampleNo,dataPointNo), axis0, axis1);
-        }
+    if (isComplex())
+    {
+	const DataTypes::CplxVectorType& vec=getVectorROC();
+	DataTypes::CplxVectorType& evVec=temp_ev->getVectorRWC();
+
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		escript::swapaxes(vec, shape,
+			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+			ev->getPointOffset(sampleNo,dataPointNo), axis0, axis1);
+	    }
+	}
+    }
+    else
+    {
+	const DataTypes::RealVectorType& vec=getVectorRO();
+	DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
+
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		escript::swapaxes(vec, shape,
+			getPointOffset(sampleNo,dataPointNo), evVec, evShape,
+			ev->getPointOffset(sampleNo,dataPointNo), axis0, axis1);
+	    }
+	}
     }
 }
 

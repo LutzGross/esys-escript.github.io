@@ -484,14 +484,15 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param axis1 - axis index
   */
   ESCRIPT_DLL_API
+  template <class VEC>
   inline
   void
-  swapaxes(const DataTypes::RealVectorType& in, 
+  swapaxes(const VEC& in, 
 	   const DataTypes::ShapeType& inShape,
-           DataTypes::RealVectorType::size_type inOffset,
-           DataTypes::RealVectorType& ev,
+           typename VEC::size_type inOffset,
+           VEC& ev,
 	   const DataTypes::ShapeType& evShape,
-           DataTypes::RealVectorType::size_type evOffset,
+           typename VEC::size_type evOffset,
            int axis0, 
 	   int axis1)
   {
