@@ -327,7 +327,7 @@ def checkForTrilinos(env):
         env.AppendUnique(CPPPATH = [trilinos_inc_path])
         env.AppendUnique(LIBPATH = [trilinos_lib_path])
         env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
-        # Note that we do not add the libs globally
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
         env['buildvars']['trilinos_inc_path']=trilinos_inc_path
         env['buildvars']['trilinos_lib_path']=trilinos_lib_path
     env['buildvars']['trilinos']=int(env['trilinos'])
