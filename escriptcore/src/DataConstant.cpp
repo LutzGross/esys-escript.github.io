@@ -363,9 +363,15 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::trace: casting to DataConstant failed (probably a programming error).");
   }
-  DataTypes::RealVectorType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
-  escript::trace(m_data_r,getShape(),0,evVec,evShape,0,axis_offset);
+  if (isComplex())
+  {
+      escript::trace(m_data_c,getShape(),0,temp_ev->getVectorRWC(),evShape,0,axis_offset);
+  }
+  else
+  {
+      escript::trace(m_data_r,getShape(),0,temp_ev->getVectorRW(),evShape,0,axis_offset);    
+  }
 }
 
 void

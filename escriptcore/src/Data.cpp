@@ -2444,7 +2444,6 @@ Data::antihermitian() const
 Data
 Data::trace(int axis_offset) const
 {
-    THROWONCOMPLEX     
     MAKELAZYOPOFF(TRACE,axis_offset);
     if ((axis_offset<0) || (axis_offset>getDataPointRank()))
     {
