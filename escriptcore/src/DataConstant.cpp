@@ -391,7 +391,14 @@ DataConstant::transpose(DataAbstract* ev, int axis_offset)
   if (temp_ev==0) {
     throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (probably a programming error).");
   }
-  escript::transpose(m_data_r, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
+  if (isComplex())
+  {
+      escript::transpose(m_data_c, getShape(),0, temp_ev->getVectorRWC(),temp_ev->getShape(),0,axis_offset);
+  }
+  else
+  {
+      escript::transpose(m_data_r, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
+  }
 }
 
 void
