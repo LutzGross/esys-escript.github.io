@@ -69,7 +69,7 @@ EscriptParams::EscriptParams()
 
     temp_direct_solver=false;   // This variable is to be removed once proper
                                 // SolverOptions support is in place
-#ifdef MKL
+#ifdef ESYS_HAVE_MKL
     temp_direct_solver=true;
 #endif
 #ifdef USE_UMFPACK

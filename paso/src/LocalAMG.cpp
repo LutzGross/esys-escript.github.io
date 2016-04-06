@@ -261,7 +261,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
                 out->refinements = options->coarse_matrix_refinements;
                 // no coarse level matrix has been constructed.
                 // Use direct solver
-#ifdef MKL
+#ifdef ESYS_HAVE_MKL
                 out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1);
                 A_C.reset();
                 out->A_C->solver_package = PASO_MKL;

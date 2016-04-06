@@ -367,7 +367,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [mkl_lib_path])
         env.AppendUnique(LIBS = env['mkl_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mkl_lib_path)
-        env.Append(CPPDEFINES = ['MKL'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_MKL'])
         env['buildvars']['mkl_inc_path']=mkl_inc_path
         env['buildvars']['mkl_lib_path']=mkl_lib_path
     env['buildvars']['mkl']=int(env['mkl'])
