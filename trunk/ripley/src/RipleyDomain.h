@@ -28,7 +28,7 @@
 
 #include <paso/SystemMatrix.h>
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 #endif
 
@@ -764,7 +764,7 @@ protected:
     paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
                                         dim_t N) const;
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
     /// matrix
     esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
@@ -804,7 +804,7 @@ protected:
     /// copies the integrals of the function defined by 'arg' into 'integrals'
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     /// returns the Trilinos matrix graph
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
 #endif

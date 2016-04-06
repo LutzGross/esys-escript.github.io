@@ -170,7 +170,7 @@ void EscriptDatasetTestCase::runDomainTests(Domain_ptr dom)
     dataset->setMeshUnits("km", "cm", "mm");
     dataset->setSaveMeshData(true);
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     cout << "\tTest saveSilo." << endl;
     CPPUNIT_ASSERT(dataset->saveSilo("domaintest.silo") == true);
     ifstream f("domaintest.silo");

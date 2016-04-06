@@ -18,7 +18,7 @@
 
 #include <paso/SystemMatrix.h>
 
-#if USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 
 using esys_trilinos::TrilinosMatrixAdapter;
@@ -49,7 +49,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S,
         }
         return;
     }
-#if USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(S.get()));
     if (tmat) {
         tmat->add(Nodes, array);

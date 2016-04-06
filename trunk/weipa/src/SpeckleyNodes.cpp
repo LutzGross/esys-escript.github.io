@@ -20,7 +20,7 @@
 #include <speckley/SpeckleyDomain.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -225,7 +225,7 @@ void SpeckleyNodes::writeCoordinatesVTK(ostream& os, int ownIndex)
 //
 bool SpeckleyNodes::writeToSilo(DBfile* dbfile)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     if (numNodes == 0)
         return true;
 
@@ -250,7 +250,7 @@ bool SpeckleyNodes::writeToSilo(DBfile* dbfile)
     DBSetDir(dbfile, "/");
     return (ret == 0);
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

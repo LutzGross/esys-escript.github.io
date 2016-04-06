@@ -72,10 +72,10 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     bool unroll
           // we don't like non-square blocks
         = (rowBlockSize != colBlockSize)
-#ifndef USE_LAPACK
+#ifndef ESYS_HAVE_LAPACK
           // or any block size bigger than 3
           || (colBlockSize > 3)
-# endif
+#endif
           // or if block size one requested and the block size is not 1
           || ((ntype & MATRIX_FORMAT_BLK1) && colBlockSize > 1)
           // or the offsets don't match

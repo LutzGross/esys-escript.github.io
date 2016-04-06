@@ -28,11 +28,11 @@
 using escript::DataTypes::index_t;
 #endif // VISIT_PLUGIN
 
-#if USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -252,7 +252,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 //
 bool FinleyNodes::readFromNc(NcFile* ncFile)
 {
-#if USE_NETCDF
+#if ESYS_HAVE_NETCDF
     NcAtt* att;
     NcVar* var;
  
@@ -318,7 +318,7 @@ bool FinleyNodes::readFromNc(NcFile* ncFile)
     }
 
     return true;
-#else // !USE_NETCDF
+#else // !ESYS_HAVE_NETCDF
     return false;
 #endif
 }
@@ -396,7 +396,7 @@ void FinleyNodes::writeCoordinatesVTK(ostream& os, int ownIndex)
 //
 bool FinleyNodes::writeToSilo(DBfile* dbfile)
 {
-#if USE_SILO
+#if ESYS_HAVE_SILO
     if (numNodes == 0)
         return true;
 
@@ -437,7 +437,7 @@ bool FinleyNodes::writeToSilo(DBfile* dbfile)
     DBSetDir(dbfile, "/");
     return (ret == 0);
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

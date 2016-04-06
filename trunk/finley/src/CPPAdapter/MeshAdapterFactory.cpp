@@ -17,7 +17,7 @@
 #include "MeshAdapterFactory.h"
 #include <finley/FinleyException.h>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
@@ -31,7 +31,7 @@ using namespace escript;
 
 namespace finley {
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 // A convenience method to retrieve an integer attribute from a NetCDF file
 template<typename T>
 T ncReadAtt(NcFile *dataFile, const string &fName, const string& attrName)
@@ -58,7 +58,7 @@ inline void cleanupAndThrow(Mesh* mesh, string msg)
 
 Domain_ptr loadMesh(const std::string& fileName)
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     escript::JMPI mpiInfo = escript::makeInfo( MPI_COMM_WORLD );
 
     const string fName(mpiInfo->appendRankToFileName(fileName));
@@ -462,7 +462,7 @@ Domain_ptr loadMesh(const std::string& fileName)
     return dom;
 #else
     throw FinleyException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
-#endif // USE_NETCDF
+#endif // ESYS_HAVE_NETCDF
 }
 
 Domain_ptr readMesh(escript::JMPI& info, const std::string& fileName,

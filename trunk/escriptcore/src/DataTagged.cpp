@@ -22,7 +22,7 @@
 
 #include <complex>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
@@ -1255,7 +1255,7 @@ DataTagged::setToZero(){
 void
 DataTagged::dump(const std::string fileName) const
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
    const int ldims=DataTypes::maxRank+1;
    const NcDim* ncdims[ldims];
    NcVar *var, *tags_var;

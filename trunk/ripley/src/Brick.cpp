@@ -26,11 +26,11 @@
 
 #include <paso/SystemMatrix.h>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #ifdef ESYS_MPI
 #include <pmpio.h>
@@ -248,7 +248,7 @@ bool Brick::operator==(const escript::AbstractDomain& other) const
 void Brick::readNcGrid(escript::Data& out, string filename, string varname,
             const ReaderParameters& params) const
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     // check destination function space
     dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
@@ -820,7 +820,7 @@ void Brick::write(const std::string& filename) const
 
 void Brick::dump(const string& fileName) const
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     string fn(fileName);
     if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
         fn+=".silo";
@@ -963,7 +963,7 @@ void Brick::dump(const string& fileName) const
         DBClose(dbfile);
     }
 
-#else // USE_SILO
+#else // ESYS_HAVE_SILO
     throw RipleyException("dump: no Silo support");
 #endif
 }
@@ -2277,7 +2277,7 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Brick::getTrilinosGraph() const
 {

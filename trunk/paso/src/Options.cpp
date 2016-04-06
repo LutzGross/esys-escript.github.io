@@ -377,7 +377,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
                 if (mpi_info->size == 1) {
 #ifdef ESYS_HAVE_MKL
                     out = PASO_MKL;
-#elif defined USE_UMFPACK
+#elif defined ESYS_HAVE_UMFPACK
                     out = PASO_UMFPACK;
 #elif defined PASTIX
                     out = PASO_PASTIX
@@ -385,7 +385,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
                 } else{
 #ifdef ESYS_HAVE_MKL
                     throw PasoException("MKL does not currently support MPI");
-#elif defined USE_UMFPACK
+#elif defined ESYS_HAVE_UMFPACK
                     throw PasoException("UMFPACK does not currently support MPI");
 #endif
                 }

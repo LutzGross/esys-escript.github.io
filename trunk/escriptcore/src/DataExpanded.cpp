@@ -23,7 +23,7 @@
 
 #include <limits>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
@@ -1037,7 +1037,7 @@ void DataExpanded::setToZero()
 
 void DataExpanded::dump(const std::string fileName) const
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     const int ldims=2+DataTypes::maxRank;
     const NcDim* ncdims[ldims];
     NcVar *var, *ids;
@@ -1101,7 +1101,7 @@ void DataExpanded::dump(const std::string fileName) const
     }
 #else
     throw DataException("DataExpanded::dump: not configured with netCDF. Please contact your installation manager.");
-#endif // USE_NETCDF
+#endif // ESYS_HAVE_NETCDF
 }
 
 void DataExpanded::setTaggedValue(int tagKey,

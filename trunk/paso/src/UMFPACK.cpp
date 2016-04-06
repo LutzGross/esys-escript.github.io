@@ -36,7 +36,7 @@ void UMFPACK_free(SparseMatrix* A)
 {
     if (A && A->solver_p) {
         UMFPACK_Handler* pt = reinterpret_cast<UMFPACK_Handler*>(A->solver_p);
-#ifdef USE_UMFPACK
+#ifdef ESYS_HAVE_UMFPACK
 #ifdef ESYS_INDEXTYPE_LONG
         umfpack_dl_free_symbolic(&pt->symbolic);
         umfpack_dl_free_numeric(&pt->numeric);
@@ -55,7 +55,7 @@ void UMFPACK_free(SparseMatrix* A)
 void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
                    dim_t numRefinements, bool verbose)
 {
-#ifdef USE_UMFPACK
+#ifdef ESYS_HAVE_UMFPACK
     if (!( (A->type & MATRIX_FORMAT_BLK1) && (A->type & MATRIX_FORMAT_CSC)) ) {
         throw PasoException("Paso: UMFPACK requires CSC format with index offset 1 and block size 1.");
     }
@@ -197,7 +197,7 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
         }
         throw PasoException("UMFPACK: forward/backward substitution failed.");
     }
-#else // USE_UMFPACK
+#else // ESYS_HAVE_UMFPACK
     throw PasoException("Paso: Not compiled with UMFPACK.");
 #endif
 }

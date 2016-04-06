@@ -21,10 +21,10 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
 
-#ifdef USE_CUDA
+#ifdef ESYS_HAVE_CUDA
 #include <ripley/RipleySystemMatrix.h>
 #endif
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 #endif
 
@@ -41,7 +41,7 @@ using escript::ValueError;
 using escript::NotImplementedError;
 using paso::TransportProblem;
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 using esys_trilinos::TrilinosMatrixAdapter;
 using esys_trilinos::const_TrilinosGraph_ptr;
 #endif
@@ -804,7 +804,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     // use CUSP for single rank and supported solvers+preconditioners if CUDA
     // is available, PASO otherwise
     if (package == escript::SO_DEFAULT) {
-#ifdef USE_CUDA
+#ifdef ESYS_HAVE_CUDA
         if (m_mpiInfo->size == 1) {
             switch (sb.getSolverMethod()) {
                 case escript::SO_DEFAULT:
@@ -828,7 +828,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         } else {
             package = escript::SO_PACKAGE_PASO;
         }
-#else // USE_CUDA
+#else // ESYS_HAVE_CUDA
         package = escript::SO_PACKAGE_PASO;
 #endif
     }
@@ -842,7 +842,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
             type |= (int)SMT_SYMMETRIC;
         return type;
     } else if (package == escript::SO_PACKAGE_TRILINOS) {
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
         return (int)SMT_TRILINOS;
 #else
         throw RipleyException("Trilinos requested but not built with Trilinos.");
@@ -896,7 +896,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
     //    throw NotImplementedError("newSystemMatrix: reduced order not supported");
 
     if (type & (int)SMT_CUSP) {
-#ifdef USE_CUDA
+#ifdef ESYS_HAVE_CUDA
         const dim_t numMatrixRows = getNumDOF();
         bool symmetric = (type & (int)SMT_SYMMETRIC);
         escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
@@ -908,7 +908,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
                "CUDA support so CUSP solvers & matrices are not available.");
 #endif
     } else if (type & (int)SMT_TRILINOS) {
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
         const_TrilinosGraph_ptr graph(getTrilinosGraph());
         escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo, row_blocksize,
                     row_functionspace, graph));
@@ -1199,7 +1199,7 @@ paso::Pattern_ptr RipleyDomain::createPasoPattern(
     return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptr, index));
 }
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr RipleyDomain::createTrilinosGraph(
                                             const IndexVector& myRows,
@@ -1254,14 +1254,14 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
         addToPasoMatrix(psm, nodes, numEq, array);
         return;
     }
-#ifdef USE_CUDA
+#ifdef ESYS_HAVE_CUDA
     SystemMatrix* rsm = dynamic_cast<SystemMatrix*>(mat);
     if (rsm) {
         rsm->add(nodes, array);
         return;
     }
 #endif
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
     if (tm) {
         tm->add(nodes, array);
@@ -1444,7 +1444,7 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     if (numEq != numComp)
         throw ValueError("assemblePDE: number of equations and number of solutions don't match");
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
     if (tm) {
         tm->resumeFill();
@@ -1465,7 +1465,7 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
         }
     }
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     if (tm) {
         tm->fillComplete(true);
     }
@@ -1513,7 +1513,7 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
     if (numEq != numComp)
         throw ValueError("assemblePDEBoundary: number of equations and number of solutions don't match");
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
     if (tm) {
         tm->resumeFill();
@@ -1532,7 +1532,7 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
             assembler->assemblePDEBoundarySystem(mat, rhs, coefs);
     }
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     if (tm) {
         tm->fillComplete(true);
     }

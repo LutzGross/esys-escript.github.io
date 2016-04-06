@@ -67,7 +67,6 @@ if 'ripley' in env['domains']:
     headers += ['CrossDomainCoupler.h']
 
 if env['silo']:
-    local_env.Append(CPPDEFINES = ['USE_SILO'])
     speckleylibs += env['silo_libs']
 
 local_env.PrependUnique(LIBS = speckleylibs)

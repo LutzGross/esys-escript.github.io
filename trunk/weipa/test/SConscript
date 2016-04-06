@@ -38,7 +38,6 @@ if local_env['cppunit']:
         local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
         local_env.PrependUnique(LIBS = env['speckley_libs'])
     if local_env['silo']:
-        local_env.Append(CPPDEFINES = ['USE_SILO'])
         local_env.AppendUnique(LIBS = env['silo_libs'])
     program = local_env.Program(testname, sources)
 

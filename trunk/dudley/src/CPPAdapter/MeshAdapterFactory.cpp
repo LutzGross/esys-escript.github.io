@@ -21,7 +21,7 @@
 
 #include <escript/SubWorld.h>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
@@ -35,7 +35,7 @@ using namespace escript;
 
 namespace dudley {
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 // A convenience method to retrieve an integer attribute from a NetCDF file
 template<typename T>
 T ncReadAtt(NcFile* dataFile, const string& fName, const string& attrName)
@@ -62,7 +62,7 @@ inline void cleanupAndThrow(Mesh* mesh, string msg)
 
 Domain_ptr loadMesh(const std::string& fileName)
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_WORLD);
     const string fName(mpi_info->appendRankToFileName(fileName));
 
@@ -360,8 +360,8 @@ Domain_ptr loadMesh(const std::string& fileName)
     return dom->getPtr();
 #else
     throw DataException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
-#endif /* USE_NETCDF */
-  }
+#endif // ESYS_HAVE_NETCDF
+}
 
 Domain_ptr readMesh(const std::string& fileName, int integrationOrder,
                     int reducedIntegrationOrder, bool optimize)

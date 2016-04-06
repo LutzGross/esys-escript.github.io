@@ -29,11 +29,11 @@
 #include <boost/scoped_array.hpp>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #ifdef ESYS_MPI
 #include <pmpio.h>
@@ -202,7 +202,7 @@ bool Rectangle::operator==(const escript::AbstractDomain& other) const
 void Rectangle::readNcGrid(escript::Data& out, std::string filename,
         std::string varname, const ReaderParameters& params) const
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     // check destination function space
     dim_t myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
@@ -724,7 +724,7 @@ void Rectangle::write(const std::string& filename) const
 
 void Rectangle::dump(const std::string& fileName) const
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     std::string fn(fileName);
     if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
         fn+=".silo";
@@ -861,7 +861,7 @@ void Rectangle::dump(const std::string& fileName) const
         DBClose(dbfile);
     }
 
-#else // USE_SILO
+#else // ESYS_HAVE_SILO
     throw SpeckleyException("dump: no Silo support");
 #endif
 }

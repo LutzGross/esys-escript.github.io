@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -243,7 +243,7 @@ bool RipleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
                                const StringVec& labels, const StringVec& units,
                                bool writeMeshData)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     // Write nodes, elements and mesh variables
     if (!initialized
             || !cells->writeToSilo(dbfile, pathInSilo, labels, units, writeMeshData)
@@ -253,7 +253,7 @@ bool RipleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
     siloPath = pathInSilo;
     return true;
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

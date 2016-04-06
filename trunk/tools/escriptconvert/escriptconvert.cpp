@@ -17,7 +17,7 @@
 #include <weipa/EscriptDataset.h>
 #include <weipa/DataVar.h>
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -47,7 +47,7 @@ string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
 
 int usage()
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     cerr << "Usage: escriptconvert {-vtk|-silo} <file.esd>" << endl;
 #else
     cerr << "Note: escriptconvert was compiled without Silo support!" << endl;
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
     bool doVTK = false, doSilo = false;
     string esdFile;
 
-#if USE_SILO
+#if ESYS_HAVE_SILO
     if (argc != 3) {
         cleanup();
         return usage();
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     }
     esdFile = string(argv[2]);
     
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     if (argc == 2) {
         esdFile = string(argv[1]);
     } else if (argc == 3) {

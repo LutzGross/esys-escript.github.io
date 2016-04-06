@@ -35,7 +35,7 @@ typedef escript::DataTypes::index_t LO;
 /// Kokkos Node type
 #ifdef _OPENMP
 typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
-#elif USE_CUDA
+#elif ESYS_HAVE_CUDA
 typedef Kokkos::Compat::KokkosCudaWrapperNode   NT;
 #else
 typedef Kokkos::Compat::KokkosSerialWrapperNode NT;

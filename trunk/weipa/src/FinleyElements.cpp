@@ -30,11 +30,11 @@
 
 #include <iostream>
 
-#if USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -300,7 +300,7 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
 //
 bool FinleyElements::readFromNc(NcFile* ncfile)
 {
-#if USE_NETCDF
+#if ESYS_HAVE_NETCDF
     string num_str("num_");
     num_str += name;
 
@@ -393,7 +393,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
     }
 
     return true; 
-#else // !USE_NETCDF
+#else // !ESYS_HAVE_NETCDF
     return false;
 #endif
 }
@@ -664,7 +664,7 @@ void FinleyElements::writeConnectivityVTK(ostream& os)
     }
 }
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 //
 //
 //
@@ -689,7 +689,7 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
                                  const StringVec& labels,
                                  const StringVec& units, bool writeMeshData)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     if (numElements == 0)
         return true;
 
@@ -787,7 +787,7 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
 
     return (ret == 0);
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

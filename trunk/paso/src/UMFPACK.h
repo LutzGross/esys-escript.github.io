@@ -31,7 +31,7 @@
 
 #include "SparseMatrix.h"
 
-#ifdef USE_UMFPACK
+#ifdef ESYS_HAVE_UMFPACK
 #include <umfpack.h>
 #endif
 

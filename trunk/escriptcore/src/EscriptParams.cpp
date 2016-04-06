@@ -35,25 +35,25 @@ EscriptParams::EscriptParams()
    too_many_levels=70;
    lazy_str_fmt=0;
    lazy_verbose=0;
-#ifdef USE_NETCDF
-   has_netcdf=1;
-#else   
-   has_netcdf=0;
-#endif   
-#ifdef USE_TRILINOS
-   have_trilinos=1;
-#else   
-   have_trilinos=0;
-#endif   
+#ifdef ESYS_HAVE_NETCDF
+   have_netcdf = 1;
+#else
+   have_netcdf = 0;
+#endif
+#ifdef ESYS_HAVE_TRILINOS
+   have_trilinos = 1;
+#else
+   have_trilinos = 0;
+#endif
 #ifdef ESYS_HAVE_BOOST_IO
    have_unzip = 1;
 #else
    have_unzip = 0;
 #endif
-#ifdef USE_LAPACK
-   lapack_support=1;
+#ifdef ESYS_HAVE_LAPACK
+   lapack_support = 1;
 #else
-   lapack_support=0;
+   lapack_support = 0;
 #endif
 
 #ifdef ESYS_HAVE_GMSH
@@ -75,16 +75,16 @@ EscriptParams::EscriptParams()
     amg_disabled=false;
 #endif
 
-    temp_direct_solver=false;   // This variable is to be removed once proper
+    temp_direct_solver = false; // This variable is to be removed once proper
                                 // SolverOptions support is in place
 #ifdef ESYS_HAVE_MKL
-    temp_direct_solver=true;
+    temp_direct_solver = true;
 #endif
-#ifdef USE_UMFPACK
-    temp_direct_solver=true;
+#ifdef ESYS_HAVE_UMFPACK
+    temp_direct_solver = true;
 #endif
 #ifdef PASTIX
-    temp_direct_solver=true;
+    temp_direct_solver = true;
 #endif
 
                         // These #defs are for performance testing only
@@ -106,7 +106,7 @@ EscriptParams::EscriptParams()
 #endif
 }
 
-int 
+int
 EscriptParams::getInt(const char* name, int sentinel) const
 {
    if (!strcmp(name,"TOO_MANY_LINES"))
@@ -135,7 +135,7 @@ EscriptParams::getInt(const char* name, int sentinel) const
    }
    if (!strcmp(name, "NAN_CHECK"))
    {
-#ifdef isnan        
+#ifdef isnan
         return 1;
 #else
         return 0;
@@ -151,7 +151,7 @@ EscriptParams::getInt(const char* name, int sentinel) const
    }
    if (!strcmp(name, "MPIBUILD"))
    {
-#ifdef ESYS_MPI           
+#ifdef ESYS_MPI
         return 1;
 #else
         return 0;
@@ -159,37 +159,35 @@ EscriptParams::getInt(const char* name, int sentinel) const
    }
    if (!strcmp(name, "PASO_DIRECT"))
    {
-        // This is not in the constructor because escriptparams could be constructed 
+        // This is not in the constructor because escriptparams could be constructed
         // before main (and hence no opportunity to call INIT)
-        #ifdef ESYS_MPI
+#ifdef ESYS_MPI
             int size;
             if (MPI_Comm_size(MPI_COMM_WORLD, &size)!=MPI_SUCCESS)        // This would break in a subworld
             {
-                temp_direct_solver=false;        
+                temp_direct_solver=false;
             }
             if (size>1)
             {
                 temp_direct_solver=false;
             }
-        #endif   
+#endif
         return temp_direct_solver;
    }
     if (!strcmp(name, "NETCDF_BUILD"))
-    {
-       return has_netcdf; 
-    }
+       return have_netcdf;
     if (!strcmp(name, "HAVE_TRILINOS"))
-        return have_trilinos; 
+        return have_trilinos;
     if (!strcmp(name, "HAVE_UNZIP"))
-        return have_unzip; 
+        return have_unzip;
     if (!strcmp(name, "GMSH_SUPPORT"))
         return gmsh;
     if (!strcmp(name, "GMSH_MPI"))
         return gmsh_mpi;
    return sentinel;
 }
-  
-void 
+
+void
 EscriptParams::setInt(const char* name, int value)
 {
    // Note: there is no way to modify the LAPACK_SUPPORT variable ATM
@@ -209,7 +207,7 @@ EscriptParams::setInt(const char* name, int value)
        throw EsysException("Invalid parameter name");
 }
 
-void 
+void
 setEscriptParamInt(const char* name, int value)
 {
    escriptParams.setInt(name,value);
@@ -234,7 +232,7 @@ EscriptParams::listEscriptParams()
    l.append(make_tuple("LAZY_STR_FMT", lazy_str_fmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
    l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
    l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
-   l.append(make_tuple("NETCDF_BUILD", has_netcdf, "{0,1} Was this build made with netcdf libraries?"));
+   l.append(make_tuple("NETCDF_BUILD", have_netcdf, "{0,1} Was this build made with netcdf libraries?"));
    l.append(make_tuple("HAVE_TRILINOS", have_trilinos, "{0,1} Was this build made with trilinos libraries?"));
    l.append(make_tuple("HAVE_UNZIP", have_unzip, "{0,1} Was this build made with unzip libraries (boost::iostreams)?"));
    l.append(make_tuple("GMSH_SUPPORT", gmsh, "{0,1} Non-python GMSH support is available."));

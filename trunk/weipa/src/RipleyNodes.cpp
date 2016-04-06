@@ -20,7 +20,7 @@
 #include <ripley/RipleyDomain.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -224,7 +224,7 @@ void RipleyNodes::writeCoordinatesVTK(ostream& os, int ownIndex)
 //
 bool RipleyNodes::writeToSilo(DBfile* dbfile)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     if (numNodes == 0)
         return true;
 
@@ -249,7 +249,7 @@ bool RipleyNodes::writeToSilo(DBfile* dbfile)
     DBSetDir(dbfile, "/");
     return (ret == 0);
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

@@ -22,11 +22,11 @@
 #include <escript/Data.h>
 #endif
 
-#if USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -221,7 +221,7 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 {
     cleanup();
     
-#if USE_NETCDF
+#if ESYS_HAVE_NETCDF
     NcError ncerr(NcError::silent_nonfatal);    
     NcFile* input = new NcFile(filename.c_str());
     if (!input->is_valid()) {
@@ -316,7 +316,7 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
     }
 
     delete input;
-#endif // USE_NETCDF
+#endif // ESYS_HAVE_NETCDF
 
     return initialized;
 }
@@ -622,7 +622,7 @@ string DataVar::getTensorDef() const
 bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath,
                           const string& units)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     if (!initialized)
         return false;
 
@@ -685,7 +685,7 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath,
     DBSetDir(dbfile, "/");
     return (ret == 0);
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

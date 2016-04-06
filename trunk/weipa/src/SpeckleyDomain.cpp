@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -222,7 +222,7 @@ bool SpeckleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
                                const StringVec& labels, const StringVec& units,
                                bool writeMeshData)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     // Write nodes, elements and mesh variables
     if (!initialized
             || !cells->writeToSilo(dbfile, pathInSilo, labels, units, writeMeshData)
@@ -232,8 +232,8 @@ bool SpeckleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
     siloPath = pathInSilo;
     return true;
 
-#else // !USE_SILO
-    std::cerr << "skipping writeToSilo, USE_SILO undefined\n";
+#else // !ESYS_HAVE_SILO
+    std::cerr << "skipping writeToSilo, not built with Silo support\n";
     return false;
 #endif
 }

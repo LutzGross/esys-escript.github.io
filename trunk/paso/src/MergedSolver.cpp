@@ -68,7 +68,7 @@ MergedSolver::MergedSolver(const_SystemMatrix_ptr M, const Options* options)
 #ifdef ESYS_HAVE_MKL
         A = M_temp->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1);
         A->solver_package = PASO_MKL;
-#elif defined USE_UMFPACK
+#elif defined ESYS_HAVE_UMFPACK
         A = M_temp->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC);
         A->solver_package = PASO_UMFPACK;
 #else
