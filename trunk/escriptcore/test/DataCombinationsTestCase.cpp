@@ -14,9 +14,9 @@
 *
 *****************************************************************************/
 
+#include <escript/DataTypes.h>
 #include "DataCombinationsTestCase.h"
 
-#include <escript/DataTypes.h>
 #include <escript/Data.h>
 #include <escript/TestDomain.h>
 #include <cppunit/TestCaller.h>
