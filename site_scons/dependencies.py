@@ -37,7 +37,10 @@ def CheckComplexAcos(context):
 #include <complex>
 int main() { std::complex<double> x(0,3.14159265359), y(1.5707963,-1.8622957);
 return std::abs(std::acos(x)-y) < 1e-6 ? 0:-1;}
-""", 'c++')
+""", '.cpp')
+    # scons < 2.4 fix:
+    if type(result)==tuple:
+        result = result[0]
     context.Result(result)
     return result
 
