@@ -24,7 +24,7 @@
 #include <cmath>
 #include <complex>
 
-#ifdef BROKENACOS
+#ifdef ESYS_USE_BOOST_ACOS
 #include <boost/math/complex/acos.hpp>	// std::acos for complex on OSX (elcapitan) is wrong
 #endif
 
@@ -654,7 +654,7 @@ DataTypes::real_t calc_acos(DataTypes::real_t x)
 inline 
 DataTypes::cplx_t calc_acos(DataTypes::cplx_t x)
 {
-#ifdef BROKENACOS
+#ifdef ESYS_USE_BOOST_ACOS
               return boost::math::acos(x);
 #else
               return acos(x);
