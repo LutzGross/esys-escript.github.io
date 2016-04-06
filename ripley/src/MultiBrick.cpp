@@ -1273,7 +1273,7 @@ void MultiBrick::populateSampleIds()
 }
 
 //private
-vector<IndexVector> MultiBrick::getConnections() const
+vector<IndexVector> MultiBrick::getConnections(bool includeShared) const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices
     // of DOFs connected to i (up to 27 in 3D)

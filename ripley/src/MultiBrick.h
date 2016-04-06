@@ -186,7 +186,7 @@ protected:
 
     void populateSampleIds();
     void populateDofMap();
-    std::vector<IndexVector> getConnections() const;
+    virtual std::vector<IndexVector> getConnections(bool includeShared) const;
 
     dim_t findNode(const double *coords) const;
 
