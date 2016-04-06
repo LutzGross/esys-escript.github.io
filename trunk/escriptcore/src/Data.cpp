@@ -2950,8 +2950,6 @@ Data
 escript::operator-(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,SUB);
-//    BINOPTENSOR(left,minus_func)
-    
     return C_TensorBinaryOperation(left, right, ESFunction::MINUSF);    
 }
 
@@ -3367,10 +3365,49 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 
     if (arg_0_Z.isConstant() && arg_1_Z.isConstant()) {
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());        // DataConstant output
-        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-        const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0));
-        real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
-        matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {
+		cplx_t dummyc=0;
+	        res.complicate();
+		const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0,dummyc));
+		const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0,dummyc));
+		cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0,dummyc));
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);		
+	    }
+	    else	// right is real
+	    {
+		cplx_t dummyc=0;
+		real_t dummyr=0;
+	        res.complicate();
+		const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0,dummyc));
+		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0,dummyr));
+		cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0,dummyc));
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);		
+	    }
+	}
+	else	// arg_0_Z is real
+	{
+	    if (arg_1_Z.isComplex())
+	    {
+		cplx_t dummyc=0;
+		real_t dummyr=0;
+	        res.complicate();
+		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0,dummyr));
+		const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0,dummyc));
+		cplx_t *ptr_2 = &(res.getDataAtOffsetRW(0,dummyc));
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);	      
+	    }
+	    else
+	    {
+		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0,0));
+		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0,0));
+		real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);	      
+	    }
+	}
+
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged()) {
 
@@ -5295,7 +5332,6 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
   return res;
 }
 
-// This version will call binaryOpData???
 Data
 escript::C_TensorBinaryOperation(Data const &arg_0,
                         Data const &arg_1,
