@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
@@ -469,7 +469,7 @@ DataConstant::setToZero()
 void
 DataConstant::dump(const std::string fileName) const
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
    const NcDim* ncdims[DataTypes::maxRank];
    NcVar* var;
    int rank = getRank();

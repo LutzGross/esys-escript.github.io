@@ -65,7 +65,6 @@ if local_env['visit']:
     local_env.AppendUnique(LIBS = ['simV2'])
 
 if local_env['silo']:
-    local_env.Append(CPPDEFINES = ['USE_SILO'])
     local_env.AppendUnique(LIBS = env['silo_libs'])
 
 local_env.Prepend(LIBS = ['escript'])

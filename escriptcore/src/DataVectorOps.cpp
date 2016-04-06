@@ -305,7 +305,7 @@ matrix_inverse(const DataTypes::RealVectorType& in,
     }
     else	// inShape[0] >3  (or negative but that can hopefully never happen)
     {
-#ifndef USE_LAPACK
+#ifndef ESYS_HAVE_LAPACK
 	return NEEDLAPACK;
 #else
 	int step=0;

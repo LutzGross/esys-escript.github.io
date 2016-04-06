@@ -22,8 +22,8 @@
 
 #include <cstring> // memcpy
 
-#ifdef USE_LAPACK
-   #ifdef MKL_LAPACK
+#ifdef ESYS_HAVE_LAPACK
+   #ifdef ESYS_MKL_LAPACK
       #include <mkl_lapack.h>
       #include <mkl_cblas.h>
    #else
@@ -79,7 +79,7 @@ inline void BlockOps_SMV_3(double* R, const double* mat, const double* V)
 /// performs operation R=R-mat*V (V and R are not overlapping) - NxN
 inline void BlockOps_SMV_N(dim_t N, double* R, const double* mat, const double* V)
 {
-#ifdef USE_LAPACK
+#ifdef ESYS_HAVE_LAPACK
     cblas_dgemv(CblasColMajor,CblasNoTrans, N, N, -1., mat, N, V, 1, 1., R, 1);
 #else
     PASO_MISSING_CLAPACK;
@@ -88,7 +88,7 @@ inline void BlockOps_SMV_N(dim_t N, double* R, const double* mat, const double* 
 
 inline void BlockOps_MV_N(dim_t N, double* R, const double* mat, const double* V)
 {
-#ifdef USE_LAPACK
+#ifdef ESYS_HAVE_LAPACK
     cblas_dgemv(CblasColMajor,CblasNoTrans, N, N, 1., mat, N, V, 1, 0., R, 1);
 #else
     PASO_MISSING_CLAPACK;
@@ -146,8 +146,8 @@ inline void BlockOps_invM_3(double* invA, const double* A, int* failed)
 /// LU factorization of NxN matrix mat with partial pivoting
 inline void BlockOps_invM_N(dim_t N, double* mat, index_t* pivot, int* failed)
 {
-#ifdef USE_LAPACK
-#ifdef MKL_LAPACK
+#ifdef ESYS_HAVE_LAPACK
+#ifdef ESYS_MKL_LAPACK
     int res = 0;
     dgetrf(&N, &N, mat, &N, pivot, &res);
     if (res != 0)
@@ -156,7 +156,7 @@ inline void BlockOps_invM_N(dim_t N, double* mat, index_t* pivot, int* failed)
     int res = clapack_dgetrf(CblasColMajor, N, N, mat, N, pivot);
     if (res != 0)
         *failed = 1;
-#endif // MKL_LAPACK
+#endif // ESYS_MKL_LAPACK
 #else
     PASO_MISSING_CLAPACK;
 #endif
@@ -165,8 +165,8 @@ inline void BlockOps_invM_N(dim_t N, double* mat, index_t* pivot, int* failed)
 /// solves system of linear equations A*X=B
 inline void BlockOps_solve_N(dim_t N, double* X, double* mat, index_t* pivot, int* failed)
 {
-#ifdef USE_LAPACK
-#ifdef MKL_LAPACK
+#ifdef ESYS_HAVE_LAPACK
+#ifdef ESYS_MKL_LAPACK
     int res = 0;
     int ONE = 1;
     dgetrs("N", &N, &ONE, mat, &N, pivot, X, &N, &res);
@@ -176,7 +176,7 @@ inline void BlockOps_solve_N(dim_t N, double* X, double* mat, index_t* pivot, in
     int res = clapack_dgetrs(CblasColMajor, CblasNoTrans, N, 1, mat, N, pivot, X, N);
     if (res != 0)
         *failed = 1;
-#endif // MKL_LAPACK
+#endif // ESYS_MKL_LAPACK
 #else
     PASO_MISSING_CLAPACK;
 #endif

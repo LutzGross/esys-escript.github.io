@@ -63,7 +63,7 @@
 
 #include <paso/SystemMatrixPattern.h>
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
 
@@ -105,7 +105,7 @@ public:
     paso::SystemMatrixPattern_ptr getPattern(bool reduce_row_order, bool reduce_col_order);
     paso::SystemMatrixPattern_ptr makePattern(bool reduce_row_order, bool reduce_col_order);
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
     /// matrix
     esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;

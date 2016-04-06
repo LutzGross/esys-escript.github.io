@@ -29,7 +29,7 @@
 #ifndef __PASO_PERFORMANCE_H__
 #define __PASO_PERFORMANCE_H__
 
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
 #include <papi.h>
 #endif
 
@@ -53,7 +53,7 @@ namespace paso {
 
 struct Performance
 {
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
     /// PAPI event sets for the monitors
     int event_set;
     /// number of events tracked by the monitors

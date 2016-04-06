@@ -33,7 +33,7 @@
 #include "Assemble.h"
 #include <paso/SystemMatrix.h>
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 
 using esys_trilinos::TrilinosMatrixAdapter;
@@ -46,7 +46,7 @@ void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix* in, int NN_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
                                     int num_Sol, const double* array);
 
-#if USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* in,
                         int NN_Equa, const index_t* Nodes_Equa, int num_Equa,
                         int NN_Sol, const index_t* Nodes_Sol, int num_Sol,
@@ -79,7 +79,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr in, int NN_Equa,
         }
         return;
     }
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(in.get()));
     if (tmat) {
         Assemble_addToSystemMatrix_Trilinos(tmat, NN_Equa, Nodes_Equa,
@@ -286,7 +286,7 @@ void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix* in, int NN_Equa,
     }
 }
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 void Assemble_addToSystemMatrix_Trilinos(TrilinosMatrixAdapter* in,
                                          int NN_Equa, const index_t* Nodes_Equa,
                                          int num_Equa, int NN_Sol,

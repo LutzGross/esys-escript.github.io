@@ -234,7 +234,7 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
 
@@ -329,7 +329,7 @@ protected:
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     /// Trilinos graph structure, cached for efficiency
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
 #endif

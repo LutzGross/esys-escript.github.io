@@ -236,7 +236,7 @@ def checkNumpy(env):
         conf.env['numpy_h']=False
     else:
         if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-            conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
+            conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
             conf.env['numpy_h']=True
         else:
             conf.env['numpy_h']=False
@@ -249,6 +249,7 @@ def checkCUDA(env):
         env.AppendUnique(CPPPATH = [cuda_inc_path])
         env.AppendUnique(LIBPATH = [cuda_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], cuda_lib_path)
+        env.Append(CPPDEFINES = ['ESYS_HAVE_CUDA'])
         env['cuda']=True
     except:
         env['cuda']=False
@@ -325,7 +326,7 @@ def checkForTrilinos(env):
 
         env.AppendUnique(CPPPATH = [trilinos_inc_path])
         env.AppendUnique(LIBPATH = [trilinos_lib_path])
-        env.Append(CPPDEFINES = ['USE_TRILINOS'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
         # Note that we do not add the libs globally
         env['buildvars']['trilinos_inc_path']=trilinos_inc_path
         env['buildvars']['trilinos_lib_path']=trilinos_lib_path
@@ -342,7 +343,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [netcdf_lib_path])
         env.AppendUnique(LIBS = env['netcdf_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], netcdf_lib_path)
-        env.Append(CPPDEFINES = ['USE_NETCDF'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF'])
         env['buildvars']['netcdf_inc_path']=netcdf_inc_path
         env['buildvars']['netcdf_lib_path']=netcdf_lib_path
     env['buildvars']['netcdf']=int(env['netcdf'])
@@ -356,7 +357,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [papi_lib_path])
         env.AppendUnique(LIBS = env['papi_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], papi_lib_path)
-        env.Append(CPPDEFINES = ['PAPI'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_PAPI'])
         env['buildvars']['papi_inc_path']=papi_inc_path
         env['buildvars']['papi_lib_path']=papi_lib_path
     env['buildvars']['papi']=int(env['papi'])
@@ -384,7 +385,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [umfpack_lib_path])
         env.AppendUnique(LIBS = env['umfpack_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], umfpack_lib_path)
-        env.Append(CPPDEFINES = ['USE_UMFPACK'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_UMFPACK'])
         env['buildvars']['umfpack_inc_path']=umfpack_inc_path
         env['buildvars']['umfpack_lib_path']=umfpack_lib_path
     env['buildvars']['umfpack']=int(env['umfpack'])
@@ -403,13 +404,13 @@ def checkOptionalLibraries(env):
             env.Exit(1)
         header='clapack.h'
         if env['lapack']=='mkl':
-            env.AppendUnique(CPPDEFINES = ['MKL_LAPACK'])
+            env.AppendUnique(CPPDEFINES = ['ESYS_MKL_LAPACK'])
             header='mkl_lapack.h'
         lapack_inc_path,lapack_lib_path=findLibWithHeader(env, env['lapack_libs'], header, env['lapack_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [lapack_inc_path])
         env.AppendUnique(LIBPATH = [lapack_lib_path])
         env.AppendUnique(LIBS = env['lapack_libs'])
-        env.Append(CPPDEFINES = ['USE_LAPACK'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_LAPACK'])
         env['buildvars']['lapack_inc_path']=lapack_inc_path
         env['buildvars']['lapack_lib_path']=lapack_lib_path
     env['buildvars']['lapack']=env['lapack']
@@ -424,6 +425,7 @@ def checkOptionalLibraries(env):
         # Note that we do not add the libs since they are only needed for the
         # weipa library and tools.
         #env.AppendUnique(LIBS = [env['silo_libs']])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_SILO'])
         env['buildvars']['silo_inc_path']=silo_inc_path
         env['buildvars']['silo_lib_path']=silo_lib_path
     env['buildvars']['silo']=int(env['silo'])

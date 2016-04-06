@@ -52,7 +52,7 @@ using escript::FileWriter;
 #include <numeric> // for std::accumulate
 #include <sstream> // for std::ostringstream
 
-#if USE_SILO
+#if ESYS_HAVE_SILO
 #include <silo.h>
 
 #if WEIPA_HAVE_MPI
@@ -60,7 +60,7 @@ using escript::FileWriter;
 const int NUM_SILO_FILES = 1; // number of Silo files to produce per save
 #endif
 
-#endif // USE_SILO
+#endif // ESYS_HAVE_SILO
 
 using namespace std;
 
@@ -306,7 +306,7 @@ bool EscriptDataset::loadNetCDF(const DomainChunks& domain,
 //
 bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 {
-#if USE_SILO
+#if ESYS_HAVE_SILO
     if (domainChunks.size() == 0)
         return false;
 
@@ -474,7 +474,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 
     return true;
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     std::cerr << "WARNING: saving to silo file requested but escript was not built"
             " with silo support";
     return false;
@@ -1057,7 +1057,7 @@ void EscriptDataset::updateSampleDistribution(VarInfo& vi)
 //
 void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
 {
-#if USE_SILO
+#if ESYS_HAVE_SILO
     vector<int> meshtypes;
     vector<string> tempstrings;
     vector<char*> meshnames;
@@ -1126,7 +1126,7 @@ void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
 void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
                                      bool useMeshFile)
 {
-#if USE_SILO
+#if ESYS_HAVE_SILO
     vector<int> vartypes;
     vector<string> tempstrings;
     vector<char*> varnames;
@@ -1181,7 +1181,7 @@ void EscriptDataset::putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
 //
 void EscriptDataset::putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi)
 {
-#if USE_SILO
+#if ESYS_HAVE_SILO
     string tensorDir = vi.varName+string("_comps/");
     DBSetDir(dbfile, "/");
     DBMkdir(dbfile, tensorDir.c_str());

@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
@@ -371,7 +371,7 @@ void RipleyElements::writeConnectivityVTK(ostream& os)
     }
 }
 
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
 inline int toSiloElementType(int type)
 {
     switch (type) {
@@ -388,7 +388,7 @@ bool RipleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
                                  const StringVec& labels,
                                  const StringVec& units, bool writeMeshData)
 {
-#if USE_SILO
+#ifdef ESYS_HAVE_SILO
     if (numElements == 0)
         return true;
 
@@ -464,7 +464,7 @@ bool RipleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
 
     return (ret == 0);
 
-#else // !USE_SILO
+#else // !ESYS_HAVE_SILO
     return false;
 #endif
 }

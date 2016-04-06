@@ -18,7 +18,7 @@
 #include "WrappedArray.h"
 #include "DataException.h"
 
-#if HAVE_NUMPY_H
+#if ESYS_HAVE_NUMPY_H
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
 #endif
@@ -207,7 +207,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	rank=shape.size();
 	iscomplex=checkForComplex(obj_in);
 
-#if HAVE_NUMPY_H
+#if ESYS_HAVE_NUMPY_H
 	// if obj is a numpy array it is much faster to copy the array through the
 	// __array_struct__ interface instead of extracting single values from the
 	// components via getElt(). For this to work we check below that

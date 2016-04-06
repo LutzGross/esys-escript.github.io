@@ -21,7 +21,7 @@
 
 #include <exception>
 #include <iostream>
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
@@ -137,7 +137,7 @@ Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
 
 Data load(const std::string fileName, const AbstractDomain& domain)
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     NcAtt *type_att, *rank_att, *function_space_type_att;
     // netCDF error handler
     NcError err(NcError::silent_nonfatal);
@@ -340,12 +340,12 @@ Data load(const std::string fileName, const AbstractDomain& domain)
 #else
     throw DataException("load: not compiled with netCDF. Please contact your"
                         " installation manager.");
-#endif // USE_NETCDF
+#endif // ESYS_HAVE_NETCDF
 }
 
 bool loadConfigured()
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     return true;
 #else
     return false;

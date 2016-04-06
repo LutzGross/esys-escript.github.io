@@ -26,11 +26,11 @@
 #include <paso/SystemMatrix.h>
 #include <paso/Transport.h>
 
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 
 using esys_trilinos::TrilinosMatrixAdapter;
@@ -132,7 +132,7 @@ void MeshAdapter::Print_Mesh_Info(const bool full) const
 
 void MeshAdapter::dump(const string& fileName) const
 {
-#ifdef USE_NETCDF
+#ifdef ESYS_HAVE_NETCDF
     const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
     NcVar *ids;
     int *int_ptr;
@@ -492,9 +492,9 @@ void MeshAdapter::dump(const string& fileName) const
 
    // NetCDF file is closed by destructor of NcFile object
 
-#else // USE_NETCDF
+#else
     throw FinleyException("MeshAdapter::dump: not configured with netCDF. Please contact your installation manager.");
-#endif // USE_NETCDF
+#endif // ESYS_HAVE_NETCDF
 }
 
 string MeshAdapter::getDescription() const
@@ -737,7 +737,7 @@ void MeshAdapter::addPDEToSystem(
         const escript::Data& d_contact, const escript::Data& y_contact,
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(&mat);
     if (tm) {
         tm->resumeFill();
@@ -757,7 +757,7 @@ void MeshAdapter::addPDEToSystem(
 
     Assemble_PDE(mesh->Nodes, mesh->Points, mat.getPtr(), rhs, escript::Data(),
             escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     if (tm) {
         tm->fillComplete(true);
     }
@@ -1393,7 +1393,7 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
     return true;
 }
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 const_TrilinosGraph_ptr MeshAdapter::getTrilinosGraph() const
 {
     if (m_graph.is_null()) {
@@ -1436,7 +1436,7 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
 
     // generate matrix
     if (type & (int)SMT_TRILINOS) {
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
         const_TrilinosGraph_ptr graph(getTrilinosGraph());
         escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_finleyMesh->MPIInfo,
                     row_blocksize, row_functionspace, graph));
@@ -1829,7 +1829,7 @@ int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
 
     int package = sb.getPackage();
     if (package == escript::SO_PACKAGE_TRILINOS) {
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
         return (int)SMT_TRILINOS;
 #else
         throw FinleyException("Trilinos requested but not built with Trilinos.");       

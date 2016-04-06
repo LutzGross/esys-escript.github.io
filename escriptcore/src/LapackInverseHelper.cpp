@@ -16,9 +16,9 @@
 
 #include "LapackInverseHelper.h"
 
-#ifdef USE_LAPACK
+#ifdef ESYS_HAVE_LAPACK
 
-#ifdef MKL_LAPACK
+#ifdef ESYS_MKL_LAPACK
 #include <mkl_lapack.h>
 #else	// assuming clapack
 extern "C"
@@ -43,11 +43,11 @@ LapackInverseHelper::LapackInverseHelper(int N)
 	work=0;
 	lwork=0;
 	this->N=N;
-#ifdef USE_LAPACK
+#ifdef ESYS_HAVE_LAPACK
 	piv=new int[N];
 	int blocksize=64;	// this is arbitrary. For implementations that require work array 
 				// maybe we should look into the Lapack ILAENV function
-#ifdef MKL_LAPACK
+#ifdef ESYS_MKL_LAPACK
 	int minus1=-1;
 	double dummyd=0;
 	int result=0;
@@ -80,10 +80,10 @@ LapackInverseHelper::~LapackInverseHelper()
 int 
 LapackInverseHelper::invert(double* matrix)
 {
-#ifndef USE_LAPACK
+#ifndef ESYS_HAVE_LAPACK
 	return NEEDLAPACK;
 #else
-#ifdef MKL_LAPACK
+#ifdef ESYS_MKL_LAPACK
 	int res=0;
 	int size=N;
 	dgetrf(&N,&N,matrix,&N,piv,&res);

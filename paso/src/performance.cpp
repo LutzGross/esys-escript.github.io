@@ -34,7 +34,7 @@ namespace paso {
 /// sets up the monitoring process
 void Performance_open(Performance* pp, int verbose)
 {
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
     #pragma omp single
     {
         pp->event_set = PAPI_NULL;
@@ -74,13 +74,13 @@ void Performance_open(Performance* pp, int verbose)
         }
         PAPI_start(pp->event_set);
     } // omp single
-#endif // PAPI
+#endif // ESYS_HAVE_PAPI
 }
 
 /// find the index of an event in the list of monitored events
 int Performance_getEventIndex(Performance* pp, int event_id)
 {
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
     for (int i=0; i<pp->num_events; ++i)
         if (pp->events[i]==event_id)
             return i;
@@ -91,7 +91,7 @@ int Performance_getEventIndex(Performance* pp, int event_id)
 /// shuts down the monitoring process
 void Performance_close(Performance* pp, int verbose)
 {
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
 #pragma omp single
     {
         if (verbose) {
@@ -161,7 +161,7 @@ void Performance_close(Performance* pp, int verbose)
 /// switches on a monitor
 void Performance_startMonitor(Performance* pp, int monitor)
 {
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
 #pragma omp barrier
 #pragma omp single
     {
@@ -180,7 +180,7 @@ void Performance_startMonitor(Performance* pp, int monitor)
 /// switches off a monitor
 void Performance_stopMonitor(Performance* pp,int monitor)
 {
-#ifdef PAPI
+#ifdef ESYS_HAVE_PAPI
 #pragma omp barrier
 #pragma omp single
     {

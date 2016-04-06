@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 
 #include "Mesh.h"
 #include "IndexList.h"
@@ -82,5 +82,5 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
 
 } // namespace dudley
 
-#endif // USE_TRILINOS
+#endif // ESYS_HAVE_TRILINOS
 

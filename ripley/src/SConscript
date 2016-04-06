@@ -70,7 +70,6 @@ if env['trilinos']:
     ripleylibs += env['trilinoswrap_libs']
 
 if env['silo']:
-    local_env.Append(CPPDEFINES = ['USE_SILO'])
     ripleylibs += env['silo_libs']
 if env['cuda']:
     sources.append('RipleySystemMatrix.cu')
@@ -78,7 +77,7 @@ if env['cuda']:
         local_env.Append(CPPDEFINES = ['THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP'])
     local_env['NVCCFLAGS'] += ' -w'
     local_env['SHNVCCFLAGS']  += ' -w'
-    local_env.Append(CPPDEFINES = ['USE_CUDA', 'THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA'])
+    local_env.Append(CPPDEFINES = ['THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA'])
     #TODO: This needs a config option:
     local_env.Append(CPPDEFINES = ['CUSP_USE_TEXTURE_MEMORY'])
     ripleylibs.append('cudart')

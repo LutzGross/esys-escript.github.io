@@ -64,7 +64,7 @@
 
 #include <paso/SystemMatrixPattern.h>
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
 
@@ -127,7 +127,7 @@ public:
     /// If k is the old node, the new node is newNode[k-offset].
     void relabelElementNodes(const index_t* newNode, index_t offset);
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
     /// matrix
     esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;

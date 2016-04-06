@@ -25,7 +25,7 @@
 #include <escript/FunctionSpace.h>
 #include <escript/FunctionSpaceFactory.h>
 
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
 
@@ -553,7 +553,7 @@ public:
                                 const boost::python::tuple& filter) const;
 
 private:
-#ifdef USE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
     /// Trilinos graph structure, cached for efficiency
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
 

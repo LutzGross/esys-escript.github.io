@@ -472,10 +472,10 @@ void SolverBuddy::setSolverMethod(int method)
             this->method = meth;
             break;
         case SO_METHOD_DIRECT:
-#ifdef USE_UMFPACK
+#ifdef ESYS_HAVE_UMFPACK
             this->method = meth;
             break;
-#elif defined USE_TRILINOS
+#elif defined ESYS_HAVE_TRILINOS
             this->method = meth;
             break;
 #elif defined ESYS_HAVE_MKL
