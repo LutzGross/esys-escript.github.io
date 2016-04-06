@@ -472,7 +472,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [boomeramg_lib_path])
         env.AppendUnique(LIBS = env['boomeramg_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boomeramg_lib_path)
-        env.Append(CPPDEFINES = ['BOOMERAMG'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_BOOMERAMG'])
         env['buildvars']['boomeramg_inc_path']=boomeramg_inc_path
         env['buildvars']['boomeramg_lib_path']=boomeramg_lib_path
     env['buildvars']['boomeramg']=int(env['boomeramg'])
@@ -521,7 +521,7 @@ def checkOptionalLibraries(env):
         else:
             env['parmetis_version'] = "unknown"
 
-        env.Append(CPPDEFINES = ['USE_PARMETIS'])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_PARMETIS'])
         env['buildvars']['parmetis_inc_path']=parmetis_inc_path
         env['buildvars']['parmetis_lib_path']=parmetis_lib_path
     env['buildvars']['parmetis']=int(env['parmetis'])
@@ -550,12 +550,12 @@ def checkOptionalLibraries(env):
                 p=Popen(cmd, stdout=PIPE)
                 gmshlibs,_ = p.communicate()
                 ret = p.wait()
+                env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
                 if ret == 0 and 'libmpi' in gmshlibs:
                     env['gmsh'] = 'm'
-                    env.Append(CPPDEFINES=['GMSH','GMSH_MPI'])
+                    env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
                 else:
                     env['gmsh'] = 's'
-                    env.Append(CPPDEFINES=['GMSH'])
             except OSError:
                 pass
     
@@ -563,7 +563,7 @@ def checkOptionalLibraries(env):
     if env['compressed_files']:
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
-            env.Append(CPPDEFINES = ['USE_BOOSTIO'])
+            #env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_IO'])
             env.AppendUnique(LIBS = env['compression_libs'])
         except RuntimeError as e:
             env['compressed_files'] = False

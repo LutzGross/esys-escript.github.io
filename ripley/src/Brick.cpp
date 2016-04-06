@@ -392,10 +392,10 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 #endif
 }
 
-#ifdef USE_BOOSTIO
 void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
                            const ReaderParameters& params) const
 {
+#ifdef ESYS_HAVE_BOOST_IO
     // the mapping is not universally correct but should work on our
     // supported platforms
     switch (params.dataType) {
@@ -409,10 +409,12 @@ void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
             readBinaryGridZippedImpl<double>(out, filename, params);
             break;
         default:
-            throw ValueError("readBinaryGrid(): invalid or unsupported datatype");
+            throw ValueError("readBinaryGridZipped(): invalid or unsupported datatype");
     }
-}
+#else
+    throw RipleyException("readBinaryGridZipped(): not compiled with zip support");
 #endif
+}
 
 void Brick::readBinaryGrid(escript::Data& out, string filename,
                            const ReaderParameters& params) const
@@ -590,7 +592,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     f.close();
 }
 
-#ifdef USE_BOOSTIO
+#ifdef ESYS_HAVE_BOOST_IO
 template<typename ValueType>
 void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                const ReaderParameters& params) const

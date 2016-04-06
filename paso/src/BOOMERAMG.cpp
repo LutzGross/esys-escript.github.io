@@ -36,7 +36,7 @@ namespace paso {
 
 void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG* in)
 {
-#ifdef BOOMERAMG
+#ifdef ESYS_HAVE_BOOMERAMG
     if (in != NULL) {
         HYPRE_IJMatrixDestroy(in->A);
         HYPRE_IJVectorDestroy(in->b);
@@ -51,7 +51,7 @@ void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG* in)
 Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A,
                                                          Options* options)
 {
-#ifdef BOOMERAMG
+#ifdef ESYS_HAVE_BOOMERAMG
     index_t ilower; /* first row in current processor, number is given by
                        the global indices. Can be 0- or 1-based indexing */
     index_t iupper; /* last row in current processor, number is given by
@@ -231,7 +231,7 @@ void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr A,
                                     Preconditioner_BoomerAMG* amg,
                                     double* out, double* in)
 {
-#ifdef BOOMERAMG
+#ifdef ESYS_HAVE_BOOMERAMG
     index_t ilower; /* first row in current processor, number is given by
                        the global indices. Can be 0- or 1-based indexing */
     index_t iupper; /* last row in current processor, number is given by

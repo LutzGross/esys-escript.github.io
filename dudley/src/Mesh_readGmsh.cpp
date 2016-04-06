@@ -37,7 +37,7 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
     std::string line;
 
     if (mpiInfo->size > 1)
-        throw DudleyException("reading GMSH with MPI is not supported yet.");
+        throw DudleyException("reading gmsh with MPI is not supported yet.");
 
     // allocate mesh
     Mesh* mesh = new Mesh(filename, numDim, mpiInfo);

@@ -445,7 +445,6 @@ void MultiRectangle::readBinaryGrid(escript::Data& out, string filename,
     Rectangle::readBinaryGrid(out, filename, params);
 }
 
-#ifdef USE_BOOSTIO
 void MultiRectangle::readBinaryGridFromZipped(escript::Data& out, string filename,
                                const ReaderParameters& params) const
 {
@@ -453,7 +452,6 @@ void MultiRectangle::readBinaryGridFromZipped(escript::Data& out, string filenam
         throw RipleyException("Non-parent MultiRectangles cannot read datafiles");
     Rectangle::readBinaryGridFromZipped(out, filename, params);
 }
-#endif
 
 void MultiRectangle::writeBinaryGrid(const escript::Data& in, string filename,
                                 int byteOrder, int dataType) const

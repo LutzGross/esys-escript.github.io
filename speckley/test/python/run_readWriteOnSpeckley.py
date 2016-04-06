@@ -35,6 +35,8 @@ try:
 except KeyError:
      SPECKLEY_WORKDIR='/tmp'
 
+HAVE_UNZIP = getEscriptParamInt('HAVE_UNZIP')
+
 #NE=4 # number elements, must be even
 #for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
 #    NX=x
@@ -435,7 +437,7 @@ class Test_readBinaryGridZippedSpeckley(unittest.TestCase):
             return readBinaryGrid(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)
 
-        if not hasattr(speckleycpp, "_readBinaryGridFromZipped"):
+        if not HAVE_UNZIP:
             raise unittest.SkipTest("unzip library not available (boost_iostreams)")
         return speckleycpp._readBinaryGridFromZipped(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)

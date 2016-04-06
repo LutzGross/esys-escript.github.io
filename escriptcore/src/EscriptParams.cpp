@@ -45,20 +45,28 @@ EscriptParams::EscriptParams()
 #else   
    have_trilinos=0;
 #endif   
+#ifdef ESYS_HAVE_BOOST_IO
+   have_unzip = 1;
+#else
+   have_unzip = 0;
+#endif
 #ifdef USE_LAPACK
    lapack_support=1;
 #else
    lapack_support=0;
 #endif
 
-    gmsh = gmsh_mpi = 0;
-#if defined(GMSH) || defined(GMSH_MPI)
+#ifdef ESYS_HAVE_GMSH
     gmsh = 1;
+#else
+    gmsh = 0;
 #endif
     //only mark gmsh as mpi if escript built with mpi, otherwise comm_spawns
     //might just fail terribly
-#if defined(GMSH_MPI) && defined(ESYS_MPI)
+#if defined(ESYS_GMSH_MPI) && defined(ESYS_MPI)
     gmsh_mpi = 1;
+#else
+    gmsh_mpi = 0;
 #endif
 
 #ifdef ESYS_MPI
@@ -172,6 +180,8 @@ EscriptParams::getInt(const char* name, int sentinel) const
     }
     if (!strcmp(name, "HAVE_TRILINOS"))
         return have_trilinos; 
+    if (!strcmp(name, "HAVE_UNZIP"))
+        return have_unzip; 
     if (!strcmp(name, "GMSH_SUPPORT"))
         return gmsh;
     if (!strcmp(name, "GMSH_MPI"))
@@ -226,6 +236,7 @@ EscriptParams::listEscriptParams()
    l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
    l.append(make_tuple("NETCDF_BUILD", has_netcdf, "{0,1} Was this build made with netcdf libraries?"));
    l.append(make_tuple("HAVE_TRILINOS", have_trilinos, "{0,1} Was this build made with trilinos libraries?"));
+   l.append(make_tuple("HAVE_UNZIP", have_unzip, "{0,1} Was this build made with unzip libraries (boost::iostreams)?"));
    l.append(make_tuple("GMSH_SUPPORT", gmsh, "{0,1} Non-python GMSH support is available."));
    l.append(make_tuple("GMSH_MPI", gmsh_mpi, "{0,1} Both GMSH and escript have MPI capabilities."));
    return l;

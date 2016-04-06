@@ -626,14 +626,12 @@ public:
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const = 0;
 
-#ifdef USE_BOOSTIO
     /**
        \brief
        reads grid data from a compressed raw binary file into a Data object
     */
     virtual void readBinaryGridFromZipped(escript::Data& out,
                std::string filename, const ReaderParameters& params) const = 0;
-#endif
 
     /**
        \brief
