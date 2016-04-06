@@ -586,13 +586,14 @@ void  eigenvalues_and_eigenvectors3(const DataTypes::real_t A00, const DataTypes
 
 // General tensor product: arg_2(SL x SR) = arg_0(SL x SM) * arg_1(SM x SR)
 // SM is the product of the last axis_offset entries in arg_0.getShape().
+template <class LEFT, class RIGHT, class RES>
 inline
-void matrix_matrix_product(const int SL, const int SM, const int SR, const DataTypes::real_t* A, const DataTypes::real_t* B, DataTypes::real_t* C, int transpose)
+void matrix_matrix_product(const int SL, const int SM, const int SR, const LEFT* A, const RIGHT* B, RES* C, int transpose)
 {
   if (transpose == 0) {
     for (int i=0; i<SL; i++) {
       for (int j=0; j<SR; j++) {
-        DataTypes::real_t sum = 0.0;
+        RES sum = 0.0;
         for (int l=0; l<SM; l++) {
           sum += A[i+SL*l] * B[l+SM*j];
         }
@@ -603,7 +604,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const DataT
   else if (transpose == 1) {
     for (int i=0; i<SL; i++) {
       for (int j=0; j<SR; j++) {
-        DataTypes::real_t sum = 0.0;
+        RES sum = 0.0;
         for (int l=0; l<SM; l++) {
           sum += A[i*SM+l] * B[l+SM*j];
         }
@@ -614,7 +615,7 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const DataT
   else if (transpose == 2) {
     for (int i=0; i<SL; i++) {
       for (int j=0; j<SR; j++) {
-        DataTypes::real_t sum = 0.0;
+        RES sum = 0.0;
         for (int l=0; l<SM; l++) {
           sum += A[i+SL*l] * B[l*SR+j];
         }

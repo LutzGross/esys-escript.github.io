@@ -90,7 +90,7 @@ void binaryOpDataCCC(DataConstant& result, const DataConstant& left, const DataC
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperCCC<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);	
       }
       else	// right is real
       {
@@ -215,7 +215,7 @@ void binaryOpDataTCT(DataTagged& result, const DataConstant& left, const DataTag
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperTCT<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);
       }
       else	// right is real
       {
@@ -295,7 +295,7 @@ void binaryOpDataECE(DataExpanded& result, const DataConstant& left, const DataE
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperECE<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);
       }
       else	// right is real
       {
@@ -352,7 +352,7 @@ void binaryOpDataEET(DataExpanded& result, const DataExpanded& left, const DataT
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperEET<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);	
       }
       else	// right is real
       {
@@ -410,7 +410,7 @@ void binaryOpDataETE(DataExpanded& result, const DataTagged& left, const DataExp
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperETE<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);	
       }
       else	// right is real
       {
@@ -547,7 +547,7 @@ void binaryOpDataTTC(DataTagged& result, const DataTagged& left, const DataConst
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperTTC<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);	
       }
       else	// right is real
       {
@@ -699,7 +699,7 @@ void binaryOpDataTTT(DataTagged& result, const DataTagged& left, const DataTagge
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperTTT<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);		
       }
       else	// right is real
       {
@@ -779,7 +779,7 @@ void binaryOpDataEEC(DataExpanded& result, const DataExpanded& left, const DataC
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperEEC<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);	
       }
       else	// right is real
       {
@@ -861,7 +861,7 @@ void binaryOpDataEEE(DataExpanded& result, const DataExpanded& left, const DataE
   {
       if (right.isComplex())
       {
-	  throw DataException("Programming error: binaryOpDataReady - LHS is real but RHS is complex");
+	  binaryOpDataReadyHelperEEE<DataTypes::cplx_t, DataTypes::real_t, DataTypes::cplx_t>(result, left, right, operation);	
       }
       else	// right is real
       {

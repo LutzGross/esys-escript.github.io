@@ -642,6 +642,8 @@ def matchType(arg0=0.,arg1=0.):
           arg1=numpy.array(arg1,dtype=numpy.float64)
        elif isinstance(arg1,int):
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
+       elif isinstance(arg1,complex):
+          arg1=numpy.array(arg1, dtype=numpy.complex)
        elif isinstance(arg1,sym.Symbol):
           pass
        else:
@@ -651,7 +653,7 @@ def matchType(arg0=0.,arg1=0.):
           arg1=escore.Data(arg1,arg0.getFunctionSpace())
        elif isinstance(arg1,escore.Data):
           pass
-       elif isinstance(arg1,float):
+       elif isinstance(arg1,float) or isinstance(arg1,complex):
           arg1=escore.Data(arg1,(),arg0.getFunctionSpace())
        elif isinstance(arg1,int):
           arg1=escore.Data(float(arg1),(),arg0.getFunctionSpace())
@@ -664,6 +666,8 @@ def matchType(arg0=0.,arg1=0.):
           pass
        elif isinstance(arg1,escore.Data):
           pass
+       elif isinstance(arg1,complex):  
+          pass
        elif isinstance(arg1,float):
           pass
        elif isinstance(arg1,int):
@@ -672,6 +676,21 @@ def matchType(arg0=0.,arg1=0.):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
+    elif isinstance(arg0,complex):
+       if isinstance(arg1,numpy.ndarray):
+          arg0=numpy.array(arg0,dtype=numpy.complex128)
+       elif isinstance(arg1,escore.Data):
+          arg0=escore.Data(arg0,arg1.getFunctionSpace())
+       elif isinstance(arg1,float):
+          arg0=numpy.array(arg0,dtype=numpy.complex)
+          arg1=numpy.array(arg1,dtype=numpy.complex)
+       elif isinstance(arg1,int):
+          arg0=numpy.array(arg0,dtype=numpy.complex)
+          arg1=numpy.array(float(arg1),dtype=numpy.complex)
+       elif isinstance(arg1,sym.Symbol):
+          pass
+       else:
+          raise TypeError("function: Unknown type of second argument.") 
     elif isinstance(arg0,float):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(arg0,dtype=numpy.float64)
@@ -683,6 +702,9 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,int):
           arg0=numpy.array(arg0,dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
+       elif isinstance(arg1,complex):
+          arg0=numpy.array(complex(arg0),dtype=numpy.complex)
+          arg1=numpy.array(complex(arg1),dtype=numpy.complex)    
        elif isinstance(arg1,sym.Symbol):
           pass
        else:
@@ -695,6 +717,9 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,float):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
           arg1=numpy.array(arg1,dtype=numpy.float64)
+       elif isinstance(arg1,complex):
+          arg0=numpy.array(complex(arg0),dtype=numpy.complex)
+          arg1=numpy.array(complex(arg1),dtype=numpy.complex)          
        elif isinstance(arg1,int):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
@@ -2236,7 +2261,10 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        for i in sh1[:axis_offset]: d01*=i
        arg0_c.resize((d0,d01))
        arg1_c.resize((d01,d1))
-       out=numpy.zeros((d0,d1),numpy.float64)
+       if arg0_c.dtype!=numpy.float64:
+           out=numpy.zeros((d0,d1),arg0_c.dtype)
+       else:
+           out=numpy.zeros((d0,d1),numpy.float64)
        for i0 in range(d0):
           for i1 in range(d1):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
