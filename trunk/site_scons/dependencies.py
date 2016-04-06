@@ -563,7 +563,7 @@ def checkOptionalLibraries(env):
     if env['compressed_files']:
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
-            #env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_IO'])
+            env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_IO'])
             env.AppendUnique(LIBS = env['compression_libs'])
         except RuntimeError as e:
             env['compressed_files'] = False
