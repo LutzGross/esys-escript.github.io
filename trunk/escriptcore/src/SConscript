@@ -123,6 +123,19 @@ dodgy_sources = """
 
 local_env = env.Clone()
 
+# collect dependencies for other modules
+escriptlibs = []
+
+if env['uselapack']:
+    escriptlibs += env['lapack_libs']
+if env['mkl']:
+    escriptlibs += env['mkl_libs']
+if env['netcdf']:
+    escriptlibs += env['netcdf_libs']
+
+local_env.PrependUnique(LIBS = escriptlibs)
+env['escript_libs'] = [module_name] + escriptlibs
+
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
 

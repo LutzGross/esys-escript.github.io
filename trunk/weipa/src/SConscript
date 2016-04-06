@@ -36,38 +36,42 @@ headers = """
 
 local_env = env.Clone()
 
+# collect dependencies for other modules
+weipalibs = env['escript_libs']
+
 if 'dudley' in env['domains'] or 'finley' in env['domains']:
     sources += ['FinleyDomain.cpp','FinleyElements.cpp','FinleyNodes.cpp']
     headers += ['FinleyDomain.h','FinleyElements.h','FinleyNodes.h']
     if 'dudley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
-        local_env.Prepend(LIBS = ['dudley'])
+        weipalibs += env['dudley_libs']
     if 'finley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_FINLEY'])
-        local_env.Prepend(LIBS = ['finley'])
+        weipalibs += env['finley_libs']
 
 if 'ripley' in env['domains']:
     sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']
     headers += ['RipleyDomain.h','RipleyElements.h','RipleyNodes.h']
     local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
-    local_env.Prepend(LIBS = ['ripley'])
+    weipalibs += env['ripley_libs']
 
 if 'speckley' in env['domains']:
     sources += ['SpeckleyDomain.cpp','SpeckleyElements.cpp','SpeckleyNodes.cpp']
     headers += ['SpeckleyDomain.h','SpeckleyElements.h','SpeckleyNodes.h']
     local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
-    local_env.Prepend(LIBS = ['speckley'])
+    weipalibs += env['speckley_libs']
 
 if local_env['visit']:
     sources.append(['VisItData.cpp'])
     headers.append(['VisItData.h'])
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
-    local_env.AppendUnique(LIBS = ['simV2'])
+    weipalibs += ['simV2']
 
 if local_env['silo']:
-    local_env.AppendUnique(LIBS = env['silo_libs'])
+    weipalibs += env['silo_libs']
 
-local_env.Prepend(LIBS = ['escript'])
+local_env.PrependUnique(LIBS = weipalibs)
+env['weipa_libs'] = [module_name] + weipalibs
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
@@ -102,7 +106,7 @@ plugin_sources = """
     FinleyNodes.cpp
 """.split()
 
-visitplugin_env.Prepend(LIBS = ['escript'])
+visitplugin_env.PrependUnique(LIBS = env['escript_libs'])
 visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN', 'USE_FINLEY'])
 visitplugin_env['OBJPREFIX']='reader_'
 

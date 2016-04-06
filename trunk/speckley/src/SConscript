@@ -58,14 +58,15 @@ if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['Speckley_EXPORTS'])
 
 # collect dependencies for other modules
-speckleylibs = ['escript']
-
+speckleylibs = env['escript_libs']
 if 'ripley' in env['domains']:
     local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
     speckleylibs += env['ripley_libs']
     sources += ['CrossDomainCoupler.cpp']
     headers += ['CrossDomainCoupler.h']
 
+if env['compressed_files']:
+    speckleylibs += env['compression_libs']
 if env['silo']:
     speckleylibs += env['silo_libs']
 
