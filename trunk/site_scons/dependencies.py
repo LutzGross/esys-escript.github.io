@@ -31,8 +31,18 @@ from site_init import findLibWithHeader, detectModule
 
 REQUIRED_BOOST = (1, 46)
 
+def CheckComplexAcos(context):
+    context.Message('Checking for working complex std::acos()... ')
+    result = context.TryRun("""
+#include <complex>
+int main() { std::complex<double> x(0,3.14159265359), y(1.5707963,-1.8622957);
+return std::abs(std::acos(x)-y) < 1e-6 ? 0:-1;}
+""", 'c++')
+    context.Result(result)
+    return result
+
 def checkCompiler(env):
-    conf = Configure(env.Clone())
+    conf = Configure(env.Clone(), custom_tests = {'CheckComplexAcos': CheckComplexAcos})
     if 'CheckCXX' in dir(conf): # exists since scons 1.1.0
         if not conf.CheckCXX():
             print("Cannot run C++ compiler '%s' (check config.log)" % (env['CXX']))
@@ -57,6 +67,9 @@ def checkCompiler(env):
     if conf.CheckCXXHeader('libkern/OSByteOrder.h'):
         conf.env.Append(CPPDEFINES = ['HAVE_OSBYTEORDER_H'])
 
+    if not conf.CheckComplexAcos():
+        conf.env.Append(CPPDEFINES = ['ESYS_USE_BOOST_ACOS'])
+    
     return conf.Finish()
 
 def checkPython(env):
