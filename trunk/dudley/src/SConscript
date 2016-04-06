@@ -121,7 +121,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 
 ### Python wrapper ###
 py_env = env.Clone()
-py_env.Prepend(LIBS = env['dudley_libs'])
+py_env.PrependUnique(LIBS = env['dudley_libs'])
 py_lib_name = module_name + 'cpp'
 py_lib = py_env.PythonModule(py_lib_name, 'CPPAdapter/dudleycpp.cpp')
 

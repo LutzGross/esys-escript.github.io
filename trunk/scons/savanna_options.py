@@ -188,7 +188,7 @@ lapack = 'mkl'
 lapack_prefix = mkl_prefix
 
 # LAPACK library/libraries to link against
-lapack_libs = ['mkl_core']
+lapack_libs = mkl_libs
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
