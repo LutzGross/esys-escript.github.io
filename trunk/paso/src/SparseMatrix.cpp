@@ -120,7 +120,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
     bool unroll
           // we don't like non-square blocks
         = (rowBlockSize != colBlockSize)
-#ifdef ESYS_HAVE_LAPACK
+#ifndef ESYS_HAVE_LAPACK
           // or any block size bigger than 3
           || (colBlockSize > 3)
 #endif
