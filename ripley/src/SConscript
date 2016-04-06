@@ -62,15 +62,15 @@ if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])
 
 # collect dependencies for other modules
-ripleylibs = ['escript']
-
+ripleylibs = env['escript_libs']
 if env['paso']:
-    ripleylibs.append('paso')
+    ripleylibs += env['paso_libs']
 if env['trilinos']:
     ripleylibs += env['trilinoswrap_libs']
-
 if env['silo']:
     ripleylibs += env['silo_libs']
+if env['compressed_files']:
+    ripleylibs += env['compression_libs']
 if env['cuda']:
     sources.append('RipleySystemMatrix.cu')
     if env['openmp']:

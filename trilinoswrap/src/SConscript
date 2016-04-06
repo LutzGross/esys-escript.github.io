@@ -36,7 +36,7 @@ headers = """
 local_env = env.Clone()
 
 # collect dependencies for other modules
-trilinoswraplibs = ['escript', env['trilinos_libs']]
+trilinoswraplibs = env['escript_libs'] + env['trilinos_libs']
 
 local_env.PrependUnique(LIBS = trilinoswraplibs)
 

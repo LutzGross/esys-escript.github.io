@@ -108,7 +108,22 @@ headers = """
 
 local_env = env.Clone()
 
-local_env.Prepend(LIBS = ['escript'])
+# collect dependencies for other modules
+pasolibs = env['escript_libs']
+if env['uselapack']:
+    pasolibs += env['lapack_libs']
+if env['mkl']:
+    pasolibs += env['mkl_libs']
+if env['umfpack']:
+    pasolibs += env['umfpack_libs']
+if env['boomeramg']:
+    pasolibs += env['boomeramg_libs']
+if env['papi']:
+    pasolibs += env['papi_libs']
+
+local_env.PrependUnique(LIBS = pasolibs)
+env['paso_libs'] = [module_name] + pasolibs
+
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 

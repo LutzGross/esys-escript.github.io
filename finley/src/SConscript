@@ -100,10 +100,11 @@ if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS'])
 
 # collect dependencies for other modules
-finleylibs = ['escript']
-
+finleylibs = env['escript_libs']
+if env['parmetis']:
+    finleylibs += env['parmetis_libs']
 if env['paso']:
-    finleylibs.append('paso')
+    finleylibs += env['paso_libs']
 if env['trilinos']:
     finleylibs += env['trilinoswrap_libs']
 

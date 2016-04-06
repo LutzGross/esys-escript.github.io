@@ -24,21 +24,15 @@ if local_env['cppunit']:
     testname='weipa_UnitTest'
 
     # build the executable
-    local_env.Append(LIBS=['weipa', 'escript']+env['cppunit_libs'])
+    local_env.Append(LIBS=env['weipa_libs']+env['cppunit_libs'])
     if 'dudley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
-        local_env.PrependUnique(LIBS = env['dudley_libs'])
     if 'finley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_FINLEY'])
-        local_env.PrependUnique(LIBS = env['finley_libs'])
     if 'ripley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
-        local_env.PrependUnique(LIBS = env['ripley_libs'])
     if 'speckley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
-        local_env.PrependUnique(LIBS = env['speckley_libs'])
-    if local_env['silo']:
-        local_env.AppendUnique(LIBS = env['silo_libs'])
     program = local_env.Program(testname, sources)
 
     # run the tests - but only if test_targets are stale

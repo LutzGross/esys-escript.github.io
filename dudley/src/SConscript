@@ -99,11 +99,11 @@ if IS_WINDOWS :
     local_env.Append(CPPDEFINES = ['DUDLEY_EXPORTS'])
 
 # collect dependencies for other modules
-dudleylibs = ['escript']
-
+dudleylibs = env['escript_libs']
+if env['parmetis']:
+    dudleylibs += env['parmetis_libs']
 if env['paso']:
-    dudleylibs.append('paso')
-
+    dudleylibs += env['paso_libs']
 if env['trilinos']:
     dudleylibs += env['trilinoswrap_libs']
 

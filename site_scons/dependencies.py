@@ -341,7 +341,6 @@ def checkOptionalLibraries(env):
         netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'netcdf.h', env['netcdf_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [netcdf_inc_path])
         env.AppendUnique(LIBPATH = [netcdf_lib_path])
-        env.AppendUnique(LIBS = env['netcdf_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], netcdf_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF'])
         env['buildvars']['netcdf_inc_path']=netcdf_inc_path
@@ -355,7 +354,6 @@ def checkOptionalLibraries(env):
         papi_inc_path,papi_lib_path=findLibWithHeader(env, env['papi_libs'], 'papi.h', env['papi_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [papi_inc_path])
         env.AppendUnique(LIBPATH = [papi_lib_path])
-        env.AppendUnique(LIBS = env['papi_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], papi_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_PAPI'])
         env['buildvars']['papi_inc_path']=papi_inc_path
@@ -369,7 +367,6 @@ def checkOptionalLibraries(env):
         mkl_inc_path,mkl_lib_path=findLibWithHeader(env, env['mkl_libs'], 'mkl_pardiso.h', env['mkl_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mkl_inc_path])
         env.AppendUnique(LIBPATH = [mkl_lib_path])
-        env.AppendUnique(LIBS = env['mkl_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mkl_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_MKL'])
         env['buildvars']['mkl_inc_path']=mkl_inc_path
@@ -383,7 +380,6 @@ def checkOptionalLibraries(env):
         umfpack_inc_path,umfpack_lib_path=findLibWithHeader(env, env['umfpack_libs'], 'umfpack.h', env['umfpack_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [umfpack_inc_path])
         env.AppendUnique(LIBPATH = [umfpack_lib_path])
-        env.AppendUnique(LIBS = env['umfpack_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], umfpack_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_UMFPACK'])
         env['buildvars']['umfpack_inc_path']=umfpack_inc_path
@@ -409,7 +405,6 @@ def checkOptionalLibraries(env):
         lapack_inc_path,lapack_lib_path=findLibWithHeader(env, env['lapack_libs'], header, env['lapack_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [lapack_inc_path])
         env.AppendUnique(LIBPATH = [lapack_lib_path])
-        env.AppendUnique(LIBS = env['lapack_libs'])
         env.Append(CPPDEFINES = ['ESYS_HAVE_LAPACK'])
         env['buildvars']['lapack_inc_path']=lapack_inc_path
         env['buildvars']['lapack_lib_path']=lapack_lib_path
@@ -422,9 +417,6 @@ def checkOptionalLibraries(env):
         silo_inc_path,silo_lib_path=findLibWithHeader(env, env['silo_libs'], 'silo.h', env['silo_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [silo_inc_path])
         env.AppendUnique(LIBPATH = [silo_lib_path])
-        # Note that we do not add the libs since they are only needed for the
-        # weipa library and tools.
-        #env.AppendUnique(LIBS = [env['silo_libs']])
         env.Append(CPPDEFINES = ['ESYS_HAVE_SILO'])
         env['buildvars']['silo_inc_path']=silo_inc_path
         env['buildvars']['silo_lib_path']=silo_lib_path
@@ -472,7 +464,6 @@ def checkOptionalLibraries(env):
         boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [boomeramg_inc_path])
         env.AppendUnique(LIBPATH = [boomeramg_lib_path])
-        env.AppendUnique(LIBS = env['boomeramg_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boomeramg_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_BOOMERAMG'])
         env['buildvars']['boomeramg_inc_path']=boomeramg_inc_path
@@ -487,7 +478,6 @@ def checkOptionalLibraries(env):
         parmetis_inc_path,parmetis_lib_path=findLibWithHeader(env, env['parmetis_libs'], 'parmetis.h', env['parmetis_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [parmetis_inc_path])
         env.AppendUnique(LIBPATH = [parmetis_lib_path])
-        env.AppendUnique(LIBS = env['parmetis_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], parmetis_lib_path)
 
         # Try to extract the parmetis version from parmetis.h
@@ -566,7 +556,6 @@ def checkOptionalLibraries(env):
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
             env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_IO'])
-            env.AppendUnique(LIBS = env['compression_libs'])
         except RuntimeError as e:
             env['compressed_files'] = False
     env['buildvars']['compressed_files']=int(env['compressed_files'])
