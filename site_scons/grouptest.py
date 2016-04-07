@@ -121,7 +121,6 @@ BATCH_ROOT=`pwd`\n""".format(prefix)
                     skipoutputfile = " -skipfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
                     failoutputfile = " -failfile={0}/{1}".format(build_dir, t.replace(".py", ".failed"))
                     cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
-                    exit_on_failure = ""
                 res += "".join([tt, cmd, t, failoutputfile, skipoutputfile, exit_on_failure, "\n"])
                 res += tt+"echo Completed "+t+"\n"
             tt="\t"
@@ -137,7 +136,6 @@ BATCH_ROOT=`pwd`\n""".format(prefix)
                 skipoutputfile = " -skipfile={0}/{1}".format(build_dir, t.replace(".py", ".skipped"))
                 failoutputfile = " -failfile={0}/{1}".format(build_dir, t.replace(".py", ".failed"))
                 cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
-                exit_on_failure = ""
             res += "".join([tt, cmd, t, failoutputfile, skipoutputfile, exit_on_failure, "\n"])
             res += tt+"echo Completed "+t+"\n"
         res=res+"}\n"
