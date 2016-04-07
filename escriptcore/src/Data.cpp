@@ -3363,8 +3363,15 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     // Declare output Data object
     Data res;
 
+    bool complexresult=arg_0_Z.isComplex() || arg_1_Z.isComplex();
+    cplx_t dummyc=0;
+    real_t dummyr=0;    
     if (arg_0_Z.isConstant() && arg_1_Z.isConstant()) {
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());        // DataConstant output
+	if (complexresult)
+	{
+	    res.complicate();
+	}
 	if (arg_0_Z.isComplex())
 	{
 	    if (arg_1_Z.isComplex())
@@ -3422,93 +3429,302 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         // Prepare a DataTagged output 2
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());        // DataTagged output
         res.tag();
+	if (complexresult)
+	{
+	    res.complicate();
+	}	
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
         if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-        // Prepare offset into DataConstant
-        int offset_0 = tmp_0->getPointOffset(0,0);
-        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-
-        const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
-
-        // Compute an MVP for the default
-        matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-        // Compute an MVP for each tag
-        const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-        for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-            tmp_2->addTag(i->first);
-
-            const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+	cplx_t dummyc=0;
+	real_t dummyr=0;
         
-            matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-        }
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {        
+		// Prepare offset into DataConstant
+		int offset_0 = tmp_0->getPointOffset(0,0);
+		const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
 
+		const cplx_t *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummyc));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+
+		    const cplx_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummyc));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
+		
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}		
+	    }
+	    else
+	    {
+		// Prepare offset into DataConstant
+		int offset_0 = tmp_0->getPointOffset(0,0);
+		const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+
+		const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummyr));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+
+		    const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummyr));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
+		
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}		      
+	    }
+	}
+	else	// arg_0 is real
+	{
+	    if (arg_1_Z.isComplex())
+	    {        
+		// Prepare offset into DataConstant
+		int offset_0 = tmp_0->getPointOffset(0,0);
+		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+
+		const cplx_t *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummyc));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0,dummyc));	// the result
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+
+		    const cplx_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0,dummyc));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0,dummyc));
+		
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	    else
+	    {
+		// Prepare offset into DataConstant
+		int offset_0 = tmp_0->getPointOffset(0,0);
+		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+
+		const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
+		real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+
+		    const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
+		    real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+		
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	}
     }
     else if (arg_0_Z.isConstant() && arg_1_Z.isExpanded()) {
 
-        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-        DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
-        DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-        DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-        if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
-        if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
-        if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
-        int sampleNo_1,dataPointNo_1;
-        int numSamples_1 = arg_1_Z.getNumSamples();
-        int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
-        int offset_0 = tmp_0->getPointOffset(0,0);
-#pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
-        for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
-            for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
-                int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
-                int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
-                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-                matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-            }
-        }
+	res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+	if (complexresult)
+	{
+	    res.complicate();
+	}	
+	DataConstant* tmp_0=dynamic_cast<DataConstant*>(arg_0_Z.borrowData());
+	DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+	DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
+	if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
+	if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
+	if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
+	int sampleNo_1,dataPointNo_1;
+	int numSamples_1 = arg_1_Z.getNumSamples();
+	int numDataPointsPerSample_1 = arg_1_Z.getNumDataPointsPerSample();
+	int offset_0 = tmp_0->getPointOffset(0,0);	
+        
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+		for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+		    for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+		for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+		    for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+	else
+	{
+	    if (arg_1_Z.isComplex())
+	    {  
+		#pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+		for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+		    for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else	// both real
+	    {
+		#pragma omp parallel for private(sampleNo_1,dataPointNo_1) schedule(static)
+		for (sampleNo_1 = 0; sampleNo_1 < numSamples_1; sampleNo_1++) {
+		    for (dataPointNo_1 = 0; dataPointNo_1 < numDataPointsPerSample_1; dataPointNo_1++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_1,dataPointNo_1);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_1,dataPointNo_1);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }	  
+	}
     }
     else if (arg_0_Z.isTagged() && arg_1_Z.isConstant()) {
+	// Borrow DataTagged input from Data object
+	DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+	if (tmp_0==0) { throw DataException("GTP_0 Programming error - casting to DataTagged."); }
 
-        // Borrow DataTagged input from Data object
-        DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-        if (tmp_0==0) { throw DataException("GTP_0 Programming error - casting to DataTagged."); }
+	// Prepare the DataConstant input
+	DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
+	if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
 
-        // Prepare the DataConstant input
-        DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
-        if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
+	// Prepare a DataTagged output 2
+	res = Data(0.0, shape2, arg_0_Z.getFunctionSpace());        // DataTagged output
+	res.tag();
+	if (complexresult)
+	{
+	    res.complicate();
+	}	
+	DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
+	if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
-        // Prepare a DataTagged output 2
-        res = Data(0.0, shape2, arg_0_Z.getFunctionSpace());        // DataTagged output
-        res.tag();
-        DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
-        if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
+	// Prepare offset into DataConstant
+	int offset_1 = tmp_1->getPointOffset(0,0);      
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
 
-        // Prepare offset into DataConstant
-        int offset_1 = tmp_1->getPointOffset(0,0);
-        const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+		const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+		const cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummyc));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
 
-        // Compute an MVP for the default
-        matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-        // Compute an MVP for each tag
-        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
 
-            tmp_2->addTag(i->first);
-            const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
-            matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-        }
+		    tmp_2->addTag(i->first);
+		    const cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummyc));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	    else	// arg_1_Z is real
+	    {
+		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+		const cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummyc));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+
+		    tmp_2->addTag(i->first);
+		    const cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummyc));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	}
+	else
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+		const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummyr));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+
+		    tmp_2->addTag(i->first);
+		    const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummyr));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	    else
+	    {
+		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+		const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+		real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+
+		    tmp_2->addTag(i->first);
+		    const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+		    real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	}
     }
     else if (arg_0_Z.isTagged() && arg_1_Z.isTagged()) {
-
         // Borrow DataTagged input from Data object
         DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
         if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
@@ -3520,64 +3736,222 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         // Prepare a DataTagged output 2
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());
         res.tag();  // DataTagged output
+	if (complexresult)
+	{
+	    res.complicate();
+	}
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
         if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
+      
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		const cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummyc));
+		const cplx_t *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummyc));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
 
-        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-        const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
-        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Merge the tags
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+		    tmp_2->addTag(i->first); // use tmp_2 to get correct shape
+		}
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+		}
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+		for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+		    const cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummyc));
+		    const cplx_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummyc));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
 
-        // Compute an MVP for the default
-        matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-        // Merge the tags
-        DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
-        const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
-        const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
-        for (i=lookup_0.begin();i!=lookup_0.end();i++) {
-            tmp_2->addTag(i->first); // use tmp_2 to get correct shape
-        }
-        for (i=lookup_1.begin();i!=lookup_1.end();i++) {
-            tmp_2->addTag(i->first);
-        }
-        // Compute an MVP for each tag
-        const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
-        for (i=lookup_2.begin();i!=lookup_2.end();i++) {
-            const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
-            const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
-            real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	    else	// arg_1_Z is real
+	    {
+		const cplx_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummyc));
+		const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummyr));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
 
-            matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-        }
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Merge the tags
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+		    tmp_2->addTag(i->first); // use tmp_2 to get correct shape
+		}
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+		}
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+		for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+		    const cplx_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummyc));
+		    const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummyr));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0, dummyc));
+
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	}
+	else	// arg_0_Z is real
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, dummyr));
+		const cplx_t *ptr_1 = &(tmp_1->getDefaultValueRO(0, dummyc));
+		cplx_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, dummyc));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Merge the tags
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+		    tmp_2->addTag(i->first); // use tmp_2 to get correct shape
+		}
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+		}
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+		for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+		    const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0, dummyr));
+		    const cplx_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0, dummyc));
+		    cplx_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0,dummyc));
+
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}		      
+	    }
+	    else
+	    {
+		const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
+		const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
+		real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+
+		// Compute an MVP for the default
+		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		// Merge the tags
+		DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
+		const DataTagged::DataMapType& lookup_0=tmp_0->getTagLookup();
+		const DataTagged::DataMapType& lookup_1=tmp_1->getTagLookup();
+		for (i=lookup_0.begin();i!=lookup_0.end();i++) {
+		    tmp_2->addTag(i->first); // use tmp_2 to get correct shape
+		}
+		for (i=lookup_1.begin();i!=lookup_1.end();i++) {
+		    tmp_2->addTag(i->first);
+		}
+		// Compute an MVP for each tag
+		const DataTagged::DataMapType& lookup_2=tmp_2->getTagLookup();
+		for (i=lookup_2.begin();i!=lookup_2.end();i++) {
+		    const real_t *ptr_0 = &(tmp_0->getDataByTagRO(i->first,0));
+		    const real_t *ptr_1 = &(tmp_1->getDataByTagRO(i->first,0));
+		    real_t *ptr_2 = &(tmp_2->getDataByTagRW(i->first,0));
+
+		    matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		}	      
+	    }
+	}
     }
     else if (arg_0_Z.isTagged() && arg_1_Z.isExpanded()) {
-
-        // After finding a common function space above the two inputs have the same numSamples and num DPPS
-        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
-        DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
-        DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
-        DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
-        if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
-        if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
-        if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
-        int sampleNo_0,dataPointNo_0;
-        int numSamples_0 = arg_0_Z.getNumSamples();
-        int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-        for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-            int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-            const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-            for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-                int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-                int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-                matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-            }
-        }
+      
+	// After finding a common function space above the two inputs have the same numSamples and num DPPS
+	res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+	if (complexresult)
+	{
+	    res.complicate();
+	}
+	DataTagged*   tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
+	DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
+	DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());    
+	if (tmp_0==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
+	if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
+	if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
+	int sampleNo_0,dataPointNo_0;
+	int numSamples_0 = arg_0_Z.getNumSamples();
+	int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();	
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+		    const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else	// arg_1_Z is real
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+		    const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+	else	// arg_0_Z is real
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+		    const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
+		    const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
     }
     else if (arg_0_Z.isExpanded() && arg_1_Z.isConstant()) {
-
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+	if (complexresult)
+	{
+	    res.complicate();
+	}
         DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
         DataConstant* tmp_1=dynamic_cast<DataConstant*>(arg_1_Z.borrowData());
         DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
@@ -3587,23 +3961,79 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         int sampleNo_0,dataPointNo_0;
         int numSamples_0 = arg_0_Z.getNumSamples();
         int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-        int offset_1 = tmp_1->getPointOffset(0,0);
-#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-        for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-            for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-                int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-                int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-                matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-            }
-        }
+        int offset_1 = tmp_1->getPointOffset(0,0);      
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}		      
+	    }
+	    else	// arg_1_Z is real
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+	else	// arg_0_Z is real
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }	      
+		}
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+
+
     }
     else if (arg_0_Z.isExpanded() && arg_1_Z.isTagged()) {
-
         // After finding a common function space above the two inputs have the same numSamples and num DPPS
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+	if (complexresult)
+	{
+	    res.complicate();
+	}
         DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
         DataTagged*   tmp_1=dynamic_cast<DataTagged*>(arg_1_Z.borrowData());
         DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
@@ -3612,24 +4042,83 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
         int sampleNo_0,dataPointNo_0;
         int numSamples_0 = arg_0_Z.getNumSamples();
-        int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-        for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-            int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-            const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-            for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-                int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-                int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-                matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-            }
-        }
+        int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();      
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+		    const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+		    const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+	else
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+		    const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
+		    const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+
+
     }
     else if (arg_0_Z.isExpanded() && arg_1_Z.isExpanded()) {
-
         // After finding a common function space above the two inputs have the same numSamples and num DPPS
         res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(),true); // DataExpanded output
+	if (complexresult)
+	{
+	    res.complicate();
+	}
         DataExpanded* tmp_0=dynamic_cast<DataExpanded*>(arg_0_Z.borrowData());
         DataExpanded* tmp_1=dynamic_cast<DataExpanded*>(arg_1_Z.borrowData());
         DataExpanded* tmp_2=dynamic_cast<DataExpanded*>(res.borrowData());
@@ -3638,19 +4127,75 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         if (tmp_2==0) { throw DataException("GTP Programming error - casting to DataExpanded."); }
         int sampleNo_0,dataPointNo_0;
         int numSamples_0 = arg_0_Z.getNumSamples();
-        int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
-#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
-        for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
-            for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
-                int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
-                int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
-                int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-                const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-                real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
-                matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
-            }
-        }
+        int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();      
+	if (arg_0_Z.isComplex())
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyc));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+	else
+	{
+	    if (arg_1_Z.isComplex())
+	    {   
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			const cplx_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyc));
+			cplx_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyc));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	    else
+	    {
+		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
+		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
+		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
+			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
+			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
+		    }
+		}	      
+	    }
+	}
+
+
     }
     else {
         throw DataException("Error - C_GeneralTensorProduct: unknown combination of inputs");
