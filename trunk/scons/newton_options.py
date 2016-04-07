@@ -18,7 +18,6 @@ from templates.trusty_options import *
 
 openmp = 0
 boost_libs = ['boost_python-py27']
-parmetis = True
 umfpack = True
 lapack = 'clapack'
 lapack_libs = ['lapack']
