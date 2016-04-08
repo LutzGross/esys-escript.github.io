@@ -88,12 +88,19 @@ typedef DataReady parent;
   explicit DataConstant(const FunctionSpace& what,
                const DataTypes::ShapeType &shape,
                const DataTypes::RealVectorType &data);
+  
+  explicit DataConstant(const FunctionSpace& what,
+               const DataTypes::ShapeType &shape,
+               const DataTypes::CplxVectorType &data);    
 
   ESCRIPT_DLL_API
   explicit DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const double v);
+                           const DataTypes::real_t v);
                
+  explicit DataConstant(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::cplx_t v);
                
   ESCRIPT_DLL_API
   bool

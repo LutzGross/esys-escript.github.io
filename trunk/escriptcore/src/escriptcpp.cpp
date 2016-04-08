@@ -106,7 +106,6 @@ bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
     boost::python::throw_error_already_set();   
     return false;
 }
-  
 }
 
 BOOST_PYTHON_MODULE(escriptcpp)
@@ -442,12 +441,9 @@ args("arg"), "assigns new location to the domain\n\n"
   //
   // Interface for Data
   //
-  class_<escript::Data>("Data"/*,shared_ptr<Data>*/, "Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
+  class_<escript::Data>("Data"/*,shared_ptr<Data>*/, "Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>())
     // various constructors for Data objects
-    .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
-    .def(init<const double, const tuple&, optional<const escript::FunctionSpace&, bool> >(args("value","shape","what","expand")))
-    .def(init<const escript::Data&, const escript::FunctionSpace&>(args("value","what")))
-    .def(init<const escript::Data&>())
+    .def(init<object, optional<object, object, object>>(args("value", "p2", "p3", "p4")))    
     // Note for Lutz, Need to specify the call policy in order to return a
     // reference. In this case return_internal_reference.
     .def("__str__",&escript::Data::toString)

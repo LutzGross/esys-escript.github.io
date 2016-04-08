@@ -3650,7 +3650,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_singularDefaultTag(self):
         #In this test the other tag is definitely invertible the error is in the default tag
-        arg=Data([[0]],self.functionspace, expand=True)
+        arg=Data([[0]],self.functionspace, True)
         arg.setTaggedValue(1,[[1]])
         try:
            inverse(arg)
@@ -3658,7 +3658,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
            pass
         else:
            self.fail('Singular matrix (1x1) did not fail to invert.')
-        arg=Data([[0,0],[0,1]],self.functionspace, expand=True)
+        arg=Data([[0,0],[0,1]],self.functionspace, True)
         arg.setTaggedValue(1,[[1,0],[0,1]])
         try:
           inverse(arg)
@@ -3666,7 +3666,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
           pass
         else:
           self.fail('Singular matrix (2x2) did not fail to invert.')
-        arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace, expand=True)
+        arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace, True)
         arg.setTaggedValue(1,[[1,0,0],[0,1,0],[0,0,1]])
         try:
           inverse(arg)
@@ -3676,7 +3676,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
         if getEscriptParamInt('LAPACK_SUPPORT')>0:
-            arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, expand=True)
+            arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, True)
             arg.setTaggedValue(1, [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
             try:
                 inverse(arg)
@@ -3687,7 +3687,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_singularNonDefaultTag(self):
         #In this test the default tag is definitely invertible the error is in the other tag
-        arg=Data([[1]],self.functionspace, expand=True)
+        arg=Data([[1]],self.functionspace, True)
         arg.setTaggedValue(1,[[0]])
         try:
            inverse(arg)
@@ -3695,7 +3695,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
            pass
         else:
            self.fail('Singular matrix (1x1) did not fail to invert.')
-        arg=Data([[1,0],[0,1]],self.functionspace, expand=True)
+        arg=Data([[1,0],[0,1]],self.functionspace, True)
         arg.setTaggedValue(1,[[0,0],[0,1]])
         try:
           inverse(arg)
@@ -3703,7 +3703,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
           pass
         else:
           self.fail('Singular matrix (2x2) did not fail to invert.')
-        arg=Data([[1,0,0],[0,1,0],[0,0,1]],self.functionspace, expand=True)
+        arg=Data([[1,0,0],[0,1,0],[0,0,1]],self.functionspace, True)
         arg.setTaggedValue(1,[[0,0,0],[0,1,0],[1,1,1]])
         try:
           inverse(arg)
@@ -3713,7 +3713,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
         if getEscriptParamInt('LAPACK_SUPPORT')>0:
-            arg=Data([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]], self.functionspace, expand=True)
+            arg=Data([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]], self.functionspace, True)
             arg.setTaggedValue(1,[[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]] )
             try:
                 inverse(arg)

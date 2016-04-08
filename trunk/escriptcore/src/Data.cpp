@@ -256,22 +256,7 @@ Data::Data()
     m_protected=false;
 }
 
-Data::Data(real_t value,
-           const boost::python::tuple& shape,
-           const FunctionSpace& what,
-           bool expanded)
-    :  m_lazy(false)
-{
-    DataTypes::ShapeType dataPointShape;
-    for (int i = 0; i < shape.attr("__len__")(); ++i) {
-        dataPointShape.push_back(bp::extract<const int>(shape[i]));
-    }
 
-    int len = DataTypes::noValues(dataPointShape);
-    RealVectorType temp_data(len,value,len);
-    initialise(temp_data, dataPointShape, what, expanded);
-    m_protected=false;
-}
 
 Data::Data(real_t value,
            const DataTypes::ShapeType& dataPointShape,
@@ -281,6 +266,129 @@ Data::Data(real_t value,
 {
     initialise(value, dataPointShape, what, expanded);
     m_protected=false;
+}
+
+// Ordering is: shape, functionspace, expanded
+Data::Data(boost::python::object value,
+       boost::python::object par2,
+       boost::python::object par3,
+       boost::python::object par4)
+{
+    if (value.is_none())
+    {
+	throw DataException("Data contructor from python - first argument must not be None.");
+    }
+      // now to enforce contiguous Nones
+    if ((par2.is_none() && (!par3.is_none() || !par4.is_none())) ||
+        (par3.is_none() && !par4.is_none()))
+    {
+	throw DataException("Data contructor from python - arguments must be omitted from the right.");
+    }
+  
+    // what is the first arg
+    boost::python::extract<DataTypes::cplx_t> exc(value);
+    boost::python::extract<DataTypes::real_t> exr(value);
+    boost::python::extract<Data> exd(value);
+    if (exc.check() || exr.check())
+    {
+	//(value, shape, functionspace, expanded), but shape could be missing in which case => ()
+        DataTypes::ShapeType dataPointShape;	// default to scalar
+	if (!par2.is_none())
+	{
+	    boost::python::extract<boost::python::tuple> ex2t(par2);
+	    boost::python::extract<FunctionSpace> ex2fs(par2);
+	    if (ex2t.check())
+	    {
+		for (int i = 0; i < par2.attr("__len__")(); ++i) {
+		    dataPointShape.push_back(bp::extract<const int>(par2[i]));
+		}	    
+	    }
+	    else if (ex2fs.check())
+	    {
+		// shape will default to ()
+	        // now we copy the params up to make it look like they did specify one
+	        par4=par3;
+		par3=par2;
+	    }
+	    else
+	    {
+		throw DataException("Data contructor from python - expected a tuple or None as second argument.");
+	    }
+	}
+	boost::python::extract<FunctionSpace> ex3fs(par3);	
+	if (!par3.is_none())
+	{
+	    if (!ex3fs.check())
+	    {
+		throw DataException("Data contructor from python - expected a FunctionSpace or None as third argument.");
+	    }
+	}
+	bool expa=false;
+	if (!par4.is_none())
+	{
+	    boost::python::extract<bool> ex4b(par4);
+	    if (!ex4b.check())
+	    {
+		throw DataException("Data contructor from python - expected a boolean or None as fourth argument.");	      
+	    }
+	    expa=ex4b();
+	}
+	if (exr.check())
+	{
+	    int len = DataTypes::noValues(dataPointShape);
+	    RealVectorType temp_data(len,exr(),len);
+	    initialise(temp_data, dataPointShape, par3.is_none()?FunctionSpace():ex3fs(), expa);
+	    m_protected=false;	  	  
+	}
+	else
+	{
+	    int len = DataTypes::noValues(dataPointShape);
+	    CplxVectorType temp_data(len,exc(),len);
+	    initialise(temp_data, dataPointShape, par3.is_none()?FunctionSpace():ex3fs(), expa);
+	    m_protected=false;	  
+	}
+    }
+    else if (exd.check())	// Construct from (Data, [FunctionSpace]
+    {
+	boost::python::extract<FunctionSpace> ex2fs(par2);	      
+	if (!par2.is_none())
+	{
+	    if (!ex2fs.check())
+	    {
+		throw DataException("Data contructor from python - expected a FunctionSpace or None as second argument.");	      
+	    }
+	}        
+        init_from_data_and_fs(exd(), par2.is_none()?FunctionSpace():ex2fs());
+    }
+    else	//non-data, non-scalar first argument
+    {   //               2         3
+	//(value, functionspace, expanded)      
+        if (!par4.is_none())
+	{
+	    throw DataException("Data contructor from python - unexpected fourth argument.");
+	}
+	bool expa=false;
+	if (!par3.is_none())
+	{
+	    boost::python::extract<bool> ex3b(par3);
+	    if (!ex3b.check())
+	    {
+		throw DataException("Data contructor from python - expected a boolean or None as third argument.");	      
+	    }
+	    expa=ex3b();
+	}
+	boost::python::extract<FunctionSpace> ex2fs(par2);	 
+	if (!par2.is_none())
+	{
+	    if (!ex2fs.check())
+	    {
+		throw DataException("Data contructor from python - expected a FunctionSpace or None as second argument.");	      
+	    }
+	}
+	WrappedArray w(value);
+	initialise(w,par2.is_none()?FunctionSpace():ex2fs(),expa);
+	m_protected=false;
+    }
 }
 
 Data::Data(const Data& inData)
@@ -312,9 +420,8 @@ Data::Data(const Data& inData,
 
 }
 
-Data::Data(const Data& inData,
+void Data::init_from_data_and_fs(const Data& inData,
            const FunctionSpace& functionspace)
-        :  m_lazy(false)
 {
     if (inData.isEmpty())
     {
@@ -354,6 +461,14 @@ Data::Data(const Data& inData,
     m_protected=false;
 }
 
+
+Data::Data(const Data& inData,
+           const FunctionSpace& functionspace)
+        :  m_lazy(false)
+{
+    init_from_data_and_fs(inData, functionspace);  
+}
+
 Data::Data(DataAbstract* underlyingdata)
         :  m_lazy(false)
 {
@@ -379,15 +494,6 @@ Data::Data(const DataTypes::RealVectorType& value,
 }
 
 
-Data::Data(const boost::python::object& value,
-           const FunctionSpace& what,
-           bool expanded)
-        :  m_lazy(false)
-{
-    WrappedArray w(value);
-    initialise(w,what,expanded);
-    m_protected=false;
-}
 
 
 Data::Data(const WrappedArray& w, const FunctionSpace& what,
@@ -487,7 +593,51 @@ Data::initialise(const DataTypes::RealVectorType& value,
 }
 
 void
+Data::initialise(const DataTypes::CplxVectorType& value,
+                 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+    //
+    // Construct a Data object of the appropriate type.
+    // Construct the object first as there seems to be a bug which causes
+    // undefined behaviour if an exception is thrown during construction
+    // within the shared_ptr constructor.
+    if (expanded) {
+        DataAbstract* temp=new DataExpanded(what, shape, value);
+        set_m_data(temp->getPtr());
+    } else {
+        DataAbstract* temp=new DataConstant(what, shape, value);
+        set_m_data(temp->getPtr());
+    }
+}
+
+
+void
 Data::initialise(const real_t value,
+                 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+    //
+    // Construct a Data object of the appropriate type.
+    // Construct the object first as there seems to be a bug which causes
+    // undefined behaviour if an exception is thrown during construction
+    // within the shared_ptr constructor.
+    if (expanded) {
+        DataAbstract* temp=new DataExpanded(what, shape, value);
+        DataAbstract_ptr p(temp);
+        set_m_data(p);
+    } else {
+        DataAbstract* temp=new DataConstant(what, shape, value);
+        DataAbstract_ptr p(temp);
+        set_m_data(p);
+    }
+}
+
+
+void
+Data::initialise(const cplx_t value,
                  const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)
@@ -1555,7 +1705,7 @@ Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
     Data res;
 
     if (arg_0_Z.isConstant()) {
-        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),false);      // DataConstant output
         const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
         real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
         for (int i = 0; i < size0; ++i) {
@@ -1568,7 +1718,7 @@ Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
         DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
 
         // Prepare a DataTagged output 2
-        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(), false);   // DataTagged output
         res.tag();
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
@@ -1677,7 +1827,7 @@ Data::imag() const
     }
     else
     {
-        return copySelf()*Data(0, m_data->getShape(), getFunctionSpace());      // return an object with same tags etc but all values 0
+        return copySelf()*Data(0, m_data->getShape(), getFunctionSpace(),false);      // return an object with same tags etc but all values 0
                                 // This is not efficient, but why are you taking imag of R anyway?
     }
 }
@@ -2308,7 +2458,7 @@ Data::swapaxes(const int axis0, const int axis1) const
             ev_shape.push_back(s[i]);
         }
     }
-    Data ev(0.,ev_shape,getFunctionSpace());
+    Data ev(0.,ev_shape,getFunctionSpace(), false);
     ev.typeMatchRight(*this);
     m_data->swapaxes(ev.m_data.get(), axis0_tmp, axis1_tmp);
     return ev;
@@ -2331,7 +2481,7 @@ Data::symmetric() const
         throw DataException("Error - Data::symmetric can only be calculated for rank 2 or 4 object.");
     }
     MAKELAZYOP(SYM);
-    Data ev(0.,getDataPointShape(),getFunctionSpace());
+    Data ev(0.,getDataPointShape(),getFunctionSpace(), false);
     ev.typeMatchRight(*this);
     m_data->symmetric(ev.m_data.get());
     return ev;
@@ -2349,7 +2499,7 @@ Data::antisymmetric() const
         DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(),false);
         ev.typeMatchRight(*this);
         m_data->antisymmetric(ev.m_data.get());
         return ev;
@@ -2363,7 +2513,7 @@ Data::antisymmetric() const
         ev_shape.push_back(s[1]);
         ev_shape.push_back(s[2]);
         ev_shape.push_back(s[3]);
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(),false);
         ev.typeMatchRight(*this);
         m_data->antisymmetric(ev.m_data.get());
         return ev;
@@ -2394,7 +2544,7 @@ Data::hermitian() const
         throw DataException("Error - Data::hermitian can only be calculated for rank 2 or 4 object.");
     }
     MAKELAZYOP(HER);
-    Data ev(0.,getDataPointShape(),getFunctionSpace());
+    Data ev(0.,getDataPointShape(),getFunctionSpace(), false);
     ev.typeMatchRight(*this);
     m_data->hermitian(ev.m_data.get());
     return ev;
@@ -2416,7 +2566,7 @@ Data::antihermitian() const
         DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
         ev_shape.push_back(s[1]);
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(), false);
         ev.typeMatchRight(*this);
         m_data->antihermitian(ev.m_data.get());
         return ev;
@@ -2430,7 +2580,7 @@ Data::antihermitian() const
         ev_shape.push_back(s[1]);
         ev_shape.push_back(s[2]);
         ev_shape.push_back(s[3]);
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(), false);
         ev.typeMatchRight(*this);
         m_data->antihermitian(ev.m_data.get());
         return ev;
@@ -2451,7 +2601,7 @@ Data::trace(int axis_offset) const
     DataTypes::ShapeType s=getDataPointShape();
     if (getDataPointRank()==2) {
         DataTypes::ShapeType ev_shape;
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(),false);
         ev.typeMatchRight(*this);
         m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
@@ -2466,7 +2616,7 @@ Data::trace(int axis_offset) const
             int s0=s[0];
             ev_shape.push_back(s0);
         }
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(),false);
         ev.typeMatchRight(*this);
         m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
@@ -2485,7 +2635,7 @@ Data::trace(int axis_offset) const
             ev_shape.push_back(s[0]);
             ev_shape.push_back(s[1]);
         }
-        Data ev(0.,ev_shape,getFunctionSpace());
+        Data ev(0.,ev_shape,getFunctionSpace(),false);
         ev.typeMatchRight(*this);
         m_data->trace(ev.m_data.get(), axis_offset);
         return ev;
@@ -2513,7 +2663,7 @@ Data::transpose(int axis_offset) const
         int index = (axis_offset+i)%rank;
         ev_shape.push_back(s[index]); // Append to new shape
     }
-    Data ev(0.,ev_shape,getFunctionSpace());
+    Data ev(0.,ev_shape,getFunctionSpace(), false);
     ev.typeMatchRight(*this);
     m_data->transpose(ev.m_data.get(), axis_offset);
     return ev;
@@ -2540,7 +2690,7 @@ Data::eigenvalues() const
     }
     // create return
     DataTypes::ShapeType ev_shape(1,s[0]);
-    Data ev(0.,ev_shape,getFunctionSpace());
+    Data ev(0.,ev_shape,getFunctionSpace(),false);
     ev.typeMatchRight(*this);
     m_data->eigenvalues(ev.m_data.get());
     return ev;
@@ -2563,10 +2713,10 @@ Data::eigenvalues_and_eigenvectors(const real_t tol) const
         throw DataException("Error - Data::eigenvalues and eigenvectors can only be calculated for object with equal first and second dimension.");
     // create return
     DataTypes::ShapeType ev_shape(1,s[0]);
-    Data ev(0.,ev_shape,getFunctionSpace());
+    Data ev(0.,ev_shape,getFunctionSpace(), false);
     ev.typeMatchRight(*this);
     DataTypes::ShapeType V_shape(2,s[0]);
-    Data V(0.,V_shape,getFunctionSpace());
+    Data V(0.,V_shape,getFunctionSpace(), false);
     V.typeMatchRight(*this);
     m_data->eigenvalues_and_eigenvectors(ev.m_data.get(),V.m_data.get(),tol);
     return bp::make_tuple(bp::object(ev),bp::object(V));
@@ -2889,7 +3039,7 @@ Data::matrixInverse() const
         return d.matrixInverse();
     }
     THROWONCOMPLEX
-    Data out(0.,getDataPointShape(),getFunctionSpace());
+    Data out(0.,getDataPointShape(),getFunctionSpace(),false);
     out.typeMatchRight(*this);
 
     DataReady* drp=out.getReadyPtr().get();
@@ -3084,7 +3234,7 @@ void
 Data::setItemO(const bp::object& key,
                const bp::object& value)
 {
-    Data tempData(value,getFunctionSpace());
+    Data tempData(value,getFunctionSpace(),false);
     setItemD(key,tempData);
 }
 
@@ -3367,7 +3517,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
     cplx_t dummyc=0;
     real_t dummyr=0;    
     if (arg_0_Z.isConstant() && arg_1_Z.isConstant()) {
-        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());        // DataConstant output
+        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(), false);        // DataConstant output
 	if (complexresult)
 	{
 	    res.complicate();
@@ -3427,7 +3577,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         if (tmp_1==0) { throw DataException("GTP_1 Programming error - casting to DataTagged."); }
 
         // Prepare a DataTagged output 2
-        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());        // DataTagged output
+        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(), false);        // DataTagged output
         res.tag();
 	if (complexresult)
 	{
@@ -3629,7 +3779,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 	if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataConstant."); }
 
 	// Prepare a DataTagged output 2
-	res = Data(0.0, shape2, arg_0_Z.getFunctionSpace());        // DataTagged output
+	res = Data(0.0, shape2, arg_0_Z.getFunctionSpace(), false);        // DataTagged output
 	res.tag();
 	if (complexresult)
 	{
@@ -3734,7 +3884,7 @@ escript::C_GeneralTensorProduct(Data& arg_0,
         if (tmp_1==0) { throw DataException("GTP Programming error - casting to DataTagged."); }
 
         // Prepare a DataTagged output 2
-        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace());
+        res = Data(0.0, shape2, arg_1_Z.getFunctionSpace(), false);
         res.tag();  // DataTagged output
 	if (complexresult)
 	{
@@ -5461,7 +5611,7 @@ bp::object Data::__add__(const bp::object& right)
     {
         WrappedArray w(right);
         wrapok=true;
-        return bp::object(*this+Data(w, this->getFunctionSpace()));    
+        return bp::object(*this+Data(w, this->getFunctionSpace(), false));    
     }
     catch (DataException e)
     {
@@ -5485,7 +5635,7 @@ bp::object Data::__sub__(const bp::object& right)
     {
         WrappedArray w(right);
         wrapok=true;
-        return bp::object(*this-Data(w, this->getFunctionSpace()));  
+        return bp::object(*this-Data(w, this->getFunctionSpace(), false));  
     }
     catch (DataException e)
     {
@@ -5509,7 +5659,7 @@ bp::object Data::__rsub__(const bp::object& right)
     {
         WrappedArray w(right);
         wrapok=true;
-        return bp::object(Data(w, this->getFunctionSpace())-*this); 
+        return bp::object(Data(w, this->getFunctionSpace(),false)-*this); 
     }
     catch (DataException e)
     {
@@ -5534,7 +5684,7 @@ bp::object Data::__mul__(const bp::object& right)
     {
         WrappedArray w(right);
         wrapok=true;
-        return bp::object(*this*Data(w, this->getFunctionSpace()));  
+        return bp::object(*this*Data(w, this->getFunctionSpace(),false));  
     }
     catch (DataException e)
     {
@@ -5558,7 +5708,7 @@ bp::object Data::__div__(const bp::object& right)
     {
         WrappedArray w(right);
         wrapok=true;
-        return bp::object(*this/Data(w, this->getFunctionSpace()));  
+        return bp::object(*this/Data(w, this->getFunctionSpace(),false));  
     }
     catch (DataException e)
     {
@@ -5582,7 +5732,7 @@ bp::object Data::__rdiv__(const bp::object& right)
     {
         WrappedArray w(right);
         wrapok=true;
-        return bp::object(Data(w, this->getFunctionSpace())/(*this));  
+        return bp::object(Data(w, this->getFunctionSpace(),false)/(*this));  
     }
     catch (DataException e)
     {
@@ -5635,7 +5785,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     if (arg_0_Z.isComplex())                    // this is not taking into account cplx->real
     {
         DataTypes::cplx_t dummy=0;
-        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),0);      // DataConstant output
         const DataTypes::cplx_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, dummy));
         if (always_real(operation))
         {
@@ -5662,7 +5812,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
         // This currently does not call the tensor_unary_array_operation_real
         // functions like .real() and .imag() but they are caught in the Data interface
         DataTypes::real_t dummy=0;
-        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());      // DataConstant output
+        res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),false);      // DataConstant output
 	if (emptyResult)
 	{
 	    return res;
@@ -5686,7 +5836,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
     DataTagged* tmp_0=dynamic_cast<DataTagged*>(arg_0_Z.borrowData());
 
     // Prepare a DataTagged output 2
-    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace());   // DataTagged output
+    res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),false);   // DataTagged output
 
 
     if (arg_0_Z.isComplex())
@@ -5929,7 +6079,7 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
   {
     if (arg_0_Z.isConstant()   && arg_1_Z.isConstant())
     {
-      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataConstant output
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(),false);      // DataConstant output
       if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
       {
         res.complicate();
@@ -5942,7 +6092,7 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     }
     else if (arg_0_Z.isConstant()   && arg_1_Z.isTagged())
     {
-      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());      // DataTagged output
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(), false);      // DataTagged output
       if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
       {
         res.complicate();
@@ -5969,7 +6119,7 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isConstant())
     {
-      Data res(0.0, resultshape, arg_0_Z.getFunctionSpace());      // DataTagged output
+      Data res(0.0, resultshape, arg_0_Z.getFunctionSpace(),false);      // DataTagged output
       if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
       {
         res.complicate();
@@ -5983,7 +6133,7 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
     }
     else if (arg_0_Z.isTagged()     && arg_1_Z.isTagged())
     {
-      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace());
+      Data res(0.0, resultshape, arg_1_Z.getFunctionSpace(), false);
       if (arg_0_Z.isComplex() || arg_1_Z.isComplex())
       {
         res.complicate();

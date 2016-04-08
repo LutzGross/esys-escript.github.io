@@ -237,7 +237,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                     throw DataException("load: d0 is expected to be one for scalar constant data in netCDF file.");
                 dims[0]=1;
             }
-            out=Data(0,shape,function_space);
+            out=Data(0,shape,function_space,false);
             if (!(var = dataFile.get_var("data")))
                 throw DataException("load: unable to find data in netCDF file.");
             if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims) ) 
@@ -364,7 +364,7 @@ Data convertToData(const bp::object& value, const FunctionSpace& what)
             return Data(extracted_data,what);
         }
     } else {
-        return Data(value,what);
+        return Data(value,what,false);
     }
 }
 

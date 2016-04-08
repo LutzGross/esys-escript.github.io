@@ -90,14 +90,6 @@ DataConstant::DataConstant(const DataConstant& other,
     if (other.isComplex())
     {
         throw DataException("Complex not supported for this op");
-/*
-      //
-      // allocate space for this new DataConstant's data
-      m_data_c.resize(len,0.,len);
-      //
-      // load the view with the data from the slice
-      DataTypes::copySlice(m_data_c,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
-*/
     }
     else
     {
@@ -119,11 +111,28 @@ DataConstant::DataConstant(const FunctionSpace& what,
 
 DataConstant::DataConstant(const FunctionSpace& what,
                            const DataTypes::ShapeType &shape,
-                           const double v)
+                           const DataTypes::CplxVectorType &data)
+  : parent(what,shape)
+{
+    // copy the data in the correct format
+    m_data_c=data;
+    m_iscompl=true;        
+}
+
+DataConstant::DataConstant(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::real_t v)
   : parent(what,shape), m_data_r(DataTypes::noValues(shape),v)
 {
 }
 
+DataConstant::DataConstant(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const DataTypes::cplx_t v)
+  : parent(what,shape), m_data_c(DataTypes::noValues(shape),v)
+{
+    m_iscompl=true;
+}
 
 bool DataConstant::hasNaN() const
 {

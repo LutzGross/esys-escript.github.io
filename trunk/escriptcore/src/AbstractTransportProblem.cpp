@@ -84,7 +84,7 @@ void AbstractTransportProblem::insertConstraint(Data& source, Data& q, Data& r)
     Data q2=Data(q,getFunctionSpace());
 
     if (r.isEmpty()) {
-        Data r2=Data(0.,q.getDataPointShape(),getFunctionSpace());
+        Data r2=Data(0.,q.getDataPointShape(),getFunctionSpace(), false);
         copyConstraint(source,q2,r2);
     } else {
         if (((getBlockSize()==1) && (r.getDataPointRank()>0)) || (r.getDataPointRank()>1))

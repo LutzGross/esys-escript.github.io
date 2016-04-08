@@ -96,8 +96,8 @@ class Data {
   */ 
   Data(const DataTypes::RealVectorType& value,
                  const DataTypes::ShapeType& shape,
-                 const FunctionSpace& what=FunctionSpace(),
-                 bool expanded=false);
+                 const FunctionSpace& what,
+                 bool expanded);
 
   /**
      \brief
@@ -111,9 +111,9 @@ class Data {
                        mechanism will be used.
   */
   Data(DataTypes::real_t value,
-       const DataTypes::ShapeType& dataPointShape=DataTypes::ShapeType(),
-       const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
+       const DataTypes::ShapeType& dataPointShape,
+       const FunctionSpace& what,
+       bool expanded);
 
   /**
      \brief
@@ -125,19 +125,6 @@ class Data {
   Data(const Data& inData,
        const DataTypes::RegionType& region);
 
-  /**
-     \brief
-     Constructor which copies data from any object that can be treated like a python array/sequence.
-
-     \param value - Input - Input data.
-     \param what - Input - A description of what this data represents.
-     \param expanded - Input - Flag, if true fill the entire container with
-                       the value. Otherwise a more efficient storage
-                       mechanism will be used.
-  */
-  Data(const boost::python::object& value,
-       const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
 
   /**
      \brief
@@ -150,7 +137,7 @@ class Data {
                        mechanism will be used.
   */       
   Data(const WrappedArray& w, const FunctionSpace& what,
-           bool expanded=false);       
+           bool expanded);       
        
 
   /**
@@ -164,15 +151,35 @@ class Data {
   */
   Data(const boost::python::object& value,
        const Data& other);
-
+  
   /**
-     \brief
-     Constructor which creates a DataConstant of "shape" with constant value.
-  */
+     This constructor subsumes a number of previous python ones.
+     
+  Data(const boost::python::object& value,
+       const FunctionSpace& what=FunctionSpace(),
+       bool expanded=false);
+       
   Data(DataTypes::real_t value,
        const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
+       
+  and a new 
+  
+  Data(cplx_t value,
+       const boost::python::tuple& shape=boost::python::make_tuple(),
+       const FunctionSpace& what=FunctionSpace(),
+       bool expanded=false);  
+  
+  */
+  Data(boost::python::object value,
+       boost::python::object par1=boost::python::object(),
+       boost::python::object par2=boost::python::object(),
+       boost::python::object par3=boost::python::object());  
+  
+  
+  
+  
 
   /**
         \brief Create a Data using an existing DataAbstract. Warning: The new object assumes ownership of the pointer!
@@ -1576,6 +1583,10 @@ instead of manually manipulating process and point IDs.
  protected:
 
  private:
+   void init_from_data_and_fs(const Data& inData,
+           const FunctionSpace& functionspace);   
+   
+   
 
 template <class BinaryOp>
   DataTypes::real_t 
@@ -1676,6 +1687,12 @@ template <class BinaryOp>
              const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
+  
+  void
+  initialise(const DataTypes::CplxVectorType& value,
+             const DataTypes::ShapeType& shape,
+             const FunctionSpace& what,
+             bool expanded);  
 
   void
   initialise(const WrappedArray& value,
@@ -1688,6 +1705,11 @@ template <class BinaryOp>
              const FunctionSpace& what,
              bool expanded);
 
+  void
+  initialise(const DataTypes::cplx_t value,
+             const DataTypes::ShapeType& shape,
+             const FunctionSpace& what,
+             bool expanded);  
   //
   // flag to protect the data object against any update
   bool m_protected;

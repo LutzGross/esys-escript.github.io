@@ -39,7 +39,7 @@ FunctionSpace getSharedFs()
 
 // Create a data, involve it in a lazy expression. Then modify the original
 // and see if the value of the lazy is affected.
-#define TESTEQOP(OP) { Data d((double)42,DataTypes::scalarShape, getSharedFs()); Data L=d.delay(); L-=Data((double)42,DataTypes::scalarShape, getSharedFs()); d OP Data(2,DataTypes::scalarShape, getSharedFs()); CPPUNIT_ASSERT(L.Lsup()<0.001);} 
+#define TESTEQOP(OP) { Data d((double)42,DataTypes::scalarShape, getSharedFs(),false); Data L=d.delay(); L-=Data((double)42,DataTypes::scalarShape, getSharedFs(),false); d OP Data(2,DataTypes::scalarShape, getSharedFs(),false); CPPUNIT_ASSERT(L.Lsup()<0.001);} 
 
 // Test if the copy constructor shares a DataAbstract with its originator
 void SharedDataTestCase::testEQ()
@@ -59,10 +59,10 @@ void SharedDataTestCase::testEQ()
 void SharedDataTestCase::testCC()
 {
   cout << endl;
-  Data d(42, DataTypes::scalarShape, getSharedFs());
+  Data d(42, DataTypes::scalarShape, getSharedFs(),false);
   Data shared(d);
-  d+=Data(20,DataTypes::scalarShape, getSharedFs());
-  shared-=Data(42,DataTypes::scalarShape, getSharedFs());
+  d+=Data(20,DataTypes::scalarShape, getSharedFs(),false);
+  shared-=Data(42,DataTypes::scalarShape, getSharedFs(),false);
   CPPUNIT_ASSERT(shared.Lsup()<0.001);
 }
 
@@ -70,25 +70,25 @@ void SharedDataTestCase::testCC()
 void SharedDataTestCase::testAssign()
 {
   cout << endl;
-  Data d(42, DataTypes::scalarShape, getSharedFs());
+  Data d(42, DataTypes::scalarShape, getSharedFs(),false);
   Data shared=d;
-  d+=Data(20,DataTypes::scalarShape, getSharedFs());
-  shared-=Data(42,DataTypes::scalarShape, getSharedFs());
+  d+=Data(20,DataTypes::scalarShape, getSharedFs(),false);
+  shared-=Data(42,DataTypes::scalarShape, getSharedFs(),false);
   CPPUNIT_ASSERT(shared.Lsup()<0.001);
 }
 
 void SharedDataTestCase::testSetToZero()
 {
-  Data d((double)42,DataTypes::scalarShape, getSharedFs()); 
+  Data d((double)42,DataTypes::scalarShape, getSharedFs(),false); 
   Data L=d.delay(); 
-  L-=Data((double)42,DataTypes::scalarShape, getSharedFs());
+  L-=Data((double)42,DataTypes::scalarShape, getSharedFs(),false);
   d.setToZero();
   CPPUNIT_ASSERT(L.Lsup()<0.001);
 }
 
 void SharedDataTestCase::testSetTaggedValueFromCPP()
 {
-  Data d((double)42,DataTypes::scalarShape, getSharedFs());
+  Data d((double)42,DataTypes::scalarShape, getSharedFs(),false);
   d.tag(); 
   Data L=d.delay();
   RealVectorType v(1,17);
@@ -102,7 +102,7 @@ void SharedDataTestCase::testSetTaggedValueFromCPP()
 
 void SharedDataTestCase::testGetDataAtOffset()
 {
-  Data d((double)42,DataTypes::scalarShape, getSharedFs());
+  Data d((double)42,DataTypes::scalarShape, getSharedFs(),false);
   Data L=d.delay();
   // now change the data directly
   d.requireWrite();
@@ -112,7 +112,7 @@ void SharedDataTestCase::testGetDataAtOffset()
 
 void SharedDataTestCase::testGetDataPoint()
 {
-  Data d((double)42,DataTypes::scalarShape, getSharedFs());
+  Data d((double)42,DataTypes::scalarShape, getSharedFs(),false);
   Data L=d.delay();
   // now change the data directly
   d.requireWrite();
@@ -122,7 +122,7 @@ void SharedDataTestCase::testGetDataPoint()
 
 void SharedDataTestCase::testGetSampleRW()
 {
-  Data d((double)42,DataTypes::scalarShape, getSharedFs());
+  Data d((double)42,DataTypes::scalarShape, getSharedFs(),false);
   Data L=d.delay();
   
   
