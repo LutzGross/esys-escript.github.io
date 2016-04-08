@@ -395,7 +395,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filena
     // check file existence and size
     std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
-        throw SpeckleyException("readBinaryGrid(): cannot open file");
+        throw SpeckleyException("readBinaryGrid(): cannot open file " + filename);
     }
     f.seekg(0, std::ios::end);
     const int numComp = out.getDataPointSize();
