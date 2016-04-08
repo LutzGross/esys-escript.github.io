@@ -50,5 +50,6 @@ if env['usempi']:
 # add a group of tests
 from grouptest import GroupTest
 tgroup=GroupTest("pycad", "$PYTHONRUNNER ", (("ESCRIPT_TEST_DATA_ROOT","$BATCH_ROOT/pycad/test/python"),("ESCRIPT_WORKDIR","$BUILD_DIR/pycad/test/python")), "$BATCH_ROOT/pycad/test/python", "$BATCH_ROOT/pycad/test/python", testruns)
+tgroup.makeDir("$BUILD_DIR/pycad/test/python")
 TestGroups.append(tgroup)
 
