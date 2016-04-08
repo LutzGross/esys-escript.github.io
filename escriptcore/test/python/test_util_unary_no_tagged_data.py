@@ -8533,21 +8533,21 @@ class Test_util_unary_no_tagged_data(Test_util_base):
         self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(4))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_expandedData_singular(self):
-        arg=Data([[0]],self.functionspace, expand=True)
+        arg=Data([[0]],self.functionspace, True)
         try:
            inverse(arg)
         except RuntimeError:
            pass
         else:
            self.fail('Singular matrix (1x1) did not fail to invert.')
-        arg=Data([[0,0],[0,1]],self.functionspace, expand=True)
+        arg=Data([[0,0],[0,1]],self.functionspace, True)
         try:
           inverse(arg)
         except RuntimeError:
           pass
         else:
           self.fail('Singular matrix (2x2) did not fail to invert.')
-        arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace, expand=True)
+        arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace, True)
         try:
           inverse(arg)
         except RuntimeError:

@@ -165,7 +165,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
    Data* dats[NUMDATS];
    for (int k=0;k<NUMDATS;++k)
    {
-    	dats[k]=new Data(1.3, viewShape, fs);
+    	dats[k]=new Data(1.3, viewShape, fs, false);
    }
    dats[1]->tag();
    dats[2]->expand();
@@ -288,8 +288,8 @@ void DataTestCase::testSlicingWorker(bool delayed)
   Data* src[NUMDATS];
   for (int k=0;k<NUMDATS;++k)
   {
- 	dats[k]=new Data(1.3, viewShape,fs);
-    	src[k]=new Data(10,DataTypes::scalarShape,fs);
+ 	dats[k]=new Data(1.3, viewShape,fs,false);
+    	src[k]=new Data(10,DataTypes::scalarShape,fs,false);
   }
   dats[1]->tag();
   src[1]->tag();
@@ -313,7 +313,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
   for (int k=0;k<NUMDATS;++k)
   {
 	cout << "\t\tTest set-slicing " << strs[k] << endl;
-	Data target(1.3,viewShape,fs);
+	Data target(1.3,viewShape,fs,false);
 	if (k==2) {target.expand();}
 	DataTypes::RegionType region;
 	region.push_back(DataTypes::RegionType::value_type(1,1));
@@ -455,7 +455,7 @@ void DataTestCase::testSomeDriver(bool autolazy)
 
   bool expanded=true;
   Data exData(viewData,viewShape, fs,expanded);
-  Data cData(viewData,viewShape, fs);
+  Data cData(viewData,viewShape, fs,false);
   Data result;
 
   CPPUNIT_ASSERT(exData.isExpanded());
@@ -509,9 +509,9 @@ void DataTestCase::testResolveType()
   for (int i=0;i<DataTypes::noValues(viewShape);++i) {
     viewData[i]=i;
   }
-  Data c1(viewData,viewShape,fs);
-  Data t1(viewData,viewShape,fs);
-  Data e1(viewData,viewShape,fs);
+  Data c1(viewData,viewShape,fs,false);
+  Data t1(viewData,viewShape,fs,false);
+  Data e1(viewData,viewShape,fs,false);
   t1.tag();
   e1.expand();
   c1.delaySelf();
@@ -551,9 +551,9 @@ void DataTestCase::testResolveType()
   CPPUNIT_ASSERT(t1.isTagged());
   CPPUNIT_ASSERT_THROW(e1.tag(), DataException);
   cout << "\tTesting expand()\n";
-  Data c2(viewData,viewShape,fs);
-  Data t2(viewData,viewShape,fs);
-  Data e2(viewData,viewShape,fs);
+  Data c2(viewData,viewShape,fs,false);
+  Data t2(viewData,viewShape,fs,false);
+  Data e2(viewData,viewShape,fs,false);
   t2.tag();
   e2.expand();
   c2.delaySelf();
@@ -581,8 +581,8 @@ void DataTestCase::testDataConstant()
     viewData[i]=i;
   }
 
-  Data left(viewData,viewShape);
-  Data right(viewData,viewShape);
+  Data left(viewData,viewShape,FunctionSpace(),false);
+  Data right(viewData,viewShape,FunctionSpace(),false);
   Data result;
 
   cout << "\tTest some basic operations" << endl;
@@ -1610,8 +1610,8 @@ void DataTestCase::testBinary()
   }
 
 
-  Data one(1.0,DataTypes::scalarShape,FunctionSpace());
-  Data two(2.0,DataTypes::scalarShape,FunctionSpace());
+  Data one(1.0,DataTypes::scalarShape,FunctionSpace(),false);
+  Data two(2.0,DataTypes::scalarShape,FunctionSpace(),false);
   Data dats[]={Data(data,shape,FunctionSpace(),false),
 		Data(data,shape,FunctionSpace(),false),
 		Data(data,shape,FunctionSpace(),true),
@@ -1650,14 +1650,14 @@ void DataTestCase::testBinary()
 void DataTestCase::testComplexSamples()
 {
     FunctionSpace fs=getTestDomainFunctionSpace(4,1,1);	// 4 points per sample, there is one sample and each point has one value in it
-    Data x(5, DataTypes::scalarShape, fs);
+    Data x(5, DataTypes::scalarShape, fs, false);
     x.complicate();
     
     const DataTypes::cplx_t* r=x.getSampleDataRO(0, DataTypes::cplx_t(0));
     CPPUNIT_ASSERT(r[0]==DataTypes::cplx_t(5,0));
     
     RealVectorType v(1);
-    Data t(0,DataTypes::scalarShape, fs);
+    Data t(0,DataTypes::scalarShape, fs, false);
     t.tag();
     for (int i=1;i<5;++i)
     {

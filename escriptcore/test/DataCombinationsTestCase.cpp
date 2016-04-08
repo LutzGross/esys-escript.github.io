@@ -56,7 +56,7 @@ Data getConstant(FunctionSpace fs, bool rank0, double seed)
 {
     if (rank0)
     {
-        return Data(seed,  DataTypes::ShapeType(),  fs);  
+        return Data(seed,  DataTypes::ShapeType(),  fs,false);  
     }
     DataTypes::ShapeType shape;
     shape.push_back(2);
@@ -78,7 +78,7 @@ Data getTagged(FunctionSpace fs, bool rank0, double seed, int tag1, int tag2, in
 {
     if (rank0)
     {
-	Data d(seed, DataTypes::ShapeType(), fs);
+	Data d(seed, DataTypes::ShapeType(), fs, false);
 	d.tag();
 	DataTypes::RealVectorType data(1,0);
 	data[0]=seed*2;
@@ -130,7 +130,7 @@ Data getExpanded(FunctionSpace fs, bool rank0, double seed)
 {
     if (rank0)
     {
-	Data z(seed, DataTypes::ShapeType(), fs);
+	Data z(seed, DataTypes::ShapeType(), fs,false);
 	Data d=fs.getDomain()->getX()*z;
 	return d;     
     }
