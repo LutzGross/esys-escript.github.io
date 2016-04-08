@@ -8556,7 +8556,7 @@ class Test_util_unary_no_tagged_data(Test_util_base):
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
         if getEscriptParamInt('LAPACK_SUPPORT')>0:
-            arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, expand=True)
+            arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, True)
             try:
                 inverse(arg)
             except RuntimeError:
