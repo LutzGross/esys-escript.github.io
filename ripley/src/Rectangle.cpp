@@ -411,7 +411,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     // check file existence and size
     std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
-        throw IOError("readBinaryGrid(): cannot open file");
+        throw IOError("readBinaryGrid(): cannot open file " + filename);
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
@@ -522,7 +522,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
     // check file existence and size
     std::ifstream f(filename.c_str(), std::ifstream::binary);
     if (f.fail()) {
-        throw IOError("readBinaryGridFromZipped(): cannot open file");
+        throw IOError("readBinaryGridFromZipped(): cannot open file" + filename);
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
