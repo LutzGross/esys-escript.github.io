@@ -162,32 +162,12 @@ bool FinleyElements::initFromDudley(const dudley::ElementFile* dudleyFile)
     if (numElements > 0) {
         nodesPerElement = dudleyFile->numNodes;
 
-        int* iPtr;
-   
-        iPtr = dudleyFile->Nodes;
-        nodes.clear();
-        nodes.insert(nodes.end(), numElements*nodesPerElement, 0);
-        copy(iPtr, iPtr+numElements*nodesPerElement, nodes.begin());
-
-        iPtr = dudleyFile->Color;
-        color.clear();
-        color.insert(color.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, color.begin());
-
-        iPtr = dudleyFile->Id;
-        ID.clear();
-        ID.insert(ID.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, ID.begin());
-
-        iPtr = dudleyFile->Owner;
-        owner.clear();
-        owner.insert(owner.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, owner.begin());
-
-        iPtr = dudleyFile->Tag;
-        tag.clear();
-        tag.insert(tag.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, tag.begin());
+        nodes.assign(dudleyFile->Nodes,
+                     dudleyFile->Nodes+numElements*nodesPerElement);
+        color.assign(dudleyFile->Color, dudleyFile->Color+numElements);
+        ID.assign(dudleyFile->Id, dudleyFile->Id+numElements);
+        owner.assign(dudleyFile->Owner, dudleyFile->Owner+numElements);
+        tag.assign(dudleyFile->Tag, dudleyFile->Tag+numElements);
 
         FinleyElementInfo f = getDudleyTypeInfo(dudleyFile->etype);
         type = f.elementType;
@@ -215,30 +195,12 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
     if (numElements > 0) {
         nodesPerElement = finleyFile->numNodes;
 
-        escript::DataTypes::index_t* idxPtr = finleyFile->Nodes;
-        nodes.clear();
-        nodes.insert(nodes.end(), numElements*nodesPerElement, 0);
-        copy(idxPtr, idxPtr+numElements*nodesPerElement, nodes.begin());
-
-        int* iPtr = finleyFile->Color;
-        color.clear();
-        color.insert(color.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, color.begin());
-
-        idxPtr = finleyFile->Id;
-        ID.clear();
-        ID.insert(ID.end(), numElements, 0);
-        copy(idxPtr, idxPtr+numElements, ID.begin());
-
-        iPtr = finleyFile->Owner;
-        owner.clear();
-        owner.insert(owner.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, owner.begin());
-
-        iPtr = finleyFile->Tag;
-        tag.clear();
-        tag.insert(tag.end(), numElements, 0);
-        copy(iPtr, iPtr+numElements, tag.begin());
+        nodes.assign(finleyFile->Nodes,
+                     finleyFile->Nodes+numElements*nodesPerElement);
+        color.assign(finleyFile->Color, finleyFile->Color+numElements);
+        ID.assign(finleyFile->Id, finleyFile->Id+numElements);
+        owner.assign(finleyFile->Owner, finleyFile->Owner+numElements);
+        tag.assign(finleyFile->Tag, finleyFile->Tag+numElements);
 
         finleyTypeId = finleyFile->referenceElementSet->referenceElement
             ->Type->TypeId;

@@ -135,7 +135,8 @@ bool FinleyNodes::initFromDudley(const dudley::NodeFile* dudleyFile)
 #if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numDims = dudleyFile->numDim;
     numNodes = dudleyFile->getNumNodes();
-    nodeDist = dudleyFile->nodesDistribution->first_component;
+    nodeDist.assign(dudleyFile->nodesDistribution->first_component.begin(),
+                    dudleyFile->nodesDistribution->first_component.end());
 
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
@@ -158,26 +159,14 @@ bool FinleyNodes::initFromDudley(const dudley::NodeFile* dudleyFile)
             }
         }
 
-        escript::DataTypes::index_t* iPtr = dudleyFile->Id;
-        nodeID.insert(nodeID.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeID.begin());
-
-        iPtr = dudleyFile->Tag;
-        nodeTag.insert(nodeTag.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeTag.begin());
-
-        iPtr = dudleyFile->globalDegreesOfFreedom;
-        nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGDOF.begin());
-        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
-
-        iPtr = dudleyFile->globalNodesIndex;
-        nodeGNI.insert(nodeGNI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGNI.begin());
-        nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
-
+        nodeID.assign(dudleyFile->Id, dudleyFile->Id+numNodes);
+        nodeTag.assign(dudleyFile->Tag, dudleyFile->Tag+numNodes);
+        nodeGDOF.assign(dudleyFile->globalDegreesOfFreedom,
+                        dudleyFile->globalDegreesOfFreedom+numNodes);
+        nodeGRDFI.assign(numNodes, 0);
+        nodeGNI.assign(dudleyFile->globalNodesIndex,
+                       dudleyFile->globalNodesIndex+numNodes);
+        nodeGRNI.assign(numNodes, 0);
     }
     return true;
 #else // VISIT_PLUGIN,USE_DUDLEY
@@ -193,7 +182,8 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 #if !defined VISIT_PLUGIN && defined USE_FINLEY
     numDims = finleyFile->numDim;
     numNodes = finleyFile->numNodes;
-    nodeDist = finleyFile->nodesDistribution->first_component;
+    nodeDist.assign(finleyFile->nodesDistribution->first_component.begin(),
+                    finleyFile->nodesDistribution->first_component.end());
 
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
@@ -216,30 +206,16 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
             }
         }
 
-        escript::DataTypes::index_t* idxPtr = finleyFile->Id;
-        nodeID.insert(nodeID.end(), numNodes, 0);
-        copy(idxPtr, idxPtr+numNodes, nodeID.begin());
-
-        int* iPtr = finleyFile->Tag;
-        nodeTag.insert(nodeTag.end(), numNodes, 0);
-        copy(iPtr, iPtr+numNodes, nodeTag.begin());
-
-        idxPtr = finleyFile->globalDegreesOfFreedom;
-        nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
-        copy(idxPtr, idxPtr+numNodes, nodeGDOF.begin());
-
-        idxPtr = finleyFile->globalNodesIndex;
-        nodeGNI.insert(nodeGNI.end(), numNodes, 0);
-        copy(idxPtr, idxPtr+numNodes, nodeGNI.begin());
-
-        idxPtr = finleyFile->globalReducedDOFIndex;
-        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-        copy(idxPtr, idxPtr+numNodes, nodeGRDFI.begin());
-
-        idxPtr = finleyFile->globalReducedNodesIndex;
-        nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
-        copy(idxPtr, idxPtr+numNodes, nodeGRNI.begin());
-
+        nodeID.assign(finleyFile->Id, finleyFile->Id+numNodes);
+        nodeTag.assign(finleyFile->Tag, finleyFile->Tag+numNodes);
+        nodeGDOF.assign(finleyFile->globalDegreesOfFreedom,
+                        finleyFile->globalDegreesOfFreedom+numNodes);
+        nodeGNI.assign(finleyFile->globalNodesIndex,
+                       finleyFile->globalNodesIndex+numNodes);
+        nodeGRDFI.assign(finleyFile->globalReducedDOFIndex,
+                        finleyFile->globalReducedDOFIndex+numNodes);
+        nodeGRNI.assign(finleyFile->globalReducedNodesIndex,
+                        finleyFile->globalReducedNodesIndex+numNodes);
     }
     return true;
 #else // VISIT_PLUGIN,USE_FINLEY
