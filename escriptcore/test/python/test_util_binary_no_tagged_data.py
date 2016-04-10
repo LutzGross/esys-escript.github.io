@@ -92,11 +92,12 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-      arg1.promote()
-      res=inner(arg0,arg1)
-      self.assertTrue(isinstance(res,Data),"wrong type of result.")
-      self.assertEqual(res.getShape(),(),"wrong shape of result.")
-      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
+      if not arg1.isLazy():
+        arg1.promote()
+        res=inner(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank0_float_rank0(self):
       arg0=numpy.array(-0.172668075783)
@@ -351,12 +352,13 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
       arg0=numpy.array(0.685017565314j)
-      arg1=arg1*1j
-      ref=-ref
-      res=inner(arg0,arg1)
-      self.assertTrue(isinstance(res,Data),"wrong type of result.")
-      self.assertEqual(res.getShape(),(),"wrong shape of result.")
-      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
+      if not arg1.isLazy() and not arg0.isLazy():
+        arg1=arg1*1j
+        ref=-ref
+        res=inner(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank1_expandedData_rank1(self):
       arg0=numpy.array([-0.33806363855530708, -0.38292988645561055])
@@ -392,13 +394,14 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-      arg0=arg0*1j
-      arg1=arg1*1j
-      res=inner(arg0,arg1)
-      ref=-ref
-      self.assertTrue(isinstance(res,Data),"wrong type of result.")
-      self.assertEqual(res.getShape(),(),"wrong shape of result.")
-      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
+      if not arg1.isLazy() and not arg0.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        res=inner(arg0,arg1)
+        ref=-ref
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank3_expandedData_rank3(self):
       arg0=numpy.array([[[0.6807678093224121, -0.57723267525409039], [0.70068737825030447, -0.098432327342198533]], 
@@ -855,13 +858,14 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-      arg0=arg0*1j
-      arg1=arg1*1j
-      res=inner(arg0,arg1)
-      ref=-ref
-      self.assertTrue(isinstance(res,Data),"wrong type of result.")
-      self.assertEqual(res.getShape(),(),"wrong shape of result.")
-      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")       
+      if not arg0.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        res=inner(arg0,arg1)
+        ref=-ref
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")       
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank1_array_rank1(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
@@ -987,13 +991,14 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
-      arg0=arg0*1j
-      arg1=arg1*1j
-      res=inner(arg0,arg1)
-      ref=-ref
-      self.assertTrue(isinstance(res,Data),"wrong type of result.")
-      self.assertEqual(res.getShape(),(),"wrong shape of result.")
-      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")       
+      if not arg1.isLazy() and not arg0.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        res=inner(arg0,arg1)
+        ref=-ref
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")       
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank1_constData_rank1(self):
       msk_arg0=whereNegative(self.functionspace.getX()[0]-0.5)
