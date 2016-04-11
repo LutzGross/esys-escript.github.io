@@ -61,7 +61,7 @@ def adjust(NE, ftype):
 
 
 class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
-    NX = 4*mpiSize
+    NX = 4*min(10,mpiSize)
     NZ = 4
 
     def generateUniqueData(self, ftype):
