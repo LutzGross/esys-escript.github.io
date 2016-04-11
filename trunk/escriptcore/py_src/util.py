@@ -689,6 +689,8 @@ def matchType(arg0=0.,arg1=0.):
           arg1=numpy.array(float(arg1),dtype=numpy.complex)
        elif isinstance(arg1,sym.Symbol):
           pass
+       elif isinstance(arg1,complex):
+          pass
        else:
           raise TypeError("function: Unknown type of second argument.") 
     elif isinstance(arg0,float):
@@ -2385,7 +2387,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
              each data point
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
-    if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
+    if (isinstance(arg0,float) and isinstance(arg1,float)) or (isinstance(arg0,complex) and isinstance(arg1,complex)): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
     # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
     # or one is a Symbol and the other either of the allowed types
