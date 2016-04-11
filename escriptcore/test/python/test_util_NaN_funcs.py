@@ -35,10 +35,11 @@ class Test_util_NaN_funcs(unittest.TestCase):
         scl=es.Scalar(0,es.ContinuousFunction(dom))
         scl.expand()
         scl.promote()
-        sclNaN=scl/0
-        self.assertTrue(sclNaN.hasNaN(),"sclNaN should contain NaN but its doesn't")
-        sclNaN.replaceNaN(3+4j)
-        self.assertEqual(es.Lsup(sclNaN), 5.0)
+        if not es.getEscriptParamInt('AUTOLAZY')==1:            
+            sclNaN=scl/0
+            self.assertTrue(sclNaN.hasNaN(),"sclNaN should contain NaN but its doesn't")
+            sclNaN.replaceNaN(3+4j)
+            self.assertEqual(es.Lsup(sclNaN), 5.0)
 
     
     def test_replaceNaNConstant(self):
