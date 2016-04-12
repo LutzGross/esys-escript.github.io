@@ -593,6 +593,7 @@ if env['usempi']:
 
 if env['paso']:
     env.SConscript('paso/src/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
+    env.Append(CPPDEFINES = ['ESYS_HAVE_PASO'])
     build_all_list += ['build_paso']
     install_all_list += ['install_paso']
 
