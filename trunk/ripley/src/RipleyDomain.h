@@ -26,7 +26,9 @@
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
+#endif
 
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
@@ -760,9 +762,11 @@ protected:
     // this is const because setTags is const
     void updateTagsInUse(int fsType) const;
 
+#ifdef ESYS_HAVE_PASO
     /// allocates and returns a Paso pattern structure
     paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
                                         dim_t N) const;
+#endif
 
 #ifdef ESYS_HAVE_TRILINOS
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
@@ -812,10 +816,12 @@ protected:
     /// returns occupied matrix column indices for all matrix rows
     virtual std::vector<IndexVector> getConnections(bool includeShared) const = 0;
 
+#ifdef ESYS_HAVE_PASO
     /// returns the Paso system matrix pattern
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                                               bool reducedRowOrder,
                                               bool reducedColOrder) const = 0;
+#endif
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
@@ -836,9 +842,11 @@ protected:
     virtual dim_t getDofOfNode(dim_t node) const = 0;
 
 private:
+#ifdef ESYS_HAVE_PASO
     /// paso version of adding element matrices to System Matrix
     void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
                          dim_t numEq, const DoubleVector& array) const;
+#endif
 
     /// calls the right PDE assembly routines after performing input checks
     void assemblePDE(escript::AbstractSystemMatrix* mat, escript::Data& rhs,
