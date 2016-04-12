@@ -28,8 +28,10 @@
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 #endif
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
 #include <paso/Transport.h>
+#endif
 
 #include <iomanip>
 #include <iostream>
@@ -39,7 +41,6 @@ namespace bp = boost::python;
 using namespace std;
 using escript::ValueError;
 using escript::NotImplementedError;
-using paso::TransportProblem;
 
 #ifdef ESYS_HAVE_TRILINOS
 using esys_trilinos::TrilinosMatrixAdapter;
@@ -802,9 +803,9 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     int package = sb.getPackage();
 
     // use CUSP for single rank and supported solvers+preconditioners if CUDA
-    // is available, PASO otherwise
-    if (package == escript::SO_DEFAULT) {
+    // is available, PASO or Trilinos otherwise
 #ifdef ESYS_HAVE_CUDA
+    if (package == escript::SO_DEFAULT) {
         if (m_mpiInfo->size == 1) {
             switch (sb.getSolverMethod()) {
                 case escript::SO_DEFAULT:
@@ -816,23 +817,27 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
                 case escript::SO_METHOD_PRES20:
                     package = escript::SO_PACKAGE_CUSP;
                     break;
-                default:
-                    package = escript::SO_PACKAGE_PASO;
             }
             if (package == escript::SO_PACKAGE_CUSP) {
                 if (sb.getPreconditioner() != escript::SO_PRECONDITIONER_NONE &&
                         sb.getPreconditioner() != escript::SO_PRECONDITIONER_JACOBI) {
-                    package = escript::SO_PACKAGE_PASO;
+                    package = escript::SO_PACKAGE_DEFAULT;
                 }
             }
-        } else {
-            package = escript::SO_PACKAGE_PASO;
         }
-#else // ESYS_HAVE_CUDA
+    }
+#endif // ESYS_HAVE_CUDA
+
+    // the configuration of ripley should have taken care that we have either
+    // paso or trilinos so here's how we prioritize
+#ifdef ESYS_HAVE_PASO
+    if (package == escript::SO_DEFAULT)
         package = escript::SO_PACKAGE_PASO;
 #endif
-    }
-
+#ifdef ESYS_HAVE_TRILINOS
+    if (package == escript::SO_DEFAULT)
+        package = escript::SO_PACKAGE_TRILINOS;
+#endif
     if (package == escript::SO_PACKAGE_CUSP) {
         if (m_mpiInfo->size > 1) {
             throw NotImplementedError("CUSP matrices are not supported with more than one rank");
@@ -848,18 +853,25 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         throw RipleyException("Trilinos requested but not built with Trilinos.");
 #endif
     }
-
+#ifdef ESYS_HAVE_PASO
     // in all other cases we use PASO
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
             sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
             sb.isSymmetric(), m_mpiInfo);
+#else
+    throw RipleyException("Unable to find a working solver library!");
+#endif
 }
 
 int RipleyDomain::getTransportTypeId(int solver, int preconditioner,
                                      int package, bool symmetry) const
 {
-    return TransportProblem::getTypeId(solver, preconditioner,
+#ifdef ESYS_USE_PASO
+    return paso::TransportProblem::getTypeId(solver, preconditioner,
             package, symmetry, m_mpiInfo);
+#else
+    throw RipleyException("Transport solvers require Paso but ripley was not compiled with Paso!");
+#endif
 }
 
 escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
@@ -918,6 +930,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
                "Trilinos support so the Trilinos solver stack cannot be used.");
 #endif
     } else if (type & (int)SMT_PASO) {
+#ifdef ESYS_HAVE_PASO
         paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
                                             reduceRowOrder, reduceColOrder));
         type -= (int)SMT_PASO;
@@ -925,6 +938,10 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
                 row_blocksize, column_blocksize, false, row_functionspace,
                 column_functionspace));
         return sm;
+#else
+        throw RipleyException("newSystemMatrix: ripley was not compiled with "
+               "Paso support so the Paso solver stack cannot be used.");
+#endif
     } else {
         throw RipleyException("newSystemMatrix: unknown matrix type ID");
     }
@@ -1000,17 +1017,22 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(int blocksize,
     if (domain != *this)
         throw ValueError("newTransportProblem: domain of function space does not match the domain of transport problem generator");
     // is the function space type right?
-    if (functionspace.getTypeCode()==ReducedDegreesOfFreedom)
-        reduceOrder=true;
-    else if (functionspace.getTypeCode()!=DegreesOfFreedom)
+    if (functionspace.getTypeCode() == ReducedDegreesOfFreedom)
+        reduceOrder = true;
+    else if (functionspace.getTypeCode() != DegreesOfFreedom)
         throw ValueError("newTransportProblem: illegal function space type for transport problem");
 
+#ifdef ESYS_HAVE_PASO
     // generate matrix
     paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceOrder,
                                                                reduceOrder));
     escript::ATP_ptr tp(new paso::TransportProblem(pattern, blocksize,
                                                    functionspace));
     return tp;
+#else
+    throw RipleyException("newTransportProblem: transport problems require the "
+           "Paso library which is not available.");
+#endif
 }
 
 void RipleyDomain::addPDEToTransportProblemFromPython(
@@ -1029,7 +1051,8 @@ void RipleyDomain::addPDEToTransportProblem(
     if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw ValueError("addPDEToTransportProblem: Ripley does not support contact elements");
 
-    TransportProblem* ptp=dynamic_cast<TransportProblem*>(&tp);
+#ifdef ESYS_HAVE_PASO
+    paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
         throw ValueError("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
@@ -1040,6 +1063,10 @@ void RipleyDomain::addPDEToTransportProblem(
     assemblePDE(tm.get(), source, coefs, assembler);
     assemblePDEBoundary(tm.get(), source, coefs, assembler);
     assemblePDEDirac(tm.get(), source, coefs, assembler);
+#else
+    throw RipleyException("addPDEToTransportProblem: transport problems "
+                          "require the Paso library which is not available.");
+#endif
 }
 
 void RipleyDomain::addPDEToTransportProblem(
@@ -1177,6 +1204,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
     }
 }
 
+#ifdef ESYS_HAVE_PASO
 //protected
 paso::Pattern_ptr RipleyDomain::createPasoPattern(
                             const vector<IndexVector>& indices, dim_t N) const
@@ -1198,6 +1226,7 @@ paso::Pattern_ptr RipleyDomain::createPasoPattern(
 
     return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptr, index));
 }
+#endif // ESYS_HAVE_PASO
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
@@ -1242,18 +1271,20 @@ esys_trilinos::const_TrilinosGraph_ptr RipleyDomain::createTrilinosGraph(
     graph->fillComplete(rowMap, rowMap, params);
     return graph;
 }
-#endif
+#endif // ESYS_HAVE_TRILINOS
 
 //protected
 void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                                      const IndexVector& nodes, dim_t numEq,
                                      const DoubleVector& array) const
 {
+#ifdef ESYS_HAVE_PASO
     paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
     if (psm) {
         addToPasoMatrix(psm, nodes, numEq, array);
         return;
     }
+#endif
 #ifdef ESYS_HAVE_CUDA
     SystemMatrix* rsm = dynamic_cast<SystemMatrix*>(mat);
     if (rsm) {
@@ -1271,6 +1302,7 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
     throw RipleyException("addToSystemMatrix: unknown system matrix type");
 }
 
+#ifdef ESYS_HAVE_PASO
 //private
 void RipleyDomain::addToPasoMatrix(paso::SystemMatrix* mat,
                                    const IndexVector& nodes, dim_t numEq,
@@ -1399,6 +1431,7 @@ void RipleyDomain::addToPasoMatrix(paso::SystemMatrix* mat,
     }
 #undef UPDATE_BLOCK
 }
+#endif // ESYS_HAVE_PASO
 
 //private
 void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,

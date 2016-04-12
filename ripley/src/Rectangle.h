@@ -326,8 +326,10 @@ protected:
     // nodes
     paso::Connector_ptr m_connector;
 
+#ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
+#endif
 
 #ifdef ESYS_HAVE_TRILINOS
     /// Trilinos graph structure, cached for efficiency
