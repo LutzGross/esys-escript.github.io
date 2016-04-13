@@ -127,59 +127,6 @@ std::vector<void*> stackend(getNumberOfThreads());
 size_t maxstackuse=0;
 #endif
 
-enum ES_opgroup
-{
-   G_UNKNOWN,
-   G_IDENTITY,
-   G_BINARY,            // pointwise operations with two arguments
-   G_UNARY,             // pointwise operations with one argument
-   G_UNARY_P,           // pointwise operations with one argument, requiring a parameter
-   G_NP1OUT,            // non-pointwise op with one output
-   G_NP1OUT_P,          // non-pointwise op with one output requiring a parameter
-   G_TENSORPROD,        // general tensor product
-   G_NP1OUT_2P,         // non-pointwise op with one output requiring two params
-   G_REDUCTION,         // non-pointwise unary op with a scalar output
-   G_CONDEVAL
-};
-
-
-
-
-string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
-                        "sin","cos","tan",
-                        "asin","acos","atan","sinh","cosh","tanh","erf",
-                        "asinh","acosh","atanh",
-                        "log10","log","sign","abs","neg","pos","exp","sqrt",
-                        "1/","where>0","where<0","where>=0","where<=0", "where<>0","where=0",
-                        "symmetric","antisymmetric",
-                        "prod",
-                        "transpose", "trace",
-                        "swapaxes",
-                        "minval", "maxval",
-                        "condEval",
-                        "hermitian","antihermitian"
-};
-int ES_opcount=46;
-ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY, G_BINARY,
-                        G_UNARY,G_UNARY,G_UNARY, //10
-                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 17
-                        G_UNARY,G_UNARY,G_UNARY,                                        // 20
-                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 28
-                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,          // 35
-                        G_NP1OUT,G_NP1OUT,
-                        G_TENSORPROD,
-                        G_NP1OUT_P, G_NP1OUT_P,
-                        G_NP1OUT_2P,
-                        G_REDUCTION, G_REDUCTION,
-                        G_CONDEVAL,
-                        G_UNARY,G_UNARY
-};
-inline
-ES_opgroup
-getOpgroup(ES_optype op)
-{
-  return opgroups[op];
-}
 
 // return the FunctionSpace of the result of "left op right"
 FunctionSpace
@@ -431,19 +378,6 @@ GTPShape(DataAbstract_ptr left, DataAbstract_ptr right, int axis_offset, int tra
 }
 
 }       // end anonymous namespace
-
-
-
-// Return a string representing the operation
-const std::string&
-opToString(ES_optype op)
-{
-  if (op<0 || op>=ES_opcount) 
-  {
-    op=UNKNOWNOP;
-  }
-  return ES_opstrings[op];
-}
 
 void DataLazy::LazyNodeSetup()
 {
@@ -1062,103 +996,16 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
   const double* left=&((*leftres)[roffset]);
   roffset=m_samplesize*tid;
   double* result=&(m_samples[roffset]);
-  escript::ESFunction operation=SINF;
-  switch (m_op)
+  if (m_op==POS)
   {
-    case SIN:
-	operation=SINF;
-	break;
-    case COS:
-        operation=COSF;
-	break;
-    case TAN:
-        operation=TANF;
-	break;
-    case ASIN:
-        operation=ASINF;
-	break;
-    case ACOS:
-        operation=ACOSF;
-	break;
-    case ATAN:
-        operation=ATANF;
-	break;
-    case SINH:
-        operation=SINHF;
-	break;
-    case COSH:
-        operation=COSHF;
-	break;
-    case TANH:
-        operation=TANHF;
-	break;
-    case ERF:
-        operation=ERFF;
-	break;
-   case ASINH:
-        operation=ASINHF;
-	break;
-   case ACOSH:
-        operation=ACOSHF;
-	break;
-   case ATANH:
-        operation=ATANHF;
-	break;
-    case LOG10:
-        operation=LOG10F;
-	break;
-    case LOG:
-        operation=LOGF;
-	break;
-    case SIGN:
-        operation=SIGNF;
-	break;
-    case ABS:
-        operation=ABSF;
-	break;
-    case NEG:
-        operation=NEGF;
-	break;
-    case POS:
-        // it doesn't mean anything for delayed.
-        // it will just trigger a deep copy of the lazy object
-        throw DataException("Programmer error - POS not supported for lazy data.");
-        break;
-    case EXP:
-        operation=EXPF;
-	break;
-    case SQRT:
-        operation=SQRTF;
-	break;
-    case RECIP:
-        operation=INVF;
-	break;
-    case GZ:
-        operation=GTZEROF;
-	break;
-    case LZ:
-        operation=LTZEROF;
-	break;
-    case GEZ:
-        operation=GEZEROF;
-	break;
-    case LEZ:
-        operation=LEZEROF;
-	break;
-// There are actually G_UNARY_P but I don't see a compelling reason to treat them differently
-    case NEZ:
-        operation=NEQZEROF;
-	break;
-    case EZ:
-        operation=EQZEROF;
-	break;
-    default:
-        throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
+	// this should be prevented earlier
+	// operation is meaningless for lazy
+        throw DataException("Programmer error - POS not supported for lazy data.");    
   }
   tensor_unary_array_operation(m_samplesize,
                              left,
                              result,
-                             operation,
+                             m_op,
                              m_tol);  
   return &(m_samples);
 }
@@ -1535,7 +1382,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 orightstep,
 			 lroffset,
 			 rroffset,
-			 escript::ESFunction::PLUSF);	
+			 escript::ES_optype::ADD);	
         break;
     case SUB:
       escript::binaryOpVectorLazyHelper<real_t, real_t, real_t>(resultp, 
@@ -1551,7 +1398,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 orightstep,
 			 lroffset,
 			 rroffset,
-			 escript::ESFunction::MINUSF);	      
+			 escript::ES_optype::SUB);	      
         //PROC_OP(NO_ARG,minus<double>());
         break;
     case MUL:
@@ -1569,7 +1416,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 orightstep,
 			 lroffset,
 			 rroffset,
-			 escript::ESFunction::MULTIPLIESF);	      
+			 escript::ES_optype::MUL);	      
         break;
     case DIV:
         //PROC_OP(NO_ARG,divides<double>());
@@ -1586,7 +1433,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 orightstep,
 			 lroffset,
 			 rroffset,
-			 escript::ESFunction::DIVIDESF);	      
+			 escript::ES_optype::DIV);	      
         break;
     case POW:
        //PROC_OP(double (double,double),::pow);
@@ -1603,7 +1450,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 			 orightstep,
 			 lroffset,
 			 rroffset,
-			 escript::ESFunction::POWF);	      
+			 escript::ES_optype::POW);	      
         break;
     default:
         throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");

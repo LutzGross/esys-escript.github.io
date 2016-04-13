@@ -1119,7 +1119,7 @@ Data
 Data::oneOver() const
 {
     MAKELAZYOP(RECIP);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::INVF);    
+    return C_TensorUnaryOperation(*this, escript::ES_optype::RECIP);    
 }
 
 Data
@@ -1130,7 +1130,7 @@ Data::wherePositive() const
         throw DataException("The wherePositive operation is not supported for complex data.");
     }
     MAKELAZYOP(GZ);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::GTZEROF);    
+    return C_TensorUnaryOperation(*this, escript::ES_optype::GZ);    
 }
 
 Data
@@ -1141,7 +1141,7 @@ Data::whereNegative() const
         throw DataException("The whereNegative operation is not supported for complex data.");
     }
     MAKELAZYOP(LZ);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::LTZEROF);    
+    return C_TensorUnaryOperation(*this, escript::ES_optype::LZ);    
 }
 
 Data
@@ -1152,7 +1152,7 @@ Data::whereNonNegative() const
         throw DataException("The whereNonNegative operation is not supported for complex data.");
     }
     MAKELAZYOP(GEZ);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::GEZEROF);    
+    return C_TensorUnaryOperation(*this, escript::ES_optype::GEZ);    
 }
 
 Data
@@ -1163,21 +1163,21 @@ Data::whereNonPositive() const
         throw DataException("The whereNonPositive operation is not supported for complex data.");
     }
     MAKELAZYOP(LEZ);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::LEZEROF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::LEZ);
 }
 
 Data
 Data::whereZero(real_t tol) const
 {
     MAKELAZYOPOFF(EZ,tol);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::EQZEROF, tol);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::EZ, tol);
 }
 
 Data
 Data::whereNonZero(real_t tol) const
 {
     MAKELAZYOPOFF(NEZ,tol);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::NEQZEROF, tol);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::NEZ, tol);
 }
 
 Data
@@ -1784,7 +1784,7 @@ Data::conjugate() const
     }
     if (isComplex())
     {
-        return C_TensorUnaryOperation(*this, escript::ESFunction::CONJF);      
+        return C_TensorUnaryOperation(*this, escript::ES_optype::CONJ);      
     }
     else
     {
@@ -1804,7 +1804,7 @@ Data::real() const
     }
     if (isComplex())
     {
-        return C_TensorUnaryOperation(*this, escript::ESFunction::REALF);      
+        return C_TensorUnaryOperation(*this, escript::ES_optype::REAL);      
     }
     else
     {
@@ -1823,7 +1823,7 @@ Data::imag() const
     }
     if (isComplex())
     {
-        return C_TensorUnaryOperation(*this, escript::ESFunction::IMAGF);      
+        return C_TensorUnaryOperation(*this, escript::ES_optype::IMAG);      
     }
     else
     {
@@ -1838,35 +1838,35 @@ Data
 Data::sin() const
 {
     MAKELAZYOP(SIN);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::SINF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::SIN);
 }
 
 Data
 Data::cos() const
 {
     MAKELAZYOP(COS);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::COSF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::COS);
 }
 
 Data
 Data::tan() const
 {
     MAKELAZYOP(TAN);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::TANF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::TAN);
 }
 
 Data
 Data::asin() const
 {
     MAKELAZYOP(ASIN);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ASINF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ASIN);
 }
 
 Data
 Data::acos() const
 {
     MAKELAZYOP(ACOS);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ACOSF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ACOS);
 }
 
 
@@ -1874,28 +1874,28 @@ Data
 Data::atan() const
 {
     MAKELAZYOP(ATAN);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ATANF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ATAN);
 }
 
 Data
 Data::sinh() const
 {
     MAKELAZYOP(SINH);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::SINHF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::SINH);
 }
 
 Data
 Data::cosh() const
 {
     MAKELAZYOP(COSH);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::COSHF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::COSH);
 }
 
 Data
 Data::tanh() const
 {
     MAKELAZYOP(TANH);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::TANHF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::TANH);
 }
 
 
@@ -1906,7 +1906,7 @@ Data::erf() const
     throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
 #else
     MAKELAZYOP(ERF);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ERFF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ERF);
 #endif
 }
 
@@ -1914,56 +1914,56 @@ Data
 Data::asinh() const
 {
     MAKELAZYOP(ASINH);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ASINHF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ASINH);
 }
 
 Data
 Data::acosh() const
 {
     MAKELAZYOP(ACOSH);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ACOSHF);    
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ACOSH);    
 }
 
 Data
 Data::atanh() const
 {
     MAKELAZYOP(ATANH);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ATANHF); 
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ATANH); 
 }
 
 Data
 Data::log10() const
 {
     MAKELAZYOP(LOG10);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::LOG10F);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::LOG10);
 }
 
 Data
 Data::log() const
 {
     MAKELAZYOP(LOG);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::LOGF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::LOG);
 }
 
 Data
 Data::sign() const
 {
     MAKELAZYOP(SIGN);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::SIGNF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::SIGN);
 }
 
 Data
 Data::abs() const
 {
     MAKELAZYOP(ABS);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::ABSF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::ABS);
 }
 
 Data
 Data::neg() const
 {
     MAKELAZYOP(NEG);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::NEGF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::NEG);
 }
 
 Data
@@ -1982,14 +1982,14 @@ Data
 Data::exp() const
 {
     MAKELAZYOP(EXP);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::EXPF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::EXP);
 }
 
 Data
 Data::sqrt() const
 {
     MAKELAZYOP(SQRT);
-    return C_TensorUnaryOperation(*this, escript::ESFunction::SQRTF);
+    return C_TensorUnaryOperation(*this, escript::ES_optype::SQRT);
 }
 
 real_t
@@ -2916,8 +2916,7 @@ Data::operator+=(const Data& right)
     {
         complicate();
     }
-    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::PLUSF);  
-    //binaryDataOp(right, escript::ESFunction::PLUSF);
+    TensorSelfUpdateBinaryOperation(right, escript::ES_optype::ADD);  
     return (*this);
 }
 
@@ -2953,8 +2952,7 @@ Data::operator-=(const Data& right)
     {
         complicate();
     }
-    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::MINUSF);
-    //binaryDataOp(right, escript::ESFunction::MINUSF);
+    TensorSelfUpdateBinaryOperation(right, escript::ES_optype::SUB);
     return (*this);
 }
 
@@ -2981,8 +2979,7 @@ Data::operator*=(const Data& right)
     {
         complicate();
     }
-    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::MULTIPLIESF);
-    //binaryDataOp(right, escript::ESFunction::MULTIPLIESF);
+    TensorSelfUpdateBinaryOperation(right, escript::ES_optype::MUL);
     return (*this);
 }
 
@@ -3009,8 +3006,7 @@ Data::operator/=(const Data& right)
     {
         complicate();
     }
-    TensorSelfUpdateBinaryOperation(right, escript::ESFunction::DIVIDESF);
-    //binaryDataOp(right, escript::ESFunction::DIVIDESF);
+    TensorSelfUpdateBinaryOperation(right, escript::ES_optype::DIV);
     return (*this);
 }
 
@@ -3075,9 +3071,8 @@ Data
 Data::powD(const Data& right) const
 {
     MAKELAZYBIN(right,POW);
-    //BINOPTENSOR(*this, pow_func);
     
-    return C_TensorBinaryOperation(*this, right, ESFunction::POWF);    
+    return C_TensorBinaryOperation(*this, right, ES_optype::POW);    
     
 }
 
@@ -3088,10 +3083,8 @@ Data
 escript::operator+(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,ADD);
-//    BINOPTENSOR(left,plus_func)
     
-    
-    return C_TensorBinaryOperation(left, right, ESFunction::PLUSF);
+    return C_TensorBinaryOperation(left, right, ES_optype::ADD);
 }
 
 //
@@ -3100,7 +3093,7 @@ Data
 escript::operator-(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,SUB);
-    return C_TensorBinaryOperation(left, right, ESFunction::MINUSF);    
+    return C_TensorBinaryOperation(left, right, ES_optype::SUB);    
 }
 
 //
@@ -3109,9 +3102,8 @@ Data
 escript::operator*(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,MUL);    
-//    BINOPTENSOR(left,multiplies_func);
     
-    return C_TensorBinaryOperation(left, right, ESFunction::MULTIPLIESF);        
+    return C_TensorBinaryOperation(left, right, ES_optype::MUL);        
 }
 
 //
@@ -3120,9 +3112,7 @@ Data
 escript::operator/(const Data& left, const Data& right)
 {
     MAKELAZYBIN2(left,right,DIV);
-//    BINOPTENSOR(left,divides_func);
-        
-    return C_TensorBinaryOperation(left, right, ESFunction::DIVIDESF);        
+    return C_TensorBinaryOperation(left, right, ES_optype::DIV);        
 }
 
 //
@@ -5754,7 +5744,7 @@ void Data::complicate()
 
 Data
 escript::C_TensorUnaryOperation(Data const &arg_0,
-                       escript::ESFunction operation,
+                       escript::ES_optype operation,
                        DataTypes::real_t tol)
 {
   if (arg_0.isEmpty())  // do this before we attempt to interpolate
@@ -6030,7 +6020,7 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 Data
 escript::C_TensorBinaryOperation(Data const &arg_0,
                         Data const &arg_1,
-                        ESFunction operation)
+                        escript::ES_optype operation)
 {
   if (arg_0.isEmpty() || arg_1.isEmpty())
   {
@@ -6205,7 +6195,7 @@ escript::C_TensorBinaryOperation(Data const &arg_0,
 
 void
 Data::TensorSelfUpdateBinaryOperation(const Data& right,
-                   escript::ESFunction operation)
+                   escript::ES_optype operation)
 {
    //
    // if this has a rank of zero promote it to the rank of the RHS
@@ -6301,7 +6291,7 @@ Data::TensorSelfUpdateBinaryOperation(const Data& right,
 #if 0
 void
 Data::binaryDataOp(const Data& right,
-                   escript::ESFunction operation)
+                   escript::ES_optype operation)
 {
    //
    // if this has a rank of zero promote it to the rank of the RHS

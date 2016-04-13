@@ -35,23 +35,23 @@ For operations on double* see LocalOps.h.
 namespace escript {
 
 void binaryOpDataCCC(DataConstant& result, const DataConstant& left, const DataConstant& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataTCT(DataTagged& result, const DataConstant& left, const DataTagged& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataTTC(DataTagged& result, const DataTagged& left, const DataConstant& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataTTT(DataTagged& result, const DataTagged& left, const DataTagged& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataEEC(DataExpanded& result, const DataExpanded& left, const DataConstant& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataECE(DataExpanded& result, const DataConstant& left, const DataExpanded& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataEEE(DataExpanded& result, const DataExpanded& left, const DataExpanded& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataETE(DataExpanded& result, const DataTagged& left, const DataExpanded& right, 
-		     escript::ESFunction operation);
+		     escript::ES_optype operation);
 void binaryOpDataEET(DataExpanded& result, const DataExpanded& left, const DataTagged& right, 
- 		     escript::ESFunction operation);
+ 		     escript::ES_optype operation);
 
 } // end of namespace
 

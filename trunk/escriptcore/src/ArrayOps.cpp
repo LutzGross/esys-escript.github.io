@@ -22,48 +22,48 @@ using namespace escript;
 namespace escript
 {
 
-bool supports_cplx(escript::ESFunction operation)
+bool supports_cplx(escript::ES_optype operation)
 {
     switch (operation)
     {
-    case NEGF:
-    case SINF: 
-    case COSF: 
-    case TANF: 
-    case ASINF: 
-    case ACOSF: 
-    case ATANF: 
-    case SINHF: 
-    case COSHF: 
-    case TANHF: return true;
-    case ERFF: return false;
-    case ASINHF: 
-    case ACOSHF: 
-    case ATANHF: 
-    case LOG10F: 
-    case LOGF: return true;
-    case SIGNF: return false;
-    case ABSF: 
-    case EXPF: 
-    case SQRTF: return true;
-    case EQZEROF:
-    case NEQZEROF:return true;
-    case GTZEROF:
-    case GEZEROF:
-    case LTZEROF:
-    case LEZEROF: return false;   
-    case CONJF: return true;
-    case REALF: return true;
-    case IMAGF: return true;
-    case INVF: return true;
+    case NEG:
+    case SIN: 
+    case COS: 
+    case TAN: 
+    case ASIN: 
+    case ACOS: 
+    case ATAN: 
+    case SINH: 
+    case COSH: 
+    case TANH: return true;
+    case ERF: return false;
+    case ASINH: 
+    case ACOSH: 
+    case ATANH: 
+    case LOG10: 
+    case LOG: return true;
+    case SIGN: return false;
+    case ABS: 
+    case EXP: 
+    case SQRT: return true;
+    case EZ:
+    case NEZ:return true;
+    case GZ:
+    case GEZ:
+    case LZ:
+    case LEZ: return false;   
+    case CONJ: return true;
+    case REAL: return true;
+    case IMAG: return true;
+    case RECIP: return true;
     default:
       return false;	// let's be conservative
   }  
 }
 
-bool always_real(escript::ESFunction operation)
+bool always_real(escript::ES_optype operation)
 {
-    return ((operation==REALF) || (operation==IMAGF) || (operation==EQZEROF) || (operation==NEQZEROF) || (operation==ABSF));
+    return ((operation==REAL) || (operation==IMAG) || (operation==EZ) || (operation==NEZ) || (operation==ABS));
 }
 
 

@@ -833,13 +833,13 @@ binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
 	  typename LVEC::size_type leftOffset,		// where to start reading LHS values
 	  const RSCALAR* right, 			// RHS of the calculation
 	  const bool rightreset,			// true if RHS is providing a single sample of 1 value only
-	  escript::ESFunction operation,		// operation to perform
+	  escript::ES_optype operation,		// operation to perform
 	  bool singleleftsample)			// set to false for normal operation
 {
   size_t substep=(rightreset?0:1);  
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -852,7 +852,7 @@ binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
 	  }
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -865,7 +865,7 @@ binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
 	  }
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -878,7 +878,7 @@ binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
 	  }
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -891,7 +891,7 @@ binaryOpVectorRightScalar(ResVEC& res,				// where result is to be stored
 	  }
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -919,7 +919,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  typename DataTypes::RealVectorType::size_type leftOffset,		// where to start reading LHS values
 	  const DataTypes::real_t* right, 			// RHS of the calculation
 	  const bool rightreset,			// true if RHS is providing a single sample of 1 value only
-	  escript::ESFunction operation,		// operation to perform
+	  escript::ES_optype operation,		// operation to perform
 	  bool singleleftsample);
 
 /**
@@ -935,13 +935,13 @@ binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
           const bool leftreset,				// true if LHS is providing a single sample of 1 value only
 	  const RVEC& right, 				// RHS of the calculation
 	  typename RVEC::size_type rightOffset,		// where to start reading RHS values
-	  escript::ESFunction operation,		// operation to perform
+	  escript::ES_optype operation,		// operation to perform
 	  bool singlerightsample)			// right consists of a single sample
 {
   size_t substep=(leftreset?0:1);
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -953,7 +953,7 @@ binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
 	  }	
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -965,7 +965,7 @@ binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
 	  }	
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -977,7 +977,7 @@ binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
 	  }	
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -989,7 +989,7 @@ binaryOpVectorLeftScalar(ResVEC& res,				// where result is to be stored
 	  }	
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -1016,7 +1016,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
           const bool leftreset,				// true if LHS is providing a single sample of 1 value only
 	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
 	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
-	  escript::ESFunction operation,		// operation to perform
+	  escript::ES_optype operation,		// operation to perform
 	  bool singlerightsample);			// right consists of a single sample
 
 /**
@@ -1034,11 +1034,11 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
 	  const RVEC& right, 				// RHS of the calculation
 	  typename RVEC::size_type rightOffset,		// where to start reading RHS values
 	  const bool rightreset,			// Is RHS only supplying a single sample instead of a bunch of them
-	  escript::ESFunction operation)		// operation to perform
+	  escript::ES_optype operation)		// operation to perform
 {
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -1051,7 +1051,7 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
 	
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -1064,7 +1064,7 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
 	
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -1077,7 +1077,7 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
 	
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -1090,7 +1090,7 @@ binaryOpVector(ResVEC& res,				// where result is to be stored
 	
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<samplesToProcess;++i)
       {
@@ -1120,7 +1120,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
 	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
 	  const bool rightreset,			// Is RHS only supplying a single sample instead of a bunch of them
-	  escript::ESFunction operation);		// operation to perform
+	  escript::ES_optype operation);		// operation to perform
 
 #define OPVECLAZYBODY(X)     \
     for (size_t j=0;j<onumsteps;++j)\
@@ -1160,35 +1160,35 @@ binaryOpVectorLazyHelper(ResELT* res,
 			 const size_t orightstep,
 			 size_t lroffset,
 			 size_t rroffset,
-			 escript::ESFunction operation)		// operation to perform
+			 escript::ES_optype operation)		// operation to perform
 { 
     switch (operation)
     {
-      case PLUSF:
+      case ADD:
 	OPVECLAZYBODY((left[lroffset+s]+right[rroffset+s]));
 	break;
-    case POWF:
+    case POW:
 	OPVECLAZYBODY(pow(left[lroffset+s],right[rroffset+s]))
       break;      
-    case MINUSF:
+    case SUB:
 	OPVECLAZYBODY(left[lroffset+s]-right[rroffset+s])      
       break;      
-    case MULTIPLIESF:
+    case MUL:
 	OPVECLAZYBODY(left[lroffset+s]*right[rroffset+s])
       break;      
-    case DIVIDESF:
+    case DIV:
 	OPVECLAZYBODY(left[lroffset+s]/right[rroffset+s])
       break;      
-    case LESSF:
+    case LESS:
 	OPVECLAZYBODY(left[lroffset+s]<right[rroffset+s])      
       break;      
-    case GREATERF:
+    case GREATER:
 	OPVECLAZYBODY(left[lroffset+s]>right[rroffset+s])      
       break;      
-    case GREATER_EQUALF:
+    case GREATER_EQUAL:
 	OPVECLAZYBODY(left[lroffset+s]>=right[rroffset+s])      
       break;      
-    case LESS_EQUALF:
+    case LESS_EQUAL:
 	OPVECLAZYBODY(left[lroffset+s]<=right[rroffset+s])      
       break;   	
       default:
@@ -1214,14 +1214,14 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
 	  const bool rightscalar,		
 	  const bool lefttagged,			// true if left object is the tagged one
 	  const DataTagged& tagsource,			// where to get tag offsets from
-	  escript::ESFunction operation)		// operation to perform	  
+	  escript::ES_optype operation)		// operation to perform	  
 {
   typename ResVEC::size_type lstep=leftscalar?1:DPSize;
   typename ResVEC::size_type rstep=rightscalar?1:DPSize;
   typename ResVEC::size_type limit=samplesToProcess*DPPSample;
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<limit;++i)
       {
@@ -1236,7 +1236,7 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
 	
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<limit;++i)
       {
@@ -1251,7 +1251,7 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
 	
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<limit;++i)
       {
@@ -1266,7 +1266,7 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
 	
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<limit;++i)
       {
@@ -1281,7 +1281,7 @@ binaryOpVectorTagged(ResVEC& res,				// where result is to be stored
 	
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename ResVEC::size_type i=0;i<limit;++i)
       {
@@ -1314,7 +1314,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	  const bool rightscalar,		
 	  const bool lefttagged,			// true if left object is the tagged one
 	  const DataTagged& tagsource,			// where to get tag offsets from
-	  escript::ESFunction operation);
+	  escript::ES_optype operation);
 
 
 

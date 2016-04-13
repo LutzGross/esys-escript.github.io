@@ -1840,7 +1840,7 @@ template <class BinaryOp>
   void set_m_data(DataAbstract_ptr p);
 
   
-  void TensorSelfUpdateBinaryOperation(const Data& right, escript::ESFunction operation);  
+  void TensorSelfUpdateBinaryOperation(const Data& right, escript::ES_optype operation);  
   
   friend class DataAbstract;            // To allow calls to updateShareStatus
   friend class TestDomain;              // so its getX will work quickly
@@ -2330,12 +2330,12 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
 Data
 C_TensorBinaryOperation(Data const &arg_0,
                         Data const &arg_1,
-                        ESFunction operation);
+                        ES_optype operation);
 
 
 Data
 C_TensorUnaryOperation(Data const &arg_0,
-                       escript::ESFunction operation,
+                       escript::ES_optype operation,
                        DataTypes::real_t tol=0);
 
 } // namespace escript
