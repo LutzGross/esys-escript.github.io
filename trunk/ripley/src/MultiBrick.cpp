@@ -20,12 +20,13 @@
 
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
+#include <escript/index.h>
 
 #define FIRST_QUAD 0.21132486540518711775
 #define SECOND_QUAD 0.78867513459481288225
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 
 using std::vector;
@@ -1302,193 +1303,6 @@ vector<IndexVector> MultiBrick::getConnections(bool includeShared) const
         }
     }
     return indices;
-}
-
-//private
-void MultiBrick::populateDofMap()
-{
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-    const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
-    const index_t left = (m_offset[0]==0 ? 0 : 1);
-    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
-    const index_t front = (m_offset[2]==0 ? 0 : 1);
-
-    // populate node->DOF mapping with own degrees of freedom.
-    // The rest is assigned in the loop further down
-    m_dofMap.assign(getNumNodes(), 0);
-#pragma omp parallel for
-    for (index_t i=front; i<front+nDOF2; i++) {
-        for (index_t j=bottom; j<bottom+nDOF1; j++) {
-            for (index_t k=left; k<left+nDOF0; k++) {
-                m_dofMap[i*m_NN[0]*m_NN[1]+j*m_NN[0]+k]=(i-front)*nDOF0*nDOF1+(j-bottom)*nDOF0+k-left;
-            }
-        }
-    }
-
-    const dim_t numDOF=nDOF0*nDOF1*nDOF2;
-    RankVector neighbour;
-    IndexVector offsetInShared(1,0);
-    IndexVector sendShared, recvShared;
-    dim_t numShared=0;
-    const int x=m_mpiInfo->rank%m_NX[0];
-    const int y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
-    const int z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
-
-    // build list of shared components and neighbours by looping through
-    // all potential neighbouring ranks and checking if positions are
-    // within bounds
-    for (int i2=-1; i2<2; i2++) {
-        for (int i1=-1; i1<2; i1++) {
-            for (int i0=-1; i0<2; i0++) {
-                // skip this rank
-                if (i0==0 && i1==0 && i2==0)
-                    continue;
-                // location of neighbour rank
-                const int nx=x+i0;
-                const int ny=y+i1;
-                const int nz=z+i2;
-                if (nx>=0 && ny>=0 && nz>=0 && nx<m_NX[0] && ny<m_NX[1] && nz<m_NX[2]) {
-                    neighbour.push_back(nz*m_NX[0]*m_NX[1]+ny*m_NX[0]+nx);
-                    if (i0==0 && i1==0) {
-                        // sharing front or back plane
-                        offsetInShared.push_back(offsetInShared.back()+nDOF0*nDOF1);
-                        for (dim_t i=0; i<nDOF1; i++) {
-                            const dim_t firstDOF=(i2==-1 ? i*nDOF0
-                                    : i*nDOF0 + nDOF0*nDOF1*(nDOF2-1));
-                            const dim_t firstNode=(i2==-1 ? left+(i+bottom)*m_NN[0]
-                                    : left+(i+bottom)*m_NN[0]+m_NN[0]*m_NN[1]*(m_NN[2]-1));
-                            for (dim_t j=0; j<nDOF0; j++, numShared++) {
-                                sendShared.push_back(firstDOF+j);
-                                recvShared.push_back(numDOF+numShared);
-                                m_dofMap[firstNode+j]=numDOF+numShared;
-                            }
-                        }
-                    } else if (i0==0 && i2==0) {
-                        // sharing top or bottom plane
-                        offsetInShared.push_back(offsetInShared.back()+nDOF0*nDOF2);
-                        for (dim_t i=0; i<nDOF2; i++) {
-                            const dim_t firstDOF=(i1==-1 ? i*nDOF0*nDOF1
-                                    : nDOF0*((i+1)*nDOF1-1));
-                            const dim_t firstNode=(i1==-1 ?
-                                    left+(i+front)*m_NN[0]*m_NN[1]
-                                    : left+m_NN[0]*((i+1+front)*m_NN[1]-1));
-                            for (dim_t j=0; j<nDOF0; j++, numShared++) {
-                                sendShared.push_back(firstDOF+j);
-                                recvShared.push_back(numDOF+numShared);
-                                m_dofMap[firstNode+j]=numDOF+numShared;
-                            }
-                        }
-                    } else if (i1==0 && i2==0) {
-                        // sharing left or right plane
-                        offsetInShared.push_back(offsetInShared.back()+nDOF1*nDOF2);
-                        for (dim_t i=0; i<nDOF2; i++) {
-                            const dim_t firstDOF=(i0==-1 ? i*nDOF0*nDOF1
-                                    : nDOF0*(1+i*nDOF1)-1);
-                            const dim_t firstNode=(i0==-1 ?
-                                    (bottom+(i+front)*m_NN[1])*m_NN[0]
-                                    : (bottom+1+(i+front)*m_NN[1])*m_NN[0]-1);
-                            for (dim_t j=0; j<nDOF1; j++, numShared++) {
-                                sendShared.push_back(firstDOF+j*nDOF0);
-                                recvShared.push_back(numDOF+numShared);
-                                m_dofMap[firstNode+j*m_NN[0]]=numDOF+numShared;
-                            }
-                        }
-                    } else if (i0==0) {
-                        // sharing an edge in x direction
-                        offsetInShared.push_back(offsetInShared.back()+nDOF0);
-                        const dim_t firstDOF=(i1+1)/2*nDOF0*(nDOF1-1)
-                                           +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const dim_t firstNode=left+(i1+1)/2*m_NN[0]*(m_NN[1]-1)
-                                            +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
-                        for (dim_t i=0; i<nDOF0; i++, numShared++) {
-                            sendShared.push_back(firstDOF+i);
-                            recvShared.push_back(numDOF+numShared);
-                            m_dofMap[firstNode+i]=numDOF+numShared;
-                        }
-                    } else if (i1==0) {
-                        // sharing an edge in y direction
-                        offsetInShared.push_back(offsetInShared.back()+nDOF1);
-                        const dim_t firstDOF=(i0+1)/2*(nDOF0-1)
-                                           +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const dim_t firstNode=bottom*m_NN[0]
-                                            +(i0+1)/2*(m_NN[0]-1)
-                                            +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
-                        for (dim_t i=0; i<nDOF1; i++, numShared++) {
-                            sendShared.push_back(firstDOF+i*nDOF0);
-                            recvShared.push_back(numDOF+numShared);
-                            m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
-                        }
-                    } else if (i2==0) {
-                        // sharing an edge in z direction
-                        offsetInShared.push_back(offsetInShared.back()+nDOF2);
-                        const dim_t firstDOF=(i0+1)/2*(nDOF0-1)
-                                           +(i1+1)/2*nDOF0*(nDOF1-1);
-                        const dim_t firstNode=front*m_NN[0]*m_NN[1]
-                                            +(i0+1)/2*(m_NN[0]-1)
-                                            +(i1+1)/2*m_NN[0]*(m_NN[1]-1);
-                        for (dim_t i=0; i<nDOF2; i++, numShared++) {
-                            sendShared.push_back(firstDOF+i*nDOF0*nDOF1);
-                            recvShared.push_back(numDOF+numShared);
-                            m_dofMap[firstNode+i*m_NN[0]*m_NN[1]]=numDOF+numShared;
-                        }
-                    } else {
-                        // sharing a node
-                        const dim_t dof = (i0+1)/2*(nDOF0-1)
-                                       +(i1+1)/2*nDOF0*(nDOF1-1)
-                                       +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const dim_t node = (i0+1)/2*(m_NN[0]-1)
-                                        +(i1+1)/2*m_NN[0]*(m_NN[1]-1)
-                                        +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
-                        offsetInShared.push_back(offsetInShared.back()+1);
-                        sendShared.push_back(dof);
-                        recvShared.push_back(numDOF+numShared);
-                        m_dofMap[node] = numDOF+numShared;
-                        ++numShared;
-                    }
-                }
-            }
-        }
-    }
-
-    // TODO: paso::SharedComponents should take vectors to avoid this
-    int* neighPtr = NULL;
-    index_t* sendPtr = NULL;
-    index_t* recvPtr = NULL;
-    if (neighbour.size() > 0) {
-        neighPtr = &neighbour[0];
-        sendPtr = &sendShared[0];
-        recvPtr = &recvShared[0];
-    }
-    // create connector
-    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, sendPtr,
-            &offsetInShared[0], 1, 0, m_mpiInfo));
-    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, recvPtr,
-            &offsetInShared[0], 1, 0, m_mpiInfo));
-    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-
-    // useful debug output
-    /*
-    std::cout << "--- rcv_shcomp ---" << std::endl;
-    std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
-    for (size_t i=0; i<neighbour.size(); i++) {
-        std::cout << "neighbor[" << i << "]=" << neighbour[i]
-            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
-    }
-    for (size_t i=0; i<recvShared.size(); i++) {
-        std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
-    }
-    std::cout << "--- snd_shcomp ---" << std::endl;
-    for (size_t i=0; i<sendShared.size(); i++) {
-        std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
-    }
-    std::cout << "--- dofMap ---" << std::endl;
-    for (size_t i=0; i<m_dofMap.size(); i++) {
-        std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
-    }
-    */
 }
 
 RankVector MultiBrick::getOwnerVector(int fsType) const

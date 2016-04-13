@@ -129,9 +129,11 @@ protected:
 
     virtual void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
     virtual void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
+#ifdef ESYS_HAVE_PASO
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const;
+#endif
     virtual index_t getFirstInDim(unsigned axis) const;
     virtual void populateSampleIds();
     virtual dim_t getNumDOFInAxis(unsigned axis) const;

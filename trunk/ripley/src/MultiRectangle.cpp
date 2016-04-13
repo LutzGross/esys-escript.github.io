@@ -20,6 +20,7 @@
 
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
+#include <escript/index.h>
 
 #define FIRST_QUAD 0.21132486540518711775
 #define SECOND_QUAD 0.78867513459481288225
@@ -743,6 +744,7 @@ void MultiRectangle::populateDofMap()
     }
 #endif // ESYS_MPI
 
+#ifdef ESYS_HAVE_PASO
     // TODO: paso::SharedComponents should take vectors to avoid this
     int* neighPtr = NULL;
     index_t* sendPtr = NULL;
@@ -760,6 +762,7 @@ void MultiRectangle::populateDofMap()
             numDOF, neighbour.size(), neighPtr, recvPtr,
             &offsetInSharedRecv[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+#endif
 }
 
 void MultiRectangle::populateSampleIds()
@@ -839,6 +842,7 @@ void MultiRectangle::populateSampleIds()
 
 }
 
+#ifdef ESYS_HAVE_PASO
 paso::SystemMatrixPattern_ptr MultiRectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const
@@ -868,6 +872,7 @@ paso::SystemMatrixPattern_ptr MultiRectangle::getPasoMatrixPattern(
     }
     return m_pattern;
 }
+#endif
 
 RankVector MultiRectangle::getOwnerVector(int fsType) const
 {

@@ -19,6 +19,7 @@
 
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
+#include <escript/index.h>
 #include <escript/SolverOptions.h>
 
 #ifdef ESYS_HAVE_CUDA
@@ -1011,21 +1012,19 @@ void RipleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
 escript::ATP_ptr RipleyDomain::newTransportProblem(int blocksize,
                   const escript::FunctionSpace& functionspace, int type) const
 {
-    bool reduceOrder=false;
     // is the domain right?
     const RipleyDomain& domain=dynamic_cast<const RipleyDomain&>(*(functionspace.getDomain()));
     if (domain != *this)
         throw ValueError("newTransportProblem: domain of function space does not match the domain of transport problem generator");
     // is the function space type right?
-    if (functionspace.getTypeCode() == ReducedDegreesOfFreedom)
-        reduceOrder = true;
-    else if (functionspace.getTypeCode() != DegreesOfFreedom)
+    if (functionspace.getTypeCode() != ReducedDegreesOfFreedom &&
+            functionspace.getTypeCode() != DegreesOfFreedom)
         throw ValueError("newTransportProblem: illegal function space type for transport problem");
 
 #ifdef ESYS_HAVE_PASO
+    const bool reduced = (functionspace.getTypeCode() == ReducedDegreesOfFreedom);
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceOrder,
-                                                               reduceOrder));
+    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduced, reduced));
     escript::ATP_ptr tp(new paso::TransportProblem(pattern, blocksize,
                                                    functionspace));
     return tp;

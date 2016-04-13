@@ -184,8 +184,7 @@ protected:
     virtual void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const MultiBrick& other) const;
     virtual void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const MultiBrick& other) const;
 
-    void populateSampleIds();
-    void populateDofMap();
+    virtual void populateSampleIds();
     virtual std::vector<IndexVector> getConnections(bool includeShared) const;
 
     dim_t findNode(const double *coords) const;

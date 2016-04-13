@@ -17,6 +17,8 @@
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
+#include <escript/index.h>
+
 using namespace std;
 using escript::AbstractSystemMatrix;
 using escript::Data;

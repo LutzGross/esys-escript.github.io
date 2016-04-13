@@ -22,9 +22,12 @@
 #include <ripley/domainhelpers.h>
 
 #include <escript/FileWriter.h>
+#include <escript/index.h>
 #include <escript/Random.h>
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
+#endif
 
 #ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
@@ -1568,6 +1571,7 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 //protected
 void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
+#ifdef ESYS_HAVE_PASO
     const dim_t numComp = in.getDataPointSize();
     paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
@@ -1586,6 +1590,7 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
+#endif // ESYS_HAVE_PASO
 }
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -1599,6 +1604,7 @@ esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
 }
 #endif
 
+#ifdef ESYS_HAVE_PASO
 //protected
 paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
@@ -1649,6 +1655,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
             m_connector, m_connector));
     return m_pattern;
 }
+#endif // ESYS_HAVE_PASO
 
 //private
 void Rectangle::populateSampleIds()
@@ -1977,6 +1984,7 @@ void Rectangle::populateDofMap()
         ++numShared;
     }
 
+#ifdef ESYS_HAVE_PASO
     // TODO: paso::SharedComponents should take vectors to avoid this
     int* neighPtr = NULL;
     index_t* sendPtr = NULL;
@@ -1995,6 +2003,7 @@ void Rectangle::populateDofMap()
             numDOF, neighbour.size(), neighPtr, recvPtr,
             &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+#endif
 
     // useful debug output
     /*

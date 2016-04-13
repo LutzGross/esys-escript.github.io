@@ -17,6 +17,8 @@
 #include <ripley/WaveAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
+#include <escript/index.h>
+
 using escript::Data;
 
 namespace ripley {
