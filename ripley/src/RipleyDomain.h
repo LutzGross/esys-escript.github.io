@@ -31,7 +31,7 @@
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
-#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#include <trilinoswrap/types.h>
 #endif
 
 #include <boost/python/list.hpp>

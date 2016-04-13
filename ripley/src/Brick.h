@@ -19,7 +19,9 @@
 
 #include <ripley/RipleyDomain.h>
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
+#endif
 
 namespace ripley {
 
@@ -226,13 +228,15 @@ protected:
                                   const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
+    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 #ifdef ESYS_HAVE_TRILINOS
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
 
-    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
+#ifdef ESYS_HAVE_PASO
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
                              bool reducedRowOrder, bool reducedColOrder) const;
+#endif
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -311,14 +315,14 @@ protected:
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
 
-    // vector that maps each node to a DOF index (used for the coupler)
+    // vector that maps each node to a DOF index
     IndexVector m_dofMap;
 
+#ifdef ESYS_HAVE_PASO
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes
     paso::Connector_ptr m_connector;
 
-#ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
 #endif
