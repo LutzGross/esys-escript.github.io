@@ -57,6 +57,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank0_taggedData_rank0(self):
       arg0=numpy.array(0.0765648367337)
@@ -65,6 +72,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=inner(arg0,arg1)
       ref=Data(0.036150772519180453,self.functionspace)
       ref.setTaggedValue(1,-0.017625340147041275)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=numpy.array(arg0*1j)
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)     
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -79,6 +93,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank2_taggedData_rank2(self):
       arg0=numpy.array([[0.28546214116183566, -0.25897102118715942, 0.22146243895717355, -0.2341748097231191, 
@@ -102,6 +123,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank3_taggedData_rank3(self):
       arg0=numpy.array([[[-0.36965911393496653, 0.98091128998261667], [-0.77339818424681805, -0.12759468235415383]], 
@@ -127,6 +155,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_array_rank4_taggedData_rank4(self):
       arg0=numpy.array([[[[0.7604938557994263, -0.2064171490048079, 0.0082224477660097772, 0.47661474451358177], 
@@ -180,6 +215,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_constData_rank0_taggedData_rank0(self):
       arg0=Data(0.124403467791,self.functionspace)
@@ -191,6 +233,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_constData_rank1_taggedData_rank1(self):
       arg0=Data(numpy.array([-0.87777216173835626, 0.84139785859967287]),self.functionspace)
@@ -385,6 +434,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=inner(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_taggedData_rank4_array_rank4(self):
       arg0=Data(numpy.array([[[[-0.31697817736254796, -0.78512493043425224, 0.86570946770719948, -0.30099839115644333], 
@@ -871,6 +927,15 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=inner(arg0,arg1)      
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank0_taggedData_rank0(self):
       arg0=Data(0.947623884385,self.functionspace)
@@ -884,6 +949,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=inner(arg0,arg1)      
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank1_taggedData_rank1(self):
       arg0=Data(numpy.array([-0.28803269141787369, 0.8093167451154808]),self.functionspace)
@@ -897,6 +970,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=inner(arg0,arg1)      
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank2_taggedData_rank2(self):
       arg0=Data(numpy.array([[0.12356938074285129, -0.01920853546063106, 0.99797588924346758, 0.1814521358364265, 
@@ -926,6 +1007,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=inner(arg0,arg1)      
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank3_taggedData_rank3(self):
       arg0=Data(numpy.array([[[-0.72975553555244721, -0.30546473305749067], [-0.56080228686254463, 0.19196525884555093]], 
@@ -959,6 +1048,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=inner(arg0,arg1)      
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_expandedData_rank4_taggedData_rank4(self):
       arg0=Data(numpy.array([[[[-0.81947004030336634, 0.67058302145475457, -0.7459191324332497, -0.56685991265962676], 
@@ -1050,6 +1147,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_float_rank0_taggedData_rank2(self):
       arg0=-0.2887604825
@@ -1077,6 +1181,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_float_rank0_taggedData_rank3(self):
       arg0=-0.776324255672
@@ -1108,6 +1219,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_float_rank0_taggedData_rank4(self):
       arg0=-0.833021296853
@@ -1245,6 +1363,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1) 
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_array_rank4_taggedData_rank0(self):
       arg0=numpy.array([[[[-0.56243952285768684, -0.38055747729341571, 0.26506266794294953, 0.28759030643565464], 
@@ -1309,6 +1434,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=numpy.array(arg0*1j)
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)     
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_array_rank1_taggedData_rank1(self):
       arg0=numpy.array([0.92947119363174102, 0.19269891600491529])
@@ -1319,6 +1451,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
 -0.075869849449488505]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.25385352165980618, 0.76714467350943472], [0.052629171063106765, 
 0.15904521626603799]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=numpy.array(arg0*1j)
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)   
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -1445,6 +1584,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
 -0.26331172689287252, -0.26499487633780427], [0.09983711951134483, -0.1579786869131789, -0.025945956500526366, 
 -0.29664392744771656, 0.1764553436179559], [-0.074062296362343738, -0.23230499134292551, -0.20613576640542405, 
 0.17240628454980714, -0.22866476916175277]]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=numpy.array(arg0*1j)
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1) 
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -1631,6 +1777,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_array_rank0_taggedData_rank3(self):
       arg0=numpy.array(0.704027105071)
@@ -1787,6 +1940,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=outer(arg0,arg1)
       ref=Data(numpy.array([-0.21382537412718941, 0.16443658805148126]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.34178700946923146, 0.2628420032320814]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -1947,6 +2107,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_constData_rank3_taggedData_rank1(self):
       arg0=Data(numpy.array([[[0.90458365695583587, -0.95884760839529637], [-0.28861525659205856, 0.71780550056875736]], 
@@ -2532,6 +2699,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank2_array_rank0(self):
       arg0=Data(numpy.array([[0.38496421777624312, -0.024425396136277033, -0.63820129158073424, -0.28050797131720473, 
@@ -2969,6 +3143,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank1_expandedData_rank0(self):
       arg0=Data(numpy.array([-0.093748755478083812, 0.46462167631749418]),self.functionspace)
@@ -3045,6 +3227,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank4_expandedData_rank0(self):
       arg0=Data(numpy.array([[[[0.18797918717000339, 0.73794688990673518, 0.23017202170024698, -0.96422361533901357], 
@@ -3210,6 +3400,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
 -0.090006511346441206], [0.68813141766264851, 0.12781129744001332]], [[0.39782914937694014, 0.073891495775667365], 
 [-0.55212570007944739, -0.10255003661484506]]], [[[-0.4337088468967954, -0.080555674410824674], [-0.085311571404455333, 
 -0.015845494549407823]], [[-0.16402191455454138, -0.030464898375107061], [-0.7344237062022182, -0.13640947695608138]]]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -3413,6 +3610,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank0_expandedData_rank1(self):
       arg0=Data(-0.775151292954,self.functionspace)
@@ -3427,6 +3631,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank1_expandedData_rank1(self):
       arg0=Data(numpy.array([0.0074249411735971549, -0.011510527886748667]),self.functionspace)
@@ -3442,6 +3654,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank2_expandedData_rank1(self):
       arg0=Data(numpy.array([[0.57462282234158835, -0.57043863758709579, 0.65033759305793537, -0.5361596538855089, 
@@ -3521,6 +3741,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(6,2,2,2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank0_array_rank2(self):
       arg0=Data(-0.422379565542,self.functionspace)
@@ -4523,6 +4751,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=outer(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6,2,2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank1_array_rank3(self):
       arg0=Data(numpy.array([-0.57447826335126084, -0.54768328937179001]),self.functionspace)
@@ -4721,6 +4956,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(6,2,2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_taggedData_rank1_expandedData_rank3(self):
       arg0=Data(numpy.array([-0.33790913306894765, -0.8715614151541422]),self.functionspace)
@@ -5006,6 +5249,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(3,2,3,4),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_expandedData_rank0_taggedData_rank0(self):
       arg0=Data(0.321320071636,self.functionspace)
@@ -5603,6 +5854,15 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,6,2,2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
+      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_expandedData_rank0_taggedData_rank4(self):
       arg0=Data(-0.7253342588,self.functionspace)
@@ -5672,6 +5932,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=outer(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(3,2,3,4),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maximum_float_rank0_taggedData_rank0(self):
       arg0=0.749376761194
@@ -12543,6 +12811,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")            
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_array_rank2_taggedData_rank2(self):
       arg0=numpy.array([[2.0, 4.0, 0.0], [-2.0, 4.0, 1.0]])
@@ -12554,6 +12829,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_array_rank4_taggedData_rank2(self):
       arg0=numpy.array([[[[6.0, -3.0, -4.0], [0.0, 0.0, 0.0]], [[6.0, 6.0, -3.0], [5.0, -4.0, 1.0]], [[0.0, 0.0, 5.0], [1.0, 
@@ -12573,6 +12855,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4,5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_array_rank4_taggedData_rank3(self):
       arg0=numpy.array([[[[3.0, 6.0, 6.0], [-7.0, 0.0, -5.0]], [[1.0, -4.0, 5.0], [7.0, -5.0, 2.0]], [[0.0, -3.0, -1.0], [4.0, 
@@ -12667,6 +12956,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4,5,4,5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_constData_rank2_taggedData_rank1(self):
       arg0=Data(numpy.array([[4.0, 5.0, -3.0], [0.0, -2.0, -4.0]]),self.functionspace)
@@ -12730,6 +13026,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4,5,2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_constData_rank4_taggedData_rank4(self):
       arg0=Data(numpy.array([[[[-4.0, 0.0, 5.0], [0.0, -4.0, 3.0]], [[7.0, -1.0, 4.0], [-3.0, -2.0, -1.0]], [[2.0, 1.0, 7.0], 
@@ -12813,6 +13116,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_taggedData_rank2_array_rank2(self):
       arg0=Data(numpy.array([[-6.0, 0.0, -2.0], [4.0, -6.0, 0.0]]),self.functionspace)
@@ -12883,6 +13193,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=tensor_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_taggedData_rank2_expandedData_rank2(self):
       arg0=Data(numpy.array([[-6.0, 4.0, 4.0], [6.0, -4.0, -3.0]]),self.functionspace)
@@ -13020,6 +13338,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4,5,4,5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_taggedData_rank4_constData_rank2(self):
       arg0=Data(numpy.array([[[[-1.0, -2.0, 2.0], [2.0, -4.0, -5.0]], [[2.0, 2.0, 2.0], [4.0, -3.0, -5.0]], [[0.0, -6.0, -1.0], 
@@ -13416,6 +13741,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=tensor_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4,5,4,5),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_expandedData_rank2_taggedData_rank1(self):
       arg0=Data(numpy.array([[-6.0, -3.0, -3.0], [5.0, 7.0, 0.0]]),self.functionspace)
@@ -13429,6 +13762,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=tensor_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_expandedData_rank2_taggedData_rank2(self):
       arg0=Data(numpy.array([[0.0, -4.0, 0.0], [-3.0, -7.0, -3.0]]),self.functionspace)
@@ -13469,6 +13810,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=tensor_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4,5),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_mult_expandedData_rank4_taggedData_rank3(self):
       arg0=Data(numpy.array([[[[0.0, -6.0, 5.0], [-3.0, 6.0, 2.0]], [[-7.0, -3.0, 2.0], [0.0, 0.0, 7.0]], [[-4.0, 0.0, -5.0], 
@@ -13592,6 +13941,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_float_rank0_taggedData_rank1_offset0(self):
       arg0=-4.0
@@ -13603,6 +13959,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_float_rank0_taggedData_rank2_offset0(self):
       arg0=7.0
@@ -13659,6 +14022,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3,2,3,4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank0_taggedData_rank0_offset0(self):
       arg0=numpy.array(-7.0)
@@ -13692,6 +14062,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=2)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank3_taggedData_rank3_offset3(self):
       arg0=numpy.array([[[7.0, -3.0, -5.0], [0.0, -5.0, 5.0], [0.0, 2.0, -6.0], [-7.0, 3.0, 0.0]], [[-3.0, 4.0, 5.0], [5.0, 
@@ -13734,6 +14111,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank1_taggedData_rank2_offset1(self):
       arg0=numpy.array([-4.0, -3.0, 3.0])
@@ -13757,6 +14141,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=2)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank3_taggedData_rank4_offset3(self):
       arg0=numpy.array([[[-1.0, -2.0, 6.0], [-4.0, -2.0, 0.0], [-4.0, 1.0, 6.0], [6.0, -1.0, -6.0]], [[3.0, 0.0, 5.0], [4.0, 
@@ -13788,6 +14179,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1, axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4,5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank1_taggedData_rank3_offset1(self):
       arg0=numpy.array([2.0, 1.0, -3.0])
@@ -13847,6 +14245,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6,2,2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank1_taggedData_rank4_offset1(self):
       arg0=numpy.array([0.0, 2.0, -3.0])
@@ -13915,6 +14320,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank3_taggedData_rank2_offset2(self):
       arg0=numpy.array([[[7.0, 1.0, -2.0], [3.0, 4.0, -1.0]], [[-4.0, 0.0, 3.0], [-5.0, -7.0, 5.0]]])
@@ -13963,6 +14375,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank3_taggedData_rank3_offset2(self):
       arg0=numpy.array([[[-4.0, 4.0, 1.0], [-7.0, 7.0, -2.0]], [[0.0, 4.0, -2.0], [4.0, 2.0, -7.0]]])
@@ -14006,6 +14425,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       ref.setTaggedValue(1,numpy.array([[[49.0, 14.0, 0.0, 21.0, -42.0], [49.0, 0.0, 0.0, -49.0, -21.0], [-35.0, -35.0, 0.0, 
 -42.0, -21.0], [49.0, 28.0, 0.0, -21.0, 49.0]], [[-14.0, -4.0, 0.0, -6.0, 12.0], [-14.0, 0.0, 0.0, 14.0, 6.0], [10.0, 10.0, 
 0.0, 12.0, 6.0], [-14.0, -8.0, 0.0, 6.0, -14.0]]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -14205,6 +14631,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=2)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_array_rank2_taggedData_rank2_offset0(self):
       arg0=numpy.array([[-5.0, -2.0, 2.0, -1.0, 1.0], [3.0, -4.0, 7.0, 0.0, -1.0], [-3.0, -1.0, -4.0, -4.0, 3.0], [1.0, -6.0, 
@@ -14515,6 +14948,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=2)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_constData_rank3_taggedData_rank3_offset3(self):
       arg0=Data(numpy.array([[[5.0, -3.0, 3.0], [-5.0, 7.0, 1.0], [3.0, 6.0, 0.0], [7.0, 7.0, 3.0]], [[-3.0, 3.0, -4.0], [-5.0, 
@@ -14596,6 +15036,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTensorProduct(arg0,arg1,axis_offset=3)
       ref=Data(numpy.array([65.0, 98.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([37.0, 30.0]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=3)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -14726,6 +15173,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTensorProduct(arg0,arg1,axis_offset=0)
       ref=Data(numpy.array([-8.0, -8.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([4.0, 4.0]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -14880,6 +15334,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       ref.setTaggedValue(1,numpy.array([[[-34.0, -54.0, 20.0, 11.0, -14.0], [-3.0, 66.0, 12.0, -10.0, -19.0], [-19.0, 16.0, 
 30.0, 15.0, -8.0], [-19.0, 20.0, -26.0, 61.0, 15.0]], [[-15.0, 30.0, -12.0, 9.0, 33.0], [9.0, -3.0, -27.0, -6.0, -15.0], 
 [-21.0, -21.0, -12.0, 3.0, -3.0], [-12.0, 39.0, -27.0, 0.0, -6.0]]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=2)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -15084,6 +15545,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
 -18.0]], [[42.0, -42.0, 28.0, -21.0, 42.0], [21.0, 0.0, 14.0, -7.0, 35.0], [-7.0, -28.0, -14.0, 42.0, 42.0], [-35.0, -35.0, 
 28.0, 7.0, -42.0]], [[18.0, -18.0, 12.0, -9.0, 18.0], [9.0, 0.0, 6.0, -3.0, 15.0], [-3.0, -12.0, -6.0, 18.0, 18.0], [-15.0, 
 -15.0, 12.0, 3.0, -18.0]]]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -15323,6 +15791,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank0_array_rank0_offset0(self):
       arg0=Data(-4.0,self.functionspace)
@@ -15484,6 +15959,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=2)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank0_array_rank3_offset0(self):
       arg0=Data(3.0,self.functionspace)
@@ -15581,6 +16063,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTensorProduct(arg0,arg1,axis_offset=3)
       ref=Data(-27.0,self.functionspace)
       ref.setTaggedValue(1,-53.0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=3)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -16033,6 +16522,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorProduct(arg0,arg1,axis_offset=1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank2_expandedData_rank2_offset2(self):
       arg0=Data(numpy.array([[4.0, 4.0, 2.0], [-3.0, -4.0, -1.0]]),self.functionspace)
@@ -16087,6 +16584,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorProduct(arg0,arg1,axis_offset=4)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank0_expandedData_rank1_offset0(self):
       arg0=Data(5.0,self.functionspace)
@@ -16184,6 +16689,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorProduct(arg0,arg1,axis_offset=1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank2_expandedData_rank4_offset2(self):
       arg0=Data(numpy.array([[0.0, 0.0, 0.0], [2.0, -7.0, 7.0]]),self.functionspace)
@@ -16540,6 +17053,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTensorProduct(arg0,arg1,axis_offset=0)
       ref=Data(numpy.array([[-10.0, -15.0], [0.0, 0.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[6.0, 9.0], [0.0, 0.0]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=0)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -16928,6 +17448,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorProduct(arg0,arg1,axis_offset=1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank3_expandedData_rank2_offset2(self):
       arg0=Data(numpy.array([[[-4.0, 0.0, 3.0], [5.0, -4.0, -3.0]], [[1.0, 4.0, 7.0], [-5.0, -1.0, -1.0]]]),self.functionspace)
@@ -17395,6 +17923,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_taggedData_rank4_array_rank4_offset2(self):
       arg0=Data(numpy.array([[[[6.0, -7.0, 2.0], [0.0, 0.0, -7.0]], [[-7.0, -6.0, 0.0], [5.0, 6.0, 7.0]], [[6.0, 0.0, 3.0], 
@@ -18975,6 +19510,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorProduct(arg0,arg1,axis_offset=2)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorProduct_expandedData_rank3_taggedData_rank3_offset3(self):
       arg0=Data(numpy.array([[[-3.0, 6.0, 0.0], [5.0, 4.0, 6.0], [6.0, -2.0, 4.0], [0.0, -7.0, -7.0]], [[2.0, 1.0, 5.0], [-1.0, 
@@ -19918,6 +20461,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=matrix_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_mult_array_rank2_taggedData_rank2(self):
       arg0=numpy.array([[1.0, 2.0, -1.0], [3.0, -5.0, -1.0]])
@@ -19948,6 +20498,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=matrix_mult(arg0,arg1)
       ref=Data(numpy.array([[20.0, -32.0], [16.0, -20.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[12.0, 21.0], [18.0, 28.0]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=matrix_mult(arg0,arg1)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -20071,6 +20628,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=matrix_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transposed_matrix_mult_array_rank2_taggedData_rank1(self):
       arg0=numpy.array([[-3.0, 4.0], [-7.0, 2.0], [5.0, 7.0]])
@@ -20196,6 +20761,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=transposed_matrix_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transposed_matrix_mult_taggedData_rank2_expandedData_rank2(self):
       arg0=Data(numpy.array([[4.0, -3.0], [3.0, -6.0], [-4.0, 0.0]]),self.functionspace)
@@ -20222,6 +20795,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=transposed_matrix_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transposed_matrix_mult_expandedData_rank2_taggedData_rank2(self):
       arg0=Data(numpy.array([[0.0, 7.0], [-4.0, 1.0], [3.0, 3.0]]),self.functionspace)
@@ -20254,6 +20835,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=transposed_tensor_mult(arg0,arg1)
       ref=Data(numpy.array([[-2.0, 25.0], [-11.0, 29.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-16.0, -32.0], [-9.0, 20.0]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=transposed_tensor_mult(arg0,arg1)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -20769,6 +21357,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=transposed_tensor_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transposed_tensor_mult_taggedData_rank4_constData_rank4(self):
       arg0=Data(numpy.array([[[[0.0, -6.0, -6.0, 2.0, -7.0], [5.0, 1.0, 2.0, 6.0, 4.0], [0.0, 6.0, -3.0, -1.0, -1.0], [-1.0, 
@@ -21166,6 +21761,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=transposed_tensor_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transposed_tensor_mult_expandedData_rank4_taggedData_rank3(self):
       arg0=Data(numpy.array([[[[4.0, 0.0, 4.0, 0.0, 7.0], [2.0, 0.0, -5.0, 7.0, 6.0], [-1.0, 7.0, 6.0, 5.0, -6.0], [0.0, -7.0, 
@@ -21287,6 +21890,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_float_rank0_taggedData_rank1_offset0(self):
       arg0=4.0
@@ -21375,6 +21985,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_array_rank2_taggedData_rank2_offset2(self):
       arg0=numpy.array([[2.0, -5.0, 2.0], [0.0, 0.0, 3.0]])
@@ -21397,6 +22014,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTransposedTensorProduct(arg0,arg1,axis_offset=3)
       ref=Data(61.0,self.functionspace)
       ref.setTaggedValue(1,-119.0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=3)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -22152,6 +22776,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
 [-45.0, -9.0]], [[-1.0, 36.0], [-22.0, 13.0]]], [[[46.0, 29.0], [-7.0, -8.0]], [[50.0, -17.0], [-24.0, 29.0]]], [[[83.0, 18.0], 
 [-98.0, -35.0]], [[-23.0, -23.0], [-65.0, 4.0]]], [[[34.0, -24.0], [36.0, 2.0]], [[-33.0, 18.0], [53.0, 41.0]]], [[[-1.0, 
 -5.0], [30.0, 37.0]], [[9.0, 15.0], [4.0, 11.0]]]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -23310,6 +23941,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_taggedData_rank1_constData_rank2_offset1(self):
       arg0=Data(numpy.array([-1.0, -2.0, -5.0]),self.functionspace)
@@ -23376,6 +24014,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
 16.0], [-53.0, -2.0, -6.0, 52.0, -33.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[22.0, 27.0, 16.0, -48.0, -16.0], [-8.0, -6.0, -48.0, 36.0, 0.0], [-27.0, 27.0, 55.0, 
 -16.0, 26.0], [-56.0, -9.0, -18.0, 16.0, -32.0]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -23498,6 +24143,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTransposedTensorProduct(arg0,arg1,axis_offset=3)
       ref=Data(105.0,self.functionspace)
       ref.setTaggedValue(1,38.0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=3)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -23730,6 +24382,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_taggedData_rank2_expandedData_rank2_offset2(self):
       arg0=Data(numpy.array([[7.0, 2.0, 3.0], [0.0, 2.0, 5.0]]),self.functionspace)
@@ -23760,6 +24420,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTransposedTensorProduct(arg0,arg1,axis_offset=3)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_taggedData_rank4_expandedData_rank4_offset4(self):
       arg0=Data(numpy.array([[[[-7.0, 1.0], [0.0, -5.0], [-6.0, 1.0]], [[4.0, 3.0], [0.0, 1.0], [-6.0, -7.0]]], [[[-3.0, 2.0], 
@@ -24921,6 +25589,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTransposedTensorProduct(arg0,arg1,axis_offset=2)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_taggedData_rank2_array_rank1_offset0(self):
       arg0=Data(numpy.array([[1.0, -7.0, -7.0, 5.0, 2.0], [0.0, -3.0, 5.0, 6.0, 7.0], [-4.0, -1.0, -1.0, 3.0, 3.0], [-1.0, 
@@ -25907,6 +26582,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTransposedTensorProduct(arg0,arg1,axis_offset=0)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_taggedData_rank3_expandedData_rank2_offset1(self):
       arg0=Data(numpy.array([[[0.0, -1.0, 6.0, -7.0, -6.0], [7.0, 0.0, 2.0, 0.0, -7.0], [-1.0, -2.0, -5.0, -1.0, 7.0], [-5.0, 
@@ -26644,6 +27327,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTransposedTensorProduct(arg0,arg1,axis_offset=0)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")       
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTransposedTensorProduct_expandedData_rank0_taggedData_rank0_offset0(self):
       arg0=Data(-2.0,self.functionspace)
@@ -27628,6 +28319,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=matrix_transposed_mult(arg0,arg1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_transposed_mult_constData_rank2_taggedData_rank2(self):
       arg0=Data(numpy.array([[5.0, 2.0, 3.0], [7.0, -7.0, 7.0]]),self.functionspace)
@@ -27699,6 +28397,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=matrix_transposed_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_transposed_mult_array_rank2_taggedData_rank1(self):
       arg0=numpy.array([[0.0, 6.0, 2.0], [0.0, 7.0, 0.0]])
@@ -28050,6 +28756,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=tensor_transposed_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_transposed_mult_taggedData_rank2_expandedData_rank2(self):
       arg0=Data(numpy.array([[7.0, 0.0, -1.0], [4.0, 3.0, 7.0]]),self.functionspace)
@@ -28474,6 +29188,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=tensor_transposed_mult(arg0,arg1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tensor_transposed_mult_taggedData_rank4_expandedData_rank3(self):
       arg0=Data(numpy.array([[[[5.0, 0.0, 5.0], [2.0, -4.0, 0.0]], [[7.0, -1.0, -6.0], [-3.0, 0.0, -3.0]], [[7.0, 2.0, 2.0], 
@@ -28801,6 +29523,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_float_rank0_taggedData_rank4_offset0(self):
       arg0=6.0
@@ -28848,6 +29577,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_array_rank2_taggedData_rank2_offset2(self):
       arg0=numpy.array([[0.0, 0.0, -1.0], [-2.0, 2.0, -5.0]])
@@ -29137,6 +29873,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       res=generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
       ref=Data(numpy.array([[37.0, -41.0], [16.0, -27.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[5.0, 46.0], [3.0, 3.0]]))
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
@@ -29672,6 +30415,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")     
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_constData_rank2_taggedData_rank2_offset2(self):
       arg0=Data(numpy.array([[3.0, -7.0, -1.0], [-4.0, 2.0, 3.0]]),self.functionspace)
@@ -29716,6 +30466,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=4)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_constData_rank0_taggedData_rank1_offset0(self):
       arg0=Data(4.0,self.functionspace)
@@ -31012,6 +31769,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_taggedData_rank2_taggedData_rank3_offset2(self):
       arg0=Data(numpy.array([[-1.0, -5.0, -5.0], [6.0, -5.0, -2.0]]),self.functionspace)
@@ -31260,6 +32024,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorTransposedProduct(arg0,arg1,axis_offset=0)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_taggedData_rank1_expandedData_rank2_offset1(self):
       arg0=Data(numpy.array([0.0, 2.0, 4.0]),self.functionspace)
@@ -31741,6 +32513,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=3)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_taggedData_rank1_constData_rank2_offset0(self):
       arg0=Data(numpy.array([6.0, 0.0]),self.functionspace)
@@ -32295,6 +33074,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2, 6, 2, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not res.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2, 6, 2, 2),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_taggedData_rank2_float_rank0_offset0(self):
       arg0=Data(numpy.array([[0.0, -4.0, 2.0, 2.0, -1.0], [6.0, -6.0, 4.0, -2.0, 0.0], [-5.0, -2.0, 0.0, -1.0, -2.0], [6.0, 
@@ -32699,6 +33486,13 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      arg0=arg0*1j
+      arg1=arg1*1j
+      ref=-ref 
+      res=generalTensorTransposedProduct(arg0,arg1,axis_offset=0)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_taggedData_rank3_constData_rank2_offset1(self):
       arg0=Data(numpy.array([[[-7.0, -4.0, 7.0], [3.0, 6.0, 0.0], [-1.0, 3.0, 2.0], [4.0, 4.0, 2.0], [0.0, 1.0, 6.0]], [[-6.0, 
@@ -33307,6 +34101,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_taggedData_rank4_expandedData_rank2_offset2(self):
       arg0=Data(numpy.array([[[[-2.0, -5.0, 2.0], [4.0, -4.0, 2.0]], [[-2.0, 4.0, 7.0], [0.0, 6.0, -4.0]], [[-1.0, -2.0, 4.0], 
@@ -34417,6 +35219,14 @@ class Test_util_binary_with_tagged_data(Test_util_base):
       self.assertTrue(isinstance(res,Data),"wrong type of result.")
       self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
       self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      if not ref.isLazy():
+        arg0=arg0*1j
+        arg1=arg1*1j
+        ref=-ref
+        res=generalTensorTransposedProduct(arg0,arg1,axis_offset=3)
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+        self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")      
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_generalTensorTransposedProduct_expandedData_rank1_taggedData_rank1_offset0(self):
       arg0=Data(numpy.array([3.0, 0.0]),self.functionspace)
