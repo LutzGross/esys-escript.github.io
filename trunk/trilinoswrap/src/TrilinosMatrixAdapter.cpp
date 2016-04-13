@@ -128,7 +128,6 @@ TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
         throw escript::ValueError("Trilinos matrices only support blocksize 1 "
                                   "at the moment!");
     }
-    importer = rcp(new ImportType(graph->getRowMap(), graph->getColMap()));
     if (isComplex) {
         cmat = rcp(new ComplexMatrix(graph));
         cmat->fillComplete();
@@ -316,7 +315,8 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
     RCP<RealVector> lclCol = rcp(new RealVector(mat->getRowMap(), colView, colView.size(), 1));
     RCP<RealVector> gblCol = rcp(new RealVector(mat->getColMap(), 1));
 
-    gblCol->doImport(*lclCol, *importer, Tpetra::INSERT);
+    const ImportType importer(mat->getRowMap(), mat->getColMap());
+    gblCol->doImport(*lclCol, importer, Tpetra::INSERT);
     Teuchos::ArrayRCP<const real_t> colMask(gblCol->getData(0));
 
     resumeFill();

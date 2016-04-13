@@ -81,7 +81,6 @@ private:
     bool m_isComplex;
     Teuchos::RCP<RealMatrix> mat;
     Teuchos::RCP<ComplexMatrix> cmat;
-    Teuchos::RCP<const ImportType> importer;
 };
 
 } // namespace esys_trilinos

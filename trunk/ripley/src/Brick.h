@@ -19,10 +19,6 @@
 
 #include <ripley/RipleyDomain.h>
 
-#ifdef ESYS_HAVE_PASO
-#include <paso/Coupler.h>
-#endif
-
 namespace ripley {
 
 /**
@@ -243,7 +239,6 @@ protected:
                                          const escript::Data& in,
                                          bool reduced) const;
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
-    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
 
     void populateSampleIds();
@@ -319,10 +314,6 @@ protected:
     IndexVector m_dofMap;
 
 #ifdef ESYS_HAVE_PASO
-    // Paso connector used by the system matrix and to interpolate DOF to
-    // nodes
-    paso::Connector_ptr m_connector;
-
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
 #endif
