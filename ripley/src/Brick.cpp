@@ -2257,31 +2257,6 @@ void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
     }
 }
 
-//protected
-void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
-{
-#ifdef ESYS_HAVE_PASO
-    const dim_t numComp = in.getDataPointSize();
-    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
-    // expand data object if necessary to be able to grab the whole data
-    const_cast<escript::Data*>(&in)->expand();
-    coupler->startCollect(in.getDataRO());
-
-    const dim_t numDOF = getNumDOF();
-    const dim_t numNodes = getNumNodes();
-    out.requireWrite();
-    const double* buffer = coupler->finishCollect();
-
-#pragma omp parallel for
-    for (index_t i=0; i<numNodes; i++) {
-        const double* src=(m_dofMap[i]<numDOF ?
-                in.getSampleDataRO(m_dofMap[i])
-                : &buffer[(m_dofMap[i]-numDOF)*numComp]);
-        std::copy(src, src+numComp, out.getSampleDataRW(i));
-    }
-#endif
-}
-
 #ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Brick::getTrilinosGraph() const
@@ -2303,12 +2278,13 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
         return m_pattern;
 
     // first call to this method -> create the pattern, then return it
+    paso::Connector_ptr conn(getPasoConnector());
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
     const dim_t numDOF = nDOF0*nDOF1*nDOF2;
-    const dim_t numShared = m_connector->send->numSharedComponents;
-    const index_t* sendShared = m_connector->send->shared;
+    const dim_t numShared = conn->send->numSharedComponents;
+    const index_t* sendShared = conn->send->shared;
     const int x = m_mpiInfo->rank%m_NX[0];
     const int y = m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     const int z = m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
@@ -2317,13 +2293,13 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
     vector<IndexVector> colIndices(numDOF);
     vector<IndexVector> rowIndices(numShared);
 
-    for (dim_t i=0; i < m_connector->send->numNeighbors; i++) {
-        const dim_t start = m_connector->send->offsetInShared[i];
-        const dim_t end = m_connector->send->offsetInShared[i+1];
+    for (dim_t i=0; i < conn->send->numNeighbors; i++) {
+        const dim_t start = conn->send->offsetInShared[i];
+        const dim_t end = conn->send->offsetInShared[i+1];
         // location of neighbour rank relative to this rank
-        const int xDiff = m_connector->send->neighbor[i]%m_NX[0] - x;
-        const int yDiff = m_connector->send->neighbor[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
-        const int zDiff = m_connector->send->neighbor[i]/(m_NX[0]*m_NX[1]) - z;
+        const int xDiff = conn->send->neighbor[i]%m_NX[0] - x;
+        const int yDiff = conn->send->neighbor[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
+        const int zDiff = conn->send->neighbor[i]/(m_NX[0]*m_NX[1]) - z;
         
         if (xDiff==0 && yDiff==0) {
             // sharing front or back plane
@@ -2450,7 +2426,7 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
     // finally create the system matrix pattern
     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector));
+            conn, conn));
 
     // useful debug output
     /*
@@ -2959,24 +2935,9 @@ void Brick::populateDofMap()
     }
 
 #ifdef ESYS_HAVE_PASO
-    // TODO: paso::SharedComponents should take vectors to avoid this
-    int* neighPtr = NULL;
-    index_t* sendPtr = NULL;
-    index_t* recvPtr = NULL;
-    if (neighbour.size() > 0) {
-        neighPtr = &neighbour[0];
-        sendPtr = &sendShared[0];
-        recvPtr = &recvShared[0];
-    }
-    // create connector
-    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, sendPtr,
-            &offsetInShared[0], 1, 0, m_mpiInfo));
-    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, recvPtr,
-            &offsetInShared[0], 1, 0, m_mpiInfo));
-    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-#endif // ESYS_HAVE_PASO
+    createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared,
+                        recvShared);
+#endif
 
     // useful debug output
     /*

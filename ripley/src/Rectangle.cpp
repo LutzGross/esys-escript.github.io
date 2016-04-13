@@ -1568,31 +1568,6 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
     }
 }
 
-//protected
-void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
-{
-#ifdef ESYS_HAVE_PASO
-    const dim_t numComp = in.getDataPointSize();
-    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
-    // expand data object if necessary to be able to grab the whole data
-    const_cast<escript::Data*>(&in)->expand();
-    coupler->startCollect(in.getDataRO());
-
-    const dim_t numDOF = getNumDOF();
-    const dim_t numNodes = getNumNodes();
-    out.requireWrite();
-    const double* buffer = coupler->finishCollect();
-
-#pragma omp parallel for
-    for (index_t i=0; i < numNodes; i++) {
-        const double* src=(m_dofMap[i]<numDOF ?
-                in.getSampleDataRO(m_dofMap[i])
-                : &buffer[(m_dofMap[i]-numDOF)*numComp]);
-        copy(src, src+numComp, out.getSampleDataRW(i));
-    }
-#endif // ESYS_HAVE_PASO
-}
-
 #ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
@@ -1614,11 +1589,12 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
         return m_pattern;
 
     // first call - create pattern, then return
+    paso::Connector_ptr conn(getPasoConnector());
     const dim_t numDOF = getNumDOF();
-    const dim_t numShared = m_connector->send->numSharedComponents;
-    const dim_t numNeighbours = m_connector->send->numNeighbors;
-    const index_t* offsetInShared = m_connector->send->offsetInShared;
-    const index_t* sendShared = m_connector->send->shared;
+    const dim_t numShared = conn->send->numSharedComponents;
+    const dim_t numNeighbours = conn->send->numNeighbors;
+    const index_t* offsetInShared = conn->send->offsetInShared;
+    const index_t* sendShared = conn->send->shared;
 
     // these are for the couple blocks
     vector<IndexVector> colIndices(numDOF);
@@ -1652,7 +1628,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
     // finally create the system matrix pattern
     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector));
+            conn, conn));
     return m_pattern;
 }
 #endif // ESYS_HAVE_PASO
@@ -1985,24 +1961,8 @@ void Rectangle::populateDofMap()
     }
 
 #ifdef ESYS_HAVE_PASO
-    // TODO: paso::SharedComponents should take vectors to avoid this
-    int* neighPtr = NULL;
-    index_t* sendPtr = NULL;
-    index_t* recvPtr = NULL;
-    if (neighbour.size() > 0) {
-        neighPtr = &neighbour[0];
-        sendPtr = &sendShared[0];
-        recvPtr = &recvShared[0];
-    }
-
-    // create connector
-    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, sendPtr,
-            &offsetInShared[0], 1, 0, m_mpiInfo));
-    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, recvPtr,
-            &offsetInShared[0], 1, 0, m_mpiInfo));
-    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+    createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared,
+                        recvShared);
 #endif
 
     // useful debug output

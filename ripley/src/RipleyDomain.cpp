@@ -1081,10 +1081,54 @@ void RipleyDomain::addPDEToTransportProblem(
 
 }
 
-
 void RipleyDomain::setNewX(const escript::Data& arg)
 {
     throw NotImplementedError("setNewX(): operation not supported");
+}
+
+//protected
+void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
+{
+    // expand data object if necessary
+    const_cast<escript::Data*>(&in)->expand();
+    const dim_t numComp = in.getDataPointSize();
+    const dim_t numNodes = getNumNodes();
+    out.requireWrite();
+#ifdef ESYS_HAVE_PASO
+    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
+    coupler->startCollect(in.getSampleDataRO(0));
+    const dim_t numDOF = getNumDOF();
+    const real_t* buffer = coupler->finishCollect();
+
+#pragma omp parallel for
+    for (index_t i = 0; i < numNodes; i++) {
+        const index_t dof = getDofOfNode(i);
+        const real_t* src = (dof < numDOF ? in.getSampleDataRO(dof)
+                                          : &buffer[(dof - numDOF) * numComp]);
+        copy(src, src+numComp, out.getSampleDataRW(i));
+    }
+#elif defined(ESYS_HAVE_TRILINOS)
+    using namespace esys_trilinos;
+
+    if (numComp > 1)
+        throw NotImplementedError("dofToNodes: Ripley currently requires Paso "
+                                  "for multi-component interpolation");
+
+    const_TrilinosGraph_ptr graph(getTrilinosGraph());
+    const Teuchos::ArrayView<const real_t> localIn(in.getSampleDataRO(0),
+                                                in.getNumDataPoints()*numComp);
+    Teuchos::RCP<RealVector> lclData = rcp(new RealVector(graph->getRowMap(),
+                                           localIn, localIn.size(), 1));
+    Teuchos::RCP<RealVector> gblData = rcp(new RealVector(graph->getColMap(), 1));
+    const ImportType importer(graph->getRowMap(), graph->getColMap());
+    gblData->doImport(*lclData, importer, Tpetra::INSERT);
+    Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+#pragma omp parallel for
+    for (index_t i = 0; i < numNodes; i++) {
+        const real_t* src = &gblArray[getDofOfNode(i)];
+        copy(src, src+numComp, out.getSampleDataRW(i));
+    }
+#endif // ESYS_HAVE_TRILINOS
 }
 
 //protected
@@ -1204,6 +1248,30 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 }
 
 #ifdef ESYS_HAVE_PASO
+void RipleyDomain::createPasoConnector(const RankVector& neighbour, 
+                                       const IndexVector& offsetInSharedSend,
+                                       const IndexVector& offsetInSharedRecv,
+                                       const IndexVector& sendShared,
+                                       const IndexVector& recvShared)
+{
+    // TODO: paso::SharedComponents should take vectors to avoid this
+    const int* neighPtr = NULL;
+    const index_t* sendPtr = NULL;
+    const index_t* recvPtr = NULL;
+    if (neighbour.size() > 0) {
+        neighPtr = &neighbour[0];
+        sendPtr = &sendShared[0];
+        recvPtr = &recvShared[0];
+    }
+    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
+            getNumDOF(), neighbour.size(), neighPtr, sendPtr,
+            &offsetInSharedSend[0], 1, 0, m_mpiInfo));
+    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
+            getNumDOF(), neighbour.size(), neighPtr, recvPtr,
+            &offsetInSharedRecv[0], 1, 0, m_mpiInfo));
+    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+}
+
 //protected
 paso::Pattern_ptr RipleyDomain::createPasoPattern(
                             const vector<IndexVector>& indices, dim_t N) const

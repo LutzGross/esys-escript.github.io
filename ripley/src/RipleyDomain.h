@@ -27,6 +27,7 @@
 #include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_PASO
+#include <paso/Coupler.h>
 #include <paso/SystemMatrix.h>
 #endif
 
@@ -763,6 +764,17 @@ protected:
     void updateTagsInUse(int fsType) const;
 
 #ifdef ESYS_HAVE_PASO
+    /// creates a Paso connector
+    void createPasoConnector(const RankVector& neighbour,
+                             const IndexVector& offsetInSharedSend,
+                             const IndexVector& offsetInSharedRecv,
+                             const IndexVector& sendShared,
+                             const IndexVector& recvShared);
+
+    /// returns a Paso connector required for data transfer and distributed
+    /// system matrices
+    paso::Connector_ptr getPasoConnector() const { return m_connector; }
+
     /// allocates and returns a Paso pattern structure
     paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
                                         dim_t N) const;
@@ -837,12 +849,16 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const = 0;
 
     /// converts data on degrees of freedom in 'in' to nodes in 'out'
-    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const = 0;
+    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
 
 private:
 #ifdef ESYS_HAVE_PASO
+    // Paso connector used by the system matrix and to interpolate DOF to
+    // nodes
+    paso::Connector_ptr m_connector;
+
     /// paso version of adding element matrices to System Matrix
     void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
                          dim_t numEq, const DoubleVector& array) const;

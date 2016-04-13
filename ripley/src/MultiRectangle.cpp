@@ -745,23 +745,8 @@ void MultiRectangle::populateDofMap()
 #endif // ESYS_MPI
 
 #ifdef ESYS_HAVE_PASO
-    // TODO: paso::SharedComponents should take vectors to avoid this
-    int* neighPtr = NULL;
-    index_t* sendPtr = NULL;
-    index_t* recvPtr = NULL;
-    if (neighbour.size() > 0) {
-        neighPtr = &neighbour[0];
-        sendPtr = &sendShared[0];
-        recvPtr = &recvShared[0];
-    }
-    // create Paso connector
-    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, sendPtr,
-            &offsetInSharedSend[0], 1, 0, m_mpiInfo));
-    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), neighPtr, recvPtr,
-            &offsetInSharedRecv[0], 1, 0, m_mpiInfo));
-    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+    createPasoConnector(neighbour, offsetInSharedSend, offsetInSharedRecv,
+                        sendShared, recvShared);
 #endif
 }
 
@@ -868,7 +853,7 @@ paso::SystemMatrixPattern_ptr MultiRectangle::getPasoMatrixPattern(
         // finally create the system matrix pattern
         m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 distribution, distribution, mainPattern, colPattern, rowPattern,
-                m_connector, m_connector));
+                getPasoConnector(), getPasoConnector()));
     }
     return m_pattern;
 }
