@@ -41,6 +41,7 @@ sources = """
     DataVectorTaipan.cpp    
     EscriptParams.cpp
     EsysMPI.cpp
+    ES_optype.cpp
     ExceptionTranslators.cpp
     FunctionSpace.cpp
     FunctionSpaceFactory.cpp
@@ -89,6 +90,7 @@ headers = """
     EscriptParams.h
     EsysException.h
     EsysMPI.h
+    ES_optype.h
     ExceptionTranslators.h
     FileWriter.h
     FunctionSpace.h

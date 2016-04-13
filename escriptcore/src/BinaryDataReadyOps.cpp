@@ -29,7 +29,7 @@ namespace escript
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperCCC(DataConstant& res, const DataConstant& left, const DataConstant& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -63,7 +63,7 @@ inline void binaryOpDataReadyHelperCCC(DataConstant& res, const DataConstant& le
 
 
 void binaryOpDataCCC(DataConstant& result, const DataConstant& left, const DataConstant& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -101,7 +101,7 @@ void binaryOpDataCCC(DataConstant& result, const DataConstant& left, const DataC
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left, const DataTagged& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -188,7 +188,7 @@ inline void binaryOpDataReadyHelperTCT(DataTagged& res, const DataConstant& left
 
 
 void binaryOpDataTCT(DataTagged& result, const DataConstant& left, const DataTagged& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -227,7 +227,7 @@ void binaryOpDataTCT(DataTagged& result, const DataConstant& left, const DataTag
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperECE(DataExpanded& res, const DataConstant& left, const DataExpanded& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -268,7 +268,7 @@ inline void binaryOpDataReadyHelperECE(DataExpanded& res, const DataConstant& le
 
 
 void binaryOpDataECE(DataExpanded& result, const DataConstant& left, const DataExpanded& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -306,7 +306,7 @@ void binaryOpDataECE(DataExpanded& result, const DataConstant& left, const DataE
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperEET(DataExpanded& res, const DataExpanded& left, const DataTagged& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -325,7 +325,7 @@ inline void binaryOpDataReadyHelperEET(DataExpanded& res, const DataExpanded& le
 
 
 void binaryOpDataEET(DataExpanded& result, const DataExpanded& left, const DataTagged& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -364,7 +364,7 @@ void binaryOpDataEET(DataExpanded& result, const DataExpanded& left, const DataT
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperETE(DataExpanded& res, const DataTagged& left, const DataExpanded& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -383,7 +383,7 @@ inline void binaryOpDataReadyHelperETE(DataExpanded& res, const DataTagged& left
 
 
 void binaryOpDataETE(DataExpanded& result, const DataTagged& left, const DataExpanded& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -424,7 +424,7 @@ void binaryOpDataETE(DataExpanded& result, const DataTagged& left, const DataExp
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, const DataConstant& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -520,7 +520,7 @@ inline void binaryOpDataReadyHelperTTC(DataTagged& res, const DataTagged& left, 
 
 
 void binaryOpDataTTC(DataTagged& result, const DataTagged& left, const DataConstant& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -559,7 +559,7 @@ void binaryOpDataTTC(DataTagged& result, const DataTagged& left, const DataConst
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, const DataTagged& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -672,7 +672,7 @@ inline void binaryOpDataReadyHelperTTT(DataTagged& res, const DataTagged& left, 
 
 
 void binaryOpDataTTT(DataTagged& result, const DataTagged& left, const DataTagged& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -710,7 +710,7 @@ void binaryOpDataTTT(DataTagged& result, const DataTagged& left, const DataTagge
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperEEC(DataExpanded& res, const DataExpanded& left, const DataConstant& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -752,7 +752,7 @@ inline void binaryOpDataReadyHelperEEC(DataExpanded& res, const DataExpanded& le
 
 
 void binaryOpDataEEC(DataExpanded& result, const DataExpanded& left, const DataConstant& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)
@@ -791,7 +791,7 @@ void binaryOpDataEEC(DataExpanded& result, const DataExpanded& left, const DataC
 
 template <class ResSCALAR, class LSCALAR, class RSCALAR>
 inline void binaryOpDataReadyHelperEEE(DataExpanded& res, const DataExpanded& left, const DataExpanded& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
@@ -834,7 +834,7 @@ inline void binaryOpDataReadyHelperEEE(DataExpanded& res, const DataExpanded& le
 
 
 void binaryOpDataEEE(DataExpanded& result, const DataExpanded& left, const DataExpanded& right, 
-		     escript::ESFunction operation)
+		     escript::ES_optype operation)
 {
   bool cplxresult=left.isComplex() || right.isComplex();
   if (result.isComplex()!=cplxresult)

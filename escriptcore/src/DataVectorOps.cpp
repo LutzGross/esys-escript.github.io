@@ -347,14 +347,14 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	  const bool rightscalar,		
 	  const bool lefttagged,			// true if left object is the tagged one
 	  const DataTagged& tagsource,			// where to get tag offsets from
-	  escript::ESFunction operation)		// operation to perform	  
+	  escript::ES_optype operation)		// operation to perform	  
 {
   typename DataTypes::RealVectorType::size_type lstep=leftscalar?1:DPSize;
   typename DataTypes::RealVectorType::size_type rstep=rightscalar?1:DPSize;
   typename DataTypes::RealVectorType::size_type limit=samplesToProcess*DPPSample;
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -369,7 +369,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -384,7 +384,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -399,7 +399,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -414,7 +414,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -429,7 +429,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case LESSF:
+    case LESS:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -444,7 +444,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case GREATERF:
+    case GREATER:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -459,7 +459,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case GREATER_EQUALF:
+    case GREATER_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -474,7 +474,7 @@ binaryOpVectorTagged(DataTypes::RealVectorType& res,				// where result is to be
 	
       }
       break;      
-    case LESS_EQUALF:
+    case LESS_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<limit;++i)
       {
@@ -504,13 +504,13 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  typename DataTypes::RealVectorType::size_type leftOffset,		// where to start reading LHS values
 	  const DataTypes::real_t* right, 			// RHS of the calculation
 	  const bool rightreset,			// true if RHS is providing a single sample of 1 value only
-	  escript::ESFunction operation,		// operation to perform
+	  escript::ES_optype operation,		// operation to perform
 	  bool singleleftsample)			// set to false for normal operation
 {
   size_t substep=(rightreset?0:1);  
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -523,7 +523,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -536,7 +536,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -549,7 +549,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -562,7 +562,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -575,7 +575,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case LESSF:
+    case LESS:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -588,7 +588,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case GREATERF:
+    case GREATER:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -601,7 +601,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case GREATER_EQUALF:
+    case GREATER_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -614,7 +614,7 @@ binaryOpVectorRightScalar(DataTypes::RealVectorType& res,				// where result is 
 	  }
       }
       break;      
-    case LESS_EQUALF:
+    case LESS_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -643,13 +643,13 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
           const bool leftreset,				// true if LHS is providing a single sample of 1 value only
 	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
 	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
-	  escript::ESFunction operation,		// operation to perform
+	  escript::ES_optype operation,		// operation to perform
 	  bool singlerightsample)			// right consists of a single sample
 {
   size_t substep=(leftreset?0:1);
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -661,7 +661,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -673,7 +673,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -685,7 +685,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -697,7 +697,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -709,7 +709,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case LESSF:
+    case LESS:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -721,7 +721,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case GREATERF:
+    case GREATER:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -733,7 +733,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case GREATER_EQUALF:
+    case GREATER_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -745,7 +745,7 @@ binaryOpVectorLeftScalar(DataTypes::RealVectorType& res,				// where result is t
 	  }	
       }
       break;      
-    case LESS_EQUALF:
+    case LESS_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -774,11 +774,11 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	  const DataTypes::RealVectorType& right, 				// RHS of the calculation
 	  typename DataTypes::RealVectorType::size_type rightOffset,		// where to start reading RHS values
 	  const bool rightreset,			// Is RHS only supplying a single sample instead of a bunch of them
-	  escript::ESFunction operation)		// operation to perform
+	  escript::ES_optype operation)		// operation to perform
 {
   switch (operation)
   {
-    case PLUSF:
+    case ADD:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -791,7 +791,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;
-    case POWF:
+    case POW:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -804,7 +804,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case MINUSF:
+    case SUB:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -817,7 +817,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case MULTIPLIESF:
+    case MUL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -830,7 +830,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case DIVIDESF:
+    case DIV:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -843,7 +843,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case LESSF:
+    case LESS:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -856,7 +856,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case GREATERF:
+    case GREATER:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -869,7 +869,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case GREATER_EQUALF:
+    case GREATER_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {
@@ -882,7 +882,7 @@ binaryOpVector(DataTypes::RealVectorType& res,				// where result is to be store
 	
       }
       break;      
-    case LESS_EQUALF:
+    case LESS_EQUAL:
       #pragma omp parallel for
       for (typename DataTypes::RealVectorType::size_type i=0;i<samplesToProcess;++i)
       {

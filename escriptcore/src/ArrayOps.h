@@ -41,53 +41,13 @@ For operations on DataAbstract see BinaryOp.h.
 For operations on DataVector see DataMaths.h.
 */
 
+#include "ES_optype.h"
+
 namespace escript {
 
 
-typedef enum
-{
-NEGF,
-SINF,
-COSF,
-TANF,
-ASINF,
-ACOSF,
-ATANF,
-SINHF,
-COSHF,
-TANHF,
-ERFF,
-ASINHF,
-ACOSHF,
-ATANHF,
-LOG10F,
-LOGF,
-SIGNF,
-ABSF,
-EXPF,
-SQRTF,
-POWF,
-PLUSF,
-MINUSF,
-MULTIPLIESF,
-DIVIDESF,
-LESSF,
-GREATERF,
-GREATER_EQUALF,
-LESS_EQUALF,
-EQZEROF,
-NEQZEROF,
-GTZEROF,
-GEZEROF,
-LTZEROF,
-LEZEROF,
-CONJF,
-REALF,
-IMAGF,
-INVF
-} ESFunction;
 
-bool always_real(ESFunction operation);
+bool always_real(escript::ES_optype operation);
 
 
 /**
@@ -711,32 +671,32 @@ template <class IN>
 inline void tensor_unary_array_operation_real(const size_t size,
                              const IN *arg1,
                              DataTypes::real_t * argRes,
-                             escript::ESFunction operation,
+                             escript::ES_optype operation,
                              DataTypes::real_t tol=0)
 {
    switch (operation)
    {
-     case REALF: 
+     case REAL: 
           for (int i = 0; i < size; ++i) {
               argRes[i] = std::real(arg1[i]);
           }
           break;          
-     case IMAGF: 
+     case IMAG: 
           for (int i = 0; i < size; ++i) {
               argRes[i] = std::imag(arg1[i]);
           }
           break;  
-    case EQZEROF:   
+    case EZ:   
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = (fabs(arg1[i])<=tol);
           }
           break;
-    case NEQZEROF: 
+    case NEZ: 
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = (fabs(arg1[i])>tol);
           }
           break;
-    case ABSF: 
+    case ABS: 
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = abs_f(arg1[i]);
           }
@@ -769,147 +729,147 @@ template <class IN, typename OUT>
 inline void tensor_unary_array_operation(const size_t size,
                              const IN *arg1,
                              OUT * argRes,
-                             escript::ESFunction operation,
+                             escript::ES_optype operation,
                              DataTypes::real_t tol=0)
 {
   switch (operation)
   {
-    case NEGF:
+    case NEG:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = -arg1[i];
           }
           break;
-    case SINF: 
+    case SIN: 
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = sin(arg1[i]);
           }
           break;
-    case COSF:
+    case COS:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = cos(arg1[i]);
           }
           break;
-    case TANF:
+    case TAN:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = tan(arg1[i]);
           }
           break;
-    case ASINF: 
+    case ASIN: 
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = asin(arg1[i]);
           }
           break;
-    case ACOSF:
+    case ACOS:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i]=calc_acos(arg1[i]);
           }
           break;
-    case ATANF:
+    case ATAN:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = atan(arg1[i]);
           }
           break;
-    case ABSF:
+    case ABS:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = std::abs(arg1[i]);
           }
           break;      
-    case SINHF:
+    case SINH:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = sinh(arg1[i]);
           }
           break;
-    case COSHF:
+    case COSH:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = cosh(arg1[i]);
           }
           break;
-    case TANHF:
+    case TANH:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = tanh(arg1[i]);
           }
           break;
-    case ERFF: 
+    case ERF: 
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = calc_erf(arg1[i]);
           }
           break;
-    case ASINHF:
+    case ASINH:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = asinh(arg1[i]);
           }
           break;
-    case ACOSHF:
+    case ACOSH:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = acosh(arg1[i]);
           }
           break;
-    case ATANHF:
+    case ATANH:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = atanh(arg1[i]);
           }
           break;
-    case LOG10F:
+    case LOG10:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = log10(arg1[i]);
           }
           break;
-    case LOGF:
+    case LOG:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = log(arg1[i]);
           }
           break;      
-    case SIGNF:
+    case SIGN:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = calc_sign(arg1[i]);
           }
           break;      
-    case EXPF:
+    case EXP:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = exp(arg1[i]);
           }
           break;      
-    case SQRTF:
+    case SQRT:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = sqrt(arg1[i]);
           }
           break;      
-    case GTZEROF:
+    case GZ:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = calc_gtzero(arg1[i]);
           }
           break;      
-    case GEZEROF:
+    case GEZ:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = calc_gezero(arg1[i]);
           }
           break;            
-    case LTZEROF:
+    case LZ:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = calc_ltzero(arg1[i]);
           }
           break;            
-    case LEZEROF:
+    case LEZ:
 	  for (size_t i = 0; i < size; ++i) {
               argRes[i] = calc_lezero(arg1[i]);
           }
           break;            
-    case CONJF: 
+    case CONJ: 
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = conjugate<OUT,IN>(arg1[i]);
           }
           break; 
-    case INVF: 
+    case RECIP: 
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = 1.0/arg1[i];
           }
           break; 
-    case EQZEROF:
+    case EZ:
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = fabs(arg1[i])<=tol;
           }	  
 	  break;
-    case NEQZEROF:
+    case NEZ:
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = fabs(arg1[i])>tol;
           }	  
@@ -923,7 +883,7 @@ inline void tensor_unary_array_operation(const size_t size,
   return;
 }
 
-bool supports_cplx(escript::ESFunction operation);
+bool supports_cplx(escript::ES_optype operation);
 
 
 } // end of namespace
