@@ -60,7 +60,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
 
     Coupler_ptr coupler;
     if (!global_id) {
-        coupler.reset(new Coupler(col_coupler->connector, 1));
+        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(cols);
     }
 

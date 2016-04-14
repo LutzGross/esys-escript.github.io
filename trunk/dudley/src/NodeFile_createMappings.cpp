@@ -166,7 +166,7 @@ void NodeFile::createDOFMappingAndCoupling()
 
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
                                     myLastDOF - myFirstDOF, neighbour, shared,
-                                    offsetInShared, MPIInfo));
+                                    offsetInShared));
 
     /////////////////////////////////
     //   now we build the sender   //
@@ -216,7 +216,7 @@ void NodeFile::createDOFMappingAndCoupling()
 
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
                                     myLastDOF - myFirstDOF, neighbour, shared,
-                                    offsetInShared, MPIInfo));
+                                    offsetInShared));
 
     degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 

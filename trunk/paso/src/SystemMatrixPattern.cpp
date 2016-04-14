@@ -46,10 +46,6 @@ SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
 
     if (outDist->mpi_info != inDist->mpi_info) {
         ss << "SystemMatrixPattern: output distribution and input distribution MPI communicators don't match.";
-    } else if (outDist->mpi_info != colConn->mpi_info) {
-        ss << "SystemMatrixPattern: output distribution and col connector MPI communicators don't match.";
-    } else if (outDist->mpi_info != rowConn->mpi_info) {
-        ss << "SystemMatrixPattern: output distribution and row connector MPI communicators don't match.";
     } else if (mainPat->type != patType)  {
         ss << "SystemMatrixPattern: type of mainPattern (" << mainPat->type
            << ") does not match expected type (" << patType << ")";

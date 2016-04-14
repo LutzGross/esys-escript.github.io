@@ -95,7 +95,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         cols[i] = offset + i;
 
     if (B->global_id == NULL) {
-        coupler.reset(new Coupler(B->col_coupler->connector, 1));
+        coupler.reset(new Coupler(B->col_coupler->connector, 1, A->mpi_info));
         coupler->startCollect(cols);
     }
 
@@ -1686,7 +1686,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    }
 
    SharedComponents_ptr recv(new SharedComponents(num_Pmain_cols, neighbour,
-                             shared, offsetInShared, mpi_info));
+                             shared, offsetInShared));
 
 #ifdef ESYS_MPI
     MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
@@ -1735,8 +1735,8 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
 #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
 
-   SharedComponents_ptr send(new SharedComponents(
-               num_Pmain_cols, neighbour, shared, offsetInShared, mpi_info));
+   SharedComponents_ptr send(new SharedComponents(num_Pmain_cols, neighbour,
+                                                  shared, offsetInShared));
 
    col_connector.reset(new Connector(send, recv));
    delete[] shared;
@@ -1809,7 +1809,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      }
    }
    send.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
-                                   offsetInShared, mpi_info));
+                                   offsetInShared));
 
    /* send/recv number of rows will be sent from current proc
       recover info for the receiver of row_connector from the sender */
@@ -1837,7 +1837,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      shared[i] = i + num_Pmain_cols;
    }
    recv.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
-                                   offsetInShared, mpi_info));
+                                   offsetInShared));
    row_connector.reset(new Connector(send, recv));
    delete[] shared;
 
@@ -3065,7 +3065,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      offsetInShared.push_back(i);
    }
    recv.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
-                                   offsetInShared, mpi_info));
+                                   offsetInShared));
 
 #ifdef ESYS_MPI
     MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
@@ -3117,7 +3117,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    offset = dist[rank];
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
    send.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
-                                   offsetInShared, mpi_info));
+                                   offsetInShared));
 
    col_connector.reset(new Connector(send, recv));
    delete[] shared;
@@ -3189,7 +3189,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      }
    }
    send.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
-                                   offsetInShared, mpi_info));
+                                   offsetInShared));
 
    /* send/recv number of rows will be sent from current proc
       recover info for the receiver of row_connector from the sender */
@@ -3217,7 +3217,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      shared[i] = i + num_Pmain_cols;
    }
    recv.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
-                                   offsetInShared, mpi_info));
+                                   offsetInShared));
    row_connector.reset(new Connector(send, recv));
    delete[] shared;
 

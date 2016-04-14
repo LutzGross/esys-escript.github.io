@@ -1095,7 +1095,7 @@ void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
     const dim_t numNodes = getNumNodes();
     out.requireWrite();
 #ifdef ESYS_HAVE_PASO
-    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
+    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp, m_mpiInfo));
     coupler->startCollect(in.getSampleDataRO(0));
     const dim_t numDOF = getNumDOF();
     const real_t* buffer = coupler->finishCollect();
@@ -1257,9 +1257,9 @@ void RipleyDomain::createPasoConnector(const RankVector& neighbour,
     const index_t* sendPtr = neighbour.empty() ? NULL : &sendShared[0];
     const index_t* recvPtr = neighbour.empty() ? NULL : &recvShared[0];
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            getNumDOF(), neighbour, sendPtr, offsetInSharedSend, m_mpiInfo));
+            getNumDOF(), neighbour, sendPtr, offsetInSharedSend));
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            getNumDOF(), neighbour, recvPtr, offsetInSharedRecv, m_mpiInfo));
+            getNumDOF(), neighbour, recvPtr, offsetInSharedRecv));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 }
 

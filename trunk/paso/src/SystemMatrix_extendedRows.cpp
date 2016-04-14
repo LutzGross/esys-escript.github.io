@@ -55,7 +55,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 
     Coupler_ptr coupler;
     if (global_id == NULL) {
-        coupler.reset(new Coupler(col_coupler->connector, 1));
+        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(cols);
     }
 
@@ -84,7 +84,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
     }
 
     // sending/receiving the degree_ST
-    coupler.reset(new Coupler(row_coupler->connector, 1));
+    coupler.reset(new Coupler(row_coupler->connector, 1, mpi_info));
     coupler->startCollect(rows);
 
     // prepare ST with global ID

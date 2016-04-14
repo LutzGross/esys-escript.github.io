@@ -42,11 +42,10 @@ struct SharedComponents
     SharedComponents(dim_t localLength, const std::vector<int>& neighbours,
                      const index_t* sharedArray,
                      const std::vector<index_t>& offset,
-                     const escript::JMPI& mpiInfo, index_t m = 1, index_t b = 0)
+                     index_t m = 1, index_t b = 0)
         : local_length(localLength*m),
           neighbour(neighbours),
-          offsetInShared(offset),
-          mpi_info(mpiInfo)
+          offsetInShared(offset)
     {
         if (offset.empty()) {
             numSharedComponents = 0;
@@ -92,8 +91,6 @@ struct SharedComponents
 
     /// = offsetInShared[numNeighbours]
     dim_t numSharedComponents;
-
-    const escript::JMPI mpi_info;
 };
 
 } // namespace paso

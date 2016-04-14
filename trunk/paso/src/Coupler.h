@@ -47,20 +47,15 @@ struct Connector
 {
     SharedComponents_ptr send;
     SharedComponents_ptr recv;
-    escript::JMPI mpi_info;
 
     Connector(SharedComponents_ptr s, SharedComponents_ptr r)
     {
-        if (s->mpi_info != r->mpi_info) {
-            throw PasoException(
-                    "Connector: send and recv MPI communicators don't match.");
-        } else if (s->local_length != r->local_length) {
-            throw PasoException(
-                    "Connector: local length of send and recv SharedComponents must match.");
+        if (s->local_length != r->local_length) {
+            throw PasoException("Connector: local length of send and recv "
+                                "SharedComponents must match.");
         }
         send = s;
         recv = r;
-        mpi_info = s->mpi_info;
     }
 
     /// creates a copy
@@ -73,11 +68,11 @@ struct Connector
         if (block_size > 1) {
             new_send_shcomp.reset(new SharedComponents(send->local_length,
                         send->neighbour, send->shared, send->offsetInShared,
-                        mpi_info, block_size, 0));
+                        block_size, 0));
 
             new_recv_shcomp.reset(new SharedComponents(recv->local_length,
                         recv->neighbour, recv->shared, recv->offsetInShared,
-                        mpi_info, block_size, 0));
+                        block_size, 0));
         } else {
             new_send_shcomp = send;
             new_recv_shcomp = recv;
@@ -103,7 +98,7 @@ struct Connector
 PASO_DLL_API
 struct Coupler
 {
-    Coupler(const_Connector_ptr, dim_t blockSize);
+    Coupler(const_Connector_ptr, dim_t blockSize, escript::JMPI mpiInfo);
     ~Coupler();
 
     void startCollect(const double* in);
