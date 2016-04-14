@@ -78,7 +78,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     const index_t overlapped_n = row_coupleBlock->numRows;
     SharedComponents_ptr send(row_coupler->connector->send);
     SharedComponents_ptr recv(row_coupler->connector->recv);
-    index_t num_neighbors = send->numNeighbors;
+    const dim_t numNeighbours = send->neighbour.size();
     const size_t block_size_size = block_size * sizeof(double);
 
     // waiting for receiving unknown's global ID
@@ -110,37 +110,36 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
 
     // first, prepare the ptr_ptr to be received
     index_t* ptr_ptr = new index_t[overlapped_n+1];
-    for (index_t p=0; p<recv->numNeighbors; p++) {
+    for (index_t p=0; p<recv->neighbour.size(); p++) {
         const index_t row = recv->offsetInShared[p];
         const index_t i = recv->offsetInShared[p+1];
-        MPI_Irecv(&(ptr_ptr[row]), i-row, MPI_INT, recv->neighbor[p],
-                mpi_info->counter()+recv->neighbor[p],
-                mpi_info->comm,
-                &(row_coupler->mpi_requests[p]));
+        MPI_Irecv(&ptr_ptr[row], i-row, MPI_INT, recv->neighbour[p],
+                mpi_info->counter()+recv->neighbour[p],
+                mpi_info->comm, &row_coupler->mpi_requests[p]);
     }
 
     // now prepare the rows to be sent (the degree, the offset and the data)
-    index_t p = send->offsetInShared[num_neighbors];
+    index_t p = send->offsetInShared[numNeighbours];
     len = 0;
-    for (index_t i=0; i<num_neighbors; i++) {
+    for (index_t i=0; i<numNeighbours; i++) {
         // #cols per row X #rows
-        len += recv_buf[send->neighbor[i]] *
+        len += recv_buf[send->neighbour[i]] *
                 (send->offsetInShared[i+1] - send->offsetInShared[i]);
     }
     double* send_buf = new double[len*block_size];
     index_t* send_idx = new index_t[len];
     int* send_offset = new int[p+1];
-    int* send_degree = new int[num_neighbors];
+    int* send_degree = new int[numNeighbours];
 
     index_t k, l, m, n, q;
     len = 0;
     index_t base = 0;
     index_t i0 = 0;
-    for (p=0; p<num_neighbors; p++) {
+    for (p=0; p<numNeighbours; p++) {
         index_t i = i0;
-        const index_t neighbor = send->neighbor[p];
-        const index_t l_ub = recv_offset[neighbor+1];
-        const index_t l_lb = recv_offset[neighbor];
+        const int neighbour = send->neighbour[p];
+        const index_t l_ub = recv_offset[neighbour+1];
+        const index_t l_lb = recv_offset[neighbour];
         const index_t j_ub = send->offsetInShared[p + 1];
         for (index_t j=send->offsetInShared[p]; j<j_ub; j++) {
             const index_t row = send->shared[j];
@@ -217,16 +216,15 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         }
 
         /* sending */
-        MPI_Issend(&send_offset[i0], i-i0, MPI_INT, send->neighbor[p],
+        MPI_Issend(&send_offset[i0], i-i0, MPI_INT, send->neighbour[p],
                 mpi_info->counter()+rank, mpi_info->comm,
-                &row_coupler->mpi_requests[p+recv->numNeighbors]);
+                &row_coupler->mpi_requests[p+recv->neighbour.size()]);
         send_degree[p] = len;
         i0 = i;
     }
 
     mpi_info->incCounter(mpi_size);
-    MPI_Waitall(row_coupler->connector->send->numNeighbors +
-                    row_coupler->connector->recv->numNeighbors,
+    MPI_Waitall(numNeighbours + recv->neighbour.size(),
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
 
     len = 0;
@@ -240,28 +238,27 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
 
     // send/receive index array
     index_t j=0;
-    for (p=0; p<recv->numNeighbors; p++) {
+    for (p = 0; p < recv->neighbour.size(); p++) {
         const index_t i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
         if (i > 0)
-            MPI_Irecv(&ptr_idx[j], i, MPI_INT, recv->neighbor[p],
-                mpi_info->counter()+recv->neighbor[p], mpi_info->comm,
+            MPI_Irecv(&ptr_idx[j], i, MPI_INT, recv->neighbour[p],
+                mpi_info->counter()+recv->neighbour[p], mpi_info->comm,
                 &row_coupler->mpi_requests[p]);
         j += i;
     }
 
     j=0;
-    for (p=0; p<num_neighbors; p++) {
+    for (p = 0; p < numNeighbours; p++) {
         const index_t i = send_degree[p] - j;
         if (i > 0)
-            MPI_Issend(&send_idx[j], i, MPI_INT, send->neighbor[p],
+            MPI_Issend(&send_idx[j], i, MPI_INT, send->neighbour[p],
                 mpi_info->counter()+rank, mpi_info->comm,
-                &row_coupler->mpi_requests[p+recv->numNeighbors]);
+                &row_coupler->mpi_requests[p+recv->neighbour.size()]);
         j = send_degree[p];
     }
 
     mpi_info->incCounter(mpi_size);
-    MPI_Waitall(row_coupler->connector->send->numNeighbors +
-                         row_coupler->connector->recv->numNeighbors,
+    MPI_Waitall(numNeighbours + recv->neighbour.size(),
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
 
     // allocate pattern and sparse matrix for remote_coupleBlock
@@ -272,30 +269,29 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
 
     // send/receive value array
     j=0;
-    for (p=0; p<recv->numNeighbors; p++) {
+    for (p = 0; p < recv->neighbour.size(); p++) {
         const index_t i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
         if (i > 0)
             MPI_Irecv(&remote_coupleBlock->val[j], i * block_size,
-                MPI_DOUBLE, recv->neighbor[p],
-                mpi_info->counter()+recv->neighbor[p], mpi_info->comm,
+                MPI_DOUBLE, recv->neighbour[p],
+                mpi_info->counter()+recv->neighbour[p], mpi_info->comm,
                 &row_coupler->mpi_requests[p]);
         j += i*block_size;
     }
 
     j=0;
-    for (p=0; p<num_neighbors; p++) {
+    for (p=0; p<numNeighbours; p++) {
         const index_t i = send_degree[p] - j;
         if (i > 0)
             MPI_Issend(&send_buf[j*block_size], i*block_size, MPI_DOUBLE,
-                       send->neighbor[p], mpi_info->counter()+rank,
+                       send->neighbour[p], mpi_info->counter()+rank,
                        mpi_info->comm,
-                       &row_coupler->mpi_requests[p+recv->numNeighbors]);
+                       &row_coupler->mpi_requests[p+recv->neighbour.size()]);
         j = send_degree[p];
     }
 
     mpi_info->incCounter(mpi_size);
-    MPI_Waitall(row_coupler->connector->send->numNeighbors +
-                     row_coupler->connector->recv->numNeighbors,
+    MPI_Waitall(numNeighbours + recv->neighbour.size(),
                 row_coupler->mpi_requests, row_coupler->mpi_stati);
 
     // release all temp memory allocation

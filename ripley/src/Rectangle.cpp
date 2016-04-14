@@ -1592,8 +1592,8 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
     paso::Connector_ptr conn(getPasoConnector());
     const dim_t numDOF = getNumDOF();
     const dim_t numShared = conn->send->numSharedComponents;
-    const dim_t numNeighbours = conn->send->numNeighbors;
-    const index_t* offsetInShared = conn->send->offsetInShared;
+    const dim_t numNeighbours = conn->send->neighbour.size();
+    const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
     const index_t* sendShared = conn->send->shared;
 
     // these are for the couple blocks

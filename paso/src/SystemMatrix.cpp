@@ -361,8 +361,10 @@ void SystemMatrix::copyColCoupleBlock()
         throw PasoException("SystemMatrix::copyColCoupleBlock: Coupler in use.");
     }
 
+    const dim_t numNeighboursSend = row_coupler->connector->send->neighbour.size();
+    const dim_t numNeighboursRecv = row_coupler->connector->recv->neighbour.size();
     // start receiving
-    for (dim_t p=0; p<row_coupler->connector->recv->numNeighbors; p++) {
+    for (dim_t p = 0; p < numNeighboursRecv; p++) {
 #ifdef ESYS_MPI
         const index_t irow1 = row_coupler->connector->recv->offsetInShared[p];
         const index_t irow2 = row_coupler->connector->recv->offsetInShared[p+1];
@@ -370,8 +372,8 @@ void SystemMatrix::copyColCoupleBlock()
         const index_t b = row_coupleBlock->pattern->ptr[irow2];
 
         MPI_Irecv(&row_coupleBlock->val[a*block_size], (b-a) * block_size,
-                MPI_DOUBLE, row_coupler->connector->recv->neighbor[p],
-                mpi_info->counter()+row_coupler->connector->recv->neighbor[p],
+                MPI_DOUBLE, row_coupler->connector->recv->neighbour[p],
+                mpi_info->counter()+row_coupler->connector->recv->neighbour[p],
                 mpi_info->comm, &row_coupler->mpi_requests[p]);
 
 #endif
@@ -382,7 +384,7 @@ void SystemMatrix::copyColCoupleBlock()
     double* send_buffer = new double[col_coupleBlock->len];
     const size_t block_size_size = block_size*sizeof(double);
 
-    for (dim_t p=0; p<row_coupler->connector->send->numNeighbors; p++) {
+    for (dim_t p = 0; p < numNeighboursSend; p++) {
         // j_min, j_max defines the range of columns to be sent to processor p
         const index_t j_min = col_coupler->connector->recv->offsetInShared[p];
         const index_t j_max = col_coupler->connector->recv->offsetInShared[p+1];
@@ -408,10 +410,10 @@ void SystemMatrix::copyColCoupleBlock()
         }
 #ifdef ESYS_MPI
         MPI_Issend(&send_buffer[z0], z-z0, MPI_DOUBLE,
-                   row_coupler->connector->send->neighbor[p],
+                   row_coupler->connector->send->neighbour[p],
                    mpi_info->counter()+mpi_info->rank,
                    mpi_info->comm,
-                   &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
+                   &row_coupler->mpi_requests[p+numNeighboursRecv]);
 #endif
         z0 = z;
     }
@@ -419,8 +421,7 @@ void SystemMatrix::copyColCoupleBlock()
     // wait until everything is done
 #ifdef ESYS_MPI
     mpi_info->incCounter(mpi_info->size);
-    MPI_Waitall(row_coupler->connector->send->numNeighbors+row_coupler->connector->recv->numNeighbors,
-                row_coupler->mpi_requests,
+    MPI_Waitall(numNeighboursSend+numNeighboursRecv, row_coupler->mpi_requests,
                 row_coupler->mpi_stati);
 #endif
     delete[] send_buffer;

@@ -47,7 +47,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
     double* cols = new double[num_main_cols];
     const index_t rank = mpi_info->rank;
     const index_t offset = col_distribution->first_component[rank];
-    index_t i, j, k, p, z, z0, z1, size, len;
+    index_t i, j, k, p, z, z0, z1, size;
 
 #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_main_cols; ++i)
@@ -71,7 +71,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
     index_t* recv_offset_ST = new index_t[overlapped_n+1];
     dim_t * recv_degree_ST = new dim_t[overlapped_n];
     index_t* send_ST = new index_t[offset_ST[my_n]];
-    len = row_coupler->connector->send->offsetInShared[row_coupler->connector->send->numNeighbors] * size;
+    dim_t len = row_coupler->connector->send->numSharedComponents * size;
     index_t* send_buf = new index_t[len];
 
     // waiting for receiving unknown's global ID
@@ -135,24 +135,25 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 
     // preparing degree_ST and offset_ST for the to-be-received extended rows
 #pragma omp parallel for private(i) schedule(static)
-    for (i=0; i<overlapped_n; i++) recv_degree_ST[i] = coupler->recv_buffer[i];
+    for (i = 0; i < overlapped_n; i++)
+        recv_degree_ST[i] = coupler->recv_buffer[i];
     recv_offset_ST[0] = 0;
-    for (i=0; i<overlapped_n; i++) {
+    for (i = 0; i < overlapped_n; i++) {
         recv_offset_ST[i+1] = recv_offset_ST[i] + coupler->recv_buffer[i];
     }
     index_t* recv_ST = new index_t[recv_offset_ST[overlapped_n]];
     coupler.reset();
 
-    /* receiving ST for the extended rows */
+    // receiving ST for the extended rows
     z = 0;
-    for (p=0; p<row_coupler->connector->recv->numNeighbors; p++) {
+    for (p=0; p<row_coupler->connector->recv->neighbour.size(); p++) {
         const index_t j_min = row_coupler->connector->recv->offsetInShared[p];
         const index_t j_max = row_coupler->connector->recv->offsetInShared[p+1];
         j = recv_offset_ST[j_max] - recv_offset_ST[j_min];
 #ifdef ESYS_MPI
         MPI_Irecv(&recv_ST[z], j, MPI_INT,
-                row_coupler->connector->recv->neighbor[p],
-                mpi_info->counter()+row_coupler->connector->recv->neighbor[p],
+                row_coupler->connector->recv->neighbour[p],
+                mpi_info->counter()+row_coupler->connector->recv->neighbour[p],
                 mpi_info->comm, &row_coupler->mpi_requests[p]);
 #endif
         z += j;
@@ -160,23 +161,22 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
 
     /* sending ST for the extended rows */
     z0 = 0;
-    for (p=0; p<row_coupler->connector->send->numNeighbors; p++) {
+    for (p=0; p<row_coupler->connector->send->neighbour.size(); p++) {
         const index_t j_min = row_coupler->connector->send->offsetInShared[p];
         const index_t j_max = row_coupler->connector->send->offsetInShared[p+1];
         z = z0;
         for (j=j_min; j<j_max; j++) {
             const index_t row=row_coupler->connector->send->shared[j];
             if (degree_ST[row] > 0) {
-                memcpy(&(send_buf[z]), &(send_ST[offset_ST[row]]), degree_ST[row] * sizeof(index_t));
+                memcpy(&send_buf[z], &send_ST[offset_ST[row]], degree_ST[row] * sizeof(index_t));
                 z += degree_ST[row];
             }
         }
 #ifdef ESYS_MPI
         MPI_Issend(&send_buf[z0], z-z0, MPI_INT,
-                 row_coupler->connector->send->neighbor[p],
-                 mpi_info->counter()+mpi_info->rank,
-                 mpi_info->comm,
-                 &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
+                 row_coupler->connector->send->neighbour[p],
+                 mpi_info->counter()+mpi_info->rank, mpi_info->comm,
+                 &row_coupler->mpi_requests[p+row_coupler->connector->recv->neighbour.size()]);
 #endif
         z0 = z;
     }
@@ -213,8 +213,8 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
     // wait until everything is done
 #ifdef ESYS_MPI
     mpi_info->incCounter(mpi_info->size);
-    MPI_Waitall(row_coupler->connector->send->numNeighbors +
-                    row_coupler->connector->recv->numNeighbors,
+    MPI_Waitall(row_coupler->connector->send->neighbour.size() +
+                    row_coupler->connector->recv->neighbour.size(),
                     row_coupler->mpi_requests, row_coupler->mpi_stati);
 #endif
 

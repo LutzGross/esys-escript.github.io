@@ -39,68 +39,58 @@ typedef boost::shared_ptr<const SharedComponents> const_SharedComponents_ptr;
 PASO_DLL_API
 struct SharedComponents
 {
-    SharedComponents(dim_t localLength, dim_t nNeighbours,
-            const int* neighbours, const index_t* sharedArray,
-            const index_t* offset, index_t m, index_t b,
-            const escript::JMPI& mpiInfo)
+    SharedComponents(dim_t localLength, const std::vector<int>& neighbours,
+                     const index_t* sharedArray,
+                     const std::vector<index_t>& offset,
+                     const escript::JMPI& mpiInfo, index_t m = 1, index_t b = 0)
         : local_length(localLength*m),
-          numNeighbors(nNeighbours),
+          neighbour(neighbours),
+          offsetInShared(offset),
           mpi_info(mpiInfo)
     {
-        neighbor = new int[numNeighbors];
-        if (!offset) {
+        if (offset.empty()) {
             numSharedComponents = 0;
         } else {
-            numSharedComponents = offset[nNeighbours] * m;
+            numSharedComponents = offset[neighbours.size()] * m;
         }
         shared = new index_t[numSharedComponents];
-        offsetInShared = new index_t[numNeighbors+1];
-        if (numNeighbors > 0 && offset != NULL) {
-#pragma omp parallel
-            {
-#pragma omp for
-                for (dim_t i=0; i < numNeighbors; i++) {
-                    neighbor[i] = neighbours[i];
-                    offsetInShared[i] = offset[i] * m;
-                }
-                offsetInShared[numNeighbors] = offset[nNeighbours] * m;
-#pragma omp for
-                for (dim_t i=0; i<offset[nNeighbours]; i++) {
-                    const index_t itmp=m*sharedArray[i]+b;
-                    for (dim_t j=0; j < m; ++j)
-                        shared[m*i+j]=itmp+j;
+        if (!neighbours.empty() && !offset.empty()) {
+            if (m != 1) {
+                for (int i = 0; i < offsetInShared.size(); i++) {
+                    offsetInShared[i] *= m;
                 }
             }
+#pragma omp parallel for
+            for (dim_t i = 0; i < offset[neighbours.size()]; i++) {
+                const index_t itmp = m * sharedArray[i] + b;
+                for (dim_t j = 0; j < m; ++j)
+                    shared[m*i+j] = itmp+j;
+            }
         } else {
-            offsetInShared[numNeighbors]=0;
+            offsetInShared[neighbours.size()] = 0;
         }
     }
 
     ~SharedComponents()
     {
-        delete[] neighbor;
         delete[] shared;
-        delete[] offsetInShared;
     }
 
     /// local array length shared
     dim_t local_length;
 
-    /// number of processors sharing values with this processor
-    dim_t numNeighbors;
-
-    /// offsetInSharedInput[i] points to the first input value in array shared
-    /// for processor i. Has length numNeighbors+1
-    index_t* offsetInShared;
-
     /// list of the processors sharing values with this processor
-    int* neighbor;
+    std::vector<int> neighbour;
+
+    /// offsetInShared[i] points to the first input value in array shared
+    /// for processor i. Has length numNeighbors+1
+    std::vector<index_t> offsetInShared;
 
     /// list of the (local) components which are shared with other processors.
     /// Has length numSharedComponents
     index_t* shared;
 
-    /// = offsetInShared[numNeighbors]
+    /// = offsetInShared[numNeighbours]
     dim_t numSharedComponents;
 
     const escript::JMPI mpi_info;

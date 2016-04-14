@@ -59,279 +59,255 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
         const index_t* S, const dim_t n_C, index_t* counter_C,
         const index_t interpolation_method)
 {
-   escript::JMPI& mpi_info=A_p->mpi_info;
-   Distribution_ptr input_dist, output_dist;
-   SharedComponents_ptr send, recv;
-   Connector_ptr col_connector;
-   Pattern_ptr main_pattern, couple_pattern;
-   const dim_t row_block_size=A_p->row_block_size;
-   const dim_t col_block_size=A_p->col_block_size;
-   const dim_t my_n=A_p->mainBlock->numCols;
-   const dim_t overlap_n=A_p->col_coupleBlock->numCols;
+    escript::JMPI mpi_info(A_p->mpi_info);
+    Connector_ptr col_connector;
+    Pattern_ptr main_pattern, couple_pattern;
+    const dim_t row_block_size=A_p->row_block_size;
+    const dim_t col_block_size=A_p->col_block_size;
+    const dim_t my_n=A_p->mainBlock->numCols;
+    const dim_t overlap_n=A_p->col_coupleBlock->numCols;
 #ifdef _OPENMP
-   const int num_threads=omp_get_max_threads();
+    const int num_threads = omp_get_max_threads();
 #else
-   const int num_threads=1;
+    const int num_threads = 1;
 #endif
-   index_t size=mpi_info->size;
-   index_t *main_p=NULL, *couple_p=NULL, *main_idx=NULL, *couple_idx=NULL;
-   index_t *shared=NULL, *offsetInShared=NULL;
-   index_t *recv_shared=NULL, *send_shared=NULL;
-   index_t sum, i, j, k, l, p, q, iptr;
-   index_t my_n_C, global_label, num_neighbors;
-   #ifdef ESYS_MPI
-   index_t rank=mpi_info->rank;
-   #endif
-   int *neighbor=NULL;
-   #ifdef ESYS_MPI
-     MPI_Request* mpi_requests=NULL;
-     MPI_Status* mpi_stati=NULL;
-   #else
-     int *mpi_requests=NULL, *mpi_stati=NULL;
-   #endif
-
-   /* number of C points in current distribution */
-   my_n_C = 0;
-   sum=0;
-   if (num_threads>1) {
-     #pragma omp parallel private(i,sum)
-     {
-        sum=0;
-        #pragma omp for schedule(static)
-        for (i=0;i<my_n;++i) {
-          if (counter_C[i] != -1) {
-            sum++;
-          }
-        }
-        #pragma omp critical
-        {
-            my_n_C += sum;
-        }
-     }
-   } else { /* num_threads=1 */
-     for (i=0;i<my_n;++i) {
-         if (counter_C[i] != -1) {
-            my_n_C++;
-         }
-      }
-   }
-
-   /* create row distribution (output_distribution) and col distribution
-      (input_distribution) */
-   output_dist.reset(new Distribution(mpi_info, A_p->pattern->output_distribution->first_component, 1, 0));
-   std::vector<index_t> dist(size+1); /* now prepare for col distribution */
+    index_t size=mpi_info->size;
+    index_t *main_idx=NULL, *couple_idx=NULL;
+    index_t i, j, k, l, p, q, iptr;
 #ifdef ESYS_MPI
-   MPI_Allgather(&my_n_C, 1, MPI_INT, &dist[0], 1, MPI_INT, mpi_info->comm);
+    index_t rank = mpi_info->rank;
 #endif
-   global_label=0;
-   for (i=0; i<size; i++) {
-     k = dist[i];
-     dist[i] = global_label;
-     global_label += k;
-   }
-   dist[size] = global_label;
 
-   input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-
-   /* create pattern for mainBlock and coupleBlock */
-   main_p = new index_t[my_n+1];
-   couple_p = new index_t[my_n+1];
-     /* count the number of entries per row in the Prolongation matrix :*/
-     #pragma omp parallel for private(i,l,k,iptr,j,p) schedule(static)
-     for (i=0; i<my_n; i++) {
-        l = 0;
-        if (counter_C[i]>=0) {
-          k = 1;    /* i is a C unknown */
-        } else {
-          k = 0;
-          iptr = offset_S[i];
-          for (p=0; p<degree_S[i]; p++) {
-            j = S[iptr+p];  /* this is a strong connection */
-            if (counter_C[j]>=0) { /* and is in C */
-                if (j <my_n) k++;
-                else {
-                  l++;
+    // number of C points in current distribution
+    dim_t my_n_C = 0;
+    if (num_threads > 1) {
+#pragma omp parallel private(i)
+        {
+            dim_t sum = 0;
+#pragma omp for schedule(static)
+            for (i = 0; i < my_n; ++i) {
+                if (counter_C[i] != -1) {
+                    sum++;
                 }
             }
-          }
+#pragma omp critical
+            {
+                my_n_C += sum;
+            }
+        }
+    } else { // num_threads=1
+        for (i = 0; i < my_n; ++i) {
+            if (counter_C[i] != -1) {
+                my_n_C++;
+            }
+        }
+    }
+
+    // create row distribution (output_distribution) and col distribution
+    // (input_distribution)
+    Distribution_ptr output_dist(new Distribution(mpi_info,
+                    A_p->pattern->output_distribution->first_component, 1, 0));
+    std::vector<index_t> dist(size+1); // now prepare for col distribution
+#ifdef ESYS_MPI
+    MPI_Allgather(&my_n_C, 1, MPI_DIM_T, &dist[0], 1, MPI_DIM_T, mpi_info->comm);
+#endif
+    index_t global_label = 0;
+    for (i = 0; i < size; i++) {
+        k = dist[i];
+        dist[i] = global_label;
+        global_label += k;
+    }
+    dist[size] = global_label;
+
+    Distribution_ptr input_dist(new Distribution(mpi_info, dist, 1, 0));
+
+    // create pattern for mainBlock and coupleBlock
+    index_t* main_p = new index_t[my_n+1];
+    index_t* couple_p = new index_t[my_n+1];
+    // count the number of entries per row in the Prolongation matrix
+#pragma omp parallel for private(i,l,k,iptr,j,p) schedule(static)
+    for (i = 0; i < my_n; i++) {
+        l = 0;
+        if (counter_C[i]>=0) {
+            k = 1;    // i is a C unknown
+        } else {
+            k = 0;
+            iptr = offset_S[i];
+            for (p = 0; p < degree_S[i]; p++) {
+                j = S[iptr+p];  // this is a strong connection
+                if (counter_C[j] >= 0) { // and is in C
+                    if (j < my_n)
+                        k++;
+                    else
+                        l++;
+                }
+            }
         }
         main_p[i] = k;
         couple_p[i] = l;
-     }
+    }
 
-     /* number of unknowns in the col-coupleBlock of the interpolation matrix */
-     sum = 0;
-     for (i=0;i<overlap_n;++i) {
+    // number of unknowns in the col-coupleBlock of the interpolation matrix
+    dim_t sum = 0;
+    for (i = 0; i < overlap_n; ++i) {
         if (counter_C[i+my_n] > -1) {
-          counter_C[i+my_n] -= my_n_C;
-          sum++;
+            counter_C[i+my_n] -= my_n_C;
+            sum++;
         }
-     }
+    }
 
-     /* allocate and create index vector for prolongation: */
-     p = util::cumsum(my_n, main_p);
-     main_p[my_n] = p;
-     main_idx = new index_t[p];
-     p = util::cumsum(my_n, couple_p);
-     couple_p[my_n] = p;
-     couple_idx = new index_t[p];
-        #pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
-        for (i=0; i<my_n; i++) {
-          if (counter_C[i]>=0) {
+    // allocate and create index vector for prolongation
+    p = util::cumsum(my_n, main_p);
+    main_p[my_n] = p;
+    main_idx = new index_t[p];
+    p = util::cumsum(my_n, couple_p);
+    couple_p[my_n] = p;
+    couple_idx = new index_t[p];
+#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
+    for (i = 0; i < my_n; i++) {
+        if (counter_C[i]>=0) {
             main_idx[main_p[i]]=counter_C[i];  /* i is a C unknown */
-          } else {
+        } else {
             k = 0;
             l = 0;
             iptr = offset_S[i];
-            for (p=0; p<degree_S[i]; p++) {
-              j = S[iptr+p]; /* this is a strong connection */
-              if (counter_C[j] >=0) { /* and is in C */
-                if (j < my_n) {
-                  main_idx[main_p[i]+k] = counter_C[j];
-                  k++;
-                } else {
-                  couple_idx[couple_p[i]+l] = counter_C[j];
-                  l++;
+            for (p = 0; p < degree_S[i]; p++) {
+                j = S[iptr+p]; // this is a strong connection
+                if (counter_C[j] >= 0) { // and is in C
+                    if (j < my_n) {
+                        main_idx[main_p[i]+k] = counter_C[j];
+                        k++;
+                    } else {
+                        couple_idx[couple_p[i]+l] = counter_C[j];
+                        l++;
+                    }
                 }
-              }
             }
-          }
         }
+    }
 
     main_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
-                        my_n_C, main_p, main_idx));
+                                   my_n_C, main_p, main_idx));
     couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
-                        sum, couple_p, couple_idx));
+                                     sum, couple_p, couple_idx));
 
-   /* prepare the receiver for the col_connector.
-      Note that the allocation for "shared" assumes the send and receive buffer
-      of the interpolation matrix P is no larger than that of matrix A_p. */
-   neighbor = new int[size];
-   offsetInShared = new index_t[size+1];
-   recv = A_p->col_coupler->connector->recv;
-   send = A_p->col_coupler->connector->send;
-   i = recv->numSharedComponents;
-   recv_shared = new index_t[i];
-   memset(recv_shared, 0, sizeof(index_t)*i);
-   k = send->numSharedComponents;
-   send_shared = new index_t[k];
-   if (k > i) i = k;
-   shared = new index_t[i];
+    // prepare the receiver for the col_connector.
+    // Note that the allocation for "shared" assumes the send and receive buffer
+    // of the interpolation matrix P is no larger than that of matrix A_p
+    std::vector<int> neighbour;
+    std::vector<index_t> offsetInShared;
+    SharedComponents_ptr recv(A_p->col_coupler->connector->recv);
+    SharedComponents_ptr send(A_p->col_coupler->connector->send);
+    i = recv->numSharedComponents;
+    index_t* recv_shared = new index_t[i];
+    memset(recv_shared, 0, sizeof(index_t)*i);
+    k = send->numSharedComponents;
+    index_t* send_shared = new index_t[k];
+    if (k > i)
+        i = k;
+    index_t* shared = new index_t[i];
 
-   #ifdef ESYS_MPI
-     mpi_requests=new MPI_Request[size*2];
-     mpi_stati=new MPI_Status[size*2];
-   #else
-     mpi_requests=new int[size*2];
-     mpi_stati=new int[size*2];
-   #endif
-
-   for (p=0; p<send->numNeighbors; p++) {
-     i = send->offsetInShared[p];
-     #ifdef ESYS_MPI
-     MPI_Irecv (&(send_shared[i]), send->offsetInShared[p+1]-i, MPI_INT,
-                send->neighbor[p], mpi_info->counter()+send->neighbor[p],
-                mpi_info->comm, &mpi_requests[p]);
-     #endif
-   }
-
-   num_neighbors = 0;
-   q = 0;
-   p = recv->numNeighbors;
-   offsetInShared[0]=0;
-   for (i=0; i<p; i++) {
-     l = 0;
-     k = recv->offsetInShared[i+1];
-     for (j=recv->offsetInShared[i]; j<k; j++) {
-        if (counter_C[recv->shared[j]] > -1) {
-          shared[q] = my_n_C + q;
-          recv_shared[recv->shared[j]-my_n] = 1;
-          q++;
-          l = 1;
-        }
-     }
-     if (l == 1) {
-        iptr = recv->neighbor[i];
-        neighbor[num_neighbors] = iptr;
-        num_neighbors++;
-        offsetInShared[num_neighbors] = q;
-     }
-     #ifdef ESYS_MPI
-     MPI_Issend(&(recv_shared[recv->offsetInShared[i]]),
-                k-recv->offsetInShared[i], MPI_INT, recv->neighbor[i],
-                mpi_info->counter()+rank, mpi_info->comm,
-                &mpi_requests[i+send->numNeighbors]);
-     #endif
-   }
-   recv.reset(new SharedComponents(my_n_C, num_neighbors, neighbor,
-               shared, offsetInShared, 1, 0, mpi_info));
-
-   /* now we can build the sender */
 #ifdef ESYS_MPI
-   mpi_info->incCounter(size);
-   MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
+    MPI_Request* mpi_requests = new MPI_Request[size*2];
+    MPI_Status* mpi_stati = new MPI_Status[size*2];
 #endif
-   delete[] mpi_requests;
-   delete[] mpi_stati;
 
-   num_neighbors = 0;
-   q = 0;
-   p = send->numNeighbors;
-   offsetInShared[0]=0;
-   for (i=0; i<p; i++) {
-     l = 0;
-     k = send->offsetInShared[i+1];
-     for (j=send->offsetInShared[i]; j<k; j++) {
-        if (send_shared[j] == 1) {
-          shared[q] = counter_C[send->shared[j]];
-          q++;
-          l = 1;
+    for (p = 0; p < send->neighbour.size(); p++) {
+        i = send->offsetInShared[p];
+#ifdef ESYS_MPI
+        MPI_Irecv(&send_shared[i], send->offsetInShared[p+1]-i, MPI_INT,
+                  send->neighbour[p], mpi_info->counter()+send->neighbour[p],
+                  mpi_info->comm, &mpi_requests[p]);
+#endif
+    }
+
+    q = 0;
+    p = recv->neighbour.size();
+    offsetInShared.push_back(0);
+    for (i=0; i<p; i++) {
+        l = 0;
+        k = recv->offsetInShared[i+1];
+        for (j = recv->offsetInShared[i]; j < k; j++) {
+            if (counter_C[recv->shared[j]] > -1) {
+                shared[q] = my_n_C + q;
+                recv_shared[recv->shared[j]-my_n] = 1;
+                q++;
+                l = 1;
+            }
         }
-     }
-     if (l == 1) {
-        iptr = send->neighbor[i];
-        neighbor[num_neighbors] = iptr;
-        num_neighbors++;
-        offsetInShared[num_neighbors] = q;
-     }
-   }
+        if (l == 1) {
+            neighbour.push_back(recv->neighbour[i]);
+            offsetInShared.push_back(q);
+        }
+#ifdef ESYS_MPI
+        MPI_Issend(&recv_shared[recv->offsetInShared[i]],
+                   k-recv->offsetInShared[i], MPI_INT, recv->neighbour[i],
+                   mpi_info->counter()+rank, mpi_info->comm,
+                   &mpi_requests[i+send->neighbour.size()]);
+#endif
+    }
+    recv.reset(new SharedComponents(my_n_C, neighbour, shared, offsetInShared, mpi_info));
 
-    send.reset(new SharedComponents(my_n_C, num_neighbors, neighbor,
-               shared, offsetInShared, 1, 0, mpi_info));
+    // now we can build the sender
+#ifdef ESYS_MPI
+    mpi_info->incCounter(size);
+    MPI_Waitall(recv->neighbour.size()+send->neighbour.size(), mpi_requests, mpi_stati);
+    delete[] mpi_requests;
+    delete[] mpi_stati;
+#endif
+
+    neighbour.clear();
+    offsetInShared.clear();
+    q = 0;
+    p = send->neighbour.size();
+    offsetInShared.push_back(0);
+    for (i = 0; i < p; i++) {
+        l = 0;
+        k = send->offsetInShared[i+1];
+        for (j = send->offsetInShared[i]; j < k; j++) {
+            if (send_shared[j] == 1) {
+                shared[q] = counter_C[send->shared[j]];
+                q++;
+                l = 1;
+            }
+        }
+        if (l == 1) {
+            iptr = send->neighbour[i];
+            neighbour.push_back(iptr);
+            offsetInShared.push_back(q);
+        }
+    }
+
+    send.reset(new SharedComponents(my_n_C, neighbour, shared, offsetInShared, mpi_info));
     col_connector.reset(new Connector(send, recv));
     delete[] recv_shared;
     delete[] send_shared;
-    delete[] neighbor;
-    delete[] offsetInShared;
     delete[] shared;
 
-   /* now we need to create the System Matrix
-      TO BE FIXED: at this stage, we only construct col_couple_pattern
-      and col_connector for interpolation matrix P. To be completed,
-      row_couple_pattern and row_connector need to be constructed as well */
-    SystemMatrix_ptr out;
-    SystemMatrixPattern_ptr pattern;
-    pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-                output_dist, input_dist, main_pattern, couple_pattern,
-                couple_pattern, col_connector, col_connector));
-    out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
-                                row_block_size, col_block_size, false,
-                                A_p->getRowFunctionSpace(),
-                                A_p->getColumnFunctionSpace()));
+    // now we need to create the System Matrix
+    // TO BE FIXED: at this stage, we only construct col_couple_pattern
+    // and col_connector for interpolation matrix P. To be completed,
+    // row_couple_pattern and row_connector need to be constructed as well
+    SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
+                MATRIX_FORMAT_DEFAULT, output_dist, input_dist, main_pattern,
+                couple_pattern, couple_pattern, col_connector, col_connector));
+    SystemMatrix_ptr out(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK,
+                pattern, row_block_size, col_block_size, false,
+                A_p->getRowFunctionSpace(), A_p->getColumnFunctionSpace()));
 
-    /* now fill in the matrix */
+    // now fill in the matrix
     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
         || ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
         if (row_block_size == 1) {
-          Preconditioner_AMG_setClassicProlongation(out, A_p, offset_S, degree_S, S, counter_C);
+            Preconditioner_AMG_setClassicProlongation(out, A_p, offset_S, degree_S, S, counter_C);
         } else {
-          Preconditioner_AMG_setClassicProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
+            Preconditioner_AMG_setClassicProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
         }
-     } else {
+    } else {
         if (row_block_size == 1) {
-          Preconditioner_AMG_setDirectProlongation(out, A_p, offset_S, degree_S, S, counter_C);
+            Preconditioner_AMG_setDirectProlongation(out, A_p, offset_S, degree_S, S, counter_C);
         } else {
-          Preconditioner_AMG_setDirectProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
+            Preconditioner_AMG_setDirectProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
         }
     }
 

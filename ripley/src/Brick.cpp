@@ -2293,13 +2293,13 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
     vector<IndexVector> colIndices(numDOF);
     vector<IndexVector> rowIndices(numShared);
 
-    for (dim_t i=0; i < conn->send->numNeighbors; i++) {
+    for (dim_t i=0; i < conn->send->neighbour.size(); i++) {
         const dim_t start = conn->send->offsetInShared[i];
         const dim_t end = conn->send->offsetInShared[i+1];
         // location of neighbour rank relative to this rank
-        const int xDiff = conn->send->neighbor[i]%m_NX[0] - x;
-        const int yDiff = conn->send->neighbor[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
-        const int zDiff = conn->send->neighbor[i]/(m_NX[0]*m_NX[1]) - z;
+        const int xDiff = conn->send->neighbour[i]%m_NX[0] - x;
+        const int yDiff = conn->send->neighbour[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
+        const int zDiff = conn->send->neighbour[i]/(m_NX[0]*m_NX[1]) - z;
         
         if (xDiff==0 && yDiff==0) {
             // sharing front or back plane
@@ -2942,9 +2942,9 @@ void Brick::populateDofMap()
     // useful debug output
     /*
     std::cout << "--- rcv_shcomp ---" << std::endl;
-    std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
+    std::cout << "numDOF=" << numDOF << ", numNeighbours=" << neighbour.size() << std::endl;
     for (size_t i=0; i<neighbour.size(); i++) {
-        std::cout << "neighbor[" << i << "]=" << neighbour[i]
+        std::cout << "neighbour[" << i << "]=" << neighbour[i]
             << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
     }
     for (size_t i=0; i<recvShared.size(); i++) {

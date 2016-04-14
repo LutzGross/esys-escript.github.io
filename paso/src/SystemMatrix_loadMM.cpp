@@ -178,8 +178,8 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     Pattern_ptr mainPattern(new Pattern(MATRIX_FORMAT_DEFAULT, M, N, row_ptr, col_ind));
     Pattern_ptr couplePattern(new Pattern(MATRIX_FORMAT_DEFAULT, M, N, NULL, NULL));
     dist[0] = M;
-    SharedComponents_ptr send(new SharedComponents(
-                                  M, 0, NULL, NULL, &dist[0], 1, 0, mpi_info));
+    SharedComponents_ptr send(new SharedComponents(M, std::vector<int>(),
+                                 NULL, dist, mpi_info));
     Connector_ptr connector(new Connector(send, send));
     SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
                 MATRIX_FORMAT_DEFAULT, output_dist, input_dist, mainPattern,
@@ -276,8 +276,8 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     Distribution_ptr input_dist(new Distribution(mpi_info, dist, 1, 0));
     mainPattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT,N,M,col_ptr,col_ind));
     couplePattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT,N,M,NULL,NULL));
-    SharedComponents_ptr send(new SharedComponents(
-                    N, 0, NULL, NULL, NULL, 1, 0, mpi_info));
+    SharedComponents_ptr send(new SharedComponents(N, std::vector<int>(),
+                                     NULL, std::vector<index_t>(), mpi_info));
     connector.reset(new Connector(send,send));
     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, mainPattern, couplePattern,

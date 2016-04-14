@@ -75,7 +75,6 @@ void NodeFile::createDOFMappingAndCoupling()
     const index_t UNUSED = -1;
     const dim_t len_loc_dof = max_DOF - min_DOF + 1;
     index_t* shared = new index_t[numNodes * (p_max - p_min + 1)];
-    std::vector<index_t> offsetInShared(mpiSize + 1);
     index_t* locDOFMask = new index_t[len_loc_dof];
     index_t* nodeMask = new index_t[numNodes];
 
@@ -111,8 +110,8 @@ void NodeFile::createDOFMappingAndCoupling()
     index_t* wanted_DOFs = new index_t[numNodes];
     std::vector<index_t> rcv_len(mpiSize);
     std::vector<index_t> snd_len(mpiSize);
-    std::vector<int> neighbor(mpiSize);
-    int numNeighbors = 0;
+    std::vector<int> neighbour;
+    std::vector<index_t> offsetInShared;
     dim_t n = 0;
     dim_t lastn = n;
 
@@ -135,27 +134,14 @@ void NodeFile::createDOFMappingAndCoupling()
             }
             if (n > lastn) {
                 rcv_len[p] = n - lastn;
-#ifdef BOUNDS_CHECK
-                if (numNeighbors >= mpiSize + 1) {
-                    printf("BOUNDS_CHECK %s %d p=%d numNeighbors=%d n=%d\n", __FILE__, __LINE__, p, numNeighbors, n);
-                    exit(1);
-                }
-#endif
-                neighbor[numNeighbors] = p;
-                offsetInShared[numNeighbors] = lastn;
-                numNeighbors++;
+                neighbour.push_back(p);
+                offsetInShared.push_back(lastn);
                 lastn = n;
             }
         } // if p!=myRank
     } // for p
 
-#ifdef BOUNDS_CHECK
-    if (numNeighbors >= mpiSize + 1) {
-        printf("BOUNDS_CHECK %s %d numNeighbors=%d\n", __FILE__, __LINE__, numNeighbors);
-        exit(1);
-    }
-#endif
-    offsetInShared[numNeighbors] = lastn;
+    offsetInShared.push_back(lastn);
 
     // assign new DOF labels to nodes
 #pragma omp parallel for
@@ -169,7 +155,7 @@ void NodeFile::createDOFMappingAndCoupling()
 
     // define how to get DOF values for controlled but other processors
 #ifdef BOUNDS_CHECK
-    if (numNodes && offsetInShared[numNeighbors] >= numNodes * (p_max - p_min + 1)) {
+    if (numNodes && offsetInShared.back() >= numNodes * (p_max - p_min + 1)) {
         printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__);
         exit(1);
     }
@@ -179,8 +165,8 @@ void NodeFile::createDOFMappingAndCoupling()
         shared[i] = myLastDOF - myFirstDOF + i;
 
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-                myLastDOF - myFirstDOF, numNeighbors, &neighbor[0], shared,
-                &offsetInShared[0], 1, 0, MPIInfo));
+                                    myLastDOF - myFirstDOF, neighbour, shared,
+                                    offsetInShared, MPIInfo));
 
     /////////////////////////////////
     //   now we build the sender   //
@@ -191,41 +177,37 @@ void NodeFile::createDOFMappingAndCoupling()
     MPI_Alltoall(&rcv_len[0], 1, MPI_DIM_T, &snd_len[0], 1, MPI_DIM_T,
                  MPIInfo->comm);
     int count = 0;
-#else
-    snd_len[0] = rcv_len[0];
-#endif
-
-    for (int p = 0; p < rcv_shcomp->numNeighbors; p++) {
-#ifdef ESYS_MPI
+    for (int p = 0; p < rcv_shcomp->neighbour.size(); p++) {
         MPI_Isend(&wanted_DOFs[rcv_shcomp->offsetInShared[p]],
                 rcv_shcomp->offsetInShared[p+1]-rcv_shcomp->offsetInShared[p],
-                MPI_DIM_T, rcv_shcomp->neighbor[p],
+                MPI_DIM_T, rcv_shcomp->neighbour[p],
                 MPIInfo->counter() + myRank, MPIInfo->comm,
                 &mpi_requests[count]);
         count++;
-#endif
     }
+#else
+    snd_len[0] = rcv_len[0];
+#endif
     n = 0;
-    numNeighbors = 0;
+    neighbour.clear();
+    offsetInShared.clear();
+#ifdef ESYS_MPI
     for (int p = 0; p < mpiSize; p++) {
         if (snd_len[p] > 0) {
-#ifdef ESYS_MPI
             MPI_Irecv(&shared[n], snd_len[p], MPI_DIM_T, p,
                     MPIInfo->counter() + p, MPIInfo->comm,
                     &mpi_requests[count]);
             count++;
-#endif
-            neighbor[numNeighbors] = p;
-            offsetInShared[numNeighbors] = n;
-            numNeighbors++;
+            neighbour.push_back(p);
+            offsetInShared.push_back(n);
             n += snd_len[p];
         }
     }
-    offsetInShared[numNeighbors] = n;
-#ifdef ESYS_MPI
     MPIInfo->incCounter(MPIInfo->size);
     MPI_Waitall(count, &mpi_requests[0], &mpi_stati[0]);
 #endif
+    offsetInShared.push_back(n);
+
     // map global IDs to local IDs
 #pragma omp parallel for
     for (index_t i = 0; i < n; ++i) {
@@ -233,8 +215,8 @@ void NodeFile::createDOFMappingAndCoupling()
     }
 
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-                myLastDOF - myFirstDOF, numNeighbors, &neighbor[0], shared,
-                &offsetInShared[0], 1, 0, MPIInfo));
+                                    myLastDOF - myFirstDOF, neighbour, shared,
+                                    offsetInShared, MPIInfo));
 
     degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
