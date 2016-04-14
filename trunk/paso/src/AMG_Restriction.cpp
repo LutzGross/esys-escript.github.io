@@ -46,9 +46,8 @@ namespace paso {
 
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 {
-   escript::JMPI& mpi_info=P->mpi_info;
+   escript::JMPI mpi_info(P->mpi_info);
    Distribution_ptr input_dist, output_dist;
-   SharedComponents_ptr send, recv;
    Connector_ptr col_connector;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
@@ -62,8 +61,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    index_t i, j, j_ub, k, p, iptr, iptr_ub, icb, irb;
    index_t block_size, copy_block_size, sum, offset, len, msgs;
    double  *val=NULL, *data_set=NULL, *recv_val=NULL;
-   index_t *shared=NULL, *offsetInShared=NULL;
-   int *neighbor=NULL;
+   index_t *shared=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
      MPI_Status* mpi_stati=NULL;
@@ -144,33 +142,33 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 
    /* send/receive degree_set to build the "ptr" for R->col_coupleBlock */
    msgs = 0;
-   send = P->col_coupler->connector->send;
-   recv = P->col_coupler->connector->recv;
-   recv_ptr = new index_t[send->offsetInShared[send->numNeighbors]];
-   for (p=0; p<send->numNeighbors; p++) {
+   SharedComponents_ptr send(P->col_coupler->connector->send);
+   SharedComponents_ptr recv(P->col_coupler->connector->recv);
+   recv_ptr = new index_t[send->numSharedComponents];
+   for (p=0; p<send->neighbour.size(); p++) {
      i = send->offsetInShared[p];
      j = send->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
-        #ifdef ESYS_MPI
-        MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
-                mpi_info->counter()+send->neighbor[p],
+#ifdef ESYS_MPI
+        MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbour[p],
+                mpi_info->counter()+send->neighbour[p],
                 mpi_info->comm, &mpi_requests[msgs]);
-        #endif
+#endif
         msgs++;
      }
    }
 
-   for (p=0; p<recv->numNeighbors; p++) {
+   for (p=0; p<recv->neighbour.size(); p++) {
      i = recv->offsetInShared[p];
      j = recv->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
-        #ifdef ESYS_MPI
-        MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
+#ifdef ESYS_MPI
+        MPI_Issend(&degree_set[i], k, MPI_INT, recv->neighbour[p],
                 mpi_info->counter()+rank, mpi_info->comm,
                 &mpi_requests[msgs]);
-        #endif
+#endif
         msgs++;
      }
    }
@@ -181,11 +179,11 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 #endif
 
    delete[] degree_set;
-   degree_set = new index_t[send->numNeighbors];
-   memset(degree_set, 0, sizeof(index_t)*send->numNeighbors);
-   for (p=0, sum=0; p<send->numNeighbors; p++) {
+   degree_set = new index_t[send->neighbour.size()];
+   memset(degree_set, 0, sizeof(index_t)*send->neighbour.size());
+   for (p=0, sum=0; p<send->neighbour.size(); p++) {
      iptr_ub = send->offsetInShared[p+1];
-     for (iptr = send->offsetInShared[p]; iptr < iptr_ub; iptr++){
+     for (iptr = send->offsetInShared[p]; iptr < iptr_ub; iptr++) {
         degree_set[p] += recv_ptr[iptr];
      }
      sum += degree_set[p];
@@ -196,42 +194,42 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    msgs = 0;
    recv_idx = new index_t[sum];
    recv_val = new double[sum * block_size];
-   for (p=0, offset=0; p<send->numNeighbors; p++) {
+   for (p=0, offset=0; p<send->neighbour.size(); p++) {
      if (degree_set[p]) {
-        #ifdef ESYS_MPI
-        MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
-                send->neighbor[p], mpi_info->counter()+send->neighbor[p],
+#ifdef ESYS_MPI
+        MPI_Irecv(&recv_idx[offset], degree_set[p], MPI_INT,
+                send->neighbour[p], mpi_info->counter()+send->neighbour[p],
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
-        MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size,
-                MPI_DOUBLE, send->neighbor[p],
-                mpi_info->counter()+send->neighbor[p]+size,
+        MPI_Irecv(&recv_val[offset*block_size], degree_set[p] * block_size,
+                MPI_DOUBLE, send->neighbour[p],
+                mpi_info->counter()+send->neighbour[p]+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         offset += degree_set[p];
-        #endif
+#endif
         msgs++;
      }
    }
 
-   for (p=0; p<recv->numNeighbors; p++) {
+   for (p=0; p<recv->neighbour.size(); p++) {
      i = recv->offsetInShared[p];
      j = recv->offsetInShared[p+1];
      k = send_ptr[j] - send_ptr[i];
      if (k > 0) {
         #ifdef ESYS_MPI
-        MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
-                recv->neighbor[p], mpi_info->counter()+rank,
+        MPI_Issend(&offset_set[send_ptr[i]], k, MPI_INT,
+                recv->neighbour[p], mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
-        MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
-                recv->neighbor[p], mpi_info->counter()+rank+size,
+        MPI_Issend(&data_set[send_ptr[i]*block_size], k*block_size, MPI_DOUBLE,
+                recv->neighbour[p], mpi_info->counter()+rank+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         #endif
         msgs++;
      }
    }
 
-   len = send->offsetInShared[send->numNeighbors];
+   len = send->numSharedComponents;
    temp = new index_t[len];
    memset(temp, 0, sizeof(index_t)*len);
    for (p=1; p<len; p++) {
@@ -250,15 +248,15 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    delete[] mpi_stati;
 
    /* construct "ptr", "idx" and "val" for R->col_coupleBlock */
-   ptr = new  index_t[n_C + 1];
-   idx = new  index_t[sum];
-   val = new  double[sum*block_size];
+   ptr = new index_t[n_C + 1];
+   idx = new index_t[sum];
+   val = new double[sum*block_size];
    ptr[0] = 0;
    for (i=0; i<n_C; i++) {
      icb = 0;
-     for (p=0; p<send->numNeighbors; p++) {
+     for (p=0; p<send->neighbour.size(); p++) {
         k = send->offsetInShared[p+1];
-        for (j=send->offsetInShared[p]; j<k; j++) {
+        for (j = send->offsetInShared[p]; j<k; j++) {
           if (send->shared[j] == i) {
             offset = ptr[i] + icb;
             len = recv_ptr[j];
@@ -300,19 +298,18 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 
    /* prepare the receiver for the col_connector */
    const std::vector<index_t> dist(P->pattern->output_distribution->first_component);
-   offsetInShared = new index_t[size+1];
+   std::vector<index_t> offsetInShared(size+1);
    shared = new index_t[num_Rcouple_cols];
-   numNeighbors = send->numNeighbors;
-   neighbor = send->neighbor;
-   memset(offsetInShared, 0, sizeof(index_t) * (size+1));
-   if (num_Rcouple_cols > 0) offset = dist[neighbor[0] + 1];
+   numNeighbors = send->neighbour.size();
+   std::vector<int> neighbour = send->neighbour;
+   if (num_Rcouple_cols > 0) offset = dist[neighbour[0] + 1];
    for (i=0, p=0; i<num_Rcouple_cols; i++) {
      /* cols i is received from rank neighbor[p] when it's still smaller
         than "offset", otherwise, it is received from rank neighbor[p+1] */
      while (recv_idx[i] >= offset) {
         p++;
         offsetInShared[p] = i;
-        offset = dist[neighbor[p] + 1];
+        offset = dist[neighbour[p] + 1];
      }
      shared[i] = i + n;  /* n is the number of cols in R->mainBlock */
    }
@@ -320,25 +317,25 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    for (i=p; i<numNeighbors; i++) {
      offsetInShared[i+1] = num_Rcouple_cols;
    }
-   recv.reset(new SharedComponents(n, numNeighbors, neighbor, shared,
-               offsetInShared, 1, 0, mpi_info));
+   recv.reset(new SharedComponents(n, neighbour, shared, offsetInShared,
+                                   mpi_info));
    delete[] recv_idx;
 
    /* prepare the sender for the col_connector */
    delete[] shared;
-   numNeighbors = P->col_coupler->connector->recv->numNeighbors;
-   neighbor = P->col_coupler->connector->recv->neighbor;
+   numNeighbors = P->col_coupler->connector->recv->neighbour.size();
+   neighbour = P->col_coupler->connector->recv->neighbour;
    shared = new index_t[n * numNeighbors];
    Pattern_ptr couple_pattern(P->col_coupleBlock->pattern);
    sum=0;
-   memset(offsetInShared, 0, sizeof(index_t) * (size+1));
-   for (p=0; p<numNeighbors; p++) {
+   offsetInShared.assign(size+1, 0);
+   for (p = 0; p < numNeighbors; p++) {
      j = P->col_coupler->connector->recv->offsetInShared[p];
      j_ub = P->col_coupler->connector->recv->offsetInShared[p+1];
-     for (i=0; i<n; i++) {
+     for (i = 0; i < n; i++) {
         iptr = couple_pattern->ptr[i];
         iptr_ub = couple_pattern->ptr[i+1];
-        for (; iptr<iptr_ub; iptr++) {
+        for (; iptr < iptr_ub; iptr++) {
           k = couple_pattern->index[iptr];
           if (k >= j && k < j_ub) {
             shared[sum] = i;
@@ -349,12 +346,11 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      }
      offsetInShared[p+1] = sum;
    }
-   send.reset(new SharedComponents(n, numNeighbors, neighbor, shared,
-               offsetInShared, 1, 0, mpi_info));
+   send.reset(new SharedComponents(n, neighbour, shared, offsetInShared,
+                                   mpi_info));
 
-   /* build the col_connector based on sender and receiver */
+   // build the col_connector based on sender and receiver
    col_connector.reset(new Connector(send, recv));
-   delete[] offsetInShared;
    delete[] shared;
 
    couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n_C,

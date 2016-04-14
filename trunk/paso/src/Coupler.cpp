@@ -38,22 +38,22 @@ Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize) :
 {
     mpi_info = conn->mpi_info;
 #ifdef ESYS_MPI
-    mpi_requests = new MPI_Request[conn->send->numNeighbors +
-                                   conn->recv->numNeighbors];
-    mpi_stati = new MPI_Status[conn->send->numNeighbors +
-                               conn->recv->numNeighbors];
-#endif
+    mpi_requests = new MPI_Request[conn->send->neighbour.size() +
+                                   conn->recv->neighbour.size()];
+    mpi_stati = new MPI_Status[conn->send->neighbour.size() +
+                               conn->recv->neighbour.size()];
     if (mpi_info->size > 1) {
-        send_buffer=new double[conn->send->numSharedComponents * block_size];
-        recv_buffer=new double[conn->recv->numSharedComponents * block_size];
+        send_buffer = new double[conn->send->numSharedComponents * block_size];
+        recv_buffer = new double[conn->recv->numSharedComponents * block_size];
     }
+#endif
 }
 
 Coupler::~Coupler()
 {
+#ifdef ESYS_MPI
     delete[] send_buffer;
     delete[] recv_buffer;
-#ifdef ESYS_MPI
     delete[] mpi_requests;
     delete[] mpi_stati;
 #endif
@@ -62,19 +62,18 @@ Coupler::~Coupler()
 void Coupler::startCollect(const double* in)
 {
     data = const_cast<double*>(in);
+#ifdef ESYS_MPI
     if (mpi_info->size > 1) {
         if (in_use) {
             throw PasoException("Coupler::startCollect: Coupler in use.");
         }
         // start receiving input
-        for (dim_t i=0; i < connector->recv->numNeighbors; ++i) {
-#ifdef ESYS_MPI
+        for (dim_t i=0; i < connector->recv->neighbour.size(); ++i) {
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->recv->neighbor[i],
-                    mpi_info->counter()+connector->recv->neighbor[i],
+                    MPI_DOUBLE, connector->recv->neighbour[i],
+                    mpi_info->counter()+connector->recv->neighbour[i],
                     mpi_info->comm, &mpi_requests[i]);
-#endif
         }
         // collect values into buffer
         const int numSharedSend = connector->send->numSharedComponents;
@@ -92,34 +91,33 @@ void Coupler::startCollect(const double* in)
                 send_buffer[i]=in[connector->send->shared[i]];
             }
         }
-#ifdef ESYS_MPI
         // send buffer out
-        for (dim_t i=0; i < connector->send->numNeighbors; ++i) {
+        for (dim_t i=0; i < connector->send->neighbour.size(); ++i) {
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->send->neighbor[i],
+                    MPI_DOUBLE, connector->send->neighbour[i],
                     mpi_info->counter()+mpi_info->rank, mpi_info->comm,
-                    &mpi_requests[i+connector->recv->numNeighbors]);
+                    &mpi_requests[i+connector->recv->neighbour.size()]);
         }
         mpi_info->incCounter(mpi_info->size);
-#endif
         in_use = true;
     }
+#endif
 }
 
 double* Coupler::finishCollect()
 {
+#ifdef ESYS_MPI
     if (mpi_info->size > 1) {
         if (!in_use) {
             throw PasoException("Coupler::finishCollect: Communication has not been initiated.");
         }
         // wait for receive
-#ifdef ESYS_MPI
-        MPI_Waitall(connector->recv->numNeighbors+connector->send->numNeighbors,
-                    mpi_requests, mpi_stati);
-#endif
+        MPI_Waitall(connector->recv->neighbour.size() +
+                    connector->send->neighbour.size(), mpi_requests, mpi_stati);
         in_use = false;
     }
+#endif
     return recv_buffer;
 }
 

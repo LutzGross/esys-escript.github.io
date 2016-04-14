@@ -115,7 +115,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     dim_t num_couple_cols = B->col_coupleBlock->numCols;
     SharedComponents_ptr send(A->col_coupler->connector->send);
     SharedComponents_ptr recv(A->col_coupler->connector->recv);
-    const int num_neighbors = send->numNeighbors;
+    const int num_neighbors = send->neighbour.size();
     index_t p = send->offsetInShared[num_neighbors];
     index_t len = p * B->col_distribution->first_component[size];
     double* send_buf = new double[len * block_size];
@@ -157,14 +157,14 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     MPI_Allgatherv(global_id, num_couple_cols, MPI_INT, cols_array, recv_degree, recv_offset, MPI_INT, A->mpi_info->comm);
 
     // first, prepare the ptr_ptr to be received
-    q = recv->numNeighbors;
+    q = recv->neighbour.size();
     len = recv->offsetInShared[q];
     ptr_ptr = new index_t[(len+1) * 2];
     for (p=0; p<q; p++) {
         row = recv->offsetInShared[p];
         m = recv->offsetInShared[p + 1];
-        MPI_Irecv(&(ptr_ptr[2*row]), 2 * (m-row), MPI_INT, recv->neighbor[p],
-                A->mpi_info->counter()+recv->neighbor[p],
+        MPI_Irecv(&(ptr_ptr[2*row]), 2 * (m-row), MPI_INT, recv->neighbour[p],
+                A->mpi_info->counter()+recv->neighbour[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
     }
@@ -174,7 +174,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     i0 = 0;
     for (p=0; p<num_neighbors; p++) {
         i = i0;
-        neighbor = send->neighbor[p];
+        neighbor = send->neighbour[p];
         m_lb = B->col_distribution->first_component[neighbor];
         m_ub = B->col_distribution->first_component[neighbor + 1];
         j_ub = send->offsetInShared[p + 1];
@@ -245,10 +245,10 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         }
 
         /* sending */
-        MPI_Issend(&(send_offset[2*i0]), 2*(i-i0), MPI_INT, send->neighbor[p],
+        MPI_Issend(&send_offset[2*i0], 2*(i-i0), MPI_INT, send->neighbour[p],
                 A->mpi_info->counter()+rank,
                 A->mpi_info->comm,
-                &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
+                &A->col_coupler->mpi_requests[p+recv->neighbour.size()]);
         send_degree[p] = len;
         i0 = i;
     }
@@ -257,15 +257,14 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     delete[] idx_m;
     delete[] idx_c;
 
-    q = recv->numNeighbors;
+    q = recv->neighbour.size();
     len = recv->offsetInShared[q];
     ptr_main = new index_t[(len+1)];
     ptr_couple = new index_t[(len+1)];
 
-    MPI_Waitall(A->col_coupler->connector->send->numNeighbors +
-                    A->col_coupler->connector->recv->numNeighbors,
-                A->col_coupler->mpi_requests,
-                A->col_coupler->mpi_stati);
+    MPI_Waitall(A->col_coupler->connector->send->neighbour.size() +
+                    A->col_coupler->connector->recv->neighbour.size(),
+                A->col_coupler->mpi_requests, A->col_coupler->mpi_stati);
     A->mpi_info->incCounter(size);
 
     j = 0;
@@ -288,14 +287,14 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     /* send/receive index array */
     j=0;
     k_ub = 0;
-    for (p=0; p<recv->numNeighbors; p++) {
+    for (p=0; p<recv->neighbour.size(); p++) {
         k = recv->offsetInShared[p];
         m = recv->offsetInShared[p+1];
         i = ptr_main[m] - ptr_main[k] + ptr_couple[m] - ptr_couple[k];
         if (i > 0) {
             k_ub ++;
-            MPI_Irecv(&(ptr_idx[j]), i, MPI_INT, recv->neighbor[p],
-                A->mpi_info->counter()+recv->neighbor[p],
+            MPI_Irecv(&(ptr_idx[j]), i, MPI_INT, recv->neighbour[p],
+                A->mpi_info->counter()+recv->neighbour[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
         }
@@ -308,16 +307,16 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         i = send_degree[p] - j;
         if (i > 0){
             k_ub ++;
-            MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbor[p],
+            MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbour[p],
                 A->mpi_info->counter()+rank,
                 A->mpi_info->comm,
-                &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
+                &(A->col_coupler->mpi_requests[p+recv->neighbour.size()]));
         }
         j = send_degree[p];
     }
 
-    MPI_Waitall(A->col_coupler->connector->send->numNeighbors +
-                    A->col_coupler->connector->recv->numNeighbors,
+    MPI_Waitall(A->col_coupler->connector->send->neighbour.size() +
+                    A->col_coupler->connector->recv->neighbour.size(),
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
     A->mpi_info->incCounter(size);
@@ -354,14 +353,14 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
 
     /* send/receive value array */
     j=0;
-    for (p=0; p<recv->numNeighbors; p++) {
+    for (p=0; p<recv->neighbour.size(); p++) {
         k = recv->offsetInShared[p];
         m = recv->offsetInShared[p+1];
         i = ptr_main[m] - ptr_main[k] + ptr_couple[m] - ptr_couple[k];
         if (i > 0)
             MPI_Irecv(&(ptr_val[j]), i * block_size,
-                MPI_DOUBLE, recv->neighbor[p],
-                A->mpi_info->counter()+recv->neighbor[p],
+                MPI_DOUBLE, recv->neighbour[p],
+                A->mpi_info->counter()+recv->neighbour[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
         j += (i * block_size);
@@ -371,16 +370,16 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     for (p=0; p<num_neighbors; p++) {
         i = send_degree[p] - j;
         if (i > 0)
-            MPI_Issend(&(send_buf[j*block_size]), i*block_size, MPI_DOUBLE, send->neighbor[p],
-                A->mpi_info->counter()+rank,
-                A->mpi_info->comm,
-                &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
-        j = send_degree[p] ;
+            MPI_Issend(&send_buf[j*block_size], i*block_size, MPI_DOUBLE,
+                    send->neighbour[p], A->mpi_info->counter()+rank,
+                    A->mpi_info->comm,
+                    &A->col_coupler->mpi_requests[p+recv->neighbour.size()]);
+        j = send_degree[p];
     }
 
-    MPI_Waitall(A->col_coupler->connector->send->numNeighbors+A->col_coupler->connector->recv->numNeighbors,
-                A->col_coupler->mpi_requests,
-                A->col_coupler->mpi_stati);
+    MPI_Waitall(A->col_coupler->connector->send->neighbour.size() +
+                A->col_coupler->connector->recv->neighbour.size(),
+                A->col_coupler->mpi_requests, A->col_coupler->mpi_stati);
     A->mpi_info->incCounter(size);
 
 #pragma omp parallel for private(i,j,k,m,p) schedule(static)
@@ -413,157 +412,145 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
 /* As defined, sparse matrix (let's called it T) defined by T(ptr, idx, val)
    has the same number of rows as P->col_coupleBlock->numCols. Now, we need
    to copy block of data in T to neighbour processors, defined by
-        P->col_coupler->connector->recv->neighbor[k] where k is in
-        [0, P->col_coupler->connector->recv->numNeighbors).
-   Rows to be copied to neighbor processor k is in the list defined by
+        P->col_coupler->connector->recv->neighbour[k] where k is in
+        [0, P->col_coupler->connector->recv->numNeighbours).
+   Rows to be copied to neighbour processor k is in the list defined by
         P->col_coupler->connector->recv->offsetInShared[k] ...
         P->col_coupler->connector->recv->offsetInShared[k+1]  */
 void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
         index_t **p_ptr, index_t **p_idx, double **p_val,
         index_t *global_id, index_t block_size)
 {
-    SharedComponents_ptr send, recv;
-    index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
     index_t i, j, p, m, n;
-    index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
     index_t *ptr=*p_ptr, *idx=*p_idx;
-    double  *val=*p_val, *recv_val=NULL;
-  #ifdef ESYS_MPI
+    double  *val=*p_val;
+#ifdef ESYS_MPI
     int rank = P->mpi_info->rank;
     int size = P->mpi_info->size;
-  #endif
+#endif
 
-    send = P->col_coupler->connector->recv;
-    recv = P->col_coupler->connector->send;
-    send_neighbors = send->numNeighbors;
-    recv_neighbors = recv->numNeighbors;
-    send_rows = P->col_coupleBlock->numCols;
-    recv_rows = recv->offsetInShared[recv_neighbors];
+    SharedComponents_ptr send(P->col_coupler->connector->recv);
+    SharedComponents_ptr recv(P->col_coupler->connector->send);
+    int send_neighbors = send->neighbour.size();
+    int recv_neighbors = recv->neighbour.size();
+    dim_t send_rows = P->col_coupleBlock->numCols;
+    dim_t recv_rows = recv->offsetInShared[recv_neighbors];
 
-    send_degree = new index_t[send_rows];
-    recv_ptr = new index_t[recv_rows + 1];
-  #pragma omp for schedule(static) private(i)
+    index_t* send_degree = new index_t[send_rows];
+    index_t* recv_ptr = new index_t[recv_rows + 1];
+#pragma omp for schedule(static) private(i)
     for (i=0; i<send_rows; i++)
         send_degree[i] = ptr[i+1] - ptr[i];
 
-  /* First, send/receive the degree */
-  for (p=0; p<recv_neighbors; p++) { /* Receiving */
-    m = recv->offsetInShared[p];
-    n = recv->offsetInShared[p+1];
-    #ifdef ESYS_MPI
-    MPI_Irecv(&(recv_ptr[m]), n-m, MPI_INT, recv->neighbor[p],
-                P->mpi_info->counter() + recv->neighbor[p],
-                P->mpi_info->comm,
-                &(P->col_coupler->mpi_requests[p]));
-    #endif
-  }
-  for (p=0; p<send_neighbors; p++) { /* Sending */
-    m = send->offsetInShared[p];
-    n = send->offsetInShared[p+1];
-    #ifdef ESYS_MPI
-    MPI_Issend(&(send_degree[m]), n-m, MPI_INT, send->neighbor[p],
-                P->mpi_info->counter() + rank,
-                P->mpi_info->comm,
-                &(P->col_coupler->mpi_requests[p+recv_neighbors]));
-    #endif
-  }
+    // First, send/receive the degree
+    for (p = 0; p < recv_neighbors; p++) { // Receiving
+        m = recv->offsetInShared[p];
+        n = recv->offsetInShared[p+1];
 #ifdef ESYS_MPI
-  P->mpi_info->incCounter(size);
-  MPI_Waitall(send_neighbors+recv_neighbors,
-                P->col_coupler->mpi_requests,
+        MPI_Irecv(&recv_ptr[m], n-m, MPI_INT, recv->neighbour[p],
+                  P->mpi_info->counter() + recv->neighbour[p],
+                  P->mpi_info->comm, &P->col_coupler->mpi_requests[p]);
+#endif
+    }
+    for (p = 0; p < send_neighbors; p++) { // Sending
+        m = send->offsetInShared[p];
+        n = send->offsetInShared[p+1];
+#ifdef ESYS_MPI
+        MPI_Issend(&send_degree[m], n-m, MPI_INT, send->neighbour[p],
+                   P->mpi_info->counter() + rank, P->mpi_info->comm,
+                   &P->col_coupler->mpi_requests[p+recv_neighbors]);
+#endif
+    }
+#ifdef ESYS_MPI
+    P->mpi_info->incCounter(size);
+    MPI_Waitall(send_neighbors+recv_neighbors, P->col_coupler->mpi_requests,
                 P->col_coupler->mpi_stati);
 #endif
 
-  delete[] send_degree;
-  m = util::cumsum(recv_rows, recv_ptr);
-  recv_ptr[recv_rows] = m;
-  recv_idx = new index_t[m];
-  recv_val = new double[m * block_size];
+    delete[] send_degree;
+    m = util::cumsum(recv_rows, recv_ptr);
+    recv_ptr[recv_rows] = m;
+    index_t* recv_idx = new index_t[m];
+    double* recv_val = new double[m * block_size];
 
-  /* Next, send/receive the index array */
-  j = 0;
-  for (p=0; p<recv_neighbors; p++) { /* Receiving */
-    m = recv->offsetInShared[p];
-    n = recv->offsetInShared[p+1];
-    i = recv_ptr[n] - recv_ptr[m];
-    if (i > 0) {
-      #ifdef ESYS_MPI
-      MPI_Irecv(&(recv_idx[j]), i, MPI_INT, recv->neighbor[p],
-                P->mpi_info->counter() + recv->neighbor[p],
-                P->mpi_info->comm,
-                &(P->col_coupler->mpi_requests[p]));
-      #endif
-    }
-    j += i;
-  }
-
-  j = 0;
-  for (p=0; p<send_neighbors; p++) { /* Sending */
-    m = send->offsetInShared[p];
-    n = send->offsetInShared[p+1];
-    i = ptr[n] - ptr[m];
-    if (i >0) {
-        #ifdef ESYS_MPI
-        MPI_Issend(&(idx[j]), i, MPI_INT, send->neighbor[p],
-                P->mpi_info->counter() + rank,
-                P->mpi_info->comm,
-                &(P->col_coupler->mpi_requests[p+recv_neighbors]));
-        #endif
+    // Next, send/receive the index array
+    j = 0;
+    for (p=0; p<recv_neighbors; p++) { // Receiving
+        m = recv->offsetInShared[p];
+        n = recv->offsetInShared[p+1];
+        i = recv_ptr[n] - recv_ptr[m];
+#ifdef ESYS_MPI
+        if (i > 0) {
+            MPI_Irecv(&recv_idx[j], i, MPI_INT, recv->neighbour[p],
+                    P->mpi_info->counter() + recv->neighbour[p],
+                    P->mpi_info->comm, &P->col_coupler->mpi_requests[p]);
+        }
+#endif
         j += i;
     }
-  }
+
+    j = 0;
+    for (p=0; p<send_neighbors; p++) { /* Sending */
+        m = send->offsetInShared[p];
+        n = send->offsetInShared[p+1];
+        i = ptr[n] - ptr[m];
+        if (i > 0) {
 #ifdef ESYS_MPI
-  P->mpi_info->incCounter(size);
-  MPI_Waitall(send_neighbors+recv_neighbors,
-                P->col_coupler->mpi_requests,
-                P->col_coupler->mpi_stati);
+            MPI_Issend(&idx[j], i, MPI_INT, send->neighbour[p],
+                       P->mpi_info->counter() + rank, P->mpi_info->comm,
+                       &P->col_coupler->mpi_requests[p+recv_neighbors]);
 #endif
-
-  /* Last, send/receive the data array */
-  j = 0;
-  for (p=0; p<recv_neighbors; p++) { /* Receiving */
-    m = recv->offsetInShared[p];
-    n = recv->offsetInShared[p+1];
-    i = recv_ptr[n] - recv_ptr[m];
-    #ifdef ESYS_MPI
-    if (i > 0)
-      MPI_Irecv(&(recv_val[j]), i*block_size, MPI_DOUBLE, recv->neighbor[p],
-                P->mpi_info->counter() + recv->neighbor[p],
-                P->mpi_info->comm,
-                &(P->col_coupler->mpi_requests[p]));
-    #endif
-    j += (i*block_size);
-  }
-
-  j = 0;
-  for (p=0; p<send_neighbors; p++) { /* Sending */
-    m = send->offsetInShared[p];
-    n = send->offsetInShared[p+1];
-    i = ptr[n] - ptr[m];
-    if (i >0) {
-        #ifdef ESYS_MPI
-        MPI_Issend(&(val[j]), i * block_size, MPI_DOUBLE, send->neighbor[p],
-                P->mpi_info->counter() + rank,
-                P->mpi_info->comm,
-                &(P->col_coupler->mpi_requests[p+recv_neighbors]));
-        #endif
-        j += i * block_size;
+            j += i;
+        }
     }
-  }
 #ifdef ESYS_MPI
-  P->mpi_info->incCounter(size);
-  MPI_Waitall(send_neighbors+recv_neighbors,
-                P->col_coupler->mpi_requests,
+    P->mpi_info->incCounter(size);
+    MPI_Waitall(send_neighbors+recv_neighbors, P->col_coupler->mpi_requests,
                 P->col_coupler->mpi_stati);
 #endif
 
-  /* Clean up and return with received ptr, index and data arrays */
-  delete[] ptr;
-  delete[] idx;
-  delete[] val;
-  *p_ptr = recv_ptr;
-  *p_idx = recv_idx;
-  *p_val = recv_val;
+    // Last, send/receive the data array
+    j = 0;
+    for (p=0; p<recv_neighbors; p++) { /* Receiving */
+        m = recv->offsetInShared[p];
+        n = recv->offsetInShared[p+1];
+        i = recv_ptr[n] - recv_ptr[m];
+#ifdef ESYS_MPI
+        if (i > 0)
+            MPI_Irecv(&recv_val[j], i*block_size, MPI_DOUBLE, recv->neighbour[p],
+                P->mpi_info->counter() + recv->neighbour[p],
+                P->mpi_info->comm, &P->col_coupler->mpi_requests[p]);
+#endif
+        j += (i*block_size);
+    }
+
+    j = 0;
+    for (p=0; p<send_neighbors; p++) { /* Sending */
+        m = send->offsetInShared[p];
+        n = send->offsetInShared[p+1];
+        i = ptr[n] - ptr[m];
+        if (i >0) {
+#ifdef ESYS_MPI
+            MPI_Issend(&val[j], i * block_size, MPI_DOUBLE, send->neighbour[p],
+                       P->mpi_info->counter() + rank, P->mpi_info->comm,
+                       &P->col_coupler->mpi_requests[p+recv_neighbors]);
+#endif
+            j += i * block_size;
+        }
+    }
+#ifdef ESYS_MPI
+    P->mpi_info->incCounter(size);
+    MPI_Waitall(send_neighbors+recv_neighbors, P->col_coupler->mpi_requests,
+                P->col_coupler->mpi_stati);
+#endif
+
+    // Clean up and return with received ptr, index and data arrays
+    delete[] ptr;
+    delete[] idx;
+    delete[] val;
+    *p_ptr = recv_ptr;
+    *p_idx = recv_idx;
+    *p_val = recv_val;
 }
 
 SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
@@ -585,7 +572,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    index_t size=mpi_info->size, rank=mpi_info->rank;
    index_t *RAP_main_ptr=NULL, *RAP_couple_ptr=NULL, *RAP_ext_ptr=NULL;
    index_t *RAP_main_idx=NULL, *RAP_couple_idx=NULL, *RAP_ext_idx=NULL;
-   index_t *offsetInShared=NULL, *row_couple_ptr=NULL, *row_couple_idx=NULL;
+   index_t *row_couple_ptr=NULL, *row_couple_idx=NULL;
    index_t *Pcouple_to_Pext=NULL, *Pext_to_RAP=NULL, *Pcouple_to_RAP=NULL;
    index_t *temp=NULL, *global_id_P=NULL, *global_id_RAP=NULL;
    index_t *shared=NULL, *P_marker=NULL, *A_marker=NULL;
@@ -597,13 +584,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    index_t **send_ptr=NULL, **send_idx=NULL;
    dim_t p, num_neighbors;
    dim_t *recv_len=NULL, *send_len=NULL, *len=NULL;
-   int *neighbor=NULL;
-   #ifdef ESYS_MPI
-     MPI_Request* mpi_requests=NULL;
-     MPI_Status* mpi_stati=NULL;
-   #else
-     int *mpi_requests=NULL, *mpi_stati=NULL;
-   #endif
 
 /*   if (!(P->type & MATRIX_FORMAT_DIAGONAL_BLOCK))
      return Preconditioner_AMG_buildInterpolationOperatorBlock(A, P, R);*/
@@ -616,7 +596,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    if (size > 1)
      R_couple = P->col_coupleBlock->getTranspose();
 
-   /* generate P_ext, i.e. portion of P that is stored on neighbor procs
+   /* generate P_ext, i.e. portion of P that is stored on neighbour procs
       and needed locally for triple matrix product RAP
       to be specific, P_ext (on processor k) are group of rows in P, where
       the list of rows from processor q is given by
@@ -1061,7 +1041,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
                 &RAP_ext_val, global_id_P, block_size);
 
-   num_RAPext_rows = P->col_coupler->connector->send->offsetInShared[P->col_coupler->connector->send->numNeighbors];
+   num_RAPext_rows = P->col_coupler->connector->send->numSharedComponents;
    sum = RAP_ext_ptr[num_RAPext_rows];
    num_RAPext_cols = 0;
    if (num_Pext_cols || sum > 0) {
@@ -1137,14 +1117,14 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    /* alloc and initialise the makers */
    sum = num_RAPext_cols + num_Pmain_cols;
    P_marker = new index_t[sum];
-   #pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i) schedule(static)
    for (i=0; i<sum; i++) P_marker[i] = -1;
-   #pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
 
-   /* Now, count the size of RAP. Start with rows in R_main */
-   num_neighbors = P->col_coupler->connector->send->numNeighbors;
-   offsetInShared = P->col_coupler->connector->send->offsetInShared;
+   // Now, count the size of RAP. Start with rows in R_main
+   num_neighbors = P->col_coupler->connector->send->neighbour.size();
+   std::vector<index_t> offsetInShared(P->col_coupler->connector->send->offsetInShared);
    shared = P->col_coupler->connector->send->shared;
    i = 0;
    j = 0;
@@ -1157,8 +1137,8 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         in RAP_ext */
      P_marker[i_r] = i;
      i++;
-     for (j1=0; j1<num_neighbors; j1++) {
-        for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
+     for (j1 = 0; j1<num_neighbors; j1++) {
+        for (j2 = offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
           if (shared[j2] == i_r) {
             for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
               i_c = RAP_ext_idx[k];
@@ -1680,20 +1660,18 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    const std::vector<index_t> dist(P->pattern->input_distribution->first_component);
    recv_len = new dim_t[size];
    send_len = new dim_t[size];
-   neighbor = new int[size];
-   offsetInShared = new index_t[size+1];
+   std::vector<int> neighbour;
+   offsetInShared.clear();
    shared = new index_t[num_RAPext_cols];
    memset(recv_len, 0, sizeof(dim_t) * size);
    memset(send_len, 0, sizeof(dim_t) * size);
-   num_neighbors = 0;
-   offsetInShared[0] = 0;
+   offsetInShared.push_back(0);
    for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
         if (recv_len[j] > 0) {
-          neighbor[num_neighbors] = j;
-          num_neighbors ++;
-          offsetInShared[num_neighbors] = i;
+          neighbour.push_back(j);
+          offsetInShared.push_back(i);
         }
         while (k <= global_id_RAP[i]) {
           j++;
@@ -1703,71 +1681,62 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      recv_len[j] ++;
    }
    if (recv_len[j] > 0) {
-     neighbor[num_neighbors] = j;
-     num_neighbors ++;
-     offsetInShared[num_neighbors] = i;
+     neighbour.push_back(j);
+     offsetInShared.push_back(i);
    }
 
-   SharedComponents_ptr recv(new SharedComponents(
-               num_Pmain_cols, num_neighbors, neighbor, shared,
-               offsetInShared, 1, 0, mpi_info));
+   SharedComponents_ptr recv(new SharedComponents(num_Pmain_cols, neighbour,
+                             shared, offsetInShared, mpi_info));
 
-   #ifdef ESYS_MPI
-   MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
-   #endif
-
-   #ifdef ESYS_MPI
-     mpi_requests=new MPI_Request[size*2];
-     mpi_stati=new MPI_Status[size*2];
-   #else
-     mpi_requests=new int[size*2];
-     mpi_stati=new int[size*2];
-   #endif
+#ifdef ESYS_MPI
+    MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
+    MPI_Request* mpi_requests = new MPI_Request[size*2];
+    MPI_Status* mpi_stati = new MPI_Status[size*2];
+#endif
    num_neighbors = 0;
    j = 0;
-   offsetInShared[0] = 0;
+   neighbour.clear();
+   offsetInShared.clear();
+   offsetInShared.push_back(0);
    for (i=0; i<size; i++) {
      if (send_len[i] > 0) {
-        neighbor[num_neighbors] = i;
-        num_neighbors ++;
+        neighbour.push_back(i);
         j += send_len[i];
-        offsetInShared[num_neighbors] = j;
+        offsetInShared.push_back(j);
+        num_neighbors++;
      }
    }
    delete[] shared;
    shared = new index_t[j];
-   for (i=0, j=0; i<num_neighbors; i++) {
-     k = neighbor[i];
-     #ifdef ESYS_MPI
-     MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k,
-                mpi_info->counter()+k,
+   for (i=0, j=0; i<neighbour.size(); i++) {
+     k = neighbour[i];
+#ifdef ESYS_MPI
+     MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k, mpi_info->counter()+k,
                 mpi_info->comm, &mpi_requests[i]);
-     #endif
+#endif
      j += send_len[k];
    }
-   for (i=0, j=0; i<recv->numNeighbors; i++) {
-     k = recv->neighbor[i];
-     #ifdef ESYS_MPI
+   for (i=0, j=0; i<recv->neighbour.size(); i++) {
+     k = recv->neighbour[i];
+#ifdef ESYS_MPI
      MPI_Issend(&(global_id_RAP[j]), recv_len[k], MPI_INT, k,
                 mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[i+num_neighbors]);
-     #endif
+#endif
      j += recv_len[k];
    }
 #ifdef ESYS_MPI
    mpi_info->incCounter(size);
-   MPI_Waitall(num_neighbors + recv->numNeighbors,
-                mpi_requests, mpi_stati);
+   MPI_Waitall(num_neighbors + recv->neighbour.size(), mpi_requests, mpi_stati);
 #endif
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
-   #pragma omp parallel for schedule(static) private(i)
+#pragma omp parallel for schedule(static) private(i)
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
 
    SharedComponents_ptr send(new SharedComponents(
-               num_Pmain_cols, num_neighbors, neighbor, shared,
-               offsetInShared, 1, 0, mpi_info));
+               num_Pmain_cols, neighbour, shared, offsetInShared, mpi_info));
 
    col_connector.reset(new Connector(send, recv));
    delete[] shared;
@@ -1801,9 +1770,9 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         for (j=i1; j<i2; j++) {
           i_c = RAP_couple_idx[j];
           /* find out the corresponding neighbor "p" of column i_c */
-          for (p=0; p<recv->numNeighbors; p++) {
+          for (p=0; p<recv->neighbour.size(); p++) {
             if (i_c < recv->offsetInShared[p+1]) {
-              k = recv->neighbor[p];
+              k = recv->neighbour[p];
               if (send_ptr[k][i_r] == 0) sum++;
               send_ptr[k][i_r] ++;
               send_idx[k][len[k]] = global_id_RAP[i_c];
@@ -1822,8 +1791,9 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    /* now allocate the sender */
    shared = new index_t[sum];
    memset(send_len, 0, sizeof(dim_t) * size);
-   num_neighbors=0;
-   offsetInShared[0] = 0;
+   neighbour.clear();
+   offsetInShared.clear();
+   offsetInShared.push_back(0);
    for (p=0, k=0; p<size; p++) {
      for (i=0; i<num_Pmain_cols; i++) {
         if (send_ptr[p][i] > 0) {
@@ -1833,69 +1803,67 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
           send_len[p]++;
         }
      }
-     if (k > offsetInShared[num_neighbors]) {
-        neighbor[num_neighbors] = p;
-        num_neighbors ++;
-        offsetInShared[num_neighbors] = k;
+     if (k > offsetInShared.back()) {
+        neighbour.push_back(p);
+        offsetInShared.push_back(k);
      }
    }
-   send.reset(new SharedComponents(num_Pmain_cols, num_neighbors,
-               neighbor, shared, offsetInShared, 1, 0, mpi_info));
+   send.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
+                                   offsetInShared, mpi_info));
 
    /* send/recv number of rows will be sent from current proc
       recover info for the receiver of row_connector from the sender */
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
    MPI_Alltoall(send_len, 1, MPI_INT, recv_len, 1, MPI_INT, mpi_info->comm);
-   #endif
-   num_neighbors = 0;
-   offsetInShared[0] = 0;
+#endif
+   neighbour.clear();
+   offsetInShared.clear();
+   offsetInShared.push_back(0);
    j = 0;
    for (i=0; i<size; i++) {
      if (i != rank && recv_len[i] > 0) {
-        neighbor[num_neighbors] = i;
-        num_neighbors ++;
+        neighbour.push_back(i);
         j += recv_len[i];
-        offsetInShared[num_neighbors] = j;
+        offsetInShared.push_back(j);
      }
    }
+   num_neighbors = neighbour.size();
    delete[] shared;
    delete[] recv_len;
    shared = new index_t[j];
-   k = offsetInShared[num_neighbors];
-   #pragma omp parallel for schedule(static) private(i)
+   k = offsetInShared.back();
+#pragma omp parallel for schedule(static) private(i)
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols;
    }
-   recv.reset(new SharedComponents(num_Pmain_cols, num_neighbors,
-               neighbor, shared, offsetInShared, 1, 0, mpi_info));
+   recv.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
+                                   offsetInShared, mpi_info));
    row_connector.reset(new Connector(send, recv));
    delete[] shared;
 
    /* send/recv pattern->ptr for rowCoupleBlock */
    num_RAPext_rows = offsetInShared[num_neighbors];
    row_couple_ptr = new index_t[num_RAPext_rows+1];
-   for (p=0; p<num_neighbors; p++) {
+   for (p = 0; p < num_neighbors; p++) {
      j = offsetInShared[p];
      i = offsetInShared[p+1];
-     #ifdef ESYS_MPI
-     MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
-                mpi_info->counter()+neighbor[p],
-                mpi_info->comm, &mpi_requests[p]);
-     #endif
+#ifdef ESYS_MPI
+     MPI_Irecv(&row_couple_ptr[j], i-j, MPI_INT, neighbour[p],
+               mpi_info->counter()+neighbour[p],
+               mpi_info->comm, &mpi_requests[p]);
+#endif
    }
    send = row_connector->send;
-   for (p=0; p<send->numNeighbors; p++) {
-     #ifdef ESYS_MPI
-     MPI_Issend(send_ptr[send->neighbor[p]], send_len[send->neighbor[p]],
-                MPI_INT, send->neighbor[p],
-                mpi_info->counter()+rank,
+   for (p=0; p<send->neighbour.size(); p++) {
+#ifdef ESYS_MPI
+     MPI_Issend(send_ptr[send->neighbour[p]], send_len[send->neighbour[p]],
+                MPI_INT, send->neighbour[p], mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
-     #endif
+#endif
    }
 #ifdef ESYS_MPI
    mpi_info->incCounter(size);
-   MPI_Waitall(num_neighbors + send->numNeighbors,
-        mpi_requests, mpi_stati);
+   MPI_Waitall(num_neighbors + send->neighbour.size(), mpi_requests, mpi_stati);
 #endif
    delete[] send_len;
 
@@ -1913,33 +1881,34 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    for (p=0; p<num_neighbors; p++) {
      j1 = row_couple_ptr[offsetInShared[p]];
      j2 = row_couple_ptr[offsetInShared[p+1]];
-     #ifdef ESYS_MPI
-     MPI_Irecv(&(row_couple_idx[j1]), j2-j1, MPI_INT, neighbor[p],
-                mpi_info->counter()+neighbor[p],
-                mpi_info->comm, &mpi_requests[p]);
-     #endif
+#ifdef ESYS_MPI
+     MPI_Irecv(&row_couple_idx[j1], j2-j1, MPI_INT, neighbour[p],
+                mpi_info->counter()+neighbour[p], mpi_info->comm,
+                &mpi_requests[p]);
+#endif
    }
-   for (p=0; p<send->numNeighbors; p++) {
-     #ifdef ESYS_MPI
-     MPI_Issend(send_idx[send->neighbor[p]], len[send->neighbor[p]],
-                MPI_INT, send->neighbor[p],
+   for (p = 0; p < send->neighbour.size(); p++) {
+#ifdef ESYS_MPI
+     MPI_Issend(send_idx[send->neighbour[p]], len[send->neighbour[p]],
+                MPI_INT, send->neighbour[p],
                 mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
-     #endif
+#endif
    }
 #ifdef ESYS_MPI
-   mpi_info->incCounter(size);
-   MPI_Waitall(num_neighbors + send->numNeighbors,
-                mpi_requests, mpi_stati);
+    mpi_info->incCounter(size);
+    MPI_Waitall(num_neighbors + send->neighbour.size(), mpi_requests, mpi_stati);
+    delete[] mpi_requests;
+    delete[] mpi_stati;
 #endif
 
     offset = input_dist->first_component[rank];
     k = row_couple_ptr[num_RAPext_rows];
-    #pragma omp parallel for schedule(static) private(i)
+#pragma omp parallel for schedule(static) private(i)
     for (i=0; i<k; i++) {
         row_couple_idx[i] -= offset;
     }
-    #pragma omp parallel for schedule(static) private(i)
+#pragma omp parallel for schedule(static) private(i)
     for (i=0; i<size; i++) {
         delete[] send_ptr[i];
         delete[] send_idx[i];
@@ -1947,11 +1916,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
     delete[] send_ptr;
     delete[] send_idx;
     delete[] len;
-    delete[] offsetInShared;
-    delete[] neighbor;
-    delete[] mpi_requests;
-    delete[] mpi_stati;
-
 
     /* Now, we can create pattern for mainBlock and coupleBlock */
     Pattern_ptr main_pattern(new Pattern(MATRIX_FORMAT_DEFAULT,
@@ -1987,7 +1951,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         SystemMatrix_ptr A, SystemMatrix_ptr P,
         SystemMatrix_ptr R)
 {
-   escript::JMPI& mpi_info=A->mpi_info;
+   escript::JMPI mpi_info(A->mpi_info);
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
    Distribution_ptr input_dist, output_dist;
@@ -2002,7 +1966,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    index_t size=mpi_info->size, rank=mpi_info->rank;
    index_t *RAP_main_ptr=NULL, *RAP_couple_ptr=NULL, *RAP_ext_ptr=NULL;
    index_t *RAP_main_idx=NULL, *RAP_couple_idx=NULL, *RAP_ext_idx=NULL;
-   index_t *offsetInShared=NULL, *row_couple_ptr=NULL, *row_couple_idx=NULL;
+   index_t *row_couple_ptr=NULL, *row_couple_idx=NULL;
    index_t *Pcouple_to_Pext=NULL, *Pext_to_RAP=NULL, *Pcouple_to_RAP=NULL;
    index_t *temp=NULL, *global_id_P=NULL, *global_id_RAP=NULL;
    index_t *shared=NULL, *P_marker=NULL, *A_marker=NULL;
@@ -2014,15 +1978,14 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    index_t **send_ptr=NULL, **send_idx=NULL;
    dim_t p, num_neighbors;
    dim_t *recv_len=NULL, *send_len=NULL, *len=NULL;
-   int *neighbor=NULL;
-   #ifdef ESYS_MPI
-     MPI_Request* mpi_requests=NULL;
-     MPI_Status* mpi_stati=NULL;
-   #else
-     int *mpi_requests=NULL, *mpi_stati=NULL;
-   #endif
+#ifdef ESYS_MPI
+    MPI_Request* mpi_requests=NULL;
+    MPI_Status* mpi_stati=NULL;
+#else
+    int *mpi_requests=NULL, *mpi_stati=NULL;
+#endif
 
-   /* two sparse matrices R_main and R_couple will be generate, as the
+   /* two sparse matrices R_main and R_couple will be generated, as the
       transpose of P_main and P_col_couple, respectively. Note that,
       R_couple is actually the row_coupleBlock of R (R=P^T) */
    SparseMatrix_ptr R_main(P->mainBlock->getTranspose());
@@ -2033,7 +1996,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
       to be specific, P_ext (on processor k) are group of rows in P, where
       the list of rows from processor q is given by
         A->col_coupler->connector->send->shared[rPtr...]
-        rPtr=A->col_coupler->connector->send->OffsetInShared[k]
+        rPtr=A->col_coupler->connector->send->offsetInShared[k]
       on q.
       P_ext is represented by two sparse matrices P_ext_main and
       P_ext_couple */
@@ -2466,7 +2429,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
                 &RAP_ext_val, global_id_P, block_size);
 
-   num_RAPext_rows = P->col_coupler->connector->send->offsetInShared[P->col_coupler->connector->send->numNeighbors];
+   num_RAPext_rows = P->col_coupler->connector->send->numSharedComponents;
    sum = RAP_ext_ptr[num_RAPext_rows];
    num_RAPext_cols = 0;
    if (num_Pext_cols || sum > 0) {
@@ -2546,8 +2509,8 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
 
    /* Now, count the size of RAP. Start with rows in R_main */
-   num_neighbors = P->col_coupler->connector->send->numNeighbors;
-   offsetInShared = P->col_coupler->connector->send->offsetInShared;
+   num_neighbors = P->col_coupler->connector->send->neighbour.size();
+   std::vector<index_t> offsetInShared = P->col_coupler->connector->send->offsetInShared;
    shared = P->col_coupler->connector->send->shared;
    i = 0;
    j = 0;
@@ -3076,20 +3039,19 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    const std::vector<index_t> dist(P->pattern->input_distribution->first_component);
    recv_len = new dim_t[size];
    send_len = new dim_t[size];
-   neighbor = new int[size];
-   offsetInShared = new index_t[size+1];
+   std::vector<int> neighbour;
+   offsetInShared.clear();
    shared = new index_t[num_RAPext_cols];
    memset(recv_len, 0, sizeof(dim_t) * size);
    memset(send_len, 0, sizeof(dim_t) * size);
-   num_neighbors = 0;
-   offsetInShared[0] = 0;
-   for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
+   offsetInShared.push_back(0);
+   for (i = 0, j = 0, k = dist[j+1]; i<num_RAPext_cols; i++) {
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
         if (recv_len[j] > 0) {
-          neighbor[num_neighbors] = j;
+          neighbour.push_back(j);
+          offsetInShared.push_back(i);
           num_neighbors ++;
-          offsetInShared[num_neighbors] = i;
         }
         while (k <= global_id_RAP[i]) {
           j++;
@@ -3099,66 +3061,63 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      recv_len[j] ++;
    }
    if (recv_len[j] > 0) {
-     neighbor[num_neighbors] = j;
-     num_neighbors ++;
-     offsetInShared[num_neighbors] = i;
+     neighbour.push_back(j);
+     offsetInShared.push_back(i);
    }
-   recv.reset(new SharedComponents(num_Pmain_cols, num_neighbors,
-               neighbor, shared, offsetInShared, 1, 0, mpi_info));
+   recv.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
+                                   offsetInShared, mpi_info));
 
-   #ifdef ESYS_MPI
-   MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
-   #endif
+#ifdef ESYS_MPI
+    MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
 
-   #ifdef ESYS_MPI
-     mpi_requests=new MPI_Request[size*2];
-     mpi_stati=new MPI_Status[size*2];
-   #else
+    mpi_requests = new MPI_Request[size*2];
+    mpi_stati = new MPI_Status[size*2];
+#else
      mpi_requests=new int[size*2];
      mpi_stati=new int[size*2];
-   #endif
+#endif
    num_neighbors = 0;
    j = 0;
-   offsetInShared[0] = 0;
+   neighbour.clear();
+   offsetInShared.clear();
+   offsetInShared.push_back(0);
    for (i=0; i<size; i++) {
      if (send_len[i] > 0) {
-        neighbor[num_neighbors] = i;
-        num_neighbors ++;
+        neighbour.push_back(i);
         j += send_len[i];
-        offsetInShared[num_neighbors] = j;
+        offsetInShared.push_back(j);
+        num_neighbors++;
      }
    }
    delete[] shared;
    shared = new index_t[j];
    for (i=0, j=0; i<num_neighbors; i++) {
-     k = neighbor[i];
-     #ifdef ESYS_MPI
-     MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k,
-                mpi_info->counter()+k,
-                mpi_info->comm, &mpi_requests[i]);
-     #endif
+     k = neighbour[i];
+#ifdef ESYS_MPI
+     MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k, mpi_info->counter()+k,
+               mpi_info->comm, &mpi_requests[i]);
+#endif
      j += send_len[k];
    }
-   for (i=0, j=0; i<recv->numNeighbors; i++) {
-     k = recv->neighbor[i];
-     #ifdef ESYS_MPI
-     MPI_Issend(&(global_id_RAP[j]), recv_len[k], MPI_INT, k,
-                mpi_info->counter()+rank,
-                mpi_info->comm, &mpi_requests[i+num_neighbors]);
-     #endif
+   for (i=0, j=0; i<recv->neighbour.size(); i++) {
+     k = recv->neighbour[i];
+#ifdef ESYS_MPI
+     MPI_Issend(&global_id_RAP[j], recv_len[k], MPI_INT, k,
+                mpi_info->counter()+rank, mpi_info->comm,
+                &mpi_requests[i+num_neighbors]);
+#endif
      j += recv_len[k];
    }
 #ifdef ESYS_MPI
    mpi_info->incCounter(size);
-   MPI_Waitall(num_neighbors + recv->numNeighbors,
-                mpi_requests, mpi_stati);
+   MPI_Waitall(num_neighbors + recv->neighbour.size(), mpi_requests, mpi_stati);
 #endif
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
-   send.reset(new SharedComponents(num_Pmain_cols, num_neighbors,
-               neighbor, shared, offsetInShared, 1, 0, mpi_info));
+   send.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
+                                   offsetInShared, mpi_info));
 
    col_connector.reset(new Connector(send, recv));
    delete[] shared;
@@ -3190,10 +3149,10 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
            how many neighbours i_r needs to be send to */
         for (j=i1; j<i2; j++) {
           i_c = RAP_couple_idx[j];
-          /* find out the corresponding neighbor "p" of column i_c */
-          for (p=0; p<recv->numNeighbors; p++) {
+          /* find out the corresponding neighbour "p" of column i_c */
+          for (p=0; p<recv->neighbour.size(); p++) {
             if (i_c < recv->offsetInShared[p+1]) {
-              k = recv->neighbor[p];
+              k = recv->neighbour[p];
               if (send_ptr[k][i_r] == 0) sum++;
               send_ptr[k][i_r] ++;
               send_idx[k][len[k]] = global_id_RAP[i_c];
@@ -3212,10 +3171,11 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    /* now allocate the sender */
    shared = new index_t[sum];
    memset(send_len, 0, sizeof(dim_t) * size);
-   num_neighbors=0;
-   offsetInShared[0] = 0;
-   for (p=0, k=0; p<size; p++) {
-     for (i=0; i<num_Pmain_cols; i++) {
+   neighbour.clear();
+   offsetInShared.clear();
+   offsetInShared.push_back(0);
+   for (p = 0, k = 0; p < size; p++) {
+     for (i = 0; i < num_Pmain_cols; i++) {
         if (send_ptr[p][i] > 0) {
           shared[k] = i;
           k++;
@@ -3223,68 +3183,68 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
           send_len[p]++;
         }
      }
-     if (k > offsetInShared[num_neighbors]) {
-        neighbor[num_neighbors] = p;
-        num_neighbors ++;
-        offsetInShared[num_neighbors] = k;
+     if (k > offsetInShared.back()) {
+        neighbour.push_back(p);
+        offsetInShared.push_back(k);
      }
    }
-   send.reset(new SharedComponents(num_Pmain_cols, num_neighbors,
-               neighbor, shared, offsetInShared, 1, 0, mpi_info));
+   send.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
+                                   offsetInShared, mpi_info));
 
    /* send/recv number of rows will be sent from current proc
       recover info for the receiver of row_connector from the sender */
-   #ifdef ESYS_MPI
+#ifdef ESYS_MPI
    MPI_Alltoall(send_len, 1, MPI_INT, recv_len, 1, MPI_INT, mpi_info->comm);
-   #endif
+#endif
+   neighbour.clear();
+   offsetInShared.clear();
    num_neighbors = 0;
-   offsetInShared[0] = 0;
+   offsetInShared.push_back(0);
    j = 0;
    for (i=0; i<size; i++) {
      if (i != rank && recv_len[i] > 0) {
-        neighbor[num_neighbors] = i;
-        num_neighbors ++;
+        neighbour.push_back(i);
         j += recv_len[i];
-        offsetInShared[num_neighbors] = j;
+        offsetInShared.push_back(j);
+        num_neighbors ++;
      }
    }
    delete[] shared;
    delete[] recv_len;
    shared = new index_t[j];
-   k = offsetInShared[num_neighbors];
+   k = offsetInShared.back();
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols;
    }
-   recv.reset(new SharedComponents(num_Pmain_cols, num_neighbors,
-               neighbor, shared, offsetInShared, 1, 0, mpi_info));
+   recv.reset(new SharedComponents(num_Pmain_cols, neighbour, shared,
+                                   offsetInShared, mpi_info));
    row_connector.reset(new Connector(send, recv));
    delete[] shared;
 
    /* send/recv pattern->ptr for rowCoupleBlock */
-   num_RAPext_rows = offsetInShared[num_neighbors];
+   num_RAPext_rows = offsetInShared.back();
    row_couple_ptr = new index_t[num_RAPext_rows+1];
    for (p=0; p<num_neighbors; p++) {
      j = offsetInShared[p];
      i = offsetInShared[p+1];
-     #ifdef ESYS_MPI
-     MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
-                mpi_info->counter()+neighbor[p],
+#ifdef ESYS_MPI
+     MPI_Irecv(&row_couple_ptr[j], i-j, MPI_INT, neighbour[p],
+                mpi_info->counter()+neighbour[p],
                 mpi_info->comm, &mpi_requests[p]);
-     #endif
+#endif
    }
    send = row_connector->send;
-   for (p=0; p<send->numNeighbors; p++) {
-     #ifdef ESYS_MPI
-     MPI_Issend(send_ptr[send->neighbor[p]], send_len[send->neighbor[p]],
-                MPI_INT, send->neighbor[p],
+   for (p=0; p<send->neighbour.size(); p++) {
+#ifdef ESYS_MPI
+     MPI_Issend(send_ptr[send->neighbour[p]], send_len[send->neighbour[p]],
+                MPI_INT, send->neighbour[p],
                 mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
-     #endif
+#endif
    }
 #ifdef ESYS_MPI
    mpi_info->incCounter(size);
-   MPI_Waitall(num_neighbors + send->numNeighbors,
-        mpi_requests, mpi_stati);
+   MPI_Waitall(num_neighbors + send->neighbour.size(), mpi_requests, mpi_stati);
 #endif
    delete[] send_len;
 
@@ -3302,24 +3262,23 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    for (p=0; p<num_neighbors; p++) {
      j1 = row_couple_ptr[offsetInShared[p]];
      j2 = row_couple_ptr[offsetInShared[p+1]];
-     #ifdef ESYS_MPI
-     MPI_Irecv(&(row_couple_idx[j1]), j2-j1, MPI_INT, neighbor[p],
-                mpi_info->counter()+neighbor[p],
+#ifdef ESYS_MPI
+     MPI_Irecv(&row_couple_idx[j1], j2-j1, MPI_INT, neighbour[p],
+                mpi_info->counter()+neighbour[p],
                 mpi_info->comm, &mpi_requests[p]);
-     #endif
+#endif
    }
-   for (p=0; p<send->numNeighbors; p++) {
-     #ifdef ESYS_MPI
-     MPI_Issend(send_idx[send->neighbor[p]], len[send->neighbor[p]],
-                MPI_INT, send->neighbor[p],
+   for (p=0; p<send->neighbour.size(); p++) {
+#ifdef ESYS_MPI
+     MPI_Issend(send_idx[send->neighbour[p]], len[send->neighbour[p]],
+                MPI_INT, send->neighbour[p],
                 mpi_info->counter()+rank,
                 mpi_info->comm, &mpi_requests[p+num_neighbors]);
-     #endif
+#endif
    }
 #ifdef ESYS_MPI
    mpi_info->incCounter(size);
-   MPI_Waitall(num_neighbors + send->numNeighbors,
-                mpi_requests, mpi_stati);
+   MPI_Waitall(num_neighbors + send->neighbour.size(), mpi_requests, mpi_stati);
 #endif
 
    offset = input_dist->first_component[rank];
@@ -3335,8 +3294,6 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    delete[] send_ptr;
    delete[] send_idx;
    delete[] len;
-   delete[] offsetInShared;
-   delete[] neighbor;
    delete[] mpi_requests;
    delete[] mpi_stati;
 

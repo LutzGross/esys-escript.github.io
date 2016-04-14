@@ -1254,21 +1254,12 @@ void RipleyDomain::createPasoConnector(const RankVector& neighbour,
                                        const IndexVector& sendShared,
                                        const IndexVector& recvShared)
 {
-    // TODO: paso::SharedComponents should take vectors to avoid this
-    const int* neighPtr = NULL;
-    const index_t* sendPtr = NULL;
-    const index_t* recvPtr = NULL;
-    if (neighbour.size() > 0) {
-        neighPtr = &neighbour[0];
-        sendPtr = &sendShared[0];
-        recvPtr = &recvShared[0];
-    }
+    const index_t* sendPtr = neighbour.empty() ? NULL : &sendShared[0];
+    const index_t* recvPtr = neighbour.empty() ? NULL : &recvShared[0];
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            getNumDOF(), neighbour.size(), neighPtr, sendPtr,
-            &offsetInSharedSend[0], 1, 0, m_mpiInfo));
+            getNumDOF(), neighbour, sendPtr, offsetInSharedSend, m_mpiInfo));
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            getNumDOF(), neighbour.size(), neighPtr, recvPtr,
-            &offsetInSharedRecv[0], 1, 0, m_mpiInfo));
+            getNumDOF(), neighbour, recvPtr, offsetInSharedRecv, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 }
 
