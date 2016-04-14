@@ -26,7 +26,8 @@ namespace paso {
  *
  ****************************************************************************/
 
-Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize) :
+Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize,
+                 escript::JMPI mpiInfo) :
     connector(conn),
     block_size(blockSize),
     in_use(false),
@@ -34,9 +35,9 @@ Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize) :
     send_buffer(NULL),
     recv_buffer(NULL),
     mpi_requests(NULL),
-    mpi_stati(NULL)
+    mpi_stati(NULL),
+    mpi_info(mpiInfo)
 {
-    mpi_info = conn->mpi_info;
 #ifdef ESYS_MPI
     mpi_requests = new MPI_Request[conn->send->neighbour.size() +
                                    conn->recv->neighbour.size()];

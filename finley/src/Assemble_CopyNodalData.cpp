@@ -160,7 +160,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == FINLEY_NODES) {
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             // Coupler holds the pointer but it doesn't appear to get
             // used so RO should work.
             const_cast<escript::Data*>(&in)->resolve();
@@ -182,7 +182,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 }
             }
         } else if  (out_data_type == FINLEY_REDUCED_NODES) {
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             const_cast<escript::Data*>(&in)->resolve();
             coupler->startCollect(in.getDataRO());
             const double *recv_buffer=coupler->finishCollect();
@@ -224,7 +224,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
             throw escript::ValueError("Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector,numComps));
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector, numComps, nodes->MPIInfo));
             const_cast<escript::Data*>(&in)->resolve();
             coupler->startCollect(in.getDataRO());
             out.requireWrite();

@@ -246,7 +246,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
                    &mpi_requests[i+send->neighbour.size()]);
 #endif
     }
-    recv.reset(new SharedComponents(my_n_C, neighbour, shared, offsetInShared, mpi_info));
+    recv.reset(new SharedComponents(my_n_C, neighbour, shared, offsetInShared));
 
     // now we can build the sender
 #ifdef ESYS_MPI
@@ -278,7 +278,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
         }
     }
 
-    send.reset(new SharedComponents(my_n_C, neighbour, shared, offsetInShared, mpi_info));
+    send.reset(new SharedComponents(my_n_C, neighbour, shared, offsetInShared));
     col_connector.reset(new Connector(send, recv));
     delete[] recv_shared;
     delete[] send_shared;

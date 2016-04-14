@@ -94,7 +94,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     } else if (in_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == DUDLEY_NODES) {
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             // safe provided coupler->copyAll is called before the pointer
             // in "in" is invalidated
             const_cast<escript::Data*>(&in)->resolve();

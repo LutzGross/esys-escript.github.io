@@ -57,8 +57,8 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
         du = new double[n];
         z = new double[n];
     }
-    u_coupler.reset(new Coupler(tp->borrowConnector(), blockSize));
-    u_old_coupler.reset(new Coupler(tp->borrowConnector(), blockSize));
+    u_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
+    u_old_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
 
     if (options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) {
         method = PASO_LINEAR_CRANK_NICOLSON;

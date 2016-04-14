@@ -936,7 +936,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 
     index_t* p = shared.empty() ? NULL : &shared[0];
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            myLastDOF-myFirstDOF, neighbour, p, offsetInShared, MPIInfo));
+            myLastDOF-myFirstDOF, neighbour, p, offsetInShared));
 
     /////////////////////////////////
     //   now we build the sender   //
@@ -980,7 +980,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 #endif // ESYS_MPI
 
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            myLastDOF-myFirstDOF, neighbour, p, offsetInShared, MPIInfo));
+            myLastDOF-myFirstDOF, neighbour, p, offsetInShared));
 
     if (use_reduced_elements) {
         reducedDegreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));

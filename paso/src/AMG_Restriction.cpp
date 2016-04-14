@@ -317,8 +317,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    for (i=p; i<numNeighbors; i++) {
      offsetInShared[i+1] = num_Rcouple_cols;
    }
-   recv.reset(new SharedComponents(n, neighbour, shared, offsetInShared,
-                                   mpi_info));
+   recv.reset(new SharedComponents(n, neighbour, shared, offsetInShared));
    delete[] recv_idx;
 
    /* prepare the sender for the col_connector */
@@ -346,8 +345,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      }
      offsetInShared[p+1] = sum;
    }
-   send.reset(new SharedComponents(n, neighbour, shared, offsetInShared,
-                                   mpi_info));
+   send.reset(new SharedComponents(n, neighbour, shared, offsetInShared));
 
    // build the col_connector based on sender and receiver
    col_connector.reset(new Connector(send, recv));
