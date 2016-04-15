@@ -318,7 +318,6 @@ class TestNetCdfData(unittest.TestCase):
                 msg="Wrong values in padding area")
 
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
-    @unittest.skipIf(not haveNetcdf, "not a netcdf build")    
     def test_cdf_with_padding_ellipsoid(self):
         ref=WGS84ReferenceSystem()
 
