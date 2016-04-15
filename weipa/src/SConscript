@@ -37,7 +37,8 @@ headers = """
 local_env = env.Clone()
 
 # collect dependencies for other modules
-weipalibs = env['escript_libs']
+weipalibs = []
+weipalibs += env['escript_libs']
 
 if 'dudley' in env['domains'] or 'finley' in env['domains']:
     sources += ['FinleyDomain.cpp','FinleyElements.cpp','FinleyNodes.cpp']

@@ -62,7 +62,8 @@ if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])
 
 # collect dependencies for other modules
-ripleylibs = env['escript_libs']
+ripleylibs = []
+ripleylibs += env['escript_libs']
 if env['paso']:
     ripleylibs += env['paso_libs']
 if env['trilinos']:
