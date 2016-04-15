@@ -17,100 +17,93 @@
 #ifndef __ESCRIPT_PARAMS_H__
 #define __ESCRIPT_PARAMS_H__
 
-#include "system_dep.h"
-#include "Data.h"    // for the operators
+#include <string>
+#include <unordered_set>
 
 #include <boost/python/list.hpp>
 
 namespace escript
 {
 
-class Data;
-class DataLazy;
-
 class EscriptParams
 {
+    typedef std::unordered_set<std::string> FeatureSet;
+
 public:
-  EscriptParams();
+    EscriptParams();
 
-  int getInt(const char* name, int sentinel=0) const;
-  
-  void setInt(const char* name, int value);
+    int getInt(const std::string& name, int sentinel = 0) const;
+    void setInt(const std::string& name, int value);
+    boost::python::list listEscriptParams() const;
 
-  boost::python::list
-  listEscriptParams();
+    inline int getAutoLazy() const { return autoLazy; }
+    inline int getLazyStrFmt() const { return lazyStrFmt; }
+    inline int getLazyVerbose() const { return lazyVerbose; }
+    inline int getResolveCollective() const { return resolveCollective; }
+    inline int getTooManyLevels() const { return tooManyLevels; }
+    inline int getTooManyLines() const { return tooManyLines; }
+
+    bool hasFeature(const std::string& name) const;
+    boost::python::list listFeatures() const;
 
 private:
-
-  // If we get more params we can replace this with a map
-    int too_many_lines;
-    int autolazy;
-    int too_many_levels;
-    int resolve_collective;
-    int lazy_str_fmt;
-    int lapack_support;
-    int lazy_verbose;
-    int amg_disabled;
-    int have_netcdf;
-    int have_trilinos;
-    int have_unzip;
-    int gmsh;
-    int gmsh_mpi;
-    mutable int temp_direct_solver;
-
-protected: 
-  // This is to provide fast access for methods in Data.
-  // Its a little bit ugly, needing all those friends but I really want to
-  // limit outside access to the char* interface
-
-  int getTOO_MANY_LINES() {return too_many_lines;}
-  int getAUTOLAZY() { return autolazy;}
-  int getTOO_MANY_LEVELS() {return too_many_levels;}
-  int getRESOLVE_COLLECTIVE() {return resolve_collective;}
-  int getLAZY_STR_FMT() {return lazy_str_fmt;}
-  int getLAZY_VERBOSE() {return lazy_verbose;}
-
-  friend class escript::Data;
-  friend class escript::DataLazy;
-  friend Data operator+(const boost::python::api::object&, const escript::Data&);
-  friend Data operator-(const boost::python::api::object&, const escript::Data&);
-  friend Data operator*(const boost::python::api::object&, const escript::Data&);
-  friend Data operator/(const boost::python::api::object&, const escript::Data&);
-  friend Data operator+(const escript::Data&, const escript::Data&);
-  friend Data operator-(const escript::Data&, const escript::Data&);
-  friend Data operator*(const escript::Data&, const escript::Data&);
-  friend Data operator/(const escript::Data&, const escript::Data&);
-  friend Data operator+(const escript::Data&, const boost::python::api::object&);
-  friend Data operator-(const escript::Data&, const boost::python::api::object&);
-  friend Data operator*(const escript::Data&, const boost::python::api::object&);
-  friend Data operator/(const escript::Data&, const boost::python::api::object&);
-  friend Data C_GeneralTensorProduct(escript::Data& arg_0, escript::Data& arg_1,
-                     int axis_offset, int transpose);
-  friend Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+    FeatureSet features;
+    // the number of parameters is small enough to avoid a map for performance
+    // reasons
+    int autoLazy;
+    int lazyStrFmt;
+    int lazyVerbose;
+    int resolveCollective;
+    int tooManyLevels;
+    int tooManyLines;
 };
 
 
 extern EscriptParams escriptParams;
 
 /**
-  \brief Set the value of a named parameter.
-  See listEscriptParams() (showEscriptParams() in python) for available parameters.
+    \brief Set the value of a named parameter.
+    See listEscriptParams() for available parameters.
 */
-void setEscriptParamInt(const char* name, int value);
+inline void setEscriptParamInt(const std::string& name, int value)
+{
+   escriptParams.setInt(name, value);
+}
 
 /**
-  \brief get the value of a named parameter.
-  See listEscriptParams() (showEscriptParams() in python) for available parameters.
+    \brief get the value of a named parameter.
+    See listEscriptParams() for available parameters.
 */
-int getEscriptParamInt(const char* name, int sentinel=0);
+inline int getEscriptParamInt(const std::string& name, int sentinel=0)
+{
+    return escriptParams.getInt(name, sentinel);
+}
 
 /**
-  \brief describe available paramters.
-  \return a list of tuples (parameter name, value, description)
+    \brief describe available parameters.
+    \return a list of tuples (parameter name, value, description)
 */
 inline boost::python::list listEscriptParams()
 {
-   return escriptParams.listEscriptParams();
+    return escriptParams.listEscriptParams();
+}
+
+/**
+    \brief returns true if escript was compiled with the feature `name`,
+           false otherwise.
+*/
+inline bool hasFeature(const std::string& name)
+{
+    return escriptParams.hasFeature(name);
+}
+
+/**
+    \brief returns a list of features escript was compiled with.
+    \return a boost python list of strings
+*/
+inline boost::python::list listFeatures()
+{
+    return escriptParams.listFeatures();
 }
 
 } // namespace escript

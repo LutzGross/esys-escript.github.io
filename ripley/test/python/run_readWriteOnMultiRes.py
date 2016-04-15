@@ -35,7 +35,7 @@ try:
 except KeyError:
      RIPLEY_WORKDIR='/tmp'
 
-HAVE_UNZIP = getEscriptParamInt('HAVE_UNZIP')
+HAVE_UNZIP = hasFeature('unzip')
 
 mpiSize = getMPISizeWorld()
 mpiRank = getMPIRankWorld()

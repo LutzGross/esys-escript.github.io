@@ -35,7 +35,7 @@ try:
 except KeyError:
      RIPLEY_WORKDIR='/tmp'
 
-HAVE_UNZIP = getEscriptParamInt('HAVE_UNZIP')
+HAVE_UNZIP = hasFeature('unzip')
 
 #NE=4 # number elements, must be even
 #for x in [int(sqrt(mpiSize)),2,3,5,7,1]:

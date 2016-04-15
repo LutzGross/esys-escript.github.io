@@ -14,17 +14,7 @@
 ##############################################################################
 
 Import('env')
-if 'ripley' in env['domains']:
-    if not env['paso'] and not env['trilinos']:
-        print("Ripley requires a solver library! Please either enable Paso or Trilinos.")
-        env.Exit(1)
-
+if env['paso']:
     # configure C++ library
     env.SConscript('src/SConscript', duplicate=0)
-
-    # configure python module
-    env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
-
-    # configure unit tests
-    env.SConscript('test/SConscript', duplicate=0)
 

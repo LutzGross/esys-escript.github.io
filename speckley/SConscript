@@ -14,13 +14,13 @@
 ##############################################################################
 
 Import('env')
+if 'speckley' in env['domains']:
+    # configure C++ library
+    env.SConscript('src/SConscript', duplicate=0)
 
-# configure C++ library
-env.SConscript('src/SConscript', duplicate=0)
+    # configure python module
+    env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
 
-# configure python module
-env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
-
-# configure unit tests
-env.SConscript('test/SConscript', duplicate=0)
+    # configure unit tests
+    env.SConscript('test/SConscript', duplicate=0)
 

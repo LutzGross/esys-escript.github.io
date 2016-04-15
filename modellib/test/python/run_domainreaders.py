@@ -45,7 +45,7 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
-from esys.escript import getMPISizeWorld, getEscriptParamInt
+from esys.escript import getMPISizeWorld, hasFeature
 from esys.escript.modelframe import DataSource
 from esys.pycad.gmsh import *
 from esys.pycad import *
@@ -68,8 +68,7 @@ except OSError:
     pass
     
 @unittest.skipIf(GMSH is None, "gmsh not available")
-@unittest.skipIf(getEscriptParamInt("MPIBUILD",0)>0,
-        "not tested with MPI builds")
+@unittest.skipIf(hasFeature("mpi"), "not tested with MPI builds")
 class Test_domainReaders(unittest.TestCase):
     def domain_family(self, dommodule, f):
         dom=RectangularDomain(dommodule, parameters=["fish","dummy"], debug=True)

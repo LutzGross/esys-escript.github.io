@@ -33,7 +33,6 @@ from esys.escript import unitsSI as U
 from esys.escript import *
 from esys.weipa import *
 
-haveNetcdf=(getEscriptParamInt("NETCDF_BUILD",0)==1)
 try:
     import pyproj
     havePyProj=True
@@ -151,8 +150,6 @@ if 'NetCdfData' not in dir():
     print("This example requires scipy's netcdf support which does not appear to be installed.")
 elif not HAVE_RIPLEY:
     print("Ripley module not available")
-elif not haveNetcdf:
-    print("netCDF not available.")     
 elif not havePyProj:
     print("This example requires pyproj.")
 else:

@@ -38,12 +38,18 @@ bool privdebug=false;
 #define DISABLEDEBUG privdebug=false;
 }
 
-// #define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl;resolveToIdentity();}
+//#define SIZELIMIT if ((m_height>escript::escriptParams.getInt("TOO_MANY_LEVELS")) || (m_children>escript::escriptParams.getInt("TOO_MANY_NODES"))) {cerr << "\n!!!!!!! SIZE LIMIT EXCEEDED " << m_children << ";" << m_height << endl << toString() << endl;resolveToIdentity();}
 
-// #define SIZELIMIT if ((m_height>escript::escriptParams.getTOO_MANY_LEVELS()) || (m_children>escript::escriptParams.getTOO_MANY_NODES())) {cerr << "SIZE LIMIT EXCEEDED " << m_height << endl;resolveToIdentity();}
+//#define SIZELIMIT if ((m_height>escript::escriptParams.getInt("TOO_MANY_LEVELS")) || (m_children>escript::escriptParams.getInt("TOO_MANY_NODES"))) {cerr << "SIZE LIMIT EXCEEDED " << m_height << endl;resolveToIdentity();}
 
 
-#define SIZELIMIT if (m_height>escript::escriptParams.getTOO_MANY_LEVELS())  {if (escript::escriptParams.getLAZY_VERBOSE()){cerr << "SIZE LIMIT EXCEEDED height=" << m_height << endl;}resolveToIdentity();}
+#define SIZELIMIT \
+    if (m_height > escript::escriptParams.getTooManyLevels()) {\
+        if (escript::escriptParams.getLazyVerbose()) {\
+            cerr << "SIZE LIMIT EXCEEDED height=" << m_height << endl;\
+        }\
+        resolveToIdentity();\
+    }
 
 /*
 How does DataLazy work?
@@ -1728,7 +1734,7 @@ DataLazy::toString() const
 {
   ostringstream oss;
   oss << "Lazy Data: [depth=" << m_height<< "] ";
-  switch (escriptParams.getLAZY_STR_FMT())
+  switch (escriptParams.getLazyStrFmt())
   {
   case 1:       // tree format
         oss << endl;

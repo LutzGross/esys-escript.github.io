@@ -573,55 +573,54 @@ Export(
 target_init = env.Command(os.path.join(env['pyinstall'],'__init__.py'), None, Touch('$TARGET'))
 env.Alias('target_init', [target_init])
 
-build_all_list = []
-install_all_list = ['target_init']
-
-# The order here is important as certain keys in env need to be defined for
-# certain modules.
-
 # escript can't be turned off
-env.SConscript('escriptcore/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
-env.SConscript('escript/py_src/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
-build_all_list += ['build_escript']
-install_all_list += ['install_escript']
+build_all_list = ['build_escript']
+install_all_list = ['target_init', 'install_escript']
 
-env.SConscript('pythonMPI/src/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
-env.SConscript('tools/overlord/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/tools/overlord', duplicate=0)
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
     install_all_list += ['install_pythonMPI', 'install_overlord']
 
 if env['paso']:
-    env.SConscript('paso/src/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
     env.Append(CPPDEFINES = ['ESYS_HAVE_PASO'])
     build_all_list += ['build_paso']
     install_all_list += ['install_paso']
 
 if env['trilinos']:
-    env.SConscript('trilinoswrap/src/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/trilinoswrap', duplicate=0)
     build_all_list += ['build_trilinoswrap']
     install_all_list += ['install_trilinoswrap']
 
-env.SConscript('cusplibrary/SConscript')
-
 for domain in env['domains']:
-    env.SConscript('%s/SConscript'%domain, variant_dir='$BUILD_DIR/$PLATFORM/%s'%domain, duplicate=0)
+    env.Append(CPPDEFINES = ['ESYS_HAVE_'+domain.upper()])
     build_all_list += ['build_%s'%domain]
     install_all_list += ['install_%s'%domain]
 
 if env['weipa']:
-    env.SConscript('weipa/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
+    env.Append(CPPDEFINES = ['ESYS_HAVE_WEIPA'])
     build_all_list += ['build_weipa']
     install_all_list += ['install_weipa']
     if 'finley' in env['domains']:
         build_all_list += ['build_escriptreader']
         install_all_list += ['install_escriptreader']
 
-env.SConscript(dirs = ['downunder/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/downunder', duplicate=0)
-env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
-env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
-env.SConscript('tools/escriptconvert/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
-env.SConscript('doc/SConscript', variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
+variant='$BUILD_DIR/$PLATFORM/'
+env.SConscript('escriptcore/SConscript', variant_dir=variant+'escriptcore', duplicate=0)
+env.SConscript('escript/py_src/SConscript', variant_dir=variant+'escript', duplicate=0)
+env.SConscript('pythonMPI/src/SConscript', variant_dir=variant+'pythonMPI', duplicate=0)
+env.SConscript('tools/overlord/SConscript', variant_dir=variant+'tools/overlord', duplicate=0)
+env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
+env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
+env.SConscript('cusplibrary/SConscript')
+env.SConscript('dudley/SConscript', variant_dir=variant+'dudley', duplicate=0)
+env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
+env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
+env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
+env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)
+env.SConscript(dirs = ['downunder/py_src'], variant_dir=variant+'downunder', duplicate=0)
+env.SConscript(dirs = ['modellib/py_src'], variant_dir=variant+'modellib', duplicate=0)
+env.SConscript(dirs = ['pycad/py_src'], variant_dir=variant+'pycad', duplicate=0)
+env.SConscript('tools/escriptconvert/SConscript', variant_dir=variant+'tools/escriptconvert', duplicate=0)
+env.SConscript('doc/SConscript', variant_dir=variant+'doc', duplicate=0)
 
 env.Alias('build', build_all_list)
 
@@ -639,7 +638,6 @@ else:
 sanity=env.Alias('sanity', env.Command('dummy','',os.path.join(env['prefix'], 'bin', 'run-escript')+' '+os.path.join(env['build_dir'],'scripts', 'release_sanity.py')))
 env.Depends('dummy', install_all)
 if env['usempi']:
-   #env.Requires('dummy', ['build_pythonMPI', 'install_pythonMPI'])
    env.Depends('dummy', ['install_pythonMPI'])
 
 # if all domains are built:
