@@ -74,8 +74,8 @@ private:
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
     template<typename ST>
-    void addImpl(Teuchos::RCP<MatrixType<ST> > A,
-                 const std::vector<LO>& rowIdx, const std::vector<ST>& array);
+    void addImpl(MatrixType<ST>& A, const std::vector<LO>& rowIdx,
+                 const std::vector<ST>& array);
 
     escript::JMPI m_mpiInfo;
     bool m_isComplex;
