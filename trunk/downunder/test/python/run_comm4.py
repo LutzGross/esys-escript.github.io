@@ -43,7 +43,7 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
-HAVE_GMSH = escript.getEscriptParamInt("GMSH_SUPPORT")
+HAVE_GMSH = escript.hasFeature("gmsh")
 
 # Matplotlib uses outdated code -- ignore the warnings until an update is available:
 import warnings

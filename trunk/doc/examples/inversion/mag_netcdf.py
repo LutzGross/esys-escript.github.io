@@ -27,10 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.downunder import *
 from esys.weipa import *
 from esys.escript import unitsSI as U
-from esys.escript import saveDataCSV,getEscriptParamInt
-
-
-haveNetcdf=(getEscriptParamInt("NETCDF_BUILD",0)==1)
+from esys.escript import saveDataCSV
 
 # Set parameters
 DATASET = 'data/MagneticSmall.nc'
@@ -99,7 +96,5 @@ if 'NetCdfData' not in dir():
     print("This example requires scipy's netcdf support which does not appear to be installed.")
 elif not HAVE_RIPLEY:
     print("Ripley module required but not available")
-elif not haveNetcdf:
-    print("netCDF not available.")    
 else:
     work()

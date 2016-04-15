@@ -1250,21 +1250,31 @@ args("source", "q", "r","factor"),
         ":type method: in `CRANK_NICOLSON`, `BACKWARD_EULER`, `LINEAR_CRANK_NICOLSON`");
 
 
-  // Functions to modify global parameters
-  def("setEscriptParamInt",escript::setEscriptParamInt,
+  // Functions to get/modify global parameters/features
+  def("setEscriptParamInt", escript::setEscriptParamInt,
       (arg("name"), arg("value")=0), "Modify the value of an escript tuning parameter\n\n"
         ":param name:\n"
         ":type name: ``string``\n"
         ":param value:\n"
         ":type value: ``int``");
-  def("getEscriptParamInt",escript::getEscriptParamInt,
+
+  def("getEscriptParamInt", escript::getEscriptParamInt,
       (arg("name"),arg("sentinel")=0), "Read the value of an escript tuning parameter\n\n"
         ":param name: parameter to lookup\n"
         ":type name: ``string``\n"
         ":param sentinel: Value to be returned if ``name`` is not a known parameter\n"
         ":type sentinel: ``int``");
-  def("listEscriptParams",escript::listEscriptParams,":return: A list of pairs (p,d) where p is the name of a parameter for escript and d is a description.");
 
+  def("listEscriptParams", escript::listEscriptParams,
+        ":return: A list of tuples (p,v,d) where p is the name of a parameter "
+        "for escript, v is its current value, and d is a description.");
+
+  def("hasFeature", escript::hasFeature,
+      (arg("name")), "Check if escript was compiled with a certain feature\n\n"
+        ":param name: feature to lookup\n"
+        ":type name: ``string``");
+  def("listFeatures", escript::listFeatures,
+        ":return: A list of strings representing the features escript supports.");
 
   def("resolveGroup", escript::resolveGroup);
 

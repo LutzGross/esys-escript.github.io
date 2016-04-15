@@ -31,7 +31,7 @@ interface to gmsh
 __all__ = ['gmshGeo2Msh']
 
 from .util import getMPIRankWorld, getMPIWorldMax
-from .escriptcpp import getEscriptParamInt
+from .escriptcpp import hasFeature
 
 try:
     import gmshpy
@@ -39,8 +39,8 @@ try:
 except ImportError:
     HAVE_GMSHPY=False
 
-HAVE_GMSH = getEscriptParamInt("GMSH_SUPPORT")
-GMSH_MPI = HAVE_GMSH and getEscriptParamInt("GMSH_MPI")
+HAVE_GMSH = hasFeature("gmsh")
+GMSH_MPI = HAVE_GMSH and hasFeature("gmsh_mpi")
 
 def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
     if getMPIRankWorld() == 0:

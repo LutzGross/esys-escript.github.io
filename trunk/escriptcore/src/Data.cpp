@@ -58,7 +58,7 @@ using DataTypes::cplx_t;
 // The idea was that we could add an optional warning whenever a resolve is forced
 // #define forceResolve() if (isLazy()) {#resolve();}
 
-#define AUTOLAZYON escriptParams.getAUTOLAZY()
+#define AUTOLAZYON escriptParams.getAutoLazy()
 #define MAKELAZYOP(X) do {\
   if (isLazy() || (AUTOLAZYON && m_data->isExpanded())) \
   {\
@@ -113,7 +113,7 @@ using DataTypes::cplx_t;
   }\
 }while(0)
 
-#define CHECK_DO_CRES escriptParams.getRESOLVE_COLLECTIVE()
+#define CHECK_DO_CRES escriptParams.getResolveCollective()
 
 
 namespace
@@ -4375,7 +4375,7 @@ Data::toString() const
 #endif
     if (!m_data->isEmpty() &&
         !m_data->isLazy() && 
-        getLength()>escriptParams.getInt("TOO_MANY_LINES"))
+        getLength() > escriptParams.getTooManyLines())
     {
         localNeedSummary=1;
     }
@@ -6369,3 +6369,4 @@ Data::binaryDataOp(const Data& right,
 }
 
 #endif
+

@@ -165,7 +165,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
     MPI_Allgather(&new_distribution[0], mpiSize, MPI_DIM_T, recvbuf, mpiSize,
-                  MPI_INT, MPIInfo->comm);
+                  MPI_DIM_T, MPIInfo->comm);
 #else
     for (int i=0; i<mpiSize; ++i)
         recvbuf[i]=new_distribution[i];

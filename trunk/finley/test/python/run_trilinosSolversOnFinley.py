@@ -31,11 +31,11 @@ from test_simplesolve import SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
-from esys.escript import Data, Solution, Vector, getEscriptParamInt
+from esys.escript import Data, Solution, Vector, hasFeature
 from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
-HAVE_TRILINOS = getEscriptParamInt('HAVE_TRILINOS')
+HAVE_TRILINOS = hasFeature('trilinos')
 
 # number of elements in the spatial directions
 NE0=12

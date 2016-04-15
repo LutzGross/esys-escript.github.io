@@ -1,5 +1,4 @@
 
-
 /*****************************************************************************
 *
 * Copyright (c) 2003-2016 by The University of Queensland
@@ -17,226 +16,173 @@
 
 #include "EscriptParams.h"
 #include "EsysException.h"
+#include "EsysMPI.h"
 
-#include <cstring>
 #include <cmath> // to test if we know how to check for nan
 #include <boost/python/tuple.hpp>
 
-namespace escript
-{
+namespace bp = boost::python;
 
-EscriptParams escriptParams;                // externed in header file
+namespace escript {
+
+EscriptParams escriptParams; // externed in header file
 
 
 EscriptParams::EscriptParams()
 {
-   too_many_lines=80;
-   autolazy=0;
-   too_many_levels=70;
-   lazy_str_fmt=0;
-   lazy_verbose=0;
-#ifdef ESYS_HAVE_NETCDF
-   have_netcdf = 1;
+    // These #defs are for performance testing only
+    // in general, I don't want people tweaking the
+    // default value using compiler options
+    // I've provided a python interface for that
+#ifdef FAUTOLAZYON
+    autoLazy = 1;
 #else
-   have_netcdf = 0;
+    autoLazy = 0;
 #endif
-#ifdef ESYS_HAVE_TRILINOS
-   have_trilinos = 1;
+    lazyStrFmt = 0;
+    lazyVerbose = 0;
+#ifdef FRESCOLLECTON
+    resolveCollective = 1;
 #else
-   have_trilinos = 0;
+    resolveCollective = 0;
 #endif
-#ifdef ESYS_HAVE_BOOST_IO
-   have_unzip = 1;
-#else
-   have_unzip = 0;
+    tooManyLevels = 70;
+    tooManyLines = 80;
+
+    // now populate feature set
+#ifdef ESYS_HAVE_CUDA
+    features.insert("cuda");
+#endif
+#ifdef ESYS_HAVE_DUDLEY
+    features.insert("dudley");
+#endif
+#ifdef ESYS_HAVE_FINLEY
+    features.insert("finley");
 #endif
 #ifdef ESYS_HAVE_LAPACK
-   lapack_support = 1;
-#else
-   lapack_support = 0;
+    features.insert("lapack");
 #endif
-
-#ifdef ESYS_HAVE_GMSH
-    gmsh = 1;
-#else
-    gmsh = 0;
-#endif
-    //only mark gmsh as mpi if escript built with mpi, otherwise comm_spawns
-    //might just fail terribly
-#if defined(ESYS_GMSH_MPI) && defined(ESYS_MPI)
-    gmsh_mpi = 1;
-#else
-    gmsh_mpi = 0;
-#endif
-
-#ifdef ESYS_MPI
-    amg_disabled=true;
-#else
-    amg_disabled=false;
-#endif
-
-    temp_direct_solver = false; // This variable is to be removed once proper
-                                // SolverOptions support is in place
 #ifdef ESYS_HAVE_MKL
-    temp_direct_solver = true;
+    features.insert("mkl");
+#endif
+#ifdef ESYS_MPI
+    features.insert("mpi");
+#endif
+#ifdef isnan
+    features.insert("NAN_CHECK");
+#endif
+#ifdef ESYS_HAVE_NETCDF
+    features.insert("netcdf");
+#endif
+#ifdef _OPENMP
+    features.insert("openmp");
+#endif
+#ifdef ESYS_HAVE_PASO
+    features.insert("paso");
+#endif
+#ifdef ESYS_HAVE_RIPLEY
+    features.insert("ripley");
+#endif
+#ifdef ESYS_HAVE_SILO
+    features.insert("silo");
+#endif
+#ifdef ESYS_HAVE_SPECKLEY
+    features.insert("speckley");
+#endif
+#ifdef ESYS_HAVE_TRILINOS
+    features.insert("trilinos");
 #endif
 #ifdef ESYS_HAVE_UMFPACK
-    temp_direct_solver = true;
+    features.insert("umfpack");
 #endif
-#ifdef PASTIX
-    temp_direct_solver = true;
+#ifdef ESYS_HAVE_WEIPA
+    features.insert("weipa");
 #endif
-
-                        // These #defs are for performance testing only
-                        // in general, I don't want people tweaking the
-                        // default value using compiler options
-                        // I've provided a python interface for that
-#ifdef FAUTOLAZYON
-   autolazy=1;
-#endif
-#ifdef FAUTOLAZYOFF
-   autolazy=0;
+#ifdef ESYS_HAVE_BOOST_IO
+    features.insert("unzip");
 #endif
 
-#ifdef FRESCOLLECTON
-   resolve_collective=1;
+    //TODO: these should be replaced by a runtime check in python
+#ifdef ESYS_HAVE_GMSH
+    features.insert("gmsh");
 #endif
-#ifdef FRESCOLLECTOFF
-   resolve_collective=0;
+#ifdef ESYS_GMSH_MPI
+    features.insert("gmsh_mpi");
 #endif
 }
 
-int
-EscriptParams::getInt(const char* name, int sentinel) const
+int EscriptParams::getInt(const std::string& name, int sentinel) const
 {
-   if (!strcmp(name,"TOO_MANY_LINES"))
-   {
-        return too_many_lines;
-   }
-   if (!strcmp(name,"AUTOLAZY"))
-   {
-        return autolazy;
-   }
-   if (!strcmp(name,"TOO_MANY_LEVELS"))
-   {
-        return too_many_levels;
-   }
-   if (!strcmp(name,"RESOLVE_COLLECTIVE"))
-   {
-        return resolve_collective;
-   }
-   if (!strcmp(name,"LAZY_STR_FMT"))
-   {
-        return lazy_str_fmt;
-   }
-   if (!strcmp(name,"LAPACK_SUPPORT"))
-   {
-        return lapack_support;
-   }
-   if (!strcmp(name, "NAN_CHECK"))
-   {
-#ifdef isnan
-        return 1;
-#else
-        return 0;
-#endif
-   }
-   if (!strcmp(name,"LAZY_VERBOSE"))
-   {
-        return lazy_verbose;
-   }
-   if (!strcmp(name, "DISABLE_AMG"))
-   {
-        return amg_disabled;
-   }
-   if (!strcmp(name, "MPIBUILD"))
-   {
+    // TODO: These tests should happen in the appropriate python files instead
+    if (name == "PASO_DIRECT") {
+        // This is not in the constructor because escriptparams could be
+        // constructed before main (and hence no opportunity to call INIT)
 #ifdef ESYS_MPI
-        return 1;
-#else
-        return 0;
+        int size;
+        if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
+            return false;
 #endif
-   }
-   if (!strcmp(name, "PASO_DIRECT"))
-   {
-        // This is not in the constructor because escriptparams could be constructed
-        // before main (and hence no opportunity to call INIT)
-#ifdef ESYS_MPI
-            int size;
-            if (MPI_Comm_size(MPI_COMM_WORLD, &size)!=MPI_SUCCESS)        // This would break in a subworld
-            {
-                temp_direct_solver=false;
-            }
-            if (size>1)
-            {
-                temp_direct_solver=false;
-            }
-#endif
-        return temp_direct_solver;
-   }
-    if (!strcmp(name, "NETCDF_BUILD"))
-       return have_netcdf;
-    if (!strcmp(name, "HAVE_TRILINOS"))
-        return have_trilinos;
-    if (!strcmp(name, "HAVE_UNZIP"))
-        return have_unzip;
-    if (!strcmp(name, "GMSH_SUPPORT"))
-        return gmsh;
-    if (!strcmp(name, "GMSH_MPI"))
-        return gmsh_mpi;
-   return sentinel;
+        return hasFeature("umfpack") || hasFeature("mkl");
+    }
+
+    if (name == "AUTOLAZY")
+        return autoLazy;
+    else if (name == "LAZY_STR_FMT")
+        return lazyStrFmt;
+    else if (name == "LAZY_VERBOSE")
+        return lazyVerbose;
+    else if (name == "RESOLVE_COLLECTIVE")
+        return resolveCollective;
+    else if (name == "TOO_MANY_LEVELS")
+        return tooManyLevels;
+    else if (name == "TOO_MANY_LINES")
+        return tooManyLines;
+
+    return sentinel;
 }
 
 void
-EscriptParams::setInt(const char* name, int value)
+EscriptParams::setInt(const std::string& name, int value)
 {
-   // Note: there is no way to modify the LAPACK_SUPPORT variable ATM
-    if (!strcmp(name,"TOO_MANY_LINES"))
-        too_many_lines=value;
-    else if (!strcmp(name,"AUTOLAZY"))
-        autolazy=!(value==0);        // set to 1 or zero
-    else if (!strcmp(name,"TOO_MANY_LEVELS"))
-        too_many_levels=value;
-    else if (!strcmp(name,"RESOLVE_COLLECTIVE"))
-        resolve_collective=value;
-    else if (!strcmp(name,"LAZY_STR_FMT"))
-        lazy_str_fmt=value;
-    else if (!strcmp(name,"LAZY_VERBOSE"))
-        lazy_verbose=value;
+    if (name == "AUTOLAZY")
+        autoLazy = value;
+    else if (name == "LAZY_STR_FMT")
+        lazyStrFmt = value;
+    else if (name == "LAZY_VERBOSE")
+        lazyVerbose = value;
+    else if (name == "RESOLVE_COLLECTIVE")
+        resolveCollective = value;
+    else if (name == "TOO_MANY_LEVELS")
+        tooManyLevels = value;
+    else if (name == "TOO_MANY_LINES")
+        tooManyLines = value;
     else
-       throw EsysException("Invalid parameter name");
+        throw ValueError("Invalid parameter name - "+name);
 }
 
-void
-setEscriptParamInt(const char* name, int value)
+bp::list EscriptParams::listEscriptParams() const
 {
-   escriptParams.setInt(name,value);
+   bp::list l;
+   l.append(bp::make_tuple("AUTOLAZY", autoLazy, "{0,1} Operations involving Expanded Data will create lazy results."));
+   l.append(bp::make_tuple("LAZY_STR_FMT", lazyStrFmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
+   l.append(bp::make_tuple("LAZY_VERBOSE", lazyVerbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
+   l.append(bp::make_tuple("RESOLVE_COLLECTIVE", resolveCollective, "(TESTING ONLY) {0.1} Collective operations will resolve their data."));
+   l.append(bp::make_tuple("TOO_MANY_LEVELS", tooManyLevels, "(TESTING ONLY) maximum levels allowed in an expression."));
+   l.append(bp::make_tuple("TOO_MANY_LINES", tooManyLines, "Maximum number of lines to output when printing data before printing a summary instead."));
+   return l;
 }
 
-
-int
-getEscriptParamInt(const char* name, int sentinel)
+bool EscriptParams::hasFeature(const std::string& name) const
 {
-   return escriptParams.getInt(name, sentinel);
+    return features.count(name) > 0;
 }
 
-boost::python::list
-EscriptParams::listEscriptParams()
+bp::list EscriptParams::listFeatures() const
 {
-   using namespace boost::python;
-   boost::python::list l;
-   l.append(make_tuple("TOO_MANY_LINES", too_many_lines, "Maximum number of lines to output when printing data before printing a summary instead."));
-   l.append(make_tuple("AUTOLAZY", autolazy, "{0,1} Operations involving Expanded Data will create lazy results."));
-   l.append(make_tuple("RESOLVE_COLLECTIVE",resolve_collective ,"(TESTING ONLY) {0.1} Collective operations will resolve their data."));
-   l.append(make_tuple("TOO_MANY_LEVELS", too_many_levels, "(TESTING ONLY) maximum levels allowed in an expression."));
-   l.append(make_tuple("LAZY_STR_FMT", lazy_str_fmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
-   l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
-   l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
-   l.append(make_tuple("NETCDF_BUILD", have_netcdf, "{0,1} Was this build made with netcdf libraries?"));
-   l.append(make_tuple("HAVE_TRILINOS", have_trilinos, "{0,1} Was this build made with trilinos libraries?"));
-   l.append(make_tuple("HAVE_UNZIP", have_unzip, "{0,1} Was this build made with unzip libraries (boost::iostreams)?"));
-   l.append(make_tuple("GMSH_SUPPORT", gmsh, "{0,1} Non-python GMSH support is available."));
-   l.append(make_tuple("GMSH_MPI", gmsh_mpi, "{0,1} Both GMSH and escript have MPI capabilities."));
+   bp::list l;
+   FeatureSet::const_iterator it;
+   for (it = features.begin(); it != features.end(); it++)
+       l.append(*it);
    return l;
 }
 

@@ -28,7 +28,7 @@ import os
 import sys
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld,getEscriptParamInt
+from esys.escript import inf, sup, saveDataCSV, getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
 from esys.downunder.coordinates import WGS84ReferenceSystem
@@ -60,9 +60,6 @@ try:
 except KeyError:
     WORKDIR='.'
 
-
-haveNetcdf=(getEscriptParamInt("NETCDF_BUILD",0)==1)
-    
 ERS32_DATA = os.path.join(TEST_DATA_ROOT, 'ermapper32_test.ers')
 ERS64_DATA = os.path.join(TEST_DATA_ROOT, 'ermapper64_test.ers')
 ERS_REF = os.path.join(TEST_DATA_ROOT, 'ermapper_test.csv')
@@ -264,7 +261,6 @@ class TestErMapperData(unittest.TestCase):
 class TestNetCdfData(unittest.TestCase):
     @unittest.skipIf(not haveProj, 'pyproj not available')
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
-    @unittest.skipIf(not haveNetcdf, "not a netcdf build")
     def test_cdf_with_padding(self):
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()

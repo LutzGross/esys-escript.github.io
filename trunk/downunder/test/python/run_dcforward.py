@@ -37,7 +37,7 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
-HAVE_GMSH = getEscriptParamInt("GMSH_SUPPORT")
+HAVE_GMSH = hasFeature("gmsh")
 
 mpisize = getMPISizeWorld()
 mpirank = getMPIRankWorld()

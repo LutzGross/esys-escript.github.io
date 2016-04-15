@@ -37,6 +37,8 @@ from esys.escript.linearPDEs import SolverBuddy, LinearPDE,IllegalCoefficientVal
 import numpy
 import esys.escriptcore.utestselect as unittest
 
+mpisize = getMPISizeWorld()
+
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
     SOLVER_TOL=1.e-10
@@ -554,7 +556,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.")
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
-        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -599,8 +601,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getPreconditioner() == so.ILUT, "ILUT is not set.")
         sb.setPreconditioner(so.JACOBI)
         self.assertTrue(sb.getPreconditioner() == so.JACOBI, "JACOBI is not set.")
-        if getEscriptParamInt('DISABLE_AMG', 0):
-            print("AMG test disabled on MPI build")
+        if mpisize > 1:
+            print("AMG test disabled with more than 1 MPI rank")
         else:
             sb.setPreconditioner(so.AMG)
             self.assertTrue(sb.getPreconditioner() == so.AMG, "AMG is not set.")
@@ -1683,7 +1685,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnDirect(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1691,7 +1693,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if getMPISizeWorld() > 1:
+        if mpisize > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -1713,11 +1715,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_PCG_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
@@ -1752,7 +1753,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1760,7 +1761,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if getMPISizeWorld() > 1:
+        if mpisize > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -1783,11 +1784,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_BICGSTAB_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
@@ -1835,11 +1835,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_MINRES_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG',0):
-                print("AMG test disabled on MPI build")
-                return                
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
@@ -1887,11 +1886,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_TFQMR_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return 
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
@@ -1939,11 +1937,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_PRES20_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return 
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
@@ -1993,11 +1990,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_GMRESnoRestart_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
@@ -2049,11 +2045,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_GMRES_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
@@ -2105,11 +2100,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_GMRES_truncation_restart_AMG(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
@@ -2175,7 +2169,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2183,7 +2177,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if getMPISizeWorld() > 1:
+        if mpisize > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -2219,11 +2213,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_PCG_AMG_System(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2263,7 +2256,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if getMPISizeWorld() == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2271,7 +2264,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if getMPISizeWorld() > 1:
+        if mpisize > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -2307,11 +2300,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_BICGSTAB_AMG_System(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2371,11 +2363,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_PRES20_AMG_System(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2437,11 +2428,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_GMRESnoRestart_AMG_System(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG',0):
-                print("AMG test disabled on MPI build")
-                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2503,11 +2493,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_GMRES_AMG_System(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2571,11 +2560,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
     def test_GMRES_truncation_restart_AMG_System(self):
         if self.order!=2:
-            if getEscriptParamInt('DISABLE_AMG', 0):
-                print("AMG test disabled on MPI build")
-                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
