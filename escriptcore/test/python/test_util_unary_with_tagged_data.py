@@ -42,6 +42,8 @@ import numpy
 from esys.escript import *
 from test_util_base import Test_util_base
 
+haveLapack = hasFeature('lapack')
+
 class Test_util_unary_with_tagged_data(Test_util_base):
    """
    test for unary operations. only tagged data are tested.
@@ -3632,7 +3634,6 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim4(self):
-      haveLapack=(getEscriptParamInt('LAPACK_SUPPORT')>0)
       arg=Data(numpy.array([[1.0566731035132446, -0.23529223422203982, -0.73657527200271922,0], [-0.90461086237095145, 
 2.3942152365412581, -0.0078023115760492701,0], [-0.32951652966235834, 0.5634604257647613, 
 1.716379935670141,0],[0,0,0,1]]),self.functionspace)
@@ -3675,7 +3676,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
         else:
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
-        if getEscriptParamInt('LAPACK_SUPPORT')>0:
+        if haveLapack:
             arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, True)
             arg.setTaggedValue(1, [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
             try:
@@ -3712,7 +3713,7 @@ class Test_util_unary_with_tagged_data(Test_util_base):
         else:
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
-        if getEscriptParamInt('LAPACK_SUPPORT')>0:
+        if haveLapack:
             arg=Data([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]], self.functionspace, True)
             arg.setTaggedValue(1,[[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]] )
             try:
