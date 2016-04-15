@@ -160,7 +160,7 @@ void TrilinosMatrixAdapter::add<real_t>(const std::vector<LO>& rowIdx,
         throw escript::ValueError("Please use complex array to add to complex "
                                   "matrix!");
     } else {
-        addImpl<real_t>(mat, rowIdx, array);
+        addImpl<real_t>(*mat, rowIdx, array);
     }
 }
 
@@ -169,7 +169,7 @@ void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
                                         const std::vector<cplx_t>& array)
 {
     if (m_isComplex) {
-        addImpl<cplx_t>(cmat, rowIdx, array);
+        addImpl<cplx_t>(*cmat, rowIdx, array);
     } else {
         throw escript::ValueError("Please use real-valued array to add to "
                                   "real-valued matrix!");
@@ -177,13 +177,18 @@ void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
 }
 
 template<typename ST>
-void TrilinosMatrixAdapter::addImpl(RCP<MatrixType<ST> > A,
+void TrilinosMatrixAdapter::addImpl(MatrixType<ST>& A,
                                     const std::vector<LO>& rowIdx,
                                     const std::vector<ST>& array)
 {
+    // NOTE: the reason this method takes a reference to the matrix and
+    // we do the following with the row map is to avoid messing with shared
+    // pointer use counters given that this method may be called from
+    // parallel sections!
+    const MapType& rowMap = *A.getRowMap();
     const int blockSize = getBlockSize();
     const size_t emSize = rowIdx.size();
-    const LO myLast = A->getRowMap()->getMaxLocalIndex();
+    const LO myLast = rowMap.getMaxLocalIndex();
     std::vector<LO> cols(emSize*blockSize);
     std::vector<ST> vals(emSize*blockSize);
     for (size_t i = 0; i < emSize; i++) {
@@ -201,7 +206,7 @@ void TrilinosMatrixAdapter::addImpl(RCP<MatrixType<ST> > A,
                         vals.push_back(array[srcIdx]);
                     }
                 }
-                A->sumIntoLocalValues(row, cols, vals);
+                A.sumIntoLocalValues(row, cols, vals);
             }
         }
     }
