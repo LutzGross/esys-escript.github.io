@@ -44,6 +44,8 @@ import cmath
 from esys.escript import *
 from test_util_base import Test_util_base
 
+haveLapack = hasFeature('lapack')
+
 class Test_util_unary_no_tagged_data(Test_util_base):
    """
    test for unary operations. No tagged data are tested.
@@ -8438,7 +8440,6 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_constData_dim4(self):
-      haveLapack=(getEscriptParamInt('LAPACK_SUPPORT')>0)
       arg=Data(numpy.array([[2.7386874118759605, 0.24320192932450824, -0.98551433885644957,1], [-0.47237322912611623, 
 2.0770157618999936, -0.70532850079694409,2], [-0.55077067435537064, -0.72886734893974148, 
 1.8532894898622749,3],[0,1,0,1]]),self.functionspace)
@@ -8475,7 +8476,7 @@ class Test_util_unary_no_tagged_data(Test_util_base):
         else:
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
-        if getEscriptParamInt('LAPACK_SUPPORT')>0:
+        if haveLapack:
             arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace)
             try:
                 inverse(arg)
@@ -8515,7 +8516,6 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_expandedData_dim4(self):
-      haveLapack=(getEscriptParamInt('LAPACK_SUPPORT')>0)
       msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
       arg=msk_arg*numpy.array([[2.2418112382624198, 0.81650662903581805, -0.094756021110331989,0], [-0.79442369492917742, 
 1.9995946283413137, 0.99436683143019566,1], [0.20497870840231047, 0.56858349778979589, 
@@ -8555,7 +8555,7 @@ class Test_util_unary_no_tagged_data(Test_util_base):
         else:
           self.fail('Singular matrix (3x3) did not fail to invert.')
         #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
-        if getEscriptParamInt('LAPACK_SUPPORT')>0:
+        if haveLapack:
             arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, True)
             try:
                 inverse(arg)
