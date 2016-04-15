@@ -314,7 +314,7 @@ def checkForTrilinos(env):
                         if l.startswith("%s_LIBRARIES"%pk): # or l.startswith("Trilinos_TPL_LIBRARIES"):
                             lst = l.split('=')[1].strip().split()
                             lst = [e.replace('-l','',1) for e in lst]
-                            libs.append(lst)
+                            libs += lst
                         elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
                             lst = l.split('=')[1].strip().split()
                             lst = [e.replace('-I','',1) for e in lst]

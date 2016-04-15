@@ -58,7 +58,8 @@ if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['Speckley_EXPORTS'])
 
 # collect dependencies for other modules
-speckleylibs = env['escript_libs']
+speckleylibs = []
+speckleylibs += env['escript_libs']
 if 'ripley' in env['domains']:
     local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
     speckleylibs += env['ripley_libs']
