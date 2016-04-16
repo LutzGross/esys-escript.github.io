@@ -107,7 +107,9 @@ plugin_sources = """
     FinleyNodes.cpp
 """.split()
 
-visitplugin_env.PrependUnique(LIBS = env['escript_libs'])
+visitplugin_env.PrependUnique(LIBS = env['escript_libs']+env['finley_libs'])
+if env['silo']:
+    visitplugin_env.PrependUnique(LIBS = env['silo_libs'])
 visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN', 'USE_FINLEY'])
 visitplugin_env['OBJPREFIX']='reader_'
 
