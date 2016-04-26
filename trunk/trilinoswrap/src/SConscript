@@ -20,13 +20,18 @@ module_name = 'trilinoswrap'
 sources = """
   Amesos2Wrapper.cpp
   BelosWrapper.cpp
+  BlockCrsMatrixWrapper.cpp
+  CrsMatrixWrapper.cpp
   PreconditionerFactory.cpp
   TrilinosMatrixAdapter.cpp
 """.split()
 
 headers = """
+  AbstractMatrixWrapper.h
   Amesos2Wrapper.h
   BelosWrapper.h
+  BlockCrsMatrixWrapper.h
+  CrsMatrixWrapper.h
   PreconditionerFactory.h
   TrilinosAdapterException.h
   TrilinosMatrixAdapter.h
