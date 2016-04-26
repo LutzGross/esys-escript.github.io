@@ -57,9 +57,9 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 
 @unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
 class SimpleSolveSingleOnly(SimpleSolveTestCase):
-    @unittest.skip("PDE systems not supported with Trilinos yet")
+    @unittest.expectedFailure
     def test_system(self):
-        pass
+        return super(SimpleSolveSingleOnly, self).test_system()
 
 ### BiCGStab + Jacobi
 
