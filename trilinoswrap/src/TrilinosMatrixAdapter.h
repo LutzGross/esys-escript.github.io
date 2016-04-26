@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-#ifndef __TRILINOSMATRIXADAPTER_H__
-#define __TRILINOSMATRIXADAPTER_H__
+#ifndef __ESYS_TRILINOSMATRIXADAPTER_H__
+#define __ESYS_TRILINOSMATRIXADAPTER_H__
 
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/FunctionSpace.h>
 
-#include <trilinoswrap/types.h>
+#include <trilinoswrap/AbstractMatrixWrapper.h>
 
 namespace escript {
     class SolverBuddy;
@@ -33,7 +33,7 @@ class TrilinosMatrixAdapter : public escript::AbstractSystemMatrix
 public:
     /**
        \brief
-       Creates a new Trilinos CRS matrix adapter using a compatible
+       Creates a new Trilinos CRS/block CRS matrix adapter using a compatible
        fill-complete Trilinos matrix graph.
     */
     TrilinosMatrixAdapter(escript::JMPI mpiInfo, int blocksize,
@@ -42,25 +42,44 @@ public:
 
     virtual ~TrilinosMatrixAdapter() {}
 
-    virtual void nullifyRowsAndCols(escript::Data& row_q,
-                                    escript::Data& col_q,
+    virtual void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q,
                                     double mdv);  
 
-    virtual void saveMM(const std::string& filename) const;
+    virtual void saveMM(const std::string& filename) const
+    {
+        if (m_isComplex)
+            cmat->saveMM(filename);
+        else
+            mat->saveMM(filename);
+    }
+
     virtual void saveHB(const std::string& filename) const;
-    virtual void resetValues();
+
+    virtual void resetValues()
+    {
+        if (m_isComplex)
+            cmat->resetValues();
+        else
+            mat->resetValues();
+    }
 
     /// notifies the matrix that changes are about to happen.
     inline void resumeFill()
     {
-       if (m_isComplex)
-           cmat->resumeFill();
-       else
-           mat->resumeFill();
+        if (m_isComplex)
+            cmat->resumeFill();
+        else
+            mat->resumeFill();
     }
 
     /// notifies the matrix that a set of changes has occured.
-    void fillComplete(bool localOnly = true);
+    inline void fillComplete(bool localOnly)
+    {
+        if (m_isComplex)
+            cmat->fillComplete(localOnly);
+        else
+            mat->fillComplete(localOnly);
+    }
 
     template<typename ST>
     void add(const std::vector<LO>& rowIndex, const std::vector<ST>& array);
@@ -73,17 +92,13 @@ private:
 
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
-    template<typename ST>
-    void addImpl(MatrixType<ST>& A, const std::vector<LO>& rowIdx,
-                 const std::vector<ST>& array);
-
     escript::JMPI m_mpiInfo;
     bool m_isComplex;
-    Teuchos::RCP<RealMatrix> mat;
-    Teuchos::RCP<ComplexMatrix> cmat;
+    Teuchos::RCP<AbstractMatrixWrapper<real_t> > mat;
+    Teuchos::RCP<AbstractMatrixWrapper<cplx_t> > cmat;
 };
 
 } // namespace esys_trilinos
 
-#endif // __TRILINOSMATRIXADAPTER_H__
+#endif // __ESYS_TRILINOSMATRIXADAPTER_H__
 

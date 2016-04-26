@@ -27,9 +27,11 @@ using Teuchos::RCP;
 namespace esys_trilinos {
 
 template<typename ST>
-RCP<OpType<ST> > createPreconditioner(RCP<MatrixType<ST> > mat,
+RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                                       const escript::SolverBuddy& sb)
 {
+    typedef MatrixType<ST> Matrix;
+
     RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     Ifpack2::Factory factory;
     RCP<OpType<ST> > prec;
@@ -46,17 +48,17 @@ RCP<OpType<ST> > createPreconditioner(RCP<MatrixType<ST> > mat,
                 params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
                 params->set("problem: symmetric", sb.isSymmetric());
                 params->set("verbosity", sb.isVerbose()? "high":"low");
-                RCP<OpType<ST> > A(mat);
+                RCP<OpType<ST> > A(Teuchos::rcp_const_cast<Matrix>(mat));
                 prec = MueLu::CreateTpetraPreconditioner(A, *params);
             }
             break;
         case escript::SO_PRECONDITIONER_ILUT:
-            ifprec = factory.create<MatrixType<ST> >("ILUT", mat);
+            ifprec = factory.create<const Matrix>("ILUT", mat);
             params->set("fact: drop tolerance", sb.getDropTolerance());
             break;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
         case escript::SO_PRECONDITIONER_JACOBI:
-            ifprec = factory.create<MatrixType<ST> >("RELAXATION", mat);
+            ifprec = factory.create<const Matrix>("RELAXATION", mat);
             if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
                 params->set("relaxation: type", "Jacobi");
             } else {
@@ -67,7 +69,11 @@ RCP<OpType<ST> > createPreconditioner(RCP<MatrixType<ST> > mat,
             params->set("relaxation: damping factor", sb.getRelaxationFactor());
             break;
         case escript::SO_PRECONDITIONER_RILU:
-            ifprec = factory.create<MatrixType<ST> >("RILUK", mat);
+            if (dynamic_cast<const Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
+                ifprec = factory.create<const Matrix>("RBILUK", mat);
+            } else {
+                ifprec = factory.create<const Matrix>("RILUK", mat);
+            }
             params->set("fact: relax value", sb.getRelaxationFactor());
             break;
         default:
@@ -83,11 +89,14 @@ RCP<OpType<ST> > createPreconditioner(RCP<MatrixType<ST> > mat,
 }
 
 // instantiate our two supported versions
+typedef MatrixType<real_t> RealMatrix;
+typedef MatrixType<cplx_t> ComplexMatrix;
+
 template
-RCP<RealOperator> createPreconditioner<real_t>(RCP<RealMatrix> mat,
+RCP<RealOperator> createPreconditioner<real_t>(RCP<const RealMatrix> mat,
                                                const escript::SolverBuddy& sb);
 template
-RCP<ComplexOperator> createPreconditioner<cplx_t>(RCP<ComplexMatrix> mat,
+RCP<ComplexOperator> createPreconditioner<cplx_t>(RCP<const ComplexMatrix> mat,
                                                const escript::SolverBuddy& sb);
 
 }  // end of namespace

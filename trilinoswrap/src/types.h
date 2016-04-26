@@ -14,13 +14,13 @@
 *
 *****************************************************************************/
 
-#ifndef __TRILINOSWRAP_TYPES_H__
-#define __TRILINOSWRAP_TYPES_H__
+#ifndef __ESYS_TRILINOSWRAP_TYPES_H__
+#define __ESYS_TRILINOSWRAP_TYPES_H__
 
 #include <escript/DataTypes.h>
 
 #include <Tpetra_CrsGraph.hpp>
-#include <Tpetra_CrsMatrix.hpp>
+#include <Tpetra_RowMatrix.hpp>
 
 namespace esys_trilinos {
 
@@ -49,16 +49,14 @@ typedef GraphType::map_type           MapType;
 typedef Teuchos::RCP<MapType>         TrilinosMap_ptr;
 typedef Teuchos::RCP<const MapType>   const_TrilinosMap_ptr;
 
-template<typename ST> using MatrixType = Tpetra::CrsMatrix<ST,LO,GO,NT>;
+template<typename ST> using MatrixType = Tpetra::RowMatrix<ST,LO,GO,NT>;
 template<typename ST> using VectorType = Tpetra::MultiVector<ST,LO,GO,NT>;
 template<typename ST> using OpType     = Tpetra::Operator<ST,LO,GO,NT>;
 
 typedef VectorType<real_t> RealVector;
-typedef MatrixType<real_t> RealMatrix;
 typedef OpType<real_t>     RealOperator;
 
 typedef VectorType<cplx_t> ComplexVector;
-typedef MatrixType<cplx_t> ComplexMatrix;
 typedef OpType<cplx_t>     ComplexOperator;
 
 inline
@@ -69,4 +67,5 @@ Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
 
 } // namespace esys_trilinos
 
-#endif // __TRILINOSWRAP_TYPES_H__
+#endif // __ESYS_TRILINOSWRAP_TYPES_H__
+

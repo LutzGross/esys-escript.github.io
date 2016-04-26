@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef __TRILINOSADAPTEREXCEPTION_H__
-#define __TRILINOSADAPTEREXCEPTION_H__
+#ifndef __ESYS_TRILINOSADAPTEREXCEPTION_H__
+#define __ESYS_TRILINOSADAPTEREXCEPTION_H__
 
 #include <escript/EsysException.h>
 
@@ -31,5 +31,5 @@ public:
 
 } // namespace esys_trilinos
 
-#endif // __TRILINOSADAPTEREXCEPTION_H__
+#endif // __ESYS_TRILINOSADAPTEREXCEPTION_H__
 

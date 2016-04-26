@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef __ESYS_AMESOS2WRAPPER_H__
-#define __ESYS_AMESOS2WRAPPER_H__
+#ifndef __ESYS_TRILINOS_AMESOS2WRAPPER_H__
+#define __ESYS_TRILINOS_AMESOS2WRAPPER_H__
 
 #include <trilinoswrap/types.h>
 
@@ -27,17 +27,17 @@ namespace escript {
 
 namespace esys_trilinos {
 
-template<typename ST>
-using DirectSolverType = Amesos2::Solver< MatrixType<ST>, VectorType<ST> >;
+template<class Matrix, class Vector>
+using DirectSolverType = Amesos2::Solver<Matrix, Vector>;
 
-template<typename ST>
-Teuchos::RCP<DirectSolverType<ST> > createDirectSolver(
+template<class Matrix, class Vector>
+Teuchos::RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
                                   const escript::SolverBuddy& sb,
-                                  Teuchos::RCP<const MatrixType<ST> > A,
-                                  Teuchos::RCP<VectorType<ST> > X,
-                                  Teuchos::RCP<const VectorType<ST> > B);
+                                  Teuchos::RCP<const Matrix> A,
+                                  Teuchos::RCP<Vector> X,
+                                  Teuchos::RCP<const Vector> B);
 
 } // namespace esys_trilinos
 
-#endif // __ESYS_AMESOS2WRAPPER_H__
+#endif // __ESYS_TRILINOS_AMESOS2WRAPPER_H__
 

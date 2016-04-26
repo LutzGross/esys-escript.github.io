@@ -14,12 +14,14 @@
 *
 *****************************************************************************/
 
-#ifndef __ESYS_BELOSWRAPPER_H__
-#define __ESYS_BELOSWRAPPER_H__
+#ifndef __ESYS_TRILINOS_BELOSWRAPPER_H__
+#define __ESYS_TRILINOS_BELOSWRAPPER_H__
 
 #include <trilinoswrap/types.h>
 
 #include <BelosSolverManager.hpp>
+#include <BelosTpetraAdapter.hpp>
+#include <BelosTypes.hpp>
 
 namespace escript {
     class SolverBuddy;
@@ -38,5 +40,5 @@ Teuchos::RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb);
 
 } // namespace esys_trilinos
 
-#endif // __ESYS_AMESOS2WRAPPER_H__
+#endif // __ESYS_TRILINOS_AMESOS2WRAPPER_H__
 

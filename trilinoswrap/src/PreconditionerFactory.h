@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef __ESYS_PRECONDITIONERFACTORY_H__
-#define __ESYS_PRECONDITIONERFACTORY_H__
+#ifndef __ESYS_TRILINOS_PRECONDITIONERFACTORY_H__
+#define __ESYS_TRILINOS_PRECONDITIONERFACTORY_H__
 
 #include <trilinoswrap/types.h>
 
@@ -30,10 +30,11 @@ namespace esys_trilinos {
 /// creates a preconditioner (Operator) for input matrix A using options in sb.
 /// ST is the scalar type used by the matrix.
 template<typename ST>
-Teuchos::RCP<OpType<ST> > createPreconditioner(Teuchos::RCP<MatrixType<ST> > A,
-                                               const escript::SolverBuddy& sb);
+Teuchos::RCP<OpType<ST> > createPreconditioner(
+                                      Teuchos::RCP<const MatrixType<ST> > A,
+                                      const escript::SolverBuddy& sb);
 
 } // namespace esys_trilinos
 
-#endif // __ESYS_PRECONDITIONERFACTORY_H__
+#endif // __ESYS_TRILINOS_PRECONDITIONERFACTORY_H__
 
