@@ -57,13 +57,13 @@ index_t iMax(dim_t N, const index_t* array);
 
 /// returns the inner product of global arrays x and y
 double innerProduct(dim_t N, const double* x, const double* y,
-                    const escript::JMPI& mpiinfo);
+                    escript::JMPI mpiInfo);
 
 /// returns true if array contains value
 bool isAny(dim_t N, index_t* array, index_t value);
 
 /// returns the global L2 norm of x
-double l2(dim_t N, const double* x, const escript::JMPI& mpiinfo);
+double l2(dim_t N, const double* x, escript::JMPI mpiInfo);
 
 /// Performs an update of the form z = a*x+b*y  where y and x are long vectors.
 /// If a=0, x is not used; if b=0, y is not used.
@@ -71,10 +71,10 @@ void linearCombination(dim_t N, double* z, double a, const double* x, double b,
                        const double* y);
 
 /// returns the global Lsup of x
-double lsup(dim_t N, const double* x, const escript::JMPI& mpiinfo);
+double lsup(dim_t N, const double* x, escript::JMPI mpiInfo);
 
 /// returns the number of positive values in x
-dim_t numPositives(dim_t N, const double* x);
+dim_t numPositives(dim_t N, const double* x, escript::JMPI mpiInfo);
 
 /// Performs an update of the form x = a*x+b*y  where y and x are long vectors.
 /// If b=0, y is not used.

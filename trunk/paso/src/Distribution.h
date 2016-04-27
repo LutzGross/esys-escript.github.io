@@ -82,23 +82,6 @@ struct Distribution
         return first_component[mpi_info->size];
     }
 
-    inline dim_t numPositives(const double* x, dim_t block) const
-    {
-        const dim_t my_n = block * getMyNumComponents();
-        dim_t my_out = util::numPositives(my_n, x);
-        dim_t out;
-
-#ifdef ESYS_MPI
-#pragma omp single
-        {
-            MPI_Allreduce(&my_out, &out, 1, MPI_INT, MPI_SUM, mpi_info->comm);
-        }
-#else
-        out = my_out;
-#endif
-        return out;
-    }
-
     inline double* createRandomVector(dim_t block) const
     {
         const index_t n_0 = getFirstComponent() * block;
