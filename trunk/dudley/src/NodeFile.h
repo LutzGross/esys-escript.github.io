@@ -138,6 +138,7 @@ public:
     /// assigns each local node a global unique ID in a dense labeling
     index_t* globalNodesIndex;
 
+#ifdef ESYS_HAVE_PASO
     /// MPI distribution of nodes
     paso::Distribution_ptr nodesDistribution;
 
@@ -145,7 +146,7 @@ public:
     paso::Distribution_ptr dofDistribution;
 
     paso::Connector_ptr degreesOfFreedomConnector;
-
+#endif
     // these are the packed versions of Id
     index_t* degreesOfFreedomId;
 

@@ -23,7 +23,9 @@
 #include "Assemble.h"
 #include "ShapeTable.h"
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
+#endif
 
 using escript::ValueError;
 
@@ -39,9 +41,6 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     F(rhs),
     shapeFns(NULL)
 {
-    paso::SystemMatrix* pasoMat = sm ?
-        dynamic_cast<paso::SystemMatrix*>(sm.get()) : NULL;
-
     if (!rhs.isEmpty() && !rhs.actsExpanded()) {
         throw ValueError("AssembleParameters: Right hand side is not expanded.");
     }
@@ -49,6 +48,11 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &shapeFns)) {
         throw DudleyException("AssembleParameters: Cannot locate shape functions.");
     }
+
+#ifdef ESYS_HAVE_PASO
+    paso::SystemMatrix* pasoMat = sm ?
+        dynamic_cast<paso::SystemMatrix*>(sm.get()) : NULL;
+
     //  check the dimensions of matrix and rhs
     if (pasoMat != NULL && !rhs.isEmpty()) {
         const dim_t numRows = pasoMat->row_distribution->getMyNumComponents()*pasoMat->row_block_size;
@@ -57,6 +61,8 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
                              "and length of right hand side don't match.");
         }
     }
+#endif
+
     // get the number of equations and components
     if (sm == NULL) {
         if (rhs.isEmpty()) {
@@ -76,6 +82,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     DOF = nodes->borrowTargetDegreesOfFreedom();
     DOF_UpperBound = nodes->getNumDegreesOfFreedom();
 
+#ifdef ESYS_HAVE_PASO
     // get the information for the labeling of the degrees of freedom from
     // the matrix
     if (pasoMat) {
@@ -95,6 +102,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
                                   "degrees of freedom in mesh");
         }
     }
+#endif
 
     // get the information from right hand side
     if (!rhs.isEmpty() &&
