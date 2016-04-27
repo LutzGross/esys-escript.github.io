@@ -26,7 +26,6 @@ sources = """
     AMG_Root.cpp
     BiCGStab.cpp
     Coupler.cpp
-    Distribution.cpp
     FCT_Solver.cpp
     FluxLimiter.cpp
     Functions.cpp

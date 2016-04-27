@@ -27,7 +27,7 @@ int comparIndex(const void* index1, const void* index2)
     return *(index_t*)index1 - *(index_t*)index2;
 }
 
-bool isAny(dim_t N, index_t* array, index_t value)
+bool isAny(dim_t N, const index_t* array, index_t value)
 {
     bool out = false;
 #pragma omp parallel for reduction(||:out)
