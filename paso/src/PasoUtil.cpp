@@ -30,24 +30,9 @@ int comparIndex(const void* index1, const void* index2)
 bool isAny(dim_t N, index_t* array, index_t value)
 {
     bool out = false;
-
-#pragma omp parallel
-    {
-        bool out2 = false;
-#pragma omp for
-        for (index_t i=0; i<N; i++)
-            out2 = out2 || (array[i]==value);
-#pragma omp critical
-        {
-            out = out || out2;
-        }
-        /*  this is how this should look like but gcc 4.4 seems to have
-         *  a problem with this:
 #pragma omp parallel for reduction(||:out)
-        for (index_t i = 0; i < N; i++)
-            out = out || (array[i]==value);
-        */
-    }
+    for (index_t i = 0; i < N; i++)
+        out = out || (array[i]==value);
     return out;
 }
 
