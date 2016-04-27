@@ -20,7 +20,6 @@ module_name = 'weipa'
 sources = """
     DataVar.cpp
     EscriptDataset.cpp
-    VisItControl.cpp
 """.split()
 
 headers = """
@@ -50,6 +49,14 @@ if 'dudley' in env['domains'] or 'finley' in env['domains']:
         local_env.Append(CPPDEFINES = ['USE_FINLEY'])
         weipalibs += env['finley_libs']
 
+if local_env['silo']:
+    weipalibs += env['silo_libs']
+
+pluginlibs = [] + weipalibs
+pluginsources = [] + sources
+# clone here to use same CPPDEFINES
+visitplugin_env = local_env.Clone()
+
 if 'ripley' in env['domains']:
     sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']
     headers += ['RipleyDomain.h','RipleyElements.h','RipleyNodes.h']
@@ -62,12 +69,7 @@ if 'speckley' in env['domains']:
     local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
     weipalibs += env['speckley_libs']
 
-if local_env['silo']:
-    weipalibs += env['silo_libs']
-
-pluginlibs = [] + weipalibs
-# clone here to use same CPPDEFINES
-visitplugin_env = local_env.Clone()
+sources.append(['VisItControl.cpp'])
 
 if local_env['visit']:
     sources.append(['VisItData.cpp'])
@@ -102,21 +104,14 @@ env.Alias('install_weipa', [build, lib_inst, mod_inst])
 ######################
 ### Plugin library ###
 ######################
-plugin_sources = """
-    DataVar.cpp
-    EscriptDataset.cpp
-    FinleyDomain.cpp
-    FinleyElements.cpp
-    FinleyNodes.cpp
-""".split()
+if 'dudley' in env['domains'] or 'finley' in env['domains']:
+    visitplugin_env.PrependUnique(LIBS = pluginlibs)
+    visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
+    visitplugin_env['OBJPREFIX']='reader_'
 
-visitplugin_env.PrependUnique(LIBS = pluginlibs)
-visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
-visitplugin_env['OBJPREFIX']='reader_'
+    plugin_lib = visitplugin_env.SharedLibrary('escriptreader', pluginsources)
+    plugin_inst = local_env.Install(local_env['libinstall'], plugin_lib)
 
-plugin_lib = visitplugin_env.SharedLibrary('escriptreader', plugin_sources)
-plugin_inst = local_env.Install(local_env['libinstall'], plugin_lib)
-
-build = env.Alias('build_escriptreader', plugin_lib)
-env.Alias('install_escriptreader', [build, plugin_inst])
+    build = env.Alias('build_escriptreader', plugin_lib)
+    env.Alias('install_escriptreader', [build, plugin_inst])
 
