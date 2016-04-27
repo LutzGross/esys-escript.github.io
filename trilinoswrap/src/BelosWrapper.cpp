@@ -58,7 +58,14 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
         case escript::SO_METHOD_PCG:
             solver = factory.create("CG", solverParams);
             break;
+        case escript::SO_METHOD_PRES20:
+            //solverParams->set("Num Blocks", 5);
+            //solverParams->set("Maximum Restarts", 20);
+            solver = factory.create("GMRES", solverParams);
+            break;
         case escript::SO_METHOD_GMRES:
+            //solverParams->set("Num Blocks", sb.getTruncation());
+            //solverParams->set("Maximum Restarts", sb.getRestart());
             solver = factory.create("GMRES", solverParams);
             break;
         case escript::SO_METHOD_LSQR:
