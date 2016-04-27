@@ -40,22 +40,10 @@ BlockCrsMatrixWrapper<ST>::BlockCrsMatrixWrapper(const_TrilinosGraph_ptr graph,
     blockSize(blocksize),
     mat(*graph, blocksize)
 {
-    //mat.fillComplete();
-
     // initialize column point map, needed by nullifyRowsAndCols to communicate
     // remote values
     typedef Tpetra::Experimental::BlockVector<ST,LO,GO,NT> BlockVector;
     colPointMap = BlockVector::makePointMap(*mat.getColMap(), blockSize);
-    std::cout << "Block Matrix has " << mat.getGlobalNumEntries()
-              << " entries." << std::endl;
-}
-
-template<typename ST>
-void BlockCrsMatrixWrapper<ST>::fillComplete(bool localOnly)
-{
-    //RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    //params->set("No Nonlocal Changes", localOnly);
-    //mat.fillComplete(params);
 }
 
 template<typename ST>
@@ -191,7 +179,6 @@ void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
     const real_t eps = escript::DataTypes::real_t_eps();
     const ST zero = Teuchos::ScalarTraits<ST>::zero();
 
-    //resumeFill();
 // Can't use OpenMP here as replaceLocalValues() is not thread-safe.
 //#pragma omp parallel for
     // loop through local row blocks
@@ -226,7 +213,6 @@ void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
         }
         mat.replaceLocalValues(lrb, &cols[0], &vals[0], numIndices);
     }
-    //fillComplete(true);
 }
 
 template<typename ST>
@@ -243,9 +229,7 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::resetValues()
 {
-    //resumeFill();
     mat.setAllToScalar(static_cast<const ST>(0.));
-    //fillComplete(true);
 }
 
 // instantiate

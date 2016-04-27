@@ -38,8 +38,6 @@ CrsMatrixWrapper<ST>::CrsMatrixWrapper(const_TrilinosGraph_ptr graph) :
     mat(graph)
 {
     mat.fillComplete();
-    std::cout << "Matrix has " << mat.getGlobalNumEntries()
-              << " entries." << std::endl;
 }
 
 template<typename ST>
