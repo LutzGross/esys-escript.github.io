@@ -21,6 +21,7 @@
 #include <weipa/FinleyNodes.h>
 
 #ifdef USE_DUDLEY
+#include <dudley/Dudley.h> // for DUDLEY_...
 #include <dudley/ElementType.h> // for dudley::ElementTypeId
 #endif
 #ifdef USE_FINLEY

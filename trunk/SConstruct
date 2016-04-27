@@ -599,7 +599,7 @@ if env['weipa']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_WEIPA'])
     build_all_list += ['build_weipa']
     install_all_list += ['install_weipa']
-    if 'finley' in env['domains']:
+    if 'finley' in env['domains'] or 'dudley' in env['domains']:
         build_all_list += ['build_escriptreader']
         install_all_list += ['install_escriptreader']
 
