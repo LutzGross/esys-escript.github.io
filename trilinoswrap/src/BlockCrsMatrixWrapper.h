@@ -39,13 +39,10 @@ public:
     void resetValues();
 
     /// notifies the matrix that changes are about to happen.
-    inline void resumeFill()
-    {
-        //mat.resumeFill();
-    }
+    inline void resumeFill() {}
 
     /// notifies the matrix that a set of changes has occured.
-    void fillComplete(bool localOnly);
+    inline void fillComplete(bool /*localOnly*/) {}
 
     void nullifyRowsAndCols(const Teuchos::ArrayView<const ST>& rowMask,
                             const Teuchos::ArrayView<const ST>& colView,
