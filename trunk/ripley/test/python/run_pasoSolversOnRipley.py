@@ -31,9 +31,11 @@ from test_simplesolve import SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
-from esys.escript import getMPISizeWorld, sqrt
+from esys.escript import getMPISizeWorld, hasFeature, sqrt
 from esys.ripley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
+
+HAVE_PASO = hasFeature('paso')
 
 # number of elements in the spatial directions
 NE0=12
@@ -53,7 +55,11 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-class Test_SimpleSolveRipley2D_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
+@unittest.skipIf(not HAVE_PASO, "PASO not available")
+class SimpleSolveOnPaso(SimpleSolveTestCase):
+    pass
+
+class Test_SimpleSolveRipley2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.PASO
@@ -63,7 +69,7 @@ class Test_SimpleSolveRipley2D_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveRipley3D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.PASO
@@ -73,7 +79,7 @@ class Test_SimpleSolveRipley3D_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley2D_Paso_PCG_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveRipley2D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.PASO
@@ -83,7 +89,7 @@ class Test_SimpleSolveRipley2D_Paso_PCG_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Paso_PCG_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveRipley3D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.PASO
@@ -93,7 +99,7 @@ class Test_SimpleSolveRipley3D_Paso_PCG_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley2D_Paso_MINRES_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveRipley2D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.PASO
@@ -103,7 +109,7 @@ class Test_SimpleSolveRipley2D_Paso_MINRES_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Paso_MINRES_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveRipley3D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.PASO
@@ -113,7 +119,7 @@ class Test_SimpleSolveRipley3D_Paso_MINRES_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley2D_Paso_TFQMR_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveRipley2D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.PASO
@@ -123,7 +129,7 @@ class Test_SimpleSolveRipley2D_Paso_TFQMR_RILU(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Paso_TFQMR_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveRipley3D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.PASO
