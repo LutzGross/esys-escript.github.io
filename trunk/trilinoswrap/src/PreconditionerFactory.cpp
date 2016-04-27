@@ -67,7 +67,9 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             }
             params->set("relaxation: sweeps", sb.getNumSweeps());
             params->set("relaxation: damping factor", sb.getRelaxationFactor());
+            //params->set("relaxation: backward mode", true);
             break;
+        case escript::SO_PRECONDITIONER_ILU0: // to avoid test failures
         case escript::SO_PRECONDITIONER_RILU:
             if (dynamic_cast<const Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
                 ifprec = factory.create<const Matrix>("RBILUK", mat);
