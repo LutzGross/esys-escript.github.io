@@ -14,16 +14,7 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************/
-
-/*   Some utility routines: */
-
-/****************************************************************************/
-
-/*   Copyrights by ACcESS Australia, 2003,2004,2005 */
-
-/****************************************************************************/
+// Some utility routines
 
 #include "PasoUtil.h"
 
@@ -38,46 +29,51 @@ int comparIndex(const void* index1, const void* index2)
 
 bool isAny(dim_t N, index_t* array, index_t value)
 {
-    bool out=false;
-    bool out2;
-    dim_t i;
+    bool out = false;
 
-    #pragma omp parallel private(i, out2)
+#pragma omp parallel
     {
-        out2=false;
-        #pragma omp for schedule(static)
-        for (i=0;i<N;i++) out2 = out2 || (array[i]==value);
-        #pragma omp critical
+        bool out2 = false;
+#pragma omp for
+        for (index_t i=0; i<N; i++)
+            out2 = out2 || (array[i]==value);
+#pragma omp critical
         {
             out = out || out2;
         }
         /*  this is how this should look like but gcc 4.4 seems to have
          *  a problem with this:
-        #pragma omp parallel for private(i) schedule(static) reduction(||:out)
-        for (i=0;i<N;i++) out = out || (array[i]==value);
+#pragma omp parallel for reduction(||:out)
+        for (index_t i = 0; i < N; i++)
+            out = out || (array[i]==value);
         */
     }
     return out;
 }
 
-dim_t numPositives(dim_t N, const double *x)
+dim_t numPositives(dim_t N, const double* x, escript::JMPI mpiInfo)
 {
-    dim_t out=0;
-    dim_t out2;
-    dim_t i;
+    dim_t myOut = 0;
+    dim_t out = 0;
 
-    #pragma omp parallel private(i, out2)
+#pragma omp parallel
     {
-        out2=0;
-        #pragma omp for schedule(static)
-        for (i=0;i<N;i++) {
-            if ( x[i] > 0 ) out2++;
+        dim_t localOut = 0;
+#pragma omp for schedule(static)
+        for (index_t i = 0; i < N; i++) {
+            if (x[i] > 0)
+                localOut++;
         }
-        #pragma omp critical
+#pragma omp critical
         {
-            out = out + out2;
+            myOut = myOut + localOut;
         }
     }
+#ifdef ESYS_MPI
+    MPI_Allreduce(&myOut, &out, 1, MPI_DIM_T, MPI_SUM, mpiInfo->comm);
+#else
+    out = myOut;
+#endif
     return out;
 }
 
@@ -85,16 +81,15 @@ index_t iMax(dim_t N, const index_t* array)
 {
     const index_t INDEX_T_MIN = escript::DataTypes::index_t_min();
     index_t out = INDEX_T_MIN;
-    index_t out2;
-    dim_t i;
-    if (N>0) {
-        #pragma omp parallel private(i, out2)
-        {
-            out2=INDEX_T_MIN;
-            #pragma omp for schedule(static)
-            for (i=0;i<N;i++) out2 = std::max(out2, array[i]);
 
-            #pragma omp critical
+    if (N > 0) {
+#pragma omp parallel
+        {
+            index_t out2 = INDEX_T_MIN;
+#pragma omp for schedule(static)
+            for (index_t i = 0; i < N; i++)
+                out2 = std::max(out2, array[i]);
+#pragma omp critical
             {
                 out = std::max(out, out2);
             }
@@ -105,51 +100,52 @@ index_t iMax(dim_t N, const index_t* array)
 
 index_t cumsum(dim_t N, index_t* array)
 {
-    index_t out=0,tmp;
+    index_t out = 0, tmp;
     dim_t i;
 #ifdef _OPENMP
-    const int num_threads=omp_get_max_threads();
+    const int num_threads = omp_get_max_threads();
 #else
-    const int num_threads=1;
+    const int num_threads = 1;
 #endif
 
-    if (num_threads>1) {
+    if (num_threads > 1) {
 #ifdef _OPENMP
         index_t* partial_sums = new index_t[num_threads];
-        #pragma omp parallel private(i,tmp)
+#pragma omp parallel private(i,tmp)
         {
-            index_t sum=0;
+            index_t sum = 0;
             const int thread_num = omp_get_thread_num();
-            #pragma omp for schedule(static)
-            for (i=0;i<N;++i) sum+=array[i];
+#pragma omp for schedule(static)
+            for (i = 0; i < N; ++i)
+                sum += array[i];
 
             partial_sums[thread_num]=sum;
-            #pragma omp barrier
-            #pragma omp master
+#pragma omp barrier
+#pragma omp master
             {
                 out=0;
-                for (i=0;i<num_threads;++i) {
-                    tmp=out;
-                    out+=partial_sums[i];
-                    partial_sums[i]=tmp;
+                for (i = 0; i < num_threads; ++i) {
+                    tmp = out;
+                    out += partial_sums[i];
+                    partial_sums[i] = tmp;
                 }
             }
-            #pragma omp barrier
-            sum=partial_sums[thread_num];
-            #pragma omp for schedule(static)
-            for (i=0;i<N;++i) {
-                tmp=sum;
-                sum+=array[i];
-                array[i]=tmp;
+#pragma omp barrier
+            sum = partial_sums[thread_num];
+#pragma omp for schedule(static)
+            for (i = 0; i < N; ++i) {
+                tmp = sum;
+                sum += array[i];
+                array[i] = tmp;
             }
         }
         delete[] partial_sums;
-#endif
+#endif // _OPENMP
     } else {
-        for (i=0;i<N;++i) {
-            tmp=out;
-            out+=array[i];
-            array[i]=tmp;
+        for (i = 0; i < N; ++i) {
+            tmp = out;
+            out += array[i];
+            array[i] = tmp;
         }
     }
     return out;
@@ -444,8 +440,8 @@ void linearCombination(dim_t n, double* z, double a, const double* x,
     }
 }
 
-double innerProduct(const dim_t n,const double* x, const double* y,
-                    const escript::JMPI& mpiinfo)
+double innerProduct(dim_t n, const double* x, const double* y,
+                    escript::JMPI mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0, local_out=0., out=0.;
@@ -482,7 +478,7 @@ double innerProduct(const dim_t n,const double* x, const double* y,
     return out;
 }
 
-double lsup(dim_t n, const double* x, const escript::JMPI& mpiinfo)
+double lsup(dim_t n, const double* x, escript::JMPI mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0., local_out=0., out=0.;
@@ -512,15 +508,14 @@ double lsup(dim_t n, const double* x, const escript::JMPI& mpiinfo)
         MPI_Allreduce(&my_out, &out, 1, MPI_DOUBLE, MPI_MAX, mpiinfo->comm);
     }
 #else
-    out=my_out;
+    out = my_out;
 #endif
-
     return out;
 }
 
-double l2(dim_t n, const double* x, const escript::JMPI& mpiinfo)
+double l2(dim_t n, const double* x, escript::JMPI mpiinfo)
 {
-    double my_out=0, out=0.;
+    double my_out = 0, out = 0.;
 #ifdef _OPENMP
     const int num_threads=omp_get_max_threads();
 #else
@@ -547,7 +542,7 @@ double l2(dim_t n, const double* x, const escript::JMPI& mpiinfo)
         MPI_Allreduce(&my_out, &out, 1, MPI_DOUBLE, MPI_SUM, mpiinfo->comm);
     }
 #else
-    out=my_out;
+    out = my_out;
 #endif
 
     return sqrt(out);

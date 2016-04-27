@@ -686,7 +686,8 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
         }
     }
 
-    numUndefined = col_dist->numPositives(Status, 1);
+    numUndefined = util::numPositives(col_dist->getMyNumComponents(), Status,
+                                      col_dist->mpi_info);
     //printf("coarsening loop start: num of undefined rows = %d \n",numUndefined);
     iter=0;
     while (numUndefined > 0) {
@@ -803,7 +804,8 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
         }
 
         i = numUndefined;
-        numUndefined = col_dist->numPositives(Status, 1);
+        numUndefined = util::numPositives(col_dist->getMyNumComponents(),
+                                          Status, col_dist->mpi_info);
         if (numUndefined == i) {
             throw PasoException("AMG: Can NOT reduce numUndefined.");
         }
