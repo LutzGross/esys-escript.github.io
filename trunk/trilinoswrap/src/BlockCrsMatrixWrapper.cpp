@@ -81,7 +81,7 @@ void BlockCrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                         const size_t srcIdx =
                             INDEX4(k, m, i, j, blockSize, blockSize, emSize);
                         const size_t destIdx =
-                            INDEX3(k, m, j, blockSize, blockSize);
+                            INDEX3(m, k, j, blockSize, blockSize);
                         vals[destIdx] = array[srcIdx];
                     }
                 }
