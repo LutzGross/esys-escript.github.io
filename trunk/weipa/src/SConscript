@@ -62,14 +62,18 @@ if 'speckley' in env['domains']:
     local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
     weipalibs += env['speckley_libs']
 
+if local_env['silo']:
+    weipalibs += env['silo_libs']
+
+pluginlibs = [] + weipalibs
+# clone here to use same CPPDEFINES
+visitplugin_env = local_env.Clone()
+
 if local_env['visit']:
     sources.append(['VisItData.cpp'])
     headers.append(['VisItData.h'])
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
     weipalibs += ['simV2']
-
-if local_env['silo']:
-    weipalibs += env['silo_libs']
 
 local_env.PrependUnique(LIBS = weipalibs)
 env['weipa_libs'] = [module_name] + weipalibs
@@ -98,7 +102,6 @@ env.Alias('install_weipa', [build, lib_inst, mod_inst])
 ######################
 ### Plugin library ###
 ######################
-visitplugin_env = env.Clone()
 plugin_sources = """
     DataVar.cpp
     EscriptDataset.cpp
@@ -107,10 +110,8 @@ plugin_sources = """
     FinleyNodes.cpp
 """.split()
 
-visitplugin_env.PrependUnique(LIBS = env['escript_libs']+env['finley_libs'])
-if env['silo']:
-    visitplugin_env.PrependUnique(LIBS = env['silo_libs'])
-visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN', 'USE_FINLEY'])
+visitplugin_env.PrependUnique(LIBS = pluginlibs)
+visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
 visitplugin_env['OBJPREFIX']='reader_'
 
 plugin_lib = visitplugin_env.SharedLibrary('escriptreader', plugin_sources)
