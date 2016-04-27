@@ -36,7 +36,31 @@
 
 #include <iostream>
 
+namespace {
+
+double random_seed = .4142135623730951;
+
+}
+
 namespace paso {
+
+inline double* createRandomVector(const_Distribution_ptr dist)
+{
+    const index_t n_0 = dist->getFirstComponent();
+    const index_t n_1 = dist->getLastComponent();
+    const index_t n = dist->getGlobalNumComponents();
+    const dim_t my_n = n_1 - n_0;
+    double* out = new double[my_n];
+
+#pragma omp parallel for schedule(static)
+    for (index_t i = 0; i < my_n; ++i) {
+        out[i] = fmod(random_seed * (n_0+i+1), 1.);
+    }
+
+    random_seed = fmod(random_seed * (n+1.7), 1.);
+    return out;
+}
+
 
 void Preconditioner_AMG_free(Preconditioner_AMG* in)
 {
@@ -664,7 +688,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
     Coupler_ptr w_coupler(new Coupler(col_connector, 1, col_dist->mpi_info));
     double* w = new double[n];
     double* Status = new double[n];
-    double* random = col_dist->createRandomVector(1);
+    double* random = createRandomVector(col_dist);
     index_t* ST_flag = new index_t[offset_ST[n-1] + degree_ST[n-1]];
     dim_t i, numUndefined, iter=0;
     index_t iptr, jptr, kptr;

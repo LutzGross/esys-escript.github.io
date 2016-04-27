@@ -46,9 +46,9 @@ struct Distribution
                  index_t b) :
         mpi_info(mpiInfo)
     {
-        first_component.resize(mpi_info->size+1);
-        for (int i=0; i < mpi_info->size+1; ++i)
-            first_component[i] = m*firstComponent[i]+b;
+        first_component.resize(mpi_info->size + 1);
+        for (int i = 0; i < mpi_info->size+1; ++i)
+            first_component[i] = m * firstComponent[i] + b;
     }
 
     inline index_t getFirstComponent() const
@@ -60,7 +60,6 @@ struct Distribution
     {
         return first_component[mpi_info->rank+1];
     }
-
 
     inline dim_t getGlobalNumComponents() const
     {
@@ -82,29 +81,10 @@ struct Distribution
         return first_component[mpi_info->size];
     }
 
-    inline double* createRandomVector(dim_t block) const
-    {
-        const index_t n_0 = getFirstComponent() * block;
-        const index_t n_1 = getLastComponent() * block;
-        const index_t n = getGlobalNumComponents() * block;
-        const dim_t my_n = n_1-n_0;
-
-        double* out = new double[my_n];
-
-#pragma omp parallel for schedule(static)
-        for (index_t i=0; i<my_n; ++i) {
-            out[i] = fmod(random_seed*(n_0+i+1), 1.);
-        }
-
-        random_seed = fmod(random_seed * (n+1.7), 1.);
-        return out;
-    }
-
     // process i has nodes with global indices first_component[i] to
     // first_component[i+1].
     std::vector<index_t> first_component;
     escript::JMPI mpi_info;
-    static double random_seed;
 };
 
 } // namespace paso

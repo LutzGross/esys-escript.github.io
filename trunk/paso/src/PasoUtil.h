@@ -60,7 +60,7 @@ double innerProduct(dim_t N, const double* x, const double* y,
                     escript::JMPI mpiInfo);
 
 /// returns true if array contains value
-bool isAny(dim_t N, index_t* array, index_t value);
+bool isAny(dim_t N, const index_t* array, index_t value);
 
 /// returns the global L2 norm of x
 double l2(dim_t N, const double* x, escript::JMPI mpiInfo);
