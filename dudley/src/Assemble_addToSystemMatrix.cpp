@@ -16,7 +16,9 @@
 
 #include "Assemble.h"
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
+#endif
 
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
@@ -26,6 +28,7 @@ using esys_trilinos::TrilinosMatrixAdapter;
 
 namespace dudley {
 
+#ifdef ESYS_HAVE_PASO
 static void addToSystemMatrixPasoCSC(paso::SystemMatrix* S,
                                      const std::vector<index_t>& Nodes,
                                      int numEq,
@@ -35,11 +38,13 @@ static void addToSystemMatrixPasoCSR(paso::SystemMatrix* S,
                                      const std::vector<index_t>& Nodes,
                                      int numEq,
                                      const std::vector<double>& array);
+#endif
 
 void Assemble_addToSystemMatrix(escript::ASM_ptr S,
                                 const std::vector<index_t>& Nodes, int numEq,
                                 const std::vector<double>& array)
 {
+#ifdef ESYS_HAVE_PASO
     paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S.get());
     if (pmat) {
         if (pmat->type & MATRIX_FORMAT_CSC) {
@@ -49,6 +54,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S,
         }
         return;
     }
+#endif
 #ifdef ESYS_HAVE_TRILINOS
     TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(S.get()));
     if (tmat) {
@@ -60,6 +66,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S,
                           "matrix type.");
 }
 
+#ifdef ESYS_HAVE_PASO
 void addToSystemMatrixPasoCSC(paso::SystemMatrix* in,
                               const std::vector<index_t>& Nodes,
                               int numEq, const std::vector<double>& array)
@@ -264,6 +271,7 @@ void addToSystemMatrixPasoCSR(paso::SystemMatrix* in,
         }
     }
 }
+#endif // ESYS_HAVE_PASO
 
 } // namespace dudley
 

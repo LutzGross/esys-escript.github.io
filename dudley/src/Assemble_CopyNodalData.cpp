@@ -94,14 +94,13 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     } else if (in_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == DUDLEY_NODES) {
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            // safe provided coupler->copyAll is called before the pointer
-            // in "in" is invalidated
             const_cast<escript::Data*>(&in)->resolve();
+            const index_t* target = nodes->borrowTargetDegreesOfFreedom();
+#ifdef ESYS_HAVE_PASO
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             coupler->startCollect(in.getDataRO());  
             const double* recv_buffer = coupler->finishCollect();
             const index_t upperBound = nodes->getNumDegreesOfFreedom();
-            const index_t* target = nodes->borrowTargetDegreesOfFreedom();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
                 const index_t k = target[n];
@@ -114,6 +113,28 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                            numComps_size);
                 }
             }
+#elif defined(ESYS_HAVE_TRILINOS)
+            /* TODO: move getTrilinosGraph() from MeshAdapter to NodeFile
+            using namespace esys_trilinos;
+
+            const_TrilinosGraph_ptr graph(nodes->getTrilinosGraph());
+            const Teuchos::ArrayView<const real_t> localIn(
+                                                in.getSampleDataRO(0),
+                                                in.getNumDataPoints()*numComp);
+            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(
+                              graph->getRowMap(), localIn, localIn.size(), 1));
+            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(
+                              graph->getColMap(), 1));
+            const ImportType importer(graph->getRowMap(), graph->getColMap());
+            gblData->doImport(*lclData, importer, Tpetra::INSERT);
+            Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+#pragma omp parallel for
+            for (index_t i = 0; i < numOut; i++) {
+                const real_t* src = &gblArray[target[i]];
+                copy(src, src+numComp, out.getSampleDataRW(i));
+            }
+            */
+#endif
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
