@@ -69,7 +69,7 @@ class Test_LinearPDEOnDudleyTet3D(Test_LinearPDE,Test_pdetools,Test_assemblage_3
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=True)
         self.order = 1
    def tearDown(self):
         del self.domain
