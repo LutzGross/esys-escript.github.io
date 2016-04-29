@@ -29,7 +29,7 @@ struct ElementFile_Jacobians
     ElementFile_Jacobians();
     ~ElementFile_Jacobians();
 
-    /// status of mesh when jacobians where updated last time
+    /// status of mesh when jacobians were updated last time
     int status;
     /// number of spatial dimensions
     int numDim;
@@ -55,7 +55,7 @@ public:
     ~ElementFile();
 
     /// allocates the element table within an element file to hold NE elements
-    void allocTable(dim_t numElements);
+    void allocTable(dim_t NE);
 
     /// deallocates the element table within an element file
     void freeTable();
@@ -96,11 +96,11 @@ public:
     ElementFile_Jacobians* borrowJacobians(const NodeFile* nodes,
                                            bool reducedOrder) const;
 
-    /// returns the minimum and maximum node reference number of nodes
+    /// returns the minimum and maximum reference number of nodes
     /// describing the elements
     inline std::pair<index_t,index_t> getNodeRange() const;
 
-    void updateTagList();
+    inline void updateTagList();
 
 private:
     void swapTable(ElementFile* other);
@@ -111,7 +111,7 @@ public:
     /// number of elements
     dim_t numElements;
 
-    /// Id[i] is the id number of node i. this number is used when elements
+    /// Id[i] is the id number of node i. This number is used when elements
     /// are resorted. In the entire code the term 'element id' refers to i and
     /// not to Id[i] unless explicitly stated otherwise.
     index_t* Id;
@@ -128,7 +128,7 @@ public:
     /// number of nodes per element
     int numNodes;
 
-    /// Nodes[INDEX(k, i, numNodes)] is the k-th node in the i-the element.
+    /// Nodes[INDEX(k, i, numNodes)] is the k-th node in the i-th element.
     index_t* Nodes;
 
     /// assigns each element a color. Elements with the same color don't share
@@ -166,15 +166,16 @@ private:
     ElementFile_Jacobians* jacobians_reducedQ;
 };
 
+inline std::pair<index_t,index_t> ElementFile::getNodeRange() const
+{
+    return util::getMinMaxInt(numNodes, numElements, Nodes);
+}
+
 inline void ElementFile::updateTagList()
 {
     util::setValuesInUse(Tag, numElements, tagsInUse, MPIInfo);
 }
 
-inline std::pair<index_t,index_t> ElementFile::getNodeRange() const
-{
-    return util::getMinMaxInt(numNodes, numElements, Nodes);
-}
 
 } // namespace dudley
 

@@ -34,7 +34,7 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
                         dim_t input_block_size)
 {
     SystemMatrixPattern_ptr out;
-    Distribution_ptr new_output_distribution, new_input_distribution;
+    escript::Distribution_ptr new_output_distribution, new_input_distribution;
     Connector_ptr new_col_connector, new_row_connector;
 
     if ( (output_block_size == 1) && (input_block_size == 1) &&
@@ -48,7 +48,7 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
         Pattern_ptr new_row_couplePattern(row_couplePattern->unrollBlocks(
                 newType, output_block_size, input_block_size));
         if (output_block_size > 1) {
-            new_output_distribution.reset(new Distribution(
+            new_output_distribution.reset(new escript::Distribution(
                     output_distribution->mpi_info,
                     output_distribution->first_component,
                     output_block_size, 0));
@@ -58,7 +58,7 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
             new_row_connector = row_connector;
         }
         if (input_block_size > 1) {
-            new_input_distribution.reset(new Distribution(
+            new_input_distribution.reset(new escript::Distribution(
                     input_distribution->mpi_info,
                     input_distribution->first_component,
                     input_block_size, 0));

@@ -65,7 +65,7 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
         // check if all meshes have the same type and dimensions
         order=std::max(order, msh[i]->integrationOrder);
         reduced_order=std::min(reduced_order, msh[i]->reducedIntegrationOrder);
-        numNodes+=msh[i]->Nodes->numNodes;
+        numNodes += msh[i]->Nodes->getNumNodes();
         if (mpiInfo->comm != msh[i]->MPIInfo->comm) {
             throw escript::ValueError("Mesh_merge: MPI communicators of meshes don't match.");
         }
@@ -154,15 +154,15 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
         out->ContactElements->copyTable(numContactElements, numNodes, maxElementID,msh[i]->ContactElements);
         out->Points->copyTable(numPoints, numNodes, maxElementID, msh[i]->Points);
 
-        numNodes += msh[i]->Nodes->numNodes;
+        numNodes += msh[i]->Nodes->getNumNodes();
         numElements += msh[i]->Elements->numElements;
         numFaceElements += msh[i]->FaceElements->numElements;
         numContactElements += msh[i]->ContactElements->numElements;
         numPoints += msh[i]->Points->numElements;
 
-        if (msh[i]->Nodes->numNodes > 0)
-            maxNodeID += util::getMaxInt(1, msh[i]->Nodes->numNodes, msh[i]->Nodes->Id)+1;
-        maxDOF += util::getMaxInt(1, msh[i]->Nodes->numNodes, msh[i]->Nodes->globalDegreesOfFreedom)+1;
+        if (msh[i]->Nodes->getNumNodes() > 0)
+            maxNodeID += util::getMaxInt(1, msh[i]->Nodes->getNumNodes(), msh[i]->Nodes->Id)+1;
+        maxDOF += util::getMaxInt(1, msh[i]->Nodes->getNumNodes(), msh[i]->Nodes->globalDegreesOfFreedom)+1;
         maxElementID2 = 0;
         if (msh[i]->Elements->numElements > 0)
             maxElementID2 = std::max(maxElementID2, util::getMaxInt(1, msh[i]->Elements->numElements, msh[i]->Elements->Id));

@@ -17,6 +17,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 // Unless the loops in here get complicated again this file should be compiled
 // with loop unrolling
 

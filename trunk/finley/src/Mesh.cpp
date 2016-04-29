@@ -13,25 +13,19 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: Mesh
-
-*****************************************************************************/
-
 #include "Mesh.h"
 #include "FinleyException.h"
 #include "IndexList.h"
+
+#include <escript/index.h>
 
 #include <boost/scoped_array.hpp>
 #include <iostream>
 
 namespace finley {
 
-/// Constructor.
-/// Allocates a Mesh with given name and dimensionality
-Mesh::Mesh(const std::string name, int numDim, escript::JMPI& mpi_info) :
+/// constructor
+Mesh::Mesh(const std::string name, int numDim, escript::JMPI mpi_info) :
     m_name(name),
     approximationOrder(-1),
     reducedApproximationOrder(-1),
@@ -40,10 +34,9 @@ Mesh::Mesh(const std::string name, int numDim, escript::JMPI& mpi_info) :
     Elements(NULL),
     FaceElements(NULL),
     ContactElements(NULL),
-    Points(NULL)
+    Points(NULL),
+    MPIInfo(mpi_info)
 {
-    MPIInfo = mpi_info;
-
     // allocate node table
     Nodes = new NodeFile(numDim, mpi_info);
 }
@@ -56,36 +49,35 @@ Mesh::~Mesh()
     delete Elements;
     delete ContactElements;
     delete Points;
-    tagMap.clear();
 }
 
-void Mesh::setElements(ElementFile *elements)
+void Mesh::setElements(ElementFile* elements)
 {
     delete Elements;
-    Elements=elements;
+    Elements = elements;
 }
 
-void Mesh::setFaceElements(ElementFile *elements)
+void Mesh::setFaceElements(ElementFile* elements)
 {
     delete FaceElements;
-    FaceElements=elements;
+    FaceElements = elements;
 }
 
-void Mesh::setContactElements(ElementFile *elements)
+void Mesh::setContactElements(ElementFile* elements)
 {
     delete ContactElements;
-    ContactElements=elements;
+    ContactElements = elements;
 }
 
-void Mesh::setPoints(ElementFile *elements)
+void Mesh::setPoints(ElementFile* elements)
 {
     delete Points;
-    Points=elements;
+    Points = elements;
 }
 
 void Mesh::setOrders() 
 {
-    const int ORDER_MAX=9999999;
+    const int ORDER_MAX = 9999999;
     int locals[4] = { ORDER_MAX, ORDER_MAX, ORDER_MAX, ORDER_MAX };
 
     if (Elements != NULL && Elements->numElements > 0) {
@@ -110,25 +102,24 @@ void Mesh::setOrders()
 #ifdef ESYS_MPI
     int globals[4];
     MPI_Allreduce(locals, globals, 4, MPI_INT, MPI_MIN, MPIInfo->comm);
-    approximationOrder=(globals[0] < ORDER_MAX ? globals[0] : -1);
-    reducedApproximationOrder=(globals[1] < ORDER_MAX ? globals[1] : -1);
-    integrationOrder=(globals[2] < ORDER_MAX ? globals[2] : -1);
-    reducedIntegrationOrder=(globals[3] < ORDER_MAX ? globals[3] : -1);
+    approximationOrder = (globals[0] < ORDER_MAX ? globals[0] : -1);
+    reducedApproximationOrder = (globals[1] < ORDER_MAX ? globals[1] : -1);
+    integrationOrder = (globals[2] < ORDER_MAX ? globals[2] : -1);
+    reducedIntegrationOrder = (globals[3] < ORDER_MAX ? globals[3] : -1);
 #else
-    approximationOrder=(locals[0] < ORDER_MAX ? locals[0] : -1);
-    reducedApproximationOrder=(locals[1] < ORDER_MAX ? locals[1] : -1);
-    integrationOrder=(locals[2] < ORDER_MAX ? locals[2] : -1);
-    reducedIntegrationOrder=(locals[3] < ORDER_MAX ? locals[3] : -1);
+    approximationOrder = (locals[0] < ORDER_MAX ? locals[0] : -1);
+    reducedApproximationOrder = (locals[1] < ORDER_MAX ? locals[1] : -1);
+    integrationOrder = (locals[2] < ORDER_MAX ? locals[2] : -1);
+    reducedIntegrationOrder = (locals[3] < ORDER_MAX ? locals[3] : -1);
 #endif
 }
 
-/// creates node mappings without (re-)distributing anything
-void Mesh::createMappings(const std::vector<index_t>& dofDistribution,
-                          const std::vector<index_t>& nodeDistribution)
+void Mesh::createMappings(const IndexVector& dofDistribution,
+                          const IndexVector& nodeDistribution)
 {
-    std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
+    std::vector<short> maskReducedNodes(Nodes->getNumNodes(), -1);
     markNodes(maskReducedNodes, 0, true);
-    std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
+    IndexVector indexReducedNodes = util::packMask(maskReducedNodes);
     Nodes->createNodeMappings(indexReducedNodes, dofDistribution,
                               nodeDistribution);
 }
@@ -138,7 +129,7 @@ void Mesh::createMappings(const std::vector<index_t>& dofDistribution,
 /// but will not create any mappings.
 void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
 {
-    std::vector<int> mpiRankOfDOF(Nodes->numNodes);
+    std::vector<int> mpiRankOfDOF(Nodes->getNumNodes());
     Nodes->assignMPIRankToDOFs(mpiRankOfDOF, dof_distribution);
 
     // first, the elements are redistributed according to mpiRankOfDOF
@@ -157,10 +148,10 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
     const index_t len=dof_range.second-dof_range.first+1;
     // local mask for used nodes
     std::vector<index_t> localDOF_mask(len, -1);
-    std::vector<index_t> localDOF_map(Nodes->numNodes, -1);
+    std::vector<index_t> localDOF_map(Nodes->getNumNodes(), -1);
 
 #pragma omp parallel for
-    for (index_t n=0; n<Nodes->numNodes; n++) {
+    for (index_t n=0; n<Nodes->getNumNodes(); n++) {
 #ifdef BOUNDS_CHECK
         if ((Nodes->globalDegreesOfFreedom[n]-dof_range.first) >= len ||
                 (Nodes->globalDegreesOfFreedom[n]-dof_range.first) < 0) {
@@ -180,7 +171,7 @@ void Mesh::distributeByRankOfDOF(const std::vector<index_t>& dof_distribution)
           }
     }
 #pragma omp parallel for
-    for (index_t n=0; n<Nodes->numNodes; n++) {
+    for (index_t n=0; n<Nodes->getNumNodes(); n++) {
         const index_t k=localDOF_mask[Nodes->globalDegreesOfFreedom[n]-dof_range.first];
         localDOF_map[n]=k;
     }
@@ -285,7 +276,7 @@ void Mesh::print()
     }
 }
 
-void Mesh::markNodes(std::vector<short>& mask, int offset, bool useLinear)
+void Mesh::markNodes(std::vector<short>& mask, index_t offset, bool useLinear) const
 {
     Elements->markNodes(mask, offset, useLinear);
     FaceElements->markNodes(mask, offset, useLinear);
@@ -310,19 +301,23 @@ void Mesh::markDOFsConnectedToRange(int* mask, int offset, int marker,
 }
 
 /// optimizes the labeling of the DOFs on each processor
-void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
+void Mesh::optimizeDOFLabeling(const IndexVector& distribution)
 {
-    const int myRank=MPIInfo->rank;
-    const int mpiSize=MPIInfo->size;
-    const index_t myFirstVertex=distribution[myRank];
-    const index_t myLastVertex=distribution[myRank+1];
-    const dim_t myNumVertices=myLastVertex-myFirstVertex;
-    index_t len=0;
+    // this method relies on Pattern::reduceBandwidth so requires PASO
+    // at the moment
+#ifdef ESYS_HAVE_PASO
+    const int myRank = MPIInfo->rank;
+    const int mpiSize = MPIInfo->size;
+    const index_t myFirstVertex = distribution[myRank];
+    const index_t myLastVertex = distribution[myRank+1];
+    const dim_t myNumVertices = myLastVertex-myFirstVertex;
+    dim_t len = 0;
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
 
     boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-    std::vector<index_t> newGlobalDOFID(len);
+    boost::scoped_array<index_t> newGlobalDOFID(new index_t[len]);
+
     // create the adjacency structure xadj and adjncy
 #pragma omp parallel
     {
@@ -345,46 +340,46 @@ void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
                 Nodes->globalDegreesOfFreedom);
     }
     // create the local matrix pattern
-    paso::Pattern_ptr pattern=paso::Pattern::fromIndexListArray(0,
+    paso::Pattern_ptr pattern = paso::Pattern::fromIndexListArray(0,
             myNumVertices, index_list.get(), myFirstVertex, myLastVertex,
             -myFirstVertex);
 
-    pattern->reduceBandwidth(&newGlobalDOFID[0]); 
+    pattern->reduceBandwidth(&newGlobalDOFID[0]);
 
     // shift new labeling to create a global id
 #pragma omp parallel for
-    for (int i=0; i<myNumVertices; ++i)
-        newGlobalDOFID[i]+=myFirstVertex;
+    for (index_t i = 0; i < myNumVertices; ++i)
+        newGlobalDOFID[i] += myFirstVertex;
 
     // distribute new labeling to other processors
 #ifdef ESYS_MPI
     const int dest = MPIInfo->mod_rank(myRank + 1);
     const int source = MPIInfo->mod_rank(myRank - 1);
 #endif
-    int current_rank=myRank;
-    for (int p=0; p<mpiSize; ++p) {
-        const index_t firstVertex=distribution[current_rank];
-        const index_t lastVertex=distribution[current_rank+1];
+    int current_rank = myRank;
+    for (int p = 0; p < mpiSize; ++p) {
+        const index_t firstVertex = distribution[current_rank];
+        const index_t lastVertex = distribution[current_rank + 1];
 #pragma omp parallel for
-        for (index_t i=0; i<Nodes->numNodes; ++i) {
-            const index_t k=Nodes->globalDegreesOfFreedom[i];
-            if (firstVertex<=k && k<lastVertex) {
+        for (index_t i = 0; i < Nodes->getNumNodes(); ++i) {
+            const index_t k = Nodes->globalDegreesOfFreedom[i];
+            if (firstVertex <= k && k < lastVertex) {
                 Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
             }
         }
 
-        if (p<mpiSize-1) { // the final send can be skipped
+        if (p < mpiSize - 1) { // the final send can be skipped
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
-                                 dest, MPIInfo->counter(),
-                                 source, MPIInfo->counter(),
-                                 MPIInfo->comm, &status);
+                                 dest, MPIInfo->counter(), source,
+                                 MPIInfo->counter(), MPIInfo->comm, &status);
             MPIInfo->incCounter();
 #endif
-            current_rank = MPIInfo->mod_rank(current_rank-1);
+            current_rank = MPIInfo->mod_rank(current_rank - 1);
         }
     }
+#endif // ESYS_HAVE_PASO
 }
 
 /// prepares the mesh for further use
@@ -425,7 +420,7 @@ void Mesh::prepare(bool optimize)
     optimizeElementOrdering();
 
     // create the global indices
-    std::vector<short> maskReducedNodes(Nodes->numNodes, -1);
+    std::vector<short> maskReducedNodes(Nodes->getNumNodes(), -1);
     std::vector<index_t> nodeDistribution(MPIInfo->size+1);
     markNodes(maskReducedNodes, 0, true);
     std::vector<index_t> indexReducedNodes = util::packMask(maskReducedNodes);
@@ -470,7 +465,7 @@ void Mesh::updateTagList()
 }
 
 /// assigns new node reference numbers to all element files
-void Mesh::relabelElementNodes(const std::vector<index_t>& newNode, index_t offset)
+void Mesh::relabelElementNodes(const IndexVector& newNode, index_t offset)
 {
     Elements->relabelNodes(newNode, offset);
     FaceElements->relabelNodes(newNode, offset);
@@ -485,7 +480,7 @@ void Mesh::resolveNodeIds()
     // all nodes referred by an element are actually available on the process.
     // At the output, a local node labeling is used and all nodes are
     // available. In particular the numbering of the element nodes is between
-    // 0 and NodeFile->numNodes.
+    // 0 and NodeFile->getNumNodes().
     // The function does not create a distribution of the degrees of freedom.
 
     // find the minimum and maximum id used by elements
@@ -575,12 +570,12 @@ void Mesh::setCoordinates(const escript::Data& newX)
     Nodes->setCoordinates(newX);
 }
 
-void Mesh::addTagMap(const char* name, int tag_key) 
+void Mesh::addTagMap(const std::string& name, int tag_key)
 {
-   tagMap[std::string(name)]=tag_key;
+    tagMap[name] = tag_key;
 }
 
-int Mesh::getTag(const char* name) const
+int Mesh::getTag(const std::string& name) const
 {
     TagMap::const_iterator it = tagMap.find(name);
     if (it == tagMap.end()) {
@@ -592,9 +587,9 @@ int Mesh::getTag(const char* name) const
     return it->second;
 }
 
-bool Mesh::isValidTagName(const char* name) const
+bool Mesh::isValidTagName(const std::string& name) const
 {
-   return (tagMap.count(std::string(name)) > 0);
+    return (tagMap.count(name) > 0);
 }
 
 } // namespace finley

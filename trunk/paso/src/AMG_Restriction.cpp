@@ -47,7 +47,7 @@ namespace paso {
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 {
    escript::JMPI mpi_info(P->mpi_info);
-   Distribution_ptr input_dist, output_dist;
+   escript::Distribution_ptr input_dist, output_dist;
    Connector_ptr col_connector;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
@@ -354,8 +354,8 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n_C,
                         num_Rcouple_cols, ptr, idx));
 
-   input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-   output_dist.reset(new Distribution(mpi_info, P->pattern->input_distribution->first_component, 1, 0));
+   input_dist.reset(new escript::Distribution(mpi_info, dist));
+   output_dist.reset(new escript::Distribution(mpi_info, P->pattern->input_distribution->first_component));
 
     /* now we need to create the System Matrix
        TO BE FIXED: at this stage, we only construction col_couple_pattern

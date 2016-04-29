@@ -53,7 +53,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     paso::SystemMatrix* pasoMat = sm ?
         dynamic_cast<paso::SystemMatrix*>(sm.get()) : NULL;
 
-    //  check the dimensions of matrix and rhs
+    // check the dimensions of matrix and rhs
     if (pasoMat != NULL && !rhs.isEmpty()) {
         const dim_t numRows = pasoMat->row_distribution->getMyNumComponents()*pasoMat->row_block_size;
         if (!rhs.numSamplesEqual(1, numRows/pasoMat->logical_row_block_size)) {
@@ -72,8 +72,8 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         }
     } else {
         if (!rhs.isEmpty() && rhs.getDataPointSize() != sm->getRowBlockSize()) {
-            throw DudleyException("AssembleParameters: matrix row block size "
-                   "and number of components of right hand side don't match.");
+            throw ValueError("AssembleParameters: matrix row block size and "
+                      "number of components of right hand side don't match.");
         }
         if (sm->getRowBlockSize() != sm->getColumnBlockSize())
             throw DudleyException("Dudley requires number of equations == number of solutions.");

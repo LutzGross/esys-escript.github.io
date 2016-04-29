@@ -34,30 +34,32 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace finley {
 
 void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y)
 {
-    bool expandedD=D.actsExpanded();
-    bool expandedY=Y.actsExpanded();
-    double *F_p=NULL;
+    bool expandedD = D.actsExpanded();
+    bool expandedY = Y.actsExpanded();
+    double *F_p = NULL;
     if(!p.F.isEmpty()) {
         p.F.requireWrite();
-        F_p=p.F.getSampleDataRW(0);
+        F_p = p.F.getSampleDataRW(0);
     }
     const std::vector<double>& S(p.row_jac->BasisFunctions->S);
 
 #pragma omp parallel
     {
-        std::vector<index_t> row_index(p.row_numShapesTotal);
+        IndexVector row_index(p.row_numShapesTotal);
         std::vector<double> EM_S(p.row_numShapesTotal*p.col_numShapesTotal);
         std::vector<double> EM_F(p.row_numShapesTotal);
 
-        for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
+        for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for (index_t e=0; e<p.elements->numElements; e++) {
+            for (index_t e = 0; e < p.elements->numElements; e++) {
                 if (p.elements->Color[e]==color) {
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);

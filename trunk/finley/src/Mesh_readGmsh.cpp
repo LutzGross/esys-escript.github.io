@@ -24,6 +24,8 @@
 #include "Mesh.h"
 #include "FinleyException.h"
 
+#include <escript/index.h>
+
 #include <cstdio>
 
 //can't return because the flag need to be shared across all nodes
@@ -927,7 +929,7 @@ int check_error(int error, FILE *f, const std::string& errorMsg)
     return error;
 }
 
-Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname,
+Mesh* Mesh::readGmshMaster(escript::JMPI mpi_info, const std::string& fname,
                            int numDim, int order, int reduced_order,
                            bool optimize, bool useMacroElements)
 {
@@ -1078,8 +1080,9 @@ Mesh* Mesh::readGmshMaster(escript::JMPI& mpi_info, const std::string fname,
     return mesh_p;
 }
 
-Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int numDim, int order,
-                     int reduced_order, bool optimize, bool useMacroElements)
+Mesh* Mesh::readGmshSlave(escript::JMPI mpi_info, const std::string& fname,
+                     int numDim, int order, int reduced_order, bool optimize,
+                     bool useMacroElements)
 {
 #ifndef ESYS_MPI
     throw FinleyException("slave function called in non-MPI build");
@@ -1159,7 +1162,7 @@ Mesh* Mesh::readGmshSlave(escript::JMPI& mpi_info, const std::string fname, int 
 }
 
 
-Mesh* Mesh::readGmsh(escript::JMPI& mpi_info, const std::string fname,
+Mesh* Mesh::readGmsh(escript::JMPI mpi_info, const std::string& fname,
                      int numDim, int order, int reduced_order, bool optimize,
                      bool useMacroElements)
 {

@@ -23,9 +23,11 @@
 
 #include "Mesh.h"
 
+#include <escript/index.h>
+
 namespace finley {
 
-Mesh* Mesh::read(escript::JMPI& mpi_info, const std::string fname,
+Mesh* Mesh::read(escript::JMPI mpi_info, const std::string& fname,
                  int order, int reduced_order, bool optimize)
 {
     int numNodes, numDim=0, numEle, i0, i1;

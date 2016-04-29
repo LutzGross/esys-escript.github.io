@@ -23,11 +23,9 @@
 #include <escript/Random.h>
 #include <escript/SolverOptions.h>
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
 #include <paso/Transport.h>
-
-#ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -35,6 +33,10 @@
 
 using esys_trilinos::TrilinosMatrixAdapter;
 using esys_trilinos::const_TrilinosGraph_ptr;
+#endif
+
+#ifdef ESYS_HAVE_NETCDF
+#include <netcdfcpp.h>
 #endif
 
 using namespace std;
@@ -121,27 +123,27 @@ void MeshAdapter::Print_Mesh_Info(bool full) const
 void MeshAdapter::dump(const string& fileName) const
 {
 #ifdef ESYS_HAVE_NETCDF
-   const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-   NcVar* ids;
-   index_t* index_ptr;
+    const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+    NcVar* ids;
+    index_t* index_ptr;
 #ifdef ESYS_INDEXTYPE_LONG
     NcType ncIdxType = ncLong;
 #else
     NcType ncIdxType = ncInt;
 #endif
-   Mesh* mesh = m_dudleyMesh.get();
-   int num_Tags = 0;
-   int mpi_size                  = getMPISize();
-   int mpi_rank                  = getMPIRank();
-   int numDim                    = mesh->Nodes->numDim;
-   dim_t numNodes                = mesh->Nodes->getNumNodes();
-   dim_t num_Elements            = mesh->Elements->numElements;
-   dim_t num_FaceElements        = mesh->FaceElements->numElements;
-   dim_t num_Points              = mesh->Points->numElements;
-   int num_Elements_numNodes     = mesh->Elements->numNodes;
-   int num_FaceElements_numNodes = mesh->FaceElements->numNodes;
+    Mesh* mesh = m_dudleyMesh.get();
+    int num_Tags = 0;
+    int mpi_size                  = getMPISize();
+    int mpi_rank                  = getMPIRank();
+    int numDim                    = mesh->Nodes->numDim;
+    dim_t numNodes                = mesh->Nodes->getNumNodes();
+    dim_t num_Elements            = mesh->Elements->numElements;
+    dim_t num_FaceElements        = mesh->FaceElements->numElements;
+    dim_t num_Points              = mesh->Points->numElements;
+    int num_Elements_numNodes     = mesh->Elements->numNodes;
+    int num_FaceElements_numNodes = mesh->FaceElements->numNodes;
 #ifdef ESYS_MPI
-   MPI_Status status;
+    MPI_Status status;
 #endif
 
     // Incoming token indicates it's my turn to write
@@ -230,7 +232,7 @@ void MeshAdapter::dump(const string& fileName) const
     // // // // // Nodes // // // // //
 
     // Nodes nodeDistribution
-    if (! ( ids = dataFile.add_var("Nodes_NodeDistribution", ncIdxType, ncdims[2])) )
+    if (! (ids = dataFile.add_var("Nodes_NodeDistribution", ncIdxType, ncdims[2])) )
         throw DudleyException(msgPrefix+"add_var(Nodes_NodeDistribution)");
     index_ptr = &mesh->Nodes->nodesDistribution->first_component[0];
     if (! (ids->put(index_ptr, mpi_size+1)) )
@@ -563,7 +565,7 @@ pair<int,dim_t> MeshAdapter::getDataShape(int functionSpaceCode) const
         case ReducedElements:
             if (mesh->Elements) {
                 numSamples = mesh->Elements->numElements;
-                numDataPointsPerSample =(mesh->Elements->numLocalDim==0)?0:1;
+                numDataPointsPerSample = (mesh->Elements->numLocalDim==0)?0:1;
             }
         break;
         case FaceElements:
@@ -660,7 +662,7 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
     if (!y_contact.isEmpty())
         throw DudleyException("Dudley does not support y_contact");
 
-    Mesh* mesh=m_dudleyMesh.get();
+    Mesh* mesh = m_dudleyMesh.get();
 
     Assemble_PDE(mesh->Nodes, mesh->Elements, escript::ASM_ptr(), rhs,
                  escript::Data(), escript::Data(), escript::Data(),
@@ -681,9 +683,9 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
 void MeshAdapter::addPDEToTransportProblem(
         escript::AbstractTransportProblem& tp, escript::Data& source,
         const escript::Data& M, const escript::Data& A, const escript::Data& B,
-        const escript::Data& C, const  escript::Data& D,const escript::Data& X,
+        const escript::Data& C, const escript::Data& D, const escript::Data& X,
         const escript::Data& Y, const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact,const escript::Data& y_contact,
+        const escript::Data& d_contact, const escript::Data& y_contact,
         const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty())
@@ -691,6 +693,7 @@ void MeshAdapter::addPDEToTransportProblem(
     if (!y_contact.isEmpty())
         throw DudleyException("Dudley does not support y_contact");
 
+#ifdef ESYS_HAVE_PASO
     paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
         throw DudleyException("Dudley only accepts Paso transport problems");
@@ -713,10 +716,14 @@ void MeshAdapter::addPDEToTransportProblem(
     Assemble_PDE(mesh->Nodes, mesh->Points, ptp->borrowTransportMatrix(),
                  source, escript::Data(), escript::Data(), escript::Data(),
                  d_dirac, escript::Data(), y_dirac);
+#else
+    throw DudleyException("Transport problems require the Paso library which "
+                          "is not available.");
+#endif
 }
 
 //
-// interpolates data between different function spaces:
+// interpolates data between different function spaces
 //
 void MeshAdapter::interpolateOnDomain(escript::Data& target,
                                       const escript::Data& in) const
@@ -798,42 +805,42 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,
         case DegreesOfFreedom:
             switch (target.getFunctionSpace().getTypeCode()) {
                 case DegreesOfFreedom:
-                Assemble_CopyNodalData(mesh->Nodes, target, in);
-                break;
-            
-                case Nodes:
-                if (getMPISize() > 1) {
-                    escript::Data temp = escript::Data(in);
-                    temp.expand();
-                    Assemble_CopyNodalData(mesh->Nodes, target, temp);
-                } else {
                     Assemble_CopyNodalData(mesh->Nodes, target, in);
-                }
+                break;
+
+                case Nodes:
+                    if (getMPISize() > 1) {
+                        escript::Data temp = escript::Data(in);
+                        temp.expand();
+                        Assemble_CopyNodalData(mesh->Nodes, target, temp);
+                    } else {
+                        Assemble_CopyNodalData(mesh->Nodes, target, in);
+                    }
                 break;
                 case Elements:
                 case ReducedElements:
-                if (getMPISize() > 1) {
-                    escript::Data temp = escript::Data(in, continuousFunction(*this) );
-                    Assemble_interpolate(mesh->Nodes, mesh->Elements, temp, target);
-                } else {
-                    Assemble_interpolate(mesh->Nodes, mesh->Elements, in, target);
-                }
+                    if (getMPISize() > 1) {
+                        escript::Data temp = escript::Data(in, continuousFunction(*this) );
+                        Assemble_interpolate(mesh->Nodes, mesh->Elements, temp, target);
+                    } else {
+                        Assemble_interpolate(mesh->Nodes, mesh->Elements, in, target);
+                    }
                 break;
                 case FaceElements:
                 case ReducedFaceElements:
-                if (getMPISize() > 1) {
-                    escript::Data temp = escript::Data(in, continuousFunction(*this) );
-                    Assemble_interpolate(mesh->Nodes, mesh->FaceElements, temp, target);
-                } else {
-                    Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in, target);
-                }
+                    if (getMPISize() > 1) {
+                        escript::Data temp = escript::Data(in, continuousFunction(*this) );
+                        Assemble_interpolate(mesh->Nodes, mesh->FaceElements, temp, target);
+                    } else {
+                        Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in, target);
+                    }
                 break;
                 case Points:
-                if (getMPISize() > 1) {
-                    //escript::Data temp=escript::Data(in, continuousFunction(*this) );
-                } else {
-                    Assemble_interpolate(mesh->Nodes, mesh->Points, in, target);
-                }
+                    if (getMPISize() > 1) {
+                        //escript::Data temp=escript::Data(in, continuousFunction(*this) );
+                    } else {
+                        Assemble_interpolate(mesh->Nodes, mesh->Points, in, target);
+                    }
                 break;
                 default:
                     stringstream ss;
@@ -844,17 +851,17 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,
                     break;
             }
             break;
-       default:
-          stringstream ss;
-          ss << "interpolateOnDomain: Dudley does not know anything about "
+        default:
+            stringstream ss;
+            ss << "interpolateOnDomain: Dudley does not know anything about "
                 "function space type " << in.getFunctionSpace().getTypeCode();
-          throw DudleyException(ss.str());
-          break;
+            throw DudleyException(ss.str());
+            break;
     }
 }
 
 //
-// copies the locations of sample points into x:
+// copies the locations of sample points into x
 //
 void MeshAdapter::setToX(escript::Data& arg) const
 {
@@ -874,7 +881,7 @@ void MeshAdapter::setToX(escript::Data& arg) const
 }
 
 //
-// return the normal vectors at the location of data points as a Data object:
+// return the normal vectors at the location of data points as a Data object
 //
 void MeshAdapter::setToNormal(escript::Data& normal) const
 {
@@ -904,7 +911,7 @@ void MeshAdapter::interpolateAcross(escript::Data& target,
 }
 
 //
-// calculates the integral of a function defined of arg:
+// calculates the integral of a function defined on arg
 //
 void MeshAdapter::setToIntegrals(vector<double>& integrals,
                                  const escript::Data& arg) const
@@ -1080,10 +1087,10 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
                             int type) const
 {
     // is the domain right?
-    if (*row_functionspace.getDomain() != *this) 
+    if (*row_functionspace.getDomain() != *this)
         throw ValueError("domain of row function space does not match the domain of matrix generator.");
-    if (*column_functionspace.getDomain() != *this) 
-        throw DudleyException("domain of column function space does not match the domain of matrix generator.");
+    if (*column_functionspace.getDomain() != *this)
+        throw ValueError("domain of column function space does not match the domain of matrix generator.");
 
     // is the function space type right?
     if (row_functionspace.getTypeCode() != DegreesOfFreedom) {
@@ -1106,11 +1113,16 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(int row_blocksize,
                 "used.");
 #endif
     } else if (type & (int)SMT_PASO) {
+#ifdef ESYS_HAVE_PASO
         paso::SystemMatrixPattern_ptr pattern(getMesh()->getPasoPattern());
         paso::SystemMatrix_ptr sm(new paso::SystemMatrix(type, pattern,
                   row_blocksize, column_blocksize, false, row_functionspace,
                   column_functionspace));
         return sm;
+#else
+        throw DudleyException("newSystemMatrix: dudley was not compiled "
+                "with Paso support so the Paso solver stack cannot be used.");
+#endif
     } else {
         throw DudleyException("newSystemMatrix: unknown matrix type ID");
     }
@@ -1125,17 +1137,22 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(int blocksize,
 {
     // is the domain right?
     if (*fs.getDomain() != *this) 
-        throw DudleyException("domain of function space does not match the domain of transport problem generator.");
+        throw ValueError("domain of function space does not match the domain of transport problem generator.");
     // is the function space type right 
     if (fs.getTypeCode() != DegreesOfFreedom) {
-        throw DudleyException("illegal function space type for system matrix rows.");
+        throw ValueError("illegal function space type for transport problem.");
     }
 
+#ifdef ESYS_HAVE_PASO
     // generate matrix
     paso::SystemMatrixPattern_ptr pattern(getMesh()->getPasoPattern());
     paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
                                               pattern, blocksize, fs));
     return transportProblem;
+#else
+    throw DudleyException("Transport problems require the Paso library which "
+                          "is not available.");
+#endif
 }
 
 //
@@ -1146,14 +1163,12 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
         case Nodes:
         case DegreesOfFreedom:
             return false;
-            break;
         case Elements:
         case FaceElements:
         case Points:
         case ReducedElements:
         case ReducedFaceElements:
             return true;
-            break;
         default:
             stringstream ss;
             ss << "isCellOriented: Dudley does not know anything about "
@@ -1231,12 +1246,12 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
         if (hasline[0] == 1) // we have points
             resultcode = Points;
         else if (hasline[1] == 1) {
-            if (hasclass[5]==1)
+            if (hasclass[5] == 1)
                 resultcode=ReducedElements;
             else
                 resultcode=Elements;
-        } else if (hasline[2]==1) {
-            if (hasclass[7]==1)
+        } else if (hasline[2] == 1) {
+            if (hasclass[7] == 1)
                 resultcode=ReducedFaceElements;
             else
                 resultcode=FaceElements;
@@ -1310,7 +1325,7 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,
 }
 
 signed char MeshAdapter::preferredInterpolationOnDomain(
-        int functionSpaceType_source,int functionSpaceType_target) const
+        int functionSpaceType_source, int functionSpaceType_target) const
 {
     if (probeInterpolationOnDomain(functionSpaceType_source, functionSpaceType_target))
         return 1;
@@ -1344,23 +1359,43 @@ int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
     int package = sb.getPackage();
+
+    // the configuration of dudley should have taken care that we have either
+    // paso or trilinos so here's how we prioritize
+#ifdef ESYS_HAVE_PASO
+    if (package == escript::SO_DEFAULT)
+        package = escript::SO_PACKAGE_PASO;
+#endif
+#ifdef ESYS_HAVE_TRILINOS
+    if (package == escript::SO_DEFAULT)
+        package = escript::SO_PACKAGE_TRILINOS;
+#endif
     if (package == escript::SO_PACKAGE_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS
         return (int)SMT_TRILINOS;
 #else
-        throw DudleyException("Trilinos requested but not built with Trilinos.");       
+        throw DudleyException("Trilinos requested but not built with Trilinos.");
 #endif
     }
+#ifdef ESYS_HAVE_PASO
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
                 sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
                 sb.isSymmetric(), m_dudleyMesh->MPIInfo);
+#else
+    throw DudleyException("Unable to find a working solver library!");
+#endif
 }
 
 int MeshAdapter::getTransportTypeId(int solver, int preconditioner,
                                     int package, bool symmetry) const
 {
+#ifdef ESYS_HAVE_PASO
     return paso::TransportProblem::getTypeId(solver, preconditioner, package,
                                              symmetry, getMPI());
+#else
+    throw DudleyException("Transport solvers require Paso but dudley was not "
+                          "compiled with Paso!");
+#endif
 }
 
 escript::Data MeshAdapter::getX() const
@@ -1441,7 +1476,7 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, index_t sampleNo) con
             stringstream ss;
             ss << "Invalid function space type: " << functionSpaceType
                << " for domain: " << getDescription();
-            throw DudleyException(ss.str());
+            throw ValueError(ss.str());
     }
     return out;
 }
@@ -1475,7 +1510,7 @@ void MeshAdapter::setTags(int functionSpaceType, int newTag, const escript::Data
     }
 }
 
-void MeshAdapter::setTagMap(const string& name,  int tag)
+void MeshAdapter::setTagMap(const string& name, int tag)
 {
     getMesh()->addTagMap(name, tag);
 }

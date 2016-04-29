@@ -17,6 +17,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,

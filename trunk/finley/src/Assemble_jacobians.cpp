@@ -14,6 +14,13 @@
 *
 *****************************************************************************/
 
+#include "Assemble.h"
+#include "Util.h"
+
+#include <escript/index.h>
+
+#include <sstream>
+
 /*
   input: 
     const double* coordinates[DIM*(*)]
@@ -32,11 +39,6 @@
     double* dTdX[DIM*numTest*NUMSIDES*numQuad*numElements]
     double* volume[numQuad*numElements]
 */
-
-#include "Assemble.h"
-#include "Util.h"
-
-#include <sstream>
 
 namespace finley {
 
@@ -83,20 +85,20 @@ void Assemble_jacobians_1D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
-    const int DIM=2;
-    const int LOCDIM=2;
+    const int DIM = 2;
+    const int LOCDIM = 2;
 #pragma omp parallel for
-    for (index_t e=0; e<numElements; e++) {
-        for (int q=0; q<numQuad; q++) {
-            double dXdv00=0.;
-            double dXdv10=0.;
-            double dXdv01=0.;
-            double dXdv11=0.;
-            for (int s=0; s<numShape; s++) {
+    for (index_t e = 0; e < numElements; e++) {
+        for (int q = 0; q < numQuad; q++) {
+            double dXdv00 = 0.;
+            double dXdv10 = 0.;
+            double dXdv01 = 0.;
+            double dXdv11 = 0.;
+            for (int s = 0; s < numShape; s++) {
                 const double X0_loc=coordinates[INDEX2(0,nodes[INDEX2(s,e,numNodes)],DIM)];
                 const double X1_loc=coordinates[INDEX2(1,nodes[INDEX2(s,e,numNodes)],DIM)];
                 dXdv00+=X0_loc*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
@@ -109,8 +111,7 @@ void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D: element " << e
                     << " (id " << elementId[e] << ") has length zero.";
-                std::string errorMsg = ss.str();
-                throw FinleyException(errorMsg);
+                throw FinleyException(ss.str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00 = dXdv11*invD;
@@ -126,7 +127,7 @@ void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                         DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11;
                 }
             }
-            volume[INDEX2(q,e,numQuad)]=std::abs(D)*QuadWeights[q];
+            volume[INDEX2(q,e,numQuad)] = std::abs(D)*QuadWeights[q];
         }
     }
 }

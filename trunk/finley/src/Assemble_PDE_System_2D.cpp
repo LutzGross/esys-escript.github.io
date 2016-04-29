@@ -41,6 +41,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace finley {
 
 void Assemble_PDE_System_2D(const AssembleParameters& p,
@@ -49,31 +51,31 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                             const escript::Data& X, const escript::Data& Y)
 {
     const int DIM = 2;
-    bool expandedA=A.actsExpanded();
-    bool expandedB=B.actsExpanded();
-    bool expandedC=C.actsExpanded();
-    bool expandedD=D.actsExpanded();
-    bool expandedX=X.actsExpanded();
-    bool expandedY=Y.actsExpanded();
-    double *F_p=NULL;
+    bool expandedA = A.actsExpanded();
+    bool expandedB = B.actsExpanded();
+    bool expandedC = C.actsExpanded();
+    bool expandedD = D.actsExpanded();
+    bool expandedX = X.actsExpanded();
+    bool expandedY = Y.actsExpanded();
+    double *F_p = NULL;
     if(!p.F.isEmpty()){
         p.F.requireWrite();
-        F_p=p.F.getSampleDataRW(0);
+        F_p = p.F.getSampleDataRW(0);
     }
     const std::vector<double>& S(p.row_jac->BasisFunctions->S);
-    const size_t len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal*p.numEqu*p.numComp;
-    const size_t len_EM_F=p.row_numShapesTotal*p.numEqu;
+    const size_t len_EM_S = p.row_numShapesTotal*p.col_numShapesTotal*p.numEqu*p.numComp;
+    const size_t len_EM_F = p.row_numShapesTotal*p.numEqu;
 
 #pragma omp parallel
     {
-        std::vector<index_t> row_index(p.row_numShapesTotal);
+        IndexVector row_index(p.row_numShapesTotal);
         std::vector<double> EM_S(len_EM_S);
         std::vector<double> EM_F(len_EM_F);
 
-        for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
+        for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements:
 #pragma omp for
-            for (index_t e=0; e<p.elements->numElements; e++) {
+            for (index_t e = 0; e < p.elements->numElements; e++) {
                 if (p.elements->Color[e]==color) {
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);

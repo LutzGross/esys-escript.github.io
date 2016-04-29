@@ -37,6 +37,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_PDE_Single_3D(const AssembleParameters& p,

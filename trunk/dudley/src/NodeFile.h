@@ -20,8 +20,11 @@
 #include "Dudley.h"
 #include "NodeMapping.h"
 
-#include <paso/Distribution.h>
+#include <escript/Distribution.h>
+
+#ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
+#endif
 
 namespace dudley {
 
@@ -76,14 +79,14 @@ public:
     /// the new number of global degrees of freedom
     dim_t createDenseDOFLabeling();
 
-    dim_t createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
-                                  const std::vector<index_t>& dofDistribution);
+    dim_t createDenseNodeLabeling(IndexVector& nodeDistribution,
+                                  const IndexVector& dofDistribution);
 
-    void createNodeMappings(const std::vector<index_t>& dofDistribution,
-                            const std::vector<index_t>& nodeDistribution);
+    void createNodeMappings(const IndexVector& dofDistribution,
+                            const IndexVector& nodeDistribution);
 
     void assignMPIRankToDOFs(int* mpiRankOfDOF,
-                             const std::vector<index_t>& distribution);
+                             const IndexVector& distribution);
 
     void copyTable(index_t offset, index_t idOffset, index_t dofOffset,
                    const NodeFile* in);
@@ -106,9 +109,8 @@ private:
     std::pair<index_t,index_t> getGlobalIdRange() const;
     std::pair<index_t,index_t> getGlobalDOFRange() const;
     std::pair<index_t,index_t> getGlobalNodeIDIndexRange() const;
-    dim_t prepareLabeling(const std::vector<short>& mask,
-                          std::vector<index_t>& buffer,
-                          std::vector<index_t>& distribution, bool useNodes);
+    dim_t prepareLabeling(const std::vector<short>& mask, IndexVector& buffer,
+                          IndexVector& distribution, bool useNodes);
     void createDOFMappingAndCoupling();
 
     NodeMapping nodesMapping;
@@ -138,13 +140,13 @@ public:
     /// assigns each local node a global unique ID in a dense labeling
     index_t* globalNodesIndex;
 
-#ifdef ESYS_HAVE_PASO
     /// MPI distribution of nodes
-    paso::Distribution_ptr nodesDistribution;
+    escript::Distribution_ptr nodesDistribution;
 
     /// MPI distribution of degrees of freedom
-    paso::Distribution_ptr dofDistribution;
+    escript::Distribution_ptr dofDistribution;
 
+#ifdef ESYS_HAVE_PASO
     paso::Connector_ptr degreesOfFreedomConnector;
 #endif
     // these are the packed versions of Id

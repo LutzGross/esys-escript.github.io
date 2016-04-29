@@ -16,6 +16,8 @@
 
 #include "TriangularMesh.h"
 
+#include <escript/index.h>
+
 using escript::DataTypes::real_t;
 
 namespace dudley {

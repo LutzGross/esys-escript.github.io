@@ -47,6 +47,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S,
 #ifdef ESYS_HAVE_PASO
     paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S.get());
     if (pmat) {
+        // call the right function depending on storage type
         if (pmat->type & MATRIX_FORMAT_CSC) {
             addToSystemMatrixPasoCSC(pmat, Nodes, numEq, array);
         } else { // type == CSR
@@ -150,10 +151,10 @@ void addToSystemMatrixPasoCSC(paso::SystemMatrix* in,
                                     for (int ic = 0; ic < col_block_size; ++ic) {
                                         const int i_Sol = ic + col_block_size * l_col;
                                         for (int ir = 0; ir < row_block_size; ++ir) {
-                                        const int i_Eq = ir + row_block_size * l_row;
-                                        col_coupleBlock_val[k*block_size + ir + row_block_size*ic] +=
-                                            array[INDEX4
-                                              (i_Eq, i_Sol, k_Eq, k_Sol, numEq, numEq, NN)];
+                                            const int i_Eq = ir + row_block_size * l_row;
+                                            col_coupleBlock_val[k*block_size + ir + row_block_size*ic] +=
+                                                array[INDEX4
+                                                  (i_Eq, i_Sol, k_Eq, k_Sol, numEq, numEq, NN)];
                                         }
                                     }
                                     break;

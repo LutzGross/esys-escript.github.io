@@ -14,14 +14,9 @@
 *
 *****************************************************************************/
 
-
-/*****************************************************************************/
-
-/*   Finley: write Mesh in finley file format */
-
-/*****************************************************************************/
-
 #include "Mesh.h"
+
+#include <escript/index.h>
 
 #include <iomanip>
 #include <iostream>
@@ -36,7 +31,7 @@ namespace finley {
 
 // private
 void Mesh::writeElementInfo(std::ostream& stream, const ElementFile* e,
-                            const string defaultType) const
+                            const string& defaultType) const
 {
     if (e != NULL) {
         stream << e->referenceElementSet->referenceElement->Type->Name
@@ -54,8 +49,8 @@ void Mesh::writeElementInfo(std::ostream& stream, const ElementFile* e,
 }
 
 // private
-void Mesh::printElementInfo(const ElementFile* e, const string title,
-                            const string defaultType, bool full) const
+void Mesh::printElementInfo(const ElementFile* e, const string& title,
+                            const string& defaultType, bool full) const
 {
     if (e != NULL) {
         dim_t mine=0, overlap=0;
@@ -88,11 +83,10 @@ void Mesh::printElementInfo(const ElementFile* e, const string title,
     }
 }
 
-                             
-/// writes the mesh to an external file using the 'fly' file format
-void Mesh::write(const string filename) const
+
+void Mesh::write(const std::string& filename) const
 {
-    if (MPIInfo->size >1) {
+    if (MPIInfo->size > 1) {
         throw escript::NotImplementedError("Mesh::write: only single rank runs are supported.");
     }
 
@@ -110,8 +104,8 @@ void Mesh::write(const string filename) const
     // write nodes
     if (Nodes != NULL) {
         const int numDim = getDim();
-        f << numDim << "D-Nodes " << Nodes->numNodes << endl;
-        for (index_t i=0; i<Nodes->numNodes; i++) {
+        f << numDim << "D-Nodes " << Nodes->getNumNodes() << endl;
+        for (index_t i=0; i<Nodes->getNumNodes(); i++) {
             f << Nodes->Id[i] << " " << Nodes->globalDegreesOfFreedom[i]
               << " " << Nodes->Tag[i];
             f.setf(ios::scientific, ios::floatfield);
@@ -163,10 +157,10 @@ void Mesh::printInfo(bool full)
     // write nodes
     if (Nodes != NULL) {
         const int numDim = getDim();
-        cout << "\tNodes: " << numDim << "D-Nodes " << Nodes->numNodes << endl;
+        cout << "\tNodes: " << numDim << "D-Nodes " << Nodes->getNumNodes() << endl;
         if (full) {
             cout << "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n";
-            for (index_t i=0; i < Nodes->numNodes; i++) {
+            for (index_t i=0; i < Nodes->getNumNodes(); i++) {
                 cout << "\t" << setw(7) << Nodes->Id[i]
                      << setw(6) << Nodes->Tag[i]
                      << setw(6) << Nodes->globalDegreesOfFreedom[i]

@@ -14,36 +14,24 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_DISTRIBUTION_H__
+#define __ESCRIPT_DISTRIBUTION_H__
 
-/****************************************************************************/
+#include <escript/DataTypes.h>
 
-/*   Paso: distribution                                                     */
-
-/****************************************************************************/
-
-/*   Author: Lutz Gross, l.gross@uq.edu.au */
-
-/****************************************************************************/
-
-#ifndef __PASO_DISTRIBUTION_H__
-#define __PASO_DISTRIBUTION_H__
-
-#include "Paso.h"
-#include "PasoUtil.h"
-
-namespace paso {
+namespace escript {
 
 struct Distribution;
 typedef boost::shared_ptr<Distribution> Distribution_ptr;
 typedef boost::shared_ptr<const Distribution> const_Distribution_ptr;
 
-/// describes the distribution of a vector stored on the local process
-PASO_DLL_API
+/// Describes the distribution of a vector across processes.
+/// Process i has entries with global indices first_component[i] to
+/// first_component[i+1].
 struct Distribution
 {
-    Distribution(const escript::JMPI& mpiInfo,
-                 const std::vector<index_t>& firstComponent, index_t m,
-                 index_t b) :
+    Distribution(JMPI mpiInfo, const DataTypes::IndexVector& firstComponent,
+                 DataTypes::index_t m = 1, DataTypes::index_t b = 0) :
         mpi_info(mpiInfo)
     {
         first_component.resize(mpi_info->size + 1);
@@ -51,43 +39,41 @@ struct Distribution
             first_component[i] = m * firstComponent[i] + b;
     }
 
-    inline index_t getFirstComponent() const
+    inline DataTypes::index_t getFirstComponent() const
     {
         return first_component[mpi_info->rank];
     }
 
-    inline index_t getLastComponent() const
+    inline DataTypes::index_t getLastComponent() const
     {
         return first_component[mpi_info->rank+1];
     }
 
-    inline dim_t getGlobalNumComponents() const
+    inline DataTypes::dim_t getGlobalNumComponents() const
     {
         return getMaxGlobalComponents()-getMinGlobalComponents();
     }
 
-    inline dim_t getMyNumComponents() const
+    inline DataTypes::dim_t getMyNumComponents() const
     {
         return getLastComponent()-getFirstComponent();
     }
 
-    inline dim_t getMinGlobalComponents() const
+    inline DataTypes::dim_t getMinGlobalComponents() const
     {
         return first_component[0];
     }
 
-    inline dim_t getMaxGlobalComponents() const
+    inline DataTypes::dim_t getMaxGlobalComponents() const
     {
         return first_component[mpi_info->size];
     }
 
-    // process i has nodes with global indices first_component[i] to
-    // first_component[i+1].
-    std::vector<index_t> first_component;
-    escript::JMPI mpi_info;
+    DataTypes::IndexVector first_component;
+    JMPI mpi_info;
 };
 
-} // namespace paso
+} // namespace escript
 
-#endif // __PASO_DISTRIBUTION_H__
+#endif // __ESCRIPT_DISTRIBUTION_H__
 

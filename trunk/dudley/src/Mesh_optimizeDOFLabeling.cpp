@@ -22,8 +22,11 @@
 namespace dudley {
 
 /// optimizes the labeling of the DOFs on each processor
-void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
+void Mesh::optimizeDOFLabeling(const IndexVector& distribution)
 {
+    // this method relies on Pattern::reduceBandwidth so requires PASO
+    // at the moment
+#ifdef ESYS_HAVE_PASO
     const int myRank = MPIInfo->rank;
     const int mpiSize = MPIInfo->size;
     const index_t myFirstVertex = distribution[myRank];
@@ -34,7 +37,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
         len=std::max(len, distribution[p+1]-distribution[p]);
 
     boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-    std::vector<index_t> newGlobalDOFID(len);
+    boost::scoped_array<index_t> newGlobalDOFID(new index_t[len]);
 
     // create the adjacency structure xadj and adjncy
 #pragma omp parallel
@@ -92,9 +95,10 @@ void Mesh::optimizeDOFLabeling(const std::vector<index_t>& distribution)
     }
 #if 0
     for (index_t i = 0; i < Nodes->getNumNodes(); ++i)
-        printf("%d ", Nodes->globalDegreesOfFreedom[i]);
-    printf("\n");
+        std::cout << Nodes->globalDegreesOfFreedom[i] << " ";
+    std::cout << std::endl;
 #endif
+#endif // ESYS_HAVE_PASO
 }
 
 } // namespace dudley

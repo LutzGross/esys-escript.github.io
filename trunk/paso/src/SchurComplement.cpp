@@ -19,6 +19,7 @@
 /* no check of consistency of matrices !!!!                   */
 
 #include "Paso.h"
+#include "PasoUtil.h"
 #include "Solver.h"
 #include "SparseMatrix.h"
 
@@ -45,11 +46,11 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
         /* now we run through the columns of A_CF in row  i */
         for (iPtr_CF = A_CF->pattern->ptr[i]; iPtr_CF < A_CF->pattern->ptr[i + 1]; ++iPtr_CF) {
              col_CF=A_CF->pattern->index[iPtr_CF];
-             set_A=true;
+             set_A = true;
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-               where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),util::comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),util::comparIndex);
                 if (where_p!=NULL) {
                     if (set_A) {
                        A11=A_CF->val[iPtr_CF]*invA_FF[col_CF];
@@ -69,7 +70,7 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
         /* now we run through the columns of A_CF in row  i */
         for (iPtr_CF = A_CF->pattern->ptr[i]; iPtr_CF < A_CF->pattern->ptr[i + 1]; ++iPtr_CF) {
              col_CF=A_CF->pattern->index[iPtr_CF];
-             set_A=true;
+             set_A = true;
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */

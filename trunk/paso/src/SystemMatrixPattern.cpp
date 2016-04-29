@@ -30,8 +30,8 @@
 
 namespace paso {
 
-SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
-        Distribution_ptr inDist, Pattern_ptr mainPat, Pattern_ptr colPat,
+SystemMatrixPattern::SystemMatrixPattern(int patType, escript::Distribution_ptr outDist,
+        escript::Distribution_ptr inDist, Pattern_ptr mainPat, Pattern_ptr colPat,
         Pattern_ptr rowPat, Connector_ptr colConn, Connector_ptr rowConn) :
     type(patType),
     mainPattern(mainPat),

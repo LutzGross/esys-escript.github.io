@@ -60,8 +60,8 @@ void Mesh::setPoints(ElementFile* elements)
     Points = elements;
 }
 
-void Mesh::createMappings(const std::vector<index_t>& dofDist,
-                          const std::vector<index_t>& nodeDist)
+void Mesh::createMappings(const IndexVector& dofDist,
+                          const IndexVector& nodeDist)
 {
     Nodes->createNodeMappings(dofDist, nodeDist);
 }

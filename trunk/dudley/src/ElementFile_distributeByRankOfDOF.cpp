@@ -16,6 +16,8 @@
 
 #include "ElementFile.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void ElementFile::distributeByRankOfDOF(const int* mpiRankOfDOF,

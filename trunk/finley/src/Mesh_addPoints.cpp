@@ -23,6 +23,8 @@
 
 #include "Mesh.h"
 
+#include <escript/index.h>
+
 namespace finley {
 
 #ifdef ESYS_MPI
@@ -85,10 +87,10 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
 #pragma omp for schedule(static)
-                for (int n=0; n<Nodes->numNodes; n++) {
-                    const double D0=coords[INDEX2(0,n,numDim)] - X0;
-                    const double D1=coords[INDEX2(1,n,numDim)] - X1;
-                    const double D2=coords[INDEX2(2,n,numDim)] - X2;
+                for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
+                    const double D0 = coords[INDEX2(0,n,numDim)] - X0;
+                    const double D1 = coords[INDEX2(1,n,numDim)] - X1;
+                    const double D2 = coords[INDEX2(2,n,numDim)] - X2;
                     const double d = D0*D0 + D1*D1 + D2*D2;
                     if (d < dist_local) {
                         dist_local = d;
@@ -113,9 +115,9 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
 #pragma omp for schedule(static)
-                for (int n=0; n<Nodes->numNodes; n++) {
-                    const double D0=coords[INDEX2(0,n,numDim)] - X0;
-                    const double D1=coords[INDEX2(1,n,numDim)] - X1;
+                for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
+                    const double D0 = coords[INDEX2(0,n,numDim)] - X0;
+                    const double D1 = coords[INDEX2(1,n,numDim)] - X1;
                     const double d = D0*D0 + D1*D1;
                     if (d < dist_local) {
                         dist_local = d;
@@ -139,8 +141,8 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
 #pragma omp for schedule(static)
-                for (int n=0; n<Nodes->numNodes; n++) {
-                    const double D0=coords[INDEX2(0,n,numDim)] - X0;
+                for (index_t n = 0; n < Nodes->getNumNodes(); n++) {
+                    const double D0 = coords[INDEX2(0,n,numDim)] - X0;
                     const double d = D0*D0;
                     if (d < dist_local) {
                         dist_local = d;

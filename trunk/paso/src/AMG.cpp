@@ -44,7 +44,7 @@ double random_seed = .4142135623730951;
 
 namespace paso {
 
-inline double* createRandomVector(const_Distribution_ptr dist)
+inline double* createRandomVector(escript::const_Distribution_ptr dist)
 {
     const index_t n_0 = dist->getFirstComponent();
     const index_t n_1 = dist->getLastComponent();
@@ -683,7 +683,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                                        const index_t* offset_ST,
                                        const index_t* ST,
                                        const_Connector_ptr col_connector,
-                                       const_Distribution_ptr col_dist)
+                                       escript::const_Distribution_ptr col_dist)
 {
     Coupler_ptr w_coupler(new Coupler(col_connector, 1, col_dist->mpi_info));
     double* w = new double[n];

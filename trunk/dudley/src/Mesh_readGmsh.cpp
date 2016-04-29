@@ -16,6 +16,8 @@
 
 #include "Mesh.h"
 
+#include <escript/index.h>
+
 using escript::IOError;
 
 namespace dudley {

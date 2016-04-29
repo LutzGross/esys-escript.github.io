@@ -17,6 +17,8 @@
 #include "ElementFile.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void ElementFile::createColoring(dim_t nNodes, const index_t* dofMap)

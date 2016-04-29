@@ -34,6 +34,7 @@ namespace dudley {
 
 using escript::DataTypes::index_t;
 using escript::DataTypes::dim_t;
+using escript::DataTypes::IndexVector;
 
 #define DUDLEY_UNKNOWN -1
 #define DUDLEY_DEGREES_OF_FREEDOM 1

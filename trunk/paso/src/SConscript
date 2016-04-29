@@ -81,7 +81,6 @@ headers = """
     BlockOps.h
     BOOMERAMG.h
     Coupler.h
-    Distribution.h
     FCT_Solver.h
     FluxLimiter.h
     Functions.h

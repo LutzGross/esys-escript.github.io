@@ -32,26 +32,26 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 
     // check out and in
     if (numComps != in.getDataPointSize()) {
-        throw DudleyException("Assemble_CopyNodalData: number of components of input and output Data do not match.");
+        throw escript::ValueError("Assemble_CopyNodalData: number of components of input and output Data do not match.");
     } else if (!out.actsExpanded()) {
-        throw DudleyException("Assemble_CopyNodalData: expanded Data object is expected for output data.");
+        throw escript::ValueError("Assemble_CopyNodalData: expanded Data object is expected for output data.");
     }
 
     // more sophisticated test needed for overlapping node/DOF counts
     if (in_data_type == DUDLEY_NODES) {
         if (!in.numSamplesEqual(1, nodes->getNumNodes())) {
-            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of input Data object");
+            throw escript::ValueError("Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         if (!in.numSamplesEqual(1, nodes->getNumDegreesOfFreedom())) {
-            throw DudleyException("Assemble_CopyNodalData: illegal number of samples of input Data object");
+            throw escript::ValueError("Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if ((((out_data_type == DUDLEY_NODES) || (out_data_type == DUDLEY_DEGREES_OF_FREEDOM)) && !in.actsExpanded() && (mpiSize > 1))) {
 
             throw DudleyException("Assemble_CopyNodalData: DUDLEY_DEGREES_OF_FREEDOM to DUDLEY_NODES or DUDLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
         }
     } else {
-        throw DudleyException("Assemble_CopyNodalData: illegal function space type for target object");
+        throw escript::ValueError( "Assemble_CopyNodalData: illegal function space type for target object");
     }
 
     dim_t numOut = 0;
@@ -98,7 +98,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             const index_t* target = nodes->borrowTargetDegreesOfFreedom();
 #ifdef ESYS_HAVE_PASO
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            coupler->startCollect(in.getDataRO());  
+            coupler->startCollect(in.getDataRO());
             const double* recv_buffer = coupler->finishCollect();
             const index_t upperBound = nodes->getNumDegreesOfFreedom();
 #pragma omp parallel for
@@ -134,6 +134,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 copy(src, src+numComp, out.getSampleDataRW(i));
             }
             */
+            (void)target;
 #endif
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for

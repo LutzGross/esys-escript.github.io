@@ -21,6 +21,7 @@
 
 namespace dudley {
 
+#ifdef ESYS_HAVE_PASO
 paso::SystemMatrixPattern_ptr Mesh::getPasoPattern()
 {
     // make sure that the pattern is available
@@ -61,6 +62,7 @@ paso::SystemMatrixPattern_ptr Mesh::makePasoPattern() const
                 rowCouplePattern, connector, connector));
     return out;
 }
+#endif // ESYS_HAVE_PASO
 
 } // namespace dudley
 
