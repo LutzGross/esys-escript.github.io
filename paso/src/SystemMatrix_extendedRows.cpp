@@ -32,6 +32,7 @@
 /****************************************************************************/
 
 #include "SystemMatrix.h"
+#include "PasoUtil.h"
 
 #include <cstring> // memcpy
 

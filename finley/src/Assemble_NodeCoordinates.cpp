@@ -24,6 +24,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 #include <sstream>
 
 namespace finley {
@@ -34,7 +36,7 @@ void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
 
     const escript::DataTypes::ShapeType expectedShape(1, nodes->numDim);
 
-    if (!x.numSamplesEqual(1, nodes->numNodes)) {
+    if (!x.numSamplesEqual(1, nodes->getNumNodes())) {
         throw escript::ValueError("Assemble_NodeCoordinates: illegal number of samples of Data object");
     } else if (x.getFunctionSpace().getTypeCode() != FINLEY_NODES) {
         throw escript::ValueError("Assemble_NodeCoordinates: Data object is not defined on nodes.");
@@ -44,15 +46,14 @@ void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
         std::stringstream ss;
         ss << "Assemble_NodeCoordinates: Data object of shape ("
             << nodes->numDim << ",) expected.";
-        const std::string errorMsg = ss.str();
-        throw escript::ValueError(errorMsg);
+        throw escript::ValueError(ss.str());
     } else {
-        const size_t dim_size = nodes->numDim*sizeof(double);
+        const size_t dim_size = nodes->numDim * sizeof(double);
         x.requireWrite();
 #pragma omp parallel for
-        for (int n=0; n<nodes->numNodes; n++)
+        for (dim_t n = 0; n < nodes->getNumNodes(); n++)
             memcpy(x.getSampleDataRW(n),
-                    &(nodes->Coordinates[INDEX2(0,n,nodes->numDim)]), dim_size);
+                    &nodes->Coordinates[INDEX2(0, n, nodes->numDim)], dim_size);
     }
 }
 

@@ -17,10 +17,10 @@
 #ifndef __ESCRIPT_PARAMS_H__
 #define __ESCRIPT_PARAMS_H__
 
+#include <boost/python/list.hpp>
+
 #include <string>
 #include <unordered_set>
-
-#include <boost/python/list.hpp>
 
 namespace escript
 {

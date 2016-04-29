@@ -14,16 +14,10 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: Mesh: optimizes the distribution of DOFs across processors
-  using ParMETIS. On return a new distribution is given and the globalDOF
-  are relabeled accordingly but the mesh is not redistributed yet.
-
-*****************************************************************************/
 #include "Mesh.h"
 #include "IndexList.h"
+
+#include <escript/index.h>
 
 #ifdef ESYS_HAVE_PARMETIS
 #include <parmetis.h>
@@ -43,51 +37,52 @@ namespace finley {
 // that every rank has at least 1 vertex (at line 129 of file
 // "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
 // any rank has no vertex).
-bool allRanksHaveNodes(escript::JMPI& mpiInfo, const std::vector<index_t>& distribution)
+static bool allRanksHaveNodes(escript::JMPI mpiInfo,
+                              const IndexVector& distribution)
 {
     int ret = 1;
 
     if (mpiInfo->rank == 0) {
-        for (int i=0; i<mpiInfo->size; i++) {
-            if (distribution[i+1] == distribution[i]) {
+        for (int i = 0; i < mpiInfo->size; i++) {
+            if (distribution[i + 1] == distribution[i]) {
                 ret = 0;
                 break;
             }
         }
         if (ret == 0) {
-            std::cout << "Mesh::optimizeDOFDistribution: "
-                << "Parmetis is not used since at least one rank has no vertex!"
-                << std::endl;
+            std::cerr << "INFO: ParMetis is not used since at least one rank "
+                         "has no vertex." << std::endl;
         }
     }
     MPI_Bcast(&ret, 1, MPI_INTEGER, 0, mpiInfo->comm);
-    return (ret==1);
+    return ret==1;
 }
 #endif
 
-
-/****************************************************************************/
-
+/// optimizes the distribution of DOFs across processors using ParMETIS.
+/// On return a new distribution is given and the globalDOF are relabeled
+/// accordingly but the mesh has not been redistributed yet
 void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 {
-    // these two are not const because of parmetis call
-    int mpiSize=MPIInfo->size;
-    const int myRank=MPIInfo->rank;
-    const index_t myFirstVertex=distribution[myRank];
-    const index_t myLastVertex=distribution[myRank+1];
-    const dim_t myNumVertices=myLastVertex-myFirstVertex;
+    int mpiSize = MPIInfo->size;
+    const int myRank = MPIInfo->rank;
+    const index_t myFirstVertex = distribution[myRank];
+    const index_t myLastVertex = distribution[myRank + 1];
+    const dim_t myNumVertices = myLastVertex - myFirstVertex;
+    const dim_t numNodes = Nodes->getNumNodes();
 
     // first step is to distribute the elements according to a global X of DOF
-    // len is used for the sending around of partition later on
-    index_t len=0;
-    for (int p=0; p<mpiSize; ++p)
-        len=std::max(len, distribution[p+1]-distribution[p]);
-    std::vector<index_t> partition(len);
+    dim_t len = 0;
+    for (int p = 0; p < mpiSize; ++p)
+        len = std::max(len, distribution[p + 1] - distribution[p]);
+
+    index_t* partition = new index_t[len];
 
 #ifdef ESYS_HAVE_PARMETIS
-    if (mpiSize>1 && allRanksHaveNodes(MPIInfo, distribution)) {
+    if (mpiSize > 1 && allRanksHaveNodes(MPIInfo, distribution)) {
         boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-        int dim=Nodes->numDim;
+        int dim = Nodes->numDim;
+
         // create the adjacency structure xadj and adjncy
 #pragma omp parallel
         {
@@ -105,20 +100,39 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
                     myFirstVertex, myLastVertex, Points,
                     Nodes->globalDegreesOfFreedom, Nodes->globalDegreesOfFreedom);
         }
-       
-        // create the local matrix pattern
-        const dim_t globalNumVertices=distribution[mpiSize];
-        paso::Pattern_ptr pattern(paso::Pattern::fromIndexListArray(0,
-                myNumVertices, index_list.get(), 0, globalNumVertices, 0));
+
         // set the coordinates
-        std::vector<real_t> xyz(myNumVertices*dim);
+        real_t* xyz = new real_t[myNumVertices * dim];
 #pragma omp parallel for
-        for (index_t i=0; i<Nodes->numNodes; ++i) {
-            const index_t k=Nodes->globalDegreesOfFreedom[i]-myFirstVertex;
-            if (k>=0 && k<myNumVertices) {
-                for (int j=0; j<dim; ++j)
-                    xyz[k*dim+j]=static_cast<real_t>(Nodes->Coordinates[INDEX2(j,i,dim)]); 
+        for (index_t i = 0; i < numNodes; ++i) {
+            const index_t k = Nodes->globalDegreesOfFreedom[i] - myFirstVertex;
+            if (k >= 0 && k < myNumVertices) {
+                for (int j = 0; j < dim; ++j)
+                    xyz[k * dim + j] = static_cast<real_t>(Nodes->Coordinates[INDEX2(j, i, dim)]);
             }
+        }
+
+        // create the local CSR matrix pattern
+        const dim_t globalNumVertices = distribution[mpiSize];
+        index_t* ptr = new index_t[myNumVertices + 1];
+#pragma omp parallel for
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            ptr[i] = index_list[i].count(0, globalNumVertices);
+        }
+        // accumulate ptr
+        dim_t s = 0;
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            const index_t itmp = ptr[i];
+            ptr[i] = s;
+            s += itmp;
+        }
+        ptr[myNumVertices] = s;
+
+        // create index
+        index_t* index = new index_t[s];
+#pragma omp parallel for
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            index_list[i].toArray(&index[ptr[i]], 0, globalNumVertices, 0);
         }
 
         index_t wgtflag = 0;
@@ -131,97 +145,103 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         // options[1]=0 -> debug level (no output)
         // options[2] -> random seed
         index_t options[3] = { 1, 0, 0 };
-        std::vector<real_t> tpwgts(ncon*mpiSize, 1.f/mpiSize);
+        std::vector<real_t> tpwgts(ncon * mpiSize, 1.f / mpiSize);
         std::vector<real_t> ubvec(ncon, 1.05f);
-        ParMETIS_V3_PartGeomKway(&distribution[0], pattern->ptr, pattern->index,
-                              NULL, NULL, &wgtflag, &numflag, &idim, &xyz[0],
-                              &ncon, &impiSize, &tpwgts[0], &ubvec[0], options,
-                              &edgecut, &partition[0], &MPIInfo->comm);
+        ParMETIS_V3_PartGeomKway(&distribution[0], ptr, index, NULL, NULL,
+                                 &wgtflag, &numflag, &idim, xyz, &ncon,
+                                 &impiSize, &tpwgts[0], &ubvec[0], options,
+                                 &edgecut, partition, &MPIInfo->comm);
+        delete[] xyz;
+        delete[] index;
+        delete[] ptr;
     } else {
-        for (index_t i=0; i<myNumVertices; ++i)
-            partition[i]=0; // CPU 0 owns all
+        for (index_t i = 0; i < myNumVertices; ++i)
+            partition[i] = 0; // CPU 0 owns all
     }
 #else
-    for (index_t i=0; i<myNumVertices; ++i)
-        partition[i]=myRank; // CPU myRank owns all
-#endif
+#pragma omp parallel for
+    for (index_t i = 0; i < myNumVertices; ++i)
+        partition[i] = myRank; // CPU myRank owns all
+#endif // ESYS_HAVE_PARMETIS
 
     // create a new distribution and labeling of the DOF
-    std::vector<index_t> new_distribution(mpiSize+1, 0);
+    IndexVector new_distribution(mpiSize + 1);
 #pragma omp parallel
     {
-        std::vector<int> loc_partition_count(mpiSize, 0);
+        IndexVector loc_partition_count(mpiSize);
 #pragma omp for
-        for (index_t i=0; i<myNumVertices; ++i)
+        for (index_t i = 0; i < myNumVertices; ++i)
             loc_partition_count[partition[i]]++;
 #pragma omp critical
         {
-            for (int i=0; i<mpiSize; ++i)
-                new_distribution[i]+=loc_partition_count[i];
+            for (int i = 0; i < mpiSize; ++i)
+                new_distribution[i] += loc_partition_count[i];
         }
     }
-    index_t *recvbuf=new index_t[mpiSize*mpiSize];
+
+    IndexVector recvbuf(mpiSize * mpiSize);
 #ifdef ESYS_MPI
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
-    MPI_Allgather(&new_distribution[0], mpiSize, MPI_DIM_T, recvbuf, mpiSize,
-                  MPI_DIM_T, MPIInfo->comm);
+    MPI_Allgather(&new_distribution[0], mpiSize, MPI_DIM_T, &recvbuf[0],
+                  mpiSize, MPI_DIM_T, MPIInfo->comm);
 #else
-    for (int i=0; i<mpiSize; ++i)
-        recvbuf[i]=new_distribution[i];
+    for (int i = 0; i < mpiSize; ++i)
+        recvbuf[i] = new_distribution[i];
 #endif
-    new_distribution[0]=0;
+    new_distribution[0] = 0;
     std::vector<index_t> newGlobalDOFID(len);
-    for (int rank=0; rank<mpiSize; rank++) {
-        index_t c=0;
-        for (int i=0; i<myRank; ++i)
-            c+=recvbuf[rank+mpiSize*i];
-        for (index_t i=0; i<myNumVertices; ++i) {
-            if (rank==partition[i]) {
-                newGlobalDOFID[i]=new_distribution[rank]+c;
+    for (int rank = 0; rank < mpiSize; rank++) {
+        index_t c = 0;
+        for (int i = 0; i < myRank; ++i)
+            c += recvbuf[rank + mpiSize * i];
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            if (rank == partition[i]) {
+                newGlobalDOFID[i] = new_distribution[rank] + c;
                 c++;
             }
         }
-        for (int i=myRank+1; i<mpiSize; ++i)
-            c+=recvbuf[rank+mpiSize*i];
-        new_distribution[rank+1]=new_distribution[rank]+c;
+        for (int i = myRank + 1; i < mpiSize; ++i)
+            c += recvbuf[rank + mpiSize * i];
+        new_distribution[rank + 1] = new_distribution[rank] + c;
     }
-    delete[] recvbuf;
 
     // now the overlap needs to be created by sending the partition around
 #ifdef ESYS_MPI
     int dest = MPIInfo->mod_rank(myRank + 1);
     int source = MPIInfo->mod_rank(myRank - 1);
 #endif
-    int current_rank=myRank;
-    std::vector<short> setNewDOFId(Nodes->numNodes, 1);
+    int current_rank = myRank;
+    std::vector<short> setNewDOFId(numNodes, 1);
 
-    for (int p=0; p<mpiSize; ++p) {
-        const index_t firstVertex=distribution[current_rank];
-        const index_t lastVertex=distribution[current_rank+1];
+    for (int p = 0; p < mpiSize; ++p) {
+        const index_t firstVertex = distribution[current_rank];
+        const index_t lastVertex = distribution[current_rank + 1];
 #pragma omp parallel for
-        for (index_t i=0; i<Nodes->numNodes; ++i) {
-            const index_t k=Nodes->globalDegreesOfFreedom[i];
-            if (setNewDOFId[i] && (firstVertex<=k) && (k<lastVertex)) {
-                Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
-                setNewDOFId[i]=0;
+        for (index_t i = 0; i < numNodes; ++i) {
+            const index_t k = Nodes->globalDegreesOfFreedom[i];
+            if (setNewDOFId[i] && firstVertex <= k && k < lastVertex) {
+                Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
+                setNewDOFId[i] = 0;
             }
         }
 
-        if (p<mpiSize-1) { // the final send can be skipped
+        if (p < mpiSize - 1) { // the final send can be skipped
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
-                               dest, MPIInfo->counter(),
-                               source, MPIInfo->counter(),
-                               MPIInfo->comm, &status);
+                                 dest, MPIInfo->counter(),
+                                 source, MPIInfo->counter(),
+                                 MPIInfo->comm, &status);
             MPIInfo->incCounter();
 #endif
-            current_rank=MPIInfo->mod_rank(current_rank-1);
+            current_rank = MPIInfo->mod_rank(current_rank - 1);
         }
     }
-    for (int i=0; i<mpiSize+1; ++i)
-        distribution[i]=new_distribution[i];
+    for (int i = 0; i < mpiSize + 1; ++i)
+        distribution[i] = new_distribution[i];
+
+    delete[] partition;
 }
 
 } // namespace finley

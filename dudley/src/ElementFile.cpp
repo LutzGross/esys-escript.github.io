@@ -17,6 +17,8 @@
 #include "ElementFile.h"
 #include "ShapeTable.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 ElementFile::ElementFile(ElementTypeId type, escript::JMPI mpiInfo) :

@@ -16,8 +16,8 @@
 
 #ifndef __DUDLEY_MESHADAPTER_H__
 #define __DUDLEY_MESHADAPTER_H__
-#include "system_dep.h"
 
+#include "system_dep.h"
 #include <dudley/Dudley.h>
 #include <dudley/Mesh.h>
 
@@ -107,7 +107,6 @@ public:
      \brief
      return the number MPI rank of this processor
     */
-
     virtual int getMPIRank() const;
 
     /**
@@ -135,7 +134,7 @@ public:
      \brief
      \param full
     */
-    void Print_Mesh_Info(const bool full=false) const;
+    void Print_Mesh_Info(bool full=false) const;
 
     /**
      \brief
@@ -283,8 +282,6 @@ public:
       Returns a status indicator of the domain. The status identifier should be unique over
       the live time if the object but may be updated if changes to the domain happen, e.g.
       modifications to its geometry.
-
-     This has to be implemented by the actual Domain adapter.
     */
     virtual StatusType getStatus() const;
 
@@ -325,7 +322,7 @@ public:
 
     /**
      \brief
-     Returns true if name is a defined tage name.
+     Returns true if name is a defined tag name.
      \param name Input - tag name to be checked.
     */
     virtual bool isValidTagName(const std::string& name) const;
@@ -348,9 +345,9 @@ public:
     */
     virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
 
-    virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+    virtual bool probeInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
 
-    virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+    virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
 
     /**
     \brief given a vector of FunctionSpace typecodes, pass back a code which then can all be interpolated to.
@@ -366,10 +363,10 @@ public:
 
     /**
      \brief determines whether interpolation from source to target is possible.
-  */
-  virtual bool probeInterpolationAcross(int functionSpaceType_source,
-                                const escript::AbstractDomain& targetDomain,
-                                int functionSpaceType_target) const;
+    */
+    virtual bool probeInterpolationAcross(int functionSpaceType_source,
+                                  const escript::AbstractDomain& targetDomain,
+                                  int functionSpaceType_target) const;
 
     /**
      \brief
@@ -390,14 +387,14 @@ public:
      copies the gradient of arg into grad. The actual function space to be considered
      for the gradient is defined by grad. arg and grad have to be defined on this.
     */
-    virtual void setToGradient(escript::Data& grad,const escript::Data& arg) const;
+    virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
 
     /**
      \brief
      copies the integrals of the function defined by arg into integrals.
      arg has to be defined on this.
     */
-    virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
+    virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
 
     /**
      \brief
@@ -428,7 +425,7 @@ public:
     */
     virtual bool isCellOriented(int functionSpaceCode) const;
 
-    virtual bool ownSample(int fs_code, index_t id) const;
+    virtual bool ownSample(int fsCode, index_t id) const;
 
     /**
      \brief
@@ -453,7 +450,7 @@ public:
                                       const escript::Data& D,
                                       const escript::Data& d,
                                       const escript::Data& d_dirac,
-                                      const bool useHRZ) const;
+                                      bool useHRZ) const;
 
     /**
      \brief
@@ -473,7 +470,7 @@ public:
                      escript::Data& source, const escript::Data& M,
                      const escript::Data& A, const escript::Data& B,
                      const escript::Data& C, const escript::Data& D,
-                     const  escript::Data& X,const escript::Data& Y,
+                     const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact,
                      const escript::Data& y_contact,
@@ -493,9 +490,9 @@ public:
 
     /**
      \brief
-      creates a TransportProblemAdapter
+      creates a TransportProblem
     */
-    escript::ATP_ptr newTransportProblem(const int blocksize,
+    escript::ATP_ptr newTransportProblem(int blocksize,
                                    const escript::FunctionSpace& functionspace,
                                    int type) const;
 
@@ -505,7 +502,8 @@ public:
     virtual escript::Data getX() const;
 
     /**
-     \brief return boundary normals at the quadrature point on the face elements
+     \brief returns boundary normals at the quadrature point on the face
+            elements
     */
     virtual escript::Data getNormal() const;
 
@@ -521,15 +519,15 @@ public:
     virtual bool operator!=(const escript::AbstractDomain& other) const;
 
     /**
-     \brief assigns new tag newTag to all samples of functionspace with a positive
-     value of mask for any its sample point.
+     \brief assigns new tag newTag to all samples of functionspace with a
+            positive value of mask for any its sample point.
     */
     virtual void setTags(int functionSpaceType, int newTag,
                          const escript::Data& mask) const;
 
     /**
       \brief
-       return the number of tags in use and a pointer to an array with the
+       returns the number of tags in use and a pointer to an array with the
        number of tags in use
     */
     virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
@@ -537,7 +535,8 @@ public:
     virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
     /**
-     \brief Checks if this domain allows tags for the specified functionSpaceCode.
+     \brief Checks if this domain allows tags for the specified
+            functionSpace code.
     */
     virtual bool canTag(int functionSpaceCode) const;
 

@@ -85,6 +85,7 @@ headers = """
     DataVectorAlt.h
     DataVectorOps.h    
     DataVectorTaipan.h    
+    Distribution.h    
     Dodgy.h
     DomainException.h
     EscriptParams.h

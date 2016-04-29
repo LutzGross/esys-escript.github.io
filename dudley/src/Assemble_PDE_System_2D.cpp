@@ -40,6 +40,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_PDE_System_2D(const AssembleParameters& p,

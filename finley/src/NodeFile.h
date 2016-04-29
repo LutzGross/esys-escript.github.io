@@ -22,8 +22,11 @@
 #include "Finley.h"
 #include "NodeMapping.h"
 
+#include <escript/Distribution.h>
+
+#ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
-#include <paso/Distribution.h>
+#endif
 
 
 namespace finley {
@@ -31,57 +34,81 @@ namespace finley {
 class NodeFile
 {
 public:
-    NodeFile(int nDim, escript::JMPI& mpiInfo);
+
+    /// constructor - creates empty node file.
+    /// Use allocTable() to allocate the node table (Id,Coordinates).
+    NodeFile(int nDim, escript::JMPI MPIInfo);
+
+    /// destructor
     ~NodeFile();
 
+    /// allocates the node table within this node file to hold numNodes nodes.
     void allocTable(dim_t numNodes);
+
+    /// empties the node table and frees all memory
     void freeTable();
 
     void print() const;
+
     inline index_t getFirstNode() const;
     inline index_t getLastNode() const;
-    inline index_t getGlobalNumNodes() const;
-    inline index_t* borrowGlobalNodesIndex() const;
+    inline dim_t getGlobalNumNodes() const;
+    inline const index_t* borrowGlobalNodesIndex() const;
 
     inline index_t getFirstReducedNode() const;
     inline index_t getLastReducedNode() const;
     inline index_t getGlobalNumReducedNodes() const;
-    inline index_t* borrowGlobalReducedNodesIndex() const;
+    inline const index_t* borrowGlobalReducedNodesIndex() const;
 
-    /// returns the number of FEM nodes
+    /// returns the number of FEM nodes (on this rank)
     inline dim_t getNumNodes() const;
+
+    /// returns the number of reduced order FEM nodes (on this rank)
     inline dim_t getNumReducedNodes() const;
+
+    /// returns the number of degrees of freedom (on this rank)
     inline dim_t getNumDegreesOfFreedom() const;
+
+    /// returns the number of reduced order degrees of freedom (on this rank)
     inline dim_t getNumReducedDegreesOfFreedom() const;
 
-    inline const std::vector<index_t>& borrowReducedNodesTarget() const;
-    inline const std::vector<index_t>& borrowDegreesOfFreedomTarget() const;
-    inline const std::vector<index_t>& borrowNodesTarget() const;
-    inline const std::vector<index_t>& borrowReducedDegreesOfFreedomTarget() const;
+    inline const IndexVector& borrowReducedNodesTarget() const;
+    inline const IndexVector& borrowDegreesOfFreedomTarget() const;
+    inline const IndexVector& borrowNodesTarget() const;
+    inline const IndexVector& borrowReducedDegreesOfFreedomTarget() const;
 
     inline const index_t* borrowTargetReducedNodes() const;
     inline const index_t* borrowTargetDegreesOfFreedom() const;
+
+    /// returns the mapping from local nodes to a target
     inline const index_t* borrowTargetNodes() const;
     inline const index_t* borrowTargetReducedDegreesOfFreedom() const;
 
-    void createNodeMappings(const std::vector<index_t>& indexReducedNodes,
-                            const std::vector<index_t>& dofDistribution,
-                            const std::vector<index_t>& nodeDistribution);
+    void createNodeMappings(const IndexVector& indexReducedNodes,
+                            const IndexVector& dofDistribution,
+                            const IndexVector& nodeDistribution);
     dim_t createDenseDOFLabeling();
-    dim_t createDenseNodeLabeling(std::vector<index_t>& nodeDistribution,
-                                  const std::vector<index_t>& dofDistribution);
+    dim_t createDenseNodeLabeling(IndexVector& nodeDistribution,
+                                  const IndexVector& dofDistribution);
     dim_t createDenseReducedLabeling(const std::vector<short>& reducedMask,
                                      bool useNodes);
-    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const std::vector<index_t>& distribution);
+    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const IndexVector& distribution);
 
     void copyTable(index_t offset, index_t idOffset, index_t dofOffset,
                    const NodeFile* in);
+
+    /// gathers nodes from the NodeFile `in` using the entries in
+    /// index[0:numNodes-1] which are between min_index and max_index
+    /// (exclusive)
     void gather(const index_t* index, const NodeFile* in);
+
     void gather_global(const index_t* index, const NodeFile* in);
     void scatter(const index_t* index, const NodeFile* in);
 
     void setCoordinates(const escript::Data& newX);
-    void setTags(const int newTag, const escript::Data& mask);
+
+    /// set tags to newTag where mask > 0
+    void setTags(int newTag, const escript::Data& mask);
     inline void updateTagList();
 
     std::pair<index_t,index_t> getDOFRange() const;
@@ -90,13 +117,15 @@ private:
     std::pair<index_t,index_t> getGlobalIdRange() const;
     std::pair<index_t,index_t> getGlobalDOFRange() const;
     std::pair<index_t,index_t> getGlobalNodeIDIndexRange() const;
-    dim_t prepareLabeling(const std::vector<short>& mask,
-                          std::vector<index_t>& buffer,
-                          std::vector<index_t>& distribution, bool useNodes);
+    dim_t prepareLabeling(const std::vector<short>& mask, IndexVector& buffer,
+                          IndexVector& distribution, bool useNodes);
     void createDOFMappingAndCoupling(bool reduced);
 
     NodeMapping nodesMapping;
- 
+
+    /// number of nodes
+    dim_t numNodes;
+
 public:
     ///////////////////////////////////////
     // these should be private as well.
@@ -107,43 +136,44 @@ public:
 
     /// MPI information
     escript::JMPI MPIInfo;
-    /// number of nodes
-    dim_t numNodes;
     /// number of spatial dimensions
     int numDim;
-    /// Id[i] is the id number of node i. It needs to be unique.
-    index_t *Id;
-    /// Tag[i] is the tag of node i.
-    int *Tag;
+    /// Id[i] is the unique ID number of FEM node i
+    index_t* Id;
+    /// Tag[i] is the tag of node i
+    int* Tag;
     /// vector of tags which are actually used
     std::vector<int> tagsInUse;
+
     /// globalDegreesOfFreedom[i] is the global degree of freedom assigned
     /// to node i. This index is used to consider periodic boundary conditions
-    /// by assigning the same degreesOfFreedom to the same node.
+    /// by assigning the same degree of freedom to different nodes.
     index_t* globalDegreesOfFreedom;
     /// Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of node i
-    double *Coordinates;
-    /// assigns each local node a global unique Id in a dense labeling of
+    double* Coordinates;
+    /// assigns each local node a global unique ID in a dense labeling of
     /// reduced DOF. Value <0 indicates that the DOF is not used.
-    index_t *globalReducedDOFIndex;
-    /// assigns each local node a global unique Id in a dense labeling.
+    index_t* globalReducedDOFIndex;
+    /// assigns each local reduced node a global unique ID in a dense labeling
     /// Value <0 indicates that the DOF is not used
-    index_t *globalReducedNodesIndex;
-    /// assigns each local reduced node a global unique Id in a dense labeling
-    index_t *globalNodesIndex;
+    index_t* globalReducedNodesIndex;
+    /// assigns each local node a global unique ID in a dense labeling
+    index_t* globalNodesIndex;
 
-    paso::Distribution_ptr nodesDistribution;
-    paso::Distribution_ptr reducedNodesDistribution;
-    paso::Distribution_ptr degreesOfFreedomDistribution;
-    paso::Distribution_ptr reducedDegreesOfFreedomDistribution;
+    escript::Distribution_ptr nodesDistribution;
+    escript::Distribution_ptr reducedNodesDistribution;
+    escript::Distribution_ptr degreesOfFreedomDistribution;
+    escript::Distribution_ptr reducedDegreesOfFreedomDistribution;
 
+#ifdef ESYS_HAVE_PASO
     paso::Connector_ptr degreesOfFreedomConnector;
     paso::Connector_ptr reducedDegreesOfFreedomConnector;
+#endif
   
     /// these are the packed versions of Id
-    index_t *reducedNodesId;        
-    index_t *degreesOfFreedomId;
-    index_t *reducedDegreesOfFreedomId;
+    index_t* reducedNodesId;        
+    index_t* degreesOfFreedomId;
+    index_t* reducedDegreesOfFreedomId;
 
     /// the status counts the updates done on the node coordinates.
     /// The value is increased by 1 when the node coordinates are updated.
@@ -164,12 +194,12 @@ inline index_t NodeFile::getLastNode() const
     return nodesDistribution->getLastComponent();
 }
 
-inline index_t NodeFile::getGlobalNumNodes() const
+inline dim_t NodeFile::getGlobalNumNodes() const
 {
     return nodesDistribution->getGlobalNumComponents();
 }
 
-inline index_t* NodeFile::borrowGlobalNodesIndex() const
+inline const index_t* NodeFile::borrowGlobalNodesIndex() const
 {
     return globalNodesIndex;
 }
@@ -189,7 +219,7 @@ inline dim_t NodeFile::getGlobalNumReducedNodes() const
     return reducedNodesDistribution->getGlobalNumComponents();
 }
 
-inline index_t* NodeFile::borrowGlobalReducedNodesIndex() const
+inline const index_t* NodeFile::borrowGlobalReducedNodesIndex() const
 {
     return globalReducedNodesIndex;
 }
@@ -214,22 +244,22 @@ inline dim_t NodeFile::getNumReducedDegreesOfFreedom() const
     return reducedDegreesOfFreedomDistribution->getMyNumComponents();
 }
 
-inline const std::vector<index_t>& NodeFile::borrowNodesTarget() const
+inline const IndexVector& NodeFile::borrowNodesTarget() const
 {
     return nodesMapping.map;
 }
 
-inline const std::vector<index_t>& NodeFile::borrowReducedNodesTarget() const
+inline const IndexVector& NodeFile::borrowReducedNodesTarget() const
 {
     return reducedNodesMapping.map;
 }
 
-inline const std::vector<index_t>& NodeFile::borrowDegreesOfFreedomTarget() const
+inline const IndexVector& NodeFile::borrowDegreesOfFreedomTarget() const
 {
     return degreesOfFreedomMapping.map;
 }
 
-inline const std::vector<index_t>& NodeFile::borrowReducedDegreesOfFreedomTarget() const
+inline const IndexVector& NodeFile::borrowReducedDegreesOfFreedomTarget() const
 {
     return reducedDegreesOfFreedomMapping.map;
 }

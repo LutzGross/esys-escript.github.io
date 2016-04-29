@@ -14,17 +14,16 @@
 *
 *****************************************************************************/
 
+#ifndef __FINLEY_MESHADAPTER_H__
+#define __FINLEY_MESHADAPTER_H__
 
-#if !defined finley_MeshAdapter_20040526_H
-#define finley_MeshAdapter_20040526_H
 #include "system_dep.h"
+#include <finley/Finley.h>
+#include <finley/Mesh.h>
 
-#include "finley/Finley.h"
-#include "finley/Mesh.h"
-
-#include "escript/AbstractContinuousDomain.h"
-#include "escript/FunctionSpace.h"
-#include "escript/FunctionSpaceFactory.h"
+#include <escript/AbstractContinuousDomain.h>
+#include <escript/FunctionSpace.h>
+#include <escript/FunctionSpaceFactory.h>
 
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
@@ -33,8 +32,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace finley {
 
@@ -47,7 +46,7 @@ enum SystemMatrixType {
 // They are only fwd declared here so that vis.studio will accept the friend
 // decls
 FINLEY_DLL_API
-escript::Domain_ptr brick(escript::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
+escript::Domain_ptr brick(escript::JMPI p, dim_t n0, dim_t n1, dim_t n2,
                           int order, double l0, double l1, double l2,
                           bool periodic0, bool periodic1, bool periodic2,
                           int integrationOrder, int reducedIntegrationOrder,
@@ -58,7 +57,7 @@ escript::Domain_ptr brick(escript::JMPI& p, dim_t n0, dim_t n1, dim_t n2,
                     );
 
 FINLEY_DLL_API              
-escript::Domain_ptr rectangle(escript::JMPI& p, dim_t n0, dim_t n1,
+escript::Domain_ptr rectangle(escript::JMPI p, dim_t n0, dim_t n1,
                               int order, double l0, double l1,
                               bool periodic0, bool periodic1,
                               int integrationOrder, int reducedIntegrationOrder,
@@ -68,9 +67,6 @@ escript::Domain_ptr rectangle(escript::JMPI& p, dim_t n0, dim_t n1,
                               const std::map<std::string, int>& tagNamesToNums
                     );        
   
-struct null_deleter { void operator()(void const *ptr) const {} };
-
-
 /**
    \brief implements the AbstractContinuousDomain interface for the Finley
           library.
@@ -106,8 +102,8 @@ public:
      Throws:
      May throw an exception derived from EsysException
 
-     \param finleyMesh Input - A pointer to the externally constructed 
-                               finley mesh.The pointer passed to MeshAdapter
+     \param finleyMesh Input - A pointer to the externally constructed
+                               finley mesh. The pointer passed to MeshAdapter
                                is deleted using a call to 
                                Finley_Mesh_free in the MeshAdapter 
                                destructor.
@@ -182,9 +178,9 @@ public:
 
     /**
      \brief
-     return the pointer to the underlying finley mesh structure
+     return the pointer to the underlying finley mesh class
     */
-    Mesh* getFinley_Mesh() const;
+    Mesh* getMesh() const;
 
     /**
      \brief
@@ -316,12 +312,11 @@ public:
 
     /**
      \brief
-      Returns a status indicator of the domain. The status identifier should be unique over 
-      the live time if the object but may be updated if changes to the domain happen, e.g. 
-      modifications to its geometry. 
+      Returns a status indicator of the domain. The status identifier should be unique over
+      the live time if the object but may be updated if changes to the domain happen, e.g.
+      modifications to its geometry.
     */
     virtual StatusType getStatus() const;
-
 
     /**
      \brief
@@ -349,7 +344,7 @@ public:
      \param name Input - tag name.
      \param tag Input - tag key.
     */
-    virtual void setTagMap(const std::string& name,  int tag);
+    virtual void setTagMap(const std::string& name, int tag);
 
     /**
      \brief
@@ -360,10 +355,10 @@ public:
 
     /**
      \brief
-     Returns true if name is a defined tage name. 
+     Returns true if name is a defined tag name.
      \param name Input - tag name to be checked.
     */
-  virtual bool isValidTagName(const std::string& name) const;
+    virtual bool isValidTagName(const std::string& name) const;
 
     /**
      \brief
@@ -384,7 +379,7 @@ public:
     virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
 
     virtual bool probeInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
-  
+
     virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
 
     /**
@@ -437,8 +432,9 @@ public:
     /**
      \brief
      return the identifier of the matrix type to be used for the global
-     stiffness matrix when a particular solver, package, perconditioner,
+     stiffness matrix when a particular solver, package, preconditioner,
      and symmetric matrix is used.
+
      \param options a python object containing the solver, package,
             preconditioner and symmetry
     */
@@ -448,53 +444,56 @@ public:
      \brief
      return the identifier of the transport problem type to be used when a particular solver, perconditioner, package
      and symmetric matrix is used.
-     \param solver 
+     \param solver
      \param preconditioner
      \param package
-     \param symmetry 
+     \param symmetry
     */
-    virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+    virtual int getTransportTypeId(int solver, int preconditioner, int package,
+                                   bool symmetry) const;
 
     /**
      \brief
-     returns true if data on this domain and a function space of type functionSpaceCode has to 
+     returns true if data on this domain and a function space of type functionSpaceCode has to
      considered as cell centered data.
     */
     virtual bool isCellOriented(int functionSpaceCode) const;
-
 
     virtual bool ownSample(int fsCode, index_t id) const;
 
     /**
      \brief
-     adds a PDE onto the stiffness matrix mat and a rhs 
+     adds a PDE onto the stiffness matrix mat and a rhs
     */
     virtual void addPDEToSystem(
                      escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-                     const escript::Data& A, const escript::Data& B, const escript::Data& C, 
-                     const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& A, const escript::Data& B,
+                     const escript::Data& C, const escript::Data& D,
+                     const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact, const escript::Data& y_contact,
-                     const escript::Data& d_dirac, const escript::Data& y_dirac) const;
+                     const escript::Data& d_contact,
+                     const escript::Data& y_contact,
+                     const escript::Data& d_dirac,
+                     const escript::Data& y_dirac) const;
 
     /**
      \brief
      adds a PDE onto the lumped stiffness matrix matrix
     */
-    virtual void addPDEToLumpedSystem(
-                     escript::Data& mat,
-                     const escript::Data& D, 
-                     const escript::Data& d,
-                     const escript::Data& d_dirac,
-                     const bool useHRZ) const;
+    virtual void addPDEToLumpedSystem(escript::Data& mat,
+                                      const escript::Data& D,
+                                      const escript::Data& d,
+                                      const escript::Data& d_dirac,
+                                      bool useHRZ) const;
 
     /**
      \brief
-     adds a PDE onto the stiffness matrix mat and a rhs 
+     adds a PDE onto the stiffness matrix mat and a rhs
     */
-    virtual void addPDEToRHS(escript::Data& rhs,
-                     const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const;
+    virtual void addPDEToRHS(escript::Data& rhs, const escript::Data& X,
+                             const escript::Data& Y, const escript::Data& y,
+                             const escript::Data& y_contact,
+                             const escript::Data& y_dirac) const;
 
     /**
      \brief
@@ -504,8 +503,8 @@ public:
                      escript::AbstractTransportProblem& tp,
                      escript::Data& source, const escript::Data& M,
                      const escript::Data& A, const escript::Data& B,
-                     const escript::Data& C,const  escript::Data& D,
-                     const escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& C, const escript::Data& D,
+                     const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact,
                      const escript::Data& y_contact,
@@ -524,12 +523,12 @@ public:
                       int type) const;
 
     /**
-     \brief 
-     creates a TransportProblem
+     \brief
+      creates a TransportProblem
     */
     escript::ATP_ptr newTransportProblem(int blocksize,
-                      const escript::FunctionSpace& functionspace,
-                      int type) const;
+                                   const escript::FunctionSpace& functionspace,
+                                   int type) const;
 
     /**
      \brief returns locations in the FEM nodes
@@ -578,16 +577,15 @@ public:
     /**
      \brief returns the approximation order used for a function space functionSpaceCode
     */
-    virtual int getApproximationOrder(const int functionSpaceCode) const;
+    virtual int getApproximationOrder(int functionSpaceCode) const;
 
     bool supportsContactElements() const;
 
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-                                 const escript::FunctionSpace& what, long seed,
-                                 const boost::python::tuple& filter) const;
+                                const escript::FunctionSpace& what, long seed,
+                                const boost::python::tuple& filter) const;
 
 private:
-  
 #ifdef ESYS_HAVE_TRILINOS
     /// Trilinos graph structure, cached for efficiency
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
@@ -609,13 +607,9 @@ private:
     // pointer to the externally created finley mesh
     boost::shared_ptr<Mesh> m_finleyMesh;
   
-    // This is only provided so that the friends below can add tags during
-    // construction. Do not use for any other purpose!
-    boost::shared_ptr<Mesh> getMesh() { return m_finleyMesh; }
- 
     static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
-    friend escript::Domain_ptr brick(escript::JMPI& p,
+    friend escript::Domain_ptr brick(escript::JMPI p,
                     dim_t n0, dim_t n1, dim_t n2, int order,
                     double l0, double l1, double l2,
                     bool periodic0, bool periodic1, bool periodic2,
@@ -629,7 +623,7 @@ private:
                     const std::map<std::string, int>& tagNamesToNums);
                     
                     
-  friend escript::Domain_ptr rectangle(escript::JMPI& p,
+  friend escript::Domain_ptr rectangle(escript::JMPI p,
                         dim_t n0, dim_t n1, int order,
                         double l0, double l1,
                         bool periodic0, bool periodic1,
@@ -644,7 +638,7 @@ private:
 
    friend escript::Domain_ptr readMesh_driver(const boost::python::list& args);
 
-   friend escript::Domain_ptr readMesh(escript::JMPI& p,
+   friend escript::Domain_ptr readMesh(escript::JMPI p,
                                      const std::string& fileName,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
@@ -654,7 +648,7 @@ private:
 
   friend escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
 
-  friend escript::Domain_ptr readGmsh(escript::JMPI& p,
+  friend escript::Domain_ptr readGmsh(escript::JMPI p,
                                const std::string& fileName,
                                int numDim, 
                                int integrationOrder,
@@ -665,8 +659,7 @@ private:
                                const std::vector<int>& tags);
 };
 
-
 } // end of namespace
 
-#endif
+#endif // __FINLEY_MESHADAPTER_H__
 

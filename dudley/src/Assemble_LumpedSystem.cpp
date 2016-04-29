@@ -18,6 +18,8 @@
 #include "ShapeTable.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
@@ -39,7 +41,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
     } else if (funcspace == DUDLEY_REDUCED_FACE_ELEMENTS) {
         reducedIntegrationOrder = true;
     } else {
-        throw DudleyException("Assemble_LumpedSystem: assemblage failed because of illegal function space.");
+        throw escript::ValueError("Assemble_LumpedSystem: assemblage failed because of illegal function space.");
     }
 
     // initialize parameters
@@ -73,7 +75,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
 
     lumpedMat.requireWrite();
     double* lumpedMat_p = lumpedMat.getSampleDataRW(0);
-    
+
     if (funcspace==DUDLEY_POINTS) {
 #pragma omp parallel
         {
@@ -85,7 +87,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                         const double* D_p = D.getSampleDataRO(e);
                         util::addScatter(1,
                                       &p.DOF[elements->Nodes[INDEX2(0,e,p.NN)]],
-                                      p.numEqu, D_p, lumpedMat_p, 
+                                      p.numEqu, D_p, lumpedMat_p,
                                       p.DOF_UpperBound);
                     } // end color check
                 } // end element loop
@@ -100,7 +102,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp parallel
         {
             std::vector<double> EM_lumpedMat(p.numShapes * p.numEqu);
-            std::vector<index_t> row_index(p.numShapes);
+            IndexVector row_index(p.numShapes);
 
             if (p.numEqu == 1) { // single equation
                 if (expandedD) { // with expanded D

@@ -31,7 +31,7 @@ namespace escript {
 namespace DataTypes {
 
 /**
-\namespace escript::DataTypes 
+\namespace escript::DataTypes
 \brief Contains the types to represent Shapes, Regions, RegionLoop ranges and
        vectors of data as well as the functions to manipulate them.
 \note The contents of the namespace are spread between DataTypes.h and DataVector.h
@@ -44,7 +44,7 @@ namespace DataTypes {
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
   static const int maxRank=4;//!< The maximum number of dimensions a datapoint can have.
   static const ShapeType scalarShape;//!< Use this instead of creating empty shape objects for scalars.
-  typedef long vec_size_type; 
+  typedef long vec_size_type;
 
   /// type of all real-valued scalars in escript
   typedef double real_t;
@@ -58,6 +58,8 @@ namespace DataTypes {
 #else
   typedef int index_t;
 #endif
+
+  typedef std::vector<index_t> IndexVector;
 
   typedef index_t dim_t;
 
@@ -104,7 +106,7 @@ namespace DataTypes {
   int
   noValues(const DataTypes::ShapeType& shape);
 
-  /** 
+  /**
      \brief
      Calculate the number of values for the given region.
   */
@@ -311,7 +313,7 @@ namespace DataTypes {
    \param other - displayed in the message as "Other shape"
    \param thisShape - displayed in the message as "This shape"
   */
-   std::string 
+   std::string
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,
 					  const DataTypes::ShapeType& thisShape);

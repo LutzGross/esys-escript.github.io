@@ -16,6 +16,8 @@
 
 #include "NodeFile.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 static std::pair<index_t,index_t> getGlobalRange(dim_t n, const index_t* id,
@@ -96,7 +98,9 @@ void NodeFile::freeTable()
     degreesOfFreedomMapping.clear();
     nodesDistribution.reset();
     dofDistribution.reset();
+#ifdef ESYS_HAVE_PASO
     degreesOfFreedomConnector.reset();
+#endif
     numNodes = 0;
 }
 
@@ -206,7 +210,7 @@ void NodeFile::setTags(int newTag, const escript::Data& mask)
 }
 
 void NodeFile::assignMPIRankToDOFs(int* mpiRankOfDOF,
-                                   const std::vector<index_t>& distribution)
+                                   const IndexVector& distribution)
 {
     int p_min = MPIInfo->size, p_max = -1;
     // first we calculate the min and max DOF on this processor to reduce

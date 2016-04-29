@@ -18,6 +18,8 @@
 #include "ShapeTable.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
@@ -46,7 +48,7 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
         throw DudleyException("Assemble_interpolate: Cannot interpolate data");
     }
 
-    const dim_t numComps = data.getDataPointSize();
+    const int numComps = data.getDataPointSize();
     const int NN = elements->numNodes;
     const int numQuad = reduced_integration ? 1 : elements->numNodes;
     const int NS_DOF = elements->numDim + 1;
@@ -71,7 +73,7 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp parallel
     {
         std::vector<double> local_data(NS_DOF * numComps);
-        const size_t numComps_size = numComps *sizeof(double);
+        const size_t numComps_size = numComps * sizeof(double);
         // open the element loop
 #pragma omp for
         for (index_t e = 0; e < elements->numElements; e++) {

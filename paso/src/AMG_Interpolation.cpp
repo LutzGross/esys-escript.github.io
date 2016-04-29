@@ -560,7 +560,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    escript::JMPI& mpi_info=A->mpi_info;
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
-   Distribution_ptr input_dist, output_dist;
+   escript::Distribution_ptr input_dist, output_dist;
    Connector_ptr col_connector, row_connector;
    const dim_t row_block_size=A->row_block_size;
    const dim_t col_block_size=A->col_block_size;
@@ -1743,8 +1743,8 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
-   input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-   output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
+   input_dist.reset(new escript::Distribution(mpi_info, dist));
+   output_dist.reset(new escript::Distribution(mpi_info, dist));
 
    /* then, prepare the sender/receiver for the row_connector, first, prepare
       the information for sender */
@@ -1954,7 +1954,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    escript::JMPI mpi_info(A->mpi_info);
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
-   Distribution_ptr input_dist, output_dist;
+   escript::Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
    Connector_ptr col_connector, row_connector;
    const dim_t row_block_size=A->row_block_size;
@@ -3124,8 +3124,8 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
-   input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
-   output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
+   input_dist.reset(new escript::Distribution(mpi_info, dist));
+   output_dist.reset(new escript::Distribution(mpi_info, dist));
 
    /* then, prepare the sender/receiver for the row_connector, first, prepare
       the information for sender */

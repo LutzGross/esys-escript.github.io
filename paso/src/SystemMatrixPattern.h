@@ -30,8 +30,9 @@
 #define __PASO_SYSTEMMATRIXPATTERN_H__
 
 #include "Coupler.h"
-#include "Distribution.h"
 #include "Pattern.h"
+
+#include <escript/Distribution.h>
 
 namespace paso {
 
@@ -43,8 +44,8 @@ PASO_DLL_API
 struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
 {
     // constructor
-    SystemMatrixPattern(int type, Distribution_ptr output_distribution,
-        Distribution_ptr input_distribution, Pattern_ptr mainPattern,
+    SystemMatrixPattern(int type, escript::Distribution_ptr output_distribution,
+        escript::Distribution_ptr input_distribution, Pattern_ptr mainPattern,
         Pattern_ptr col_couplePattern, Pattern_ptr row_couplePattern,
         Connector_ptr col_connector, Connector_ptr row_connector);
 
@@ -64,8 +65,8 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
     Pattern_ptr row_couplePattern;
     Connector_ptr col_connector;
     Connector_ptr row_connector;
-    Distribution_ptr output_distribution;
-    Distribution_ptr input_distribution;
+    escript::Distribution_ptr output_distribution;
+    escript::Distribution_ptr input_distribution;
 };
 
 

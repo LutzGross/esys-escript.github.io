@@ -16,6 +16,8 @@
 
 #include "Mesh.h"
 
+#include <escript/index.h>
+
 #include <iomanip>
 
 using std::cout;

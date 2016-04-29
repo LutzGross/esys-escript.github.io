@@ -24,6 +24,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace finley {
 
 void Assemble_AverageElementData(const ElementFile* elements,

@@ -97,8 +97,7 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 #ifdef USE_FINLEY
     else if (dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
         const finley::Mesh* finleyMesh =
-            dynamic_cast<const finley::MeshAdapter*>(escriptDomain)
-                ->getFinley_Mesh();
+            dynamic_cast<const finley::MeshAdapter*>(escriptDomain)->getMesh();
 
         nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
         cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
@@ -116,8 +115,7 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 #ifdef USE_DUDLEY
     else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
         const dudley::Mesh* dudleyMesh =
-            dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)
-                ->getMesh();
+            dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)->getMesh();
 
         nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
         cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));

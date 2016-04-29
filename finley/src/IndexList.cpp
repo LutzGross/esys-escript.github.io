@@ -24,16 +24,14 @@
 #include "IndexList.h"
 #include "ElementFile.h"
 
-/* Translate from distributed/local array indices to global indices */
-
-/****************************************************************************/
-/* inserts the contributions from the element matrices of elements
-   into the row index col. If symmetric is set, only the upper
-   triangle of the matrix is stored.
-*/
+#include <escript/index.h>
 
 namespace finley {
 
+/* Translate from distributed/local array indices to global indices */
+
+/// inserts the contributions from the element matrices of elements
+/// into the row index col.
 void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
                               bool reduce_row_order, const index_t* row_map,
                               bool reduce_col_order, const index_t* col_map)
@@ -43,7 +41,7 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
     if (!elements)
         return;
 
-    const int NN=elements->numNodes;
+    const int NN = elements->numNodes;
     const_ReferenceElement_ptr refElement(elements->referenceElementSet->
                                             borrowReferenceElement(false));
 
@@ -96,17 +94,17 @@ void IndexList_insertElementsWithRowRangeNoMainDiagonal(
         return;
 
     // this does not resolve macro elements
-    const int NN=elements->numNodes;
-    for (int color=elements->minColor; color<=elements->maxColor; color++) {
+    const int NN = elements->numNodes;
+    for (index_t color = elements->minColor; color <= elements->maxColor; color++) {
 #pragma omp for
-        for (index_t e=0; e<elements->numElements; e++) {
-            if (elements->Color[e]==color) {
-                for (int kr=0; kr<NN; kr++) {
-                    const index_t irow=row_map[elements->Nodes[INDEX2(kr,e,NN)]];
-                    if (firstRow<=irow && irow<lastRow) {
-                        const index_t irow_loc=irow-firstRow;
-                        for (int kc=0; kc<NN; kc++) {
-                            const index_t icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
+        for (index_t e = 0; e < elements->numElements; e++) {
+            if (elements->Color[e] == color) {
+                for (int kr = 0; kr < NN; kr++) {
+                    const index_t irow = row_map[elements->Nodes[INDEX2(kr, e, NN)]];
+                    if (firstRow <= irow && irow < lastRow) {
+                        const index_t irow_loc = irow - firstRow;
+                        for (int kc = 0; kc < NN; kc++) {
+                            const index_t icol = col_map[elements->Nodes[INDEX2(kc, e, NN)]];
                             if (icol != irow)
                                 index_list[irow_loc].insertIndex(icol);
                         }

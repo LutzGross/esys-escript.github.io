@@ -24,6 +24,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace finley {
 
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
@@ -33,7 +35,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
         return;
 
     const int my_mpi_rank = nodes->MPIInfo->rank;
-    ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, false,
+    ElementFile_Jacobians* jac = elements->borrowJacobians(nodes, false,
                                     util::hasReducedIntegrationOrder(data));
 
     const int numQuadTotal = jac->numQuadTotal;
@@ -44,8 +46,8 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 
     const int numComps = data.getDataPointSize();
 
-    for (int q=0; q<numComps; q++)
-        out[q]=0;
+    for (int q = 0; q < numComps; q++)
+        out[q] = 0;
 
 #pragma omp parallel
     {
@@ -53,32 +55,32 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 
         if (data.actsExpanded()) {
 #pragma omp for
-            for (int e=0; e<elements->numElements; e++) {
+            for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
-                    const double *data_array=data.getSampleDataRO(e);
-                    for (int q=0; q<numQuadTotal; q++) {
-                        for (int i=0; i<numComps; i++)
-                            out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
+                    const double* data_array = data.getSampleDataRO(e);
+                    for (int q = 0; q < numQuadTotal; q++) {
+                        for (int i = 0; i < numComps; i++)
+                            out_local[i] += data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
                     }
                 }
             }
         } else {
 #pragma omp for
-            for (int e=0; e<elements->numElements; e++) {
+            for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
-                    const double *data_array=data.getSampleDataRO(e);
-                    double rtmp=0.;
-                    for (int q=0; q<numQuadTotal; q++)
-                        rtmp+=jac->volume[INDEX2(q,e,numQuadTotal)];
-                    for (int i=0; i<numComps; i++)
-                        out_local[i]+=data_array[i]*rtmp;
+                    const double* data_array = data.getSampleDataRO(e);
+                    double rtmp = 0.;
+                    for (int q = 0; q < numQuadTotal; q++)
+                        rtmp += jac->volume[INDEX2(q, e, numQuadTotal)];
+                    for (int i = 0; i < numComps; i++)
+                        out_local[i] += data_array[i] * rtmp;
                 }
             }
         }
         // add local results to global result
 #pragma omp critical
-        for (int i=0; i<numComps; i++)
-            out[i]+=out_local[i];
+        for (int i = 0; i < numComps; i++)
+            out[i] += out_local[i];
     } // parallel section
 }
 

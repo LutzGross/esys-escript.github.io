@@ -164,9 +164,11 @@ void NodeFile::createDOFMappingAndCoupling()
     for (index_t i = 0; i < lastn; ++i)
         shared[i] = myLastDOF - myFirstDOF + i;
 
+#ifdef ESYS_HAVE_PASO
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
                                     myLastDOF - myFirstDOF, neighbour, shared,
                                     offsetInShared));
+#endif
 
     /////////////////////////////////
     //   now we build the sender   //
@@ -177,12 +179,11 @@ void NodeFile::createDOFMappingAndCoupling()
     MPI_Alltoall(&rcv_len[0], 1, MPI_DIM_T, &snd_len[0], 1, MPI_DIM_T,
                  MPIInfo->comm);
     int count = 0;
-    for (int p = 0; p < rcv_shcomp->neighbour.size(); p++) {
-        MPI_Isend(&wanted_DOFs[rcv_shcomp->offsetInShared[p]],
-                rcv_shcomp->offsetInShared[p+1]-rcv_shcomp->offsetInShared[p],
-                MPI_DIM_T, rcv_shcomp->neighbour[p],
-                MPIInfo->counter() + myRank, MPIInfo->comm,
-                &mpi_requests[count]);
+    for (int p = 0; p < neighbour.size(); p++) {
+        MPI_Isend(&wanted_DOFs[offsetInShared[p]],
+                offsetInShared[p+1] - offsetInShared[p],
+                MPI_DIM_T, neighbour[p], MPIInfo->counter() + myRank,
+                MPIInfo->comm, &mpi_requests[count]);
         count++;
     }
 #else
@@ -195,8 +196,8 @@ void NodeFile::createDOFMappingAndCoupling()
     for (int p = 0; p < mpiSize; p++) {
         if (snd_len[p] > 0) {
             MPI_Irecv(&shared[n], snd_len[p], MPI_DIM_T, p,
-                    MPIInfo->counter() + p, MPIInfo->comm,
-                    &mpi_requests[count]);
+                      MPIInfo->counter() + p, MPIInfo->comm,
+                      &mpi_requests[count]);
             count++;
             neighbour.push_back(p);
             offsetInShared.push_back(n);
@@ -214,11 +215,12 @@ void NodeFile::createDOFMappingAndCoupling()
         shared[i] = locDOFMask[shared[i] - min_DOF];
     }
 
+#ifdef ESYS_HAVE_PASO
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
                                     myLastDOF - myFirstDOF, neighbour, shared,
                                     offsetInShared));
-
     degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
+#endif
 
     delete[] wanted_DOFs;
     delete[] nodeMask;
@@ -226,14 +228,14 @@ void NodeFile::createDOFMappingAndCoupling()
     delete[] locDOFMask;
 }
 
-void NodeFile::createNodeMappings(const std::vector<index_t>& dofDist,
-                                  const std::vector<index_t>& nodeDist)
+void NodeFile::createNodeMappings(const IndexVector& dofDist,
+                                  const IndexVector& nodeDist)
 {
     // ==== distribution of Nodes ====
-    nodesDistribution.reset(new paso::Distribution(MPIInfo, nodeDist, 1, 0));
+    nodesDistribution.reset(new escript::Distribution(MPIInfo, nodeDist));
 
     // ==== distribution of DOFs ====
-    dofDistribution.reset(new paso::Distribution(MPIInfo, dofDist, 1, 0));
+    dofDistribution.reset(new escript::Distribution(MPIInfo, dofDist));
 
     index_t* nodeMask = new index_t[numNodes];
     const index_t UNUSED = -1;

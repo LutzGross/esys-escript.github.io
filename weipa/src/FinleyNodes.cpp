@@ -181,7 +181,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 {
 #if !defined VISIT_PLUGIN && defined USE_FINLEY
     numDims = finleyFile->numDim;
-    numNodes = finleyFile->numNodes;
+    numNodes = finleyFile->getNumNodes();
     nodeDist.assign(finleyFile->nodesDistribution->first_component.begin(),
                     finleyFile->nodesDistribution->first_component.end());
 

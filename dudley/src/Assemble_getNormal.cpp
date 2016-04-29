@@ -18,6 +18,8 @@
 #include "ShapeTable.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,

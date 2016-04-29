@@ -36,11 +36,11 @@
    Important: it is assumed that every node appears in at least
    one element or surface element and that any node used in an
    element, surface element or as a point is specified in the
-   NodeFile, see also Dudley_resolveNodeIds.
+   NodeFile, see also resolveNodeIds.
 
-   In some cases it is useful to refer to a mesh entirly built from
+   In some cases it is useful to refer to a mesh entirely built from
    order 1 (=linear) elements. The linear version of the mesh can be
-   accessed by referning to the first few nodes of each element
+   accessed by referring to the first few nodes of each element
    (thanks to the way the nodes are ordered). As the numbering of
    these nodes is not continuous a relabeling vector is introduced
    in the NodeFile. This feature is not fully implemented yet.
@@ -48,12 +48,11 @@
    All nodes and elements are tagged. The tag allows to group nodes and
    elements. A typical application is to mark surface elements on a
    certain portion of the domain with the same tag. All these surface
-   elements can then assigned the same value e.g. for the pressure.
+   elements can then be assigned the same value e.g. for the pressure.
 
    The spatial dimensionality is determined by the type of elements
-   used and can be queried using the function Dudley_Mesh_getDim.
-   Notice that the element type also determines the type of surface
-   elements to be used.
+   used and can be queried using getDim(). Notice that the element type
+   also determines the type of surface elements to be used.
 
 *****************************************************************************/
 
@@ -62,8 +61,9 @@
 #include "NodeFile.h"
 #include "Util.h"
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrixPattern.h>
-
+#endif
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
@@ -90,13 +90,10 @@ public:
     int getDim() const { return Nodes->numDim; }
     int getStatus() const { return Nodes->status; }
 
-    void addPoints(int numPoints, const double *points_ptr, const int *tags_ptr);
+    void addPoints(int numPoints, const double* points_ptr, const int* tags_ptr);
     void addTagMap(const std::string& name, int tag_key);
     int getTag(const std::string& name) const;
     bool isValidTagName(const std::string& name) const;
-
-    /// returns a reference to the paso matrix pattern
-    paso::SystemMatrixPattern_ptr getPasoPattern();
 
     void printInfo(bool);
 
@@ -127,6 +124,11 @@ public:
     /// If k is the old node, the new node is newNode[k-offset].
     void relabelElementNodes(const index_t* newNode, index_t offset);
 
+#ifdef ESYS_HAVE_PASO
+    /// returns a reference to the paso matrix pattern
+    paso::SystemMatrixPattern_ptr getPasoPattern();
+#endif
+
 #ifdef ESYS_HAVE_TRILINOS
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
     /// matrix
@@ -134,12 +136,14 @@ public:
 #endif
 
 private:
+#ifdef ESYS_HAVE_PASO
     paso::SystemMatrixPattern_ptr makePasoPattern() const;
+#endif
     void createColoring(const index_t* dofMap);
-    void distributeByRankOfDOF(const std::vector<index_t>& distribution);
+    void distributeByRankOfDOF(const IndexVector& distribution);
     void markNodes(std::vector<short>& mask, index_t offset) const;
-    void optimizeDOFDistribution(std::vector<index_t>& distribution);
-    void optimizeDOFLabeling(const std::vector<index_t>& distribution);
+    void optimizeDOFDistribution(IndexVector& distribution);
+    void optimizeDOFLabeling(const IndexVector& distribution);
     void optimizeElementOrdering();
     void updateTagList();
     void printElementInfo(const ElementFile* e, const std::string& title,
@@ -164,9 +168,11 @@ public:
     ElementFile* Points;
     // the tag map mapping names to tag keys
     TagMap tagMap;
-
+#ifdef ESYS_HAVE_PASO
     // pointer to the sparse matrix pattern
     paso::SystemMatrixPattern_ptr pasoPattern;
+#endif
+
     escript::JMPI MPIInfo;
 };
 

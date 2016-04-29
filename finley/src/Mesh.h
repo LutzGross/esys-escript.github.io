@@ -57,12 +57,13 @@
 *****************************************************************************/
 
 #include "Finley.h"
-#include "NodeFile.h"
 #include "ElementFile.h"
+#include "NodeFile.h"
 #include "Util.h"
 
+#ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrixPattern.h>
-
+#endif
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
@@ -78,32 +79,69 @@ namespace finley {
 
 typedef std::map<std::string, int> TagMap;
 
-/****************************************************************************/
-
 class Mesh
 {
 public:
-    Mesh(const std::string name, int numDim, escript::JMPI& mpi_info);
+    Mesh(const std::string name, int numDim, escript::JMPI mpi_info);
     ~Mesh();
 
-    static Mesh* load(escript::JMPI& mpi_info, const std::string fname);
-    static Mesh* read(escript::JMPI& mpi_info, const std::string fname,
+    static Mesh* load(escript::JMPI mpiInfo, const std::string& filename);
+
+    static Mesh* read(escript::JMPI mpiInfo, const std::string& filename,
                       int order, int reducedOrder, bool optimize);
-    static Mesh* readGmsh(escript::JMPI& mpi_info, const std::string fname,
+
+    static Mesh* readGmsh(escript::JMPI mpiInfo, const std::string& filename,
                           int numDim, int order, int reducedOrder,
                           bool optimize, bool useMacroElements);
 
-    void write(const std::string fname) const;
+    /// writes the mesh to the external file filename using the Finley file
+    /// format
+    void write(const std::string& filename) const;
 
     int getDim() const { return Nodes->numDim; }
     int getStatus() const { return Nodes->status; }
 
-    void addPoints(int numPoints, const double *points_ptr, const int *tags_ptr);
-    void addTagMap(const char* name, int tag_key);
-    int getTag(const char* name) const;
-    bool isValidTagName(const char* name) const;
-    paso::SystemMatrixPattern_ptr getPattern(bool reduce_row_order, bool reduce_col_order);
-    paso::SystemMatrixPattern_ptr makePattern(bool reduce_row_order, bool reduce_col_order);
+    void addPoints(int numPoints, const double* points_ptr, const int* tags_ptr);
+    void addTagMap(const std::string& name, int tag_key);
+    int getTag(const std::string& name) const;
+    bool isValidTagName(const std::string& name) const;
+
+    void printInfo(bool);
+
+    /// prints the mesh details to standard output
+    void print();
+
+    /// assigns new coordinates to the nodes
+    void setCoordinates(const escript::Data& newX);
+    void setElements(ElementFile* elements);
+    void setFaceElements(ElementFile* elements);
+    void setContactElements(ElementFile* elements);
+    void setPoints(ElementFile* elements);
+
+    void prepare(bool optimize);
+
+    /// Initially the element nodes refer to the numbering defined by the
+    /// global id assigned to the nodes in the NodeFile. It is also not ensured
+    /// that all nodes referred by an element are actually available on the
+    /// process. At the output, a local node labeling is used and all nodes are
+    /// available. In particular the numbering of the element nodes is between
+    /// 0 and Nodes->numNodes.
+    /// The function does not create a distribution of the degrees of freedom.
+    void resolveNodeIds();
+
+    void createMappings(const std::vector<index_t>& dofDistribution,
+                        const std::vector<index_t>& nodeDistribution);
+
+    void markDOFsConnectedToRange(int* mask, int offset, int marker,
+                                  index_t firstDOF, index_t lastDOF, bool useLinear);
+    
+    /// assigns new node reference numbers to all element files.
+    /// If k is the old node, the new node is newNode[k-offset].
+    void relabelElementNodes(const IndexVector& newNode, index_t offset);
+
+#ifdef ESYS_HAVE_PASO
+    paso::SystemMatrixPattern_ptr getPasoPattern(bool reduce_row_order, bool reduce_col_order);
+#endif
 
 #ifdef ESYS_HAVE_TRILINOS
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
@@ -111,53 +149,38 @@ public:
     esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;
 #endif
 
-    void printInfo(bool);
-    void print();
-
-    void setCoordinates(const escript::Data& newX);
-    void setElements(ElementFile *elements);
-    void setFaceElements(ElementFile *elements);
-    void setContactElements(ElementFile *elements);
-    void setPoints(ElementFile *elements);
-
-    void prepare(bool optimize);
-    void resolveNodeIds();
-    void createMappings(const std::vector<index_t>& dofDistribution,
-                        const std::vector<index_t>& nodeDistribution);
-    void markDOFsConnectedToRange(int* mask, int offset, int marker,
-                                  index_t firstDOF, index_t lastDOF, bool useLinear);
-    
-    void relabelElementNodes(const std::vector<index_t>&, index_t offset);
-
     void glueFaces(double safetyFactor, double tolerance, bool);
     void joinFaces(double safetyFactor, double tolerance, bool);
 
     void findMatchingFaces(double, double, int*, int*, int*, int*);
 
 private:
-    void createColoring(const std::vector<index_t>& dofMap);
-    void distributeByRankOfDOF(const std::vector<index_t>& distribution);
-    void markNodes(std::vector<short>& mask, int offset, bool useLinear);
-    void optimizeDOFDistribution(std::vector<index_t>& distribution);
-    void optimizeDOFLabeling(const std::vector<index_t>& distribution);
+#ifdef ESYS_HAVE_PASO
+    paso::SystemMatrixPattern_ptr makePasoPattern(bool reduce_row_order, bool reduce_col_order) const;
+#endif
+    void createColoring(const IndexVector& dofMap);
+    void distributeByRankOfDOF(const IndexVector& distribution);
+    void markNodes(std::vector<short>& mask, index_t offset, bool useLinear) const;
+    void optimizeDOFDistribution(IndexVector& distribution);
+    void optimizeDOFLabeling(const IndexVector& distribution);
     void optimizeElementOrdering();
     void setOrders();
     void updateTagList();
-    void printElementInfo(const ElementFile* e, const std::string title,
-                          const std::string defaultType, bool full) const;
+    void printElementInfo(const ElementFile* e, const std::string& title,
+                          const std::string& defaultType, bool full) const;
 
     void writeElementInfo(std::ostream& stream, const ElementFile* e,
-                          const std::string defaultType) const;
+                          const std::string& defaultType) const;
 
-    static Mesh* readGmshSlave(escript::JMPI& mpi_info, const std::string fname,
+    static Mesh* readGmshSlave(escript::JMPI mpiInfo, const std::string& filename,
                                int numDim, int order, int reducedOrder,
                                bool optimize, bool useMacroElements);
-    static Mesh* readGmshMaster(escript::JMPI& mpi_info, const std::string fname,
+    static Mesh* readGmshMaster(escript::JMPI mpiInfo, const std::string& filename,
                                 int numDim, int order, int reducedOrder,
                                 bool optimize, bool useMacroElements);
 
 public:
-    // the name of the mesh
+    /// the name of the mesh
     std::string m_name;
     int approximationOrder;
     int reducedApproximationOrder;
@@ -175,12 +198,14 @@ public:
     ElementFile* Points;
     // the tag map mapping names to tag keys
     TagMap tagMap;
-
+#ifdef ESYS_HAVE_PASO
     // pointers to the sparse matrix patterns
     paso::SystemMatrixPattern_ptr FullFullPattern;
     paso::SystemMatrixPattern_ptr FullReducedPattern;
     paso::SystemMatrixPattern_ptr ReducedFullPattern;
     paso::SystemMatrixPattern_ptr ReducedReducedPattern;
+#endif
+
     escript::JMPI MPIInfo;
 };
 

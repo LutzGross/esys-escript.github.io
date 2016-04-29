@@ -23,6 +23,8 @@
 #include "IndexList.h"
 #include "ElementFile.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 /* Translate from distributed/local array indices to global indices */

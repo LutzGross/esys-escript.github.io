@@ -847,8 +847,8 @@ paso::SystemMatrixPattern_ptr MultiRectangle::getPasoMatrixPattern(
         paso::Pattern_ptr rowPattern = createPasoPattern(m_rowIndices, numDOF);
 
         // allocate Paso distribution
-        paso::Distribution_ptr distribution(new paso::Distribution(
-                                    m_mpiInfo, m_nodeDistribution, 1, 0));
+        escript::Distribution_ptr distribution(new escript::Distribution(
+                                               m_mpiInfo, m_nodeDistribution));
 
         // finally create the system matrix pattern
         m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,

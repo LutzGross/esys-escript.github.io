@@ -14,15 +14,10 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: ElementFile
-
-*****************************************************************************/
-
 #include "ElementFile.h"
+
 #include <escript/Data.h>
+#include <escript/index.h>
 
 #include <algorithm> // std::swap
 
@@ -31,7 +26,8 @@ namespace finley {
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
 ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
-                         escript::JMPI& mpiInfo) :
+                         escript::JMPI mpiInfo) :
+    MPIInfo(mpiInfo),
     referenceElementSet(refSet),
     numElements(0),
     Id(NULL),
@@ -42,18 +38,16 @@ ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
     minColor(0),
     maxColor(-1)
 {
-    MPIInfo=mpiInfo;
- 
-    jacobians=new ElementFile_Jacobians(
+    jacobians = new ElementFile_Jacobians(
             referenceElementSet->referenceElement->BasisFunctions);
-    jacobians_reducedQ=new ElementFile_Jacobians(
+    jacobians_reducedQ = new ElementFile_Jacobians(
             referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
-    jacobians_reducedS=new ElementFile_Jacobians(
+    jacobians_reducedS = new ElementFile_Jacobians(
             referenceElementSet->referenceElement->LinearBasisFunctions);
-    jacobians_reducedS_reducedQ=new ElementFile_Jacobians(
+    jacobians_reducedS_reducedQ = new ElementFile_Jacobians(
             referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
 
-    numNodes=referenceElementSet->getNumNodes();
+    numNodes = referenceElementSet->getNumNodes();
 }
 
 /// destructor
@@ -69,26 +63,26 @@ ElementFile::~ElementFile()
 /// allocates the element table within this element file to hold NE elements.
 void ElementFile::allocTable(dim_t NE) 
 {
-    if (numElements>0)
+    if (numElements > 0)
         freeTable();
 
-    numElements=NE;
-    Owner=new int[numElements];
-    Id=new index_t[numElements];
-    Nodes=new index_t[numElements*numNodes];
-    Tag=new int[numElements];
-    Color=new int[numElements];
-  
+    numElements = NE;
+    Owner = new int[numElements];
+    Id = new index_t[numElements];
+    Nodes = new index_t[numElements * numNodes];
+    Tag = new int[numElements];
+    Color = new index_t[numElements];
+
     // this initialization makes sure that data are located on the right
     // processor
 #pragma omp parallel for
-    for (index_t e=0; e<numElements; e++) {
-        for (int i=0; i<numNodes; i++)
-            Nodes[INDEX2(i,e,numNodes)]=-1;
-        Owner[e]=-1;
-        Id[e]=-1;
-        Tag[e]=-1;
-        Color[e]=-1;
+    for (index_t e = 0; e < numElements; e++) {
+        for (int i = 0; i < numNodes; i++)
+            Nodes[INDEX2(i, e, numNodes)] = -1;
+        Owner[e] = -1;
+        Id[e] = -1;
+        Tag[e] = -1;
+        Color[e] = -1;
     }
 }
 
@@ -101,9 +95,9 @@ void ElementFile::freeTable()
     delete[] Tag;
     delete[] Color;
     tagsInUse.clear();
-    numElements=0;
-    maxColor=-1;
-    minColor=0;
+    numElements = 0;
+    maxColor = -1;
+    minColor = 0;
 }
 
 /// copies element file 'in' into this element file starting from 'offset'.
@@ -111,56 +105,56 @@ void ElementFile::freeTable()
 void ElementFile::copyTable(index_t offset, index_t nodeOffset,
                             index_t idOffset, const ElementFile* in)
 {
-    const int NN_in=in->numNodes;
+    const int NN_in = in->numNodes;
     if (NN_in > numNodes) {
         throw escript::ValueError("ElementFile::copyTable: dimensions of element files don't match.");
     }
 
 #pragma omp parallel for
-    for (index_t n=0; n<in->numElements; n++) {
-          Owner[offset+n]=in->Owner[n];
-          Id[offset+n]=in->Id[n]+idOffset;
-          Tag[offset+n]=in->Tag[n];
-          for (int i=0; i<numNodes; i++)
-              Nodes[INDEX2(i,offset+n,numNodes)] =
-                            in->Nodes[INDEX2(i,n,NN_in)]+nodeOffset;
+    for (index_t n = 0; n < in->numElements; n++) {
+        Owner[offset + n] = in->Owner[n];
+        Id[offset + n] = in->Id[n] + idOffset;
+        Tag[offset + n] = in->Tag[n];
+        for (int i = 0; i < numNodes; i++)
+            Nodes[INDEX2(i, offset + n, numNodes)] =
+                            in->Nodes[INDEX2(i, n, NN_in)] + nodeOffset;
     }
 }
 
-void ElementFile::gather(index_t* index, const ElementFile* in)
+void ElementFile::gather(const index_t* index, const ElementFile* in)
 {
-    const int NN_in=in->numNodes;
+    const int NN_in = in->numNodes;
 #pragma omp parallel for
-    for (index_t e=0; e<numElements; e++) {
-        const index_t k=index[e];
-        Id[e]=in->Id[k];
-        Tag[e]=in->Tag[k];
-        Owner[e]=in->Owner[k];
-        Color[e]=in->Color[k]+maxColor+1;
-        for (int j=0; j<std::min(numNodes,NN_in); j++)
-            Nodes[INDEX2(j,e,numNodes)]=in->Nodes[INDEX2(j,k,NN_in)];
+    for (index_t e = 0; e < numElements; e++) {
+        const index_t k = index[e];
+        Id[e] = in->Id[k];
+        Tag[e] = in->Tag[k];
+        Owner[e] = in->Owner[k];
+        Color[e] = in->Color[k] + maxColor + 1;
+        for (int j = 0; j < std::min(numNodes, NN_in); j++)
+            Nodes[INDEX2(j, e, numNodes)] = in->Nodes[INDEX2(j, k, NN_in)];
     }
-    minColor=std::min(minColor, in->minColor+maxColor+1);
-    maxColor=std::max(maxColor, in->maxColor+maxColor+1);
+    minColor = std::min(minColor, in->minColor+maxColor+1);
+    maxColor = std::max(maxColor, in->maxColor+maxColor+1);
 }
 
 /// scatters the ElementFile in into this ElementFile.
 /// A conservative assumption on the coloring is made.
 void ElementFile::scatter(index_t* index, const ElementFile* in)
 {
-    const int NN_in=in->numNodes;
+    const int NN_in = in->numNodes;
 #pragma omp parallel for
-    for (index_t e=0; e<in->numElements; e++) {
-        const index_t k=index[e];
-        Owner[k]=in->Owner[e];
-        Id[k]=in->Id[e];
-        Tag[k]=in->Tag[e];
-        Color[k]=in->Color[e]+maxColor+1;
-        for (int j=0; j<std::min(numNodes,NN_in); j++)
-            Nodes[INDEX2(j,k,numNodes)]=in->Nodes[INDEX2(j,e,NN_in)];
+    for (index_t e = 0; e < in->numElements; e++) {
+        const index_t k = index[e];
+        Owner[k] = in->Owner[e];
+        Id[k] = in->Id[e];
+        Tag[k] = in->Tag[e];
+        Color[k] = in->Color[e]+maxColor+1;
+        for (int j = 0; j < std::min(numNodes,NN_in); j++)
+            Nodes[INDEX2(j,k,numNodes)] = in->Nodes[INDEX2(j,e,NN_in)];
     }
-    minColor=std::min(minColor, in->minColor+maxColor+1);
-    maxColor=std::max(maxColor, in->maxColor+maxColor+1);
+    minColor = std::min(minColor, in->minColor+maxColor+1);
+    maxColor = std::max(maxColor, in->maxColor+maxColor+1);
 }
 
 void ElementFile::swapTable(ElementFile* other)
@@ -178,25 +172,27 @@ void ElementFile::swapTable(ElementFile* other)
 
 void ElementFile::optimizeOrdering()
 {
-    if (numElements<1)
+    if (numElements < 1)
         return;
 
-    const int NN=referenceElementSet->getNumNodes();
+    const int NN = referenceElementSet->getNumNodes();
     util::ValueAndIndexList item_list(numElements);
-    index_t *index=new index_t[numElements];
-    ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
+    index_t* index = new index_t[numElements];
+    ElementFile* out = new ElementFile(referenceElementSet, MPIInfo);
     out->allocTable(numElements);
 #pragma omp parallel for
-    for (index_t e=0; e<numElements; e++) {
-        std::pair<index_t,index_t> entry(Nodes[INDEX2(0,e,NN)], e);
-        for (int i=1; i<NN; i++)
-            entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
+    for (index_t e = 0; e < numElements; e++) {
+        std::pair<index_t,index_t> entry(Nodes[INDEX2(0, e, NN)], e);
+        for (int i = 1; i < NN; i++)
+            entry.first = std::min(entry.first, Nodes[INDEX2(i, e, NN)]);
         item_list[e] = entry;
     }
     util::sortValueAndIndex(item_list);
+
 #pragma omp parallel for
-    for (index_t e=0; e<numElements; e++)
-        index[e]=item_list[e].second;
+    for (index_t e = 0; e < numElements; e++)
+        index[e] = item_list[e].second;
+
     out->gather(index, this);
     swapTable(out);
     delete out;
@@ -218,7 +214,7 @@ void ElementFile::relabelNodes(const std::vector<index_t>& newNode, index_t offs
 
 void ElementFile::setTags(int newTag, const escript::Data& mask)
 {
-    const int numQuad=referenceElementSet->borrowReferenceElement(
+    const int numQuad = referenceElementSet->borrowReferenceElement(
             util::hasReducedIntegrationOrder(mask))
             ->Parametrization->numQuadNodes; 
     if (1 != mask.getDataPointSize()) {
@@ -230,26 +226,26 @@ void ElementFile::setTags(int newTag, const escript::Data& mask)
 
     if (mask.actsExpanded()) {
 #pragma omp parallel for
-        for (index_t n=0; n<numElements; n++) {
+        for (index_t n = 0; n < numElements; n++) {
             if (mask.getSampleDataRO(n)[0] > 0)
-                Tag[n]=newTag;
+                Tag[n] = newTag;
         }
     } else {
 #pragma omp parallel for
-        for (index_t n=0; n<numElements; n++) {
-            const double *mask_array=mask.getSampleDataRO(n);
-            bool check=false;
-            for (int q=0; q<numQuad; q++)
-                check = (check || mask_array[q]);
+        for (index_t n = 0; n < numElements; n++) {
+            const double* mask_array = mask.getSampleDataRO(n);
+            bool check = false;
+            for (int q = 0; q < numQuad; q++)
+                check = check || mask_array[q];
             if (check)
-                Tag[n]=newTag;
+                Tag[n] = newTag;
         }
     }
     updateTagList();
 }
 
 /// Tries to reduce the number of colours used to colour the elements
-void ElementFile::createColoring(const std::vector<index_t>& dofMap)
+void ElementFile::createColoring(const IndexVector& dofMap)
 {
     if (numElements < 1)
         return;
@@ -257,16 +253,16 @@ void ElementFile::createColoring(const std::vector<index_t>& dofMap)
     const int NN = numNodes;
     const std::pair<index_t,index_t> idRange(util::getMinMaxInt(
                                             1, dofMap.size(), &dofMap[0]));
-    const index_t len=idRange.second-idRange.first+1;
+    const index_t len = idRange.second-idRange.first+1;
 
     // reset color vector
 #pragma omp parallel for
-    for (index_t e=0; e<numElements; e++)
-        Color[e]=-1;
+    for (index_t e = 0; e < numElements; e++)
+        Color[e] = -1;
 
-    index_t numUncoloredElements=numElements;
-    minColor=0;
-    maxColor=-1;
+    index_t numUncoloredElements = numElements;
+    minColor = 0;
+    maxColor = -1;
     while (numUncoloredElements>0) {
         // initialize the mask marking nodes used by a color
         std::vector<index_t> maskDOF(len, -1);

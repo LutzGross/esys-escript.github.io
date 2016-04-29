@@ -17,6 +17,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 namespace dudley {
 
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
@@ -29,7 +31,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     const ElementFile_Jacobians* jac = elements->borrowJacobians(nodes,
                                          hasReducedIntegrationOrder(data));
 
-    const dim_t numQuadTotal = jac->numQuad;
+    const int numQuadTotal = jac->numQuad;
     // check the shape of the data
     if (!data.numSamplesEqual(numQuadTotal, elements->numElements)) {
         throw DudleyException("Assemble_integrate: illegal number of samples of integrant kernel Data object");

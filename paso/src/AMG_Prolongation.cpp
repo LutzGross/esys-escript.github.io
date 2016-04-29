@@ -105,8 +105,8 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
 
     // create row distribution (output_distribution) and col distribution
     // (input_distribution)
-    Distribution_ptr output_dist(new Distribution(mpi_info,
-                    A_p->pattern->output_distribution->first_component, 1, 0));
+    escript::Distribution_ptr output_dist(new escript::Distribution(mpi_info,
+                    A_p->pattern->output_distribution->first_component));
     std::vector<index_t> dist(size+1); // now prepare for col distribution
 #ifdef ESYS_MPI
     MPI_Allgather(&my_n_C, 1, MPI_DIM_T, &dist[0], 1, MPI_DIM_T, mpi_info->comm);
@@ -119,7 +119,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
     }
     dist[size] = global_label;
 
-    Distribution_ptr input_dist(new Distribution(mpi_info, dist, 1, 0));
+    escript::Distribution_ptr input_dist(new escript::Distribution(mpi_info, dist));
 
     // create pattern for mainBlock and coupleBlock
     index_t* main_p = new index_t[my_n+1];

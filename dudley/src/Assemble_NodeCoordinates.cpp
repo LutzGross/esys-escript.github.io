@@ -17,6 +17,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
+#include <escript/index.h>
+
 #include <sstream>
 
 namespace dudley {
@@ -29,17 +31,16 @@ void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
     const escript::DataTypes::ShapeType expectedShape(1, nodes->numDim);
 
     if (!x.numSamplesEqual(1, nodes->getNumNodes())) {
-        throw DudleyException("Assemble_NodeCoordinates: illegal number of samples of Data object");
+        throw escript::ValueError("Assemble_NodeCoordinates: illegal number of samples of Data object");
     } else if (x.getFunctionSpace().getTypeCode() != DUDLEY_NODES) {
-        throw DudleyException("Assemble_NodeCoordinates: Data object is not defined on nodes.");
+        throw escript::ValueError("Assemble_NodeCoordinates: Data object is not defined on nodes.");
     } else if (!x.actsExpanded()) {
-        throw DudleyException("Assemble_NodeCoordinates: expanded Data object expected");
+        throw escript::ValueError("Assemble_NodeCoordinates: expanded Data object expected");
     } else if (x.getDataPointShape() != expectedShape) {
         std::stringstream ss;
         ss << "Assemble_NodeCoordinates: Data object of shape ("
             << nodes->numDim << ",) expected.";
-        const std::string errorMsg(ss.str());
-        throw DudleyException(errorMsg);
+        throw escript::ValueError(ss.str());
     } else {
         const size_t dim_size = nodes->numDim * sizeof(double);
         x.requireWrite();

@@ -36,6 +36,8 @@ namespace finley {
 
 using escript::DataTypes::dim_t;
 using escript::DataTypes::index_t;
+using escript::DataTypes::IndexVector;
+
 // real_t clashes with metis real_t !
 //using escript::DataTypes::real_t;
 

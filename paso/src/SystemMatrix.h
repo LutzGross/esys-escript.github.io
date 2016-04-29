@@ -313,8 +313,8 @@ public:
     dim_t col_block_size;
     dim_t block_size;
 
-    Distribution_ptr row_distribution;
-    Distribution_ptr col_distribution;
+    escript::Distribution_ptr row_distribution;
+    escript::Distribution_ptr col_distribution;
     escript::JMPI mpi_info;
 
     Coupler_ptr col_coupler;

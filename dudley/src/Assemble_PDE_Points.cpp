@@ -17,8 +17,8 @@
 
 /****************************************************************************
 
-  Assembles the system of numEqu PDEs into the stiffness matrix S right hand
-  side F
+  Assembles the system of numEqu PDEs into the stiffness matrix S and right
+  hand side F
 
       d_dirac_{k,m} u_m and y_dirac_k
 
@@ -36,6 +36,8 @@
 
 #include "Assemble.h"
 #include "Util.h"
+
+#include <escript/index.h>
 
 namespace dudley {
 

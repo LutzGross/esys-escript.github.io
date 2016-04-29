@@ -17,8 +17,10 @@
 #include "Mesh.h"
 #include "IndexList.h"
 
+#include <escript/index.h>
+
 #ifdef ESYS_HAVE_PARMETIS
-#include "parmetis.h"
+#include <parmetis.h>
 #ifndef REALTYPEWIDTH
 typedef float real_t;
 #endif
@@ -29,13 +31,13 @@ typedef float real_t;
 namespace dudley {
 
 #ifdef ESYS_HAVE_PARMETIS
-// Check whether there is any rank which has no vertex. In case 
+// Checks whether there is any rank which has no vertex. In case 
 // such a rank exists, we don't use parmetis since parmetis requires
 // that every rank has at least 1 vertex (at line 129 of file
 // "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
 // any rank has no vertex).
 static bool allRanksHaveNodes(escript::JMPI mpiInfo,
-                              const std::vector<index_t>& distribution)
+                              const IndexVector& distribution)
 {
     int ret = 1;
 
@@ -77,7 +79,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 #ifdef ESYS_HAVE_PARMETIS
     if (mpiSize > 1 && allRanksHaveNodes(MPIInfo, distribution)) {
         boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-        index_t dim = Nodes->numDim;
+        int dim = Nodes->numDim;
 
         // create the adjacency structure xadj and adjncy
 #pragma omp parallel
@@ -94,11 +96,6 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
                     Nodes->globalDegreesOfFreedom);
         }
 
-        // create the local matrix pattern
-        const dim_t globalNumVertices = distribution[mpiSize];
-        paso::Pattern_ptr pattern = paso::Pattern::fromIndexListArray(0,
-                myNumVertices, index_list.get(), 0, globalNumVertices, 0);
-
         // set the coordinates
         real_t* xyz = new real_t[myNumVertices * dim];
 #pragma omp parallel for
@@ -110,6 +107,29 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
             }
         }
 
+        // create the local CSR matrix pattern
+        const dim_t globalNumVertices = distribution[mpiSize];
+        index_t* ptr = new index_t[myNumVertices + 1];
+#pragma omp parallel for
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            ptr[i] = index_list[i].count(0, globalNumVertices);
+        }
+        // accumulate ptr
+        dim_t s = 0;
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            const index_t itmp = ptr[i];
+            ptr[i] = s;
+            s += itmp;
+        }
+        ptr[myNumVertices] = s;
+
+        // create index
+        index_t* index = new index_t[s];
+#pragma omp parallel for
+        for (index_t i = 0; i < myNumVertices; ++i) {
+            index_list[i].toArray(&index[ptr[i]], 0, globalNumVertices, 0);
+        }
+
         index_t wgtflag = 0;
         index_t numflag = 0;
         index_t ncon = 1;
@@ -118,11 +138,13 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         index_t options[3] = { 1, 0, 0 };
         std::vector<real_t> tpwgts(ncon * mpiSize, 1.f / mpiSize);
         std::vector<real_t> ubvec(ncon, 1.05f);
-        ParMETIS_V3_PartGeomKway(&distribution[0], pattern->ptr,
-                pattern->index, NULL, NULL, &wgtflag, &numflag, &dim,
-                xyz, &ncon, &impiSize, &tpwgts[0], &ubvec[0], options,
-                &edgecut, partition, &MPIInfo->comm);
+        ParMETIS_V3_PartGeomKway(&distribution[0], ptr, index, NULL, NULL,
+                                 &wgtflag, &numflag, &dim, xyz, &ncon,
+                                 &impiSize, &tpwgts[0], &ubvec[0], options,
+                                 &edgecut, partition, &MPIInfo->comm);
         delete[] xyz;
+        delete[] index;
+        delete[] ptr;
     } else {
         for (index_t i = 0; i < myNumVertices; ++i)
             partition[i] = 0; // CPU 0 owns all
@@ -134,10 +156,10 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 #endif // ESYS_HAVE_PARMETIS
 
     // create a new distribution and labeling of the DOF
-    std::vector<index_t> new_distribution(mpiSize + 1);
+    IndexVector new_distribution(mpiSize + 1);
 #pragma omp parallel
     {
-        std::vector<index_t> loc_partition_count(mpiSize);
+        IndexVector loc_partition_count(mpiSize);
 #pragma omp for
         for (index_t i = 0; i < myNumVertices; ++i)
             loc_partition_count[partition[i]]++;
@@ -148,7 +170,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         }
     }
 
-    std::vector<index_t> recvbuf(mpiSize * mpiSize);
+    IndexVector recvbuf(mpiSize * mpiSize);
 #ifdef ESYS_MPI
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
