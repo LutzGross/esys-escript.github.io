@@ -68,7 +68,10 @@ public:
     virtual inline void saveMM(const std::string& filename) const
     {
         if (mpi_info->size > 1) {
-            throw PasoException("SystemMatrix::saveMM: Only single rank supported.");
+            //throw PasoException("SystemMatrix::saveMM: Only single rank supported.");
+            SparseMatrix_ptr merged(mergeSystemMatrix());
+            if (mpi_info->rank == 0)
+                merged->saveMM(filename.c_str());
         } else {
             mainBlock->saveMM(filename.c_str());
         }
