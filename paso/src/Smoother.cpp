@@ -115,7 +115,8 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
         }
         while (nsweeps > 0 ) {
             util::copy(n, b_new, b);
-            A->MatrixVector_CSR_OFFSET0(-1., x, 1., b_new); /* b_new = b - A*x */
+            SparseMatrix_MatrixVector_CSR_OFFSET0(-1., A->mainBlock, x, 1., b_new); /* b_new = b - A*x */
+            //A->MatrixVector_CSR_OFFSET0(-1., x, 1., b_new); /* b_new = b - A*x */
             Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);
             util::AXPY(n, x, 1., b_new);
             nsweeps--;
@@ -142,13 +143,14 @@ SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
    }
    while (norm_dx > atol) {
         util::copy(n, b_new, b);
-        A->MatrixVector(-1., x, 1., b_new); /* b_new = b - A*x */
+        SparseMatrix_MatrixVector_CSR_OFFSET0(-1., A->mainBlock, x, 1., b_new); /* b_new = b - A*x */
+        //A->MatrixVector(-1., x, 1., b_new); /* b_new = b - A*x */
         Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);
         norm_dx=util::lsup(n,b_new,A->mpi_info);
         util::AXPY(n, x, 1., b_new);
         if (s >= max_sweeps) {
-              errorCode = MaxIterReached;
-              break;
+            errorCode = MaxIterReached;
+            break;
         }
         s++;
    }
@@ -174,10 +176,10 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
    while (nsweeps > 0 ) {
        util::copy(n, b_new, b);
 
-     SparseMatrix_MatrixVector_CSR_OFFSET0((-1.), A, x, 1., b_new); /* b_new = b - A*x */
-         Preconditioner_LocalSmoother_Sweep(A, smoother, b_new);
-         util::AXPY(n, x, 1., b_new);
-         nsweeps--;
+        SparseMatrix_MatrixVector_CSR_OFFSET0((-1.), A, x, 1., b_new); /* b_new = b - A*x */
+        Preconditioner_LocalSmoother_Sweep(A, smoother, b_new);
+        util::AXPY(n, x, 1., b_new);
+        nsweeps--;
    }
 }
 
