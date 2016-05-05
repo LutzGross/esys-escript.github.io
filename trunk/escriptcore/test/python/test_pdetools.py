@@ -67,7 +67,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
            t+=dt
            tm.checkin(dt,t)
         v_guess=tm.extrapolate(dt)
-        self.assertTrue(abs(v_guess-(tm.getTime()+dt))<self.RES_TOL,"extrapolation is wrong")
+        self.assertLess(abs(v_guess-(tm.getTime()+dt)), self.RES_TOL, "extrapolation is wrong")
 
     def test_TimeIntegrationManager_vector(self):
         t=0.
@@ -78,7 +78,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
            tm.checkin(dt,t,3*t)
         v_guess=tm.extrapolate(dt)
         e=max(abs(v_guess[0]-(tm.getTime()+dt)),abs(v_guess[1]-(tm.getTime()+dt)*3.))
-        self.assertTrue(e<self.RES_TOL,"extrapolation is wrong")
+        self.assertLess(e, self.RES_TOL)
 
     def test_Locator(self):
         x=self.domain.getX()
@@ -106,13 +106,13 @@ class Test_pdetools_noLumping(unittest.TestCase):
         self.assertTrue(Lsup(xx-l(x2))<self.RES_TOL,"location wrong")
         xx=l(x[0]+x[1])
         self.assertTrue(isinstance(xx,float),"wrong scalar type")
-        self.assertTrue(abs(xx-l(x2[0])-l(x2[1]))<self.RES_TOL,"value wrong scalar")
+        self.assertLess(abs(xx-l(x2[0])-l(x2[1])), self.RES_TOL)
 
         l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
         d=Data(0, ContinuousFunction(self.domain))
         l.setValue(d, 7)
         self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
-        self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")        
+        self.assertLess(Lsup(l.getValue(d)-7), self.RES_TOL, "value not set in the correct place")        
 
 
     def test_Locator_withList(self):
@@ -153,43 +153,41 @@ class Test_pdetools_noLumping(unittest.TestCase):
         self.assertTrue(isinstance(xx,list),"list expected (3)")
         for i in range(len(xx)):
            self.assertTrue(isinstance(xx[i],float),"wrong scalar type")
-           self.assertTrue(abs(xx[i]-(l(x2[0])[i]+l(x2[1])[i]))<self.RES_TOL,"value wrong scalar")
+           self.assertLess(abs(xx[i]-(l(x2[0])[i]+l(x2[1])[i])), self.RES_TOL)
            
         l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
         d=Data(0, ContinuousFunction(self.domain))
         l.setValue(d, 7)
         self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
-        self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")
-           
-         
-      
+        self.assertLess(Lsup(l.getValue(d)-7), self.RES_TOL, "value not set in the correct place")
+
     def testProjector_rank0(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=x[0]
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank1(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=x
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank2(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank3(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank4(self):
       x=ContinuousFunction(self.domain).getX()
@@ -197,7 +195,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]], 
 [[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
 
     def testProjector_rank0_reduced(self):
@@ -205,28 +203,28 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=x[0]
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank1_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=x
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank2_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank3_reduced(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank4_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -234,35 +232,35 @@ class Test_pdetools_noLumping(unittest.TestCase):
       td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]], 
 [[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank0_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=x[0]
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank1_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=x
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank2_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank3_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=False,fast=False)
       td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank4_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -270,7 +268,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]], 
 [[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
 
     def testProjector_rank0_reduced_with_reduced_input(self):
@@ -278,28 +276,28 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=1.
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank1_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=numpy.array([1.,2.,3.])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank2_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=numpy.array([[11.,12.],[21,22.]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank3_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
       p=Projector(self.domain,reduce=True,fast=False)
       td_ref=numpy.array([[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
     def testProjector_rank4_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -307,7 +305,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       td_ref=numpy.array([[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]], 
 [[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*self.RES_TOL)
 
 
     def test_NoPDE_scalar_missing_r(self):
@@ -317,7 +315,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=1.,Y=1.,q=msk)
       u=p.getSolution()
       u_ex=(1.-msk)
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_scalar_missing_Y(self):
       p=NoPDE(self.domain)
@@ -326,7 +324,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=1.,q=msk,r=2.)
       u=p.getSolution()
       u_ex=msk*2.
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_scalar_constant(self):
       p=NoPDE(self.domain)
@@ -335,7 +333,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=1.,Y=1.,q=msk,r=2.)
       u=p.getSolution()
       u_ex=(1.-msk)+msk*2.
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_scalar_variable(self):
       p=NoPDE(self.domain)
@@ -344,7 +342,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=10,Y=2*10,q=msk,r=2.)
       u=p.getSolution()
       u_ex=2.
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_vector_missing_Y(self):
       p=NoPDE(self.domain)
@@ -353,7 +351,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=numpy.ones([2]),q=msk,r=2.)
       u=p.getSolution()
       u_ex=msk*2.
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_vector_missing_r(self):
       p=NoPDE(self.domain)
@@ -362,7 +360,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=numpy.ones([2]),Y=numpy.ones([2]),q=msk)
       u=p.getSolution()
       u_ex=(1.-msk)
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_vector_constant(self):
       p=NoPDE(self.domain)
@@ -371,7 +369,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=numpy.ones([2]),Y=numpy.ones([2]),q=msk,r=2.)
       u=p.getSolution()
       u_ex=(1.-msk)+msk*2.
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
 
     def test_NoPDE_vector_variable(self):
       p=NoPDE(self.domain)
@@ -380,7 +378,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       p.setValue(D=x[:2]+1,Y=2*(x[:2]+1),q=msk,r=2.)
       u=p.getSolution()
       u_ex=2.
-      self.assertTrue(Lsup(u_ex-u)<Lsup(u_ex)*self.RES_TOL,"value wrong")
+      self.assertLess(Lsup(u_ex-u), Lsup(u_ex)*self.RES_TOL)
     #=====
     def testPCG(self):
       from numpy import array, dot, zeros, size, float64
@@ -454,8 +452,8 @@ class Test_pdetools_noLumping(unittest.TestCase):
 
       tol=1.e-4
       x,r,a_norm=PCG(b*1.,Ap,x_ref*0.,Ms,dot, atol=0, rtol=tol, iter_max=12)
-      self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
-      self.assertTrue(Lsup(r-(b-dot(A,x)))<=Lsup(b)*EPSILON*100.,"wrong solution")
+      self.assertLess(Lsup(x-x_ref), Lsup(x_ref)*tol*10.)
+      self.assertLess(Lsup(r-(b-dot(A,x))), Lsup(b)*EPSILON*100.)
 
     def testMINRES(self):
       from numpy import array, dot, zeros, size, float64
@@ -529,7 +527,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
 
       tol=1.e-4
       x=MINRES(b*1.,Ap,x_ref*0,Ms,dot, atol=0, rtol=tol, iter_max=12)
-      self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
+      self.assertLess(Lsup(x-x_ref), Lsup(x_ref)*tol*10.)
 
     def testTFQMR(self):
       from numpy import array, dot, zeros, size, float64
@@ -602,7 +600,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       tol=1.e-5
       for i in range(size(b)): b[i]/=A[i,i]
       x=TFQMR(b,Ap,x_ref*0,dot, atol=0, rtol=tol, iter_max=12)
-      self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
+      self.assertLess(Lsup(x-x_ref), Lsup(x_ref)*tol*10.)
 
     def testGMRES(self):
       from numpy import array, dot, zeros, size, float64
@@ -675,7 +673,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       tol=1.e-4
       for i in range(size(b)): b[i]/=A[i,i]
       x=GMRES(b,Ap,x_ref*0,dot,atol=0, rtol=tol, iter_max=12)
-      self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
+      self.assertLess(Lsup(x-x_ref), Lsup(x_ref)*tol*10.)
 
     def testGMRES_P_R(self):
       from numpy import array,  dot, zeros, size, float64
@@ -749,7 +747,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
        
       tol=1.e-4
       x=GMRES(b,Ap,x_ref*0,dot,atol=0, rtol=tol, iter_max=12,P_R=P_Rp)
-      self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
+      self.assertLess(Lsup(x-x_ref), Lsup(x_ref)*tol*10.)
 
     def testNewtonGMRES(self):
       from numpy import array, dot, zeros, size, float64
@@ -826,7 +824,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       tol=1.e-8
       ll=LL()
       x=NewtonGMRES(LL(),ll.x_ref*0., iter_max=100, sub_iter_max=20, atol=0,rtol=tol, verbose=self.VERBOSE)
-      self.assertTrue(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong solution")
+      self.assertLess(Lsup(x-ll.x_ref), Lsup(ll.x_ref)*tol*10.)
 
     def testNewtonGMRES(self):
       from numpy import array,  dot, zeros, size, float64
@@ -903,7 +901,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
       tol=1.e-8
       ll=LL()
       x=NewtonGMRES(LL(),ll.x_ref*0., iter_max=100, sub_iter_max=20, atol=0,rtol=tol, verbose=self.VERBOSE)
-      self.assertTrue(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong solution")
+      self.assertLess(Lsup(x-ll.x_ref), Lsup(ll.x_ref)*tol*10.)
 
     def testHomogeneousSaddlePointProblem_PCG(self):
       from numpy import array,  dot, zeros, size, float64
@@ -1012,8 +1010,8 @@ class Test_pdetools_noLumping(unittest.TestCase):
       ll.setTolerance(tol)
       # ll.setSubToleranceReductionFactor(0.1)
       x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=True, iter_restart=20,max_correction_steps=10)
-      self.assertTrue(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
-      self.assertTrue(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
+      self.assertLess(Lsup(x-ll.x_ref), Lsup(ll.x_ref)*tol*10.)
+      self.assertLess(Lsup(p-ll.p_ref), Lsup(ll.p_ref)*tol*10.)
 
     def testHomogeneousSaddlePointProblem_GMRES(self):
       from numpy import array, prod, dot, zeros, size, float64
@@ -1123,27 +1121,27 @@ class Test_pdetools_noLumping(unittest.TestCase):
       # ll.setSubToleranceReductionFactor(0.1)
       x,p=ll.solve(ll.x_ref*1.20,ll.p_ref*(-2),max_iter=20, verbose=False, usePCG=False, 
 iter_restart=20,max_correction_steps=10)
-      self.assertTrue(Lsup(x-ll.x_ref)<=Lsup(ll.x_ref)*tol*10.,"wrong x solution")
-      self.assertTrue(Lsup(p-ll.p_ref)<=Lsup(ll.p_ref)*tol*10.,"wrong p solution")
+      self.assertLess(Lsup(x-ll.x_ref), Lsup(ll.x_ref)*tol*10.)
+      self.assertLess(Lsup(p-ll.p_ref), Lsup(ll.p_ref)*tol*10.)
 
     def testArithmeticTuple(self):
         a=ArithmeticTuple(1.,2.)
-        self.assertTrue(len(a)==2,"wrong length")
-        self.assertTrue(a[0]==1.,"wrong first item")
-        self.assertTrue(a[1]==2.,"wrong second item")
+        self.assertTrue(len(a)==2, "wrong length")
+        self.assertTrue(a[0]==1., "wrong first item")
+        self.assertTrue(a[1]==2., "wrong second item")
         c=a*6.
-        self.assertTrue(isinstance(c,ArithmeticTuple),"c is not an instance of ArithmeticTuple")
-        self.assertTrue(len(c)==2,"c has wrong length")
-        self.assertTrue(c[0]==6.,"c has wrong first item")
-        self.assertTrue(c[1]==12.,"c has wrong second item")
+        self.assertTrue(isinstance(c,ArithmeticTuple), "c is not an instance of ArithmeticTuple")
+        self.assertTrue(len(c)==2, "c has wrong length")
+        self.assertTrue(c[0]==6., "c has wrong first item")
+        self.assertTrue(c[1]==12., "c has wrong second item")
         b=5.*a
         self.assertTrue(isinstance(b,ArithmeticTuple),"b is not an instance of ArithmeticTuple")
-        self.assertTrue(len(b)==2,"b has wrong length")
-        self.assertTrue(b[0]==5.,"b has wrong first item")
-        self.assertTrue(b[1]==10.,"b has wrong second item")
+        self.assertTrue(len(b)==2, "b has wrong length")
+        self.assertTrue(b[0]==5., "b has wrong first item")
+        self.assertTrue(b[1]==10., "b has wrong second item")
         a+=ArithmeticTuple(3.,4.)
-        self.assertTrue(a[0]==4.,"wrong first item of inplace update")
-        self.assertTrue(a[1]==6.,"wrong second item of inplace update")
+        self.assertTrue(a[0]==4., "wrong first item of inplace update")
+        self.assertTrue(a[1]==6., "wrong second item of inplace update")
 
 
 
@@ -1154,7 +1152,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=x[0]
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank1_fast_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1163,7 +1161,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       td_ref=x
       res=td_ref.interpolate(Function(self.domain))
       td=p(res)
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank2_fast_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1171,7 +1169,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=[[11.,12.],[21,22.]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank3_fast_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1179,7 +1177,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=[[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank4_fast_reduced(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1188,7 +1186,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       td_ref=[[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]], 
 [[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]]*(x[0]+x[1])
       td=p(td_ref.interpolate(Function(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank0_fast_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1196,7 +1194,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=1.
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank1_fast_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1204,7 +1202,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=numpy.array([1.,2.,3.])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank2_fast_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1212,7 +1210,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=numpy.array([[11.,12.],[21,22.]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank3_fast_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1220,7 +1218,7 @@ class Test_pdetools(Test_pdetools_noLumping):
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=numpy.array([[[111.,112.],[121,122.]],[[211.,212.],[221,222.]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
     def testProjector_rank4_fast_reduced_with_reduced_input(self):
       x=ContinuousFunction(self.domain).getX()
@@ -1229,5 +1227,5 @@ class Test_pdetools(Test_pdetools_noLumping):
       td_ref=numpy.array([[[[1111.,1112.],[1121,1122.]],[[1211.,1212.],[1221,1222.]]], 
 [[[2111.,2112.],[2121,2122.]],[[2211.,2212.],[2221,2222.]]]])
       td=p(Data(td_ref,ReducedFunction(self.domain)))
-      self.assertTrue(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
+      self.assertLess(Lsup(td-td_ref), Lsup(td_ref)*h)
 
