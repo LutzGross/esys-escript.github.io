@@ -45,15 +45,24 @@ using escript::DataTypes::IndexVector;
 #define DUDLEY_REDUCED_ELEMENTS 10
 #define DUDLEY_REDUCED_FACE_ELEMENTS 11
 
+//
+// Codes for function space types supported
+enum {
+    DegreesOfFreedom = DUDLEY_DEGREES_OF_FREEDOM,
+    Nodes = DUDLEY_NODES,
+    Elements = DUDLEY_ELEMENTS,
+    ReducedElements = DUDLEY_REDUCED_ELEMENTS,
+    FaceElements = DUDLEY_FACE_ELEMENTS,
+    ReducedFaceElements = DUDLEY_REDUCED_FACE_ELEMENTS,
+    Points = DUDLEY_POINTS
+};
+
 inline bool hasReducedIntegrationOrder(const escript::Data& in)
 {
     const int fs = in.getFunctionSpace().getTypeCode();
-    return (fs == DUDLEY_REDUCED_ELEMENTS || fs == DUDLEY_REDUCED_FACE_ELEMENTS);
+    return (fs == ReducedElements || fs == ReducedFaceElements);
 }
 
-/* status stuff */
-typedef int Dudley_Status_t;
-#define Dudley_increaseStatus(self) ((self)->status)++
 #define DUDLEY_INITIAL_STATUS 0
 
 } // namespace dudley

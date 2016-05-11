@@ -16,10 +16,9 @@
 
 #include <escript/AbstractContinuousDomain.h>
 
-#include "MeshAdapterTestCase.h"
+#include "DudleyDomainTestCase.h"
 
-#include "dudley/CppAdapter/MeshAdapter.h"
-#include "dudley/CppAdapter/MeshAdapterFactory.h"
+#include <dudley/DomainFactory.h>
 
 #include <cppunit/TestCaller.h>
 #include <boost/scoped_ptr.hpp>
@@ -28,18 +27,19 @@ using namespace escript;
 using namespace dudley;
 using namespace CppUnit;
 
-void MeshAdapterTestCase::testAll()
+void DudleyDomainTestCase::testAll()
 {
-    JMPI info=makeInfo(MPI_COMM_WORLD);
-	brick(info);
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+	Domain_ptr dom(brick(info));
+    CPPUNIT_ASSERT(dom->getDim() == 3);
 }
 
-TestSuite* MeshAdapterTestCase::suite()
+TestSuite* DudleyDomainTestCase::suite()
 {
     TestSuite *testSuite = new TestSuite("MeshAdapterTestCase");
 
-    testSuite->addTest(new TestCaller<MeshAdapterTestCase>(
-                "testAll",&MeshAdapterTestCase::testAll));
+    testSuite->addTest(new TestCaller<DudleyDomainTestCase>(
+                "testAll", &DudleyDomainTestCase::testAll));
     return testSuite;
 }
 

@@ -20,8 +20,7 @@
 
 #ifndef VISIT_PLUGIN
 #ifdef USE_DUDLEY
-#include <dudley/CppAdapter/MeshAdapter.h>
-#include <dudley/Mesh.h>
+#include <dudley/DudleyDomain.h>
 #endif
 #ifdef USE_FINLEY
 #include <finley/CppAdapter/MeshAdapter.h>
@@ -113,18 +112,18 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
     }
 #endif
 #ifdef USE_DUDLEY
-    else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
-        const dudley::Mesh* dudleyMesh =
-            dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)->getMesh();
+    else if (dynamic_cast<const dudley::DudleyDomain*>(escriptDomain)) {
+        const dudley::DudleyDomain* dudleyMesh =
+            dynamic_cast<const dudley::DudleyDomain*>(escriptDomain);
 
         nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
         cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
         faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
         contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
 
-        if (nodes->initFromDudley(dudleyMesh->Nodes) &&
-                cells->initFromDudley(dudleyMesh->Elements) &&
-                faces->initFromDudley(dudleyMesh->FaceElements)) {
+        if (nodes->initFromDudley(dudleyMesh->getNodes()) &&
+                cells->initFromDudley(dudleyMesh->getElements()) &&
+                faces->initFromDudley(dudleyMesh->getFaceElements())) {
             initialized = true;
         }
     }
@@ -141,11 +140,11 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 bool FinleyDomain::initFromFile(const string& filename)
 {
     cleanup();
-    
+
 #if ESYS_HAVE_NETCDF
     NcError ncerr(NcError::silent_nonfatal);
     NcFile* input;
- 
+
     input = new NcFile(filename.c_str());
     if (!input->is_valid()) {
         cerr << "Could not open input file " << filename << "." << endl;
@@ -199,7 +198,7 @@ NodeData_ptr FinleyDomain::getMeshForFunctionSpace(int fsCode) const
     ElementData_ptr elements = getElementsForFunctionSpace(fsCode);
     if (elements != NULL)
         result = elements->getNodes();
- 
+
     return result;
 }
 
@@ -308,7 +307,7 @@ StringVec FinleyDomain::getMeshNames() const
 StringVec FinleyDomain::getVarNames() const
 {
     StringVec res;
- 
+
     if (initialized) {
         res = nodes->getVarNames();
         StringVec tmpVec = cells->getVarNames();

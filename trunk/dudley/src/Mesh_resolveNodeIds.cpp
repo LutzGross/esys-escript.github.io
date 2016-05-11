@@ -14,23 +14,23 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 #include "Util.h"
 
 namespace dudley {
 
-void Mesh::resolveNodeIds()
+void DudleyDomain::resolveNodeIds()
 {
     // find the minimum and maximum id used by elements
     index_t min_id = escript::DataTypes::index_t_max();
     index_t max_id = -escript::DataTypes::index_t_max();
-    std::pair<index_t,index_t> range(Elements->getNodeRange());
+    std::pair<index_t,index_t> range(m_elements->getNodeRange());
     max_id = std::max(max_id, range.second);
     min_id = std::min(min_id, range.first);
-    range = FaceElements->getNodeRange();
+    range = m_faceElements->getNodeRange();
     max_id = std::max(max_id, range.second);
     min_id = std::min(min_id, range.first);
-    range = Points->getNodeRange();
+    range = m_points->getNodeRange();
     max_id = std::max(max_id, range.second);
     min_id = std::min(min_id, range.first);
 #ifdef Dudley_TRACE
@@ -39,7 +39,7 @@ void Mesh::resolveNodeIds()
     index_t id_range[2], global_id_range[2];
     id_range[0] = -min_id;
     id_range[1] = max_id;
-    MPI_Allreduce(id_range, global_id_range, 2, MPI_DIM_T, MPI_MAX, MPIInfo->comm);
+    MPI_Allreduce(id_range, global_id_range, 2, MPI_DIM_T, MPI_MAX, m_mpiInfo->comm);
     global_min_id = -global_id_range[0];
     global_max_id = global_id_range[1];
 #else
@@ -86,15 +86,15 @@ void Mesh::resolveNodeIds()
         newLocalToGlobalNodeLabels[n] += min_id;
     }
     // create a new node file
-    NodeFile* newNodeFile = new NodeFile(getDim(), MPIInfo);
+    NodeFile* newNodeFile = new NodeFile(getDim(), m_mpiInfo);
     newNodeFile->allocTable(newNumNodes);
     if (len)
-        newNodeFile->gather_global(&newLocalToGlobalNodeLabels[0], Nodes);
+        newNodeFile->gather_global(&newLocalToGlobalNodeLabels[0], m_nodes);
     else
-        newNodeFile->gather_global(NULL, Nodes);
+        newNodeFile->gather_global(NULL, m_nodes);
 
-    delete Nodes;
-    Nodes = newNodeFile;
+    delete m_nodes;
+    m_nodes = newNodeFile;
     // relabel nodes of the elements
     relabelElementNodes(globalToNewLocalNodeLabels, min_id);
     delete[] globalToNewLocalNodeLabels;

@@ -14,17 +14,51 @@
 *
 *****************************************************************************/
 
-#ifndef __DUDLEY_MESHADAPTER_H__
-#define __DUDLEY_MESHADAPTER_H__
+#ifndef __DUDLEY_DOMAIN_H__
+#define __DUDLEY_DOMAIN_H__
 
-#include "system_dep.h"
+/****************************************************************************
+
+   Dudley: Domain
+
+   A mesh is built from nodes and elements which are describing the
+   domain, the surface and point sources (the latter are needed to
+   establish links with other codes, in particular to particle
+   codes). The nodes are stored in a NodeFile and elements in an
+   ElementFile. A NodeFile and three ElementFiles containing the
+   elements describe the domain, surface and point sources,
+   respectively. Notice that the surface elements do not necessarily
+   cover the entire surface of the domain.
+
+   The element type is either Tri3 or Tet4 depending on dimensionality
+   and also determines the type of surface elements to be used.
+
+   The numbering of the nodes starts with 0.
+
+   Important: it is assumed that every node appears in at least
+   one element or surface element and that any node used in an
+   element, surface element or as a point is specified in the
+   NodeFile, see also resolveNodeIds.
+
+   All nodes and elements are tagged. The tag allows to group nodes and
+   elements. A typical application is to mark surface elements on a
+   certain portion of the domain with the same tag. All these surface
+   elements can then be assigned the same value e.g. for the pressure.
+
+*****************************************************************************/
+
 #include <dudley/Dudley.h>
-#include <dudley/Mesh.h>
+#include <dudley/ElementFile.h>
+#include <dudley/NodeFile.h>
+#include <dudley/Util.h>
 
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/FunctionSpace.h>
 #include <escript/FunctionSpaceFactory.h>
 
+#ifdef ESYS_HAVE_PASO
+#include <paso/SystemMatrixPattern.h>
+#endif
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
@@ -35,6 +69,8 @@
 
 namespace dudley {
 
+typedef std::map<std::string, int> TagMap;
+
 enum SystemMatrixType {
     SMT_PASO = 1<<8,
     SMT_TRILINOS = 1<<10
@@ -42,72 +78,141 @@ enum SystemMatrixType {
 
 /**
    \brief
-   MeshAdapter implements the AbstractContinuousDomain
+   DudleyDomain implements the AbstractContinuousDomain
    interface for the Dudley library.
 
    Description:
-   MeshAdapter implements the AbstractContinuousDomain
+   DudleyDomain implements the AbstractContinuousDomain
    interface for the Dudley library.
 */
-class DUDLEY_DLL_API MeshAdapter : public escript::AbstractContinuousDomain
+class DudleyDomain : public escript::AbstractContinuousDomain
 {
 public:
-    //
-    // Codes for function space types supported
-    static const int DegreesOfFreedom;
-    static const int Nodes;
-    static const int Elements;
-    static const int ReducedElements;
-    static const int FaceElements;
-    static const int ReducedFaceElements;
-    static const int Points;
+    /// loads from a dump file
+    static escript::Domain_ptr load(const std::string& filename);
+
+    static escript::Domain_ptr read(escript::JMPI mpiInfo,
+                                    const std::string& filename, bool optimize);
+
+    static escript::Domain_ptr readGmsh(escript::JMPI mpiInfo,
+                                        const std::string& filename, int numDim,
+                                        bool optimize);
 
     /**
      \brief
-     Constructor for MeshAdapter
+     Creates a 2-dimensional rectangular domain.
 
-     Description:
-     Constructor for MeshAdapter. The pointer passed to MeshAdapter
-     is deleted using a call to Dudley_Mesh_free in the
-     MeshAdapter destructor.
-
-     Throws:
-     May throw an exception derived from EsysException
-
-     \param dudleyMesh Input - A pointer to the externally constructed
-                               dudley mesh.
+     \param NE0 Input - number of elements in first dimension
+     \param NE1 Input - number of elements in second dimension
+     \param l0 Input - length of domain in first dimension (width)
+     \param l1 Input - length of domain in second dimension (height)
+     \param optimize Input - whether to optimize node/DOF labelling
+     \param jmpi Input - Shared pointer to MPI Information to be used
     */
-    MeshAdapter(Mesh* dudleyMesh=NULL);
+    static escript::Domain_ptr create2D(dim_t NE0, dim_t NE1, double l0,
+                                        double l1, bool optimize,
+                                        escript::JMPI jmpi);
+
+    /**
+     \brief
+     Creates a 3-dimensional rectangular domain.
+
+     \param NE0 Input - number of elements in first dimension
+     \param NE1 Input - number of elements in second dimension
+     \param NE2 Input - number of elements in third dimension
+     \param l0 Input - length of domain in first dimension (width)
+     \param l1 Input - length of domain in second dimension (height)
+     \param l2 Input - length of domain in third dimension (depth)
+     \param optimize Input - whether to optimize node/DOF labelling
+     \param jmpi Input - Shared pointer to MPI Information to be used
+    */
+    static escript::Domain_ptr create3D(dim_t NE0, dim_t NE1, dim_t NE2,
+                                        double l0, double l1, double l2,
+                                        bool optimize, escript::JMPI jmpi);
+
+    /**
+     \brief
+     Constructor for DudleyDomain
+
+     \param name Input - A descriptive name for the domain.
+     \param numDim Input - Dimensionality of the domain (2 or 3)
+     \param jmpi Input - Shared pointer to MPI Information to be used
+    */
+    DudleyDomain(const std::string& name, int numDim, escript::JMPI jmpi);
 
     /**
      \brief
      Copy constructor.
     */
-    MeshAdapter(const MeshAdapter& in);
+    DudleyDomain(const DudleyDomain& in);
 
     /**
      \brief
-     Destructor for MeshAdapter.
+     Destructor for DudleyDomain.
     */
-    ~MeshAdapter();
+    ~DudleyDomain();
+
+    void addPoints(int numPoints, const double* points, const int* tags);
+
+    /**
+     \brief
+     returns a pointer to this domain's node file
+    */
+    NodeFile* getNodes() const { return m_nodes; }
+
+    /**
+     \brief
+     replaces the element file by `elements`
+    */
+    void setElements(ElementFile* elements);
+
+    /**
+     \brief
+     returns a pointer to this domain's element file
+    */
+    ElementFile* getElements() const { return m_elements; }
+
+    /**
+     \brief
+     replaces the face element file by `elements`
+    */
+    void setFaceElements(ElementFile* elements);
+
+    /**
+     \brief
+     returns a pointer to this domain's face element file
+    */
+    ElementFile* getFaceElements() const { return m_faceElements; }
+
+    /**
+     \brief
+     replaces the point element file by `elements`
+    */
+    void setPoints(ElementFile* elements);
+
+    /**
+     \brief
+     returns a pointer to this domain's point (nodal) element file
+    */
+    ElementFile* getPoints() const { return m_points; }
 
     /**
      \brief
      returns a reference to the MPI information wrapper for this domain
     */
-    virtual escript::JMPI getMPI() const;
+    virtual escript::JMPI getMPI() const { return m_mpiInfo; }
 
     /**
      \brief
-     return the number of processors used for this domain
+     returns the number of processors used for this domain
     */
-    virtual int getMPISize() const;
+    virtual int getMPISize() const { return m_mpiInfo->size; }
 
     /**
      \brief
-     return the number MPI rank of this processor
+     returns the number MPI rank of this processor
     */
-    virtual int getMPIRank() const;
+    virtual int getMPIRank() const { return m_mpiInfo->rank; }
 
     /**
      \brief
@@ -117,22 +222,23 @@ public:
 
     /**
      \brief
-     Return true if on MPI processor 0, else false
+     returns true if on MPI processor 0, else false
     */
-    virtual bool onMasterProcessor() const;
+    virtual bool onMasterProcessor() const { return getMPIRank() == 0; }
 
-    MPI_Comm getMPIComm() const;
+    MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
 
     /**
      \brief
-     Write the current mesh to a file with the given name.
+     writes the current mesh to a file with the given name in the Dudley file
+     format.
      \param fileName Input - The name of the file to write to.
     */
     void write(const std::string& fileName) const;
 
     /**
      \brief
-     \param full
+     \param full Input - whether to include coordinate values and id's
     */
     void Print_Mesh_Info(bool full=false) const;
 
@@ -142,12 +248,6 @@ public:
      \param fileName Input - The name of the file
     */
     void dump(const std::string& fileName) const;
-
-    /**
-     \brief
-     return the pointer to the underlying dudley mesh class
-    */
-    Mesh* getMesh() const;
 
     /**
      \brief
@@ -343,9 +443,11 @@ public:
      \brief
      interpolates data given on source onto target where source and target have to be given on the same domain.
     */
-    virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
+    virtual void interpolateOnDomain(escript::Data& target,
+                                     const escript::Data& source) const;
 
-    virtual bool probeInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
+    virtual bool probeInterpolationOnDomain(int functionSpaceType_source,
+                                           int functionSpaceType_target) const;
 
     virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source, int functionSpaceType_target) const;
 
@@ -545,13 +647,77 @@ public:
     */
     virtual int getApproximationOrder(int functionSpaceCode) const;
 
-    bool supportsContactElements() const;
+    virtual bool supportsContactElements() const { return false; }
 
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
                                 const escript::FunctionSpace& what, long seed,
                                 const boost::python::tuple& filter) const;
 
+    void createMappings(const std::vector<index_t>& dofDistribution,
+                        const std::vector<index_t>& nodeDistribution);
+
+    /// assigns new node reference numbers to all element files.
+    /// If k is the old node, the new node is newNode[k-offset].
+    void relabelElementNodes(const index_t* newNode, index_t offset);
+
+#ifdef ESYS_HAVE_PASO
+    /// returns a reference to the paso matrix pattern
+    paso::SystemMatrixPattern_ptr getPasoPattern() const;
+#endif
+
+#ifdef ESYS_HAVE_TRILINOS
+    /// creates and returns a Trilinos CRS graph suitable to build a sparse
+    /// matrix
+    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;
+#endif
+
 private:
+    void prepare(bool optimize);
+
+    /// Initially the element nodes refer to the numbering defined by the
+    /// global id assigned to the nodes in the NodeFile. It is also not ensured
+    /// that all nodes referred by an element are actually available on the
+    /// process. At the output, a local node labeling is used and all nodes are
+    /// available. In particular the numbering of the element nodes is between
+    /// 0 and Nodes->numNodes.
+    /// The function does not create a distribution of the degrees of freedom.
+    void resolveNodeIds();
+
+#ifdef ESYS_HAVE_PASO
+    paso::SystemMatrixPattern_ptr makePasoPattern() const;
+#endif
+    void createColoring(const index_t* dofMap);
+    void distributeByRankOfDOF(const IndexVector& distribution);
+    void markNodes(std::vector<short>& mask, index_t offset) const;
+    void optimizeDOFDistribution(IndexVector& distribution);
+    void optimizeDOFLabeling(const IndexVector& distribution);
+    void optimizeElementOrdering();
+    void updateTagList();
+    void printElementInfo(const ElementFile* e, const std::string& title,
+                          const std::string& defaultType, bool full) const;
+
+    void writeElementInfo(std::ostream& stream, const ElementFile* e,
+                          const std::string& defaultType) const;
+
+    /// MPI information
+    escript::JMPI m_mpiInfo;
+    /// domain description
+    std::string m_name;
+    /// the table of the nodes
+    NodeFile* m_nodes;
+    /// the table of the elements
+    ElementFile* m_elements;
+    /// the table of the face elements
+    ElementFile* m_faceElements;
+    /// the table of points (treated as elements of dimension 0)
+    ElementFile* m_points;
+    /// the tag map mapping names to tag keys
+    TagMap m_tagMap;
+#ifdef ESYS_HAVE_PASO
+    // pointer to the sparse matrix pattern
+    mutable paso::SystemMatrixPattern_ptr pasoPattern;
+#endif
+
 #ifdef ESYS_HAVE_TRILINOS
     /// Trilinos graph structure, cached for efficiency
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
@@ -559,14 +725,10 @@ private:
     esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
 
-    //
-    // pointer to the externally created dudley mesh
-    boost::shared_ptr<Mesh> m_dudleyMesh;
-
     static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 };
 
 } // end of namespace
 
-#endif // __DUDLEY_MESHADAPTER_H__
+#endif // __DUDLEY_DOMAIN_H__
 

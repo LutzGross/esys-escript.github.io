@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 
 #include <escript/index.h>
 
@@ -25,8 +25,9 @@ namespace dudley {
 #define MAX_numNodes_gmsh 20
 
 /// reads a mesh from a gmsh file of name filename
-Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
-                     int numDim, bool optimize)
+escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
+                                           const std::string& filename,
+                                           int numDim, bool optimize)
 {
     double version = 1.0;
     int format = 0, size = sizeof(double);
@@ -41,8 +42,8 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
     if (mpiInfo->size > 1)
         throw DudleyException("reading gmsh with MPI is not supported yet.");
 
-    // allocate mesh
-    Mesh* mesh = new Mesh(filename, numDim, mpiInfo);
+    // allocate domain
+    DudleyDomain* domain = new DudleyDomain(filename, numDim, mpiInfo);
 
     // open file
     std::ifstream fileHandle(filename);
@@ -78,20 +79,21 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
             if (fileHandle.eof())
                 throw IOError("readGmsh: early EOF while reading file");
             numNodes = std::stol(line);
-            mesh->Nodes->allocTable(numNodes);
+            NodeFile* nodes = domain->getNodes();
+            nodes->allocTable(numNodes);
             for (index_t i0 = 0; i0 < numNodes; i0++) {
                 std::getline(fileHandle, line);
                 if (!fileHandle.good())
                     throw IOError("readGmsh: early EOF while reading file");
                 std::stringstream ss(line);
-                ss >> mesh->Nodes->Id[i0]
-                   >> mesh->Nodes->Coordinates[INDEX2(0, i0, numDim)];
+                ss >> nodes->Id[i0]
+                   >> nodes->Coordinates[INDEX2(0, i0, numDim)];
                 if (numDim > 1)
-                    ss >> mesh->Nodes->Coordinates[INDEX2(1, i0, numDim)];
+                    ss >> nodes->Coordinates[INDEX2(1, i0, numDim)];
                 if (numDim > 2)
-                    ss >> mesh->Nodes->Coordinates[INDEX2(2, i0, numDim)];
-                mesh->Nodes->globalDegreesOfFreedom[i0] = mesh->Nodes->Id[i0];
-                mesh->Nodes->Tag[i0] = 0;
+                    ss >> nodes->Coordinates[INDEX2(2, i0, numDim)];
+                nodes->globalDegreesOfFreedom[i0] = nodes->Id[i0];
+                nodes->Tag[i0] = 0;
             }
         } else if (line.substr(1,3) == "ELM" || line.substr(1,8) == "Elements") {
             // elements
@@ -212,41 +214,43 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
                     final_face_element_type = Dudley_Tri3;
                 }
             }
-            mesh->Elements = new ElementFile(final_element_type, mpiInfo);
-            mesh->FaceElements = new ElementFile(final_face_element_type, mpiInfo);
-            mesh->Points = new ElementFile(Dudley_Point1, mpiInfo);
-            mesh->Elements->allocTable(numElements);
-            mesh->FaceElements->allocTable(numFaceElements);
-            mesh->Points->allocTable(0);
-            mesh->Elements->minColor = 0;
-            mesh->Elements->maxColor = numElements - 1;
-            mesh->FaceElements->minColor = 0;
-            mesh->FaceElements->maxColor = numFaceElements - 1;
-            mesh->Points->minColor = 0;
-            mesh->Points->maxColor = 0;
+            ElementFile* elements = new ElementFile(final_element_type, mpiInfo);
+            domain->setElements(elements);
+            ElementFile* faces = new ElementFile(final_face_element_type, mpiInfo);
+            domain->setFaceElements(faces);
+            ElementFile* points = new ElementFile(Dudley_Point1, mpiInfo);
+            domain->setPoints(points);
+            elements->allocTable(numElements);
+            faces->allocTable(numFaceElements);
+            points->allocTable(0);
+            elements->minColor = 0;
+            elements->maxColor = numElements - 1;
+            faces->minColor = 0;
+            faces->maxColor = numFaceElements - 1;
+            points->minColor = 0;
+            points->maxColor = 0;
             numElements = 0;
             numFaceElements = 0;
             for (index_t e = 0; e < totalNumElements; e++) {
                 if (element_type[e] == final_element_type) {
-                    mesh->Elements->Id[numElements] = id[e];
-                    mesh->Elements->Tag[numElements] = tag[e];
-                    mesh->Elements->Color[numElements] = numElements;
-                    mesh->Elements->Owner[numElements] = 0;
-                    for (int j = 0; j < mesh->Elements->numNodes; ++j) {
-                        mesh->Elements->Nodes[INDEX2(j, numElements,
-                                                 mesh->Elements->numNodes)] =
+                    elements->Id[numElements] = id[e];
+                    elements->Tag[numElements] = tag[e];
+                    elements->Color[numElements] = numElements;
+                    elements->Owner[numElements] = 0;
+                    for (int j = 0; j < elements->numNodes; ++j) {
+                        elements->Nodes[INDEX2(j, numElements,
+                                                 elements->numNodes)] =
                             vertices[INDEX2(j, e, MAX_numNodes_gmsh)];
                     }
                     numElements++;
                 } else if (element_type[e] == final_face_element_type) {
-                    mesh->FaceElements->Id[numFaceElements] = id[e];
-                    mesh->FaceElements->Tag[numFaceElements] = tag[e];
-                    mesh->FaceElements->Color[numFaceElements] = numFaceElements;
-                    mesh->FaceElements->Owner[numFaceElements] = 0;
-                    for (int j = 0; j < mesh->FaceElements->numNodes; ++j)
-                    {
-                        mesh->FaceElements->Nodes[INDEX2(j, numFaceElements,
-                                              mesh->FaceElements->numNodes)] =
+                    faces->Id[numFaceElements] = id[e];
+                    faces->Tag[numFaceElements] = tag[e];
+                    faces->Color[numFaceElements] = numFaceElements;
+                    faces->Owner[numFaceElements] = 0;
+                    for (int j = 0; j < faces->numNodes; ++j) {
+                        faces->Nodes[INDEX2(j, numFaceElements,
+                                              faces->numNodes)] =
                             vertices[INDEX2(j, e, MAX_numNodes_gmsh)];
                     }
                     numFaceElements++;
@@ -277,7 +281,7 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
                 if (name.length() < 3)
                     throw IOError("readGmsh: illegal tagname (\" missing?)");
                 name = name.substr(1, name.length()-2);
-                mesh->addTagMap(name, tag_key);
+                domain->setTagMap(name, tag_key);
             }
         }
         // search for end of data block
@@ -292,9 +296,9 @@ Mesh* Mesh::readGmsh(escript::JMPI mpiInfo, const std::string& filename,
     }
 
     fileHandle.close();
-    mesh->resolveNodeIds();
-    mesh->prepare(optimize);
-    return mesh;
+    domain->resolveNodeIds();
+    domain->prepare(optimize);
+    return domain->getPtr();
 }
 
 } // namespace dudley

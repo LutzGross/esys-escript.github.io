@@ -36,18 +36,18 @@ sources = """
     Assemble_getSize.cpp
     Assemble_integrate.cpp
     Assemble_interpolate.cpp
+    DomainFactory.cpp
+    DudleyDomain.cpp
     ElementFile.cpp
     ElementFile_createColoring.cpp
     ElementFile_distributeByRankOfDOF.cpp
     ElementFile_jacobians.cpp
     IndexList.cpp
-    Mesh.cpp
     Mesh_createTrilinosGraph.cpp
     Mesh_distributeByRankOfDOF.cpp
     Mesh_getPattern.cpp
     Mesh_optimizeDOFDistribution.cpp
     Mesh_optimizeDOFLabeling.cpp
-    Mesh_prepare.cpp
     Mesh_read.cpp
     Mesh_readGmsh.cpp
     Mesh_resolveNodeIds.cpp
@@ -60,8 +60,6 @@ sources = """
     NodeFile_gather.cpp
     ShapeTable.cpp
     Util.cpp
-    CPPAdapter/MeshAdapter.cpp
-    CPPAdapter/MeshAdapterFactory.cpp
 """.split()
 unroll_sources= """
     Assemble_gradient.cpp
@@ -70,23 +68,18 @@ unroll_sources= """
 
 headers = """
     Assemble.h
+    DomainFactory.h
     Dudley.h
+    DudleyDomain.h
     DudleyException.h
     DudleyVersion.h
     ElementFile.h
     ElementType.h
     IndexList.h
-    Mesh.h
     NodeFile.h
     NodeMapping.h
-    TriangularMesh.h
     ShapeTable.h
     Util.h
-""".split()
-cppadapter_headers = """
-    CPPAdapter/MeshAdapter.h
-    CPPAdapter/MeshAdapterFactory.h
-    CPPAdapter/system_dep.h
 """.split()
 
 local_env = env.Clone()
@@ -113,9 +106,7 @@ local_env.PrependUnique(LIBS = dudleylibs)
 env['dudley_libs'] = [module_name] + dudleylibs
 
 include_path = Dir(module_name, local_env['incinstall'])
-cppadapter_include_path = Dir('CppAdapter', include_path)
 hdr_inst = local_env.Install(include_path, headers)
-hdr_inst += local_env.Install(cppadapter_include_path, cppadapter_headers)
 
 lib = local_env.SharedLibrary(module_name, sources+un)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
@@ -124,7 +115,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 py_env = env.Clone()
 py_env.PrependUnique(LIBS = env['dudley_libs'])
 py_lib_name = module_name + 'cpp'
-py_lib = py_env.PythonModule(py_lib_name, 'CPPAdapter/dudleycpp.cpp')
+py_lib = py_env.PythonModule(py_lib_name, 'dudleycpp.cpp')
 
 mod_path = Dir(module_name, local_env['pyinstall'])
 mod_inst = py_env.Install(mod_path, py_lib)

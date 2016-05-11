@@ -18,7 +18,6 @@
 
 #ifndef VISIT_PLUGIN
 #ifdef USE_DUDLEY
-#include <dudley/Mesh.h>
 #include <dudley/NodeFile.h>
 #endif
 #ifdef USE_FINLEY

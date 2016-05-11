@@ -16,7 +16,7 @@
 
 #ifdef ESYS_HAVE_TRILINOS
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 #include "IndexList.h"
 
 #include <boost/scoped_array.hpp>
@@ -25,14 +25,14 @@ using namespace esys_trilinos;
 
 namespace dudley {
 
-esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
+esys_trilinos::const_TrilinosGraph_ptr DudleyDomain::createTrilinosGraph() const
 {
-    const index_t* gNI = Nodes->borrowGlobalNodesIndex();
-    const index_t* dofMap = Nodes->borrowDegreesOfFreedomTarget();
+    const index_t* gNI = m_nodes->borrowGlobalNodesIndex();
+    const index_t* dofMap = m_nodes->borrowDegreesOfFreedomTarget();
 
-    const index_t myNumTargets = Nodes->getNumDegreesOfFreedom();
-    const index_t numTargets = Nodes->getNumDegreesOfFreedomTargets();
-    const index_t* target = Nodes->borrowTargetDegreesOfFreedom();
+    const index_t myNumTargets = m_nodes->getNumDegreesOfFreedom();
+    const index_t numTargets = m_nodes->getNumDegreesOfFreedomTargets();
+    const index_t* target = m_nodes->borrowTargetDegreesOfFreedom();
     boost::scoped_array<IndexList> index_list(new IndexList[numTargets]);
     std::vector<index_t> myRows(myNumTargets);
     std::vector<index_t> columns(numTargets);
@@ -40,9 +40,9 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns in indexlist:
-        IndexList_insertElements(index_list.get(), Elements, target);
-        IndexList_insertElements(index_list.get(), FaceElements, target);
-        IndexList_insertElements(index_list.get(), Points, target);
+        IndexList_insertElements(index_list.get(), m_elements, target);
+        IndexList_insertElements(index_list.get(), m_faceElements, target);
+        IndexList_insertElements(index_list.get(), m_points, target);
 
 #pragma omp for nowait
         for (size_t i=0; i<myRows.size(); i++) {
@@ -67,11 +67,11 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
         std::sort(&colInd[rowPtr[i]], &colInd[rowPtr[i+1]]);
     }
 
-    TrilinosMap_ptr rowMap(new MapType(Nodes->getGlobalNumNodes(), myRows,
-                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
+    TrilinosMap_ptr rowMap(new MapType(m_nodes->getGlobalNumNodes(), myRows,
+                0, TeuchosCommFromEsysComm(getMPIComm())));
 
-    TrilinosMap_ptr colMap(new MapType(Nodes->getGlobalNumNodes(), columns,
-                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
+    TrilinosMap_ptr colMap(new MapType(m_nodes->getGlobalNumNodes(), columns,
+                0, TeuchosCommFromEsysComm(getMPIComm())));
 
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();

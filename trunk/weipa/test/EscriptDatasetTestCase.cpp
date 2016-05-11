@@ -22,7 +22,7 @@
 #include <escript/FunctionSpaceFactory.h>
 
 #if USE_DUDLEY
-#include <dudley/CppAdapter/MeshAdapterFactory.h>
+#include <dudley/DomainFactory.h>
 #endif
 #if USE_FINLEY
 #include <finley/CppAdapter/MeshAdapterFactory.h>

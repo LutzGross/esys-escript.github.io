@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 #include "IndexList.h"
 
 #include <boost/scoped_array.hpp>
@@ -22,7 +22,7 @@
 namespace dudley {
 
 #ifdef ESYS_HAVE_PASO
-paso::SystemMatrixPattern_ptr Mesh::getPasoPattern()
+paso::SystemMatrixPattern_ptr DudleyDomain::getPasoPattern() const
 {
     // make sure that the pattern is available
     if (!pasoPattern)
@@ -31,19 +31,19 @@ paso::SystemMatrixPattern_ptr Mesh::getPasoPattern()
     return pasoPattern;
 }
 
-paso::SystemMatrixPattern_ptr Mesh::makePasoPattern() const
+paso::SystemMatrixPattern_ptr DudleyDomain::makePasoPattern() const
 {
-    const dim_t myNumTargets = Nodes->getNumDegreesOfFreedom();
-    const dim_t numTargets = Nodes->getNumDegreesOfFreedomTargets();
-    const index_t* target = Nodes->borrowTargetDegreesOfFreedom();
+    const dim_t myNumTargets = m_nodes->getNumDegreesOfFreedom();
+    const dim_t numTargets = m_nodes->getNumDegreesOfFreedomTargets();
+    const index_t* target = m_nodes->borrowTargetDegreesOfFreedom();
     boost::scoped_array<IndexList> index_list(new IndexList[numTargets]);
 
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns in indexlist
-        IndexList_insertElements(index_list.get(), Elements, target);
-        IndexList_insertElements(index_list.get(), FaceElements, target);
-        IndexList_insertElements(index_list.get(), Points, target);
+        IndexList_insertElements(index_list.get(), m_elements, target);
+        IndexList_insertElements(index_list.get(), m_faceElements, target);
+        IndexList_insertElements(index_list.get(), m_points, target);
     }
 
     // create pattern
@@ -55,10 +55,10 @@ paso::SystemMatrixPattern_ptr Mesh::makePasoPattern() const
     paso::Pattern_ptr rowCouplePattern(paso::Pattern::fromIndexListArray(
               myNumTargets, numTargets, index_list.get(), 0, myNumTargets, 0));
 
-    paso::Connector_ptr connector(Nodes->degreesOfFreedomConnector);
+    paso::Connector_ptr connector(m_nodes->degreesOfFreedomConnector);
     paso::SystemMatrixPattern_ptr out(new paso::SystemMatrixPattern(
-                MATRIX_FORMAT_DEFAULT, Nodes->dofDistribution,
-                Nodes->dofDistribution, mainPattern, colCouplePattern,
+                MATRIX_FORMAT_DEFAULT, m_nodes->dofDistribution,
+                m_nodes->dofDistribution, mainPattern, colCouplePattern,
                 rowCouplePattern, connector, connector));
     return out;
 }

@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 #include "IndexList.h"
 
 #include <escript/index.h>
@@ -31,10 +31,10 @@ typedef float real_t;
 namespace dudley {
 
 #ifdef ESYS_HAVE_PARMETIS
-// Checks whether there is any rank which has no vertex. In case 
+// Checks whether there is any rank which has no vertex. In case
 // such a rank exists, we don't use parmetis since parmetis requires
 // that every rank has at least 1 vertex (at line 129 of file
-// "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
+// "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if
 // any rank has no vertex).
 static bool allRanksHaveNodes(escript::JMPI mpiInfo,
                               const IndexVector& distribution)
@@ -60,14 +60,14 @@ static bool allRanksHaveNodes(escript::JMPI mpiInfo,
 /// optimizes the distribution of DOFs across processors using ParMETIS.
 /// On return a new distribution is given and the globalDOF are relabeled
 /// accordingly but the mesh has not been redistributed yet
-void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
+void DudleyDomain::optimizeDOFDistribution(std::vector<index_t>& distribution)
 {
-    int mpiSize = MPIInfo->size;
-    const int myRank = MPIInfo->rank;
+    int mpiSize = m_mpiInfo->size;
+    const int myRank = m_mpiInfo->rank;
     const index_t myFirstVertex = distribution[myRank];
     const index_t myLastVertex = distribution[myRank + 1];
     const dim_t myNumVertices = myLastVertex - myFirstVertex;
-    const dim_t numNodes = Nodes->getNumNodes();
+    const dim_t numNodes = m_nodes->getNumNodes();
 
     // first step is to distribute the elements according to a global X of DOF
     dim_t len = 0;
@@ -77,33 +77,33 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
     index_t* partition = new index_t[len];
 
 #ifdef ESYS_HAVE_PARMETIS
-    if (mpiSize > 1 && allRanksHaveNodes(MPIInfo, distribution)) {
+    if (mpiSize > 1 && allRanksHaveNodes(m_mpiInfo, distribution)) {
         boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
-        int dim = Nodes->numDim;
+        int dim = m_nodes->numDim;
 
         // create the adjacency structure xadj and adjncy
 #pragma omp parallel
         {
             // insert contributions from element matrices into columns index
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, Elements,
-                    Nodes->globalDegreesOfFreedom);
+                    myFirstVertex, myLastVertex, m_elements,
+                    m_nodes->globalDegreesOfFreedom);
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, FaceElements,
-                    Nodes->globalDegreesOfFreedom);
+                    myFirstVertex, myLastVertex, m_faceElements,
+                    m_nodes->globalDegreesOfFreedom);
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, Points,
-                    Nodes->globalDegreesOfFreedom);
+                    myFirstVertex, myLastVertex, m_points,
+                    m_nodes->globalDegreesOfFreedom);
         }
 
         // set the coordinates
         real_t* xyz = new real_t[myNumVertices * dim];
 #pragma omp parallel for
         for (index_t i = 0; i < numNodes; ++i) {
-            const index_t k = Nodes->globalDegreesOfFreedom[i] - myFirstVertex;
+            const index_t k = m_nodes->globalDegreesOfFreedom[i] - myFirstVertex;
             if (k >= 0 && k < myNumVertices) {
                 for (int j = 0; j < dim; ++j)
-                    xyz[k * dim + j] = (real_t)(Nodes->Coordinates[INDEX2(j, i, dim)]);
+                    xyz[k * dim + j] = (real_t)(m_nodes->Coordinates[INDEX2(j, i, dim)]);
             }
         }
 
@@ -141,7 +141,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         ParMETIS_V3_PartGeomKway(&distribution[0], ptr, index, NULL, NULL,
                                  &wgtflag, &numflag, &dim, xyz, &ncon,
                                  &impiSize, &tpwgts[0], &ubvec[0], options,
-                                 &edgecut, partition, &MPIInfo->comm);
+                                 &edgecut, partition, &m_mpiInfo->comm);
         delete[] xyz;
         delete[] index;
         delete[] ptr;
@@ -175,7 +175,7 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
     // recvbuf will be the concatenation of each CPU's contribution to
     // new_distribution
     MPI_Allgather(&new_distribution[0], mpiSize, MPI_DIM_T, &recvbuf[0],
-                  mpiSize, MPI_DIM_T, MPIInfo->comm);
+                  mpiSize, MPI_DIM_T, m_mpiInfo->comm);
 #else
     for (int i = 0; i < mpiSize; ++i)
         recvbuf[i] = new_distribution[i];
@@ -199,8 +199,8 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 
     // now the overlap needs to be created by sending the partition around
 #ifdef ESYS_MPI
-    int dest = MPIInfo->mod_rank(myRank + 1);
-    int source = MPIInfo->mod_rank(myRank - 1);
+    int dest = m_mpiInfo->mod_rank(myRank + 1);
+    int source = m_mpiInfo->mod_rank(myRank - 1);
 #endif
     int current_rank = myRank;
     bool* setNewDOFId = new bool[numNodes];
@@ -213,9 +213,9 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
         const index_t lastVertex = distribution[current_rank + 1];
 #pragma omp parallel for
         for (index_t i = 0; i < numNodes; ++i) {
-            const index_t k = Nodes->globalDegreesOfFreedom[i];
+            const index_t k = m_nodes->globalDegreesOfFreedom[i];
             if (setNewDOFId[i] && firstVertex <= k && k < lastVertex) {
-                Nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
+                m_nodes->globalDegreesOfFreedom[i] = newGlobalDOFID[k - firstVertex];
                 setNewDOFId[i] = false;
             }
         }
@@ -224,12 +224,12 @@ void Mesh::optimizeDOFDistribution(std::vector<index_t>& distribution)
 #ifdef ESYS_MPI
             MPI_Status status;
             MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_DIM_T,
-                                 dest, MPIInfo->counter(),
-                                 source, MPIInfo->counter(),
-                                 MPIInfo->comm, &status);
-            MPIInfo->incCounter();
+                                 dest, m_mpiInfo->counter(),
+                                 source, m_mpiInfo->counter(),
+                                 m_mpiInfo->comm, &status);
+            m_mpiInfo->incCounter();
 #endif
-            current_rank = MPIInfo->mod_rank(current_rank - 1);
+            current_rank = m_mpiInfo->mod_rank(current_rank - 1);
         }
     }
     for (int i = 0; i < mpiSize + 1; ++i)
