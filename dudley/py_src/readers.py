@@ -38,7 +38,8 @@ __author__="Lutz Gross, l.gross@uq.edu.au, Joel Fenwick"
 from esys.pycad.gmsh import Design as GMSHDesign
 from .dudleycpp import ReadGmsh
 
-def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
+def MakeDomain(design, integrationOrder=-1, reducedIntegrationOrder=-1,
+               optimizeLabeling=True, useMacroElements=False):
     """
     Creates a Dudley `Domain` from a `esys.pycad.design.Design` object.
     Currently only gmsh is supported.
@@ -52,9 +53,9 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :type reducedIntegrationOrder: ``int``
     :param optimizeLabeling: if set the labeling of the mesh nodes is optimized
     :type optimizeLabeling: ``bool``
-    :param useMacroElements: uses macro elements.
+    :param useMacroElements: for compatibility with finley. Must be False
     :type useMacroElements: ``bool``
-    :return: the Finley domain defined by the design
+    :return: the Dudley domain defined by the design
     :rtype: `Domain`
     """
     if useMacroElements:

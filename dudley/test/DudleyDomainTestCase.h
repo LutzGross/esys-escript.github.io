@@ -15,13 +15,13 @@
 *****************************************************************************/
 
 
-#if !defined MeshAdapterTestCase_20040705_H
-#define MeshAdapterTestCase_20040705_H
+#ifndef __DUDLEY_DOMAIN_TESTCASE_H__
+#define __DUDLEY_DOMAIN_TESTCASE_H__
 
 #include <cppunit/TestFixture.h>
 #include <cppunit/TestSuite.h>
 
-class MeshAdapterTestCase : public CppUnit::TestFixture
+class DudleyDomainTestCase : public CppUnit::TestFixture
 {
 public:
   void testAll();
@@ -29,5 +29,5 @@ public:
   static CppUnit::TestSuite* suite();
 };
 
-#endif
+#endif // __DUDLEY_DOMAIN_TESTCASE_H__
 

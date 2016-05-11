@@ -16,7 +16,7 @@
 
 #include <escript/EsysMPI.h>
 
-#include "MeshAdapterTestCase.h"
+#include "DudleyDomainTestCase.h"
 
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
@@ -38,9 +38,9 @@ int main(int argc, char* argv[])
     TestResultCollector result;
     controller.addListener(&result);
     TestRunner runner;
-    runner.addTest(MeshAdapterTestCase::suite());
+    runner.addTest(DudleyDomainTestCase::suite());
     runner.run(controller);
-    CompilerOutputter outputter( &result, std::cerr );
+    CompilerOutputter outputter(&result, std::cerr);
     outputter.write();
 #ifdef ESYS_MPI
     MPI_Finalize();

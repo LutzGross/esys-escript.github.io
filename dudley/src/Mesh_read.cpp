@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 
 #include <escript/index.h>
 
@@ -124,7 +124,7 @@ ElementFile* readElementFile(std::ifstream& fileHandle, escript::JMPI mpiInfo)
 
     out->allocTable(chunkEle);
 
-    // Copy Element data from tempInts to mesh
+    // Copy Element data from tempInts to element file
     out->minColor = 0;
     out->maxColor = chunkEle - 1;
 #pragma omp parallel for
@@ -146,8 +146,9 @@ ElementFile* readElementFile(std::ifstream& fileHandle, escript::JMPI mpiInfo)
 
 namespace dudley {
 
-Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
-                 bool optimize)
+escript::Domain_ptr DudleyDomain::read(escript::JMPI mpiInfo,
+                                       const std::string& filename,
+                                       bool optimize)
 {
     dim_t numNodes = 0;
     int numDim = 0;
@@ -199,8 +200,8 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
     }
 #endif
 
-    // allocate mesh
-    Mesh* mesh = new Mesh(name, numDim, mpiInfo);
+    // allocate domain
+    DudleyDomain* domain = new DudleyDomain(name, numDim, mpiInfo);
 
     // Each CPU will get at most chunkSize nodes so the message has to be
     // sufficiently large
@@ -214,7 +215,7 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
     double* tempCoords = new double[chunkSize * numDim];
 
     // Read chunkSize nodes, send it in a chunk to worker CPU which copies
-    // chunk into its local mesh.  It doesn't matter that a CPU has the wrong
+    // chunk into its local domain.  It doesn't matter that a CPU has the wrong
     // nodes for its elements, this is sorted out later. First chunk sent to
     // CPU 1, second to CPU 2, ..., last chunk stays on CPU 0 (the master).
     // The three columns of integers (Id, gDOF, Tag) are gathered into a single
@@ -249,7 +250,7 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
                 chunkNodes++; // How many nodes do we actually have in this chunk? It may be smaller than chunkSize.
             }
             if (chunkNodes > chunkSize) {
-                throw DudleyException("Mesh::read: error reading chunks of mesh, data too large for message size");
+                throw DudleyException("Mesh::read: error reading chunks of domain, data too large for message size");
             }
 #ifdef ESYS_MPI
             // Eventually we'll send chunkSize nodes to each CPU numbered
@@ -279,29 +280,30 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
 #endif
     } // Worker
 
-    // Copy node data from tempMem to mesh
-    mesh->Nodes->allocTable(chunkNodes);
+    // Copy node data from tempMem to domain
+    NodeFile* nodes = domain->getNodes();
+    nodes->allocTable(chunkNodes);
 
 #pragma omp parallel for
     for (index_t i0 = 0; i0 < chunkNodes; i0++) {
-        mesh->Nodes->Id[i0] = tempInts[0 + i0];
-        mesh->Nodes->globalDegreesOfFreedom[i0] = tempInts[chunkSize + i0];
-        mesh->Nodes->Tag[i0] = tempInts[chunkSize * 2 + i0];
+        nodes->Id[i0] = tempInts[0 + i0];
+        nodes->globalDegreesOfFreedom[i0] = tempInts[chunkSize + i0];
+        nodes->Tag[i0] = tempInts[chunkSize * 2 + i0];
         for (int i1 = 0; i1 < numDim; i1++) {
-            mesh->Nodes->Coordinates[INDEX2(i1, i0, numDim)] = tempCoords[i0 * numDim + i1];
+            nodes->Coordinates[INDEX2(i1, i0, numDim)] = tempCoords[i0 * numDim + i1];
         }
     }
     delete[] tempInts;
     delete[] tempCoords;
 
     /*************************** read elements ******************************/
-    mesh->Elements = readElementFile(fileHandle, mpiInfo);
+    domain->setElements(readElementFile(fileHandle, mpiInfo));
 
     /************************ read face elements ****************************/
-    mesh->FaceElements = readElementFile(fileHandle, mpiInfo);
+    domain->setFaceElements(readElementFile(fileHandle, mpiInfo));
 
     /************************ read nodal elements ***************************/
-    mesh->Points = readElementFile(fileHandle, mpiInfo);
+    domain->setPoints(readElementFile(fileHandle, mpiInfo));
 
     /************************  get the name tags ****************************/
     std::string remainder;
@@ -348,7 +350,7 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
         if (pos != std::string::npos) {
             name = line.substr(0, pos);
             tag_key = std::stoi(line.substr(pos+1));
-            mesh->addTagMap(name, tag_key);
+            domain->setTagMap(name, tag_key);
         }
     }
 
@@ -356,9 +358,9 @@ Mesh* Mesh::read(escript::JMPI mpiInfo, const std::string& filename,
     if (mpiInfo->rank == 0)
         fileHandle.close();
 
-    mesh->resolveNodeIds();
-    mesh->prepare(optimize);
-    return mesh;
+    domain->resolveNodeIds();
+    domain->prepare(optimize);
+    return domain->getPtr();
 }
 
 } // namespace dudley

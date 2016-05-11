@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "DudleyDomain.h"
 #include "IndexList.h"
 
 #include <boost/scoped_array.hpp>
@@ -22,13 +22,13 @@
 namespace dudley {
 
 /// optimizes the labeling of the DOFs on each processor
-void Mesh::optimizeDOFLabeling(const IndexVector& distribution)
+void DudleyDomain::optimizeDOFLabeling(const IndexVector& distribution)
 {
     // this method relies on Pattern::reduceBandwidth so requires PASO
     // at the moment
 #ifdef ESYS_HAVE_PASO
-    const int myRank = MPIInfo->rank;
-    const int mpiSize = MPIInfo->size;
+    const int myRank = m_mpiInfo->rank;
+    const int mpiSize = m_mpiInfo->size;
     const index_t myFirstVertex = distribution[myRank];
     const index_t myLastVertex = distribution[myRank+1];
     const dim_t myNumVertices = myLastVertex-myFirstVertex;
@@ -44,14 +44,14 @@ void Mesh::optimizeDOFLabeling(const IndexVector& distribution)
     {
         // insert contributions from element matrices into columns index
         IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-            myFirstVertex, myLastVertex, Elements,
-            Nodes->globalDegreesOfFreedom);
+            myFirstVertex, myLastVertex, m_elements,
+            m_nodes->globalDegreesOfFreedom);
         IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-            myFirstVertex, myLastVertex, FaceElements,
-            Nodes->globalDegreesOfFreedom);
+            myFirstVertex, myLastVertex, m_faceElements,
+            m_nodes->globalDegreesOfFreedom);
         IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-            myFirstVertex, myLastVertex, Points,
-            Nodes->globalDegreesOfFreedom);
+            myFirstVertex, myLastVertex, m_points,
+            m_nodes->globalDegreesOfFreedom);
     }
     // create the local matrix pattern
     paso::Pattern_ptr pattern = paso::Pattern::fromIndexListArray(0,
@@ -67,35 +67,36 @@ void Mesh::optimizeDOFLabeling(const IndexVector& distribution)
 
     // distribute new labeling to other processors
 #ifdef ESYS_MPI
-    const int dest = MPIInfo->mod_rank(myRank + 1);
-    const int source = MPIInfo->mod_rank(myRank - 1);
+    const int dest = m_mpiInfo->mod_rank(myRank + 1);
+    const int source = m_mpiInfo->mod_rank(myRank - 1);
 #endif
     int current_rank = myRank;
     for (int p = 0; p < mpiSize; ++p) {
         const index_t firstVertex = distribution[current_rank];
         const index_t lastVertex = distribution[current_rank + 1];
 #pragma omp parallel for
-        for (index_t i = 0; i < Nodes->getNumNodes(); ++i) {
-            const index_t k = Nodes->globalDegreesOfFreedom[i];
+        for (index_t i = 0; i < m_nodes->getNumNodes(); ++i) {
+            const index_t k = m_nodes->globalDegreesOfFreedom[i];
             if (firstVertex <= k && k < lastVertex) {
-                Nodes->globalDegreesOfFreedom[i]=newGlobalDOFID[k-firstVertex];
+                m_nodes->globalDegreesOfFreedom[i] =
+                                            newGlobalDOFID[k-firstVertex];
             }
         }
 
         if (p < mpiSize - 1) { // the final send can be skipped
 #ifdef ESYS_MPI
             MPI_Status status;
-            MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T,
-                                 dest, MPIInfo->counter(), source,
-                                 MPIInfo->counter(), MPIInfo->comm, &status);
-            MPIInfo->incCounter();
+            MPI_Sendrecv_replace(&newGlobalDOFID[0], len, MPI_DIM_T, dest,
+                                 m_mpiInfo->counter(), source,
+                                 m_mpiInfo->counter(), m_mpiInfo->comm, &status);
+            m_mpiInfo->incCounter();
 #endif
-            current_rank = MPIInfo->mod_rank(current_rank - 1);
+            current_rank = m_mpiInfo->mod_rank(current_rank - 1);
         }
     }
 #if 0
-    for (index_t i = 0; i < Nodes->getNumNodes(); ++i)
-        std::cout << Nodes->globalDegreesOfFreedom[i] << " ";
+    for (index_t i = 0; i < m_nodes->getNumNodes(); ++i)
+        std::cout << m_nodes->globalDegreesOfFreedom[i] << " ";
     std::cout << std::endl;
 #endif
 #endif // ESYS_HAVE_PASO

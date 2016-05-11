@@ -32,7 +32,7 @@
 #include <escript/Data.h>
 #include <escript/FileWriter.h>
 #ifdef USE_DUDLEY
-#include <dudley/CppAdapter/MeshAdapter.h>
+#include <dudley/DudleyDomain.h>
 #endif
 #ifdef USE_FINLEY
 #include <finley/CppAdapter/MeshAdapter.h>
@@ -144,7 +144,7 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         }
 #endif
 #if USE_DUDLEY
-        else if (dynamic_cast<const dudley::MeshAdapter*>(domain)) {
+        else if (dynamic_cast<const dudley::DudleyDomain*>(domain)) {
             DomainChunk_ptr dom(new FinleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)

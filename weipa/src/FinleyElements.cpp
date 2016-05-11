@@ -20,7 +20,7 @@
 #ifndef VISIT_PLUGIN
 
 #ifdef USE_DUDLEY
-#include <dudley/CppAdapter/MeshAdapter.h>
+#include <dudley/DudleyDomain.h>
 #endif
 #ifdef USE_FINLEY
 #include <finley/CppAdapter/MeshAdapter.h>
@@ -104,14 +104,14 @@ static const size_t hex27indices[8*8] = {
 };
 
 namespace weipa {
-    
+
 //
 // Constructor
 //
 FinleyElements::FinleyElements(const string& elementName, FinleyNodes_ptr nodeData)
     :
 #ifdef USE_FINLEY
-      finleyTypeId(finley::NoRef), 
+      finleyTypeId(finley::NoRef),
 #endif
       originalMesh(nodeData), name(elementName), numElements(0),
       numGhostElements(0), nodesPerElement(0),
@@ -354,7 +354,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
         buildMeshes();
     }
 
-    return true; 
+    return true;
 #else // !ESYS_HAVE_NETCDF
     return false;
 #endif
@@ -526,7 +526,7 @@ IntVec FinleyElements::prepareGhostIndices(int ownIndex)
 {
     IntVec indexArray;
     numGhostElements = 0;
-    
+
     // move indices of "ghost zones" to the end to be able to reorder
     // data accordingly
     for (int i=0; i<numElements; i++) {
@@ -701,7 +701,7 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
             DBFreeOptlist(optList);
         }
     }
-    
+
     // Point mesh is useful for debugging
     if (0) {
         CoordArray& coordbase = const_cast<CoordArray&>(nodeMesh->getCoords());
@@ -912,7 +912,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
         case finley::Hex20Face_Contact:
             //VTK_QUADRATIC_QUAD
             ret.elementSize = 3;
-            ret.elementType = ZONETYPE_TRIANGLE; 
+            ret.elementType = ZONETYPE_TRIANGLE;
             ret.reducedElementSize = 4;
             ret.reducedElementType = ZONETYPE_QUAD;
             break;

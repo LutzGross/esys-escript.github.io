@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "TriangularMesh.h"
+#include "DudleyDomain.h"
 
 #include <escript/index.h>
 
@@ -22,8 +22,10 @@ using escript::DataTypes::real_t;
 
 namespace dudley {
 
-Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
-                          bool optimize, escript::JMPI mpiInfo)
+escript::Domain_ptr DudleyDomain::create2D(dim_t NE0, dim_t NE1,
+                                           real_t l0, real_t l1,
+                                           bool optimize,
+                                           escript::JMPI mpiInfo)
 {
     const int DIM = 2;
     const int LEFTTAG = 1;    // boundary x1=0
@@ -38,8 +40,8 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
     const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
-    const dim_t NE0 = std::max((dim_t)1, numElements[0]);
-    const dim_t NE1 = std::max((dim_t)1, numElements[1]);
+    NE0 = std::max((dim_t)1, NE0);
+    NE1 = std::max((dim_t)1, NE1);
     const dim_t N0 = NE0 + 1;
     const dim_t N1 = NE1 + 1;
 
@@ -51,11 +53,14 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
     // allocate mesh
     std::stringstream name;
     name << "Triangular " << N0 << " x " << N1 << " (x 2) mesh";
-    Mesh* out = new Mesh(name.str(), DIM, mpiInfo);
+    DudleyDomain* out = new DudleyDomain(name.str(), DIM, mpiInfo);
 
-    out->setPoints(new ElementFile(Dudley_Point1, mpiInfo));
-    out->setFaceElements(new ElementFile(Dudley_Line2, mpiInfo));
-    out->setElements(new ElementFile(Dudley_Tri3, mpiInfo));
+    ElementFile* elements = new ElementFile(Dudley_Tri3, mpiInfo);
+    out->setElements(elements);
+    ElementFile* faces = new ElementFile(Dudley_Line2, mpiInfo);
+    out->setFaceElements(faces);
+    ElementFile* points = new ElementFile(Dudley_Point1, mpiInfo);
+    out->setPoints(points);
 
     const dim_t Nstride0 = 1;
     const dim_t Nstride1 = N0;
@@ -97,9 +102,10 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
         NDOF1 = N1 - 1;
     }
 
-    out->Nodes->allocTable(local_N0 * local_N1);
-    out->Elements->allocTable(local_NE0 * local_NE1 * 2);
-    out->FaceElements->allocTable(NFaceElements);
+    NodeFile* nodes = out->getNodes();
+    nodes->allocTable(local_N0 * local_N1);
+    elements->allocTable(local_NE0 * local_NE1 * 2);
+    faces->allocTable(NFaceElements);
 
     // create nodes
 #pragma omp parallel for
@@ -108,18 +114,17 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
             const dim_t k = i0 + local_N0 * i1;
             const dim_t global_i0 = i0 + offset0;
             const dim_t global_i1 = i1 + offset1;
-            out->Nodes->Coordinates[INDEX2(0, k, DIM)] = (real_t)global_i0 / (real_t)(N0 - 1) * length[0];
-            out->Nodes->Coordinates[INDEX2(1, k, DIM)] = (real_t)global_i1 / (real_t)(N1 - 1) * length[1];
-            out->Nodes->Id[k] = Nstride0 * global_i0 + Nstride1 * global_i1;
-            out->Nodes->Tag[k] = 0;
-            out->Nodes->globalDegreesOfFreedom[k] =
-                                                Nstride0 * (global_i0 % NDOF0)
-                                              + Nstride1 * (global_i1 % NDOF1);
+            nodes->Coordinates[INDEX2(0, k, DIM)] = (real_t)global_i0 / (real_t)(N0 - 1) * l0;
+            nodes->Coordinates[INDEX2(1, k, DIM)] = (real_t)global_i1 / (real_t)(N1 - 1) * l1;
+            nodes->Id[k] = Nstride0 * global_i0 + Nstride1 * global_i1;
+            nodes->Tag[k] = 0;
+            nodes->globalDegreesOfFreedom[k] = Nstride0 * (global_i0 % NDOF0)
+                                             + Nstride1 * (global_i1 % NDOF1);
         }
     }
 
     // set the elements
-    dim_t NN = out->Elements->numNodes;
+    dim_t NN = elements->numNodes;
     const index_t global_adjustment = (offset0 + offset1) % 2;
 
 #pragma omp parallel for
@@ -130,12 +135,12 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
             const index_t node0 = Nstride0 * (i0 + e_offset0)
                                 + Nstride1 * (i1 + e_offset1);
 
-            out->Elements->Id[k] = 2 * (i0 + e_offset0) + NE0*(i1 + e_offset1);
-            out->Elements->Tag[k] = 0;
-            out->Elements->Owner[k] = myRank;
-            out->Elements->Id[k + 1] = out->Elements->Id[k] + 1;
-            out->Elements->Tag[k + 1] = 0;
-            out->Elements->Owner[k + 1] = myRank;
+            elements->Id[k] = 2 * (i0 + e_offset0) + NE0*(i1 + e_offset1);
+            elements->Tag[k] = 0;
+            elements->Owner[k] = myRank;
+            elements->Id[k + 1] = elements->Id[k] + 1;
+            elements->Tag[k + 1] = 0;
+            elements->Owner[k + 1] = myRank;
 
             // a,b,c,d gives the nodes of the rectangle in clockwise order
             const index_t a = node0;
@@ -144,25 +149,25 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
             const index_t d = node0 + Nstride1;
             // For a little bit of variety
             if ((global_adjustment + node0) % 2) {
-                out->Elements->Nodes[INDEX2(0, k, NN)] = a;
-                out->Elements->Nodes[INDEX2(1, k, NN)] = b;
-                out->Elements->Nodes[INDEX2(2, k, NN)] = d;
-                out->Elements->Nodes[INDEX2(0, k + 1, NN)] = b;
-                out->Elements->Nodes[INDEX2(1, k + 1, NN)] = c;
-                out->Elements->Nodes[INDEX2(2, k + 1, NN)] = d;
+                elements->Nodes[INDEX2(0, k, NN)] = a;
+                elements->Nodes[INDEX2(1, k, NN)] = b;
+                elements->Nodes[INDEX2(2, k, NN)] = d;
+                elements->Nodes[INDEX2(0, k + 1, NN)] = b;
+                elements->Nodes[INDEX2(1, k + 1, NN)] = c;
+                elements->Nodes[INDEX2(2, k + 1, NN)] = d;
             } else {
-                out->Elements->Nodes[INDEX2(0, k, NN)] = a;
-                out->Elements->Nodes[INDEX2(1, k, NN)] = b;
-                out->Elements->Nodes[INDEX2(2, k, NN)] = c;
-                out->Elements->Nodes[INDEX2(0, k + 1, NN)] = a;
-                out->Elements->Nodes[INDEX2(1, k + 1, NN)] = c;
-                out->Elements->Nodes[INDEX2(2, k + 1, NN)] = d;
+                elements->Nodes[INDEX2(0, k, NN)] = a;
+                elements->Nodes[INDEX2(1, k, NN)] = b;
+                elements->Nodes[INDEX2(2, k, NN)] = c;
+                elements->Nodes[INDEX2(0, k + 1, NN)] = a;
+                elements->Nodes[INDEX2(1, k + 1, NN)] = c;
+                elements->Nodes[INDEX2(2, k + 1, NN)] = d;
             }
         }
     }
 
     // face elements
-    NN = out->FaceElements->numNodes;
+    NN = faces->numNodes;
     dim_t totalNECount = 2 * NE0 * NE1; // because we have split the rectangles
     dim_t faceNECount = 0;
     if (local_NE0 > 0) {
@@ -172,11 +177,11 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
             for (index_t i1 = 0; i1 < local_NE1; i1++) {
                 const dim_t k = i1 + faceNECount;
                 const index_t node0 = Nstride1 * (i1 + e_offset1);
-                out->FaceElements->Id[k] = i1 + e_offset1 + totalNECount;
-                out->FaceElements->Tag[k] = LEFTTAG;
-                out->FaceElements->Owner[k] = myRank;
-                out->FaceElements->Nodes[INDEX2(0, k, NN)] = node0 + Nstride1;
-                out->FaceElements->Nodes[INDEX2(1, k, NN)] = node0;
+                faces->Id[k] = i1 + e_offset1 + totalNECount;
+                faces->Tag[k] = LEFTTAG;
+                faces->Owner[k] = myRank;
+                faces->Nodes[INDEX2(0, k, NN)] = node0 + Nstride1;
+                faces->Nodes[INDEX2(1, k, NN)] = node0;
             }
             faceNECount += local_NE1;
         }
@@ -189,11 +194,11 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
                 const index_t node0 = Nstride0 * (NE0 - 1)
                                     + Nstride1 * (i1 + e_offset1);
 
-                out->FaceElements->Id[k] = (i1 + e_offset1) + totalNECount;
-                out->FaceElements->Tag[k] = RIGHTTAG;
-                out->FaceElements->Owner[k] = myRank;
-                out->FaceElements->Nodes[INDEX2(0, k, NN)] = node0 + Nstride0;
-                out->FaceElements->Nodes[INDEX2(1, k, NN)] = node0 + Nstride1 + Nstride0;
+                faces->Id[k] = (i1 + e_offset1) + totalNECount;
+                faces->Tag[k] = RIGHTTAG;
+                faces->Owner[k] = myRank;
+                faces->Nodes[INDEX2(0, k, NN)] = node0 + Nstride0;
+                faces->Nodes[INDEX2(1, k, NN)] = node0 + Nstride1 + Nstride0;
             }
             faceNECount += local_NE1;
         }
@@ -206,11 +211,11 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
             for (index_t i0 = 0; i0 < local_NE0; i0++) {
                 const dim_t k = i0 + faceNECount;
                 const index_t node0 = Nstride0 * (i0 + e_offset0);
-                out->FaceElements->Id[k] = e_offset0 + i0 + totalNECount;
-                out->FaceElements->Tag[k] = BOTTOMTAG;
-                out->FaceElements->Owner[k] = myRank;
-                out->FaceElements->Nodes[INDEX2(0, k, NN)] = node0;
-                out->FaceElements->Nodes[INDEX2(1, k, NN)] = node0 + Nstride0;
+                faces->Id[k] = e_offset0 + i0 + totalNECount;
+                faces->Tag[k] = BOTTOMTAG;
+                faces->Owner[k] = myRank;
+                faces->Nodes[INDEX2(0, k, NN)] = node0;
+                faces->Nodes[INDEX2(1, k, NN)] = node0 + Nstride0;
             }
             faceNECount += local_NE0;
         }
@@ -223,11 +228,11 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
                 const index_t node0 = Nstride0 * (i0 + e_offset0)
                                     + Nstride1 * (NE1 - 1);
 
-                out->FaceElements->Id[k] = i0 + e_offset0 + totalNECount;
-                out->FaceElements->Tag[k] = TOPTAG;
-                out->FaceElements->Owner[k] = myRank;
-                out->FaceElements->Nodes[INDEX2(0, k, NN)] = node0 + Nstride1 + Nstride0;
-                out->FaceElements->Nodes[INDEX2(1, k, NN)] = node0 + Nstride1;
+                faces->Id[k] = i0 + e_offset0 + totalNECount;
+                faces->Tag[k] = TOPTAG;
+                faces->Owner[k] = myRank;
+                faces->Nodes[INDEX2(0, k, NN)] = node0 + Nstride1 + Nstride0;
+                faces->Nodes[INDEX2(1, k, NN)] = node0 + Nstride1;
             }
             faceNECount += local_NE0;
         }
@@ -235,15 +240,15 @@ Mesh* TriangularMesh_Tri3(const dim_t* numElements, const double* length,
     }
 
     // add tag names
-    out->addTagMap("top", TOPTAG);
-    out->addTagMap("bottom", BOTTOMTAG);
-    out->addTagMap("left", LEFTTAG);
-    out->addTagMap("right", RIGHTTAG);
+    out->setTagMap("top", TOPTAG);
+    out->setTagMap("bottom", BOTTOMTAG);
+    out->setTagMap("left", LEFTTAG);
+    out->setTagMap("right", RIGHTTAG);
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
     out->prepare(optimize);
-    return out;
+    return out->getPtr();
 }
 
 } // namespace dudley
