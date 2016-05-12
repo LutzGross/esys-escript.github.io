@@ -28,7 +28,7 @@
     const double* QuadWeights[numQuad]
     int numShape
     dim_t numElements
-    dim_t numNodes
+    int numNodes
     const index_t* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
     const double* DSDv[numShape*DIM*numQuad]
     int numTest
@@ -48,7 +48,7 @@ namespace finley {
 //
 void Assemble_jacobians_1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -138,7 +138,7 @@ void Assemble_jacobians_2D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -184,7 +184,7 @@ void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -244,7 +244,7 @@ void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -298,7 +298,7 @@ void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -374,7 +374,7 @@ void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -450,7 +450,7 @@ void Assemble_jacobians_3D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -531,7 +531,7 @@ void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -664,7 +664,7 @@ void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
@@ -731,7 +731,7 @@ void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
 //
 void Assemble_jacobians_3D_M2D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
-                           dim_t numElements, dim_t numNodes, const index_t* nodes,
+                           dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId)
 {
