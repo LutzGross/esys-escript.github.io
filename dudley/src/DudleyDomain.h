@@ -21,24 +21,22 @@
 
    Dudley: Domain
 
-   A mesh is built from nodes and elements which are describing the
-   domain, the surface and point sources (the latter are needed to
-   establish links with other codes, in particular to particle
-   codes). The nodes are stored in a NodeFile and elements in an
-   ElementFile. A NodeFile and three ElementFiles containing the
-   elements describe the domain, surface and point sources,
-   respectively. Notice that the surface elements do not necessarily
-   cover the entire surface of the domain.
+   A mesh is built from nodes and elements which describe the domain, surface,
+   and point sources (the latter are needed to establish links with other
+   codes, in particular particle codes). The nodes are stored in a NodeFile
+   and elements in ElementFiles. Dudley domains have three ElementFiles
+   containing the elements, surface and point sources, respectively.
+   Notice that the surface elements do not necessarily cover the entire
+   surface of the domain.
 
    The element type is either Tri3 or Tet4 depending on dimensionality
    and also determines the type of surface elements to be used.
 
    The numbering of the nodes starts with 0.
 
-   Important: it is assumed that every node appears in at least
-   one element or surface element and that any node used in an
-   element, surface element or as a point is specified in the
-   NodeFile, see also resolveNodeIds.
+   Important: it is assumed that every node appears in at least one element or
+   surface element and that any node used in an element, surface element or as
+   a point is specified in the NodeFile, see also resolveNodeIds.
 
    All nodes and elements are tagged. The tag allows to group nodes and
    elements. A typical application is to mark surface elements on a
@@ -77,23 +75,39 @@ enum SystemMatrixType {
 };
 
 /**
-   \brief
-   DudleyDomain implements the AbstractContinuousDomain
-   interface for the Dudley library.
-
-   Description:
-   DudleyDomain implements the AbstractContinuousDomain
-   interface for the Dudley library.
+    \brief
+    DudleyDomain implements the AbstractContinuousDomain interface for the
+    Dudley library.
 */
 class DudleyDomain : public escript::AbstractContinuousDomain
 {
 public:
-    /// loads from a dump file
+    /**
+     \brief
+     recovers domain from a dump file
+     \param filename the name of the file
+    */
     static escript::Domain_ptr load(const std::string& filename);
 
+    /**
+     \brief
+     reads a mesh from a fly file. For MPI parallel runs fans out the mesh
+     to multiple processes.
+     \param mpiInfo the MPI information structure
+     \param fileName the name of the file
+     \param optimize whether to optimize the node labels
+    */
     static escript::Domain_ptr read(escript::JMPI mpiInfo,
                                     const std::string& filename, bool optimize);
 
+    /**
+     \brief
+     reads a gmsh mesh file.
+     \param mpiInfo the MPI information structure
+     \param fileName the name of the file
+     \param numDim spatial dimensionality
+     \param optimize whether to optimize the node labels 
+    */
     static escript::Domain_ptr readGmsh(escript::JMPI mpiInfo,
                                         const std::string& filename, int numDim,
                                         bool optimize);
@@ -134,9 +148,9 @@ public:
      \brief
      Constructor for DudleyDomain
 
-     \param name Input - A descriptive name for the domain.
-     \param numDim Input - Dimensionality of the domain (2 or 3)
-     \param jmpi Input - Shared pointer to MPI Information to be used
+     \param name a descriptive name for the domain
+     \param numDim dimensionality of the domain (2 or 3)
+     \param jmpi shared pointer to MPI Information to be used
     */
     DudleyDomain(const std::string& name, int numDim, escript::JMPI jmpi);
 
@@ -151,8 +165,6 @@ public:
      Destructor for DudleyDomain.
     */
     ~DudleyDomain();
-
-    void addPoints(int numPoints, const double* points, const int* tags);
 
     /**
      \brief
@@ -230,7 +242,7 @@ public:
 
     /**
      \brief
-     writes the current mesh to a file with the given name in the Dudley file
+     writes the current mesh to a file with the given name in the fly file
      format.
      \param fileName Input - The name of the file to write to.
     */
@@ -238,7 +250,7 @@ public:
 
     /**
      \brief
-     \param full Input - whether to include coordinate values and id's
+     \param full whether to include coordinate values and id's
     */
     void Print_Mesh_Info(bool full=false) const;
 
@@ -375,7 +387,8 @@ public:
     /**
      \brief
     */
-    virtual int getDim() const;
+    virtual int getDim() const { return m_nodes->numDim; }
+
 
     /**
      \brief

@@ -30,6 +30,7 @@
 
 using namespace std;
 using namespace escript;
+namespace bp = boost::python;
 
 namespace dudley {
 
@@ -43,7 +44,7 @@ T ncReadAtt(NcFile* dataFile, const string& fName, const string& attrName)
         stringstream msg;
         msg << "loadMesh: Error retrieving integer attribute '" << attrName
             << "' from NetCDF file '" << fName << "'";
-        throw escript::IOError(msg.str());
+        throw IOError(msg.str());
     }
     T value = (sizeof(T) > 4 ? attr->as_long(0) : attr->as_int(0));
     delete attr;
@@ -55,13 +56,13 @@ inline void cleanupAndThrow(DudleyDomain* dom, string msg)
 {
     delete dom;
     string msgPrefix("loadMesh: NetCDF operation failed - ");
-    throw escript::IOError(msgPrefix+msg);
+    throw IOError(msgPrefix+msg);
 }
 
-Domain_ptr DudleyDomain::load(const std::string& fileName)
+Domain_ptr DudleyDomain::load(const string& fileName)
 {
 #ifdef ESYS_HAVE_NETCDF
-    escript::JMPI mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
     const string fName(mpiInfo->appendRankToFileName(fileName));
 
     // Open NetCDF file for reading
@@ -74,7 +75,7 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
     if (!dataFile.is_valid()) {
         stringstream msg;
         msg << "loadMesh: Opening NetCDF file '" << fName << "' for reading failed.";
-        throw escript::IOError(msg.str());
+        throw IOError(msg.str());
     }
 
     // Read NetCDF integer attributes
@@ -84,13 +85,13 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
     int index_size;
     try {
         index_size = ncReadAtt<int>(&dataFile, fName, "index_size");
-    } catch (escript::IOError& e) {
+    } catch (IOError& e) {
         index_size = 4;
     }
     // technically we could cast if reading 32-bit data on 64-bit escript
     // but cost-benefit analysis clearly favours this implementation for now
     if (sizeof(index_t) != index_size) {
-        throw escript::IOError("loadMesh: size of index types at runtime differ from dump file");
+        throw IOError("loadMesh: size of index types at runtime differ from dump file");
     }
 
     int mpi_size = ncReadAtt<int>(&dataFile, fName, "mpi_size");
@@ -128,7 +129,7 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
         stringstream msg;
         msg << "loadMesh: Error retrieving mesh name from NetCDF file '"
             << fName << "'";
-        throw escript::IOError(msg.str());
+        throw IOError(msg.str());
     }
     boost::scoped_array<char> name(attr->as_string(0));
     delete attr;
@@ -296,12 +297,12 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
             delete[] Points_Nodes;
             cleanupAndThrow(dom, "get_var(Points_Nodes)");
         }
-        if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
+        if (! nc_var_temp->get(&Points_Nodes[0], num_Points) ) {
             delete[] Points_Nodes;
             cleanupAndThrow(dom, "get(Points_Nodes)");
         }
         // Copy temp array into points->Nodes
-        for (int i=0; i<num_Points; i++) {
+        for (index_t i = 0; i < num_Points; i++) {
             points->Id[points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
         }
         delete[] Points_Nodes;
@@ -341,7 +342,7 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
     }
 
     // Nodes_DofDistribution
-    std::vector<index_t> first_DofComponent(mpi_size+1);
+    IndexVector first_DofComponent(mpi_size+1);
     if (! (nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
         cleanupAndThrow(dom, "get_var(Nodes_DofDistribution)");
     }
@@ -350,7 +351,7 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
     }
 
     // Nodes_NodeDistribution
-    std::vector<index_t> first_NodeComponent(mpi_size+1);
+    IndexVector first_NodeComponent(mpi_size+1);
     if (! (nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
         cleanupAndThrow(dom, "get_var(Nodes_NodeDistribution)");
     }
@@ -365,116 +366,108 @@ Domain_ptr DudleyDomain::load(const std::string& fileName)
 #endif // ESYS_HAVE_NETCDF
 }
 
-Domain_ptr readMesh(const std::string& fileName, int /*integrationOrder*/,
+Domain_ptr readMesh(const string& fileName, int /*integrationOrder*/,
                     int /*reducedIntegrationOrder*/, bool optimize)
 {
-    escript::JMPI mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
     return DudleyDomain::read(mpiInfo, fileName, optimize);
 }
 
-Domain_ptr readGmsh(const std::string& fileName, int numDim,
+Domain_ptr readGmsh(const string& fileName, int numDim,
                     int /*integrationOrder*/, int /*reducedIntegrationOrder*/,
                     bool optimize)
 {
-    escript::JMPI mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
     return DudleyDomain::readGmsh(mpiInfo, fileName, numDim, optimize);
 }
 
-Domain_ptr brick(escript::JMPI mpi_info, dim_t n0, dim_t n1, dim_t n2,
-                 int order, double l0, double l1, double l2, int periodic0,
-                 int periodic1, int periodic2, int integrationOrder,
-                 int reducedIntegrationOrder, int useElementsOnFace,
-                 int useFullElementOrder, bool optimize)
+Domain_ptr brick(JMPI info, dim_t n0, dim_t n1, dim_t n2, int order,
+                 double l0, double l1, double l2,
+                 bool periodic0, bool periodic1, bool periodic2,
+                 int integrationOrder, int reducedIntegrationOrder,
+                 bool useElementsOnFace, bool useFullElementOrder,
+                 bool optimize)
 {
     // we don't support periodic boundary conditions
     if (periodic0 || periodic1)
-        throw DudleyException("Dudley does not support periodic boundary conditions.");
+        throw ValueError("Dudley does not support periodic boundary conditions.");
 
     if (integrationOrder > 3 || reducedIntegrationOrder > 1)
-        throw DudleyException("Dudley does not support the requested integrationOrders.");
+        throw ValueError("Dudley does not support the requested integration order.");
 
     if (useElementsOnFace || useFullElementOrder)
-        throw DudleyException("Dudley does not support useElementsOnFace or useFullElementOrder.");
+        throw ValueError("Dudley does not support useElementsOnFace or useFullElementOrder.");
 
     if (order > 1)
-        throw DudleyException("Dudley does not support element order greater than 1.");
+        throw ValueError("Dudley does not support element order greater than 1.");
 
-    return DudleyDomain::create3D(n0, n1, n2, l0, l1, l2, optimize, mpi_info);
+    return DudleyDomain::create3D(n0, n1, n2, l0, l1, l2, optimize, info);
 }
 
-Domain_ptr brick_driver(const boost::python::list& args)
+Domain_ptr brick_driver(const bp::list& args)
 {
-      using boost::python::extract;
-      boost::python::object pworld = args[15];
-      escript::JMPI info;
-      if (!pworld.is_none()) {
-          extract<SubWorld_ptr> ex(pworld);
-          if (!ex.check()) {       
-              throw DudleyException("Invalid escriptworld parameter.");
-          }
-          info = ex()->getMPI();
-      } else {
-          info = escript::makeInfo(MPI_COMM_WORLD);
-
-      }
-      return brick(info, static_cast<dim_t>(extract<float>(args[0])),
-                   static_cast<dim_t>(extract<float>(args[1])),
-                   static_cast<dim_t>(extract<float>(args[2])),
-                   extract<int>(args[3]), extract<double>(args[4]),
-                   extract<double>(args[5]), extract<double>(args[6]),
-                   extract<int>(args[7]), extract<int>(args[8]),
-                   extract<int>(args[9]), extract<int>(args[10]),
-                   extract<int>(args[11]), extract<int>(args[12]),
-                   extract<int>(args[13]), extract<int>(args[14])
-                   );
-}  
-  
-  
-Domain_ptr rectangle_driver(const boost::python::list& args)
-{
-      using boost::python::extract;
-      boost::python::object pworld=args[12];
-      escript::JMPI info;
-      if (!pworld.is_none()) {
-          extract<SubWorld_ptr> ex(pworld);
-          if (!ex.check()) {
-              throw DudleyException("Invalid escriptworld parameter.");
-          }
-          info = ex()->getMPI();
-      } else {
-          info = escript::makeInfo(MPI_COMM_WORLD);
-      }
-
-      return rectangle(info, static_cast<dim_t>(extract<float>(args[0])),
-                       static_cast<dim_t>(extract<float>(args[1])),
-                       extract<int>(args[2]), extract<double>(args[3]),
-                       extract<double>(args[4]), extract<int>(args[5]),
-                       extract<int>(args[6]), extract<int>(args[7]),
-                       extract<int>(args[8]), extract<int>(args[9]),
-                       extract<int>(args[10]), extract<int>(args[11]) 
-                       );
+    bp::object pworld = args[15];
+    JMPI info;
+    if (!pworld.is_none()) {
+        bp::extract<SubWorld_ptr> ex(pworld);
+        if (!ex.check()) {
+            throw ValueError("Invalid escriptWorld parameter.");
+        }
+        info = ex()->getMPI();
+    } else {
+        info = makeInfo(MPI_COMM_WORLD);
+    }
+    return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
+                 static_cast<dim_t>(bp::extract<float>(args[1])),
+                 static_cast<dim_t>(bp::extract<float>(args[2])),
+                 bp::extract<int>(args[3]), bp::extract<double>(args[4]),
+                 bp::extract<double>(args[5]), bp::extract<double>(args[6]),
+                 bp::extract<int>(args[7]), bp::extract<int>(args[8]),
+                 bp::extract<int>(args[9]), bp::extract<int>(args[10]),
+                 bp::extract<int>(args[11]), bp::extract<int>(args[12]),
+                 bp::extract<int>(args[13]), bp::extract<int>(args[14])
+                 );
 }
 
-Domain_ptr rectangle(escript::JMPI mpi_info, dim_t n0, dim_t n1, int order,
-                     double l0, double l1,
-                     int periodic0, int periodic1,
-                     int integrationOrder,
-                     int reducedIntegrationOrder,
-                     int useElementsOnFace,
-                     int useFullElementOrder,
+Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,
+                     double l0, double l1, bool periodic0, bool periodic1,
+                     int integrationOrder, int reducedIntegrationOrder,
+                     bool useElementsOnFace, bool useFullElementOrder,
                      bool optimize)
 {
     if (periodic0 || periodic1) // we don't support periodic boundary conditions
-        throw DudleyException("Dudley does not support periodic boundary conditions.");
+        throw ValueError("Dudley does not support periodic boundary conditions.");
     if (integrationOrder > 3 || reducedIntegrationOrder > 1)
-        throw DudleyException("Dudley does not support the requested integrationorders.");
+        throw ValueError("Dudley does not support the requested integrationorders.");
     if (useElementsOnFace || useFullElementOrder)
-        throw DudleyException("Dudley does not support useElementsOnFace or useFullElementOrder.");
+        throw ValueError("Dudley does not support useElementsOnFace or useFullElementOrder.");
     if (order > 1)
-        throw DudleyException("Dudley only supports first-order elements.");
-    return DudleyDomain::create2D(n0, n1, l0, l1, optimize, mpi_info);
+        throw ValueError("Dudley only supports first-order elements.");
+    return DudleyDomain::create2D(n0, n1, l0, l1, optimize, info);
 }
 
+Domain_ptr rectangle_driver(const bp::list& args)
+{
+    bp::object pworld = args[12];
+    JMPI info;
+    if (!pworld.is_none()) {
+        bp::extract<SubWorld_ptr> ex(pworld);
+        if (!ex.check()) {
+            throw ValueError("Invalid escriptWorld parameter.");
+        }
+        info = ex()->getMPI();
+    } else {
+        info = makeInfo(MPI_COMM_WORLD);
+    }
+
+    return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
+                     static_cast<dim_t>(bp::extract<float>(args[1])),
+                     bp::extract<int>(args[2]), bp::extract<double>(args[3]),
+                     bp::extract<double>(args[4]), bp::extract<int>(args[5]),
+                     bp::extract<int>(args[6]), bp::extract<int>(args[7]),
+                     bp::extract<int>(args[8]), bp::extract<int>(args[9]),
+                     bp::extract<int>(args[10]), bp::extract<int>(args[11])
+                     );
+}
 
 } // namespace dudley
-

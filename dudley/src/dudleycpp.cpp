@@ -32,12 +32,12 @@ BOOST_PYTHON_MODULE(dudleycpp)
 {
 // This feature was added in boost v1.34
 #if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
-  // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  docstring_options docopt(true, true, false);
+    // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
+    docstring_options docopt(true, true, false);
 #endif
 
-  scope().attr("__doc__") = "To use this module, please import esys.dudley";  
-  
+    scope().attr("__doc__") = "To use this module, please import esys.dudley";
+
     // register escript's default translators
     REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
     register_exception_translator<dudley::DudleyException>(&escript::RuntimeErrorTranslator);
@@ -77,7 +77,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 "Write the current mesh to a file with the given name.")
       .def("print_mesh_info", &dudley::DudleyDomain::Print_Mesh_Info, (arg("full")=false),
 ":param full:\n:type full: ``bool``")
-      .def("dump",&dudley::DudleyDomain::dump, args("fileName")
+      .def("dump", &dudley::DudleyDomain::dump, args("fileName")
 ,"dumps the mesh to a file with the given name.")
       .def("getDescription", &dudley::DudleyDomain::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
