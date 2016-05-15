@@ -63,7 +63,7 @@ class Test_DomainOnDudley(Test_Domain):
        domain=Rectangle(NE,NE)
        x=domain.getX()
        z=interpolate(x, Function(domain))
-       self.assertRaises(RuntimeError, domain.setX, z)
+       self.assertRaises(ValueError, domain.setX, z)
        del x
        del z
        del domain
