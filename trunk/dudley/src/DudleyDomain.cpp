@@ -73,8 +73,8 @@ DudleyDomain::DudleyDomain(const DudleyDomain& in) :
 DudleyDomain::~DudleyDomain()
 {
     delete m_nodes;
-    delete m_faceElements;
     delete m_elements;
+    delete m_faceElements;
     delete m_points;
 }
 
@@ -198,11 +198,11 @@ void DudleyDomain::dump(const string& fileName) const
     // Attributes: MPI size, MPI rank, Name, order, reduced_order
     if (!dataFile.add_att("index_size", (int)sizeof(index_t)))
         throw DudleyException(msgPrefix+"add_att(index_size)");
-    if (!dataFile.add_att("mpi_size", mpi_size) )
+    if (!dataFile.add_att("mpi_size", mpi_size))
         throw DudleyException(msgPrefix+"add_att(mpi_size)");
-    if (!dataFile.add_att("mpi_rank", mpi_rank) )
+    if (!dataFile.add_att("mpi_rank", mpi_rank))
         throw DudleyException(msgPrefix+"add_att(mpi_rank)");
-    if (!dataFile.add_att("Name", m_name.c_str()) )
+    if (!dataFile.add_att("Name", m_name.c_str()))
         throw DudleyException(msgPrefix+"add_att(Name)");
     if (!dataFile.add_att("numDim", numDim))
         throw DudleyException(msgPrefix+"add_att(numDim)");
@@ -220,9 +220,9 @@ void DudleyDomain::dump(const string& fileName) const
         throw DudleyException(msgPrefix+"add_att(num_Points)");
     if (!dataFile.add_att("num_Elements_numNodes", num_Elements_numNodes))
         throw DudleyException(msgPrefix+"add_att(num_Elements_numNodes)");
-    if (!dataFile.add_att("num_FaceElements_numNodes", num_FaceElements_numNodes) )
+    if (!dataFile.add_att("num_FaceElements_numNodes", num_FaceElements_numNodes))
         throw DudleyException(msgPrefix+"add_att(num_FaceElements_numNodes)");
-    if (!dataFile.add_att("Elements_TypeId", m_elements->etype) )
+    if (!dataFile.add_att("Elements_TypeId", m_elements->etype))
         throw DudleyException(msgPrefix+"add_att(Elements_TypeId)");
     if (!dataFile.add_att("FaceElements_TypeId", m_faceElements->etype))
         throw DudleyException(msgPrefix+"add_att(FaceElements_TypeId)");
@@ -407,7 +407,7 @@ void DudleyDomain::dump(const string& fileName) const
             ss << "Tags_name_" << i;
             const string name(ss.str());
             if (!dataFile.add_att(name.c_str(), it->first.c_str()))
-                throw DudleyException(msgPrefix+"add_att(Tags_names_XX)");
+                throw DudleyException(msgPrefix+"add_att(Tags_names_X)");
         }
     }
 
@@ -531,11 +531,6 @@ int DudleyDomain::getDiracDeltaFunctionsCode() const
     return Points;
 }
 
-int DudleyDomain::getDim() const
-{
-    return m_nodes->numDim;
-}
-
 //
 // Return the number of data points summed across all MPI processes
 //
@@ -571,33 +566,33 @@ pair<int,dim_t> DudleyDomain::getDataShape(int functionSpaceCode) const
         break;
         case FaceElements:
             if (m_faceElements) {
-                numDataPointsPerSample = m_faceElements->numLocalDim+1;
                 numSamples = m_faceElements->numElements;
+                numDataPointsPerSample = m_faceElements->numLocalDim+1;
             }
         break;
         case ReducedFaceElements:
             if (m_faceElements) {
-                numDataPointsPerSample = (m_faceElements->numLocalDim==0)? 0:1;
                 numSamples = m_faceElements->numElements;
+                numDataPointsPerSample = (m_faceElements->numLocalDim==0)? 0:1;
             }
         break;
         case Points:
             if (m_points) {
-                numDataPointsPerSample = 1;
                 numSamples = m_points->numElements;
+                numDataPointsPerSample = 1;
             }
         break;
         case DegreesOfFreedom:
             if (m_nodes) {
-                numDataPointsPerSample = 1;
                 numSamples = m_nodes->getNumDegreesOfFreedom();
+                numDataPointsPerSample = 1;
             }
         break;
         default:
             stringstream ss;
             ss << "Invalid function space type: " << functionSpaceCode
                 << " for domain " << getDescription();
-            throw DudleyException(ss.str());
+            throw ValueError(ss.str());
     }
     return pair<int,dim_t>(numDataPointsPerSample, numSamples);
 }
@@ -640,10 +635,10 @@ void DudleyDomain::addPDEToSystem(
 }
 
 void DudleyDomain::addPDEToLumpedSystem(escript::Data& mat,
-                                       const escript::Data& D,
-                                       const escript::Data& d,
-                                       const escript::Data& d_dirac,
-                                       bool useHRZ) const
+                                        const escript::Data& D,
+                                        const escript::Data& d,
+                                        const escript::Data& d_dirac,
+                                        bool useHRZ) const
 {
     Assemble_LumpedSystem(m_nodes, m_elements, mat, D, useHRZ);
     Assemble_LumpedSystem(m_nodes, m_faceElements, mat, d, useHRZ);
@@ -692,24 +687,24 @@ void DudleyDomain::addPDEToTransportProblem(
 #ifdef ESYS_HAVE_PASO
     paso::TransportProblem* ptp = dynamic_cast<paso::TransportProblem*>(&tp);
     if (!ptp)
-        throw DudleyException("Dudley only accepts Paso transport problems");
+        throw ValueError("Dudley only supports Paso transport problems.");
 
     source.expand();
 
-    Assemble_PDE(m_nodes, m_elements, ptp->borrowMassMatrix(), source,
-                 escript::Data(), escript::Data(), escript::Data(), M,
-                 escript::Data(), escript::Data());
+    escript::ASM_ptr mm(boost::static_pointer_cast<escript::AbstractSystemMatrix>(
+                ptp->borrowMassMatrix()));
+    escript::ASM_ptr tm(boost::static_pointer_cast<escript::AbstractSystemMatrix>(
+                ptp->borrowTransportMatrix()));
 
-    Assemble_PDE(m_nodes, m_elements, ptp->borrowTransportMatrix(),
-                 source, A, B, C, D, X, Y);
-
-    Assemble_PDE(m_nodes, m_faceElements, ptp->borrowTransportMatrix(),
-                 source, escript::Data(), escript::Data(), escript::Data(), d,
-                 escript::Data(), y);
-
-    Assemble_PDE(m_nodes, m_points, ptp->borrowTransportMatrix(),
-                 source, escript::Data(), escript::Data(), escript::Data(),
-                 d_dirac, escript::Data(), y_dirac);
+    Assemble_PDE(m_nodes, m_elements, mm, source, escript::Data(),
+                 escript::Data(), escript::Data(), M, escript::Data(),
+                 escript::Data());
+    Assemble_PDE(m_nodes, m_elements, tm, source, A, B, C, D, X, Y);
+    Assemble_PDE(m_nodes, m_faceElements, tm, source, escript::Data(),
+                 escript::Data(), escript::Data(), d, escript::Data(), y);
+    Assemble_PDE(m_nodes, m_points, tm, source, escript::Data(),
+                 escript::Data(), escript::Data(), d_dirac, escript::Data(),
+                 y_dirac);
 #else
     throw DudleyException("Transport problems require the Paso library which "
                           "is not available.");
@@ -723,9 +718,9 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                                       const escript::Data& in) const
 {
     if (*in.getFunctionSpace().getDomain() != *this)
-        throw DudleyException("Illegal domain of interpolant.");
+        throw ValueError("Illegal domain of interpolant.");
     if (*target.getFunctionSpace().getDomain() != *this)
-        throw DudleyException("Illegal domain of interpolation target.");
+        throw ValueError("Illegal domain of interpolation target.");
 
     switch (in.getFunctionSpace().getTypeCode()) {
         case Nodes:
@@ -750,7 +745,7 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                     ss << "interpolateOnDomain: Dudley does not know anything "
                           "about function space type "
                           << target.getFunctionSpace().getTypeCode();
-                    throw DudleyException(ss.str());
+                    throw ValueError(ss.str());
             }
         break;
         case Elements:
@@ -759,15 +754,15 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
             } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
                 Assemble_AverageElementData(m_elements, target, in);
             } else {
-                throw DudleyException("No interpolation with data on elements possible.");
+                throw ValueError("No interpolation with data on elements possible.");
             }
             break;
         case ReducedElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedElements) {
                 Assemble_CopyElementData(m_elements, target, in);
             } else {
-                throw DudleyException("No interpolation with data on elements "
-                                   "with reduced integration order possible.");
+                throw ValueError("No interpolation with data on elements "
+                                 "with reduced integration order possible.");
             }
             break;
         case FaceElements:
@@ -776,22 +771,22 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
             } else if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
                 Assemble_AverageElementData(m_faceElements, target, in);
             } else {
-                throw DudleyException("No interpolation with data on face elements possible.");
+                throw ValueError("No interpolation with data on face elements possible.");
             }
             break;
         case ReducedFaceElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
                 Assemble_CopyElementData(m_faceElements, target, in);
             } else {
-                throw DudleyException("No interpolation with data on face "
-                          "elements with reduced integration order possible.");
+                throw ValueError("No interpolation with data on face "
+                         "elements with reduced integration order possible.");
             }
             break;
         case Points:
             if (target.getFunctionSpace().getTypeCode() == Points) {
                 Assemble_CopyElementData(m_points, target, in);
             } else {
-                throw DudleyException("No interpolation with data on points possible.");
+                throw ValueError("No interpolation with data on points possible.");
             }
             break;
         case DegreesOfFreedom:
@@ -802,7 +797,7 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
 
                 case Nodes:
                     if (getMPISize() > 1) {
-                        escript::Data temp = escript::Data(in);
+                        escript::Data temp(in);
                         temp.expand();
                         Assemble_CopyNodalData(m_nodes, target, temp);
                     } else {
@@ -812,7 +807,7 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                 case Elements:
                 case ReducedElements:
                     if (getMPISize() > 1) {
-                        escript::Data temp = escript::Data(in, continuousFunction(*this) );
+                        escript::Data temp(in, continuousFunction(*this));
                         Assemble_interpolate(m_nodes, m_elements, temp, target);
                     } else {
                         Assemble_interpolate(m_nodes, m_elements, in, target);
@@ -821,7 +816,7 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                 case FaceElements:
                 case ReducedFaceElements:
                     if (getMPISize() > 1) {
-                        escript::Data temp = escript::Data(in, continuousFunction(*this) );
+                        escript::Data temp(in, continuousFunction(*this));
                         Assemble_interpolate(m_nodes, m_faceElements, temp, target);
                     } else {
                         Assemble_interpolate(m_nodes, m_faceElements, in, target);
@@ -829,7 +824,7 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                 break;
                 case Points:
                     if (getMPISize() > 1) {
-                        //escript::Data temp=escript::Data(in, continuousFunction(*this) );
+                        //escript::Data temp(in, continuousFunction(*this));
                     } else {
                         Assemble_interpolate(m_nodes, m_points, in, target);
                     }
@@ -839,14 +834,14 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                     ss << "interpolateOnDomain: Dudley does not know anything "
                           "about function space type "
                        << target.getFunctionSpace().getTypeCode();
-                    throw DudleyException(ss.str());
+                    throw ValueError(ss.str());
             }
             break;
         default:
             stringstream ss;
             ss << "interpolateOnDomain: Dudley does not know anything about "
                 "function space type " << in.getFunctionSpace().getTypeCode();
-            throw DudleyException(ss.str());
+            throw ValueError(ss.str());
     }
 }
 
@@ -856,7 +851,7 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
 void DudleyDomain::setToX(escript::Data& arg) const
 {
     if (*arg.getFunctionSpace().getDomain() != *this)
-        throw DudleyException("setToX: Illegal domain of data point locations");
+        throw ValueError("setToX: Illegal domain of data point locations");
 
     // in case of appropriate function space we can do the job directly:
     if (arg.getFunctionSpace().getTypeCode() == Nodes) {
@@ -902,7 +897,7 @@ void DudleyDomain::interpolateAcross(escript::Data& /*target*/,
 // calculates the integral of a function defined on arg
 //
 void DudleyDomain::setToIntegrals(vector<double>& integrals,
-                                 const escript::Data& arg) const
+                                  const escript::Data& arg) const
 {
     if (*arg.getFunctionSpace().getDomain() != *this)
         throw ValueError("setToIntegrals: Illegal domain of integration kernel");
@@ -929,12 +924,12 @@ void DudleyDomain::setToIntegrals(vector<double>& integrals,
             stringstream ss;
             ss << "setToIntegrals: Dudley does not know anything about "
                 "function space type " << arg.getFunctionSpace().getTypeCode();
-            throw DudleyException(ss.str());
+            throw ValueError(ss.str());
     }
 }
 
 //
-// calculates the gradient of arg:
+// calculates the gradient of arg
 //
 void DudleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) const
 {
@@ -955,28 +950,25 @@ void DudleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
     }
     switch (grad.getFunctionSpace().getTypeCode()) {
         case Nodes:
-            throw DudleyException("Gradient at nodes is not supported.");
+            throw ValueError("Gradient at nodes is not supported.");
         break;
         case Elements:
-            Assemble_gradient(m_nodes, m_elements, grad, nodeData);
-        break;
         case ReducedElements:
             Assemble_gradient(m_nodes, m_elements, grad, nodeData);
-        break;
+            break;
         case FaceElements:
-            Assemble_gradient(m_nodes, m_faceElements, grad, nodeData);
-        break;
         case ReducedFaceElements:
             Assemble_gradient(m_nodes, m_faceElements, grad, nodeData);
-        break;
+            break;
         case Points:
-            throw DudleyException("Gradient at points is not supported.");
+            throw ValueError("Gradient at points is not supported.");
         case DegreesOfFreedom:
-            throw DudleyException("Gradient at degrees of freedom is not supported.");
+            throw ValueError("Gradient at degrees of freedom is not supported.");
         default:
             stringstream ss;
-            ss << "Gradient: Dudley does not know anything about function space type " << arg.getFunctionSpace().getTypeCode();
-            throw DudleyException(ss.str());
+            ss << "Gradient: Dudley does not know anything about function "
+                  "space type " << arg.getFunctionSpace().getTypeCode();
+            throw ValueError(ss.str());
     }
 }
 
@@ -987,24 +979,19 @@ void DudleyDomain::setToSize(escript::Data& size) const
 {
     switch (size.getFunctionSpace().getTypeCode()) {
         case Nodes:
-            throw DudleyException("Size of nodes is not supported.");
-        break;
+            throw ValueError("Size of nodes is not supported.");
         case Elements:
-            Assemble_getSize(m_nodes, m_elements, size);
-        break;
         case ReducedElements:
             Assemble_getSize(m_nodes, m_elements, size);
-        break;
+            break;
         case FaceElements:
-            Assemble_getSize(m_nodes, m_faceElements, size);
-        break;
         case ReducedFaceElements:
             Assemble_getSize(m_nodes, m_faceElements, size);
-        break;
+            break;
         case Points:
-            throw DudleyException("Size of point elements is not supported.");
+            throw ValueError("Size of point elements is not supported.");
         case DegreesOfFreedom:
-            throw DudleyException("Size of degrees of freedom is not supported.");
+            throw ValueError("Size of degrees of freedom is not supported.");
         default:
             stringstream ss;
             ss << "setToSize: Dudley does not know anything about function "
@@ -1024,8 +1011,8 @@ void DudleyDomain::setNewX(const escript::Data& newX)
     if (newX.getFunctionSpace() == continuousFunction(*this)) {
         m_nodes->setCoordinates(newX);
     } else {
-        throw DudleyException("As of escript version 3.3 - setNewX only "
-                "accepts ContinuousFunction arguments. Please interpolate.");
+        throw ValueError("As of escript version 3.3 setNewX only accepts "
+                         "ContinuousFunction arguments. Please interpolate.");
     }
 }
 
@@ -1073,10 +1060,10 @@ escript::ASM_ptr DudleyDomain::newSystemMatrix(int row_blocksize,
 
     // is the function space type right?
     if (row_functionspace.getTypeCode() != DegreesOfFreedom) {
-        throw DudleyException("illegal function space type for system matrix rows.");
+        throw ValueError("illegal function space type for system matrix rows.");
     }
     if (column_functionspace.getTypeCode() != DegreesOfFreedom) {
-        throw DudleyException("illegal function space type for system matrix columns.");
+        throw ValueError("illegal function space type for system matrix columns.");
     }
 
     // generate matrix
@@ -1123,7 +1110,7 @@ escript::ATP_ptr DudleyDomain::newTransportProblem(int blocksize,
     }
 
 #ifdef ESYS_HAVE_PASO
-    // generate matrix
+    // generate transport problem
     paso::SystemMatrixPattern_ptr pattern(getPasoPattern());
     paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
                                               pattern, blocksize, fs));
@@ -1135,7 +1122,8 @@ escript::ATP_ptr DudleyDomain::newTransportProblem(int blocksize,
 }
 
 //
-// returns true if data at the atom_type is considered as being cell centered:
+// returns true if data on functionSpaceCode is considered as being cell centered
+//
 bool DudleyDomain::isCellOriented(int functionSpaceCode) const
 {
     switch (functionSpaceCode) {
@@ -1243,7 +1231,7 @@ DudleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
 }
 
 bool DudleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
-                                             int functionSpaceType_target) const
+                                              int functionSpaceType_target) const
 {
     switch(functionSpaceType_source) {
         case Nodes:
@@ -1260,10 +1248,10 @@ bool DudleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                     stringstream ss;
                     ss << "Interpolation On Domain: Dudley does not know "
                         "anything about function space type "
-                        << functionSpaceType_target;
+                       << functionSpaceType_target;
                     throw ValueError(ss.str());
             }
-        break;
+            break;
         case Elements:
             return (functionSpaceType_target == Elements ||
                     functionSpaceType_target == ReducedElements);
@@ -1291,14 +1279,14 @@ bool DudleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                     ss << "Interpolation On Domain: Dudley does not know "
                           "anything about function space type "
                        << functionSpaceType_target;
-                    throw DudleyException(ss.str());
+                    throw ValueError(ss.str());
             }
             break;
         default:
             stringstream ss;
             ss << "Interpolation On Domain: Dudley does not know anything "
                   "about function space type " << functionSpaceType_source;
-            throw DudleyException(ss.str());
+            throw ValueError(ss.str());
     }
     return false;
 }
@@ -1308,13 +1296,14 @@ signed char DudleyDomain::preferredInterpolationOnDomain(
 {
     if (probeInterpolationOnDomain(functionSpaceType_source, functionSpaceType_target))
         return 1;
-    else if (probeInterpolationOnDomain(functionSpaceType_target, functionSpaceType_source))
+    if (probeInterpolationOnDomain(functionSpaceType_target, functionSpaceType_source))
         return -1;
+
     return 0;
 }
 
-bool DudleyDomain::probeInterpolationAcross(int functionSpaceType_source,
-        const AbstractDomain& targetDomain, int functionSpaceType_target) const
+bool DudleyDomain::probeInterpolationAcross(int /*source*/,
+        const AbstractDomain& /*targetDomain*/, int /*target*/) const
 {
     return false;
 }
@@ -1401,25 +1390,25 @@ const index_t* DudleyDomain::borrowSampleReferenceIDs(int functionSpaceType) con
     switch (functionSpaceType) {
         case Nodes:
             out = m_nodes->Id;
-        break;
+            break;
         case Elements:
             out = m_elements->Id;
-        break;
+            break;
         case ReducedElements:
             out = m_elements->Id;
-        break;
+            break;
         case FaceElements:
             out = m_faceElements->Id;
-        break;
+            break;
         case ReducedFaceElements:
             out = m_faceElements->Id;
-        break;
+            break;
         case Points:
             out = m_points->Id;
-        break;
+            break;
         case DegreesOfFreedom:
             out = m_nodes->degreesOfFreedomId;
-        break;
+            break;
         default:
             stringstream ss;
             ss << "Invalid function space type: " << functionSpaceType
@@ -1435,21 +1424,20 @@ int DudleyDomain::getTagFromSampleNo(int functionSpaceType, index_t sampleNo) co
     switch (functionSpaceType) {
         case Nodes:
             out = m_nodes->Tag[sampleNo];
-        break;
+            break;
         case Elements:
         case ReducedElements:
             out = m_elements->Tag[sampleNo];
-        break;
+            break;
         case FaceElements:
         case ReducedFaceElements:
             out = m_faceElements->Tag[sampleNo];
-        break;
+            break;
         case Points:
             out = m_points->Tag[sampleNo];
-        break;
+            break;
         case DegreesOfFreedom:
-            throw DudleyException("DegreesOfFreedom does not support tags.");
-        break;
+            throw ValueError("DegreesOfFreedom does not support tags.");
         default:
             stringstream ss;
             ss << "Invalid function space type: " << functionSpaceType
@@ -1468,8 +1456,7 @@ void DudleyDomain::setTags(int functionSpaceType, int newTag,
             m_nodes->setTags(newTag, mask);
             break;
         case DegreesOfFreedom:
-            throw DudleyException("DegreesOfFreedom does not support tags");
-            break;
+            throw ValueError("DegreesOfFreedom does not support tags");
         case Elements: // fall through
         case ReducedElements:
             m_elements->setTags(newTag, mask);
@@ -1578,7 +1565,7 @@ const int* DudleyDomain::borrowListOfTagsInUse(int functionSpaceCode) const
             stringstream ss;
             ss << "Dudley does not know anything about function space type "
                << functionSpaceCode;
-            throw DudleyException(ss.str());
+            throw ValueError(ss.str());
     }
     return NULL;
 }
@@ -1623,13 +1610,13 @@ int DudleyDomain::getApproximationOrder(int functionSpaceCode) const
                << functionSpaceCode;
             throw ValueError(ss.str());
     }
-    return 0;
+    return -1;
 }
 
 escript::Data DudleyDomain::randomFill(
-        const escript::DataTypes::ShapeType& shape,
-        const escript::FunctionSpace& what, long seed,
-        const bp::tuple& filter) const
+                                const escript::DataTypes::ShapeType& shape,
+                                const escript::FunctionSpace& what, long seed,
+                                const bp::tuple& filter) const
 {
     escript::Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't
@@ -1644,7 +1631,7 @@ void DudleyDomain::prepare(bool optimize)
 {
     // first step is to distribute the elements according to a global
     // distribution of DOF
-    std::vector<index_t> distribution(m_mpiInfo->size + 1);
+    IndexVector distribution(m_mpiInfo->size + 1);
 
     // first we create dense labeling for the DOFs
     dim_t newGlobalNumDOFs = m_nodes->createDenseDOFLabeling();
@@ -1676,11 +1663,11 @@ void DudleyDomain::prepare(bool optimize)
     optimizeElementOrdering();
 
     // create the global indices
-    std::vector<index_t> node_distribution(m_mpiInfo->size + 1);
+    IndexVector nodeDistribution(m_mpiInfo->size + 1);
 
-    m_nodes->createDenseNodeLabeling(node_distribution, distribution);
+    m_nodes->createDenseNodeLabeling(nodeDistribution, distribution);
     // create the missing mappings
-    m_nodes->createNodeMappings(distribution, node_distribution);
+    m_nodes->createNodeMappings(distribution, nodeDistribution);
 
     updateTagList();
 }
