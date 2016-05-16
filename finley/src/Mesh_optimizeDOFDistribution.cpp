@@ -88,16 +88,16 @@ void FinleyDomain::optimizeDOFDistribution(IndexVector& distribution)
         {
             // insert contributions from element matrices into columns index
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, Elements,
+                    myFirstVertex, myLastVertex, m_elements,
                     m_nodes->globalDegreesOfFreedom, m_nodes->globalDegreesOfFreedom);
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, FaceElements,
+                    myFirstVertex, myLastVertex, m_faceElements,
                     m_nodes->globalDegreesOfFreedom, m_nodes->globalDegreesOfFreedom);
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, ContactElements,
+                    myFirstVertex, myLastVertex, m_contactElements,
                     m_nodes->globalDegreesOfFreedom, m_nodes->globalDegreesOfFreedom);
             IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
-                    myFirstVertex, myLastVertex, Points,
+                    myFirstVertex, myLastVertex, m_points,
                     m_nodes->globalDegreesOfFreedom, m_nodes->globalDegreesOfFreedom);
         }
 
