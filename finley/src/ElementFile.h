@@ -97,10 +97,6 @@ public:
 
     void scatter(index_t* index, const ElementFile* in);
 
-    void markDOFsConnectedToRange(int* mask, int offset, int marker,
-                                  index_t firstDOF, index_t lastDOF,
-                                  const index_t* dofIndex, bool useLinear);
-
     void setTags(const int newTag, const escript::Data& mask);
 
     ElementFile_Jacobians* borrowJacobians(const NodeFile*, bool, bool) const;

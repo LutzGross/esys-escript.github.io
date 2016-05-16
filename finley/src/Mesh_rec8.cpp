@@ -14,18 +14,7 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: generates rectangular meshes
-
-  Generates a numElements[0] x numElements[1] mesh with second order elements
-  (Rec8) in the rectangle [0,Length[0]] x [0,Length[1]].
-  order is the desired accuracy of the integration scheme.
-
-*****************************************************************************/
-
-#include "RectangularMesh.h"
+#include "FinleyDomain.h"
 
 #include <escript/index.h>
 
@@ -33,69 +22,79 @@ using escript::DataTypes::real_t;
 
 namespace finley {
 
-Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
-                           const bool* periodic, int order, int reduced_order,
-                           bool useElementsOnFace, bool useFullElementOrder,
-                           bool useMacroElements, bool optimize,
-                           escript::JMPI& mpiInfo)
+escript::Domain_ptr FinleyDomain::createRec8(dim_t NE0, dim_t NE1,
+                                             real_t l0, real_t l1,
+                                             bool periodic0, bool periodic1,
+                                             int order, int reducedOrder,
+                                             bool useElementsOnFace,
+                                             bool useFullElementOrder,
+                                             bool useMacroElements,
+                                             bool optimize,
+                                             escript::JMPI mpiInfo)
 {
     const int N_PER_E = 2;
     const int DIM = 2;
-    dim_t Nstride0=0, Nstride1=0, local_NE0, local_NE1;
-    index_t e_offset0, e_offset1;
+    const int LEFTTAG = 1;    // boundary x1=0
+    const int RIGHTTAG = 2;   // boundary x1=1
+    const int BOTTOMTAG = 10; // boundary x2=0
+    const int TOPTAG = 20;    // boundary x2=1
+    dim_t Nstride0 = 0, Nstride1 = 0, local_NE0, local_NE1;
+    index_t e_offset0 = 0, e_offset1 = 0;
     const bool generateAllNodes = useFullElementOrder || useMacroElements;
 
     const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
-    const dim_t NE0 = std::max(dim_t(1),numElements[0]);
-    const dim_t NE1 = std::max(dim_t(1),numElements[1]);
-    const dim_t N0 = N_PER_E*NE0+1;
-    const dim_t N1 = N_PER_E*NE1+1;
+    NE0 = std::max((dim_t)1, NE0);
+    NE1 = std::max((dim_t)1, NE1);
+    const dim_t N0 = N_PER_E*NE0 + 1;
+    const dim_t N1 = N_PER_E*NE1 + 1;
 
     // allocate mesh
     std::stringstream name;
     name << "Rectangular " << N0 << " x " << N1 << " mesh";
-    Mesh* out = new Mesh(name.str(), DIM, mpiInfo);
+    FinleyDomain* out = new FinleyDomain(name.str(), DIM, mpiInfo);
 
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
     if (generateAllNodes) {
         if (useMacroElements) {
-            refElements.reset(new ReferenceElementSet(Rec9Macro, order, reduced_order));
+            refElements.reset(new ReferenceElementSet(Rec9Macro, order, reducedOrder));
         } else {
-            refElements.reset(new ReferenceElementSet(Rec9, order, reduced_order));
+            refElements.reset(new ReferenceElementSet(Rec9, order, reducedOrder));
         }
         if (useElementsOnFace) {
             throw escript::NotImplementedError("rich elements for Rec9 elements are not supported yet.");
         } else {
             if (useMacroElements) {
-                refFaceElements.reset(new ReferenceElementSet(Line3Macro, order, reduced_order));
+                refFaceElements.reset(new ReferenceElementSet(Line3Macro, order, reducedOrder));
             } else {
-                refFaceElements.reset(new ReferenceElementSet(Line3, order, reduced_order));
+                refFaceElements.reset(new ReferenceElementSet(Line3, order, reducedOrder));
             }
-            refContactElements.reset(new ReferenceElementSet(Line3_Contact, order, reduced_order));
+            refContactElements.reset(new ReferenceElementSet(Line3_Contact, order, reducedOrder));
         }
     } else { // !generateAllNodes
-        refElements.reset(new ReferenceElementSet(Rec8, order, reduced_order));
+        refElements.reset(new ReferenceElementSet(Rec8, order, reducedOrder));
         if (useElementsOnFace) {
-            refFaceElements.reset(new ReferenceElementSet(Rec8Face, order, reduced_order));
-            refContactElements.reset(new ReferenceElementSet(Rec8Face_Contact, order, reduced_order));
+            refFaceElements.reset(new ReferenceElementSet(Rec8Face, order, reducedOrder));
+            refContactElements.reset(new ReferenceElementSet(Rec8Face_Contact, order, reducedOrder));
         } else {
-            refFaceElements.reset(new ReferenceElementSet(Line3, order, reduced_order));
-            refContactElements.reset(new ReferenceElementSet(Line3_Contact, order, reduced_order));
+            refFaceElements.reset(new ReferenceElementSet(Line3, order, reducedOrder));
+            refContactElements.reset(new ReferenceElementSet(Line3_Contact, order, reducedOrder));
         }
     }
-    refPoints.reset(new ReferenceElementSet(Point1, order, reduced_order));
-
+    refPoints.reset(new ReferenceElementSet(Point1, order, reducedOrder));
     if (!refPoints->referenceElement)
-        throw escript::ValueError("ERRRRORRRRR!!");
-    out->setPoints(new ElementFile(refPoints, mpiInfo));
+        throw FinleyException("ERRRRORRRRR!!");
+
+    ElementFile* elements = new ElementFile(refElements, mpiInfo);
+    out->setElements(elements);
+    ElementFile* faces = new ElementFile(refFaceElements, mpiInfo);
+    out->setFaceElements(faces);
     out->setContactElements(new ElementFile(refContactElements, mpiInfo));
-    out->setFaceElements(new ElementFile(refFaceElements, mpiInfo));
-    out->setElements(new ElementFile(refElements, mpiInfo));
+    out->setPoints(new ElementFile(refPoints, mpiInfo));
 
     // work out the largest dimension
-    if (N1 == std::max(N0,N1)) {
+    if (N1 == std::max(N0, N1)) {
         Nstride0 = 1;
         Nstride1 = N0;
         local_NE0 = NE0;
@@ -108,218 +107,218 @@ Mesh* RectangularMesh_Rec8(const dim_t* numElements, const double* Length,
         local_NE1 = NE1;
         e_offset1 = 0;
     }
-    const index_t offset0 = e_offset0*N_PER_E;
-    const index_t offset1 = e_offset1*N_PER_E;
-    const dim_t local_N0 = local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
-    const dim_t local_N1 = local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
-    dim_t NDOF0=0, NDOF1=0;
+    const index_t offset0 = e_offset0 * N_PER_E;
+    const index_t offset1 = e_offset1 * N_PER_E;
+    const dim_t local_N0 = local_NE0 > 0 ? local_NE0*N_PER_E+1 : 0;
+    const dim_t local_N1 = local_NE1 > 0 ? local_NE1*N_PER_E+1 : 0;
+    dim_t NDOF0 = 0, NDOF1 = 0;
 
     // get the number of surface elements
     dim_t NFaceElements = 0;
-    if (!periodic[0] && local_NE0>0) {
-        NDOF0=N0;
+    if (!periodic0 && local_NE0 > 0) {
+        NDOF0 = N0;
         if (e_offset0 == 0)
-            NFaceElements+=local_NE1;
-        if (local_NE0+e_offset0 == NE0)
-            NFaceElements+=local_NE1;
+            NFaceElements += local_NE1;
+        if (local_NE0 + e_offset0 == NE0)
+            NFaceElements += local_NE1;
     } else {
-        NDOF0=N0-1;
+        NDOF0 = N0 - 1;
     }
-    if (!periodic[1] && local_NE1>0) {
-        NDOF1=N1;
+
+    if (!periodic1 && local_NE1 > 0) {
+        NDOF1 = N1;
         if (e_offset1 == 0)
-            NFaceElements+=local_NE0;
-        if (local_NE1+e_offset1 == NE1)
-            NFaceElements+=local_NE0;
+            NFaceElements += local_NE0;
+        if (local_NE1 + e_offset1 == NE1)
+            NFaceElements += local_NE0;
     } else {
-        NDOF1=N1-1;
+        NDOF1 = N1 - 1;
     }
 
     // allocate tables
-    out->Nodes->allocTable(local_N0*local_N1);
-    out->Elements->allocTable(local_NE0*local_NE1);
-    out->FaceElements->allocTable(NFaceElements);
+    NodeFile* nodes = out->getNodes();
+    nodes->allocTable(local_N0 * local_N1);
+    elements->allocTable(local_NE0 * local_NE1);
+    faces->allocTable(NFaceElements);
 
     // create nodes
 #pragma omp parallel for
-    for (index_t i1=0; i1<local_N1; i1++) {
-        for (index_t i0=0; i0<local_N0; i0++) {
-            const dim_t k = i0+local_N0*i1;
-            const index_t global_i0 = i0+offset0;
-            const index_t global_i1 = i1+offset1;
-            out->Nodes->Coordinates[INDEX2(0,k,DIM)]=(real_t)global_i0/(real_t)(N0-1)*Length[0];
-            out->Nodes->Coordinates[INDEX2(1,k,DIM)]=(real_t)global_i1/(real_t)(N1-1)*Length[1];
-            out->Nodes->Id[k] = Nstride0*global_i0+Nstride1*global_i1;
-            out->Nodes->Tag[k]=0;
-            out->Nodes->globalDegreesOfFreedom[k] = Nstride0*(global_i0%NDOF0)
-                                                  + Nstride1*(global_i1%NDOF1);
+    for (index_t i1 = 0; i1 < local_N1; i1++) {
+        for (index_t i0 = 0; i0 < local_N0; i0++) {
+            const dim_t k = i0 + local_N0 * i1;
+            const index_t global_i0 = i0 + offset0;
+            const index_t global_i1 = i1 + offset1;
+            nodes->Coordinates[INDEX2(0, k, DIM)] = (real_t)global_i0 / (real_t)(N0 - 1) * l0;
+            nodes->Coordinates[INDEX2(1, k, DIM)] = (real_t)global_i1 / (real_t)(N1 - 1) * l1;
+            nodes->Id[k] = Nstride0 * global_i0 + Nstride1 * global_i1;
+            nodes->Tag[k] = 0;
+            nodes->globalDegreesOfFreedom[k] = Nstride0 * (global_i0 % NDOF0)
+                                             + Nstride1 * (global_i1 % NDOF1);
         }
     }
 
     // set the elements
-    dim_t NN = out->Elements->numNodes;
+    dim_t NN = elements->numNodes;
 #pragma omp parallel for
-    for (index_t i1=0; i1<local_NE1; i1++) {
-        for (index_t i0=0; i0<local_NE0; i0++) {
-            const dim_t k = i0+local_NE0*i1;
-            const index_t node0 = Nstride0*N_PER_E*(i0+e_offset0)
-                                + Nstride1*N_PER_E*(i1+e_offset1);
+    for (index_t i1 = 0; i1 < local_NE1; i1++) {
+        for (index_t i0 = 0; i0 < local_NE0; i0++) {
+            const dim_t k = i0 + local_NE0 * i1;
+            const index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0)
+                                + Nstride1 * N_PER_E * (i1 + e_offset1);
 
-            out->Elements->Id[k]=(i0+e_offset0)+NE0*(i1+e_offset1);
-            out->Elements->Tag[k]=0;
-            out->Elements->Owner[k]=myRank;
+            elements->Id[k] = (i0 + e_offset0) + NE0*(i1 + e_offset1);
+            elements->Tag[k] = 0;
+            elements->Owner[k] = myRank;
 
-            out->Elements->Nodes[INDEX2(0,k,NN)]=node0;
-            out->Elements->Nodes[INDEX2(1,k,NN)]=node0+2*Nstride0;
-            out->Elements->Nodes[INDEX2(2,k,NN)]=node0+2*Nstride1+2*Nstride0;
-            out->Elements->Nodes[INDEX2(3,k,NN)]=node0+2*Nstride1;
-            out->Elements->Nodes[INDEX2(4,k,NN)]=node0+1*Nstride0;
-            out->Elements->Nodes[INDEX2(5,k,NN)]=node0+Nstride1+2*Nstride0;
-            out->Elements->Nodes[INDEX2(6,k,NN)]=node0+2*Nstride1+1*Nstride0;
-            out->Elements->Nodes[INDEX2(7,k,NN)]=node0+Nstride1;
+            elements->Nodes[INDEX2(0, k, NN)] = node0;
+            elements->Nodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride0;
+            elements->Nodes[INDEX2(2, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+            elements->Nodes[INDEX2(3, k, NN)] = node0 + 2 * Nstride1;
+            elements->Nodes[INDEX2(4, k, NN)] = node0 + 1 * Nstride0;
+            elements->Nodes[INDEX2(5, k, NN)] = node0 + Nstride1 + 2 * Nstride0;
+            elements->Nodes[INDEX2(6, k, NN)] = node0 + 2 * Nstride1 + Nstride0;
+            elements->Nodes[INDEX2(7, k, NN)] = node0 + Nstride1;
             if (generateAllNodes) {
-                out->Elements->Nodes[INDEX2(8,k,NN)]=node0+1*Nstride1+1*Nstride0;
+                elements->Nodes[INDEX2(8, k, NN)] = node0 + Nstride1 + Nstride0;
             }
         }
     }
 
     // face elements
-    NN=out->FaceElements->numNodes;
-    dim_t totalNECount=NE0*NE1;
-    dim_t faceNECount=0;
-    index_t* eNodes = out->FaceElements->Nodes;
+    NN = faces->numNodes;
+    dim_t totalNECount = NE0 * NE1;
+    dim_t faceNECount = 0;
+    index_t* eNodes = faces->Nodes;
 
-    if (!periodic[0] && local_NE0>0) {
-        // **  elements on boundary 001 (x1=0):
+    if (!periodic0 && local_NE0 > 0) {
+        // ** elements on boundary 001 (x1=0)
         if (e_offset0 == 0) {
 #pragma omp parallel for
-            for (index_t i1=0; i1<local_NE1; i1++) {
-                const dim_t k = i1+faceNECount;
-                const index_t node0 = Nstride1*N_PER_E*(i1+e_offset1);
+            for (index_t i1 = 0; i1 < local_NE1; i1++) {
+                const dim_t k = i1 + faceNECount;
+                const index_t node0 = Nstride1 * N_PER_E * (i1 + e_offset1);
 
-                out->FaceElements->Id[k]=i1+e_offset1+totalNECount;
-                out->FaceElements->Tag[k]=1;
-                out->FaceElements->Owner[k]=myRank;
+                faces->Id[k] = i1 + e_offset1 + totalNECount;
+                faces->Tag[k] = LEFTTAG;
+                faces->Owner[k] = myRank;
                 if (useElementsOnFace) {
-                    eNodes[INDEX2(0,k,NN)]=node0+2*Nstride1;
-                    eNodes[INDEX2(1,k,NN)]=node0;
-                    eNodes[INDEX2(2,k,NN)]=node0+2*Nstride0;
-                    eNodes[INDEX2(3,k,NN)]=node0+2*Nstride1+2*Nstride0;
-                    eNodes[INDEX2(4,k,NN)]=node0+Nstride1;
-                    eNodes[INDEX2(5,k,NN)]=node0+1*Nstride0;
-                    eNodes[INDEX2(6,k,NN)]=node0+Nstride1+2*Nstride0;
-                    eNodes[INDEX2(7,k,NN)]=node0+2*Nstride1+1*Nstride0;
+                    eNodes[INDEX2(0, k, NN)] = node0 + 2 * Nstride1;
+                    eNodes[INDEX2(1, k, NN)] = node0;
+                    eNodes[INDEX2(2, k, NN)] = node0 + 2 * Nstride0;
+                    eNodes[INDEX2(3, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(4, k, NN)] = node0 + Nstride1;
+                    eNodes[INDEX2(5, k, NN)] = node0 + Nstride0;
+                    eNodes[INDEX2(6, k, NN)] = node0 + Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(7, k, NN)] = node0 + 2 * Nstride1 + Nstride0;
                 } else {
-                    eNodes[INDEX2(0,k,NN)]=node0+2*Nstride1;
-                    eNodes[INDEX2(1,k,NN)]=node0;
-                    eNodes[INDEX2(2,k,NN)]=node0+Nstride1;
+                    eNodes[INDEX2(0, k, NN)] = node0 + 2 * Nstride1;
+                    eNodes[INDEX2(1, k, NN)] = node0;
+                    eNodes[INDEX2(2, k, NN)] = node0 + Nstride1;
                 }
             }
-            faceNECount+=local_NE1;
+            faceNECount += local_NE1;
         }
-        totalNECount+=NE1;
-
-        // **  elements on boundary 002 (x1=1):
-        if (local_NE0+e_offset0 == NE0) {
+        totalNECount += NE1;
+        // ** elements on boundary 002 (x1=1)
+        if (local_NE0 + e_offset0 == NE0) {
 #pragma omp parallel for
-            for (index_t i1=0; i1<local_NE1; i1++) {
-                const dim_t k = i1+faceNECount;
-                const index_t node0 = Nstride0*N_PER_E*(NE0-1)
-                                    + Nstride1*N_PER_E*(i1+e_offset1);
+            for (index_t i1 = 0; i1 < local_NE1; i1++) {
+                const dim_t k = i1 + faceNECount;
+                const index_t node0 = Nstride0 * N_PER_E * (NE0 - 1)
+                                    + Nstride1 * N_PER_E * (i1 + e_offset1);
 
-                out->FaceElements->Id[k] = (i1+e_offset1)+totalNECount;
-                out->FaceElements->Tag[k] = 2;
-                out->FaceElements->Owner[k] = myRank;
+                faces->Id[k] = (i1 + e_offset1) + totalNECount;
+                faces->Tag[k] = RIGHTTAG;
+                faces->Owner[k] = myRank;
                 if (useElementsOnFace) {
-                    eNodes[INDEX2(0,k,NN)]=node0+2*Nstride0;
-                    eNodes[INDEX2(1,k,NN)]=node0+2*Nstride1+2*Nstride0;
-                    eNodes[INDEX2(2,k,NN)]=node0+2*Nstride1;
-                    eNodes[INDEX2(3,k,NN)]=node0;
-                    eNodes[INDEX2(4,k,NN)]=node0+Nstride1+2*Nstride0;
-                    eNodes[INDEX2(5,k,NN)]=node0+2*Nstride1+1*Nstride0;
-                    eNodes[INDEX2(6,k,NN)]=node0+Nstride1;
-                    eNodes[INDEX2(7,k,NN)]=node0+1*Nstride0;
+                    eNodes[INDEX2(0, k, NN)] = node0 + 2 * Nstride0;
+                    eNodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(2, k, NN)] = node0 + 2 * Nstride1;
+                    eNodes[INDEX2(3, k, NN)] = node0;
+                    eNodes[INDEX2(4, k, NN)] = node0 + Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(5, k, NN)] = node0 + 2 * Nstride1 + Nstride0;
+                    eNodes[INDEX2(6, k, NN)] = node0 + Nstride1;
+                    eNodes[INDEX2(7, k, NN)] = node0 + Nstride0;
                 } else {
-                    eNodes[INDEX2(0,k,NN)]=node0+2*Nstride0;
-                    eNodes[INDEX2(1,k,NN)]=node0+2*Nstride1+2*Nstride0;
-                    eNodes[INDEX2(2,k,NN)]=node0+Nstride1+2*Nstride0;
+                    eNodes[INDEX2(0, k, NN)] = node0 + 2 * Nstride0;
+                    eNodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(2, k, NN)] = node0 + Nstride1 + 2 * Nstride0;
                 }
             }
-            faceNECount+=local_NE1;
+            faceNECount += local_NE1;
         }
-        totalNECount+=NE1;
+        totalNECount += NE1;
     }
-    if (!periodic[1] && local_NE1>0) {
-        // **  elements on boundary 010 (x2=0):
+
+    if (!periodic1 && local_NE1 > 0) {
+        // ** elements on boundary 010 (x2=0)
         if (e_offset1 == 0) {
 #pragma omp parallel for
-            for (index_t i0=0; i0<local_NE0; i0++) {
-                const dim_t k = i0+faceNECount;
-                const index_t node0 = Nstride0*N_PER_E*(i0+e_offset0);
-
-                out->FaceElements->Id[k] = e_offset0+i0+totalNECount;
-                out->FaceElements->Tag[k] = 10;
-                out->FaceElements->Owner[k] = myRank;
+            for (index_t i0 = 0; i0 < local_NE0; i0++) {
+                const dim_t k = i0 + faceNECount;
+                const index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0);
+                faces->Id[k] = e_offset0 + i0 + totalNECount;
+                faces->Tag[k] = BOTTOMTAG;
+                faces->Owner[k] = myRank;
                 if (useElementsOnFace) {
-                    eNodes[INDEX2(0,k,NN)]=node0;
-                    eNodes[INDEX2(1,k,NN)]=node0+2*Nstride0;
-                    eNodes[INDEX2(2,k,NN)]=node0+2*Nstride1+2*Nstride0;
-                    eNodes[INDEX2(3,k,NN)]=node0+2*Nstride1;
-                    eNodes[INDEX2(4,k,NN)]=node0+1*Nstride0;
-                    eNodes[INDEX2(5,k,NN)]=node0+Nstride1+2*Nstride0;
-                    eNodes[INDEX2(6,k,NN)]=node0+2*Nstride1+1*Nstride0;
-                    eNodes[INDEX2(7,k,NN)]=node0+Nstride1;
+                    eNodes[INDEX2(0, k, NN)] = node0;
+                    eNodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride0;
+                    eNodes[INDEX2(2, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(3, k, NN)] = node0 + 2 * Nstride1;
+                    eNodes[INDEX2(4, k, NN)] = node0 + Nstride0;
+                    eNodes[INDEX2(5, k, NN)] = node0 + Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(6, k, NN)] = node0 + 2 * Nstride1 + Nstride0;
+                    eNodes[INDEX2(7, k, NN)] = node0 + Nstride1;
                 } else {
-                    eNodes[INDEX2(0,k,NN)]=node0;
-                    eNodes[INDEX2(1,k,NN)]=node0+2*Nstride0;
-                    eNodes[INDEX2(2,k,NN)]=node0+1*Nstride0;
+                    eNodes[INDEX2(0, k, NN)] = node0;
+                    eNodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride0;
+                    eNodes[INDEX2(2, k, NN)] = node0 + Nstride0;
                 }
             }
-            faceNECount+=local_NE0;
+            faceNECount += local_NE0;
         }
-        totalNECount+=NE0;
-
-        // **  elements on boundary 020 (x2=1):
-        if (local_NE1+e_offset1 == NE1) {
+        totalNECount += NE0;
+        // ** elements on boundary 020 (x2=1)
+        if (local_NE1 + e_offset1 == NE1) {
 #pragma omp parallel for
-            for (index_t i0=0; i0<local_NE0; i0++) {
-                const dim_t k = i0+faceNECount;
-                const index_t node0 = Nstride0*N_PER_E*(i0+e_offset0)
-                                    + Nstride1*N_PER_E*(NE1-1);
+            for (index_t i0 = 0; i0 < local_NE0; i0++) {
+                const dim_t k = i0 + faceNECount;
+                const index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0)
+                                    + Nstride1 * N_PER_E * (NE1 - 1);
 
-                out->FaceElements->Id[k] = i0+e_offset0+totalNECount;
-                out->FaceElements->Tag[k] = 20;
-                out->FaceElements->Owner[k] = myRank;
+                faces->Id[k] = i0 + e_offset0 + totalNECount;
+                faces->Tag[k] = TOPTAG;
+                faces->Owner[k] = myRank;
                 if (useElementsOnFace) {
-                    eNodes[INDEX2(0,k,NN)]=node0+2*Nstride1+2*Nstride0;
-                    eNodes[INDEX2(1,k,NN)]=node0+2*Nstride1;
-                    eNodes[INDEX2(2,k,NN)]=node0;
-                    eNodes[INDEX2(3,k,NN)]=node0+2*Nstride0;
-                    eNodes[INDEX2(4,k,NN)]=node0+2*Nstride1+1*Nstride0;
-                    eNodes[INDEX2(5,k,NN)]=node0+Nstride1;
-                    eNodes[INDEX2(6,k,NN)]=node0+1*Nstride0;
-                    eNodes[INDEX2(7,k,NN)]=node0+Nstride1+2*Nstride0;
+                    eNodes[INDEX2(0, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride1;
+                    eNodes[INDEX2(2, k, NN)] = node0;
+                    eNodes[INDEX2(3, k, NN)] = node0 + 2 * Nstride0;
+                    eNodes[INDEX2(4, k, NN)] = node0 + 2 * Nstride1 + Nstride0;
+                    eNodes[INDEX2(5, k, NN)] = node0 + Nstride1;
+                    eNodes[INDEX2(6, k, NN)] = node0 + Nstride0;
+                    eNodes[INDEX2(7, k, NN)] = node0 + Nstride1 + 2 * Nstride0;
                 } else {
-                    eNodes[INDEX2(0,k,NN)]=node0+2*Nstride1+2*Nstride0;
-                    eNodes[INDEX2(1,k,NN)]=node0+2*Nstride1;
-                    eNodes[INDEX2(2,k,NN)]=node0+2*Nstride1+1*Nstride0;
+                    eNodes[INDEX2(0, k, NN)] = node0 + 2 * Nstride1 + 2 * Nstride0;
+                    eNodes[INDEX2(1, k, NN)] = node0 + 2 * Nstride1;
+                    eNodes[INDEX2(2, k, NN)] = node0 + 2 * Nstride1 + Nstride0;
                 }
             }
-            faceNECount+=local_NE0;
+            faceNECount += local_NE0;
         }
-        totalNECount+=NE0;
+        totalNECount += NE0;
     }
 
     // add tag names
-    out->addTagMap("top", 20);
-    out->addTagMap("bottom", 10);
-    out->addTagMap("left", 1);
-    out->addTagMap("right", 2);
+    out->setTagMap("top", TOPTAG);
+    out->setTagMap("bottom", BOTTOMTAG);
+    out->setTagMap("left", LEFTTAG);
+    out->setTagMap("right", RIGHTTAG);
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
     out->prepare(optimize);
-    return out;
+    return out->getPtr();
 }
 
 } // namespace finley

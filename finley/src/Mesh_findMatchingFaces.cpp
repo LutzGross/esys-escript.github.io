@@ -17,13 +17,13 @@
 
 /****************************************************************************
 
-  Finley: Mesh
+  Finley: Domain
 
   searches for faces in the mesh which are matching.
 
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "FinleyDomain.h"
 #include "Util.h"
 
 #include <escript/index.h>
@@ -31,6 +31,14 @@
 namespace finley {
 
 static double lockingGridSize = 0.;
+
+// this structure is used for matching surface elements
+struct FaceCenter
+{
+   int refId;
+   std::vector<double> x;
+};
+
 
 /// comparison function for findMatchingFaces
 bool FaceCenterCompare(const FaceCenter& e1, const FaceCenter& e2)
@@ -57,14 +65,14 @@ inline double getDist(int e0, int i0, int e1, int i1, int numDim, int NN,
     return dist;
 }
 
-void Mesh::findMatchingFaces(double safety_factor, double tolerance,
-                             int* numPairs, int* elem0, int* elem1,
-                             int* matching_nodes_in_elem1)
+void FinleyDomain::findMatchingFaces(double safety_factor, double tolerance,
+                                     int* numPairs, int* elem0, int* elem1,
+                                     int* matching_nodes_in_elem1) const
 {
-    const_ReferenceElement_ptr refElement(FaceElements->referenceElementSet->
+    const_ReferenceElement_ptr refElement(m_faceElements->referenceElementSet->
                                             borrowReferenceElement(false));
-    const int numDim = Nodes->numDim;
-    const int NN = FaceElements->numNodes;
+    const int numDim = m_nodes->numDim;
+    const int NN = m_faceElements->numNodes;
     const int numNodesOnFace = refElement->Type->numNodesOnFace;
     const int* faceNodes = refElement->Type->faceNodes;
     const int* shiftNodes = refElement->Type->shiftNodes;
@@ -76,17 +84,17 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
             "face elements of type " << refElement->Type->Name;
         throw escript::ValueError(ss.str());
     }
-    double* X = new double[NN*numDim*FaceElements->numElements];
-    std::vector<FaceCenter> center(FaceElements->numElements);
+    double* X = new double[NN * numDim * m_faceElements->numElements];
+    std::vector<FaceCenter> center(m_faceElements->numElements);
     int* a1 = new int[NN];
     int* a2 = new int[NN];
     double h = std::numeric_limits<double>::max();
 
     // TODO: OMP
-    for (index_t e = 0; e < FaceElements->numElements; e++) {
+    for (index_t e = 0; e < m_faceElements->numElements; e++) {
         // get the coordinates of the nodes
-        util::gather(NN, &(FaceElements->Nodes[INDEX2(0,e,NN)]), numDim,
-                     Nodes->Coordinates, &X[INDEX3(0,0,e,numDim,NN)]);
+        util::gather(NN, &(m_faceElements->Nodes[INDEX2(0,e,NN)]), numDim,
+                     m_nodes->Coordinates, &X[INDEX3(0,0,e,numDim,NN)]);
         // get the element center
         center[e].refId = e;
         center[e].x.assign(numDim, 0);
@@ -115,7 +123,7 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
     *numPairs = 0;
 
     // TODO: OMP
-    for (index_t e = 0; e < FaceElements->numElements-1; e++) {
+    for (index_t e = 0; e < m_faceElements->numElements-1; e++) {
         double dist = 0.;
         for (int i = 0; i < numDim; i++)
             dist = std::max(dist, std::abs(center[e].x[i]-center[e+1].x[i]));
@@ -198,7 +206,8 @@ void Mesh::findMatchingFaces(double safety_factor, double tolerance,
             }
             // copy over the permuted nodes of e_1 into matching_nodes_in_elem1
             for (int i = 0; i < NN; i++)
-                matching_nodes_in_elem1[INDEX2(i,*numPairs,NN)] = FaceElements->Nodes[INDEX2(perm[i],e_1,NN)];
+                matching_nodes_in_elem1[INDEX2(i,*numPairs,NN)] =
+                    m_faceElements->Nodes[INDEX2(perm[i],e_1,NN)];
             (*numPairs)++;
         }
     }

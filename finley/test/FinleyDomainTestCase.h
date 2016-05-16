@@ -15,30 +15,19 @@
 *****************************************************************************/
 
 
-/**
-\file finley/src/CPPAdapter/system_dep.h
-\ingroup Other
- */
-/*
-   @(#) system_dep.h
-*/
+#ifndef __FINLEYDOMAIN_TESTCASE_H__
+#define __FINLEYDOMAIN_TESTCASE_H__
 
-#ifndef finley_system_dep_h
-#define finley_system_dep_h
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-#define FINLEY_DLL_API
+class FinleyDomainTestCase : public CppUnit::TestFixture
+{
+public:
+    void testAll();
+    
+    static CppUnit::TestSuite* suite();
+};
 
-#ifdef _WIN32
-
-#   ifndef FINLEY_STATIC_LIB
-#      undef FINLEY_DLL_API
-#      ifdef FINLEY_EXPORTS
-#         define FINLEY_DLL_API __declspec(dllexport)
-#      else
-#         define FINLEY_DLL_API __declspec(dllimport)
-#      endif
-#   endif
-#endif
-
-#endif
+#endif // __FINLEYDOMAIN_TESTCASE_H__
 

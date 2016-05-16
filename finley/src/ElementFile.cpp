@@ -332,49 +332,6 @@ void ElementFile::markNodes(std::vector<short>& mask, int offset, bool useLinear
     }
 }
 
-void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
-        index_t firstDOF, index_t lastDOF, const index_t *dofIndex, bool useLinear) 
-{
-    const_ReferenceElement_ptr refElement(referenceElementSet->
-                                            borrowReferenceElement(false));
-    if (useLinear) {
-        const int NN=refElement->numLinearNodes;
-        const int *lin_nodes=refElement->Type->linearNodes;
-        for (int color=minColor; color<=maxColor; color++) {
-#pragma omp parallel for
-            for (index_t e=0; e<numElements; e++) {
-                if (Color[e]==color) {
-                    for (int i=0; i<NN; i++) {
-                        const index_t k=dofIndex[Nodes[INDEX2(lin_nodes[i],e,numNodes)]];
-                        if (firstDOF<=k && k<lastDOF) {
-                            for (int j=0; j<NN; j++)
-                                mask[dofIndex[Nodes[INDEX2(lin_nodes[j],e,numNodes)]]-offset]=marker;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        const int NN=refElement->Type->numNodes;
-        for (int color=minColor; color<=maxColor; color++) {
-#pragma omp parallel for
-            for (index_t e=0; e<numElements; e++) {
-                if (Color[e]==color) {
-                    for (int i=0; i<NN; i++) {
-                        const index_t k=dofIndex[Nodes[INDEX2(i,e,numNodes)]];
-                        if (firstDOF<=k && k<lastDOF) {
-                            for (int j=0; j<NN; j++)
-                                mask[dofIndex[Nodes[INDEX2(j,e,numNodes)]]-offset]=marker;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 /// redistributes the elements including overlap by rank
 void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, index_t* index)
 {

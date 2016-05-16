@@ -14,16 +14,8 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: Mesh
-
-*****************************************************************************/
-
 #ifdef ESYS_HAVE_TRILINOS
-
-#include "Mesh.h"
+#include "FinleyDomain.h"
 #include "IndexList.h"
 
 #include <boost/scoped_array.hpp>
@@ -34,16 +26,16 @@ namespace finley {
 
 typedef std::vector<index_t> IndexVector;
 
-esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
+esys_trilinos::const_TrilinosGraph_ptr FinleyDomain::createTrilinosGraph() const
 {
-    const index_t numColTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
-    const index_t* colTarget = Nodes->borrowTargetDegreesOfFreedom();
-    const index_t* gNI = Nodes->borrowGlobalNodesIndex();
-    const IndexVector& dofMap = Nodes->degreesOfFreedomMapping.map;
+    const index_t numColTargets = m_nodes->degreesOfFreedomMapping.getNumTargets();
+    const index_t* colTarget = m_nodes->borrowTargetDegreesOfFreedom();
+    const index_t* gNI = m_nodes->borrowGlobalNodesIndex();
+    const IndexVector& dofMap = m_nodes->degreesOfFreedomMapping.map;
 
-    const index_t myNumRowTargets = Nodes->getNumDegreesOfFreedom();
-    const index_t numRowTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
-    const index_t* rowTarget = Nodes->borrowTargetDegreesOfFreedom();
+    const index_t myNumRowTargets = m_nodes->getNumDegreesOfFreedom();
+    const index_t numRowTargets = m_nodes->degreesOfFreedomMapping.getNumTargets();
+    const index_t* rowTarget = m_nodes->borrowTargetDegreesOfFreedom();
     boost::scoped_array<IndexList> index_list(new IndexList[numRowTargets]);
     IndexVector myRows(myNumRowTargets);
     IndexVector columns(numColTargets);
@@ -51,13 +43,13 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns in indexlist:
-        IndexList_insertElements(index_list.get(), Elements, false,
+        IndexList_insertElements(index_list.get(), m_elements, false,
                                  rowTarget, false, colTarget);
-        IndexList_insertElements(index_list.get(), FaceElements,
+        IndexList_insertElements(index_list.get(), m_faceElements,
                                  false, rowTarget, false, colTarget);
-        IndexList_insertElements(index_list.get(), ContactElements,
+        IndexList_insertElements(index_list.get(), m_contactElements,
                                  false, rowTarget, false, colTarget);
-        IndexList_insertElements(index_list.get(), Points, false,
+        IndexList_insertElements(index_list.get(), m_points, false,
                                  rowTarget, false, colTarget);
 
 #pragma omp for nowait
@@ -83,10 +75,10 @@ esys_trilinos::const_TrilinosGraph_ptr Mesh::createTrilinosGraph() const
         std::sort(&colInd[rowPtr[i]], &colInd[rowPtr[i+1]]);
     }
 
-    TrilinosMap_ptr rowMap(new MapType(Nodes->getGlobalNumNodes(), myRows,
+    TrilinosMap_ptr rowMap(new MapType(m_nodes->getGlobalNumNodes(), myRows,
                 0, TeuchosCommFromEsysComm(MPIInfo->comm)));
 
-    TrilinosMap_ptr colMap(new MapType(Nodes->getGlobalNumNodes(), columns,
+    TrilinosMap_ptr colMap(new MapType(m_nodes->getGlobalNumNodes(), columns,
                 0, TeuchosCommFromEsysComm(MPIInfo->comm)));
 
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));

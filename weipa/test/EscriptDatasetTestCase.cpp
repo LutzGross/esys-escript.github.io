@@ -25,7 +25,7 @@
 #include <dudley/DomainFactory.h>
 #endif
 #if USE_FINLEY
-#include <finley/CppAdapter/MeshAdapterFactory.h>
+#include <finley/DomainFactory.h>
 #endif
 #if USE_RIPLEY
 #include <ripley/Brick.h>

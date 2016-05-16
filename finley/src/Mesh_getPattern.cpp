@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include "Mesh.h"
+#include "FinleyDomain.h"
 #include "IndexList.h"
 
 #include <boost/scoped_array.hpp>
@@ -22,35 +22,36 @@
 namespace finley {
 
 #ifdef ESYS_HAVE_PASO
-paso::SystemMatrixPattern_ptr Mesh::getPasoPattern(bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern_ptr FinleyDomain::getPasoPattern(
+                              bool reducedRowOrder, bool reducedColOrder) const
 {
     paso::SystemMatrixPattern_ptr out;
     // make sure that the requested pattern is available
-    if (reduce_row_order) {
-        if (reduce_col_order) {
+    if (reducedRowOrder) {
+        if (reducedColOrder) {
             if (!ReducedReducedPattern)
-                ReducedReducedPattern = makePasoPattern(reduce_row_order, reduce_col_order);
+                ReducedReducedPattern = makePasoPattern(reducedRowOrder, reducedColOrder);
         } else {
             if (!ReducedFullPattern)
-                ReducedFullPattern = makePasoPattern(reduce_row_order, reduce_col_order);
+                ReducedFullPattern = makePasoPattern(reducedRowOrder, reducedColOrder);
         }
     } else {
-        if (reduce_col_order) {
+        if (reducedColOrder) {
             if (!FullReducedPattern)
-                FullReducedPattern = makePasoPattern(reduce_row_order, reduce_col_order);
+                FullReducedPattern = makePasoPattern(reducedRowOrder, reducedColOrder);
         } else {
             if (!FullFullPattern)
-                FullFullPattern = makePasoPattern(reduce_row_order, reduce_col_order);
+                FullFullPattern = makePasoPattern(reducedRowOrder, reducedColOrder);
         }
     }
-    if (reduce_row_order) {
-        if (reduce_col_order) {
+    if (reducedRowOrder) {
+        if (reducedColOrder) {
             out = ReducedReducedPattern;
         } else {
             out = ReducedFullPattern;
         }
     } else {
-        if (reduce_col_order) {
+        if (reducedColOrder) {
             out = FullReducedPattern;
         } else {
             out = FullFullPattern;
@@ -59,7 +60,8 @@ paso::SystemMatrixPattern_ptr Mesh::getPasoPattern(bool reduce_row_order, bool r
     return out;
 }
 
-paso::SystemMatrixPattern_ptr Mesh::makePasoPattern(bool reduce_row_order, bool reduce_col_order) const
+paso::SystemMatrixPattern_ptr FinleyDomain::makePasoPattern(
+                              bool reducedRowOrder, bool reducedColOrder) const
 {
     paso::Connector_ptr col_connector, row_connector;
     escript::Distribution_ptr colDistribution, rowDistribution;
@@ -68,48 +70,48 @@ paso::SystemMatrixPattern_ptr Mesh::makePasoPattern(bool reduce_row_order, bool 
     dim_t numColTargets, numRowTargets;
     const index_t *colTarget, *rowTarget;
 
-    if (reduce_col_order) {
-        myNumColTargets = Nodes->getNumReducedDegreesOfFreedom();
-        numColTargets = Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
-        colTarget = Nodes->borrowTargetReducedDegreesOfFreedom();
-        colDistribution = Nodes->reducedDegreesOfFreedomDistribution;
-        col_connector = Nodes->reducedDegreesOfFreedomConnector;
+    if (reducedColOrder) {
+        myNumColTargets = m_nodes->getNumReducedDegreesOfFreedom();
+        numColTargets = m_nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        colTarget = m_nodes->borrowTargetReducedDegreesOfFreedom();
+        colDistribution = m_nodes->reducedDegreesOfFreedomDistribution;
+        col_connector = m_nodes->reducedDegreesOfFreedomConnector;
     } else {
-        myNumColTargets = Nodes->getNumDegreesOfFreedom();
-        numColTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
-        colTarget = Nodes->borrowTargetDegreesOfFreedom();
-        colDistribution = Nodes->degreesOfFreedomDistribution;
-        col_connector = Nodes->degreesOfFreedomConnector;
+        myNumColTargets = m_nodes->getNumDegreesOfFreedom();
+        numColTargets = m_nodes->degreesOfFreedomMapping.getNumTargets();
+        colTarget = m_nodes->borrowTargetDegreesOfFreedom();
+        colDistribution = m_nodes->degreesOfFreedomDistribution;
+        col_connector = m_nodes->degreesOfFreedomConnector;
     }
 
-    if (reduce_row_order) {
-        myNumRowTargets = Nodes->getNumReducedDegreesOfFreedom();
-        numRowTargets = Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
-        rowTarget = Nodes->borrowTargetReducedDegreesOfFreedom();
-        rowDistribution = Nodes->reducedDegreesOfFreedomDistribution;
-        row_connector = Nodes->reducedDegreesOfFreedomConnector;
+    if (reducedRowOrder) {
+        myNumRowTargets = m_nodes->getNumReducedDegreesOfFreedom();
+        numRowTargets = m_nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        rowTarget = m_nodes->borrowTargetReducedDegreesOfFreedom();
+        rowDistribution = m_nodes->reducedDegreesOfFreedomDistribution;
+        row_connector = m_nodes->reducedDegreesOfFreedomConnector;
     } else {
-        myNumRowTargets = Nodes->getNumDegreesOfFreedom();
-        numRowTargets = Nodes->degreesOfFreedomMapping.getNumTargets();
-        rowTarget = Nodes->borrowTargetDegreesOfFreedom();
-        rowDistribution = Nodes->degreesOfFreedomDistribution;
-        row_connector = Nodes->degreesOfFreedomConnector;
+        myNumRowTargets = m_nodes->getNumDegreesOfFreedom();
+        numRowTargets = m_nodes->degreesOfFreedomMapping.getNumTargets();
+        rowTarget = m_nodes->borrowTargetDegreesOfFreedom();
+        rowDistribution = m_nodes->degreesOfFreedomDistribution;
+        row_connector = m_nodes->degreesOfFreedomConnector;
     }
     boost::scoped_array<IndexList> index_list(new IndexList[numRowTargets]);
   
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns in indexlist
-        IndexList_insertElements(index_list.get(), Elements, reduce_row_order,
-                                 rowTarget, reduce_col_order, colTarget);
-        IndexList_insertElements(index_list.get(), FaceElements,
-                                 reduce_row_order, rowTarget, reduce_col_order,
+        IndexList_insertElements(index_list.get(), m_elements, reducedRowOrder,
+                                 rowTarget, reducedColOrder, colTarget);
+        IndexList_insertElements(index_list.get(), m_faceElements,
+                                 reducedRowOrder, rowTarget, reducedColOrder,
                                  colTarget);
-        IndexList_insertElements(index_list.get(), ContactElements,
-                                 reduce_row_order, rowTarget, reduce_col_order,
+        IndexList_insertElements(index_list.get(), m_contactElements,
+                                 reducedRowOrder, rowTarget, reducedColOrder,
                                  colTarget);
-        IndexList_insertElements(index_list.get(), Points, reduce_row_order,
-                                 rowTarget, reduce_col_order, colTarget);
+        IndexList_insertElements(index_list.get(), m_points, reducedRowOrder,
+                                 rowTarget, reducedColOrder, colTarget);
     }
 
     // create pattern

@@ -57,6 +57,22 @@ using escript::DataTypes::IndexVector;
 #define FINLEY_REDUCED_CONTACT_ELEMENTS_1 12
 #define FINLEY_REDUCED_CONTACT_ELEMENTS_2 13
 
+enum {
+    DegreesOfFreedom = FINLEY_DEGREES_OF_FREEDOM,
+    ReducedDegreesOfFreedom = FINLEY_REDUCED_DEGREES_OF_FREEDOM,
+    Nodes = FINLEY_NODES,
+    ReducedNodes = FINLEY_REDUCED_NODES,
+    Elements = FINLEY_ELEMENTS,
+    ReducedElements = FINLEY_REDUCED_ELEMENTS,
+    FaceElements = FINLEY_FACE_ELEMENTS,
+    ReducedFaceElements = FINLEY_REDUCED_FACE_ELEMENTS,
+    Points = FINLEY_POINTS,
+    ContactElementsZero = FINLEY_CONTACT_ELEMENTS_1,
+    ReducedContactElementsZero = FINLEY_REDUCED_CONTACT_ELEMENTS_1,
+    ContactElementsOne = FINLEY_CONTACT_ELEMENTS_2,
+    ReducedContactElementsOne = FINLEY_REDUCED_CONTACT_ELEMENTS_2
+};
+
 #define FINLEY_INITIAL_STATUS 0
 
 } // namespace finley
