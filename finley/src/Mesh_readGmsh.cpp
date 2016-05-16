@@ -487,140 +487,6 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     return errorFlag;
 }
 
-int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
-                     std::string& errorMsg, bool useMacroElements,
-                     int numDim, double version, int order, int reducedOrder)
-{
-    /*
-     *  This function should read in the elements and distribute
-     *  them to the apropriate process.
-     */
-#ifndef ESYS_MPI
-    // calling the slave from a non-MPI process is an awful idea
-    errorMsg = "Slave function called in non-MPI build";
-    return THROW_ERROR;
-#else
-    if (mpiInfo->size == 1) {
-        errorMsg = "Slave function called with no master";
-        return THROW_ERROR; //again, sillyness
-    }
-
-    int errorFlag = 0;
-
-    ElementTypeId finalElementType = NoRef;
-    ElementTypeId finalFaceElementType = NoRef;
-    ElementTypeId contactElementType = NoRef;
-    const_ReferenceElementSet_ptr refPoints, refContactElements;
-    const_ReferenceElementSet_ptr refFaceElements, refElements;
-    ElementTypeId* elementType;
-
-    int totalNumElements = 0;
-    MPI_Bcast(&totalNumElements, 1, MPI_INT, 0, mpiInfo->comm);
-
-    int chunkSize = totalNumElements / mpiInfo->size, chunkElements = 0;
-    int chunkFaceElements = 0;
-    int* id = new int[chunkSize+1];
-    int* tag = new int[chunkSize+1];
-    std::vector<int> vertices(chunkSize*MAX_numNodes_gmsh, -1);
-    elementType = new ElementTypeId[chunkSize+1];
-    std::vector<int> elementIndices(chunkSize, -1);
-    std::vector<int> faceElementIndices (chunkSize, -1);
-
-    //chunkInfo stores the number of elements and number of face elements
-    int chunkInfo[2];
-
-#pragma omp parallel for schedule(static)
-    for (int i = 0; i < chunkSize; i++) {
-        id[i] = -1;
-        tag[i] = -1;
-        elementType[i] = NoRef;
-    }
-
-    // Each worker receives messages
-    MPI_Status status;
-
-    MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpiInfo->comm, &status);
-    if (errorFlag)
-        return errorFlag;
-
-    MPI_Recv(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, 0, 81720, mpiInfo->comm, &status);
-    MPI_Recv(id, chunkSize, MPI_INT, 0, 81721, mpiInfo->comm, &status);
-    MPI_Recv(tag, chunkSize, MPI_INT, 0, 81722, mpiInfo->comm, &status);
-    MPI_Recv(elementType, chunkSize, MPI_INT, 0, 81723, mpiInfo->comm, &status);
-    MPI_Recv(chunkInfo, 2, MPI_INT, 0, 81724, mpiInfo->comm, &status);
-    chunkElements = chunkInfo[0];
-    chunkFaceElements = chunkInfo[1];
-    MPI_Recv(&elementIndices[0], chunkElements, MPI_INT, 0, 81725, mpiInfo->comm,&status);
-    MPI_Recv(&faceElementIndices[0], chunkFaceElements, MPI_INT, 0, 81726, mpiInfo->comm,&status);
-
-    MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpiInfo->comm);
-    if (errorFlag)
-        return errorFlag;
-
-    // all elements have been read and shared, now we have to identify the
-    // elements for finley
-    int numNodes[3] = {0,0,0};
-    MPI_Bcast(numNodes, 3, MPI_INT,  0, mpiInfo->comm);
-    finalElementType = static_cast<ElementTypeId>(numNodes[0]);
-    finalFaceElementType = static_cast<ElementTypeId>(numNodes[1]);
-    contactElementType = static_cast<ElementTypeId>(numNodes[2]);
-
-    refElements.reset(new ReferenceElementSet(finalElementType, order, reducedOrder));
-    refFaceElements.reset(new ReferenceElementSet(finalFaceElementType, order, reducedOrder));
-    refContactElements.reset(new ReferenceElementSet(contactElementType, order, reducedOrder));
-    refPoints.reset(new ReferenceElementSet(Point1, order, reducedOrder));
-    ElementFile* elements = new ElementFile(refElements, mpiInfo);
-    dom->setElements(elements);
-    ElementFile* faces = new ElementFile(refFaceElements, mpiInfo);
-    dom->setFaceElements(faces);
-    ElementFile* contacts = new ElementFile(refContactElements, mpiInfo);
-    dom->setContactElements(contacts);
-    ElementFile* points = new ElementFile(refPoints, mpiInfo);
-    dom->setPoints(points);
-    elements->allocTable(chunkElements);
-    faces->allocTable(chunkFaceElements);
-    contacts->allocTable(0);
-    points->allocTable(0);
-    elements->minColor = 0;
-    elements->maxColor = chunkElements-1;
-    faces->minColor = 0;
-    faces->maxColor = chunkFaceElements-1;
-    contacts->minColor = 0;
-    contacts->maxColor = 0;
-    points->minColor = 0;
-    points->maxColor = 0;
-
-#pragma omp parallel for schedule(static)
-    for (index_t e = 0; e < chunkElements; e++) {
-        elements->Id[e] = id[elementIndices[e]];
-        elements->Tag[e] = tag[elementIndices[e]];
-        elements->Color[e] = elementIndices[e];
-        elements->Owner[e] = mpiInfo->rank;
-        for (int j = 0; j < elements->numNodes; ++j)  {
-            int vertex = vertices[INDEX2(j, elementIndices[e], MAX_numNodes_gmsh)];
-            elements->Nodes[INDEX2(j, e, elements->numNodes)] = vertex;
-        }
-    }
-
-#pragma omp parallel for schedule(static)
-    for (index_t e = 0; e < chunkFaceElements; e++) {
-        faces->Id[e] = id[faceElementIndices[e]];
-        faces->Tag[e] = tag[faceElementIndices[e]];
-        faces->Color[e] = e;
-        faces->Owner[e] = mpiInfo->rank;
-        for (int j = 0; j < faces->numNodes; ++j) {
-            int faceVertex = vertices[INDEX2(j, faceElementIndices[e], MAX_numNodes_gmsh)];
-            faces->Nodes[INDEX2(j, e, faces->numNodes)] = faceVertex;
-        }
-    }
-
-    delete[] id;
-    delete[] tag;
-    delete[] elementType;
-    return errorFlag;
-#endif // ESYS_MPI
-}
-
 int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
                  int dim, double version, const std::string& filename)
 {
@@ -801,62 +667,6 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
     return errorFlag;
 }
 
-int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
-                  std::string& errorMsg, std::map<int, int>& tags)
-{
-#ifndef ESYS_MPI
-    throw FinleyException("Slave function called in non-MPI build!");
-#else
-
-    if (mpiInfo->size == 1)
-        throw FinleyException("Slave function called without master!");
-
-    int errorFlag = 0;
-    int numNodes = 0;
-
-    // get numNodes from the master
-    MPI_Bcast(&numNodes, 1, MPI_INT,  0, mpiInfo->comm);
-    int chunkSize = numNodes / mpiInfo->size, chunkNodes = 0;
-    int* tempInts = new int[chunkSize+1]; // Stores the integer message data
-    double* tempCoords = new double[chunkSize*numDim]; // Stores the double message data
-    // Each worker receives two messages
-    MPI_Status status;
-    MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpiInfo->comm, &status);
-    if (!errorFlag) {
-        MPI_Recv(tempInts, chunkSize+1, MPI_INT, 0, 81720, mpiInfo->comm, &status);
-        if (chunkSize > 0)
-            MPI_Recv(tempCoords, chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpiInfo->comm, &status);
-        chunkNodes = tempInts[chunkSize]; // How many nodes are in this worker's chunk?
-    }
-
-    MPI_Bcast(&errorFlag, 1, MPI_INT, 0, mpiInfo->comm);
-    if (errorFlag)
-        return errorFlag;
-
-    NodeFile* nodes = dom->getNodes();
-    nodes->allocTable(chunkNodes);
-
-#pragma omp parallel for schedule(static)
-    for (index_t i = 0; i < chunkNodes; i++) {
-        nodes->Id[i] = tempInts[i];
-        nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        int tag = tags[tempInts[i]];
-        if (tag == -1) {
-            nodes->Tag[i] = tempInts[i]; //set tag to node label
-        } else {
-            nodes->Tag[i] = tag; //set tag of element
-        }
-        for (int j = 0; j < numDim; j++) {
-            nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
-        }
-    }
-
-    delete[] tempInts;
-    delete[] tempCoords;
-    return errorFlag;
-#endif // ESYS_MPI
-}
-
 int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
     std::vector<char> line;
     do {
@@ -885,18 +695,6 @@ int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
         *logicFlag = 4;
     }
     return 0;
-}
-
-void recv_state(escript::JMPI& mpiInfo, int* error, int* logic)
-{
-#ifdef ESYS_MPI
-    int flags[2] = { 0 };
-    // Broadcast line
-    MPI_Bcast(&flags, 2, MPI_INT, 0, mpiInfo->comm);
-    *error = flags[0];
-    if (logic)
-        *logic = flags[1];
-#endif
 }
 
 void send_state(escript::JMPI& mpiInfo, int error, int logic)
@@ -1083,6 +881,199 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
     }
     return dom;
 }
+
+// slave-only functions follow
+
+#ifdef ESYS_MPI
+int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
+                  std::string& errorMsg, std::map<int, int>& tags)
+{
+    if (mpiInfo->size == 1)
+        throw FinleyException("Slave function called without master!");
+
+    int errorFlag = 0;
+    int numNodes = 0;
+
+    // get numNodes from the master
+    MPI_Bcast(&numNodes, 1, MPI_INT,  0, mpiInfo->comm);
+    int chunkSize = numNodes / mpiInfo->size, chunkNodes = 0;
+    int* tempInts = new int[chunkSize+1]; // Stores the integer message data
+    double* tempCoords = new double[chunkSize*numDim]; // Stores the double message data
+    // Each worker receives two messages
+    MPI_Status status;
+    MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpiInfo->comm, &status);
+    if (!errorFlag) {
+        MPI_Recv(tempInts, chunkSize+1, MPI_INT, 0, 81720, mpiInfo->comm, &status);
+        if (chunkSize > 0)
+            MPI_Recv(tempCoords, chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpiInfo->comm, &status);
+        chunkNodes = tempInts[chunkSize]; // How many nodes are in this worker's chunk?
+    }
+
+    MPI_Bcast(&errorFlag, 1, MPI_INT, 0, mpiInfo->comm);
+    if (errorFlag)
+        return errorFlag;
+
+    NodeFile* nodes = dom->getNodes();
+    nodes->allocTable(chunkNodes);
+
+#pragma omp parallel for schedule(static)
+    for (index_t i = 0; i < chunkNodes; i++) {
+        nodes->Id[i] = tempInts[i];
+        nodes->globalDegreesOfFreedom[i] = tempInts[i];
+        int tag = tags[tempInts[i]];
+        if (tag == -1) {
+            nodes->Tag[i] = tempInts[i]; //set tag to node label
+        } else {
+            nodes->Tag[i] = tag; //set tag of element
+        }
+        for (int j = 0; j < numDim; j++) {
+            nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
+        }
+    }
+
+    delete[] tempInts;
+    delete[] tempCoords;
+    return errorFlag;
+}
+
+int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
+                     std::string& errorMsg, bool useMacroElements,
+                     int numDim, double version, int order, int reducedOrder)
+{
+    /*
+     *  This function should read in the elements and distribute
+     *  them to the apropriate process.
+     */
+    if (mpiInfo->size == 1) {
+        errorMsg = "Slave function called with no master";
+        return THROW_ERROR; //again, sillyness
+    }
+
+    int errorFlag = 0;
+
+    ElementTypeId finalElementType = NoRef;
+    ElementTypeId finalFaceElementType = NoRef;
+    ElementTypeId contactElementType = NoRef;
+    const_ReferenceElementSet_ptr refPoints, refContactElements;
+    const_ReferenceElementSet_ptr refFaceElements, refElements;
+    ElementTypeId* elementType;
+
+    int totalNumElements = 0;
+    MPI_Bcast(&totalNumElements, 1, MPI_INT, 0, mpiInfo->comm);
+
+    int chunkSize = totalNumElements / mpiInfo->size, chunkElements = 0;
+    int chunkFaceElements = 0;
+    int* id = new int[chunkSize+1];
+    int* tag = new int[chunkSize+1];
+    std::vector<int> vertices(chunkSize*MAX_numNodes_gmsh, -1);
+    elementType = new ElementTypeId[chunkSize+1];
+    std::vector<int> elementIndices(chunkSize, -1);
+    std::vector<int> faceElementIndices (chunkSize, -1);
+
+    //chunkInfo stores the number of elements and number of face elements
+    int chunkInfo[2];
+
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < chunkSize; i++) {
+        id[i] = -1;
+        tag[i] = -1;
+        elementType[i] = NoRef;
+    }
+
+    // Each worker receives messages
+    MPI_Status status;
+
+    MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpiInfo->comm, &status);
+    if (errorFlag)
+        return errorFlag;
+
+    MPI_Recv(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, 0, 81720, mpiInfo->comm, &status);
+    MPI_Recv(id, chunkSize, MPI_INT, 0, 81721, mpiInfo->comm, &status);
+    MPI_Recv(tag, chunkSize, MPI_INT, 0, 81722, mpiInfo->comm, &status);
+    MPI_Recv(elementType, chunkSize, MPI_INT, 0, 81723, mpiInfo->comm, &status);
+    MPI_Recv(chunkInfo, 2, MPI_INT, 0, 81724, mpiInfo->comm, &status);
+    chunkElements = chunkInfo[0];
+    chunkFaceElements = chunkInfo[1];
+    MPI_Recv(&elementIndices[0], chunkElements, MPI_INT, 0, 81725, mpiInfo->comm,&status);
+    MPI_Recv(&faceElementIndices[0], chunkFaceElements, MPI_INT, 0, 81726, mpiInfo->comm,&status);
+
+    MPI_Bcast(&errorFlag, 1, MPI_INT,  0, mpiInfo->comm);
+    if (errorFlag)
+        return errorFlag;
+
+    // all elements have been read and shared, now we have to identify the
+    // elements for finley
+    int numNodes[3] = {0,0,0};
+    MPI_Bcast(numNodes, 3, MPI_INT,  0, mpiInfo->comm);
+    finalElementType = static_cast<ElementTypeId>(numNodes[0]);
+    finalFaceElementType = static_cast<ElementTypeId>(numNodes[1]);
+    contactElementType = static_cast<ElementTypeId>(numNodes[2]);
+
+    refElements.reset(new ReferenceElementSet(finalElementType, order, reducedOrder));
+    refFaceElements.reset(new ReferenceElementSet(finalFaceElementType, order, reducedOrder));
+    refContactElements.reset(new ReferenceElementSet(contactElementType, order, reducedOrder));
+    refPoints.reset(new ReferenceElementSet(Point1, order, reducedOrder));
+    ElementFile* elements = new ElementFile(refElements, mpiInfo);
+    dom->setElements(elements);
+    ElementFile* faces = new ElementFile(refFaceElements, mpiInfo);
+    dom->setFaceElements(faces);
+    ElementFile* contacts = new ElementFile(refContactElements, mpiInfo);
+    dom->setContactElements(contacts);
+    ElementFile* points = new ElementFile(refPoints, mpiInfo);
+    dom->setPoints(points);
+    elements->allocTable(chunkElements);
+    faces->allocTable(chunkFaceElements);
+    contacts->allocTable(0);
+    points->allocTable(0);
+    elements->minColor = 0;
+    elements->maxColor = chunkElements-1;
+    faces->minColor = 0;
+    faces->maxColor = chunkFaceElements-1;
+    contacts->minColor = 0;
+    contacts->maxColor = 0;
+    points->minColor = 0;
+    points->maxColor = 0;
+
+#pragma omp parallel for schedule(static)
+    for (index_t e = 0; e < chunkElements; e++) {
+        elements->Id[e] = id[elementIndices[e]];
+        elements->Tag[e] = tag[elementIndices[e]];
+        elements->Color[e] = elementIndices[e];
+        elements->Owner[e] = mpiInfo->rank;
+        for (int j = 0; j < elements->numNodes; ++j)  {
+            int vertex = vertices[INDEX2(j, elementIndices[e], MAX_numNodes_gmsh)];
+            elements->Nodes[INDEX2(j, e, elements->numNodes)] = vertex;
+        }
+    }
+
+#pragma omp parallel for schedule(static)
+    for (index_t e = 0; e < chunkFaceElements; e++) {
+        faces->Id[e] = id[faceElementIndices[e]];
+        faces->Tag[e] = tag[faceElementIndices[e]];
+        faces->Color[e] = e;
+        faces->Owner[e] = mpiInfo->rank;
+        for (int j = 0; j < faces->numNodes; ++j) {
+            int faceVertex = vertices[INDEX2(j, faceElementIndices[e], MAX_numNodes_gmsh)];
+            faces->Nodes[INDEX2(j, e, faces->numNodes)] = faceVertex;
+        }
+    }
+
+    delete[] id;
+    delete[] tag;
+    delete[] elementType;
+    return errorFlag;
+}
+
+void recv_state(escript::JMPI& mpiInfo, int* error, int* logic)
+{
+    int flags[2] = { 0 };
+    // Broadcast line
+    MPI_Bcast(&flags, 2, MPI_INT, 0, mpiInfo->comm);
+    *error = flags[0];
+    if (logic)
+        *logic = flags[1];
+}
+#endif // ESYS_MPI
 
 FinleyDomain* readGmshSlave(escript::JMPI& mpiInfo,
                             const std::string& filename, int numDim, int order,
