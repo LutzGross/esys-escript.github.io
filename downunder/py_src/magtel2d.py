@@ -213,7 +213,7 @@ class MT_2D(object):
     # ---
 
     # Types:
-    if not isinstance(domain, finley.finleycpp.MeshAdapter ):
+    if not isinstance(domain, escript.Domain):
       raise ValueError("Input parameter DOMAIN must be an Escript mesh")
     if not isinstance(mode, str):
       raise ValueError("Input parameter MODE must be a string")

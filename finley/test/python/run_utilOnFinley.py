@@ -49,7 +49,7 @@ except KeyError:
 
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
-FINLEY_MERGE_ERROR = "Mesh_merge: more than 1 processor is not supported yet."
+FINLEY_MERGE_ERROR = "merge: more than 1 processor is not supported yet."
 
 NE=4 # number elements, must be even
 
