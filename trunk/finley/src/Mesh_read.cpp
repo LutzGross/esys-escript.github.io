@@ -14,648 +14,360 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: read mesh from file
-
-*****************************************************************************/
-
-#include "Mesh.h"
+#include "FinleyDomain.h"
 
 #include <escript/index.h>
 
-namespace finley {
+using escript::IOError;
 
-Mesh* Mesh::read(escript::JMPI mpi_info, const std::string& fname,
-                 int order, int reduced_order, bool optimize)
+namespace {
+
+using namespace finley;
+
+ElementFile* readElementFile(std::ifstream& fileHandle, int order,
+                             int reducedOrder, escript::JMPI mpiInfo)
 {
-    int numNodes, numDim=0, numEle, i0, i1;
-    const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
-    char name[1024], element_type[1024], frm[20];
-    FILE *fileHandle_p = NULL;
-    ElementTypeId typeID=NoRef;
-    int scan_ret;
+    dim_t numEle = 0;
+    ElementTypeId typeID = NoRef;
+    std::string elementType, line;
 
-    if (mpi_info->rank == 0) {
-        // get file handle
-        fileHandle_p = fopen(fname.c_str(), "r");
-        if (fileHandle_p==NULL) {
-            std::stringstream ss;
-            ss << "Mesh::read: Opening file " << fname << " for reading failed.";
-            const std::string msg(ss.str());
-            throw escript::IOError(msg);
-        }
-
-        // read header
-        sprintf(frm,"%%%d[^\n]",1023);
-        scan_ret = fscanf(fileHandle_p, frm, name);
-        if (scan_ret==EOF)
-            throw escript::IOError("Mesh::read: scan error while reading file");
-
-        // get the number of nodes
-        scan_ret = fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
-        if (scan_ret==EOF)
-            throw escript::IOError("Mesh::read: scan error while reading file");
-    }
-
-#ifdef ESYS_MPI
-    // Broadcast numDim, numNodes, name if there are multiple MPI procs
-    if (mpi_info->size > 1) {
-        int temp1[3];
-        if (mpi_info->rank == 0) {
-            temp1[0] = numDim;
-            temp1[1] = numNodes;
-            temp1[2] = strlen(name) + 1;
-        } else {
-            temp1[0] = 0;
-            temp1[1] = 0;
-            temp1[2] = 1;
-        }
-        MPI_Bcast(temp1, 3, MPI_INT,  0, mpi_info->comm);
-        numDim = temp1[0];
-        numNodes = temp1[1];
-        MPI_Bcast(name, temp1[2], MPI_CHAR, 0, mpi_info->comm);
-    }
-#endif
-
-    // allocate mesh
-    Mesh* mesh_p = new Mesh(name, numDim, mpi_info);
-
-    // Each CPU will get at most chunkSize nodes so the message has to be
-    // sufficiently large
-    int chunkSize = numNodes / mpi_info->size + 1;
-    int totalNodes = 0;
-    int chunkNodes = 0;
-    int nextCPU = 1;
-    int *tempInts = new int[chunkSize*3+1]; // Stores the integer message data
-    double *tempCoords = new double[chunkSize*numDim]; // Stores the double message data
-
-    /*
-    Read chunkSize nodes, send it in a chunk to worker CPU which copies chunk into its local mesh_p
-    It doesn't matter that a CPU has the wrong nodes for its elements, this is sorted out later
-    First chunk sent to CPU 1, second to CPU 2, ...
-    Last chunk stays on CPU 0 (the master)
-    The three columns of integers (Id, gDOF, Tag) are gathered into a single array tempInts and sent together in a single MPI message
-    */
-
-    if (mpi_info->rank == 0) {  /* Master */
-        for (;;) {            /* Infinite loop */
-#pragma omp parallel for private (i0) schedule(static)
-            for (i0=0; i0<chunkSize*3+1; i0++) tempInts[i0] = -1;
-
-#pragma omp parallel for private (i0) schedule(static)
-            for (i0=0; i0<chunkSize*numDim; i0++) tempCoords[i0] = -1.0;
-
-            chunkNodes = 0;
-            for (i1=0; i1<chunkSize; i1++) {
-                if (totalNodes >= numNodes) break;    /* End of inner loop */
-                if (1 == numDim) {
-                    scan_ret = fscanf(fileHandle_p, "%d %d %d %le\n",
-                                        &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
-                                        &tempCoords[i1*numDim+0]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
-                }
-                if (2 == numDim) {
-                    scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le\n",
-                                        &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
-                                        &tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
-                }
-                if (3 == numDim) {
-                    scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le %le\n",
-                                        &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
-                                        &tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1], &tempCoords[i1*numDim+2]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
-                }
-                totalNodes++; /* When do we quit the infinite loop? */
-                chunkNodes++; /* How many nodes do we actually have in this chunk? It may be smaller than chunkSize. */
-            }
-            if (chunkNodes > chunkSize) {
-                throw FinleyException("Mesh::read: error reading chunks of mesh, data too large for message size");
-            }
-#ifdef ESYS_MPI
-            // Eventually we'll send chunkSize nodes to each CPU numbered 1 ... mpi_info->size-1, here goes one of them
-            if (nextCPU < mpi_info->size) {
-                tempInts[chunkSize*3] = chunkNodes;   /* The message has one more int to send chunkNodes */
-                MPI_Send(tempInts, chunkSize*3+1, MPI_INT, nextCPU, 81720, mpi_info->comm);
-                MPI_Send(tempCoords, chunkSize*numDim, MPI_DOUBLE, nextCPU, 81721, mpi_info->comm);
-            }
-#endif
-            nextCPU++;
-            /* Infinite loop ends when I've read a chunk for each of the worker nodes plus one more chunk for the master */
-            if (nextCPU > mpi_info->size) break; /* End infinite loop */
-        } /* Infinite loop */
-    }   /* End master */
-    else { // Worker
-#ifdef ESYS_MPI
-        // Each worker receives two messages
-        MPI_Status status;
-        MPI_Recv(tempInts, chunkSize*3+1, MPI_INT, 0, 81720, mpi_info->comm, &status);
-        MPI_Recv(tempCoords, chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpi_info->comm, &status);
-        // How many nodes are in this workers chunk?
-        chunkNodes = tempInts[chunkSize*3];
-#endif
-    } // Worker
-
-    /* Copy node data from tempMem to mesh_p */
-    mesh_p->Nodes->allocTable(chunkNodes);
-
-#pragma omp parallel for private (i0, i1) schedule(static)
-    for (i0=0; i0<chunkNodes; i0++) {
-        mesh_p->Nodes->Id[i0] = tempInts[0+i0];
-        mesh_p->Nodes->globalDegreesOfFreedom[i0] = tempInts[chunkSize+i0];
-        mesh_p->Nodes->Tag[i0] = tempInts[chunkSize*2+i0];
-        for (i1=0; i1<numDim; i1++) {
-            mesh_p->Nodes->Coordinates[INDEX2(i1,i0,numDim)] = tempCoords[i0*numDim+i1];
-        }
-    }
-    delete[] tempInts;
-    delete[] tempCoords;
-
-    /* ************************  read elements ******************************/
-    /* Read the element typeID */
-    if (mpi_info->rank == 0) {
-        scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-        if (scan_ret==EOF)
-            throw escript::IOError("Mesh::read: scan error while reading file");
-        typeID=ReferenceElement::getTypeId(element_type);
+    // Read the element typeID and number of elements
+    if (mpiInfo->rank == 0) {
+        std::getline(fileHandle, line);
+        if (!fileHandle.good())
+            throw IOError("Mesh::read: Scan error while reading file - expected <ElementType> <numEle>");
+        size_t pos = line.find(' ');
+        if (pos == std::string::npos)
+            throw IOError("Mesh::read: Scan error reading file - expected <ElementType> <numEle>");
+        elementType = line.substr(0, pos);
+        numEle = std::stol(line.substr(pos+1));
+        typeID = ReferenceElement::getTypeId(elementType.c_str());
     }
 #ifdef ESYS_MPI
-    if (mpi_info->size > 1) {
-        int temp1[2], mpi_error;
-        temp1[0] = (int) typeID;
+    if (mpiInfo->size > 1) {
+        dim_t temp1[2];
+        temp1[0] = (dim_t)typeID;
         temp1[1] = numEle;
-        mpi_error = MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-        if (mpi_error != MPI_SUCCESS) {
-            throw FinleyException("Mesh::read: broadcast of Element typeID failed");
+        int mpiError = MPI_Bcast(temp1, 2, MPI_DIM_T, 0, mpiInfo->comm);
+        if (mpiError != MPI_SUCCESS) {
+            throw FinleyException("Mesh::read: broadcast of element typeID failed");
         }
-        typeID = (ElementTypeId) temp1[0];
+        typeID = static_cast<ElementTypeId>(temp1[0]);
         numEle = temp1[1];
     }
 #endif
-    if (typeID==NoRef) {
+    if (typeID == NoRef) {
         std::stringstream ss;
-        ss << "Mesh::read: Unidentified element type " << element_type;
-        const std::string msg(ss.str());
-        throw escript::IOError(msg);
+        ss << "Mesh::read: Unidentified element type " << elementType;
+        throw IOError(ss.str());
     }
 
     // Allocate the ElementFile
-    refElements.reset(new ReferenceElementSet(typeID, order, reduced_order));
-    mesh_p->Elements=new ElementFile(refElements, mpi_info);
-    // new meaning for numNodes: num nodes per element
-    numNodes = mesh_p->Elements->numNodes;
+    const_ReferenceElementSet_ptr refElements(new ReferenceElementSet(
+                                                typeID, order, reducedOrder));
+    ElementFile* out = new ElementFile(refElements, mpiInfo);
+    const int numNodes = out->numNodes;
 
-    /********************** Read the element data ***************************/
-    chunkSize = numEle / mpi_info->size + 1;
-    int totalEle=0;
-    int chunkEle=0;
-    nextCPU=1;
-    tempInts = new int[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
-    /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
-    if (mpi_info->rank == 0) {  /* Master */
-        for (;;) {            /* Infinite loop */
-#pragma omp parallel for private (i0) schedule(static)
-            for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-
+    /********************** Read the element data **************************/
+    dim_t chunkSize = numEle / mpiInfo->size + 1;
+    dim_t totalEle = 0;
+    dim_t chunkEle = 0;
+    int nextCPU = 1;
+    /// Store Id + Tag + node list (+ one int at end for chunkEle)
+    index_t* tempInts = new index_t[chunkSize * (2 + numNodes) + 1];
+    // Elements are specified as a list of integers...only need one message
+    // instead of two as with the nodes
+    if (mpiInfo->rank == 0) { // Master
+        for (;;) {            // Infinite loop
+#pragma omp parallel for
+            for (index_t i0 = 0; i0 < chunkSize * (2 + numNodes) + 1; i0++)
+                tempInts[i0] = -1;
             chunkEle = 0;
-            for (i0=0; i0<chunkSize; i0++) {
-                if (totalEle >= numEle) break; /* End inner loop */
-                scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                for (i1 = 0; i1 < numNodes; i1++) {
-                    scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
+            for (index_t i0 = 0; i0 < chunkSize; i0++) {
+                if (totalEle >= numEle)
+                    break; // End inner loop
+                std::getline(fileHandle, line);
+                if (!fileHandle.good())
+                    throw IOError("Mesh::read: Scan error while reading element data");
+                std::stringstream ss;
+                ss << line;
+                ss >> tempInts[i0 * (2 + numNodes) + 0]
+                   >> tempInts[i0 * (2 + numNodes) + 1];
+                for (int i1 = 0; i1 < numNodes; i1++) {
+                    ss >> tempInts[i0 * (2 + numNodes) + 2 + i1];
                 }
-                scan_ret = fscanf(fileHandle_p, "\n");
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
                 totalEle++;
                 chunkEle++;
             }
 #ifdef ESYS_MPI
             // Eventually we'll send chunk of elements to each CPU except 0
             // itself, here goes one of them
-            if (nextCPU < mpi_info->size) {
-                tempInts[chunkSize*(2+numNodes)] = chunkEle;
-                MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81722, mpi_info->comm);
+            if (nextCPU < mpiInfo->size) {
+                tempInts[chunkSize * (2 + numNodes)] = chunkEle;
+                MPI_Send(tempInts, chunkSize * (2 + numNodes) + 1, MPI_DIM_T,
+                         nextCPU, 81722, mpiInfo->comm);
             }
 #endif
             nextCPU++;
-            // Infinite loop ends when I've read a chunk for each of the
-            // worker nodes plus one more chunk for the master
-            if (nextCPU > mpi_info->size)
+            // Infinite loop ends when I've read a chunk for each of the worker
+            // nodes plus one more chunk for the master
+            if (nextCPU > mpiInfo->size)
+                break; // End infinite loop
+        } // Infinite loop
+    } // end master
+    else { // Worker
+#ifdef ESYS_MPI
+        // Each worker receives one message
+        MPI_Status status;
+        MPI_Recv(tempInts, chunkSize * (2 + numNodes) + 1, MPI_DIM_T, 0,
+                 81722, mpiInfo->comm, &status);
+        chunkEle = tempInts[chunkSize * (2 + numNodes)];
+#endif
+    } // Worker
+
+    out->allocTable(chunkEle);
+
+    // Copy Element data from tempInts to element file
+    out->minColor = 0;
+    out->maxColor = chunkEle - 1;
+#pragma omp parallel for
+    for (index_t i0 = 0; i0 < chunkEle; i0++) {
+        out->Id[i0] = tempInts[i0 * (2 + numNodes) + 0];
+        out->Tag[i0] = tempInts[i0 * (2 + numNodes) + 1];
+        out->Owner[i0] = mpiInfo->rank;
+        out->Color[i0] = i0;
+        for (int i1 = 0; i1 < numNodes; i1++) {
+            out->Nodes[INDEX2(i1, i0, numNodes)] =
+                tempInts[i0 * (2 + numNodes) + 2 + i1];
+        }
+    }
+    delete[] tempInts;
+    return out;
+}
+
+} // anonymous
+
+namespace finley {
+
+escript::Domain_ptr FinleyDomain::read(escript::JMPI mpiInfo,
+                                       const std::string& filename,
+                                       int order, int reducedOrder,
+                                       bool optimize)
+{
+    dim_t numNodes = 0;
+    int numDim = 0;
+    std::string name, line, token;
+    std::ifstream fileHandle;
+
+    if (mpiInfo->rank == 0) {
+        // open file
+        fileHandle.open(filename.c_str());
+        if (!fileHandle.good()) {
+            std::stringstream ss;
+            ss << "Mesh::read: Opening file " << filename
+               << " for reading failed.";
+            throw IOError(ss.str());
+        }
+
+        // read header
+        std::getline(fileHandle, name);
+        if (!fileHandle.good())
+            throw IOError("Mesh::read: Scan error while reading file header");
+
+        // get the number of dimensions and nodes
+        std::getline(fileHandle, line);
+        if (!fileHandle.good())
+            throw IOError("Mesh::read: Scan error while reading file - expected <?D-Nodes> <numNodes>");
+        numDim = std::stoi(line.substr(0, 1));
+        token = line.substr(line.find(' ')+1);
+        numNodes = std::stoi(token);
+    }
+
+#ifdef ESYS_MPI
+    // MPI Broadcast numDim, numNodes, name if there are multiple MPI procs
+    if (mpiInfo->size > 1) {
+        dim_t temp1[3];
+        if (mpiInfo->rank == 0) {
+            temp1[0] = numDim;
+            temp1[1] = numNodes;
+            temp1[2] = name.length() + 1;
+        } else {
+            temp1[0] = 0;
+            temp1[1] = 0;
+            temp1[2] = 1;
+        }
+        MPI_Bcast(temp1, 3, MPI_DIM_T, 0, mpiInfo->comm);
+        numDim = temp1[0];
+        numNodes = temp1[1];
+        name.resize(temp1[2]);
+        MPI_Bcast(&name[0], temp1[2], MPI_CHAR, 0, mpiInfo->comm);
+    }
+#endif
+
+    // allocate domain
+    FinleyDomain* domain = new FinleyDomain(name, numDim, mpiInfo);
+
+    // Each CPU will get at most chunkSize nodes so the message has to be
+    // sufficiently large
+    dim_t chunkSize = numNodes / mpiInfo->size + 1;
+    dim_t totalNodes = 0;
+    dim_t chunkNodes = 0;
+    int nextCPU = 1;
+    // Stores the integer message data
+    index_t* tempInts = new index_t[chunkSize * 3 + 1];
+    // Stores the double message data
+    double* tempCoords = new double[chunkSize * numDim];
+
+    // Read chunkSize nodes, send it in a chunk to worker CPU which copies
+    // chunk into its local domain.  It doesn't matter that a CPU has the wrong
+    // nodes for its elements, this is sorted out later. First chunk sent to
+    // CPU 1, second to CPU 2, ..., last chunk stays on CPU 0 (the master).
+    // The three columns of integers (Id, gDOF, Tag) are gathered into a single
+    // array tempInts and sent together in a single MPI message.
+    if (mpiInfo->rank == 0) { // Master
+        for (;;) {            // Infinite loop
+#pragma omp parallel for
+            for (index_t i0 = 0; i0 < chunkSize * 3 + 1; i0++)
+                tempInts[i0] = -1;
+
+#pragma omp parallel for
+            for (index_t i0 = 0; i0 < chunkSize * numDim; i0++)
+                tempCoords[i0] = -1.0;
+
+            chunkNodes = 0;
+            for (index_t i1 = 0; i1 < chunkSize; i1++) {
+                if (totalNodes >= numNodes)
+                    break;  // End of inner loop
+                std::getline(fileHandle, line);
+                if (!fileHandle.good())
+                    throw IOError("Mesh::read: Scan error while reading node data");
+                std::stringstream ss;
+                ss << line;
+                ss >> tempInts[0 + i1] >> tempInts[chunkSize + i1]
+                   >> tempInts[chunkSize * 2 + i1];
+                ss >> tempCoords[i1 * numDim];
+                if (numDim > 1)
+                    ss >> tempCoords[i1 * numDim + 1];
+                if (numDim > 2)
+                    ss >> tempCoords[i1 * numDim + 2];
+                totalNodes++; // When do we quit the infinite loop?
+                chunkNodes++; // How many nodes do we actually have in this chunk? It may be smaller than chunkSize.
+            }
+            if (chunkNodes > chunkSize) {
+                throw FinleyException("Mesh::read: error reading chunks of domain, data too large for message size");
+            }
+#ifdef ESYS_MPI
+            // Eventually we'll send chunkSize nodes to each CPU numbered
+            // 1 ... mpiInfo->size-1, here goes one of them
+            if (nextCPU < mpiInfo->size) {
+                // The message has one more int to send chunkNodes
+                tempInts[chunkSize * 3] = chunkNodes;
+                MPI_Send(tempInts, chunkSize * 3 + 1, MPI_DIM_T, nextCPU, 81720, mpiInfo->comm);
+                MPI_Send(tempCoords, chunkSize * numDim, MPI_DOUBLE, nextCPU, 81721, mpiInfo->comm);
+            }
+#endif
+            nextCPU++;
+            // Infinite loop ends when I've read a chunk for each of the worker
+            // nodes plus one more chunk for the master
+            if (nextCPU > mpiInfo->size)
                 break; // End infinite loop
         } // Infinite loop
     } // End master
     else { // Worker
 #ifdef ESYS_MPI
-        // Each worker receives one message
+        // Each worker receives two messages
         MPI_Status status;
-        MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81722, mpi_info->comm, &status);
-        chunkEle = tempInts[chunkSize*(2+numNodes)];
+        MPI_Recv(tempInts, chunkSize * 3 + 1, MPI_DIM_T, 0, 81720, mpiInfo->comm, &status);
+        MPI_Recv(tempCoords, chunkSize * numDim, MPI_DOUBLE, 0, 81721, mpiInfo->comm, &status);
+        // How many nodes are in this worker's chunk?
+        chunkNodes = tempInts[chunkSize * 3];
 #endif
     } // Worker
 
-    mesh_p->Elements->allocTable(chunkEle);
+    // Copy node data from tempMem to domain
+    NodeFile* nodes = domain->getNodes();
+    nodes->allocTable(chunkNodes);
 
-    // Copy Element data from tempInts to mesh_p
-    mesh_p->Elements->minColor=0;
-    mesh_p->Elements->maxColor=chunkEle-1;
-#pragma omp parallel for private (i0, i1) schedule(static)
-    for (i0=0; i0<chunkEle; i0++) {
-        mesh_p->Elements->Id[i0] = tempInts[i0*(2+numNodes)+0];
-        mesh_p->Elements->Tag[i0] = tempInts[i0*(2+numNodes)+1];
-        mesh_p->Elements->Owner[i0] = mpi_info->rank;
-        mesh_p->Elements->Color[i0] = i0;
-        for (i1 = 0; i1 < numNodes; i1++) {
-            mesh_p->Elements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
+#pragma omp parallel for
+    for (index_t i0 = 0; i0 < chunkNodes; i0++) {
+        nodes->Id[i0] = tempInts[0 + i0];
+        nodes->globalDegreesOfFreedom[i0] = tempInts[chunkSize + i0];
+        nodes->Tag[i0] = tempInts[chunkSize * 2 + i0];
+        for (int i1 = 0; i1 < numDim; i1++) {
+            nodes->Coordinates[INDEX2(i1, i0, numDim)] = tempCoords[i0 * numDim + i1];
         }
     }
     delete[] tempInts;
+    delete[] tempCoords;
 
-    /******************** end of Read the element data **********************/
+    /*************************** read elements ******************************/
+    domain->setElements(readElementFile(fileHandle, order, reducedOrder, mpiInfo));
 
-    /********************** read face elements ******************************/
+    /************************ read face elements ****************************/
+    domain->setFaceElements(readElementFile(fileHandle, order, reducedOrder, mpiInfo));
 
-    // Read the element typeID
-    if (mpi_info->rank == 0) {
-        scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-        if (scan_ret==EOF)
-            throw escript::IOError("Mesh::read: scan error while reading file");
-        typeID=ReferenceElement::getTypeId(element_type);
-    }
-#ifdef ESYS_MPI
-    if (mpi_info->size > 1) {
-        int temp1[2];
-        temp1[0] = (int) typeID;
-        temp1[1] = numEle;
-        MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-        typeID = (ElementTypeId) temp1[0];
-        numEle = temp1[1];
-    }
-#endif
-    if (typeID==NoRef) {
-        std::stringstream ss;
-        ss << "Mesh::read: Unidentified element type " << element_type;
-        const std::string msg(ss.str());
-        throw escript::IOError(msg);
-    }
-    // Allocate the ElementFile
-    refFaceElements.reset(new ReferenceElementSet(typeID, order, reduced_order));
-    mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
-    numNodes = mesh_p->FaceElements->numNodes; // new meaning for numNodes: num nodes per element
+    /************************ read contact elements ****************************/
+    domain->setContactElements(readElementFile(fileHandle, order, reducedOrder, mpiInfo));
 
-    /*********************** Read the face element data *********************/
-    chunkSize = numEle / mpi_info->size + 1;
-    totalEle=0;
-    nextCPU=1;
-    chunkEle=0;
-    tempInts = new int[chunkSize*(2+numNodes)+1];
-    // Store Id + Tag + node list (+ one int at end for chunkEle)
-    // Elements are specified as a list of integers...only need one message
-    // instead of two as with the nodes
-    if (mpi_info->rank == 0) { // Master
-        for (;;) { // Infinite loop
-#pragma omp parallel for private (i0) schedule(static)
-            for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
+    /************************ read nodal elements ***************************/
+    domain->setPoints(readElementFile(fileHandle, order, reducedOrder, mpiInfo));
 
-            chunkEle = 0;
-            for (i0=0; i0<chunkSize; i0++) {
-                if (totalEle >= numEle) break; /* End inner loop */
-                scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                for (i1 = 0; i1 < numNodes; i1++) {
-                    scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
-                }
-                scan_ret = fscanf(fileHandle_p, "\n");
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                totalEle++;
-                chunkEle++;
-            }
-#ifdef ESYS_MPI
-            /* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
-            if (nextCPU < mpi_info->size) {
-                tempInts[chunkSize*(2+numNodes)] = chunkEle;
-                MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81723, mpi_info->comm);
-            }
-#endif
-            nextCPU++;
-            // Infinite loop ends when I've read a chunk for each of the
-            // worker nodes plus one more chunk for the master
-            if (nextCPU > mpi_info->size)
-                break; // End infinite loop
-        } // Infinite loop
-    } // End master
-    else {  /* Worker */
-#ifdef ESYS_MPI
-        /* Each worker receives one message */
-        MPI_Status status;
-        MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81723, mpi_info->comm, &status);
-        chunkEle = tempInts[chunkSize*(2+numNodes)];
-#endif
-    } // Worker
-
-    mesh_p->FaceElements->allocTable(chunkEle);
-
-    // Copy Element data from tempInts to mesh_p
-    mesh_p->FaceElements->minColor=0;
-    mesh_p->FaceElements->maxColor=chunkEle-1;
-#pragma omp parallel for private (i0, i1)
-    for (i0=0; i0<chunkEle; i0++) {
-        mesh_p->FaceElements->Id[i0] = tempInts[i0*(2+numNodes)+0];
-        mesh_p->FaceElements->Tag[i0] = tempInts[i0*(2+numNodes)+1];
-        mesh_p->FaceElements->Owner[i0] = mpi_info->rank;
-        mesh_p->FaceElements->Color[i0] = i0;
-        for (i1 = 0; i1 < numNodes; i1++) {
-            mesh_p->FaceElements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
-        }
-    }
-    delete[] tempInts;
-
-    /******************* end of Read the face element data ******************/
-
-    /************************* read contact elements ************************/
-
-    // Read the element typeID
-    if (mpi_info->rank == 0) {
-        scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-        if (scan_ret==EOF)
-            throw escript::IOError("Mesh::read: scan error while reading file");
-        typeID=ReferenceElement::getTypeId(element_type);
-    }
-#ifdef ESYS_MPI
-    if (mpi_info->size > 1) {
-        int temp1[2];
-        temp1[0] = (int) typeID;
-        temp1[1] = numEle;
-        MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-        typeID = (ElementTypeId) temp1[0];
-        numEle = temp1[1];
-    }
-#endif
-    if (typeID==NoRef) {
-        std::stringstream ss;
-        ss << "Mesh::read: Unidentified element type " << element_type;
-        const std::string msg(ss.str());
-        throw escript::IOError(msg);
-    }
-
-    // Allocate the ElementFile
-    refContactElements.reset(new ReferenceElementSet(typeID, order, reduced_order));
-    mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
-    numNodes = mesh_p->ContactElements->numNodes; // new meaning for numNodes: num nodes per element
-
-    /******************* Read the contact element data **********************/
-    chunkSize = numEle / mpi_info->size + 1;
-    totalEle=0;
-    nextCPU=1;
-    chunkEle=0;
-    tempInts = new int[chunkSize*(2+numNodes)+1];
-    // Store Id + Tag + node list (+ one int at end for chunkEle)
-    // Elements are specified as a list of integers...only need one message instead of two as with the nodes
-    if (mpi_info->rank == 0) { // Master
-        for (;;) { // Infinite loop
-#pragma omp parallel for private (i0) schedule(static)
-            for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-
-            chunkEle = 0;
-            for (i0=0; i0<chunkSize; i0++) {
-                if (totalEle >= numEle) break; /* End inner loop */
-                scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                for (i1 = 0; i1 < numNodes; i1++) {
-                    scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
-                }
-                scan_ret = fscanf(fileHandle_p, "\n");
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                totalEle++;
-                chunkEle++;
-            }
-#ifdef ESYS_MPI
-            // Eventually we'll send chunk of elements to each CPU except
-            // 0 itself, here goes one of them
-            if (nextCPU < mpi_info->size) {
-                tempInts[chunkSize*(2+numNodes)] = chunkEle;
-                MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81724, mpi_info->comm);
-            }
-#endif
-            nextCPU++;
-            // Infinite loop ends when I've read a chunk for each of the
-            // worker nodes plus one more chunk for the master
-            if (nextCPU > mpi_info->size)
-                break; // End infinite loop
-        } // Infinite loop
-    } // End master
-    else { // Worker
-#ifdef ESYS_MPI
-        // Each worker receives one message
-        MPI_Status status;
-        MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81724, mpi_info->comm, &status);
-        chunkEle = tempInts[chunkSize*(2+numNodes)] ;
-#endif
-    } // Worker
-
-    // Copy Element data from tempInts to mesh_p
-    mesh_p->ContactElements->allocTable(chunkEle);
-    mesh_p->ContactElements->minColor=0;
-    mesh_p->ContactElements->maxColor=chunkEle-1;
-#pragma omp parallel for private (i0, i1)
-    for (i0=0; i0<chunkEle; i0++) {
-        mesh_p->ContactElements->Id[i0] = tempInts[i0*(2+numNodes)+0];
-        mesh_p->ContactElements->Tag[i0] = tempInts[i0*(2+numNodes)+1];
-        mesh_p->ContactElements->Owner[i0] = mpi_info->rank;
-        mesh_p->ContactElements->Color[i0] = i0;
-        for (i1 = 0; i1 < numNodes; i1++) {
-            mesh_p->ContactElements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
-        }
-    }
-    delete[] tempInts;
-
-    // ****************** read nodal elements ******************
-
-    // ***************  Read the element typeID ***********
-    if (mpi_info->rank == 0) {
-        scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-        if (scan_ret==EOF)
-            throw escript::IOError("Mesh::read: scan error while reading file");
-        typeID=ReferenceElement::getTypeId(element_type);
-    }
-#ifdef ESYS_MPI
-    if (mpi_info->size > 1) {
-        int temp1[2];
-        temp1[0] = (int) typeID;
-        temp1[1] = numEle;
-        MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-        typeID = (ElementTypeId) temp1[0];
-        numEle = temp1[1];
-    }
-#endif
-    if (typeID==NoRef) {
-        std::stringstream ss;
-        ss << "Mesh::read: Unidentified element type " << element_type;
-        const std::string msg(ss.str());
-        throw escript::IOError(msg);
-    }
-
-    // Allocate the ElementFile
-    refPoints.reset(new ReferenceElementSet(typeID, order, reduced_order));
-    mesh_p->Points=new ElementFile(refPoints, mpi_info);
-    // New meaning for numNodes: num nodes per element
-    numNodes = mesh_p->Points->numNodes;
-
-    // ******************* Read the nodal element data ****************
-    chunkSize = numEle / mpi_info->size + 1;
-    totalEle=0;
-    nextCPU=1;
-    chunkEle=0;
-    // Store Id + Tag + node list (+ one int at end for chunkEle)
-    tempInts = new int[chunkSize*(2+numNodes)+1];
-    // Elements are specified as a list of integers...only need one
-    // message instead of two as with the nodes
-    if (mpi_info->rank == 0) {  // Master
-        for (;;) { // Infinite loop
-#pragma omp parallel for private (i0) schedule(static)
-            for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-
-            chunkEle = 0;
-            for (i0=0; i0<chunkSize; i0++) {
-                if (totalEle >= numEle) break; /* End inner loop */
-                scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                for (i1 = 0; i1 < numNodes; i1++) {
-                    scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                    if (scan_ret==EOF)
-                        throw escript::IOError("Mesh::read: scan error while reading file");
-                }
-                scan_ret = fscanf(fileHandle_p, "\n");
-                if (scan_ret==EOF)
-                    throw escript::IOError("Mesh::read: scan error while reading file");
-                totalEle++;
-                chunkEle++;
-            }
-#ifdef ESYS_MPI
-            // Eventually we'll send chunk of elements to each CPU
-            // except 0 itself, here goes one of them
-            if (nextCPU < mpi_info->size) {
-                tempInts[chunkSize*(2+numNodes)] = chunkEle;
-                MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81725, mpi_info->comm);
-            }
-#endif
-            nextCPU++;
-            // Infinite loop ends when I've read a chunk for each of
-            // the worker nodes plus one more chunk for the master
-            if (nextCPU > mpi_info->size)
-                break; // End infinite loop
-        } // Infinite loop
-    }   // End master
-    else {  // Worker
-#ifdef ESYS_MPI
-        // Each worker receives one message
-        MPI_Status status;
-        MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81725, mpi_info->comm, &status);
-        chunkEle = tempInts[chunkSize*(2+numNodes)];
-#endif
-    } // Worker
-
-    // Copy Element data from tempInts to mesh_p
-    mesh_p->Points->allocTable(chunkEle);
-    mesh_p->Points->minColor=0;
-    mesh_p->Points->maxColor=chunkEle-1;
-#pragma omp parallel for private (i0, i1) schedule(static)
-    for (i0=0; i0<chunkEle; i0++) {
-        mesh_p->Points->Id[i0] = tempInts[i0*(2+numNodes)+0];
-        mesh_p->Points->Tag[i0] = tempInts[i0*(2+numNodes)+1];
-        mesh_p->Points->Owner[i0] = mpi_info->rank;
-        mesh_p->Points->Color[i0] = i0;
-        for (i1 = 0; i1 < numNodes; i1++) {
-            mesh_p->Points->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
-        }
-    }
-    delete[] tempInts;
-
-    // ************** end of Read the nodal element data ***************
-
-    // *****************  get the name tags ********************************
-    char *remainder=NULL, *ptr;
-    size_t len=0;
+    /************************  get the name tags ****************************/
+    std::string remainder;
+    size_t len = 0;
     int tag_key;
-    if (mpi_info->rank == 0) {  // Master
-        // Read the word 'Tag'
-        if (!feof(fileHandle_p)) {
-            scan_ret = fscanf(fileHandle_p, "%s\n", name);
-            if (scan_ret==EOF)
-                throw escript::IOError("Mesh::read: scan error while reading file");
+    if (mpiInfo->rank == 0) { // Master
+        // Read the word 'Tags'
+        if (!fileHandle.eof()) {
+            std::getline(fileHandle, name);
+            if (!fileHandle.good())
+                throw IOError("Mesh::read: Scan error while reading tag header");
         }
-
         // Read rest of file in one chunk, after using seek to find length
-        long cur_pos = ftell(fileHandle_p);
-        fseek(fileHandle_p, 0L, SEEK_END);
-        long end_pos = ftell(fileHandle_p);
-        fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
-        remainder = new char[end_pos-cur_pos+1];
-        if (!feof(fileHandle_p)) {
-            scan_ret = fread(remainder, (size_t) end_pos-cur_pos,
-                             sizeof(char), fileHandle_p);
-
-            if (scan_ret==EOF)
-                throw escript::IOError("Mesh::read: scan error while reading file");
-            remainder[end_pos-cur_pos] = 0;
+        std::ios::pos_type cur_pos = fileHandle.tellg();
+        fileHandle.seekg(0, std::ios::end);
+        std::ios::pos_type end_pos = fileHandle.tellg();
+        fileHandle.seekg(cur_pos);
+        remainder.resize(end_pos - cur_pos + 1);
+        if (!fileHandle.eof()) {
+            fileHandle.read(&remainder[0], end_pos-cur_pos);
+            if (fileHandle.bad())
+                throw IOError("Mesh::read: Error reading remainder");
+            remainder[end_pos - cur_pos] = 0;
         }
-        len = strlen(remainder);
-        // trim the string
-        while (len>1 && isspace(remainder[--len])) {
-            remainder[len]=0;
-        }
-        len = strlen(remainder);
+        len = remainder.find_last_not_of(' ');
+        remainder = remainder.substr(0, len+1);
     } // Master
+
 #ifdef ESYS_MPI
-    int len_i=static_cast<int>(len);
-    MPI_Bcast(&len_i, 1, MPI_INT,  0, mpi_info->comm);
+    int len_i = static_cast<int>(len);
+    MPI_Bcast(&len_i, 1, MPI_INT, 0, mpiInfo->comm);
     len = static_cast<size_t>(len_i);
-    if (mpi_info->rank != 0) {
-        remainder = new char[len+1];
-        remainder[0] = 0;
+    if (mpiInfo->rank != 0) {
+        remainder.resize(len + 1);
     }
-    if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
-            MPI_SUCCESS)
+    if (MPI_Bcast(&remainder[0], len+1, MPI_CHAR, 0, mpiInfo->comm) != MPI_SUCCESS)
         throw FinleyException("Mesh::read: broadcast of remainder failed");
 #endif
 
-    if (remainder[0]) {
-        ptr = remainder;
-        do {
-            sscanf(ptr, "%s %d\n", name, &tag_key);
-            if (*name)
-                mesh_p->addTagMap(name, tag_key);
-            ptr++;
-        } while(NULL != (ptr = strchr(ptr, '\n')) && *ptr);
+    std::stringstream rem;
+    rem << remainder;
+    while (std::getline(rem, line)) {
+        size_t pos = line.find(' ');
+        if (pos != std::string::npos) {
+            name = line.substr(0, pos);
+            tag_key = std::stoi(line.substr(pos+1));
+            domain->setTagMap(name, tag_key);
+        }
     }
-    delete[] remainder;
 
     // close file
-    if (mpi_info->rank == 0)
-        fclose(fileHandle_p);
+    if (mpiInfo->rank == 0)
+        fileHandle.close();
 
-    // resolve id's and rearrange elements
-    mesh_p->resolveNodeIds();
-    mesh_p->prepare(optimize);
-    return mesh_p;
+    domain->resolveNodeIds();
+    domain->prepare(optimize);
+    return domain->getPtr();
 }
 
 } // namespace finley

@@ -21,7 +21,6 @@
 #include <dudley/NodeFile.h>
 #endif
 #ifdef USE_FINLEY
-#include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 #endif
 using escript::DataTypes::index_t;

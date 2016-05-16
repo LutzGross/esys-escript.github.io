@@ -23,7 +23,7 @@
 #include <dudley/DudleyDomain.h>
 #endif
 #ifdef USE_FINLEY
-#include <finley/CppAdapter/MeshAdapter.h>
+#include <finley/FinleyDomain.h>
 #endif
 
 #endif

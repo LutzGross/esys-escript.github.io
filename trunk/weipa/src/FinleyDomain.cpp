@@ -23,8 +23,7 @@
 #include <dudley/DudleyDomain.h>
 #endif
 #ifdef USE_FINLEY
-#include <finley/CppAdapter/MeshAdapter.h>
-#include <finley/Mesh.h>
+#include <finley/FinleyDomain.h>
 #endif
 #endif // VISIT_PLUGIN
 
@@ -94,19 +93,19 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
     if (0) {
     }
 #ifdef USE_FINLEY
-    else if (dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
-        const finley::Mesh* finleyMesh =
-            dynamic_cast<const finley::MeshAdapter*>(escriptDomain)->getMesh();
+    else if (dynamic_cast<const finley::FinleyDomain*>(escriptDomain)) {
+        const finley::FinleyDomain* finleyMesh =
+            dynamic_cast<const finley::FinleyDomain*>(escriptDomain);
 
         nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
         cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
         faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
         contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
 
-        if (nodes->initFromFinley(finleyMesh->Nodes) &&
-                cells->initFromFinley(finleyMesh->Elements) &&
-                faces->initFromFinley(finleyMesh->FaceElements) &&
-                contacts->initFromFinley(finleyMesh->ContactElements)) {
+        if (nodes->initFromFinley(finleyMesh->getNodes()) &&
+                cells->initFromFinley(finleyMesh->getElements()) &&
+                faces->initFromFinley(finleyMesh->getFaceElements()) &&
+                contacts->initFromFinley(finleyMesh->getContactElements())) {
             initialized = true;
         }
     }

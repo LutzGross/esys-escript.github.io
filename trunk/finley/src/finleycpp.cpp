@@ -15,16 +15,14 @@
 *****************************************************************************/
 
 #include <finley/Finley.h>
-#include <finley/FinleyException.h>
-#include "MeshAdapter.h"
-#include "MeshAdapterFactory.h"
+#include <finley/DomainFactory.h>
+#include <finley/FinleyDomain.h>
 
-#include <escript/AbstractContinuousDomain.h>
 #include <escript/ExceptionTranslators.h>
 
 #include <boost/python.hpp>
-#include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
+#include <boost/python/module.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
 #include <boost/version.hpp>
 
@@ -34,30 +32,22 @@ BOOST_PYTHON_MODULE(finleycpp)
 {
 // This feature was added in boost v1.34
 #if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
-  // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
-  docstring_options docopt(true, true, false);
+    // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
+    docstring_options docopt(true, true, false);
 #endif
 
-  scope().attr("__doc__") = "To use this module, please import esys.finley";    
+    scope().attr("__doc__") = "To use this module, please import esys.finley";
 
     // register escript's default translators
     REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
     register_exception_translator<finley::FinleyException>(&escript::RuntimeErrorTranslator);
 
-  //
-  // NOTE: The return_value_policy is necessary for functions that
-  // return pointers.
-  //
-  def("LoadMesh",finley::loadMesh,
-      (arg("fileName")="file.nc"),":rtype: `Domain`"
-/*      ,return_value_policy<manage_new_object>());*/
-      );
+  def("LoadMesh", finley::FinleyDomain::load,
+      (arg("fileName") = "file.nc"), ":rtype: `FinleyDomain`");
 
-  
+
   def("__ReadMesh_driver", finley::readMesh_driver,
       (arg("params"))
-//  def("ReadMesh",finley::readMesh,
-//      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true)
 	,"Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"
@@ -67,13 +57,6 @@ BOOST_PYTHON_MODULE(finleycpp)
 
   def("__ReadGmsh_driver", finley::readGmsh_driver,
       (arg("params"))  
-//  def("ReadGmsh",finley::readGmsh,
-//      (arg("fileName")="file.msh",
-//       arg("numDim"), 
-//       arg("integrationOrder")=-1, 
-//       arg("reducedIntegrationOrder")=-1, 
-//       arg("optimize")=true,  
-//       arg("useMacroElements")=false)
 ,"Read a gmsh mesh file\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"
@@ -122,18 +105,18 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def("Merge",finley::meshMerge,args("meshList")
+  def("Merge", finley::meshMerge, args("meshList")
 ,"Merges a list of meshes into one mesh.\n\n:rtype: `Domain`"
   );
 
-  def("GlueFaces",finley::glueFaces,
-      (arg("meshList"),arg("safetyFactor")=0.2,
+  def("GlueFaces", finley::glueFaces,
+      (arg("meshList"), arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
       arg("optimize")=true)
 ,"Detects matching faces in the mesh, removes them from the mesh and joins the elements touched by the face elements."
 	);
 
-  def("JoinFaces",finley::joinFaces,
+  def("JoinFaces", finley::joinFaces,
       (arg("meshList"), arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
       arg("optimize")=true)
@@ -141,24 +124,24 @@ BOOST_PYTHON_MODULE(finleycpp)
 	);
 
 
-  class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
-      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <finley::Mesh*> >())
-      .def(init<const finley::MeshAdapter&>())
-      .def("write",&finley::MeshAdapter::write,args("filename"),
+    class_<finley::FinleyDomain, bases<escript::AbstractContinuousDomain> >
+      ("FinleyDomain","A concrete class representing a domain. For more details, please consult the C++ documentation.", no_init)
+      .def(init<const finley::FinleyDomain&>())
+      .def("write", &finley::FinleyDomain::write, args("filename"),
 "Write the current mesh to a file with the given name.")
-      .def("print_mesh_info",&finley::MeshAdapter::Print_Mesh_Info,(arg("full")=false),
+      .def("print_mesh_info", &finley::FinleyDomain::Print_Mesh_Info, (arg("full")=false),
 ":param full:\n:type full: ``bool``")
-      .def("dump",&finley::MeshAdapter::dump,args("fileName")
+      .def("dump", &finley::FinleyDomain::dump, args("fileName")
 ,"dumps the mesh to a file with the given name.")
-      .def("getDescription",&finley::MeshAdapter::getDescription,
+      .def("getDescription", &finley::FinleyDomain::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
-      .def("getDim",&finley::MeshAdapter::getDim,":rtype: ``int``")
-      .def("getDataShape",&finley::MeshAdapter::getDataShape, args("functionSpaceCode"),
+      .def("getDim", &finley::FinleyDomain::getDim,":rtype: ``int``")
+      .def("getDataShape", &finley::FinleyDomain::getDataShape, args("functionSpaceCode"),
 ":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
-      .def("getNumDataPointsGlobal",&finley::MeshAdapter::getNumDataPointsGlobal,
+      .def("getNumDataPointsGlobal", &finley::FinleyDomain::getNumDataPointsGlobal,
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
-      .def("addPDEToSystem",&finley::MeshAdapter::addPDEToSystem,
+      .def("addPDEToSystem", &finley::FinleyDomain::addPDEToSystem,
 args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
@@ -172,14 +155,15 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-      .def("addPDEToLumpedSystem",&finley::MeshAdapter::addPDEToLumpedSystem,
+      .def("addPDEToLumpedSystem", &finley::FinleyDomain::addPDEToLumpedSystem,
 args("mat", "D", "d"),
 "adds a PDE onto the lumped stiffness matrix\n\n"
 ":param mat:\n:type mat: `Data`\n"
 ":param D:\n:type D: `Data`\n"
 ":param d:\n:type d: `Data`\n"
-":param useHRZ:\n:type useHRZ: bool\n")
-      .def("addPDEToRHS",&finley::MeshAdapter::addPDEToRHS, 
+":param useHRZ:\n:type useHRZ: bool\n"
+)
+      .def("addPDEToRHS", &finley::FinleyDomain::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param rhs:\n:type rhs: `Data`\n"
@@ -188,9 +172,9 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param y:\n:type y: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
 )
-      .def("addPDEToTransportProblem",&finley::MeshAdapter::addPDEToTransportProblem,
+      .def("addPDEToTransportProblem", &finley::FinleyDomain::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
-":param tp:\n:type tp: `TransportProblem`\n"
+":param tp:\n:type tp: `AbstractTransportProblem`\n"
 ":param source:\n:type source: `Data`\n"
 ":param M:\n:type M: `Data`\n"
 ":param A:\n:type A: `Data`\n"
@@ -204,7 +188,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-      .def("newOperator",&finley::MeshAdapter::newSystemMatrix,
+      .def("newOperator", &finley::FinleyDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a stiffness matrix and initializes it with zeros\n\n"
 ":param row_blocksize:\n:type row_blocksize: ``int``\n"
@@ -213,7 +197,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("newTransportProblem",&finley::MeshAdapter::newTransportProblem,
+      .def("newTransportProblem", &finley::FinleyDomain::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
 "creates a TransportProblem\n\n"
 ":param theta:\n:type theta: ``float``\n"
@@ -221,13 +205,13 @@ args("theta", "blocksize", "functionspace", "type"),
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("getSystemMatrixTypeId",&finley::MeshAdapter::getSystemMatrixTypeId,
+      .def("getSystemMatrixTypeId", &finley::FinleyDomain::getSystemMatrixTypeId,
 args("options"),
 ":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
 ":rtype: ``int``\n"
 ":param options:\n:type options: `SolverBuddy`\n"
 )
-      .def("getTransportTypeId",&finley::MeshAdapter::getTransportTypeId,
+      .def("getTransportTypeId", &finley::FinleyDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -236,45 +220,27 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("setX",&finley::MeshAdapter::setNewX,
+      .def("setX", &finley::FinleyDomain::setNewX,
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
-      .def("getX",&finley::MeshAdapter::getX, ":return: locations in the FEM nodes\n\n"
+      .def("getX", &finley::FinleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
-      .def("getNormal",&finley::MeshAdapter::getNormal,
+      .def("getNormal", &finley::FinleyDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")
-      .def("getSize",&finley::MeshAdapter::getSize,":return: the element size\n"
+      .def("getSize", &finley::FinleyDomain::getSize,":return: the element size\n"
 ":rtype: `Data`")
-      .def("setTagMap",&finley::MeshAdapter::setTagMap,args("name","tag"),
+      .def("setTagMap", &finley::FinleyDomain::setTagMap,args("name","tag"),
 "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
 ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
-      .def("getTag",&finley::MeshAdapter::getTag,args("name"),":return: tag id for "
+      .def("getTag", &finley::FinleyDomain::getTag,args("name"),":return: tag id for "
 "``name``\n:rtype: ``string``")
-      .def("isValidTagName",&finley::MeshAdapter::isValidTagName,args("name"),
+      .def("isValidTagName", &finley::FinleyDomain::isValidTagName,args("name"),
 ":return: True is ``name`` corresponds to a tag\n:rtype: ``bool``")
-      .def("showTagNames",&finley::MeshAdapter::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
-      .def("getMPISize",&finley::MeshAdapter::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
-      .def("getMPIRank",&finley::MeshAdapter::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
-      .def("MPIBarrier",&finley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
-      .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
-//       .def("addDiracPoints", &finley::MeshAdapter::addDiracPoints,(arg("points"), arg("tags")=finley::EmptyPythonList),
-//       "adds points to support more Dirac delta function.\n\n"
-//        	":param points: list of points where Dirac delta function are to be defined. The location will be adjusted to\n"
-// 	"               to match the nearest node of the finite element mesh.\n:type points: ``list`` of ``list``s of ``floats``\n"
-// 	":param tags: list of tags to be assigned to the points.\n:type tags: ``list`` of ``int``s or ``strings``\n"     
-//       )
-//       .def("addDiracPoint", &finley::MeshAdapter::addDiracPoint,(arg("point"), arg("tag")=-1),
-//         "adds a point to support more Dirac delta function.\n\n"
-//        	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
-// 	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
-// 	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
-//       ) 
-//       .def("addDiracPoint", &finley::MeshAdapter::addDiracPointWithTagName,(arg("point"), arg("tag")),
-//         "adds a point to support more Dirac delta function.\n\n"
-//        	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
-// 	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
-// 	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
-//       ) 
+      .def("showTagNames", &finley::FinleyDomain::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
+      .def("getMPISize", &finley::FinleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
+      .def("getMPIRank", &finley::FinleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
+      .def("MPIBarrier", &finley::FinleyDomain::MPIBarrier,"Wait until all processes have reached this point")
+      .def("onMasterProcessor", &finley::FinleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
  ;
 }
 

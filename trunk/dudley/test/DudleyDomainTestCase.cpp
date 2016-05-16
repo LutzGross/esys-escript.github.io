@@ -36,7 +36,7 @@ void DudleyDomainTestCase::testAll()
 
 TestSuite* DudleyDomainTestCase::suite()
 {
-    TestSuite *testSuite = new TestSuite("MeshAdapterTestCase");
+    TestSuite *testSuite = new TestSuite("DudleyDomainTestCase");
 
     testSuite->addTest(new TestCaller<DudleyDomainTestCase>(
                 "testAll", &DudleyDomainTestCase::testAll));

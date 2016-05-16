@@ -16,10 +16,9 @@
 
 #include <escript/AbstractContinuousDomain.h>
 
-#include "MeshAdapterTestCase.h"
+#include "FinleyDomainTestCase.h"
 
-#include <finley/CppAdapter/MeshAdapter.h>
-#include <finley/CppAdapter/MeshAdapterFactory.h>
+#include <finley/DomainFactory.h>
 
 #include <cppunit/TestCaller.h>
 #include <boost/scoped_ptr.hpp>
@@ -28,20 +27,19 @@ using namespace escript;
 using namespace finley;
 using namespace CppUnit;
 
-void MeshAdapterTestCase::testAll()
+void FinleyDomainTestCase::testAll()
 {
-    // test construction of a mesh using the brick factory method
-    // boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
-	JMPI info=makeInfo(MPI_COMM_WORLD);
-	brick(info);	// brick now returns a Domain_ptr which will auto delete
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+	Domain_ptr dom(brick(info));
+    CPPUNIT_ASSERT(dom->getDim() == 3);
 }
 
-TestSuite* MeshAdapterTestCase::suite()
+TestSuite* FinleyDomainTestCase::suite()
 {
-    TestSuite *testSuite = new TestSuite("MeshAdapterTestCase");
+    TestSuite *testSuite = new TestSuite("FinleyDomainTestCase");
 
-    testSuite->addTest(new TestCaller<MeshAdapterTestCase>(
-                "testAll",&MeshAdapterTestCase::testAll));
+    testSuite->addTest(new TestCaller<FinleyDomainTestCase>(
+                "testAll",&FinleyDomainTestCase::testAll));
     return testSuite;
 }
 

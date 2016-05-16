@@ -35,7 +35,7 @@
 #include <dudley/DudleyDomain.h>
 #endif
 #ifdef USE_FINLEY
-#include <finley/CppAdapter/MeshAdapter.h>
+#include <finley/FinleyDomain.h>
 #endif
 #ifdef USE_RIPLEY
 #include <ripley/RipleyDomain.h>
@@ -131,7 +131,7 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         if (0) {
         }
 #if USE_FINLEY
-        else if (dynamic_cast<const finley::MeshAdapter*>(domain)) {
+        else if (dynamic_cast<const finley::FinleyDomain*>(domain)) {
             DomainChunk_ptr dom(new FinleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)

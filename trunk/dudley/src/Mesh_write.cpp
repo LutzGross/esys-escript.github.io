@@ -35,9 +35,9 @@ void DudleyDomain::writeElementInfo(std::ostream& stream, const ElementFile* e,
     if (e != NULL) {
         stream << e->ename << " " << e->numElements << endl;
         const int NN = e->numNodes;
-        for (index_t i=0; i < e->numElements; i++) {
+        for (index_t i = 0; i < e->numElements; i++) {
             stream << e->Id[i] << " " << e->Tag[i];
-            for (int j=0; j<NN; j++)
+            for (int j = 0; j < NN; j++)
                 stream << " " << m_nodes->Id[e->Nodes[INDEX2(j,i,NN)]];
             stream << endl;
         }
@@ -51,8 +51,8 @@ void DudleyDomain::printElementInfo(const ElementFile* e, const string& title,
                                     const string& defaultType, bool full) const
 {
     if (e != NULL) {
-        dim_t mine=0, overlap=0;
-        for (index_t i=0; i < e->numElements; i++) {
+        dim_t mine = 0, overlap = 0;
+        for (index_t i = 0; i < e->numElements; i++) {
             if (e->Owner[i] == m_mpiInfo->rank)
                 mine++;
             else
@@ -64,12 +64,12 @@ void DudleyDomain::printElementInfo(const ElementFile* e, const string& title,
         if (full) {
             const int NN = e->numNodes;
             cout << "\t     Id   Tag Owner Color:  Nodes" << endl;
-            for (index_t i=0; i < e->numElements; i++) {
+            for (index_t i = 0; i < e->numElements; i++) {
                 cout << "\t" << setw(7) << e->Id[i]
                      << setw(6) << e->Tag[i]
                      << setw(6) << e->Owner[i]
                      << setw(6) << e->Color[i] << ": ";
-                for (int j=0; j<NN; j++)
+                for (int j = 0; j < NN; j++)
                     cout << setw(6) << m_nodes->Id[e->Nodes[INDEX2(j,i,NN)]];
                 cout << endl;
             }
@@ -96,7 +96,7 @@ void DudleyDomain::write(const std::string& filename) const
     // write header
     f << m_name << endl;
 
-    //  write nodes
+    // write nodes
     if (m_nodes != NULL) {
         const int numDim = getDim();
         f << numDim << "D-Nodes " << m_nodes->getNumNodes() << endl;
@@ -105,7 +105,7 @@ void DudleyDomain::write(const std::string& filename) const
               << " " << m_nodes->Tag[i];
             f.setf(ios::scientific, ios::floatfield);
             f.precision(15);
-            for (int j=0; j<numDim; j++)
+            for (int j = 0; j < numDim; j++)
                 f << " " << m_nodes->Coordinates[INDEX2(j,i,numDim)];
             f << endl;
         }
@@ -151,7 +151,7 @@ void DudleyDomain::Print_Mesh_Info(bool full) const
         cout << "\tNodes: " << numDim << "D-Nodes " << m_nodes->getNumNodes() << endl;
         if (full) {
             cout << "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n";
-            for (index_t i=0; i < m_nodes->getNumNodes(); i++) {
+            for (index_t i = 0; i < m_nodes->getNumNodes(); i++) {
                 cout << "\t" << setw(7) << m_nodes->Id[i]
                      << setw(6) << m_nodes->Tag[i]
                      << setw(6) << m_nodes->globalDegreesOfFreedom[i]
@@ -160,7 +160,7 @@ void DudleyDomain::Print_Mesh_Info(bool full) const
                      << setw(6) << m_nodes->globalNodesIndex[i] << ": ";
                 cout.setf(ios::scientific, ios::floatfield);
                 cout.precision(15);
-                for (int j=0; j<numDim; j++)
+                for (int j = 0; j < numDim; j++)
                     cout << " " << m_nodes->Coordinates[INDEX2(j,i,numDim)];
                 cout << endl;
             }

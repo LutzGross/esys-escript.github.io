@@ -19,14 +19,13 @@
 
   Finley: generates rectangular meshes
 
-  Generates a numElements[0] x numElements[1] x numElements[2] mesh with
-  second order elements (Hex20) in the brick
-  [0,Length[0]] x [0,Length[1]] x [0,Length[2]].
+  Generates a NE0 x NE1 x NE2 mesh with second order elements (Hex20) in the
+  brick [0,l0] x [0,l1] x [0,l2].
   order is the desired accuracy of the integration scheme.
 
 *****************************************************************************/
 
-#include "RectangularMesh.h"
+#include "FinleyDomain.h"
 
 #include <escript/index.h>
 
@@ -36,11 +35,13 @@ using escript::DataTypes::real_t;
 
 namespace finley {
 
-Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
-                            const bool* periodic, int order, int reduced_order,
+escript::Domain_ptr FinleyDomain::createHex20(dim_t NE0, dim_t NE1, dim_t NE2,
+                            double l0, double l1, double l2,
+                            bool periodic0, bool periodic1, bool periodic2,
+                            int order, int reduced_order,
                             bool useElementsOnFace, bool useFullElementOrder,
                             bool useMacroElements, bool optimize,
-                            escript::JMPI& mpiInfo)
+                            escript::JMPI mpiInfo)
 {
     const int N_PER_E = 2;
     const int DIM = 3;
@@ -50,9 +51,9 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     const int myRank = mpiInfo->rank;
 
     // set up the global dimensions of the mesh
-    const dim_t NE0 = std::max(dim_t(1),numElements[0]);
-    const dim_t NE1 = std::max(dim_t(1),numElements[1]);
-    const dim_t NE2 = std::max(dim_t(1),numElements[2]);
+    NE0 = std::max(dim_t(1), NE0);
+    NE1 = std::max(dim_t(1), NE1);
+    NE2 = std::max(dim_t(1), NE2);
     const dim_t N0 = N_PER_E*NE0+1;
     const dim_t N1 = N_PER_E*NE1+1;
     const dim_t N2 = N_PER_E*NE2+1;
@@ -60,10 +61,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     // allocate mesh
     std::stringstream name;
     name << "Brick " << N0 << " x " << N1 << " x " << N2;
-    Mesh* out = new Mesh(name.str(), DIM, mpiInfo);
+    FinleyDomain* out = new FinleyDomain(name.str(), DIM, mpiInfo);
 
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
-    bool generateAllNodes=(useFullElementOrder || useMacroElements);
+    bool generateAllNodes = useFullElementOrder || useMacroElements;
 
     if (generateAllNodes) {
         if (useMacroElements) {
@@ -93,10 +94,14 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     }
     refPoints.reset(new ReferenceElementSet(Point1, order, reduced_order));
 
-    out->setPoints(new ElementFile(refPoints, mpiInfo));
-    out->setContactElements(new ElementFile(refContactElements, mpiInfo));
-    out->setFaceElements(new ElementFile(refFaceElements, mpiInfo));
-    out->setElements(new ElementFile(refElements, mpiInfo));
+    ElementFile* points = new ElementFile(refPoints, mpiInfo);
+    out->setPoints(points);
+    ElementFile* contacts  = new ElementFile(refContactElements, mpiInfo);
+    out->setContactElements(contacts);
+    ElementFile* faces  = new ElementFile(refFaceElements, mpiInfo);
+    out->setFaceElements(faces);
+    ElementFile* elements  = new ElementFile(refElements, mpiInfo);
+    out->setElements(elements);
 
     // work out the largest dimension
     if (N2==MAX3(N0,N1,N2)) {
@@ -137,7 +142,7 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
 
     // get the number of surface elements
     dim_t NFaceElements = 0;
-    if (!periodic[2] && local_NE2>0) {
+    if (!periodic2 && local_NE2 > 0) {
         NDOF2=N2;
         if (offset2==0) NFaceElements+=local_NE1*local_NE0;
         if (local_NE2+e_offset2 == NE2) NFaceElements+=local_NE1*local_NE0;
@@ -145,14 +150,14 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
         NDOF2=N2-1;
     }
 
-    if (!periodic[0] && local_NE0>0) {
+    if (!periodic0 && local_NE0 > 0) {
         NDOF0=N0;
         if (e_offset0 == 0) NFaceElements+=local_NE1*local_NE2;
         if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1*local_NE2;
     } else {
         NDOF0=N0-1;
     }
-    if (!periodic[1] && local_NE1>0) {
+    if (!periodic1 && local_NE1 > 0) {
         NDOF1=N1;
         if (e_offset1 == 0) NFaceElements+=local_NE0*local_NE2;
         if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0*local_NE2;
@@ -161,9 +166,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     }
 
     // allocate tables
-    out->Nodes->allocTable(local_N0*local_N1*local_N2);
-    out->Elements->allocTable(local_NE0*local_NE1*local_NE2);
-    out->FaceElements->allocTable(NFaceElements);
+    NodeFile* nodes = out->getNodes();
+    nodes->allocTable(local_N0*local_N1*local_N2);
+    elements->allocTable(local_NE0*local_NE1*local_NE2);
+    faces->allocTable(NFaceElements);
 
     // create nodes
 #pragma omp parallel for
@@ -174,21 +180,21 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                 const index_t global_i0 = i0+offset0;
                 const index_t global_i1 = i1+offset1;
                 const index_t global_i2 = i2+offset2;
-                out->Nodes->Coordinates[INDEX2(0,k,DIM)]=(real_t)global_i0/(real_t)(N0-1)*Length[0];
-                out->Nodes->Coordinates[INDEX2(1,k,DIM)]=(real_t)global_i1/(real_t)(N1-1)*Length[1];
-                out->Nodes->Coordinates[INDEX2(2,k,DIM)]=(real_t)global_i2/(real_t)(N2-1)*Length[2];
-                out->Nodes->Id[k]=Nstride0*global_i0+Nstride1*global_i1+Nstride2*global_i2;
-                out->Nodes->Tag[k]=0;
-                out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0)
-                                                +Nstride1*(global_i1%NDOF1)
-                                                +Nstride2*(global_i2%NDOF2);
+                nodes->Coordinates[INDEX2(0,k,DIM)] = (real_t)global_i0/(real_t)(N0-1)*l0;
+                nodes->Coordinates[INDEX2(1,k,DIM)] = (real_t)global_i1/(real_t)(N1-1)*l1;
+                nodes->Coordinates[INDEX2(2,k,DIM)] = (real_t)global_i2/(real_t)(N2-1)*l2;
+                nodes->Id[k] = Nstride0*global_i0+Nstride1*global_i1+Nstride2*global_i2;
+                nodes->Tag[k] = 0;
+                nodes->globalDegreesOfFreedom[k] = Nstride0*(global_i0%NDOF0)
+                                                 + Nstride1*(global_i1%NDOF1)
+                                                 + Nstride2*(global_i2%NDOF2);
             }
         }
     }
 
     // set the elements
-    dim_t NN = out->Elements->numNodes;
-    index_t* eNodes = out->Elements->Nodes;
+    dim_t NN = elements->numNodes;
+    index_t* eNodes = elements->Nodes;
 #pragma omp parallel for
     for (index_t i2=0; i2<local_NE2; i2++) {
         for (index_t i1=0; i1<local_NE1; i1++) {
@@ -198,11 +204,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                                     + Nstride1*N_PER_E*(i1+e_offset1)
                                     + Nstride2*N_PER_E*(i2+e_offset2);
 
-                out->Elements->Id[k] = (i0+e_offset0)
-                                     + NE0*(i1+e_offset1)
-                                     + NE0*NE1*(i2+e_offset2);
-                out->Elements->Tag[k]=0;
-                out->Elements->Owner[k]=myRank;
+                elements->Id[k] = (i0+e_offset0) + NE0*(i1+e_offset1)
+                                                 + NE0*NE1*(i2+e_offset2);
+                elements->Tag[k] = 0;
+                elements->Owner[k] = myRank;
 
                 eNodes[INDEX2(0,k,NN)] =node0;
                 eNodes[INDEX2(1,k,NN)] =node0+                      2*Nstride0;
@@ -238,13 +243,13 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     }
 
     // face elements
-    NN=out->FaceElements->numNodes;
+    NN = faces->numNodes;
     dim_t totalNECount=NE0*NE1*NE2;
     dim_t faceNECount = 0;
-    eNodes = out->FaceElements->Nodes;
+    eNodes = faces->Nodes;
 
     // these are the quadrilateral elements on boundary 1 (x3=0):
-    if (!periodic[2] && local_NE2>0) {
+    if (!periodic2 && local_NE2 > 0) {
         // **  elements on boundary 100 (x3=0):
         if (offset2==0) {
 #pragma omp parallel for
@@ -254,10 +259,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                     const index_t node0 = Nstride0*N_PER_E*(i0+e_offset0)
                                         + Nstride1*N_PER_E*(i1+e_offset1);
 
-                    out->FaceElements->Id[k] = (i0+e_offset0)
-                                             + NE0*(i1+e_offset1)+totalNECount;
-                    out->FaceElements->Tag[k]=100;
-                    out->FaceElements->Owner[k]=myRank;
+                    faces->Id[k] = (i0+e_offset0) + NE0*(i1+e_offset1)
+                                                  + totalNECount;
+                    faces->Tag[k] = 100;
+                    faces->Owner[k] = myRank;
 
                     if (useElementsOnFace) {
                         eNodes[INDEX2(0,k,NN)] =node0;
@@ -309,10 +314,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                                         + Nstride1*N_PER_E*(i1+e_offset1)
                                         + Nstride2*N_PER_E*(NE2-1);
 
-                    out->FaceElements->Id[k] = (i0+e_offset0)
-                                             + NE0*(i1+e_offset1)+totalNECount;
-                    out->FaceElements->Tag[k]=200;
-                    out->FaceElements->Owner[k]=myRank;
+                    faces->Id[k] = (i0+e_offset0) + NE0*(i1+e_offset1)
+                                                  + totalNECount;
+                    faces->Tag[k] = 200;
+                    faces->Owner[k] = myRank;
                     if (useElementsOnFace) {
                         eNodes[INDEX2(0,k,NN)] =node0+2*Nstride2;
                         eNodes[INDEX2(1,k,NN)] =node0+2*Nstride2+           2*Nstride0;
@@ -356,9 +361,9 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
             faceNECount+=local_NE1*local_NE0;
         }
         totalNECount+=NE1*NE0;
-    } // !periodic[2] && local_NE2>0
+    } // !periodic2 && local_NE2 > 0
 
-    if (!periodic[0] && local_NE0>0) {
+    if (!periodic0 && local_NE0 > 0) {
         // **  elements on boundary 001 (x1=0):
         if (e_offset0 == 0) {
 #pragma omp parallel for
@@ -367,10 +372,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                     const dim_t k = i1+local_NE1*i2+faceNECount;
                     const index_t node0 = Nstride1*N_PER_E*(i1+e_offset1)
                                         + Nstride2*N_PER_E*(i2+e_offset2);
-                    out->FaceElements->Id[k] = (i1+e_offset1)
-                                             + NE1*(i2+e_offset2)+totalNECount;
-                    out->FaceElements->Tag[k]=1;
-                    out->FaceElements->Owner[k]=myRank;
+                    faces->Id[k] = (i1+e_offset1) + NE1*(i2+e_offset2)
+                                                  + totalNECount;
+                    faces->Tag[k] = 1;
+                    faces->Owner[k] = myRank;
 
                     if (useElementsOnFace) {
                         eNodes[INDEX2(0,k,NN)] =node0;
@@ -425,10 +430,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                     const index_t node0 = Nstride0*N_PER_E*(NE0-1)
                                         + Nstride1*N_PER_E*(i1+e_offset1)
                                         + Nstride2*N_PER_E*(i2+e_offset2);
-                    out->FaceElements->Id[k] = (i1+e_offset1)
-                                             + NE1*(i2+e_offset2)+totalNECount;
-                    out->FaceElements->Tag[k]=2;
-                    out->FaceElements->Owner[k]=myRank;
+                    faces->Id[k] = (i1+e_offset1) + NE1*(i2+e_offset2)
+                                                  + totalNECount;
+                    faces->Tag[k] = 2;
+                    faces->Owner[k] = myRank;
 
                     if (useElementsOnFace) {
                         eNodes[INDEX2(0,k,NN)]=node0+                      2*Nstride0;
@@ -473,9 +478,9 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
             faceNECount+=local_NE1*local_NE2;
         }
         totalNECount+=NE1*NE2;
-    } // !periodic[0] && local_NE0>0
+    } // !periodic0 && local_NE0 > 0
 
-    if (!periodic[1] && local_NE1>0) {
+    if (!periodic1 && local_NE1 > 0) {
         // **  elements on boundary 010 (x2=0):
         if (e_offset1 == 0) {
 #pragma omp parallel for
@@ -485,10 +490,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                     const index_t node0 = Nstride0*N_PER_E*(i0+e_offset0)
                                         + Nstride2*N_PER_E*(i2+e_offset2);
 
-                    out->FaceElements->Id[k] = (i2+e_offset2)
-                                             + NE2*(e_offset0+i0)+totalNECount;
-                    out->FaceElements->Tag[k]=10;
-                    out->FaceElements->Owner[k]=myRank;
+                    faces->Id[k] = (i2+e_offset2) + NE2*(e_offset0+i0)
+                                                  + totalNECount;
+                    faces->Tag[k] = 10;
+                    faces->Owner[k] = myRank;
                     if (useElementsOnFace) {
                         eNodes[INDEX2(0,k,NN)]=node0;
                         eNodes[INDEX2(1,k,NN)]=node0+                      2*Nstride0;
@@ -543,10 +548,10 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
                                         + Nstride1*N_PER_E*(NE1-1)
                                         + Nstride2*N_PER_E*(i2+e_offset2);
 
-                    out->FaceElements->Id[k] = (i2+e_offset2)
-                                             + NE2*(i0+e_offset0)+totalNECount;
-                    out->FaceElements->Tag[k]=20;
-                    out->FaceElements->Owner[k]=myRank;
+                    faces->Id[k] = (i2+e_offset2) + NE2*(i0+e_offset0)
+                                                  + totalNECount;
+                    faces->Tag[k] = 20;
+                    faces->Owner[k] = myRank;
 
                     if (useElementsOnFace) {
                         eNodes[INDEX2(0,k,NN)]=node0+           2*Nstride1;
@@ -594,17 +599,17 @@ Mesh* RectangularMesh_Hex20(const dim_t* numElements, const double* Length,
     }
 
     // add tag names
-    out->addTagMap("top", 200);
-    out->addTagMap("bottom", 100);
-    out->addTagMap("left", 1);
-    out->addTagMap("right", 2);
-    out->addTagMap("front", 10);
-    out->addTagMap("back", 20);
+    out->setTagMap("top", 200);
+    out->setTagMap("bottom", 100);
+    out->setTagMap("left", 1);
+    out->setTagMap("right", 2);
+    out->setTagMap("front", 10);
+    out->setTagMap("back", 20);
 
     // prepare mesh for further calculations
     out->resolveNodeIds();
     out->prepare(optimize);
-    return out;
+    return out->getPtr();
 }
 
 } // namespace finley
