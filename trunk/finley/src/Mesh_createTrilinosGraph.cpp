@@ -76,10 +76,10 @@ esys_trilinos::const_TrilinosGraph_ptr FinleyDomain::createTrilinosGraph() const
     }
 
     TrilinosMap_ptr rowMap(new MapType(m_nodes->getGlobalNumNodes(), myRows,
-                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     TrilinosMap_ptr colMap(new MapType(m_nodes->getGlobalNumNodes(), columns,
-                0, TeuchosCommFromEsysComm(MPIInfo->comm)));
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
