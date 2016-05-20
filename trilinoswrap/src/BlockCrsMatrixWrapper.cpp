@@ -25,7 +25,6 @@
 #include <Kokkos_DefaultNode.hpp>
 #include <Tpetra_DefaultPlatform.hpp>
 #include <Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp> // for writing
-#include <Tpetra_Experimental_BlockVector.hpp>
 #include <Tpetra_Vector.hpp>
 
 using Teuchos::RCP;
@@ -42,8 +41,7 @@ BlockCrsMatrixWrapper<ST>::BlockCrsMatrixWrapper(const_TrilinosGraph_ptr graph,
 {
     // initialize column point map, needed by nullifyRowsAndCols to communicate
     // remote values
-    typedef Tpetra::Experimental::BlockVector<ST,LO,GO,NT> BlockVector;
-    colPointMap = BlockVector::makePointMap(*mat.getColMap(), blockSize);
+    colPointMap = BlockVectorType<ST>::makePointMap(*mat.getColMap(), blockSize);
 }
 
 template<typename ST>

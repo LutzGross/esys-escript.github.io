@@ -32,7 +32,10 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.dudley import Rectangle, Brick
+from esys.escript import hasFeature
 from esys.escript.linearPDEs import SolverOptions
+
+HAVE_PASO = hasFeature('paso')
 
 # number of elements in the spatial directions
 NE0=12
@@ -40,9 +43,13 @@ NE1=13
 NE2=8
 OPTIMIZE=True
 
+@unittest.skipIf(not HAVE_PASO, "PASO not available")
+class SimpleSolveOnPaso(SimpleSolveTestCase):
+    pass
+
 ### BiCGStab + Jacobi
 
-class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -52,7 +59,7 @@ class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -64,7 +71,7 @@ class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
 
 ### PCG + Jacobi
 
-class Test_SimpleSolveDudleyRect_Paso_PCG_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -74,7 +81,7 @@ class Test_SimpleSolveDudleyRect_Paso_PCG_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_PCG_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -86,7 +93,7 @@ class Test_SimpleSolveDudleyBrick_Paso_PCG_Jacobi(SimpleSolveTestCase):
 
 ### TFQMR + Jacobi
 
-class Test_SimpleSolveDudleyRect_Paso_TFQMR_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_TFQMR_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -96,7 +103,7 @@ class Test_SimpleSolveDudleyRect_Paso_TFQMR_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_TFQMR_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_TFQMR_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -108,7 +115,7 @@ class Test_SimpleSolveDudleyBrick_Paso_TFQMR_Jacobi(SimpleSolveTestCase):
 
 ### MINRES + Jacobi
 
-class Test_SimpleSolveDudleyRect_Paso_MINRES_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -118,7 +125,7 @@ class Test_SimpleSolveDudleyRect_Paso_MINRES_Jacobi(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_MINRES_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -130,7 +137,7 @@ class Test_SimpleSolveDudleyBrick_Paso_MINRES_Jacobi(SimpleSolveTestCase):
 
 ### BiCGStab + Gauss-Seidel
 
-class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -140,7 +147,7 @@ class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_GaussSeidel(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -152,7 +159,7 @@ class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_GaussSeidel(SimpleSolveTestCase)
 
 ### PCG + Gauss-Seidel
 
-class Test_SimpleSolveDudleyRect_Paso_PCG_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_PCG_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -162,7 +169,7 @@ class Test_SimpleSolveDudleyRect_Paso_PCG_GaussSeidel(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_PCG_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_PCG_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -174,7 +181,7 @@ class Test_SimpleSolveDudleyBrick_Paso_PCG_GaussSeidel(SimpleSolveTestCase):
 
 ### TFQMR + Gauss-Seidel
 
-class Test_SimpleSolveDudleyRect_Paso_TFQMR_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_TFQMR_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -184,7 +191,7 @@ class Test_SimpleSolveDudleyRect_Paso_TFQMR_GaussSeidel(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_TFQMR_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_TFQMR_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -196,7 +203,7 @@ class Test_SimpleSolveDudleyBrick_Paso_TFQMR_GaussSeidel(SimpleSolveTestCase):
 
 ### MINRES + Gauss-Seidel
 
-class Test_SimpleSolveDudleyRect_Paso_MINRES_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_MINRES_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -206,7 +213,7 @@ class Test_SimpleSolveDudleyRect_Paso_MINRES_GaussSeidel(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_MINRES_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_MINRES_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -218,7 +225,7 @@ class Test_SimpleSolveDudleyBrick_Paso_MINRES_GaussSeidel(SimpleSolveTestCase):
 
 ### BiCGStab + RILU
 
-class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -228,7 +235,7 @@ class Test_SimpleSolveDudleyRect_Paso_BICGSTAB_RILU(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -240,7 +247,7 @@ class Test_SimpleSolveDudleyBrick_Paso_BICGSTAB_RILU(SimpleSolveTestCase):
 
 ### PCG + RILU
 
-class Test_SimpleSolveDudleyRect_Paso_PCG_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_PCG_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -250,7 +257,7 @@ class Test_SimpleSolveDudleyRect_Paso_PCG_RILU(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_PCG_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_PCG_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -262,7 +269,7 @@ class Test_SimpleSolveDudleyBrick_Paso_PCG_RILU(SimpleSolveTestCase):
 
 ### TFQMR + RILU
 
-class Test_SimpleSolveDudleyRect_Paso_TFQMR_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -272,7 +279,7 @@ class Test_SimpleSolveDudleyRect_Paso_TFQMR_RILU(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_TFQMR_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -284,7 +291,7 @@ class Test_SimpleSolveDudleyBrick_Paso_TFQMR_RILU(SimpleSolveTestCase):
 
 ### MINRES + RILU
 
-class Test_SimpleSolveDudleyRect_Paso_MINRES_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_Paso_MINRES_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -294,7 +301,7 @@ class Test_SimpleSolveDudleyRect_Paso_MINRES_RILU(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Paso_MINRES_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyBrick_Paso_MINRES_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO

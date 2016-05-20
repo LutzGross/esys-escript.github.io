@@ -25,6 +25,13 @@
 #ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
 #endif
+#ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
+
+namespace escript {
+    struct IndexList;
+}
 
 namespace dudley {
 
@@ -105,6 +112,13 @@ public:
 
     std::pair<index_t,index_t> getDOFRange() const;
 
+#ifdef ESYS_HAVE_TRILINOS
+    void createTrilinosGraph(const escript::IndexList* indexList);
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const {
+        return m_graph;
+    }
+#endif
+
 private:
     std::pair<index_t,index_t> getGlobalIdRange() const;
     std::pair<index_t,index_t> getGlobalDOFRange() const;
@@ -118,6 +132,11 @@ private:
 
     /// number of nodes
     dim_t numNodes;
+
+#ifdef ESYS_HAVE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    esys_trilinos::const_TrilinosGraph_ptr m_graph;
+#endif
 
 public:
     /// MPI information

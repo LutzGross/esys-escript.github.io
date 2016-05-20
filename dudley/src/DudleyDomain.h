@@ -679,9 +679,10 @@ public:
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
-    /// creates and returns a Trilinos CRS graph suitable to build a sparse
-    /// matrix
-    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;
+    /// returns a Trilinos CRS graph suitable to build a sparse matrix.
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const {
+        return m_nodes->getTrilinosGraph();
+    }
 #endif
 
 private:
@@ -699,6 +700,7 @@ private:
 #ifdef ESYS_HAVE_PASO
     paso::SystemMatrixPattern_ptr makePasoPattern() const;
 #endif
+
     void createColoring(const index_t* dofMap);
     void distributeByRankOfDOF(const IndexVector& distribution);
     void markNodes(std::vector<short>& mask, index_t offset) const;
@@ -729,13 +731,6 @@ private:
 #ifdef ESYS_HAVE_PASO
     // pointer to the sparse matrix pattern
     mutable paso::SystemMatrixPattern_ptr pasoPattern;
-#endif
-
-#ifdef ESYS_HAVE_TRILINOS
-    /// Trilinos graph structure, cached for efficiency
-    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
-
-    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
 
     static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
