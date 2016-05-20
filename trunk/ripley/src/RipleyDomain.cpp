@@ -1110,22 +1110,36 @@ void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
 #elif defined(ESYS_HAVE_TRILINOS)
     using namespace esys_trilinos;
 
-    if (numComp > 1)
-        throw NotImplementedError("dofToNodes: Ripley currently requires Paso "
-                                  "for multi-component interpolation");
-
     const_TrilinosGraph_ptr graph(getTrilinosGraph());
+    Teuchos::RCP<const MapType> colMap;
+    Teuchos::RCP<const MapType> rowMap;
+    MapType colPointMap;
+    MapType rowPointMap;
+
+    if (numComp > 1) {
+        colPointMap = RealBlockVector::makePointMap(*graph->getColMap(),
+                                                    numComp);
+        rowPointMap = RealBlockVector::makePointMap(*graph->getRowMap(),
+                                                    numComp);
+        colMap = Teuchos::rcpFromRef(colPointMap);
+        rowMap = Teuchos::rcpFromRef(rowPointMap);
+    } else {
+        colMap = graph->getColMap();
+        rowMap = graph->getRowMap();
+    }
+
+    const ImportType importer(rowMap, colMap);
     const Teuchos::ArrayView<const real_t> localIn(in.getSampleDataRO(0),
                                                 in.getNumDataPoints()*numComp);
-    Teuchos::RCP<RealVector> lclData = rcp(new RealVector(graph->getRowMap(),
-                                           localIn, localIn.size(), 1));
-    Teuchos::RCP<RealVector> gblData = rcp(new RealVector(graph->getColMap(), 1));
-    const ImportType importer(graph->getRowMap(), graph->getColMap());
+    Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap, localIn,
+                                                          localIn.size(), 1));
+    Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
     gblData->doImport(*lclData, importer, Tpetra::INSERT);
     Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+
 #pragma omp parallel for
     for (index_t i = 0; i < numNodes; i++) {
-        const real_t* src = &gblArray[getDofOfNode(i)];
+        const real_t* src = &gblArray[getDofOfNode(i) * numComp];
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
 #endif // ESYS_HAVE_TRILINOS
