@@ -14,9 +14,10 @@
 *
 *****************************************************************************/
 
-#include "DudleyDomain.h"
+#include <dudley/DudleyDomain.h>
 #include <dudley/Assemble.h>
 #include <dudley/DudleyException.h>
+#include <dudley/IndexList.h>
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -34,6 +35,8 @@
 using esys_trilinos::TrilinosMatrixAdapter;
 using esys_trilinos::const_TrilinosGraph_ptr;
 #endif
+
+#include <boost/scoped_array.hpp>
 
 #ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
@@ -107,6 +110,26 @@ void DudleyDomain::createMappings(const IndexVector& dofDist,
                                   const IndexVector& nodeDist)
 {
     m_nodes->createNodeMappings(dofDist, nodeDist);
+
+#ifdef ESYS_HAVE_TRILINOS
+    // TODO?: the following block should probably go into prepare() but
+    // Domain::load() only calls createMappings which is why it's here...
+    // make sure trilinos distribution graph is available for matrix building
+    // and interpolation
+    const index_t numTargets = m_nodes->getNumDegreesOfFreedomTargets();
+    const index_t* target = m_nodes->borrowTargetDegreesOfFreedom();
+    boost::scoped_array<IndexList> indexList(new IndexList[numTargets]);
+
+#pragma omp parallel
+    {
+        // insert contributions from element matrices into columns in
+        // index list
+        IndexList_insertElements(indexList.get(), m_elements, target);
+        IndexList_insertElements(indexList.get(), m_faceElements, target);
+        IndexList_insertElements(indexList.get(), m_points, target);
+    }
+    m_nodes->createTrilinosGraph(indexList.get());
+#endif
 }
 
 void DudleyDomain::markNodes(vector<short>& mask, index_t offset) const
@@ -1033,16 +1056,6 @@ bool DudleyDomain::ownSample(int fs_code, index_t id) const
     return true;
 }
 
-#ifdef ESYS_HAVE_TRILINOS
-const_TrilinosGraph_ptr DudleyDomain::getTrilinosGraph() const
-{
-    if (m_graph.is_null()) {
-        m_graph = createTrilinosGraph();
-    }
-    return m_graph;
-}
-#endif
-
 //
 // creates a stiffness matrix and initializes it with zeros
 //
@@ -1667,7 +1680,7 @@ void DudleyDomain::prepare(bool optimize)
 
     m_nodes->createDenseNodeLabeling(nodeDistribution, distribution);
     // create the missing mappings
-    m_nodes->createNodeMappings(distribution, nodeDistribution);
+    createMappings(distribution, nodeDistribution);
 
     updateTagList();
 }

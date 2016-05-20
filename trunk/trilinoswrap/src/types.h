@@ -22,6 +22,8 @@
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_RowMatrix.hpp>
 
+#include <Tpetra_Experimental_BlockVector.hpp>
+
 namespace esys_trilinos {
 
 /// Scalar types
@@ -59,6 +61,14 @@ typedef OpType<real_t>     RealOperator;
 typedef VectorType<cplx_t> ComplexVector;
 typedef OpType<cplx_t>     ComplexOperator;
 
+// experimental block types
+template<typename ST> using BlockVectorType =
+                               Tpetra::Experimental::BlockVector<ST,LO,GO,NT>;
+typedef BlockVectorType<real_t> RealBlockVector;
+typedef BlockVectorType<cplx_t> ComplexBlockVector;
+
+
+/// converts an MPI communicator to a Teuchos communicator
 inline
 Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
 {

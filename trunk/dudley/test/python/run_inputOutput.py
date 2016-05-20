@@ -88,22 +88,10 @@ class Test_InputOutput(unittest.TestCase):
         mydomain2 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
 
-     # Does optimize=True change Rectangle for order=-1?
-     def test_Rectangle_optimize_macro(self):
-        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=False)
-        mydomain2 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=True)
-        self.domainsEqual(mydomain1, mydomain2)
-
      # Does optimize=True change Brick for order=1?
      def test_Brick_optimize_order1(self):
         mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
         mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=True)
-        self.domainsEqual(mydomain1, mydomain2)
-
-     # Does optimize=True change Brick for order=-1?
-     def test_Brick_optimize_macro(self):
-        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=False)
-        mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
 
      @unittest.skipIf(not loadIsConfigured(), "loading not configured")

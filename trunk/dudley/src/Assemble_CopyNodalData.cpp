@@ -114,27 +114,39 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 }
             }
 #elif defined(ESYS_HAVE_TRILINOS)
-            /* TODO: move getTrilinosGraph() from MeshAdapter to NodeFile
             using namespace esys_trilinos;
 
             const_TrilinosGraph_ptr graph(nodes->getTrilinosGraph());
+            Teuchos::RCP<const MapType> colMap;
+            Teuchos::RCP<const MapType> rowMap;
+            MapType colPointMap;
+            MapType rowPointMap;
+            if (numComps > 1) {
+                colPointMap = RealBlockVector::makePointMap(*graph->getColMap(),
+                                                            numComps);
+                rowPointMap = RealBlockVector::makePointMap(*graph->getRowMap(),
+                                                            numComps);
+                colMap = Teuchos::rcpFromRef(colPointMap);
+                rowMap = Teuchos::rcpFromRef(rowPointMap);
+            } else {
+                colMap = graph->getColMap();
+                rowMap = graph->getRowMap();
+            }
+
+            const ImportType importer(rowMap, colMap);
             const Teuchos::ArrayView<const real_t> localIn(
-                                                in.getSampleDataRO(0),
-                                                in.getNumDataPoints()*numComp);
-            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(
-                              graph->getRowMap(), localIn, localIn.size(), 1));
-            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(
-                              graph->getColMap(), 1));
-            const ImportType importer(graph->getRowMap(), graph->getColMap());
+                                               in.getSampleDataRO(0),
+                                               in.getNumDataPoints()*numComps);
+            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
+                                                  localIn, localIn.size(), 1));
+            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
             gblData->doImport(*lclData, importer, Tpetra::INSERT);
             Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
 #pragma omp parallel for
             for (index_t i = 0; i < numOut; i++) {
-                const real_t* src = &gblArray[target[i]];
-                copy(src, src+numComp, out.getSampleDataRW(i));
+                const real_t* src = &gblArray[target[i] * numComps];
+                std::copy(src, src+numComps, out.getSampleDataRW(i));
             }
-            */
-            (void)target;
 #endif
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
