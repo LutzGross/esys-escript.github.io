@@ -104,7 +104,7 @@ public:
      \brief
      reads a gmsh mesh file.
      \param mpiInfo the MPI information structure
-     \param fileName the name of the file
+     \param filename the name of the gmsh file
      \param numDim spatial dimensionality
      \param optimize whether to optimize the node labels 
     */
@@ -162,7 +162,7 @@ public:
 
     /**
      \brief
-     Destructor for DudleyDomain.
+     Destructor for DudleyDomain
     */
     ~DudleyDomain();
 
@@ -388,7 +388,6 @@ public:
      \brief
     */
     virtual int getDim() const { return m_nodes->numDim; }
-
 
     /**
      \brief
@@ -722,7 +721,7 @@ private:
     NodeFile* m_nodes;
     /// the table of the elements
     ElementFile* m_elements;
-    /// the table of the face elements
+    /// the table of face elements
     ElementFile* m_faceElements;
     /// the table of points (treated as elements of dimension 0)
     ElementFile* m_points;

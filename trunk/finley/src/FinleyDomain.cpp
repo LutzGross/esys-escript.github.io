@@ -36,11 +36,11 @@ using esys_trilinos::TrilinosMatrixAdapter;
 using esys_trilinos::const_TrilinosGraph_ptr;
 #endif
 
+#include <boost/scoped_array.hpp>
+
 #ifdef ESYS_HAVE_NETCDF
 #include <netcdfcpp.h>
 #endif
-
-#include <boost/scoped_array.hpp>
 
 using namespace std;
 namespace bp = boost::python;
@@ -170,7 +170,34 @@ void FinleyDomain::createMappings(const IndexVector& dofDist,
     markNodes(maskReducedNodes, 0, true);
     IndexVector indexReducedNodes = util::packMask(maskReducedNodes);
     m_nodes->createNodeMappings(indexReducedNodes, dofDist, nodeDist);
+    createTrilinosGraph();
 }
+
+#ifdef ESYS_HAVE_TRILINOS
+void FinleyDomain::createTrilinosGraph() const
+{
+    // make sure trilinos distribution graph is available for matrix building
+    // and interpolation
+    const index_t numTargets = m_nodes->getNumDegreesOfFreedomTargets();
+    const index_t* target = m_nodes->borrowTargetDegreesOfFreedom();
+    boost::scoped_array<IndexList> indexList(new IndexList[numTargets]);
+
+#pragma omp parallel
+    {
+        // insert contributions from element matrices into columns in
+        // index list
+        IndexList_insertElements(indexList.get(), m_elements, false,
+                                 target, false, target);
+        IndexList_insertElements(indexList.get(), m_faceElements,
+                                 false, target, false, target);
+        IndexList_insertElements(indexList.get(), m_contactElements,
+                                 false, target, false, target);
+        IndexList_insertElements(indexList.get(), m_points, false,
+                                 target, false, target);
+    }
+    m_nodes->createTrilinosGraph(indexList.get());
+}
+#endif
 
 void FinleyDomain::markNodes(vector<short>& mask, index_t offset,
                              bool useLinear) const
@@ -1371,16 +1398,6 @@ bool FinleyDomain::ownSample(int fs_code, index_t id) const
     return true;
 }
 
-#ifdef ESYS_HAVE_TRILINOS
-const_TrilinosGraph_ptr FinleyDomain::getTrilinosGraph() const
-{
-    if (m_graph.is_null()) {
-        m_graph = createTrilinosGraph();
-    }
-    return m_graph;
-}
-#endif
-
 //
 // creates a stiffness matrix and initializes it with zeros
 //
@@ -2204,6 +2221,7 @@ void FinleyDomain::prepare(bool optimize)
     // create the missing mappings
     m_nodes->createNodeMappings(indexReducedNodes, distribution, nodeDistribution);
 
+    createTrilinosGraph();
     updateTagList();
 }
 

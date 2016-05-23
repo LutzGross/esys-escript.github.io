@@ -14,7 +14,6 @@
 *
 *****************************************************************************/
 
-
 /****************************************************************************
 
   Assemblage routines: header file
@@ -31,7 +30,8 @@
 
 namespace finley {
 
-struct AssembleParameters {
+struct AssembleParameters
+{
     AssembleParameters(const NodeFile* nodes, const ElementFile* ef,
                        escript::ASM_ptr sm, escript::Data& rhs,
                        bool reducedOrder);
@@ -83,7 +83,8 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Points(const AssembleParameters& p, const escript::Data& d_dirac,
+void Assemble_PDE_Points(const AssembleParameters& p,
+                         const escript::Data& d_dirac,
                          const escript::Data& y_dirac);
 
 void Assemble_PDE_Single_1D(const AssembleParameters& p,
@@ -130,16 +131,20 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
                            bool useHRZ);
 
+/// averages data
 void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in);
 
+/// copies data between different types of elements
 void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in);
 
+/// copies data between different types of nodal representations
 void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                             const escript::Data& in);
 
-void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& out);
+/// copies node coordinates into expanded Data object `x`
+void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x);
 
 void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
                         escript::Data& normals);
@@ -150,9 +155,11 @@ void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
 void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                        escript::Data& gradient, const escript::Data& data);
 
+/// integrates data on quadrature points
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
                         const escript::Data& data, double* integrals);
 
+/// interpolates nodal data in a data array onto elements (=integration points)
 void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                           const escript::Data& data, escript::Data& output);
 
@@ -161,51 +168,61 @@ void Assemble_jacobians_1D(const double* coordinates, int numQuad,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_3D_M2D_E2D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
                            const double* DSDv, int numTest, const double* DTDv,
                            double* dTdX, double* volume, const index_t* elementId);
+
 void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
                            const double* QuadWeights, int numShape,
                            dim_t numElements, int numNodes, const index_t* nodes,
