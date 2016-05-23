@@ -170,34 +170,7 @@ void FinleyDomain::createMappings(const IndexVector& dofDist,
     markNodes(maskReducedNodes, 0, true);
     IndexVector indexReducedNodes = util::packMask(maskReducedNodes);
     m_nodes->createNodeMappings(indexReducedNodes, dofDist, nodeDist);
-    createTrilinosGraph();
 }
-
-#ifdef ESYS_HAVE_TRILINOS
-void FinleyDomain::createTrilinosGraph() const
-{
-    // make sure trilinos distribution graph is available for matrix building
-    // and interpolation
-    const index_t numTargets = m_nodes->getNumDegreesOfFreedomTargets();
-    const index_t* target = m_nodes->borrowTargetDegreesOfFreedom();
-    boost::scoped_array<IndexList> indexList(new IndexList[numTargets]);
-
-#pragma omp parallel
-    {
-        // insert contributions from element matrices into columns in
-        // index list
-        IndexList_insertElements(indexList.get(), m_elements, false,
-                                 target, false, target);
-        IndexList_insertElements(indexList.get(), m_faceElements,
-                                 false, target, false, target);
-        IndexList_insertElements(indexList.get(), m_contactElements,
-                                 false, target, false, target);
-        IndexList_insertElements(indexList.get(), m_points, false,
-                                 target, false, target);
-    }
-    m_nodes->createTrilinosGraph(indexList.get());
-}
-#endif
 
 void FinleyDomain::markNodes(vector<short>& mask, index_t offset,
                              bool useLinear) const
@@ -1430,10 +1403,10 @@ escript::ASM_ptr FinleyDomain::newSystemMatrix(int row_blocksize,
     // generate matrix
     if (type & (int)SMT_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS
-        //TODO:
-        (void)reduceRowOrder;
-        (void)reduceColOrder;
-        const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        if (reduceRowOrder != reduceColOrder)
+            throw ValueError("element order of matrix rows and columns must "
+                             "match when using Trilinos");
+        const_TrilinosGraph_ptr graph(getTrilinosGraph(reduceRowOrder));
         escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo,
                     row_blocksize, row_functionspace, graph));
         return sm;
@@ -2221,7 +2194,6 @@ void FinleyDomain::prepare(bool optimize)
     // create the missing mappings
     m_nodes->createNodeMappings(indexReducedNodes, distribution, nodeDistribution);
 
-    createTrilinosGraph();
     updateTagList();
 }
 

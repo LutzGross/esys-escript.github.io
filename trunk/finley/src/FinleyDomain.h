@@ -802,12 +802,8 @@ public:
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
-    void createTrilinosGraph() const;
-
     /// returns a Trilinos CRS graph suitable to build a sparse matrix.
-    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const {
-        return m_nodes->getTrilinosGraph();
-    }
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph(bool reducedOrder) const;
 #endif
 
     void glueFaces(double safetyFactor, double tolerance, bool optimize);
@@ -839,6 +835,9 @@ private:
 #ifdef ESYS_HAVE_PASO
     paso::SystemMatrixPattern_ptr makePasoPattern(bool reducedRowOrder,
                                                   bool reducedColOrder) const;
+#endif
+#ifdef ESYS_HAVE_TRILINOS
+    esys_trilinos::GraphType* createTrilinosGraph(bool reducedOrder) const;
 #endif
     void createColoring(const IndexVector& dofMap);
     void distributeByRankOfDOF(const IndexVector& distribution);
@@ -881,6 +880,10 @@ private:
     mutable paso::SystemMatrixPattern_ptr FullReducedPattern;
     mutable paso::SystemMatrixPattern_ptr ReducedFullPattern;
     mutable paso::SystemMatrixPattern_ptr ReducedReducedPattern;
+#endif
+#ifdef ESYS_HAVE_TRILINOS
+    mutable esys_trilinos::TrilinosGraph_ptr m_fullGraph;
+    mutable esys_trilinos::TrilinosGraph_ptr m_reducedGraph;
 #endif
 
     static FunctionSpaceNamesMapType m_functionSpaceTypeNames;

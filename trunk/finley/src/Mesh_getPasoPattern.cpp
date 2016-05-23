@@ -14,6 +14,7 @@
 *
 *****************************************************************************/
 
+#ifdef ESYS_HAVE_PASO
 #include "FinleyDomain.h"
 #include "IndexList.h"
 
@@ -21,7 +22,6 @@
 
 namespace finley {
 
-#ifdef ESYS_HAVE_PASO
 paso::SystemMatrixPattern_ptr FinleyDomain::getPasoPattern(
                               bool reducedRowOrder, bool reducedColOrder) const
 {
@@ -72,7 +72,7 @@ paso::SystemMatrixPattern_ptr FinleyDomain::makePasoPattern(
 
     if (reducedColOrder) {
         myNumColTargets = m_nodes->getNumReducedDegreesOfFreedom();
-        numColTargets = m_nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        numColTargets = m_nodes->getNumReducedDegreesOfFreedomTargets();
         colTarget = m_nodes->borrowTargetReducedDegreesOfFreedom();
         colDistribution = m_nodes->reducedDegreesOfFreedomDistribution;
         col_connector = m_nodes->reducedDegreesOfFreedomConnector;
@@ -86,7 +86,7 @@ paso::SystemMatrixPattern_ptr FinleyDomain::makePasoPattern(
 
     if (reducedRowOrder) {
         myNumRowTargets = m_nodes->getNumReducedDegreesOfFreedom();
-        numRowTargets = m_nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        numRowTargets = m_nodes->getNumReducedDegreesOfFreedomTargets();
         rowTarget = m_nodes->borrowTargetReducedDegreesOfFreedom();
         rowDistribution = m_nodes->reducedDegreesOfFreedomDistribution;
         row_connector = m_nodes->reducedDegreesOfFreedomConnector;
@@ -130,7 +130,8 @@ paso::SystemMatrixPattern_ptr FinleyDomain::makePasoPattern(
                 col_connector, row_connector));
     return out;
 }
-#endif // ESYS_HAVE_PASO
 
 } // namespace finley
+
+#endif // ESYS_HAVE_PASO
 
