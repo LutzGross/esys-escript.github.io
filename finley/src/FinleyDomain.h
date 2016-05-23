@@ -84,9 +84,9 @@ enum SystemMatrixType {
 };
 
 /**
-   \brief 
-   FinleyDomain implements the AbstractContinuousDomain interface for the
-   Finley library.
+    \brief
+    FinleyDomain implements the AbstractContinuousDomain interface for the
+    Finley library.
 */
 class FinleyDomain : public escript::AbstractContinuousDomain
 {
@@ -263,7 +263,7 @@ public:
 
     /**
      \brief
-     Destructor for FinleyDomain.
+     Destructor for FinleyDomain
     */
     ~FinleyDomain();
 
@@ -802,9 +802,12 @@ public:
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
-    /// creates and returns a Trilinos CRS graph suitable to build a sparse
-    /// matrix
-    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph() const;
+    void createTrilinosGraph() const;
+
+    /// returns a Trilinos CRS graph suitable to build a sparse matrix.
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const {
+        return m_nodes->getTrilinosGraph();
+    }
 #endif
 
     void glueFaces(double safetyFactor, double tolerance, bool optimize);
@@ -878,13 +881,6 @@ private:
     mutable paso::SystemMatrixPattern_ptr FullReducedPattern;
     mutable paso::SystemMatrixPattern_ptr ReducedFullPattern;
     mutable paso::SystemMatrixPattern_ptr ReducedReducedPattern;
-#endif
-
-#ifdef ESYS_HAVE_TRILINOS
-    /// Trilinos graph structure, cached for efficiency
-    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
-
-    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
 
     static FunctionSpaceNamesMapType m_functionSpaceTypeNames;

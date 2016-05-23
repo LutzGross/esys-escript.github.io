@@ -15,18 +15,17 @@
 *****************************************************************************/
 
 #ifdef ESYS_HAVE_TRILINOS
-
-#include "DudleyDomain.h"
+#include "FinleyDomain.h"
 #include "IndexList.h"
 
 using namespace esys_trilinos;
 
-namespace dudley {
+namespace finley {
 
 void NodeFile::createTrilinosGraph(const IndexList* indexList)
 {
     const index_t* gNI = borrowGlobalNodesIndex();
-    const index_t* dofMap = borrowDegreesOfFreedomTarget();
+    const IndexVector& dofMap = borrowDegreesOfFreedomTarget();
 
     const index_t myNumTargets = getNumDegreesOfFreedom();
     const index_t numTargets = getNumDegreesOfFreedomTargets();
@@ -72,7 +71,7 @@ void NodeFile::createTrilinosGraph(const IndexList* indexList)
     m_graph.reset(graph);
 }
 
-} // namespace dudley
+} // namespace finley
 
 #endif // ESYS_HAVE_TRILINOS
 

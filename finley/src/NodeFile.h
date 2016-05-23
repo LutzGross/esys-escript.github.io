@@ -27,7 +27,13 @@
 #ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
 #endif
+#ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
 
+namespace escript {
+    struct IndexList;
+}
 
 namespace finley {
 
@@ -72,6 +78,9 @@ public:
     /// returns the number of reduced order degrees of freedom (on this rank)
     inline dim_t getNumReducedDegreesOfFreedom() const;
 
+    /// returns the number of degrees of freedom targets (own and shared)
+    inline dim_t getNumDegreesOfFreedomTargets() const;
+
     inline const IndexVector& borrowReducedNodesTarget() const;
     inline const IndexVector& borrowDegreesOfFreedomTarget() const;
     inline const IndexVector& borrowNodesTarget() const;
@@ -84,15 +93,25 @@ public:
     inline const index_t* borrowTargetNodes() const;
     inline const index_t* borrowTargetReducedDegreesOfFreedom() const;
 
+    inline void updateTagList();
+
+    /// creates a dense labeling of the global degrees of freedom and returns
+    /// the new number of global degrees of freedom
+    dim_t createDenseDOFLabeling();
+
+    dim_t createDenseNodeLabeling(IndexVector& nodeDistribution,
+                                  const IndexVector& dofDistribution);
+
+    dim_t createDenseReducedLabeling(const std::vector<short>& reducedMask,
+                                     bool useNodes);
+
     void createNodeMappings(const IndexVector& indexReducedNodes,
                             const IndexVector& dofDistribution,
                             const IndexVector& nodeDistribution);
-    dim_t createDenseDOFLabeling();
-    dim_t createDenseNodeLabeling(IndexVector& nodeDistribution,
-                                  const IndexVector& dofDistribution);
-    dim_t createDenseReducedLabeling(const std::vector<short>& reducedMask,
-                                     bool useNodes);
-    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const IndexVector& distribution);
+
+
+    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF,
+                             const IndexVector& distribution);
 
     void copyTable(index_t offset, index_t idOffset, index_t dofOffset,
                    const NodeFile* in);
@@ -109,9 +128,15 @@ public:
 
     /// set tags to newTag where mask > 0
     void setTags(int newTag, const escript::Data& mask);
-    inline void updateTagList();
 
     std::pair<index_t,index_t> getDOFRange() const;
+
+#ifdef ESYS_HAVE_TRILINOS
+    void createTrilinosGraph(const escript::IndexList* indexList);
+    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const {
+        return m_graph;
+    }
+#endif
 
 private:
     std::pair<index_t,index_t> getGlobalIdRange() const;
@@ -122,16 +147,21 @@ private:
     void createDOFMappingAndCoupling(bool reduced);
 
     NodeMapping nodesMapping;
+    NodeMapping degreesOfFreedomMapping;
 
     /// number of nodes
     dim_t numNodes;
+
+#ifdef ESYS_HAVE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    esys_trilinos::const_TrilinosGraph_ptr m_graph;
+#endif
 
 public:
     ///////////////////////////////////////
     // these should be private as well.
 
     NodeMapping reducedNodesMapping;
-    NodeMapping degreesOfFreedomMapping;
     NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
@@ -160,6 +190,7 @@ public:
     /// assigns each local node a global unique ID in a dense labeling
     index_t* globalNodesIndex;
 
+    /// MPI distribution of nodes
     escript::Distribution_ptr nodesDistribution;
     escript::Distribution_ptr reducedNodesDistribution;
     escript::Distribution_ptr degreesOfFreedomDistribution;
@@ -170,7 +201,7 @@ public:
     paso::Connector_ptr reducedDegreesOfFreedomConnector;
 #endif
   
-    /// these are the packed versions of Id
+    // these are the packed versions of Id
     index_t* reducedNodesId;        
     index_t* degreesOfFreedomId;
     index_t* reducedDegreesOfFreedomId;
@@ -242,6 +273,11 @@ inline dim_t NodeFile::getNumDegreesOfFreedom() const
 inline dim_t NodeFile::getNumReducedDegreesOfFreedom() const
 {
     return reducedDegreesOfFreedomDistribution->getMyNumComponents();
+}
+
+inline dim_t NodeFile::getNumDegreesOfFreedomTargets() const
+{
+    return degreesOfFreedomMapping.getNumTargets();
 }
 
 inline const IndexVector& NodeFile::borrowNodesTarget() const

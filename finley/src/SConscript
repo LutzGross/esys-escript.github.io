@@ -48,7 +48,6 @@ sources = """
     FinleyDomain.cpp
     IndexList.cpp
     Mesh_addPoints.cpp
-    Mesh_createTrilinosGraph.cpp
     Mesh_findMatchingFaces.cpp
     Mesh_getPattern.cpp
     Mesh_glueFaces.cpp
@@ -63,6 +62,7 @@ sources = """
     Mesh_rec8.cpp
     Mesh_write.cpp
     NodeFile.cpp
+    NodeFile_createTrilinosGraph.cpp
     Quadrature.cpp
     ReferenceElements.cpp
     ShapeFunctions.cpp
