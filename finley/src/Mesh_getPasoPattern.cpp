@@ -78,7 +78,7 @@ paso::SystemMatrixPattern_ptr FinleyDomain::makePasoPattern(
         col_connector = m_nodes->reducedDegreesOfFreedomConnector;
     } else {
         myNumColTargets = m_nodes->getNumDegreesOfFreedom();
-        numColTargets = m_nodes->degreesOfFreedomMapping.getNumTargets();
+        numColTargets = m_nodes->getNumDegreesOfFreedomTargets();
         colTarget = m_nodes->borrowTargetDegreesOfFreedom();
         colDistribution = m_nodes->degreesOfFreedomDistribution;
         col_connector = m_nodes->degreesOfFreedomConnector;
@@ -92,7 +92,7 @@ paso::SystemMatrixPattern_ptr FinleyDomain::makePasoPattern(
         row_connector = m_nodes->reducedDegreesOfFreedomConnector;
     } else {
         myNumRowTargets = m_nodes->getNumDegreesOfFreedom();
-        numRowTargets = m_nodes->degreesOfFreedomMapping.getNumTargets();
+        numRowTargets = m_nodes->getNumDegreesOfFreedomTargets();
         rowTarget = m_nodes->borrowTargetDegreesOfFreedom();
         rowDistribution = m_nodes->degreesOfFreedomDistribution;
         row_connector = m_nodes->degreesOfFreedomConnector;
