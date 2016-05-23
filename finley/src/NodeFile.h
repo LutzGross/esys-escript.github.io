@@ -81,6 +81,9 @@ public:
     /// returns the number of degrees of freedom targets (own and shared)
     inline dim_t getNumDegreesOfFreedomTargets() const;
 
+    /// returns the number of reduced degrees of freedom targets (own and shared)
+    inline dim_t getNumReducedDegreesOfFreedomTargets() const;
+
     inline const IndexVector& borrowReducedNodesTarget() const;
     inline const IndexVector& borrowDegreesOfFreedomTarget() const;
     inline const IndexVector& borrowNodesTarget() const;
@@ -131,13 +134,6 @@ public:
 
     std::pair<index_t,index_t> getDOFRange() const;
 
-#ifdef ESYS_HAVE_TRILINOS
-    void createTrilinosGraph(const escript::IndexList* indexList);
-    esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const {
-        return m_graph;
-    }
-#endif
-
 private:
     std::pair<index_t,index_t> getGlobalIdRange() const;
     std::pair<index_t,index_t> getGlobalDOFRange() const;
@@ -148,21 +144,16 @@ private:
 
     NodeMapping nodesMapping;
     NodeMapping degreesOfFreedomMapping;
+    NodeMapping reducedDegreesOfFreedomMapping;
 
     /// number of nodes
     dim_t numNodes;
-
-#ifdef ESYS_HAVE_TRILINOS
-    /// Trilinos graph structure, cached for efficiency
-    esys_trilinos::const_TrilinosGraph_ptr m_graph;
-#endif
 
 public:
     ///////////////////////////////////////
     // these should be private as well.
 
     NodeMapping reducedNodesMapping;
-    NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
     escript::JMPI MPIInfo;
@@ -199,6 +190,12 @@ public:
 #ifdef ESYS_HAVE_PASO
     paso::Connector_ptr degreesOfFreedomConnector;
     paso::Connector_ptr reducedDegreesOfFreedomConnector;
+#endif
+#ifdef ESYS_HAVE_TRILINOS
+    esys_trilinos::const_TrilinosMap_ptr trilinosRowMap;
+    esys_trilinos::const_TrilinosMap_ptr trilinosReducedRowMap;
+    esys_trilinos::const_TrilinosMap_ptr trilinosColMap;
+    esys_trilinos::const_TrilinosMap_ptr trilinosReducedColMap;
 #endif
   
     // these are the packed versions of Id
@@ -278,6 +275,11 @@ inline dim_t NodeFile::getNumReducedDegreesOfFreedom() const
 inline dim_t NodeFile::getNumDegreesOfFreedomTargets() const
 {
     return degreesOfFreedomMapping.getNumTargets();
+}
+
+inline dim_t NodeFile::getNumReducedDegreesOfFreedomTargets() const
+{
+    return reducedDegreesOfFreedomMapping.getNumTargets();
 }
 
 inline const IndexVector& NodeFile::borrowNodesTarget() const

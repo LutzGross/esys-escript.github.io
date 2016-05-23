@@ -173,21 +173,20 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 #elif defined(ESYS_HAVE_TRILINOS)
             using namespace esys_trilinos;
 
-            const_TrilinosGraph_ptr graph(nodes->getTrilinosGraph());
             Teuchos::RCP<const MapType> colMap;
             Teuchos::RCP<const MapType> rowMap;
             MapType colPointMap;
             MapType rowPointMap;
             if (numComps > 1) {
-                colPointMap = RealBlockVector::makePointMap(*graph->getColMap(),
-                                                            numComps);
-                rowPointMap = RealBlockVector::makePointMap(*graph->getRowMap(),
-                                                            numComps);
+                colPointMap = RealBlockVector::makePointMap(
+                                             *nodes->trilinosColMap, numComps);
+                rowPointMap = RealBlockVector::makePointMap(
+                                             *nodes->trilinosRowMap, numComps);
                 colMap = Teuchos::rcpFromRef(colPointMap);
                 rowMap = Teuchos::rcpFromRef(rowPointMap);
             } else {
-                colMap = graph->getColMap();
-                rowMap = graph->getRowMap();
+                colMap = nodes->trilinosColMap;
+                rowMap = nodes->trilinosRowMap;
             }
 
             const ImportType importer(rowMap, colMap);

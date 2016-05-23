@@ -49,7 +49,8 @@ sources = """
     IndexList.cpp
     Mesh_addPoints.cpp
     Mesh_findMatchingFaces.cpp
-    Mesh_getPattern.cpp
+    Mesh_getPasoPattern.cpp
+    Mesh_getTrilinosGraph.cpp
     Mesh_glueFaces.cpp
     Mesh_hex20.cpp
     Mesh_hex8.cpp
@@ -62,7 +63,6 @@ sources = """
     Mesh_rec8.cpp
     Mesh_write.cpp
     NodeFile.cpp
-    NodeFile_createTrilinosGraph.cpp
     Quadrature.cpp
     ReferenceElements.cpp
     ShapeFunctions.cpp

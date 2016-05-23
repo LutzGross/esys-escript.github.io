@@ -183,6 +183,12 @@ void NodeFile::freeTable()
     degreesOfFreedomConnector.reset();
     reducedDegreesOfFreedomConnector.reset();
 #endif
+#ifdef ESYS_HAVE_TRILINOS
+    trilinosRowMap.reset();
+    trilinosReducedRowMap.reset();
+    trilinosColMap.reset();
+    trilinosReducedColMap.reset();
+#endif
     numNodes = 0;
 }
 
@@ -623,16 +629,16 @@ dim_t NodeFile::createDenseNodeLabeling(IndexVector& nodeDistribution,
 
     // mark and count the nodes in use
 #pragma omp parallel for
-    for (index_t n=0; n<numNodes; n++) {
-        globalNodesIndex[n]=-1;
-        const index_t dof=globalDegreesOfFreedom[n];
-        if (myFirstDOF<=dof && dof<myLastDOF)
-            Node_buffer[Id[n]-min_id+header_len]=SET_ID;
+    for (index_t n = 0; n < numNodes; n++) {
+        globalNodesIndex[n] = -1;
+        const index_t dof = globalDegreesOfFreedom[n];
+        if (myFirstDOF <= dof && dof < myLastDOF)
+            Node_buffer[Id[n]-min_id+header_len] = SET_ID;
     }
-    index_t myNewNumNodes=0;
-    for (index_t n=0; n<my_buffer_len; n++) {
-        if (Node_buffer[header_len+n]==SET_ID) {
-            Node_buffer[header_len+n]=myNewNumNodes;
+    index_t myNewNumNodes = 0;
+    for (index_t n = 0; n < my_buffer_len; n++) {
+        if (Node_buffer[header_len+n] == SET_ID) {
+            Node_buffer[header_len+n] = myNewNumNodes;
             myNewNumNodes++;
         }
     }
@@ -644,11 +650,11 @@ dim_t NodeFile::createDenseNodeLabeling(IndexVector& nodeDistribution,
     nodeDistribution[0] = myNewNumNodes;
 #endif
 
-    dim_t globalNumNodes=0;
-    for (int p=0; p<MPIInfo->size; ++p) {
+    dim_t globalNumNodes = 0;
+    for (int p = 0; p < MPIInfo->size; ++p) {
         const dim_t itmp = nodeDistribution[p];
         nodeDistribution[p] = globalNumNodes;
-        globalNumNodes+=itmp;
+        globalNumNodes += itmp;
     }
     nodeDistribution[MPIInfo->size] = globalNumNodes;
 
@@ -674,7 +680,7 @@ dim_t NodeFile::createDenseNodeLabeling(IndexVector& nodeDistribution,
                 const index_t dof = globalDegreesOfFreedom[n];
                 const index_t id = Id[n]-nodeID_0;
                 if (dof0 <= dof && dof < dof1 && id>=0 && id<=nodeID_1-nodeID_0)
-                    globalNodesIndex[n]=Node_buffer[id+header_len];
+                    globalNodesIndex[n] = Node_buffer[id+header_len];
             }
         }
         if (p<MPIInfo->size-1) { // the last send can be skipped
@@ -772,6 +778,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         dofDistribution = degreesOfFreedomDistribution;
         globalDOFIndex = globalDegreesOfFreedom;
     }
+    NodeMapping& mapping = (use_reduced_elements ?
+                     reducedDegreesOfFreedomMapping : degreesOfFreedomMapping);
+
     const index_t myFirstDOF = dofDistribution->getFirstComponent();
     const index_t myLastDOF = dofDistribution->getLastComponent();
     const int mpiSize = MPIInfo->size;
@@ -891,11 +900,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     }
 
     // now we can set the mapping from nodes to local DOFs
-    if (use_reduced_elements) {
-        reducedDegreesOfFreedomMapping.assign(nodeMask, UNUSED);
-    } else {
-        degreesOfFreedomMapping.assign(nodeMask, UNUSED);
-    }
+    mapping.assign(nodeMask, UNUSED);
 
     // define how to get DOF values for controlled but other processors
 #ifdef BOUNDS_CHECK
@@ -963,7 +968,44 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     } else {
         degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
     }
-#endif
+#endif // ESYS_HAVE_PASO
+
+#ifdef ESYS_HAVE_TRILINOS
+    using namespace esys_trilinos;
+
+    const dim_t myNumTargets = myLastDOF - myFirstDOF;
+    const dim_t numTargets = mapping.getNumTargets();
+    IndexVector myRows(myNumTargets);
+    IndexVector columns(numTargets);
+    const IndexVector& dofMap = mapping.map;
+    const index_t* gNI = (use_reduced_elements ? globalReducedNodesIndex : globalNodesIndex);
+
+#pragma omp parallel
+    {
+#pragma omp for nowait
+        for (size_t i = 0; i < myNumTargets; i++) {
+            myRows[i] = gNI[dofMap[i]];
+        }
+#pragma omp for
+        for (size_t i = 0; i < numTargets; i++) {
+            columns[i] = gNI[dofMap[i]];
+        }
+    } // end parallel section
+
+    if (use_reduced_elements) {
+        const dim_t numTotal = getGlobalNumReducedNodes();
+        trilinosReducedRowMap.reset(new MapType(numTotal, myRows, 0,
+                                      TeuchosCommFromEsysComm(MPIInfo->comm)));
+        trilinosReducedColMap.reset(new MapType(numTotal, columns, 0,
+                                      TeuchosCommFromEsysComm(MPIInfo->comm)));
+    } else {
+        const dim_t numTotal = getGlobalNumNodes();
+        trilinosRowMap.reset(new MapType(numTotal, myRows, 0,
+                                      TeuchosCommFromEsysComm(MPIInfo->comm)));
+        trilinosColMap.reset(new MapType(numTotal, columns, 0,
+                                      TeuchosCommFromEsysComm(MPIInfo->comm)));
+    }
+#endif // ESYS_HAVE_TRILINOS
 }
 
 void NodeFile::createNodeMappings(const IndexVector& indexReducedNodes,
