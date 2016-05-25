@@ -20,7 +20,9 @@
 #include <escript/SolverOptions.h>
 
 #include <Ifpack2_Factory.hpp>
+#ifndef ESYS_INDEXTYPE_LONG
 #include <MueLu_CreateTpetraPreconditioner.hpp>
+#endif
 
 using Teuchos::RCP;
 
@@ -43,6 +45,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             break;
         case escript::SO_PRECONDITIONER_AMG:
             {
+#ifndef ESYS_INDEXTYPE_LONG
                 params->set("max levels", sb.getLevelMax());
                 params->set("number of equations", 1);
                 params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
@@ -50,6 +53,9 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                 params->set("verbosity", sb.isVerbose()? "high":"low");
                 RCP<OpType<ST> > A(Teuchos::rcp_const_cast<Matrix>(mat));
                 prec = MueLu::CreateTpetraPreconditioner(A, *params);
+#else
+                throw escript::ValueError("MueLu (AMG) is incompatible with index type long!");
+#endif
             }
             break;
         case escript::SO_PRECONDITIONER_ILUT:
