@@ -31,9 +31,11 @@ from test_simplesolve import SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
-from esys.escript import Data, Solution, Vector
+from esys.escript import Data, Solution, Vector, hasFeature
 from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
+
+HAVE_PASO = hasFeature('paso')
 
 # number of elements in the spatial directions
 NE0=12
@@ -41,7 +43,11 @@ NE1=12
 NE2=8
 OPTIMIZE=True
 
-class SimpleSolveOrder2(SimpleSolveTestCase):
+@unittest.skipIf(not HAVE_PASO, "PASO not available")
+class SimpleSolveOnPaso(SimpleSolveTestCase):
+    pass
+
+class SimpleSolveOrder2(SimpleSolveOnPaso):
     def _getGrad(self, system):
         """returns exact gradient"""
         dim = self.domain.getDim()
@@ -124,7 +130,7 @@ class SimpleSolveOrder2(SimpleSolveTestCase):
 
 ### BiCGStab + Jacobi
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -144,7 +150,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_BICGSTAB_Jacobi(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_BICGSTAB_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -166,7 +172,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_BICGSTAB_Jacobi(SimpleSolveOrder2)
 
 ### PCG + Jacobi
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_PCG_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -186,7 +192,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_PCG_Jacobi(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_PCG_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -208,7 +214,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_PCG_Jacobi(SimpleSolveOrder2):
 
 ### TFQMR + Jacobi
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_TFQMR_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_TFQMR_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -228,7 +234,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_TFQMR_Jacobi(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_TFQMR_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_TFQMR_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -250,7 +256,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_TFQMR_Jacobi(SimpleSolveOrder2):
 
 ### MINRES + Jacobi
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_MINRES_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -270,7 +276,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_MINRES_Jacobi(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_MINRES_Jacobi(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -292,7 +298,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_MINRES_Jacobi(SimpleSolveOrder2):
 
 ### BiCGStab + Gauss-Seidel
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_BICGSTAB_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_BICGSTAB_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -312,7 +318,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_BICGSTAB_GaussSeidel(SimpleSolveOrd
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_BICGSTAB_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_BICGSTAB_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -334,7 +340,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_BICGSTAB_GaussSeidel(SimpleSolveOr
 
 ### PCG + Gauss-Seidel
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_PCG_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_PCG_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -354,7 +360,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_PCG_GaussSeidel(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_PCG_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_PCG_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -376,7 +382,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_PCG_GaussSeidel(SimpleSolveOrder2)
 
 ### TFQMR + Gauss-Seidel
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_TFQMR_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_TFQMR_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -396,7 +402,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_TFQMR_GaussSeidel(SimpleSolveOrder2
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_TFQMR_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_TFQMR_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -418,7 +424,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_TFQMR_GaussSeidel(SimpleSolveOrder
 
 ### MINRES + Gauss-Seidel
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_MINRES_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_MINRES_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -438,7 +444,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_MINRES_GaussSeidel(SimpleSolveOrder
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_MINRES_GaussSeidel(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_MINRES_GaussSeidel(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -460,7 +466,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_MINRES_GaussSeidel(SimpleSolveOrde
 
 ### BiCGStab + RILU
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_BICGSTAB_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_BICGSTAB_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -480,7 +486,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_BICGSTAB_RILU(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_BICGSTAB_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_BICGSTAB_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -502,7 +508,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_BICGSTAB_RILU(SimpleSolveOrder2):
 
 ### PCG + RILU
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_PCG_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_PCG_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -522,7 +528,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_PCG_RILU(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_PCG_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_PCG_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -544,7 +550,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_PCG_RILU(SimpleSolveOrder2):
 
 ### TFQMR + RILU
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_TFQMR_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -564,7 +570,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_TFQMR_RILU(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_TFQMR_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -586,7 +592,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Paso_TFQMR_RILU(SimpleSolveOrder2):
 
 ### MINRES + RILU
 
-class Test_SimpleSolveFinleyRect_Order1_Paso_MINRES_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyRect_Order1_Paso_MINRES_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
@@ -606,7 +612,7 @@ class Test_SimpleSolveFinleyRect_Order2_Paso_MINRES_RILU(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order1_Paso_MINRES_RILU(SimpleSolveTestCase):
+class Test_SimpleSolveFinleyBrick_Order1_Paso_MINRES_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.PASO
