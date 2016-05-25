@@ -72,12 +72,13 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         numEqu = sm->getRowBlockSize();
         numComp = sm->getColumnBlockSize();
     }
+    // set some defaults
     row_DOF = nodes->borrowTargetDegreesOfFreedom();
     row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
     row_jac = ef->borrowJacobians(nodes, false, reducedOrder);
-    col_DOF = nodes->borrowTargetDegreesOfFreedom();
-    col_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
-    col_jac = ef->borrowJacobians(nodes, false, reducedOrder);
+    col_DOF = row_DOF;
+    col_DOF_UpperBound = row_DOF_UpperBound;
+    col_jac = row_jac;
 
 #ifdef ESYS_HAVE_PASO
     // get the information for the labeling of the degrees of freedom from
@@ -121,11 +122,17 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         } else {
             throw ValueError("AssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
         }
+#ifdef ESYS_HAVE_PASO
         if (sm == NULL) {
             col_DOF_UpperBound = this->row_DOF_UpperBound;
             col_DOF = this->row_DOF;
             col_jac = this->row_jac;
         }
+#else // trilinos case
+        col_DOF_UpperBound = this->row_DOF_UpperBound;
+        col_DOF = this->row_DOF;
+        col_jac = this->row_jac;
+#endif
     }
 
     numSub = std::min(row_jac->numSub, col_jac->numSub);
