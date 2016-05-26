@@ -136,7 +136,7 @@ def generateTestScripts(env, TestGroups):
         for tests in TestGroups:
           if tests.exec_cmd=='$PYTHONRUNNER ':
             utest.write(tests.makeString())
-            utest.write(tests.makeFooter())
+        utest.write(tests.makeFooter())
         utest.close()
         env.Execute(Chmod('itest.sh', 0o755))
         print("Generated itest.sh.")        
