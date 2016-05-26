@@ -59,6 +59,12 @@ if [ $# -lt 2 ]; then
     echo Runs all or a group of unit tests. Options must be a single string.
     exit 2
 fi
+
+case "$1" in
+   /*) ;;
+   *) echo "build_dir needs to be an absolute path"; exit 4;;
+esac
+
 NUMPROCS=1
 NUMNODES=1
 while getopts ':n:p:' option $2
@@ -75,19 +81,20 @@ MPIPROD=$(($NUMPROCS * $NUMNODES))
         if stdloc:
             res+="""MPITYPE=`run-escript -c | grep mpi=`
 export OLD_PYTHON=$PYTHONPATH
+BATCH_ROOT=`pwd`
 BINRUNNER="run-escript -b $2"
 PYTHONRUNNER="run-escript $2"
 PYTHONTESTRUNNER="run-escript $2 $BATCH_ROOT/tools/testrunner.py"
-BATCH_ROOT=`pwd`
 """
         else:
             res+="""MPITYPE=`{0}/bin/run-escript -c | grep mpi=`
+BATCH_ROOT=`pwd`            
 export LD_LIBRARY_PATH={0}/lib:$LD_LIBRARY_PATH
 export OLD_PYTHON={0}:$PYTHONPATH
 BINRUNNER="{0}/bin/run-escript -b $2"
 PYTHONRUNNER="{0}/bin/run-escript $2"
 PYTHONTESTRUNNER="{0}/bin/run-escript $2 {0}/tools/testrunner.py"
-BATCH_ROOT=`pwd`\n""".format(prefix)
+""".format(prefix)
         if build_platform=='darwin':
             res+="export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH\n"
         return res
