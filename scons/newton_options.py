@@ -14,13 +14,10 @@
 #
 ##############################################################################
 
-from templates.trusty_options import *
+from templates.sid_options import *
 
 openmp = 0
-boost_libs = ['boost_python-py27']
 umfpack = True
 lapack = 'clapack'
-lapack_libs = ['lapack']
 silo = True
-silo_libs = ['siloh5', 'hdf5']
 
