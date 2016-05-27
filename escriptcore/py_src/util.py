@@ -2866,8 +2866,8 @@ def mkDir(*pathname):
             else:
                raise IOError("Unable to create directory %s."%p_fail)
          else:
-            if hasattr(e,"message"):
-               raise IOError(e.message)
+            if len(str(e)) > 0:
+               raise IOError(str(e))
             else:
                if p_fail is None:
                   raise IOError("Unable to create directory.")
