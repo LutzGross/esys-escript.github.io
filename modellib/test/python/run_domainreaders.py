@@ -56,19 +56,11 @@ try:
 except KeyError:
      MODELLIB_WORKDIR='.'
 
-GMSH = None
-try:
-    p=Popen(['gmsh', '-info'], stderr=PIPE)
-    _,e=p.communicate()
-    if e.split().count("MPI"):
-        GMSH = 'm'
-    else:
-        GMSH = 's'
-except OSError:
-    pass
-    
-@unittest.skipIf(GMSH is None, "gmsh not available")
-@unittest.skipIf(hasFeature("mpi"), "not tested with MPI builds")
+GMSH = hasFeature('gmsh')
+mpiSize = getMPISizeWorld()
+
+@unittest.skipIf(not GMSH, "gmsh not available")
+@unittest.skipIf(mpiSize > 1, "not tested with more than 1 MPI rank")
 class Test_domainReaders(unittest.TestCase):
     def domain_family(self, dommodule, f):
         dom=RectangularDomain(dommodule, parameters=["fish","dummy"], debug=True)
