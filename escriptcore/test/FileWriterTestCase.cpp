@@ -67,6 +67,7 @@ void FileWriterTestCase::testAll()
     CPPUNIT_ASSERT(oss.str().length() == 0);
     fw->close();
     long size = fileSize(filename);
+#ifdef ESYS_MPI
     int localOk = (size == 4L*mpisize);
     int globalOk;
     MPI_Allreduce(&localOk, &globalOk, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
@@ -75,6 +76,9 @@ void FileWriterTestCase::testAll()
     } else {
         CPPUNIT_ASSERT(globalOk > 0);
     }
+#else
+    CPPUNIT_ASSERT_EQUAL(4L*mpisize, size);
+#endif
 
     CPPUNIT_ASSERT(fw->openFile(filename) == true);
     oss.write(data, 4);
