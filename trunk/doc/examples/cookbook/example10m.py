@@ -28,11 +28,12 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 ############################################################FILE HEADER
 # example10m.py
-# Create a simple 2D mesh, which is optimised for cells close to the 
+# Create a simple 2D mesh, which is optimised for cells close to the
 # source. Larger elements are used to decrease computational requirements
 # and to properly fullfil the boundary conditions.
 #
 #######################################################EXTERNAL MODULES
+from esys.escript import mkDir, getMPISizeWorld, hasFeature
 from esys.pycad import * #domain constructor
 from esys.pycad.extras import layer_cake
 from esys.pycad.gmsh import Design #Finite Element meshing package
@@ -43,18 +44,15 @@ try:
 except ImportError:
     print("Finley module not available")
     HAVE_FINLEY = False
-from esys.escript import mkDir, getMPISizeWorld
-import os
-import subprocess as sp
-########################################################MPI WORLD CHECK
-if getMPISizeWorld() > 1:
-        import sys
-        print("This example will not run in an MPI world.")
-        sys.exit(0)
 
-if HAVE_FINLEY:
-    # make sure path exists 
-    save_path= os.path.join("data","example10m") 
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1 or (hasFeature('mpi') and hasFeature('gmsh_mpi')):
+    print("This example will not run in an MPI world!")
+elif HAVE_FINLEY:
+    import os
+    import subprocess as sp
+    # make sure path exists
+    save_path = os.path.join("data","example10m")
     mkDir(save_path)
 
     ################################################BIG DOMAIN
@@ -119,3 +117,4 @@ if HAVE_FINLEY:
             os.path.join(save_path,"example10m_small.geo")+" "+
             os.path.join(save_path,"example10m_big.geo")+" -o "+
             os.path.join(save_path,"example10m.msh"),shell=True)
+
