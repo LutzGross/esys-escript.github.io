@@ -324,13 +324,13 @@ int runMPIProgram(bp::list args)
 
     return errors;
 #else // not _WIN32
-    char** c_args = new char*[2+nargs];
-    std::vector<std::string> cpp_args(2+nargs);//allow for wrapper, port, and key
+    char** c_args = new char*[2+nargs]; //allow for wrapper, port, and key
+    std::vector<std::string> cpp_args(nargs);
     char c_cmd[] = OVERLORDPATH"escript-overlord";
     // skip command name in argument list
     for (int i=1; i<nargs; i++) {
-        cpp_args[i+1] = bp::extract<std::string>(args[i]);
-        c_args[i+1] = const_cast<char*>(cpp_args[i+1].c_str());
+        cpp_args[i-1] = bp::extract<std::string>(args[i]);
+        c_args[i+2] = const_cast<char*>(cpp_args[i-1].c_str());
     }
     unsigned short port = 0;
     int key = 0;
