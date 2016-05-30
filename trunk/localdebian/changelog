@@ -1,7 +1,6 @@
-python-escript (4.2.0.1-1) experimental; urgency=low
-  * First debian release of escript. Upstream version 4.2.0.1
-  * closes: 783157
- -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 04 Apr 2016 10:49:00 +1000
+python-escript (4.2.0.1-1) unstable; urgency=low
+  * First debian release of escript. (Closes: 783157)
+ -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 30 May 2016 14:09:00 +1000
 
 Old Changelog:
 python-escript (4.1-1) experimental; urgency=low
