@@ -304,47 +304,29 @@ int waitForCompletion(int sfd, int key)
 int runMPIProgram(bp::list args)
 {
 #ifdef ESYS_MPI
-    MPI_Comm intercomm;
-    MPI_Info info;
-    int errors;
-    int nargs = bp::extract<int>(args.attr("__len__")());
-    std::string cmd = bp::extract<std::string>(args[0]);
-#ifdef _WIN32
-    char** c_args = new char*[nargs];
-    char* c_cmd = const_cast<char*>(cmd.c_str());;
-    // skip command name in argument list
-    for (int i=1; i<nargs; i++) {
-        cpp_args[i-1]=bp::extract<std::string>(args[i]);
-        c_args[i-1]=const_cast<char*>(cpp_args[i-1].c_str());
-    }
-    MPI_Info_create(&info);
-    MPI_Comm_spawn(c_cmd, c_args, 1, info, 0, MPI_COMM_WORLD, &intercomm, &errors);
-    MPI_Info_free(&info);
-    delete[] c_args;
-
-    return errors;
-#else // not _WIN32
-    char** c_args = new char*[2+nargs]; //allow for wrapper, port, and key
-    std::vector<std::string> cpp_args(nargs);
-    char c_cmd[] = OVERLORDPATH"escript-overlord";
-    // skip command name in argument list
-    for (int i=1; i<nargs; i++) {
-        cpp_args[i-1] = bp::extract<std::string>(args[i]);
-        c_args[i+2] = const_cast<char*>(cpp_args[i-1].c_str());
-    }
     unsigned short port = 0;
     int key = 0;
     int sock = prepareSocket(&port, &key);
     if (getMPIWorldSum(sock) < 0)
         return -1;
-    c_args[nargs+1] = NULL;
     char portstr[20] = {'\0'}, keystr[20] = {'\0'};
     sprintf(portstr, "%d", port);
     sprintf(keystr, "%d", key);
+
+    int nargs = bp::extract<int>(args.attr("__len__")());
+    // make room for port, key and terminator
+    char** c_args = new char*[nargs + 3];
     c_args[0] = portstr;
     c_args[1] = keystr;
-    c_args[2] = const_cast<char*>(cmd.c_str());
+    std::vector<std::string> cpp_args(nargs);
+    // skip command name in argument list
+    for (int i = 0; i < nargs; i++) {
+        cpp_args[i] = bp::extract<std::string>(args[i]);
+        c_args[i+2] = const_cast<char*>(cpp_args[i].c_str());
+    }
+    c_args[nargs+2] = NULL;
 
+    MPI_Info info;
     MPI_Info_create(&info);
     // force the gmsh process to run on this host as well for network comm
     char hostname[MPI_MAX_PROCESSOR_NAME];
@@ -352,19 +334,21 @@ int runMPIProgram(bp::list args)
     MPI_Get_processor_name(hostname, &temp);
     char hoststr[] = "host"; //for warnings
     MPI_Info_set(info, hoststr, hostname);
+    MPI_Comm intercomm;
+    int errors;
+    const char c_cmd[] = OVERLORDPATH"escript-overlord";
     MPI_Comm_spawn(c_cmd, c_args, 1, info, 0, MPI_COMM_WORLD, &intercomm, &errors);
     MPI_Info_free(&info);
     delete[] c_args;
     if (errors != MPI_SUCCESS)
         return errors;
     return getMPIWorldMax(waitForCompletion(sock, key));
-#endif //#ifdef _WIN32/else
 #else //#ifdef ESYS_MPI
     std::string cmd;
     int nargs = bp::extract<int>(args.attr("__len__")());
-    for (int i=0; i<nargs; i++) {
-        cmd+=bp::extract<std::string>(args[i]);
-        cmd+=" ";
+    for (int i = 0; i < nargs; i++) {
+        cmd += bp::extract<std::string>(args[i]);
+        cmd += " ";
     }
     return system(cmd.c_str());
 #endif //#ifdef ESYS_MPI/else
