@@ -276,10 +276,10 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     int chunkSize = totalNumElements / mpiInfo->size;
     int rest = totalNumElements - (mpiInfo->size-1)*chunkSize;
     const size_t storage = std::max(chunkSize, rest);
-    int* id = new int[storage+1];
-    int* tag = new int[storage+1];
+    std::vector<int> id(storage+1);
+    std::vector<int> tag(storage+1);
     std::vector<int> vertices(storage*MAX_numNodes_gmsh, -1);
-    ElementTypeId* elementType = new ElementTypeId[storage+1];
+    std::vector<ElementTypeId> elementType(storage+1);
     std::vector<int> elementIndices(storage, -1);
     std::vector<int> faceElementIndices(storage, -1);
 
@@ -359,9 +359,9 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
 
         MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpiInfo->comm);
         MPI_Send(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, cpuId, 81720, mpiInfo->comm);
-        MPI_Send(id, chunkSize, MPI_INT, cpuId, 81721, mpiInfo->comm);
-        MPI_Send(tag, chunkSize, MPI_INT, cpuId, 81722, mpiInfo->comm);
-        MPI_Send(elementType, chunkSize, MPI_INT, cpuId, 81723, mpiInfo->comm);
+        MPI_Send(&id[0], chunkSize, MPI_INT, cpuId, 81721, mpiInfo->comm);
+        MPI_Send(&tag[0], chunkSize, MPI_INT, cpuId, 81722, mpiInfo->comm);
+        MPI_Send(&elementType[0], chunkSize, MPI_INT, cpuId, 81723, mpiInfo->comm);
         MPI_Send(chunkInfo, 2, MPI_INT, cpuId, 81724, mpiInfo->comm);
         MPI_Send(&elementIndices[0], chunkElements, MPI_INT, cpuId, 81725, mpiInfo->comm);
         MPI_Send(&faceElementIndices[0], chunkFaceElements, MPI_INT, cpuId, 81726, mpiInfo->comm);
@@ -481,9 +481,6 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
         }
     }
 
-    delete[] id;
-    delete[] tag;
-    delete[] elementType;
     return errorFlag;
 }
 
