@@ -81,7 +81,7 @@ override_dh_auto_build:
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORKM)/run-escript2-mpi.man
 	ln $(WORKM)/bin/run-escript $(WORKM)/bin/run-escript2-mpi
 	find $(WORKM) -name '*.pyc' -print0| xargs -0 rm -f
-	rm -rf $(BUILDM)
+	#rm -rf $(BUILDM)
 
 	# Build steps for py3
 	mkdir -p $(WORK3)
@@ -92,7 +92,7 @@ override_dh_auto_build:
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3)/run-escript3.man
 	ln $(WORK3)/bin/run-escript $(WORK3)/bin/run-escript3
 	find $(WORK3) -name '*.pyc' -print0| xargs -0 rm -f
-	rm -rf $(BUILD3)
+	#rm -rf $(BUILD3)
 
 	# Build steps for py3 with MPI
 	mkdir -p $(WORK3M)
@@ -103,14 +103,14 @@ override_dh_auto_build:
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3M)/run-escript3-mpi.man
 	ln $(WORK3M)/bin/run-escript $(WORK3M)/bin/run-escript3-mpi
 	find $(WORK3M) -name '*.pyc' -print0| xargs -0 rm -f	
-	rm -rf $(BUILD3M)
+	#rm -rf $(BUILD3M)
 	
 	# fix paths in each package and
 	# fix some external links in the doc package
 	debian/utils/tweak.sh "$(WORK)" "$(WORKM)" "$(WORK3)" "$(WORK3M)"
 	rm -f scons/templates/*.pyc
 	rm -f site_scons/*.pyc
-	rm -f utest.sh itest.sh
+	rm -f utest.sh
 
 override_dh_shlibdeps:
 	# so libraries we just built are checked as well
