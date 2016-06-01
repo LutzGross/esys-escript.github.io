@@ -17,7 +17,7 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
-from .sid_options import *
+from scons.templates.sid_options import *
 
 pythoncmd = 'python3'
 
