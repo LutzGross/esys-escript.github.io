@@ -953,17 +953,16 @@ int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
     ElementTypeId contactElementType = NoRef;
     const_ReferenceElementSet_ptr refPoints, refContactElements;
     const_ReferenceElementSet_ptr refFaceElements, refElements;
-    ElementTypeId* elementType;
 
     int totalNumElements = 0;
     MPI_Bcast(&totalNumElements, 1, MPI_INT, 0, mpiInfo->comm);
 
     int chunkSize = totalNumElements / mpiInfo->size, chunkElements = 0;
     int chunkFaceElements = 0;
-    int* id = new int[chunkSize+1];
-    int* tag = new int[chunkSize+1];
+    std::vector<int> id(chunkSize+1);
+    std::vector<int> tag(chunkSize+1);
     std::vector<int> vertices(chunkSize*MAX_numNodes_gmsh, -1);
-    elementType = new ElementTypeId[chunkSize+1];
+    std::vector<ElementTypeId> elementType(chunkSize+1);
     std::vector<int> elementIndices(chunkSize, -1);
     std::vector<int> faceElementIndices (chunkSize, -1);
 
@@ -985,9 +984,9 @@ int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
         return errorFlag;
 
     MPI_Recv(&vertices[0], chunkSize*MAX_numNodes_gmsh, MPI_INT, 0, 81720, mpiInfo->comm, &status);
-    MPI_Recv(id, chunkSize, MPI_INT, 0, 81721, mpiInfo->comm, &status);
-    MPI_Recv(tag, chunkSize, MPI_INT, 0, 81722, mpiInfo->comm, &status);
-    MPI_Recv(elementType, chunkSize, MPI_INT, 0, 81723, mpiInfo->comm, &status);
+    MPI_Recv(&id[0], chunkSize, MPI_INT, 0, 81721, mpiInfo->comm, &status);
+    MPI_Recv(&tag[0], chunkSize, MPI_INT, 0, 81722, mpiInfo->comm, &status);
+    MPI_Recv(&elementType[0], chunkSize, MPI_INT, 0, 81723, mpiInfo->comm, &status);
     MPI_Recv(chunkInfo, 2, MPI_INT, 0, 81724, mpiInfo->comm, &status);
     chunkElements = chunkInfo[0];
     chunkFaceElements = chunkInfo[1];
@@ -1055,9 +1054,6 @@ int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
         }
     }
 
-    delete[] id;
-    delete[] tag;
-    delete[] elementType;
     return errorFlag;
 }
 
