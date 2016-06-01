@@ -894,15 +894,15 @@ int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
     // get numNodes from the master
     MPI_Bcast(&numNodes, 1, MPI_INT,  0, mpiInfo->comm);
     int chunkSize = numNodes / mpiInfo->size, chunkNodes = 0;
-    int* tempInts = new int[chunkSize+1]; // Stores the integer message data
-    double* tempCoords = new double[chunkSize*numDim]; // Stores the double message data
+    std::vector<int> tempInts(chunkSize+1); // Stores the integer message data
+    std::vector<double> tempCoords(chunkSize*numDim); // Stores the double message data
     // Each worker receives two messages
     MPI_Status status;
     MPI_Recv(&errorFlag, 1, MPI_INT, 0, 81719, mpiInfo->comm, &status);
     if (!errorFlag) {
-        MPI_Recv(tempInts, chunkSize+1, MPI_INT, 0, 81720, mpiInfo->comm, &status);
+        MPI_Recv(&tempInts[0], chunkSize+1, MPI_INT, 0, 81720, mpiInfo->comm, &status);
         if (chunkSize > 0)
-            MPI_Recv(tempCoords, chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpiInfo->comm, &status);
+            MPI_Recv(&tempCoords[0], chunkSize*numDim, MPI_DOUBLE, 0, 81721, mpiInfo->comm, &status);
         chunkNodes = tempInts[chunkSize]; // How many nodes are in this worker's chunk?
     }
 
@@ -928,8 +928,6 @@ int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
         }
     }
 
-    delete[] tempInts;
-    delete[] tempCoords;
     return errorFlag;
 }
 
