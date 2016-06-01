@@ -81,7 +81,7 @@ def checkPython(env):
     # but we need to deal with the case where python is not in its INSTALL
     # directory.
     # Use the python scons is running
-    if env['pythoncmd']=='python':
+    if env['pythoncmd'] == sys.executable:
         python_inc_path=sysconfig.get_python_inc()
         if env['IS_WINDOWS']:
             python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
@@ -96,33 +96,36 @@ def checkPython(env):
         else:
             python_libs=['python'+sysconfig.get_python_version()]
 
-        env['buildvars']['python']=sys.executable
-        env['buildvars']['python_version']=str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+        verstring=".".join([str(i) for i in sys.version_info[:3]])
 
-    #if we want to use a python other than the one scons is running
+    # if we want to use a python other than the one scons is running
+    # Note: we assume scons is running python 2 in the following.
     else:
+        p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
+        verstring = p.stdout.readline().strip()
+        p.wait()
+        ispython3 = (verstring[0] == '3')
         initstring='from __future__ import print_function;from distutils import sysconfig;'
-        if env['pythonlibname']!='':
-            python_libs=env['pythonlibname']
-        else:   # work it out by calling python
+        if env['pythonlibname'] != '':
+            python_libs = env['pythonlibname']
+        else: # work it out by calling python
             if ['IS_WINDOWS']:
                 cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
             else:
                 cmd='print("python"+sysconfig.get_python_version())'
             p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
-            python_libs=p.stdout.readline()
-            if env['usepython3']:       # This is to convert unicode str into py2 string
-                python_libs=python_libs.encode() # If scons runs on py3 then this must be rethought
+            python_libs = p.stdout.readline()
+            if ispython3: # This is to convert unicode str into py2 string
+                python_libs = python_libs.encode()
             p.wait()
-            python_libs=python_libs.strip()
+            python_libs = python_libs.strip()
 
-        # Now we know whether we are using python3 or not
         p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
-        python_inc_path=p.stdout.readline()
-        if env['usepython3']:
-             python_inc_path=python_inc_path.encode()
+        python_inc_path = p.stdout.readline()
+        if ispython3:
+            python_inc_path = python_inc_path.encode()
         p.wait()
-        python_inc_path=python_inc_path.strip()
+        python_inc_path = python_inc_path.strip()
         if env['IS_WINDOWS']:
             cmd="import os;os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
         elif env['PLATFORM']=='darwin':
@@ -131,26 +134,26 @@ def checkPython(env):
             cmd="sysconfig.get_config_var(\"LIBDIR\")"
 
         p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
-        python_lib_path=p.stdout.readline()
-        if env['usepython3']:
-            python_lib_path=python_lib_path.decode()
+        python_lib_path = p.stdout.readline()
+        if ispython3:
+            python_lib_path = python_lib_path.decode()
         p.wait()
-        python_lib_path=python_lib_path.strip()
+        python_lib_path = python_lib_path.strip()
 
-        env['buildvars']['python']=env['pythoncmd']
-        p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
-        verstring=p.stdout.readline().strip()
-        p.wait()
-        env['buildvars']['python_version']=verstring
 
+    ispython3 = (verstring[0] == '3')
+    if ispython3:
+        env.Append(CPPDEFINES=['ESPYTHON3'])
+    env['buildvars']['python_version'] = verstring
+    env['buildvars']['python'] = env['pythoncmd']
     # Check for an override from the config file.
     # Ideally, this should be automatic but we need to deal with the case
     # where python is not in its INSTALL directory
-    if env['pythonlibpath']!='':
-        python_lib_path=env['pythonlibpath']
+    if env['pythonlibpath'] != '':
+        python_lib_path = env['pythonlibpath']
 
-    if env['pythonincpath']!='':
-        python_inc_path=env['pythonincpath']
+    if env['pythonincpath'] != '':
+        python_inc_path = env['pythonincpath']
 
     conf = Configure(env.Clone())
 
@@ -231,15 +234,11 @@ def checkNumpy(env):
 
     ## check for numpy header (optional)
     conf = Configure(env.Clone())
-    if env['usepython3']:
-        # FIXME: This is until we can work out how to make the checks in python 3
-        conf.env['numpy_h']=False
+    if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
+        conf.env['numpy_h']=True
     else:
-        if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-            conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
-            conf.env['numpy_h']=True
-        else:
-            conf.env['numpy_h']=False
+        conf.env['numpy_h']=False
 
     return conf.Finish()
 

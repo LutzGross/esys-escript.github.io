@@ -25,7 +25,7 @@ boost_libs = ['boost_python-py27']
 silo = True
 
 #cxx_extra = '-Wextra -Wno-unused-parameter -DEXWRITECHK'
-cxx_extra = '-Wextra -Wno-unused-parameter -std=c++11 -Wno-literal-suffix'
+cxx_extra = '-Wextra -Wno-unused-parameter -Wno-literal-suffix'
 
 #mpi='OPENMPI'
 mpi='none'

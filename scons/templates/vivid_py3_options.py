@@ -14,12 +14,13 @@
 #
 ##############################################################################
 
+# This is a template configuration file for escript on Ubuntu Linux.
+# Refer to README_FIRST for usage instructions.
+
 from .vivid_options import *
 
-# boost-python library/libraries to link against
 boost_libs = ['boost_python-py34']
-usepython3=True
-pythoncmd='python3'
-pythonlibname='python3.4m'
-pythonincpath='/usr/include/python3.4'
+pythoncmd = 'python3'
+pythonlibname = 'python3.4m'
+pythonincpath = '/usr/include/python3.4'
 

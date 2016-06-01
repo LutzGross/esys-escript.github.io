@@ -23,7 +23,7 @@ from site_init import *
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
-REQUIRED_OPTS_VERSION=202
+REQUIRED_OPTS_VERSION=203
 
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
@@ -75,8 +75,6 @@ vars.AddVariables(
   ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
   ('cxx_extra', 'Extra C++ compiler flags', ''),
-  ('cpp_flags', 'C Pre-processor flags', ''),
-  ('cpp_extra', 'Extra C Pre-processor flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
   ('nvcc', 'Path to CUDA compiler', 'default'),
   ('nvccflags', 'Base CUDA compiler flags', 'default'),
@@ -140,12 +138,11 @@ vars.AddVariables(
   ('env_export', 'Environment variables to be passed to tools',[]),
   EnumVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
   EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
-  BoolVariable('build_shared', 'Build dynamic libraries only (ignored)', True),
+  BoolVariable('build_shared', '(deprecated option, ignored)', True),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
-  ('pythoncmd', 'which python to compile with','python'),
-  BoolVariable('usepython3', 'Is this a python3 build?', False),
+  ('pythoncmd', 'which python to compile with', sys.executable),
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
@@ -190,8 +187,8 @@ if options_file:
         print("Using options in %s." % options_file)
     else:
         print("\nOptions file %s" % options_file)
-        print("is outdated! Please update the file by examining one of the TEMPLATE")
-        print("files in the scons/ subdirectory and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
+        print("is outdated! Please update the file after reading scons/templates/README_FIRST")
+        print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
         Exit(1)
 
 # Generate help text (scons -h)
@@ -301,8 +298,6 @@ if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
-if env['cpp_flags'] != '': env.Append(CPPFLAGS = env['cpp_flags'])
-if env['cpp_extra'] != '': env.Append(CPPFLAGS = " "+env['cpp_extra'])
 
 if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']
@@ -310,9 +305,6 @@ if env['nvccflags'] != 'default':
 
 if env['longindices']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
-
-if env['usepython3']:
-    env.Append(CPPDEFINES=['ESPYTHON3'])
 
 # set up the autolazy values
 if env['forcelazy'] == 'on':
@@ -457,14 +449,6 @@ if IS_OSX:
     env.PrependENVPath('DYLD_LIBRARY_PATH', os.environ['DYLD_LIBRARY_PATH'])
   except KeyError:
     pass
-
-
-# these shouldn't be needed
-#for key in 'C_INCLUDE_PATH','CPLUS_INCLUDE_PATH','LIBRARY_PATH':
-#    try:
-#        env['ENV'][key] = os.environ[key]
-#    except KeyError:
-#        pass
 
 try:
     env['ENV']['PYTHONPATH'] = os.environ['PYTHONPATH']

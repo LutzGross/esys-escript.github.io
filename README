@@ -1,6 +1,7 @@
 
 For the impatient:
 - Install at least g++, python, scons, boost, numpy
+- READ the file scons/templates/README_FIRST
 - Copy a suitable template options file from scons/templates/ to
   scons/`hostname`_options.py and modify as required.
 - type: scons to build escript

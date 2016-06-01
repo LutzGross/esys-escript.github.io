@@ -18,7 +18,6 @@ from guineapig_options import *
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-py35']
-usepython3=True
 pythoncmd='python3'
 pythonlibname='python3.5m'
 pythonincpath='/usr/include/python3.5'
