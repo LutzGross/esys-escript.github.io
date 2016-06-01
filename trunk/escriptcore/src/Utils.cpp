@@ -184,6 +184,7 @@ int prepareSocket(unsigned short *port, int *key)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(0);
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
 
     if (bind(sfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("bind failure");
