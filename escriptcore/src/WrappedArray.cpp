@@ -217,10 +217,20 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	try
 	{
 		object o = (extract<object>(obj.attr("__array_struct__")));
+#ifdef ESPYTHON3
+		if (PyCapsule_CheckExact(o.ptr()))
+#else
 		if (PyCObject_Check(o.ptr()))
+#endif
 		{
 			PyObject* cobj=(PyObject*)o.ptr();
+#ifdef ESPYTHON3
+            const char* name = PyCapsule_GetName(cobj);
+            //std::cerr<<"CAPSULE: "<<name<<std::endl;
+			PyArrayInterface* arr=(PyArrayInterface*)PyCapsule_GetPointer(cobj, name);
+#else
 			PyArrayInterface* arr=(PyArrayInterface*)PyCObject_AsVoidPtr(cobj);
+#endif
 #ifndef NPY_1_7_API_VERSION
   #define NPY_ARRAY_IN_ARRAY NPY_IN_ARRAY
   #define NPY_ARRAY_NOTSWAPPED NPY_NOTSWAPPED
