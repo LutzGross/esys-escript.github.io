@@ -253,6 +253,8 @@ void NodeFile::createNodeMappings(const IndexVector& dofDist,
 #pragma omp parallel for
     for (index_t i = 0; i < degreesOfFreedomMapping.numTargets; ++i)
         degreesOfFreedomId[i] = Id[degreesOfFreedomMapping.map[i]];
+
+    delete[] nodeMask;
 }
 
 } // namespace dudley
