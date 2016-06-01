@@ -2505,28 +2505,30 @@ void Brick::shareFaces(escript::Data& out, int rx, int ry, int rz) const
 
 
 escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& fs,
-       long seed, const boost::python::tuple& filter) const
+                                const escript::FunctionSpace& fs, long seed,
+                                const boost::python::tuple& filter) const
 {
-    int numvals=escript::DataTypes::noValues(shape);
-    int per_element = (m_order+1)*(m_order+1)*(m_order+1)*numvals;
-    if (len(filter)>0) {
+    const int numvals = escript::DataTypes::noValues(shape);
+    const int per_element = (m_order+1)*(m_order+1)*(m_order+1)*numvals;
+    if (len(filter) > 0) {
         throw SpeckleyException("Speckley does not support filters.");
     }
 
-    double* src=new double[m_NE[0]*m_NE[1]*m_NE[2]*per_element*numvals];
+    double* src = new double[m_NE[0]*m_NE[1]*m_NE[2]*per_element*numvals];
     escript::randomFillArray(seed, src, m_NE[0]*m_NE[1]*m_NE[2]*per_element);
     escript::Data res(0, shape, escript::function(*this), true);
     int current = 0;
-    for (int ei = 0; ei < m_NE[2]; ++ei) {
-        for (int ej = 0; ej < m_NE[1]; ++ej) {
-            for (int ek = 0; ek < m_NE[0]; ++ek) {
+    for (index_t ei = 0; ei < m_NE[2]; ++ei) {
+        for (index_t ej = 0; ej < m_NE[1]; ++ej) {
+            for (index_t ek = 0; ek < m_NE[0]; ++ek) {
                 double *e = res.getSampleDataRW(INDEX3(ek,ej,ei,m_NE[0],m_NE[1]));
                 memcpy(e, &src[current], sizeof(double)*per_element);
                 current += per_element;
             }
         }
     }
+    delete[] src;
+
     if (res.getFunctionSpace() != fs) {
         return escript::Data(res, fs);
     }
