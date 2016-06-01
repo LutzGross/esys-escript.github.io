@@ -14,13 +14,10 @@
 #
 ##############################################################################
 
-from .jessie_options import *
+# This is a template configuration file for escript on Debian/GNU Linux.
+# Refer to README_FIRST for usage instructions.
 
-# boost-python library/libraries to link against
-boost_libs = ['boost_python-py34']
-usepython3=True
-pythoncmd='python3'
-pythonlibname='python3.4m'
-pythonincpath='/usr/include/python3.4'
+from .jessie_py3_options import *
 
-mpi='OPENMPI'
+mpi = 'OPENMPI'
+

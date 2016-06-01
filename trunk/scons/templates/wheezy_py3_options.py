@@ -14,12 +14,13 @@
 #
 ##############################################################################
 
+# This is a template configuration file for escript on Debian GNU/Linux.
+# Refer to README_FIRST for usage instructions.
+
 from .wheezy_options import *
 
-# boost-python library/libraries to link against
 boost_libs = ['boost_python-py32']
-usepython3=True
-pythoncmd='python3'
-pythonlibname='python3.2mu'
-pythonincpath='/usr/include/python3.2'
+pythoncmd = 'python3'
+pythonlibname = 'python3.2mu'
+pythonincpath = '/usr/include/python3.2'
 

@@ -14,6 +14,10 @@
 #
 ##############################################################################
 
+# This is a template configuration file for escript on Ubuntu Linux.
+# Refer to README_FIRST for usage instructions.
+
 from .vivid_options import *
 
 mpi='OPENMPI'
+

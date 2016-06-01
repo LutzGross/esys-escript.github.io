@@ -14,12 +14,8 @@
 #
 ##############################################################################
 
-escript_opts_version = 202
+escript_opts_version = 203
 #cuda = True
-#prefix = '/usr/local'
-#build_dir = 'build'
-#cxx = 'g++-4.8'
-#cc_flags = ''
 cc_optim = '-O3 -march=native'
 cc_debug = "-g3 -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -D_GLIBCXX_DEBUG -fno-omit-frame-pointer" #-fsanitize=address 
 cxx_extra = '-Wextra -Wno-unused-parameter -Wno-deprecated-declarations -g -fdiagnostics-color'
@@ -30,55 +26,34 @@ nvccflags = "-arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 #ld_extra = '-fsanitize=address'
 verbose = True
 openmp = True
-#omp_flags = '-fopenmp'
-#omp_ldflags = '-fopenmp'
 mpi = 'OPENMPI'
 mpi_prefix = '/usr/lib/openmpi'
 mpi_libs = ['mpi_cxx', 'mpi']
-#boost_prefix = '/usr/local'
 boost_libs = ['libboost_python-py27']
-#cppunit_prefix = '/usr/local'
-#cppunit_libs = ['cppunit']
 netcdf = True
-#netcdf_prefix = '/usr/local'
-#netcdf_libs = ['netcdf_c++', 'netcdf']
 parmetis = True
-#parmetis_prefix = '/usr/local'
-#parmetis_libs = ['parmetis', 'metis']
 trilinos = True
 trilinos_prefix = '/opt/trilinos'
 #papi = True
 #papi_prefix = '/usr/local'
 #papi_libs = ['papi']
 #papi_instrument_solver = True
-#mkl = True
-#mkl_prefix = '/usr'
-#mkl_libs = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
-#boomeramg = True
-#boomeramg_prefix = '/usr/local'
-#boomeramg_libs = ['HYPRE']
 lapack = 'clapack'
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 lapack_libs = ['lapack_atlas']
 silo = True
-#silo_prefix = '/usr/local'
 silo_libs = ['siloh5']
 visit = False
 visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 #visit_libs = ['simV2']
 
+#longindices = True
+#cxx_extra += ' -Wconversion'
+#lapack = 'none'
+#parmetis = False
 
-### ADVANCED OPTIONS ###
-# Do not change the following options unless you know what they do
-
-#vsl_random = True
-#sys_libs = []
-#env_export = []
-#tools_names = ['default']
-#iknowwhatimdoing = False
-#forcelazy = 'leave_alone'
-#forcecollres = 'leave_alone'
+from templates.sid_py3_options import *
 

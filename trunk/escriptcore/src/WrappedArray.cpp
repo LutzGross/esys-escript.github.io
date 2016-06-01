@@ -226,7 +226,6 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 			PyObject* cobj=(PyObject*)o.ptr();
 #ifdef ESPYTHON3
             const char* name = PyCapsule_GetName(cobj);
-            //std::cerr<<"CAPSULE: "<<name<<std::endl;
 			PyArrayInterface* arr=(PyArrayInterface*)PyCapsule_GetPointer(cobj, name);
 #else
 			PyArrayInterface* arr=(PyArrayInterface*)PyCObject_AsVoidPtr(cobj);
