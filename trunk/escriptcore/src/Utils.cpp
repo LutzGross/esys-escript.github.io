@@ -337,7 +337,7 @@ int runMPIProgram(bp::list args)
     MPI_Info_set(info, hoststr, hostname);
     MPI_Comm intercomm;
     int errors;
-    const char c_cmd[] = OVERLORDPATH"escript-overlord";
+    char c_cmd[] = OVERLORDPATH"escript-overlord";
     MPI_Comm_spawn(c_cmd, c_args, 1, info, 0, MPI_COMM_WORLD, &intercomm, &errors);
     MPI_Info_free(&info);
     delete[] c_args;

@@ -20,7 +20,6 @@ debug = False
 
 boost_libs = ['boost_python-py27']
 
-lapack = 'clapack'
 umfpack = True
 silo = True
 

@@ -41,9 +41,7 @@ trilinos_prefix = '/opt/trilinos'
 umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
-lapack = 'clapack'
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
-lapack_libs = ['lapack_atlas']
 silo = True
 silo_libs = ['siloh5']
 visit = False
@@ -54,6 +52,4 @@ visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 #cxx_extra += ' -Wconversion'
 #lapack = 'none'
 #parmetis = False
-
-from templates.sid_py3_options import *
 

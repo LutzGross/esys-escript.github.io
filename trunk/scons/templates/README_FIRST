@@ -182,10 +182,9 @@ boomeramg_prefix = '/usr/local'
 boomeramg_libs = ['HYPRE']
   BoomerAMG library/libraries to link against
 
-lapack = 'clapack'
-  Flavour of LAPACK implementation
-  Recognized values: 'none', 'clapack', 'mkl'
-  DEFAULT: 'none' (do not use LAPACK)
+lapack = True
+  Whether to use BLAS/LAPACK. Note, LAPACK is incompatible with long indices.
+  DEFAULT: 'auto' (try to detect MKL lapack or ATLAS)
 
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
   Prefix or paths to LAPACK headers and libraries. See note above.

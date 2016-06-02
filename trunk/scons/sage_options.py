@@ -20,8 +20,6 @@ debug = False
 
 boost_libs = ['boost_python-py27']
 
-#lapack = 'clapack'
-
 silo = True
 
 #cxx_extra = '-Wextra -Wno-unused-parameter -DEXWRITECHK'

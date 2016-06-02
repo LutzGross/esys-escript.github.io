@@ -54,7 +54,6 @@ if not os.path.isfile(options_file):
 
 default_prefix='/usr'
 mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
-lapack_flavours=('none', 'clapack', 'mkl')
 all_domains = ['dudley','finley','ripley','speckley']
 
 #Note that scons construction vars the the following purposes:
@@ -110,7 +109,7 @@ vars.AddVariables(
   BoolVariable('boomeramg', 'Enable BoomerAMG', False),
   ('boomeramg_prefix', 'Prefix/Paths to BoomerAMG installation', default_prefix),
   ('boomeramg_libs', 'BoomerAMG libraries to link with', ['boomeramg']),
-  EnumVariable('lapack', 'Set LAPACK flavour', 'none', allowed_values=lapack_flavours),
+  TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
   BoolVariable('silo', 'Enable the Silo file format in weipa', False),

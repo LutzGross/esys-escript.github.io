@@ -27,7 +27,5 @@ netcdf = True
 #umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
-#lapack = 'clapack'
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
-lapack_libs = ['lapack_atlas']
 dudley_assemble_flags = '-funroll-loops'

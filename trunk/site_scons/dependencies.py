@@ -386,28 +386,56 @@ def checkOptionalLibraries(env):
     env['buildvars']['umfpack']=int(env['umfpack'])
 
     ######## LAPACK
-    if env['lapack']=='mkl' and not env['mkl']:
-        print("mkl_lapack requires MKL!")
-        env.Exit(1)
-
-    env['uselapack'] = env['lapack']!='none'
     lapack_inc_path=''
     lapack_lib_path=''
-    if env['uselapack']:
+    flavour = 'none'
+    env['uselapack'] = False
+    if env['lapack'] != 0:
+        # not explicitly disabled so run the checks
         if env['longindices']:
-            print("Sorry, cannot use LAPACK with 64-bit index types. Set longindices to False or disable LAPACK.")
-            env.Exit(1)
-        header='clapack.h'
-        if env['lapack']=='mkl':
-            env.AppendUnique(CPPDEFINES = ['ESYS_MKL_LAPACK'])
-            header='mkl_lapack.h'
-        lapack_inc_path,lapack_lib_path=findLibWithHeader(env, env['lapack_libs'], header, env['lapack_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [lapack_inc_path])
-        env.AppendUnique(LIBPATH = [lapack_lib_path])
-        env.Append(CPPDEFINES = ['ESYS_HAVE_LAPACK'])
-        env['buildvars']['lapack_inc_path']=lapack_inc_path
-        env['buildvars']['lapack_lib_path']=lapack_lib_path
-    env['buildvars']['lapack']=env['lapack']
+            # you want longindices + lapack? sorry.
+            if env['lapack'] == 1:
+                print("LAPACK requires index type = int. Set longindices to False or disable LAPACK.")
+                env.Exit(1)
+        else:
+            if env['mkl']:
+                # we detected MKL so try the MKL header+libs
+                flavour = 'mkl'
+                header = 'mkl_lapack.h'
+                prefix = env['mkl_prefix']
+                if len(env['lapack_libs']) == 0:
+                    libs = env['mkl_libs']
+                else:
+                    libs = env['lapack_libs']
+            else:
+                # try for clapack
+                flavour = 'clapack'
+                header = 'clapack.h'
+                prefix = env['lapack_prefix']
+                if len(env['lapack_libs']) == 0:
+                    libs = ['lapack_atlas']
+                else:
+                    libs = env['lapack_libs']
+
+            try:
+                lapack_inc_path,lapack_lib_path=findLibWithHeader(env, libs, header, prefix, lang='c++')
+                env['lapack_libs'] = libs
+                env['uselapack'] = True
+                env.AppendUnique(CPPPATH = [lapack_inc_path])
+                env.AppendUnique(LIBPATH = [lapack_lib_path])
+                env.Append(CPPDEFINES = ['ESYS_HAVE_LAPACK'])
+                if flavour == 'mkl':
+                    env.AppendUnique(CPPDEFINES = ['ESYS_MKL_LAPACK'])
+                env['buildvars']['lapack_inc_path']=lapack_inc_path
+                env['buildvars']['lapack_lib_path']=lapack_lib_path
+            except:
+                if env['lapack'] == 1:
+                    raise
+                # lapack was set to auto-detect so not a fatal error
+                flavour = 'none'
+
+    env['lapack'] = flavour
+    env['buildvars']['lapack'] = flavour
 
     ######## Silo
     silo_inc_path=''

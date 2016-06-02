@@ -18,6 +18,5 @@ from templates.sid_options import *
 
 openmp = 0
 umfpack = True
-lapack = 'clapack'
 silo = True
 
