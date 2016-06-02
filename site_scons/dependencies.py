@@ -181,7 +181,7 @@ def checkCudaVersion(env):
     p = Popen([env['NVCC'], '-V'], stdout=PIPE)
     out,_ = p.communicate()
     env['nvcc_version'] = '(unknown version)'
-    for line in out.split():
+    for line in out.split('\n'):
         if 'release' in line:
             version = line[line.find('release'):].strip()
             env['nvcc_version'] = version
@@ -478,6 +478,18 @@ def checkOptionalLibraries(env):
         # to do that here
         if env['netcdf'] and env['mpi'] in ['MPT','OPENMPI']:
             env.Append(CPPDEFINES = ['MPI_INCLUDED'])
+
+        if env['mpi'] == 'OPENMPI':
+            # try to get version for correct launcher arguments
+            try:
+                p = Popen(['orterun', '-V'], stderr=PIPE)
+                _,e = p.communicate()
+                ver = e.split('\n')[0].split()[-1]
+                if len(ver) > 0:
+                    env['orte_version'] = ver
+            except OSError:
+                pass
+
         env['buildvars']['mpi_inc_path']=mpi_inc_path
         env['buildvars']['mpi_lib_path']=mpi_lib_path
     env['buildvars']['mpi']=env['mpi']
@@ -554,7 +566,6 @@ def checkOptionalLibraries(env):
                 env['gmsh']='m'
             else:
                 env['gmsh']='s'
-            p.wait()
         except OSError:
             pass
     else:
