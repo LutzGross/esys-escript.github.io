@@ -25,7 +25,6 @@ mpi = 'OPENMPI'
 boost_libs = ['boost_python-py27']
 parmetis = True
 umfpack = True
-lapack = 'clapack'
 silo = True
 silo_libs = ['siloh5', 'hdf5_openmpi']
 

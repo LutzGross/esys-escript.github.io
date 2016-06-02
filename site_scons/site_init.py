@@ -251,3 +251,27 @@ def osxlib_dep_rewrite(libname, targetdir, env):
     if env.Execute("tools/libmover.sh %s %s"%(libname, targetdir)):
        return 1
     return None
+
+def TristateVariable(key, help, default):
+    """
+    Modelled after SCons internal BoolVariable but allows three states
+    (on=1, off=0, auto=-1)
+    """
+    on_strings = ('y', 'yes', 'true', 't', '1', 'on')
+    off_strings = ('n', 'no', 'false', 'f', '0', 'off', 'none')
+    auto_strings = ('a', 'auto', 'default', 'def', '-1', '')
+
+    def _validator(key, val, env):
+        if not env[key] in (1, 0, -1):
+            raise SCons.Errors.UserError(
+                    'Invalid value for tristate option %s: %s' % (key, env[key]))
+
+    def _converter(val):
+        lval = val.lower()
+        if lval in on_strings: return 1
+        if lval in off_strings: return 0
+        if lval in auto_strings: return -1
+        raise ValueError("Invalid value for tristate option: %s" % val)
+
+    return (key, '%s (yes|no|auto)' % help, default, _validator, _converter)
+

@@ -27,7 +27,5 @@ parmetis = True
 
 umfpack = True
 
-lapack = 'clapack'
-
 silo = True
 

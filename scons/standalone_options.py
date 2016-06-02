@@ -191,10 +191,7 @@ netcdf_prefix = ['../pkg/netcdf/include/', '../pkg/netcdf/lib/']
 # BoomerAMG library/libraries to link against
 #boomeramg_libs = ['HYPRE']
 
-# Flavour of LAPACK implementation
-# Recognized values: 'none', 'clapack', 'mkl'
-# DEFAULT: 'none' (do not use LAPACK)
-#lapack = 'clapack'
+#lapack = True
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 #lapack_prefix = '/usr/local'
