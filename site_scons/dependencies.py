@@ -482,7 +482,7 @@ def checkOptionalLibraries(env):
         if env['mpi'] == 'OPENMPI':
             # try to get version for correct launcher arguments
             try:
-                p = Popen(['orterun', '-V'], stderr=PIPE)
+                p = Popen(['orterun', '-V'], stdout=PIPE, stderr=PIPE)
                 o,e = p.communicate()
                 try:
                     ver = e.split('\n')[0].split()[-1]
