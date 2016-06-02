@@ -21,6 +21,6 @@ from .jessie_options import *
 
 boost_libs = ['boost_python-py34']
 pythoncmd = 'python3'
-pythonlibname = 'python3.4m'
-pythonincpath = '/usr/include/python3.4'
+#pythonlibname = 'python3.4m'
+#pythonincpath = '/usr/include/python3.4'
 

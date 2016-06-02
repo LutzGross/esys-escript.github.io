@@ -21,9 +21,5 @@ from scons.templates.sid_options import *
 
 pythoncmd = 'python3'
 
-import subprocess
-p=subprocess.Popen([pythoncmd, '-c', 'import sysconfig\nprint(sysconfig.get_config_var("LDLIBRARY"))'], stdout=subprocess.PIPE)
-pythonlibname = p.stdout.readline().encode().strip()
-p.wait()
+boost_libs = boost_py3_libs
 
-boost_libs = [p3name[3:-3]]
