@@ -674,6 +674,7 @@ if not env['usempi']:
 
 ######################## Summarize our environment ###########################
 def print_summary():
+    d_list=[]
     print("")
     print("*** Config Summary (see config.log and <prefix>/lib/buildvars for details) ***")
     print("Escript revision %s"%global_revision)
@@ -690,28 +691,19 @@ def print_summary():
         else:
             print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
-        print("             MPI:  NO")
+        d_list.append('mpi')
     if env['parmetis']:
         print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
     else:
-        print("        ParMETIS:  NO")
+        d_list.append('parmetis')
     if env['uselapack']:
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
-        print("          LAPACK:  NO")
+        d_list.append('lapack')
     if env['cuda']:
         print("            CUDA:  YES (nvcc: %s)"%env['nvcc_version'])
     else:
-        print("            CUDA:  NO")
-    d_list=[]
-    e_list=[]
-    for i in 'debug','openmp','boomeramg','cppunit','gdal','mkl','netcdf','papi','pyproj','scipy','silo','sympy','trilinos','umfpack','visit':
-        if env[i]: e_list.append(i)
-        else: d_list.append(i)
-    for i in e_list:
-        print("%16s:  YES"%i)
-    for i in d_list:
-        print("%16s:  NO"%i)
+        d_list.append('cuda')
     if env['gmshpy']:
         gmshpy=" + python module"
     else:
@@ -724,8 +716,45 @@ def print_summary():
         if env['gmshpy']:
             print("            gmsh:  python module only")
         else:
-            print("            gmsh:  NO")
-    print(    "            gzip:  " + ("YES" if env['compressed_files'] else "NO"))
+            d_list.append('gmsh')
+    if env['compressed_files']:
+        print("            gzip:  YES")
+    else:
+        d_list.append('gzip')
+
+    solvers = []
+    direct = []
+    if env['paso']:
+        solvers.append('paso')
+        if env['mkl']:
+            direct.append('mkl')
+        if env['umfpack']:
+            direct.append('umfpack')
+    else:
+        d_list.append('paso')
+    if env['trilinos']:
+        solvers.append('trilinos')
+        direct.append('trilinos')
+    else:
+        d_list.append('trilinos')
+
+    print("  Solver library:  %s"%(", ".join(solvers)))
+    if len(direct) > 0:
+        print("   Direct solver:  YES (%s)"%(", ".join(direct)))
+    else:
+        print("   Direct solver:  NONE")
+    print("         domains:  %s"%(", ".join(env['domains'])))
+
+    e_list=[]
+    for i in 'weipa','debug','openmp','boomeramg','cppunit','gdal','mkl',\
+             'netcdf','papi','pyproj','scipy','silo','sympy','umfpack','visit':
+        if env[i]: e_list.append(i)
+        else: d_list.append(i)
+
+    d_list += set(all_domains).difference(env['domains'])
+    for i in e_list:
+        print("%16s:  YES"%i)
+    print("\n  DISABLED features: %s"%(" ".join(sorted(d_list))))
 
     if ((fatalwarning != '') and (env['werror'])):
         print("  Treating warnings as errors")
