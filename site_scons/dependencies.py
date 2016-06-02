@@ -483,8 +483,11 @@ def checkOptionalLibraries(env):
             # try to get version for correct launcher arguments
             try:
                 p = Popen(['orterun', '-V'], stderr=PIPE)
-                _,e = p.communicate()
-                ver = e.split('\n')[0].split()[-1]
+                o,e = p.communicate()
+                try:
+                    ver = e.split('\n')[0].split()[-1]
+                except IndexError:
+                    ver = o.split('\n')[0].split()[-1]
                 if len(ver) > 0:
                     env['orte_version'] = ver
             except OSError:
