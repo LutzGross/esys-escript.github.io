@@ -471,7 +471,7 @@ if [ "$MPI_FLAVOUR" = "OPENMPI" ]
 then
     if [ -z `which rsh``which ssh` ]
     then
-        AGENTOVERRIDE="--gmca orte_rsh_agent /bin/false"
+        AGENTOVERRIDE="--gmca plm_rsh_agent /bin/false"
     fi
 fi 
 
