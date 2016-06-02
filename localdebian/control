@@ -24,7 +24,7 @@ Build-Depends: python-all-dev (>= 2.6.6-3~),
                openmpi-bin,
                debhelper (>= 9),
                dh-python
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Homepage: https://launchpad.net/escript-finley
 X-Python-Version: >=2.7
 X-Python3-Version: >=3.2
