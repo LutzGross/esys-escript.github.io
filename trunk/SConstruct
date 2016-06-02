@@ -348,42 +348,6 @@ env.Append(CCFLAGS = env['cc_flags'])
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
 
-# set defaults for launchers if not otherwise specified
-if env['prelaunch'] == 'default':
-    if env['mpi'] == 'INTELMPI' and env['openmp']:
-        env['prelaunch'] = "export I_MPI_PIN_DOMAIN=omp"
-    elif env['mpi'] == 'OPENMPI':
-        # transform comma-separated list to '-x a -x b -x c ...'
-        env['prelaunch'] = "EE=$(echo -x %e|sed -e 's/,/ -x /g')"
-    elif env['mpi'] == 'MPT':
-        env['prelaunch'] = "export MPI_NUM_MEMORY_REGIONS=0"
-    elif env['mpi'] == 'MPICH2':
-        env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
-    else:
-        env['prelaunch'] = ""
-
-if env['launcher'] == 'default':
-    if env['mpi'] == 'INTELMPI':
-        env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
-    elif env['mpi'] == 'OPENMPI':
-        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --cpus-per-rank %t -np %N %b"
-        #newer OpenMPI version:
-        #env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --map-by node:pe=%t -bind-to core -np %N %b"
-    elif env['mpi'] == 'MPT':
-        env['launcher'] = "mpirun %h -np %p %b"
-    elif env['mpi'] == 'MPICH':
-        env['launcher'] = "mpirun -machinefile %f -np %N %b"
-    elif env['mpi'] == 'MPICH2':
-        env['launcher'] = "mpiexec -genvlist %e -np %N %b"
-    else:
-        env['launcher'] = "%b"
-
-if env['postlaunch'] == 'default':
-    if env['mpi'] == 'MPICH2':
-        env['postlaunch'] = "mpdallexit"
-    else:
-        env['postlaunch'] = ""
-
 # determine svn revision
 global_revision=ARGUMENTS.get('SVN_VERSION', None)
 if global_revision:
@@ -509,6 +473,45 @@ env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
+
+# set defaults for launchers if not otherwise specified
+if env['prelaunch'] == 'default':
+    if env['mpi'] == 'INTELMPI' and env['openmp']:
+        env['prelaunch'] = "export I_MPI_PIN_DOMAIN=omp"
+    elif env['mpi'] == 'OPENMPI':
+        # transform comma-separated list to '-x a -x b -x c ...'
+        env['prelaunch'] = "EE=$(echo -x %e|sed -e 's/,/ -x /g')"
+    elif env['mpi'] == 'MPT':
+        env['prelaunch'] = "export MPI_NUM_MEMORY_REGIONS=0"
+    elif env['mpi'] == 'MPICH2':
+        env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
+    else:
+        env['prelaunch'] = ""
+
+if env['launcher'] == 'default':
+    if env['mpi'] == 'INTELMPI':
+        env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
+    elif env['mpi'] == 'OPENMPI':
+        # default to OpenMPI version 1.10 or higher
+        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --map-by node:pe=%t -bind-to core -np %N %b"
+        if 'orte_version' in env:
+            major,minor,point = [int(i) for i in env['orte_version'].split('.')]
+            if major == 1 and minor < 10:
+                env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --cpus-per-rank %t -np %N %b"
+    elif env['mpi'] == 'MPT':
+        env['launcher'] = "mpirun %h -np %p %b"
+    elif env['mpi'] == 'MPICH':
+        env['launcher'] = "mpirun -machinefile %f -np %N %b"
+    elif env['mpi'] == 'MPICH2':
+        env['launcher'] = "mpiexec -genvlist %e -np %N %b"
+    else:
+        env['launcher'] = "%b"
+
+if env['postlaunch'] == 'default':
+    if env['mpi'] == 'MPICH2':
+        env['postlaunch'] = "mpdallexit"
+    else:
+        env['postlaunch'] = ""
 
 # dependency sanity checks
 
@@ -682,7 +685,10 @@ def print_summary():
     else:
         print("           numpy:  YES (without headers)")
     if env['usempi']:
-        print("             MPI:  YES (flavour: %s)"%env['mpi'])
+        if 'orte_version' in env:
+            print("             MPI:  %s (Version %s)"%(env['mpi'], env['orte_version']))
+        else:
+            print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
         print("             MPI:  NO")
     if env['parmetis']:
