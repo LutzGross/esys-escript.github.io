@@ -675,7 +675,7 @@ def print_summary():
     print("*** Config Summary (see config.log and <prefix>/lib/buildvars for details) ***")
     print("Escript revision %s"%global_revision)
     print("  Install prefix:  %s"%env['prefix'])
-    print("          Python:  %s"%sysconfig.PREFIX)
+    print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
     if env['numpy_h']:
         print("           numpy:  YES (with headers)")

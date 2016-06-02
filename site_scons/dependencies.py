@@ -90,57 +90,57 @@ def checkPython(env):
         else:
             python_lib_path=sysconfig.get_config_var('LIBDIR')
 
-        #python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
         if env['IS_WINDOWS']:
             python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
         else:
-            python_libs=['python'+sysconfig.get_python_version()]
+            python_libs = sysconfig.get_config_var('LDLIBRARY')
+            if python_libs[:3] == 'lib':
+                python_libs = [python_libs[3:-3]]
+            else:
+                python_libs = ['python'+sysconfig.get_python_version()]
 
         verstring=".".join([str(i) for i in sys.version_info[:3]])
 
     # if we want to use a python other than the one scons is running
     # Note: we assume scons is running python 2 in the following.
     else:
-        p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
-        verstring = p.stdout.readline().strip()
-        p.wait()
+        p = Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
+        verstring, _ = p.communicate()
+        verstring = verstring.strip()
         ispython3 = (verstring[0] == '3')
         initstring='from __future__ import print_function;from distutils import sysconfig;'
         if env['pythonlibname'] != '':
             python_libs = env['pythonlibname']
         else: # work it out by calling python
-            if ['IS_WINDOWS']:
-                cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
+            cmd = 'print(sysconfig.get_config_var("LDLIBRARY"))'
+            p = Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
+            python_libs, _ = p.communicate()
+            if python_libs[:3] == 'lib':
+                python_libs = [python_libs.strip()[3:-3]]
             else:
-                cmd='print("python"+sysconfig.get_python_version())'
-            p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
-            python_libs = p.stdout.readline()
-            if ispython3: # This is to convert unicode str into py2 string
-                python_libs = python_libs.encode()
-            p.wait()
-            python_libs = python_libs.strip()
+                cmd = 'print("python"+sysconfig.get_python_version())'
+                p = Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
+                python_libs, _ = p.communicate()
+                python_libs = [python_libs.strip()]
 
-        p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
-        python_inc_path = p.stdout.readline()
+        p = Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
+        python_inc_path, _ = p.communicate()
         if ispython3:
             python_inc_path = python_inc_path.encode()
-        p.wait()
         python_inc_path = python_inc_path.strip()
-        if env['IS_WINDOWS']:
-            cmd="import os;os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
-        elif env['PLATFORM']=='darwin':
+        if env['PLATFORM'] == 'darwin':
             cmd="sysconfig.get_config_var(\"LIBPL\")"
         else:
             cmd="sysconfig.get_config_var(\"LIBDIR\")"
 
-        p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
-        python_lib_path = p.stdout.readline()
+        p = Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
+        python_lib_path, _ = p.communicate()
         if ispython3:
             python_lib_path = python_lib_path.decode()
-        p.wait()
         python_lib_path = python_lib_path.strip()
 
 
+    env['python_version'] = verstring
     ispython3 = (verstring[0] == '3')
     if ispython3:
         env.Append(CPPDEFINES=['ESPYTHON3'])
@@ -178,14 +178,13 @@ def checkPython(env):
 
 def checkCudaVersion(env):
     # NVCC availability is already checked in the Tool file
-    p=Popen([env['NVCC'], '-V'], stdout=PIPE)
-    out=p.stdout.readlines()
-    env['nvcc_version']='(unknown version)'
-    p.wait()
-    for line in out:
+    p = Popen([env['NVCC'], '-V'], stdout=PIPE)
+    out,_ = p.communicate()
+    env['nvcc_version'] = '(unknown version)'
+    for line in out.split():
         if 'release' in line:
-            version=line[line.find('release'):].strip()
-            env['nvcc_version']=version
+            version = line[line.find('release'):].strip()
+            env['nvcc_version'] = version
             break
     env['buildvars']['nvcc']=env['NVCC']
     return env
@@ -568,9 +567,8 @@ def checkOptionalLibraries(env):
             try:
                 p=Popen(cmd, stdout=PIPE)
                 gmshlibs,_ = p.communicate()
-                ret = p.wait()
                 env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
-                if ret == 0 and 'libmpi' in gmshlibs:
+                if p.returncode == 0 and 'libmpi' in gmshlibs:
                     env['gmsh'] = 'm'
                     env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
                 else:

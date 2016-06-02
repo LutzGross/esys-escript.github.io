@@ -55,6 +55,9 @@ for name in spath:
 # boost-python library/libraries to link against
 boost_libs = [p2name[3:-3]]
 
+# this can be used by options files importing us
+boost_py3_libs = [p3name[3:-3]]
+
 from site_init import getdebbuildflags
 # Now we add the debian build flags
 debstuff = getdebbuildflags()

@@ -21,6 +21,6 @@ from .wheezy_options import *
 
 boost_libs = ['boost_python-py32']
 pythoncmd = 'python3'
-pythonlibname = 'python3.2mu'
-pythonincpath = '/usr/include/python3.2'
+#pythonlibname = 'python3.2mu'
+#pythonincpath = '/usr/include/python3.2'
 
