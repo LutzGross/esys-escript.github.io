@@ -302,7 +302,7 @@ def checkForTrilinos(env):
                 env['trilinos_libs'], 'Tpetra_CrsMatrix.hpp',
                 env['trilinos_prefix'], lang='c++', try_link=havelibs)
         if not havelibs:
-            packages=['Tpetra','Kokkos','Belos','Amesos2','Zoltan2','Ifpack2','MueLu']
+            packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']
             libs = []
             for pk in packages:
                 # find out what libraries to link with...
