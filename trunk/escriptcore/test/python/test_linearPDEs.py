@@ -38,6 +38,9 @@ import numpy
 import esys.escriptcore.utestselect as unittest
 
 mpisize = getMPISizeWorld()
+skip_amg = hasFeature("paso") and mpisize > 1
+# Trilinos MueLu does not work for block matrices yet
+skip_muelu = not hasFeature("paso")
 
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
@@ -601,8 +604,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getPreconditioner() == so.ILUT, "ILUT is not set.")
         sb.setPreconditioner(so.JACOBI)
         self.assertTrue(sb.getPreconditioner() == so.JACOBI, "JACOBI is not set.")
-        if mpisize > 1:
-            print("AMG test disabled with more than 1 MPI rank")
+        if skip_amg:
+            print("Paso AMG test disabled with more than 1 MPI rank")
         else:
             sb.setPreconditioner(so.AMG)
             self.assertTrue(sb.getPreconditioner() == so.AMG, "AMG is not set.")
@@ -1715,7 +1718,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_PCG_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1785,7 +1788,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_BICGSTAB_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1837,7 +1840,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_MINRES_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1889,7 +1892,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_TFQMR_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1941,7 +1944,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_PRES20_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1995,7 +1998,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_GMRESnoRestart_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2051,7 +2054,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_GMRES_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2107,7 +2110,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     def test_GMRES_truncation_restart_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2225,7 +2228,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu, "MueLu not compatible with Block matrices yet")
     def test_PCG_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2317,7 +2321,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu, "MueLu not compatible with Block matrices yet")
     def test_BICGSTAB_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2381,7 +2386,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu, "MueLu not compatible with Block matrices yet")
     def test_PRES20_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2445,7 +2451,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu, "MueLu not compatible with Block matrices yet")
     def test_GMRESnoRestart_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2511,7 +2518,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu, "MueLu not compatible with Block matrices yet")
     def test_GMRES_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2579,7 +2587,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(mpisize > 1, "AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu, "MueLu not compatible with Block matrices yet")
     def test_GMRES_truncation_restart_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))

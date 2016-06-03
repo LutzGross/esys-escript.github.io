@@ -50,7 +50,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                 params->set("number of equations", 1);
                 params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
                 params->set("problem: symmetric", sb.isSymmetric());
-                params->set("verbosity", sb.isVerbose()? "high":"low");
+                params->set("verbosity", sb.isVerbose()? "high":"none");
                 RCP<OpType<ST> > A(Teuchos::rcp_const_cast<Matrix>(mat));
                 prec = MueLu::CreateTpetraPreconditioner(A, *params);
 #else
