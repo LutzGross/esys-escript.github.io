@@ -550,7 +550,7 @@ class Test_SplitWorld(unittest.TestCase):
       for x in range(2,getMPISizeWorld()+2):
         sw.addJob(Test_SplitWorld.FactorJob, fact=x)
       sw.runJobs()
-      self.assertEquals(sw.getFloatVariable('boolean'),0)
+      self.assertEqual(sw.getFloatVariable('boolean'),0)
       sw.clearVariable('value')
       sw.clearVariable('boolean')
       sw.addJob(Test_SplitWorld.InjectJob, name='value', val=101)      # Feed it a prime  
@@ -568,7 +568,7 @@ class Test_SplitWorld(unittest.TestCase):
         if 100%x==0:
           m=x
       sw.runJobs()
-      self.assertEquals(sw.getFloatVariable('boolean'),m)      
+      self.assertEqual(sw.getFloatVariable('boolean'),m)      
       
   def test_split_simple_solve(self):
     """
@@ -579,7 +579,7 @@ class Test_SplitWorld(unittest.TestCase):
     sw.addVariable("answer", "float", "SUM")
     sw.addJob(self.eqnJob2)
     sw.runJobs()
-    self.assertEquals(sw.getFloatVariable("answer"),1)
+    self.assertEqual(sw.getFloatVariable("answer"),1)
     
   def test_split_simple_solve_multiple(self):
     """
@@ -596,7 +596,7 @@ class Test_SplitWorld(unittest.TestCase):
         total+=jobid
         jobid+=1
     sw.runJobs()
-    self.assertEquals(sw.getFloatVariable("answer"), total)
+    self.assertEqual(sw.getFloatVariable("answer"), total)
     
   def test_split_simple_and_dummy(self):
     """
@@ -636,7 +636,7 @@ class Test_SplitWorld(unittest.TestCase):
         total=total+(x+1)
     sw.runJobs()
       # expecting this to fail until I work out the answer
-    self.assertEquals(sw.getFloatVariable("answer"),total)    
+    self.assertEqual(sw.getFloatVariable("answer"),total)    
     
     
   def test_split_multiple_batches(self):
@@ -661,7 +661,7 @@ class Test_SplitWorld(unittest.TestCase):
         total=total+(x+1+getMPISizeWorld())
     sw.runJobs()
       # expecting this to fail until I work out the answer
-    self.assertEquals(sw.getFloatVariable("answer"),total)    
+    self.assertEqual(sw.getFloatVariable("answer"),total)    
   
   @unittest.skipIf(getMPISizeWorld()%2!=0, "Test requires even number of processes")
   def test_multiple_equations_size2world(self):
@@ -693,7 +693,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)
+    self.assertEqual(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")
@@ -711,7 +711,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)
+    self.assertEqual(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")   
@@ -726,7 +726,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)    
+    self.assertEqual(ha, tot)    
 
   @unittest.skipIf(getMPISizeWorld()%4!=0, "Test requires number of processes divisible by 4")
   def test_multiple_equations_size4world(self):
@@ -758,7 +758,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)
+    self.assertEqual(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")
@@ -776,7 +776,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)
+    self.assertEqual(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")   
@@ -791,7 +791,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=2
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)        
+    self.assertEqual(ha, tot)        
     
     
   def test_multiple_equations_smallworld(self):
@@ -821,7 +821,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)
+    self.assertEqual(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")
@@ -839,7 +839,7 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=1      
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)
+    self.assertEqual(ha, tot)
     sw.clearVariable("answer")
     sw.clearVariable("hanswer")
     sw.clearVariable("v")   
@@ -853,4 +853,4 @@ class Test_SplitWorld(unittest.TestCase):
       jobid+=3
     sw.runJobs()
     ha=sw.getFloatVariable("hanswer")
-    self.assertEquals(ha, tot)     
+    self.assertEqual(ha, tot)     
