@@ -93,7 +93,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
             data, ref = self.generateUniqueData(ftype)
             with self.assertRaises(RuntimeError):
                 result = self.writeThenRead(data, ftype, fcode)
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
     def test_writeGrid3D(self):
@@ -103,7 +103,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
             data, ref = self.generateUniqueData(ftype)
             with self.assertRaises(RuntimeError):
                 result = self.writeThenRead(data, ftype, fcode)
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
 class Test_writeBinaryGridRipley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
@@ -242,7 +242,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                             ref = np.append(ref, extra, axis=1-d)
 
                 # step 4 - compare
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
     @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains don't support multiprocess yet")
@@ -288,7 +288,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                             ref = np.append(ref, extra, axis=2-d)
 
                 # step 4 - compare
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
 

@@ -98,7 +98,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
             self.domain = Rectangle(order, self.NE[0], self.NE[1], d0=mpiSize)
             data, ref = self.generateUniqueData(ContinuousFunction)
             result = self.writeThenRead(data, ContinuousFunction, 'CF')
-            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
 
     def test_writeGrid3D(self):
@@ -108,7 +108,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
             for ftype,fcode in [(ContinuousFunction,'CF')]:
                 data, ref = self.generateUniqueData(ftype)
                 result = self.writeThenRead(data, ftype, fcode)
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
 class Test_writeBinaryGridSpeckley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
@@ -244,7 +244,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                         else:
                             ref = np.append(ref, extra, axis=1-d)
                 # step 4 - compare
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain))+\
                         "%d"%order)
 
@@ -285,7 +285,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                             ref = np.append(ref, extra, axis=2-d)
 
                 # step 4 - compare
-                self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain))+\
                             "%d"%order)
 
@@ -317,7 +317,7 @@ class Test_readBinaryGridSpeckley_LITTLE_FLOAT64(ReadBinaryGridTestBase):
             filename = filename + self.dtype.replace('<','L').replace('>','B')
             self.write(data, filename)
             result = self.read(filename, ContinuousFunction)
-            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(data-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
 
     #since using getX as the test, doubles required
@@ -332,7 +332,7 @@ class Test_readBinaryGridSpeckley_LITTLE_FLOAT64(ReadBinaryGridTestBase):
             filename = filename + self.dtype.replace('<','L').replace('>','B')
             self.write(data, filename)
             result = self.read(filename, ContinuousFunction)
-            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(data-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
 
 class Test_readBinaryGridSpeckley_LITTLE_INT32(ReadBinaryGridTestBase):
@@ -365,7 +365,7 @@ class Test_readBinaryGridSpeckley_BIG_FLOAT64(ReadBinaryGridTestBase):
             filename = filename + self.dtype.replace('<','L').replace('>','B')
             self.write(data, filename)
             result = self.read(filename, ContinuousFunction)
-            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(data-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
 
     #since using getX as the test, doubles required
@@ -380,7 +380,7 @@ class Test_readBinaryGridSpeckley_BIG_FLOAT64(ReadBinaryGridTestBase):
             filename = filename + self.dtype.replace('<','L').replace('>','B')
             self.write(data, filename)
             result = self.read(filename, ContinuousFunction)
-            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(data-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
 
 
