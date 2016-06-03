@@ -14,17 +14,17 @@
 #
 ##############################################################################
 
-from templates.jessie_options import *
+from templates.sid_options import *
 
 # disabled until the boost issue is fixed.
 #cuda = True
-
 nvccflags = "-ccbin=g++-4.9 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
 mpi = 'OPENMPI'
-boost_libs = ['boost_python-py27']
 parmetis = True
 umfpack = True
 silo = True
-silo_libs = ['siloh5', 'hdf5_openmpi']
+#trilinos = True
+trilinos_prefix = '/opt/trilinos_hybrid_eti'
+cxx_extra += " -Wno-deprecated-declarations "
 
