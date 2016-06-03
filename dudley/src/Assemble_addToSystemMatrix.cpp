@@ -40,12 +40,12 @@ static void addToSystemMatrixPasoCSR(paso::SystemMatrix* S,
                                      const std::vector<double>& array);
 #endif
 
-void Assemble_addToSystemMatrix(escript::ASM_ptr S,
+void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* S,
                                 const std::vector<index_t>& Nodes, int numEq,
                                 const std::vector<double>& array)
 {
 #ifdef ESYS_HAVE_PASO
-    paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S.get());
+    paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S);
     if (pmat) {
         // call the right function depending on storage type
         if (pmat->type & MATRIX_FORMAT_CSC) {
@@ -57,7 +57,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S,
     }
 #endif
 #ifdef ESYS_HAVE_TRILINOS
-    TrilinosMatrixAdapter* tmat(dynamic_cast<TrilinosMatrixAdapter*>(S.get()));
+    TrilinosMatrixAdapter* tmat = dynamic_cast<TrilinosMatrixAdapter*>(S);
     if (tmat) {
         tmat->add(Nodes, array);
         return;
