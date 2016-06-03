@@ -27,4 +27,5 @@ silo = True
 #trilinos = True
 trilinos_prefix = '/opt/trilinos_hybrid_eti'
 cxx_extra += " -Wno-deprecated-declarations "
+launcher = "mpirun ${AGENTOVERRIDE} ${EE} --host %h --map-by node:pe=%t -bind-to none -np %N %b"
 
