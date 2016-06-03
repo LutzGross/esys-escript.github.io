@@ -39,7 +39,7 @@ struct AssembleParameters
     /// element file these parameters apply to
     const ElementFile* elements;
     /// system matrix to be updated
-    escript::ASM_ptr S;
+    escript::AbstractSystemMatrix* S;
     /// right-hand side to be updated
     escript::Data& F;
     /// number of quadrature nodes
@@ -96,7 +96,7 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
 /// (i_Eq=0:Eq; j_Eq=0:NN_Eq).
 /// The routine has to be called from a parallel region and assumes that
 /// array is fully packed.
-void Assemble_addToSystemMatrix(escript::ASM_ptr S,
+void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* S,
                                 const std::vector<index_t>& Nodes, int numEq,
                                 const std::vector<double>& array);
 

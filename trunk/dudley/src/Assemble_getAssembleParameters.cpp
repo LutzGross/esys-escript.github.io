@@ -37,7 +37,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
                                        escript::Data& rhs,
                                        bool reducedIntegrationOrder) :
     elements(ef),
-    S(sm),
+    S(sm.get()),
     F(rhs),
     shapeFns(NULL)
 {
