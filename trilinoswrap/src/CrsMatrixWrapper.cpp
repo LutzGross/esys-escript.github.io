@@ -38,6 +38,7 @@ CrsMatrixWrapper<ST>::CrsMatrixWrapper(const_TrilinosGraph_ptr graph) :
     mat(graph)
 {
     mat.fillComplete();
+    maxLocalRow = graph->getRowMap()->getMaxLocalIndex();
 }
 
 template<typename ST>
@@ -52,18 +53,12 @@ template<typename ST>
 void CrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                                const std::vector<ST>& array)
 {
-    // NOTE: the reason this method takes a reference to the matrix and
-    // we do the following with the row map is to avoid messing with shared
-    // pointer use counters given that this method may be called from
-    // parallel sections!
-    const MapType& rowMap = *mat.getRowMap();
     const size_t emSize = rowIdx.size();
-    const LO myLast = rowMap.getMaxLocalIndex();
     std::vector<LO> cols(emSize);
     std::vector<ST> vals(emSize);
     for (size_t i = 0; i < emSize; i++) {
         const LO row = rowIdx[i];
-        if (row <= myLast) {
+        if (row <= maxLocalRow) {
             for (int j = 0; j < emSize; j++) {
                 const LO col = rowIdx[j];
                 cols[j] = col;
@@ -79,10 +74,8 @@ template<typename ST>
 void CrsMatrixWrapper<ST>::ypAx(const Teuchos::ArrayView<ST>& y,
                                 const Teuchos::ArrayView<const ST>& x) const
 {
-    RCP<VectorType<ST> > X = rcp(new VectorType<ST>(
-                                             mat.getRowMap(), x, x.size(), 1));
-    RCP<VectorType<ST> > Y = rcp(new VectorType<ST>(
-                                             mat.getRowMap(), y, y.size(), 1));
+    RCP<VectorType<ST> > X = rcp(new VectorType<ST>(mat.getRowMap(), x, x.size(), 1));
+    RCP<VectorType<ST> > Y = rcp(new VectorType<ST>(mat.getRowMap(), y, y.size(), 1));
 
     const ST alpha = Teuchos::ScalarTraits<ST>::one();
     const ST beta = Teuchos::ScalarTraits<ST>::one();
@@ -162,11 +155,12 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
                                   const Teuchos::ArrayView<const ST>& colView,
                                   ST mdv)
 {
-    RCP<VectorType<ST> > lclCol = rcp(new VectorType<ST>(mat.getRowMap(),
-                                                 colView, colView.size(), 1));
+    const_TrilinosMap_ptr rowMap(mat.getRowMap());
+    RCP<VectorType<ST> > lclCol = rcp(new VectorType<ST>(rowMap, colView,
+			   				 colView.size(), 1));
     RCP<VectorType<ST> > gblCol = rcp(new VectorType<ST>(mat.getColMap(), 1));
 
-    const ImportType importer(mat.getRowMap(), mat.getColMap());
+    const ImportType importer(rowMap, mat.getColMap());
     gblCol->doImport(*lclCol, importer, Tpetra::INSERT);
     Teuchos::ArrayRCP<const ST> colMask(gblCol->getData(0));
     const ST zero = Teuchos::ScalarTraits<ST>::zero();
@@ -180,7 +174,7 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
         std::vector<GO> cols;
         std::vector<ST> vals;
         mat.getLocalRowView(lclrow, indices, values);
-        GO row = mat.getRowMap()->getGlobalElement(lclrow);
+        GO row = rowMap->getGlobalElement(lclrow);
         for (size_t c = 0; c < indices.size(); c++) {
             const LO lclcol = indices[c];
             const GO col = mat.getColMap()->getGlobalElement(lclcol);

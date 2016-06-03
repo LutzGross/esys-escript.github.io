@@ -63,6 +63,7 @@ private:
     int blockSize;
     Matrix mat;
     MapType colPointMap;
+    LO maxLocalRow;
 };
 
 } // namespace esys_trilinos
