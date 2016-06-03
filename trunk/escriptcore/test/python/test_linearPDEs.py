@@ -32,7 +32,7 @@ Test suite for linearPDEs class
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate, getMPISizeWorld
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate, getMPISizeWorld, hasFeature
 from esys.escript.linearPDEs import SolverBuddy, LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
 import numpy
 import esys.escriptcore.utestselect as unittest
@@ -1691,7 +1691,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if mpisize > 1:
+        if hasFeature('paso') and mpisize > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -1760,7 +1760,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if mpisize > 1:
+        if hasFeature('paso') and mpisize > 1:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -2183,7 +2183,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if mpisize > 1:
+        if hasFeature('paso') and mpisize > 1:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+        elif not hasFeature('paso'):
+            # TODO: Amesos2 support for block matrices
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -2271,7 +2275,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if mpisize > 1:
+        if hasFeature('paso') and mpisize > 1:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+        elif not hasFeature('paso'):
+            # TODO: Amesos2 support for block matrices
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
