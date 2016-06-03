@@ -64,6 +64,7 @@ public:
 
 private:
     Matrix mat;
+    LO maxLocalRow;
 };
 
 } // namespace esys_trilinos

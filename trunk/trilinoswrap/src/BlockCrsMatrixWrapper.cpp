@@ -42,24 +42,19 @@ BlockCrsMatrixWrapper<ST>::BlockCrsMatrixWrapper(const_TrilinosGraph_ptr graph,
     // initialize column point map, needed by nullifyRowsAndCols to communicate
     // remote values
     colPointMap = BlockVectorType<ST>::makePointMap(*mat.getColMap(), blockSize);
+    maxLocalRow = graph->getRowMap()->getMaxLocalIndex();
 }
 
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                                     const std::vector<ST>& array)
 {
-    // NOTE: the reason this method takes a reference to the matrix and
-    // we do the following with the row map is to avoid messing with shared
-    // pointer use counters given that this method may be called from
-    // parallel sections!
-    const MapType& rowMap = *mat.getRowMap();
     const size_t emSize = rowIdx.size();
-    const LO myLast = rowMap.getMaxLocalIndex();
     std::vector<LO> cols(emSize);
     std::vector<ST> vals(emSize*blockSize*blockSize);
     for (size_t i = 0; i < emSize; i++) {
         const LO row = rowIdx[i];
-        if (row <= myLast) {
+        if (row <= maxLocalRow) {
             for (int j = 0; j < emSize; j++) {
                 cols[j] = rowIdx[j];
                 for (int k = 0; k < blockSize; k++) {
