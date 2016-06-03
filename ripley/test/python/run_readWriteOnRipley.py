@@ -98,7 +98,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
             data, ref = self.generateUniqueData(ftype)
             result = self.writeThenRead(data, ftype, fcode)
-            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
     def test_writeGrid3D(self):
@@ -107,7 +107,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
             data, ref = self.generateUniqueData(ftype)
             result = self.writeThenRead(data, ftype, fcode)
-            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
 class Test_writeBinaryGridRipley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
@@ -245,7 +245,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                         ref = np.append(ref, extra, axis=1-d)
 
             # step 4 - compare
-            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
     def test_readGrid3D(self):
@@ -289,7 +289,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                         ref = np.append(ref, extra, axis=2-d)
 
             # step 4 - compare
-            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+            self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
 

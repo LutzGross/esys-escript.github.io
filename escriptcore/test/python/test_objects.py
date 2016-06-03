@@ -270,7 +270,7 @@ class Test_saveCSV(unittest.TestCase):
             self.assertEqual(len(self.firstline[i]),len(line_got))
             for j in range(len(self.firstline[i])):
                 if self.firstline[i][j] is not None:
-                    self.assertAlmostEquals(self.firstline[i][j],line_got[j])
+                    self.assertAlmostEqual(self.firstline[i][j],line_got[j])
             linecount=1
             while line!='':
                 linecount+=1
