@@ -18,18 +18,18 @@
 # Refer to README_FIRST for usage instructions.
 
 escript_opts_version = 203
-cxx_extra = '-Wno-literal-suffix'
+#cxx_extra = '-Wno-literal-suffix'
 openmp = True
 #mpi = 'OPENMPI'
 mpi_prefix = '/usr/lib/openmpi'
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+mpi_libs = ['mpi_cxx', 'mpi']
 netcdf = True
 #umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 #silo = True
-silo_libs = ['siloh5']
+silo_libs = ['siloh5', 'hdf5_openmpi']
 dudley_assemble_flags = '-funroll-loops'
 
 

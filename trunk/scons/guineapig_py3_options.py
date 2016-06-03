@@ -16,12 +16,9 @@
 
 from guineapig_options import *
 
-# boost-python library/libraries to link against
-boost_libs = ['boost_python-py35']
-pythoncmd='python3'
-pythonlibname='python3.5m'
-pythonincpath='/usr/include/python3.5'
+pythoncmd = 'python3'
+boost_libs = boost_py3_libs
 
 # This seemed as good a place as any to test this
-cxx_extra = '-Wextra -Wno-unused-parameter -DEXWRITECHK'
+cxx_extra += '-Wextra -Wno-unused-parameter -DEXWRITECHK'
 
