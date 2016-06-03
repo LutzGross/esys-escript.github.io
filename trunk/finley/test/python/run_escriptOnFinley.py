@@ -264,22 +264,22 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=Rectangle(4,4, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"]) 
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
-      self.assertEquals(v.getNumberOfDataPoints(), 4)
-      self.assertEquals(inf(v[0]), 0)
-      self.assertEquals(inf(v[1]), 0.25)
-      self.assertEquals(Lsup(v[0]), 1)
-      self.assertEquals(Lsup(v[1]), 1)
+      self.assertEqual(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
+      self.assertEqual(v.getNumberOfDataPoints(), 4)
+      self.assertEqual(inf(v[0]), 0)
+      self.assertEqual(inf(v[1]), 0.25)
+      self.assertEqual(Lsup(v[0]), 1)
+      self.assertEqual(Lsup(v[1]), 1)
     v.setTaggedValue("A",(-10,0.5))
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
     v.setTaggedValue(500,(-100,-100))   # non-existant tag
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
-    self.assertEquals(z.showTagNames(), 'A, B, C, bottom, left, right, top')
-    self.assertEquals(z.getTag("C"), 42)
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
+    self.assertEqual(z.showTagNames(), 'A, B, C, bottom, left, right, top')
+    self.assertEqual(z.getTag("C"), 42)
    
   def test_brickconstr(self):
     self.assertRaises(ValueError, Brick, 4,4, diracPoints=[(0,0,0)])
@@ -291,23 +291,23 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=Brick(4,4, diracPoints=[(0.125,0.625,0), (0.5,1,0), (0.75, 0.25, 0.51), (0.89, 0.875,1)], diracTags=["A", "B", "A", "C"]) 
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 0.0), (0.75, 0.25, 1), (1.0, 0.75, 1.0)])
-      self.assertEquals(v.getNumberOfDataPoints(), 4)
-      self.assertEquals(inf(v[0]), 0)
-      self.assertEquals(inf(v[1]), 0.25)
-      self.assertEquals(Lsup(v[0]), 1)
-      self.assertEquals(Lsup(v[1]), 1)
+      self.assertEqual(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 0.0), (0.75, 0.25, 1), (1.0, 0.75, 1.0)])
+      self.assertEqual(v.getNumberOfDataPoints(), 4)
+      self.assertEqual(inf(v[0]), 0)
+      self.assertEqual(inf(v[1]), 0.25)
+      self.assertEqual(Lsup(v[0]), 1)
+      self.assertEqual(Lsup(v[1]), 1)
     v.setTaggedValue("A",(-10,0.5,-500))
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
-      self.assertEquals(inf(v[2]),-500)
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
+      self.assertEqual(inf(v[2]),-500)
     v.setTaggedValue(500,(-100,-100, -100))     # non-existant tag
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
-      self.assertEquals(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
-    self.assertEquals(z.getTag("C"), 42)
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
+      self.assertEqual(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
+    self.assertEqual(z.getTag("C"), 42)
 
 
   def test_rectReadMesh(self):
@@ -320,22 +320,22 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=ReadMesh(fname, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
-      self.assertEquals(v.getNumberOfDataPoints(), 4)
-      self.assertEquals(inf(v[0]), 0)
-      self.assertEquals(inf(v[1]), 0.25)
-      self.assertEquals(Lsup(v[0]), 1)
-      self.assertEquals(Lsup(v[1]), 1)
+      self.assertEqual(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
+      self.assertEqual(v.getNumberOfDataPoints(), 4)
+      self.assertEqual(inf(v[0]), 0)
+      self.assertEqual(inf(v[1]), 0.25)
+      self.assertEqual(Lsup(v[0]), 1)
+      self.assertEqual(Lsup(v[1]), 1)
     v.setTaggedValue("A",(-10,0.5))
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
     v.setTaggedValue(500,(-100,-100))   # non-existant tag
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
-    self.assertEquals(z.showTagNames(), 'A, B, C, bottom, left, right, top')
-    self.assertEquals(z.getTag("C"), 42)    
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
+    self.assertEqual(z.showTagNames(), 'A, B, C, bottom, left, right, top')
+    self.assertEqual(z.getTag("C"), 42)    
 
 
   def test_brickReadMesh(self):
@@ -348,24 +348,24 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=ReadMesh(fname, diracPoints=[(0.125,0.625,0), (0.5,1,1), (0.75, 0.25,0), (0.89, 0.875, 0.5)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 1.0), (0.75, 0.25, 0.0), (1.0, 0.75, 0.5)])
-      self.assertEquals(v.getNumberOfDataPoints(), 4)
-      self.assertEquals(inf(v[0]), 0)
-      self.assertEquals(inf(v[1]), 0.25)
-      self.assertEquals(Lsup(v[0]), 1)
-      self.assertEquals(Lsup(v[1]), 1)
+      self.assertEqual(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 1.0), (0.75, 0.25, 0.0), (1.0, 0.75, 0.5)])
+      self.assertEqual(v.getNumberOfDataPoints(), 4)
+      self.assertEqual(inf(v[0]), 0)
+      self.assertEqual(inf(v[1]), 0.25)
+      self.assertEqual(Lsup(v[0]), 1)
+      self.assertEqual(Lsup(v[1]), 1)
     v.setTaggedValue("A",(-10,0.5,-0.5))
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
-      self.assertEquals(inf(v[2]), -0.5)
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
+      self.assertEqual(inf(v[2]), -0.5)
     v.setTaggedValue(500,(-100,-100, -100))     # non-existant tag
     if mpisize==1:
-      self.assertEquals(inf(v[0]), -10)
-      self.assertEquals(inf(v[1]), 0.5)
-      self.assertEquals(inf(v[2]), -0.5)
-    self.assertEquals(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
-    self.assertEquals(z.getTag("C"), 203)    
+      self.assertEqual(inf(v[0]), -10)
+      self.assertEqual(inf(v[1]), 0.5)
+      self.assertEqual(inf(v[2]), -0.5)
+    self.assertEqual(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
+    self.assertEqual(z.getTag("C"), 203)    
 
 
 
@@ -378,16 +378,16 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=ReadGmsh(fname, 2, diracPoints=[(0,0),(0,1),(1,0),(1,1)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0,0), (0,1), (1,0), (1,1)])
-      self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEqual(v.toListOfTuples(),[(0,0), (0,1), (1,0), (1,1)])
+      self.assertEqual(v.getNumberOfDataPoints(), 4)
     v.setTaggedValue("A",(-10,99))
-    self.assertEquals(inf(v[0]), -10)
-    self.assertEquals(Lsup(v[1]), 99)
+    self.assertEqual(inf(v[0]), -10)
+    self.assertEqual(Lsup(v[1]), 99)
     v.setTaggedValue(500,(-100,-100))   # non-existant tag
-    self.assertEquals(inf(v[0]), -10)
-    self.assertEquals(Lsup(v[1]), 99)
-    self.assertEquals(z.showTagNames(), 'A, B, C')
-    self.assertEquals(z.getTag("C"), 42)
+    self.assertEqual(inf(v[0]), -10)
+    self.assertEqual(Lsup(v[1]), 99)
+    self.assertEqual(z.showTagNames(), 'A, B, C')
+    self.assertEqual(z.getTag("C"), 42)
 
   def test_brickReadGmsh(self):
     fname=os.path.join(FINLEY_TEST_MESH_PATH, 'brick_test.msh')
@@ -399,17 +399,17 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=ReadGmsh(fname, 3, diracPoints=[(0,0,0),(0,1,0),(1,0,1),(1,1,1)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0,0,0), (0,1,0), (1,0,1), (1,1,1)])
-      self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEqual(v.toListOfTuples(),[(0,0,0), (0,1,0), (1,0,1), (1,1,1)])
+      self.assertEqual(v.getNumberOfDataPoints(), 4)
     v.setTaggedValue("A",(-10,99,-98))
-    self.assertEquals(inf(v[0]), -10)
-    self.assertEquals(Lsup(v[1]), 99)
-    self.assertEquals(inf(v[2]), -98)
+    self.assertEqual(inf(v[0]), -10)
+    self.assertEqual(Lsup(v[1]), 99)
+    self.assertEqual(inf(v[2]), -98)
     v.setTaggedValue(500,(-100,-100,-100))   # non-existant tag
-    self.assertEquals(inf(v[0]), -10)
-    self.assertEquals(Lsup(v[1]), 99)
-    self.assertEquals(z.showTagNames(), 'A, B, C')
-    self.assertEquals(z.getTag("C"), 42)
+    self.assertEqual(inf(v[0]), -10)
+    self.assertEqual(Lsup(v[1]), 99)
+    self.assertEqual(z.showTagNames(), 'A, B, C')
+    self.assertEqual(z.getTag("C"), 42)
 
 
 if __name__ == '__main__':
