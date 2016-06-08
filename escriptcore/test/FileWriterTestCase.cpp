@@ -61,24 +61,14 @@ void FileWriterTestCase::testAll()
     CPPUNIT_ASSERT(fileSize(filename) == 100);
 
     CPPUNIT_ASSERT(fw->openFile(filename) == true);
-    oss.write(data, 4);
     cout << "\tTest writeShared." << endl;
-    CPPUNIT_ASSERT(fw->writeShared(oss) == true);
-    CPPUNIT_ASSERT(oss.str().length() == 0);
-    fw->close();
-    long size = fileSize(filename);
-#ifdef ESYS_MPI
-    int localOk = (size == 4L*mpisize);
-    int globalOk;
-    MPI_Allreduce(&localOk, &globalOk, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
-    if (!localOk) {
-        CPPUNIT_ASSERT_EQUAL(4L*mpisize, size);
-    } else {
-        CPPUNIT_ASSERT(globalOk > 0);
+    if (mpirank == mpisize-1) {
+        oss.write(data, 4);
+        CPPUNIT_ASSERT(fw->writeShared(oss) == true);
+        CPPUNIT_ASSERT(oss.str().length() == 0);
     }
-#else
-    CPPUNIT_ASSERT_EQUAL(4L*mpisize, size);
-#endif
+    fw->close();
+    CPPUNIT_ASSERT_EQUAL(fileSize(filename), 4L);
 
     CPPUNIT_ASSERT(fw->openFile(filename) == true);
     oss.write(data, 4);
