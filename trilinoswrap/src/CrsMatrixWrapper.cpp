@@ -199,7 +199,7 @@ template<typename ST>
 void CrsMatrixWrapper<ST>::resetValues()
 {
     resumeFill();
-    mat.setAllToScalar(static_cast<const ST>(0.));
+    mat.setAllToScalar(static_cast<ST>(0.));
     fillComplete(true);
 }
 

@@ -222,7 +222,7 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::resetValues()
 {
-    mat.setAllToScalar(static_cast<const ST>(0.));
+    mat.setAllToScalar(static_cast<ST>(0.));
 }
 
 // instantiate
