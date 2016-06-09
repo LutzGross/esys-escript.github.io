@@ -68,6 +68,9 @@ void FileWriterTestCase::testAll()
         CPPUNIT_ASSERT(oss.str().length() == 0);
     }
     fw->close();
+#ifdef ESYS_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     CPPUNIT_ASSERT_EQUAL(fileSize(filename), 4L);
 
     CPPUNIT_ASSERT(fw->openFile(filename) == true);
