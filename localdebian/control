@@ -63,6 +63,7 @@ Package: python-escript-mpi
 Architecture: any
 Depends: ${python:Depends},
          openmpi-bin,
+         python-numpy,
          ${shlibs:Depends},
          ${misc:Depends}
 Recommends: python-sympy,
