@@ -229,6 +229,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             }
 #elif defined(ESYS_HAVE_TRILINOS)
             //TODO
+            std::cerr<<"TODO: DOF->ReducedNodes\n";
 #endif
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
@@ -251,15 +252,15 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
             throw escript::ValueError("Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
+            const_cast<escript::Data*>(&in)->resolve();
+            const index_t* target = nodes->borrowTargetReducedDegreesOfFreedom();
+            const IndexVector& map = nodes->borrowReducedNodesTarget();
+            out.requireWrite();
 #ifdef ESYS_HAVE_PASO
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            const_cast<escript::Data*>(&in)->resolve();
             coupler->startCollect(in.getDataRO());
-            out.requireWrite();
             const index_t upperBound = nodes->getNumReducedDegreesOfFreedom();
-            const IndexVector& map = nodes->borrowReducedNodesTarget();
             const dim_t mapSize = map.size();
-            const index_t* target = nodes->borrowTargetReducedDegreesOfFreedom();
             const double *recv_buffer = coupler->finishCollect();
 #pragma omp parallel for
             for (index_t n = 0; n < mapSize; n++) {
@@ -274,7 +275,38 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 }
             }
 #elif defined(ESYS_HAVE_TRILINOS)
-            //TODO
+            using namespace esys_trilinos;
+
+            Teuchos::RCP<const MapType> colMap;
+            Teuchos::RCP<const MapType> rowMap;
+            MapType colPointMap;
+            MapType rowPointMap;
+            if (numComps > 1) {
+                colPointMap = RealBlockVector::makePointMap(
+                                      *nodes->trilinosReducedColMap, numComps);
+                rowPointMap = RealBlockVector::makePointMap(
+                                      *nodes->trilinosReducedRowMap, numComps);
+                colMap = Teuchos::rcpFromRef(colPointMap);
+                rowMap = Teuchos::rcpFromRef(rowPointMap);
+            } else {
+                colMap = nodes->trilinosReducedColMap;
+                rowMap = nodes->trilinosReducedRowMap;
+            }
+
+            const ImportType importer(rowMap, colMap);
+            const Teuchos::ArrayView<const real_t> localIn(
+                                               in.getSampleDataRO(0),
+                                               in.getNumDataPoints()*numComps);
+            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
+                                                  localIn, localIn.size(), 1));
+            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
+            gblData->doImport(*lclData, importer, Tpetra::INSERT);
+            Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+#pragma omp parallel for
+            for (index_t i = 0; i < numOut; i++) {
+                const real_t* src = &gblArray[target[map[i]] * numComps];
+                std::copy(src, src+numComps, out.getSampleDataRW(i));
+            }
 #endif
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             out.requireWrite();
