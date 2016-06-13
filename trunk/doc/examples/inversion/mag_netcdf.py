@@ -81,20 +81,21 @@ def work():
 
 try:
     import pyproj
+    HAVE_PYPROJ = True
 except ImportError:
-    print("This example requires pyproj to be installed.")
-    import sys
-    sys.exit(0)
+    HAVE_PYPROJ = False
 
 try:
-  import esys.ripley
-  HAVE_RIPLEY = True
+    import esys.ripley
+    HAVE_RIPLEY = True
 except ImportError:
-  HAVE_RIPLEY = False
+    HAVE_RIPLEY = False
 
 if 'NetCdfData' not in dir():
     print("This example requires scipy's netcdf support which does not appear to be installed.")
 elif not HAVE_RIPLEY:
     print("Ripley module required but not available")
+elif not HAVE_PYPROJ:
+    print("This example requires pyproj to be installed.")
 else:
     work()
