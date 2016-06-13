@@ -205,14 +205,14 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             }
 #endif
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
-#ifdef ESYS_HAVE_PASO
-            const index_t* target = nodes->borrowTargetDegreesOfFreedom();
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             const_cast<escript::Data*>(&in)->resolve();
+            const index_t* target = nodes->borrowTargetDegreesOfFreedom();
+            const IndexVector& map = nodes->borrowReducedNodesTarget();
+#ifdef ESYS_HAVE_PASO
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             coupler->startCollect(in.getDataRO());
             const double* recv_buffer = coupler->finishCollect();
             const index_t upperBound = nodes->getNumDegreesOfFreedom();
-            const IndexVector& map = nodes->borrowReducedNodesTarget();
             const dim_t mapSize = map.size();
 
 #pragma omp parallel for
@@ -228,8 +228,38 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 }
             }
 #elif defined(ESYS_HAVE_TRILINOS)
-            //TODO
-            std::cerr<<"TODO: DOF->ReducedNodes\n";
+            using namespace esys_trilinos;
+
+            Teuchos::RCP<const MapType> colMap;
+            Teuchos::RCP<const MapType> rowMap;
+            MapType colPointMap;
+            MapType rowPointMap;
+            if (numComps > 1) {
+                colPointMap = RealBlockVector::makePointMap(
+                                             *nodes->trilinosColMap, numComps);
+                rowPointMap = RealBlockVector::makePointMap(
+                                             *nodes->trilinosRowMap, numComps);
+                colMap = Teuchos::rcpFromRef(colPointMap);
+                rowMap = Teuchos::rcpFromRef(rowPointMap);
+            } else {
+                colMap = nodes->trilinosColMap;
+                rowMap = nodes->trilinosRowMap;
+            }
+
+            const ImportType importer(rowMap, colMap);
+            const Teuchos::ArrayView<const real_t> localIn(
+                                               in.getSampleDataRO(0),
+                                               in.getNumDataPoints()*numComps);
+            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
+                                                  localIn, localIn.size(), 1));
+            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
+            gblData->doImport(*lclData, importer, Tpetra::INSERT);
+            Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+#pragma omp parallel for
+            for (index_t i = 0; i < numOut; i++) {
+                const real_t* src = &gblArray[target[map[i]] * numComps];
+                std::copy(src, src+numComps, out.getSampleDataRW(i));
+            }
 #endif
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
