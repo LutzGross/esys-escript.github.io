@@ -74,21 +74,22 @@ def work():
   print("All done. Have a nice day.!")
 
 try:
-  import pyproj
-  havepyproj=True
+    import pyproj
+    HAVE_PYPROJ = True
 except ImportError:
-  havepyproj=False
+    HAVE_PYPROJ = False
 
 try:
-  import esys.ripley
-  HAVE_RIPLEY = True
+    import esys.ripley
+    HAVE_RIPLEY = True
 except ImportError:
-  HAVE_RIPLEY = False
+    HAVE_RIPLEY = False
 
 
-if havepyproj and HAVE_RIPLEY:
+if HAVE_PYPROJ and HAVE_RIPLEY:
   work()
 elif HAVE_RIPLEY:
   print("This example requires the pyproj package which does not appear to be accessible.")
 else:
   print("This example requires the ripley module, which is not available")
+
