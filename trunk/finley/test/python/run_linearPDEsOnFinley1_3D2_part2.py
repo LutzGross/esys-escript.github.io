@@ -27,27 +27,19 @@ Test suite for the linearPDE and pdetools test on finley
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import os
-
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from test_pdetools import Test_pdetools
-from esys.escript import *
+from esys.escript import hasFeature
 from esys.finley import Brick
-
-
-try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
-except KeyError:
-     FINLEY_TEST_DATA='.'
-
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 NE=10 # number of element in each spatial direction (must be even)
 
+# trilinos and paso are different
+TOL = 1.e-7 if hasFeature('paso') else 5.e-7
 
 class Test_LinearPDEOnFinleyHex3DOrder2_part2(Test_pdetools):
-   RES_TOL=1.e-7
+   RES_TOL=TOL
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Brick(NE,NE,NE,2)
@@ -57,4 +49,4 @@ class Test_LinearPDEOnFinleyHex3DOrder2_part2(Test_pdetools):
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-    
+

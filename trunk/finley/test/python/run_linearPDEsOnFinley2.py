@@ -55,6 +55,9 @@ except KeyError:
 
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
+# paso and trilinos are different
+TOL = 1.e-7 if hasFeature('paso') else 5.e-7
+
 NE=6 # number of element in each spatial direction (must be even)
 
 class Test_LinearPDEOnFinleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
@@ -85,7 +88,7 @@ class Test_LinearPDEOnFinleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
         del self.domain
 
 class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2, Test_TransportPDE):
-   RES_TOL=1.e-7
+   RES_TOL=TOL
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=True)
