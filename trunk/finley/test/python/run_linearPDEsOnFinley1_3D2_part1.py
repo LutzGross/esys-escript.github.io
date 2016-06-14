@@ -31,21 +31,21 @@ import os
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_linearPDEs import Test_LinearPDE
-from esys.escript import *
+from test_linearPDEs import Test_LinearPDE, Test_TransportPDE
 from esys.finley import Brick
-
-try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
-except KeyError:
-     FINLEY_TEST_DATA='.'
-
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 NE=10 # number of element in each spatial direction (must be even)
 
+class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Brick(NE,NE,NE,2)
+        self.order = 2
+   def tearDown(self):
+        del self.domain
 
-class Test_LinearPDEOnFinleyHex3DOrder2_part1(Test_LinearPDE):
+class Test_TransportPDEOnFinleyHex3DOrder2(Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):

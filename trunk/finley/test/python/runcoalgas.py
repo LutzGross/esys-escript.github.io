@@ -33,17 +33,16 @@ from coalgas import *
 import time
 from esys.finley import ReadMesh, Rectangle, Brick
 from esys.escript.pdetools import Locator
-SAVE_VTK=True and False
-CONST_G = 9.81  * U.m/U.sec**2
-P_0=1.*U.atm
 
+SAVE_VTK=True and False
+CONST_G = 9.81 * U.m/U.sec**2
+P_0=1.*U.atm
 
 CELL_X=2640*U.ft
 CELL_Y=2640*U.ft
 CELL_Z=33*U.ft
 
 TOP=2310*U.ft
-
 
 L_Z=CELL_Z
 
@@ -56,32 +55,29 @@ N_X=int(L_X/CELL_X)
 N_Y=int(L_Y/CELL_Y)
 N_Z=int(L_Z/CELL_Z)
 
-
 OUTPUT_DIR="results"
-
 
 PERM_F_X = 100 * U.mDarcy
 PERM_F_Y = 100 * U.mDarcy
 PERM_F_Z = 1e-4 * U.mDarcy
 
 EQUIL = {
-  
-    "DATUM_DEPTH" : 2310. * U.ft ,
-    "DATUM_PRESS" : 1000. * U.psi ,
-    "GWC_DEPTH" : -1000. * U.ft ,
+    "DATUM_DEPTH" : 2310. * U.ft,
+    "DATUM_PRESS" : 1000. * U.psi,
+    "GWC_DEPTH" : -1000. * U.ft,
     "GWC_PCOW" : 0. * U.psi
 }
 
 TOPS = 2310 * U.ft
 PHI_F_0=0.01
-SIGMA = 1. /U.ft**2 
+SIGMA = 1. /U.ft**2
 
 #DT=[0.1* U.day]*9+[1 * U.day,3* U.day,9* U.day, 17.5*U.day] + [ 30.5*U.day ] *20
 DT=[1 * U.day,3* U.day,9* U.day, 17.5*U.day] + [ 30.5*U.day ] *20
 DT=[.5 * U.day, .5 * U.day, 0.5*3* U.day, 0.5*3* U.day, 0.5*9* U.day, 0.5*9* U.day, 17.5 *.5 *U.day, 17.5*0.5*U.day] + [ 15.25*U.day ] *40
-DT=[.25 * U.day, .25 * U.day, .25 * U.day, .25 * U.day, 
-     0.25*3* U.day, 0.25*3* U.day, 0.25*3* U.day, 0.25*3* U.day, 
-     0.25*9* U.day, 0.25*9* U.day, 0.25*9* U.day, 0.25*9* U.day, 
+DT=[.25 * U.day, .25 * U.day, .25 * U.day, .25 * U.day,
+     0.25*3* U.day, 0.25*3* U.day, 0.25*3* U.day, 0.25*3* U.day,
+     0.25*9* U.day, 0.25*9* U.day, 0.25*9* U.day, 0.25*9* U.day,
      17.5 *.25 *U.day, 17.5*0.25*U.day, 17.5 *.25 *U.day, 17.5*0.25*U.day] + \
     [ 15.25*U.day * 0.5] *80
 DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day,
@@ -97,21 +93,21 @@ DT=[1./10. * U.day]*10 + [3./10. * U.day]*10 + [ 9./10.* U.day ] *10 + [ 17.5/10
 
 #[0.1 * U.day ] *20
 
-PVTW={ "p_ref" :   1000 * U.psi ,  
-       "B_ref" :  0.997  ,
+PVTW={ "p_ref" :   1000 * U.psi,
+       "B_ref" :  0.997,
        "C" :  3.084E-06/U.psi,
        "mu_ref" : 0.68673 * U.cPoise,
        "C_v" : 0/U.psi
-
      }
-GRAVITY = { "water" : 1.0, 
+
+GRAVITY = { "water" : 1.0,
             "gas" : .553 }
-            
-ROCK = { "p_ref" :   1000 * U.psi ,
+
+ROCK = { "p_ref" :   1000 * U.psi,
          "C" : 3.3E-4 * 1./U.psi }
-         
-DIFFCOAL  = { "D" : 0.005 * U.ft**2/U.day, 
-              "f_r": 1.}
+
+DIFFCOAL = { "D" : 0.005 * U.ft**2/U.day,
+             "f_r": 1.}
 
 LANGMUIR = [
 [ 0     * U.psi , 0.00000000 * U.Mscf/U.ft**3],
@@ -129,7 +125,7 @@ LANGMUIR = [
 
 
 PVDG = [
-[ 14.70 * U.psi ,200.3800 * U.Barrel/U.Mscf , 0.012025 * U.cPoise ] , # psi, rb/Mscf,  
+[ 14.70 * U.psi ,200.3800 * U.Barrel/U.Mscf , 0.012025 * U.cPoise ] , # psi, rb/Mscf,
 [ 20.00 * U.psi ,146.0600 * U.Barrel/U.Mscf , 0.012030 * U.cPoise ] ,
 [ 25.00 * U.psi ,116.1461 * U.Barrel/U.Mscf , 0.012034 * U.cPoise ] ,
 [ 30.00 * U.psi ,96.3132 * U.Barrel/U.Mscf , 0.012038 * U.cPoise ] ,
@@ -183,10 +179,10 @@ PVDG = [
 [ 1261.50 * U.psi ,2.0705 * U.Barrel/U.Mscf , 0.013917 * U.cPoise ] ,
 [ 1296.10 * U.psi ,2.0138 * U.Barrel/U.Mscf , 0.013994 * U.cPoise ] ,
 [ 1330.70 * U.psi ,1.9600 * U.Barrel/U.Mscf , 0.014072 * U.cPoise ] ,
-[ 1365.40 * U.psi ,1.9089 * U.Barrel/U.Mscf , 0.014151  * U.cPoise ] ]  
+[ 1365.40 * U.psi ,1.9089 * U.Barrel/U.Mscf , 0.014151  * U.cPoise ] ]
 
 
-SGFN   = [  
+SGFN = [
 [ 0  , 0  , 0 * U.psi],
 [ 0.05   , 0  , 0  * U.psi ],
 [ 0.1333  , 0.00610   , 0  * U.psi ],
@@ -205,7 +201,7 @@ SWFN = [
 [ 0.45000  , 0.17030, 0  * U.psi],
 [ 0.53330  , 0.26220, 0  * U.psi],
 [ 0.61670  , 0.36650, 0  * U.psi],
-[ 0.70000  , 0.48170, 0  * U.psi], 
+[ 0.70000  , 0.48170, 0  * U.psi],
 [ 0.78330  , 0.60710, 0  * U.psi],
 [ 0.86670  , 0.74170, 0  * U.psi],
 [ 0.95000  , 0.88500, 0  * U.psi],
@@ -213,7 +209,7 @@ SWFN = [
 
 
 wellspecs = {
-  'P1' : { "X0" :[ (N_X/2+0.5)*CELL_X,  (N_Y/2+0.5)*CELL_Y, 0.5*CELL_Z], 
+  'P1' : { "X0" :[ (N_X/2+0.5)*CELL_X,  (N_Y/2+0.5)*CELL_Y, 0.5*CELL_Z],
            "r"  : 0.8333 * U.ft,
            "s"  : 0,
            "Q"  : [0., 2000*U.Barrel/U.day ],
@@ -221,7 +217,6 @@ wellspecs = {
            "schedule" : [0.*U.yr,  2*U.yr]
          }
 }
-
 
 
 # print input
@@ -235,7 +230,6 @@ for I in wellspecs:
      N+=1
      domain.addDiracPoint(wellspecs[I]["X0"][:DIM], I)
      print(("<%s> Well %s introduced to domain."%(time.asctime(), I)))
-     
 
 #domain=Brick(N_X, N_Y,N_Z,l0=L_X, l1=L_Y,l2=L_Z)
 
@@ -252,35 +246,33 @@ print("fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy)))
 
 mkDir(OUTPUT_DIR)
 
-
-
 print(("<%s> Mesh set up completed."%time.asctime()))
-well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"], 
-                                Q=wellspecs['P1']["Q"], 
-                                r=wellspecs['P1']["r"], 
+well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"],
+                                Q=wellspecs['P1']["Q"],
+                                r=wellspecs['P1']["r"],
                                 X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1], wellspecs['P1']["X0"][2]] ,
-                                D=[CELL_X, CELL_Y, CELL_Z], 
+                                D=[CELL_X, CELL_Y, CELL_Z],
                                 perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
-                                schedule=wellspecs['P1']["schedule"], 
-                                s=wellspecs['P1']["s"]) 
+                                schedule=wellspecs['P1']["schedule"],
+                                s=wellspecs['P1']["s"])
 rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"])
 p_top = EQUIL["DATUM_PRESS"] + P_0
 p_bottom=p_top + CONST_G * CELL_Z * rho_w(p_top)
 
-model = PorosityOneHalfModel(domain, 
+model = PorosityOneHalfModel(domain,
                              phi_f=Porosity(phi_0=PHI_F_0, p_0=(p_bottom +p_top)/2., p_ref=ROCK["p_ref"], C = ROCK["C"]),
                              L_g=InterpolationTable([ l[0] for l in LANGMUIR ], [ l[1] for l in LANGMUIR ] ),
-                 perm_f_0=PERM_F_X, 
-                 perm_f_1=PERM_F_Y, 
+                 perm_f_0=PERM_F_X,
+                 perm_f_1=PERM_F_Y,
                  perm_f_2=PERM_F_Z,
-                 k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ], obeyBounds=False ),  
-                 k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ], obeyBounds=False ),  
-                 mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),      
+                 k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ], obeyBounds=False ),
+                 k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ], obeyBounds=False ),
+                 mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),
                  mu_g = InterpolationTable([ l[0] for l in PVDG ], [ l[2] for l in PVDG ] ),
-                 rho_w = rho_w, 
-                 rho_g=GasDensity( p = [ l[0] for l in PVDG ], B = [ l[1] for l in PVDG ], gravity=GRAVITY["gas"]), 
+                 rho_w = rho_w,
+                 rho_g=GasDensity( p = [ l[0] for l in PVDG ], B = [ l[1] for l in PVDG ], gravity=GRAVITY["gas"]),
                  sigma=SIGMA,
-                 A_mg=DIFFCOAL["D"], 
+                 A_mg=DIFFCOAL["D"],
                        f_rg=DIFFCOAL["f_r"],
                  wells=[ well_P1, ], g= CONST_G)
 # this needs to be revised:.
@@ -295,27 +287,27 @@ n_t = 0
 p, S_fg, c_mg, BHP, q_gas,q_water =model.getState()
 
 if SAVE_VTK:
-   FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
-   saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-   print("<%s> Initial state saved to file %s."%(time.asctime(),FN))
-print("EEE", t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3)
-print("DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day)
-
+    FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
+    saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
+    print("<%s> Initial state saved to file %s."%(time.asctime(),FN))
+    print(t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg), well_P1.locator(c_mg)/U.Mscf*U.ft**3)
+    print(t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day, well_P1.locator(q_water)/U.Barrel*U.day)
 
 
 for dt in DT:
-  print("<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day))
-  
-  model.update(dt)
+    print("<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day))
 
-  p, S_fg, c_mg, BHP, q_gas,q_water =model.getState()
-  
-  if SAVE_VTK:
-     FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
-     saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-     print("<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN ))
-  print("EEE", (t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3)
-  print("DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day)
+    model.update(dt)
 
-  n_t+=1
-  t+=dt
+    p, S_fg, c_mg, BHP, q_gas,q_water = model.getState()
+
+    if SAVE_VTK:
+        FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
+        saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
+        print("<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN))
+    print((t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg), well_P1.locator(c_mg)/U.Mscf*U.ft**3)
+    print((t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day, well_P1.locator(q_water)/U.Barrel*U.day)
+
+    n_t += 1
+    t += dt
+

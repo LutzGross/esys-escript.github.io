@@ -22,36 +22,33 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE and pdetools test on finley
+Test suite for the linearPDE  and pdetools test on finley
+
+:remark:
+
+:var __author__: name of author
+:var __licence__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import os
-
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_linearPDEs import Test_TransportPDE
-from esys.escript import *
-from esys.finley import Brick
+from test_nonLinearPDE import Test_nlpde
+from esys.finley import Rectangle, Brick
 
-
-try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
-except KeyError:
-     FINLEY_TEST_DATA='.'
-
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
-
-NE=10 # number of element in each spatial direction (must be even)
-
-
-class Test_LinearPDEOnFinleyHex3DOrder2_part4(Test_TransportPDE):
-   RES_TOL=1.e-7
-   ABS_TOL=1.e-8
+class Test_nonLinearPDEOnFinley2D(Test_nlpde):
    def setUp(self):
-        self.domain = Brick(NE,NE,NE,2)
-        self.order = 2
+        self.domain = Rectangle(l0=1.,l1=1.,n0=10, n1=10) 
+   def tearDown(self):
+        del self.domain
+
+class Test_nonLinearPDEOnFinley3D(Test_nlpde):
+   def setUp(self):
+        self.domain = Brick(l0=1.,l1=1.,l2=1.,n0=10, n1=10,n2=10) 
    def tearDown(self):
         del self.domain
 

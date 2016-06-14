@@ -25,22 +25,21 @@ __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_util import Test_util as Test_util
-from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_util import Test_util, Test_Util_SpatialFunctions, \
+        Test_Util_SpatialFunctions_noGradOnBoundary, \
+        Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_util_NaN_funcs import Test_util_NaN_funcs
 
-from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces,ReadMesh
-import sys
+from esys.escript import FunctionOnBoundary, getMPISizeWorld, HAVE_SYMBOLS
+from esys.finley import Rectangle, Brick, JoinFaces, ReadMesh
 import os
 
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
 else:
-    print("Skipping symbolic tests since sympy is not available")
+    @unittest.skip("Skipping symbolic tests since sympy is not available")
     class Test_symfuncs:
         pass
-from test_util_NaN_funcs import Test_util_NaN_funcs
-
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -53,13 +52,37 @@ FINLEY_MERGE_ERROR = "merge: more than 1 processor is not supported yet."
 
 NE=4 # number elements, must be even
 
-class Test_UtilOnFinley(Test_util,Test_symfuncs,Test_util_NaN_funcs):
+class Test_UtilOnFinley(Test_util):
    def setUp(self):
        try:
            self.workdir=os.environ['FINLEY_WORKDIR']
        except KeyError:
            self.workdir='.'
-       self.domain =Rectangle(NE,NE+1,2)
+       self.domain = Rectangle(NE, NE+1, 2)
+       self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+   def tearDown(self):
+       del self.functionspace
+       del self.domain
+
+class Test_SymFuncsOnFinley(Test_symfuncs,Test_util_NaN_funcs):
+   def setUp(self):
+       try:
+           self.workdir=os.environ['FINLEY_WORKDIR']
+       except KeyError:
+           self.workdir='.'
+       self.domain = Rectangle(NE, NE+1, 2)
+       self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+   def tearDown(self):
+       del self.functionspace
+       del self.domain
+
+class Test_NaNFuncsOnFinley(Test_util_NaN_funcs):
+   def setUp(self):
+       try:
+           self.workdir=os.environ['FINLEY_WORKDIR']
+       except KeyError:
+           self.workdir='.'
+       self.domain = Rectangle(NE, NE+1, 2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
    def tearDown(self):
        del self.functionspace

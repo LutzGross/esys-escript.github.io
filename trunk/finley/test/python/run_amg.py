@@ -41,18 +41,19 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import esys.escriptcore.utestselect as unittest, sys
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.finley import Rectangle,Brick
+from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
-OPTIMIZE=True # and False
-SOLVER_VERBOSE=True or False
+
+OPTIMIZE = True
+SOLVER_VERBOSE = False
 
 MIN_MATRIX_SIZE=1
 MIN_SPARSITY=1.
 MIN_MATRIX_SIZE=None
 MIN_SPARSITY=None
 MAX_LEVEL=None
-USE_AMG = (getMPISizeWorld() == 1)
+HAVE_PASO_AMG = hasFeature('paso') and (getMPISizeWorld() == 1)
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -64,10 +65,10 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 NE_TOTAL=4096
 #NE_TOTAL=4
 
+@unittest.skipUnless(HAVE_PASO_AMG, "PASO AMG tests require PASO and #ranks == 1")
 class AMG(unittest.TestCase): #subclassing required
 
    def test_Poisson(self):
-        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
@@ -85,7 +86,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -114,7 +115,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setNumPreSweeps(3)
         pde.getSolverOptions().setNumPostSweeps(3)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
@@ -146,7 +147,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         pde.getSolverOptions().setNumPreSweeps(3)
         pde.getSolverOptions().setNumPostSweeps(3)
@@ -178,7 +179,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         pde.getSolverOptions().setNumPreSweeps(3)
         pde.getSolverOptions().setNumPostSweeps(3)
@@ -213,7 +214,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -248,7 +249,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -285,7 +286,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -325,7 +326,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -358,7 +359,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -396,7 +397,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -437,7 +438,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -479,7 +480,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -524,7 +525,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -573,7 +574,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -613,7 +614,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -658,7 +659,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -707,7 +708,7 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -728,7 +729,7 @@ class AMG(unittest.TestCase): #subclassing required
 
         # domain masks and domain-specific constants
         x = Solution(self.domain).getX(); x0 = x[0]; x1 = x[1]
-        omega2 = wherePositive(x0-h1)*wherePositive(x1-h2) 
+        omega2 = wherePositive(x0-h1)*wherePositive(x1-h2)
         omega1 = 1-omega2
         ratio = alpha1/alpha2
         alpha = alpha1*omega1 + alpha2*omega2
@@ -743,7 +744,7 @@ class AMG(unittest.TestCase): #subclassing required
         b2 = ratio*b1
         c2 = ratio*c1
         d2 = ratio*d1
-        
+
         u_ex = omega1*(a1 + b1*x0 + c1*x1 + d1*x0*x1) + \
                 omega2*(a2 + b2*x0 + c2*x1 + d2*x0*x1)
 
@@ -754,18 +755,18 @@ class AMG(unittest.TestCase): #subclassing required
         q = whereZero(x0) + whereZero(x1) + \
             whereZero(sup(x0)-x0) + whereZero(sup(x1)-x1)
         pde.setValue(q=q,r=u_ex)
-              
+
         # create X points in the centre of the grid elements
         xe = Function(self.domain).getX()
         x0 = xe[0]
         x1 = xe[1]
 
         # redefine omega so that apha is more precise on the diagonal (?)
-        omega2 = wherePositive(x0-h1)*wherePositive(x1-h2) 
+        omega2 = wherePositive(x0-h1)*wherePositive(x1-h2)
         omega1 = 1-omega2
         ratio = alpha1/alpha2
         alpha = alpha1*omega1 + alpha2*omega2
-        
+
         # set up PDE coefficients
         pde.setValue(A=alpha*kronecker(self.domain), D=beta, Y=beta*u_ex)
         pde.setSymmetryOn()
@@ -773,17 +774,17 @@ class AMG(unittest.TestCase): #subclassing required
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if USE_AMG: pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
         u = pde.getSolution()
-        
+
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
-        
+
 
 class Test_AMGOnFinleyHex2DOrder1(AMG):
    RES_TOL=5.e-7
@@ -796,4 +797,4 @@ class Test_AMGOnFinleyHex2DOrder1(AMG):
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-    
+
