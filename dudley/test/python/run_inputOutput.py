@@ -59,7 +59,7 @@ NE0 = 7 * getMPISizeWorld()
 NE1 = 11
 NE2 = 5
 
-class Test_InputOutput(unittest.TestCase):
+class Test_InputOutputOnDudley(unittest.TestCase):
 
      # Check that two domains are equal using Fourier integrals
      # We cannot compare the X coordinates since they are on different domains

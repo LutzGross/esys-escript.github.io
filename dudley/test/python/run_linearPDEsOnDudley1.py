@@ -44,11 +44,10 @@ from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 from test_pdetools import Test_pdetools
 from esys.escript import *
 from esys.dudley import Rectangle, Brick
-import sys
 
 NE=10 # number of element in each spatial direction (must be even)
 
-class Test_LinearPDEOnDudleyRect(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyRect(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -57,7 +56,7 @@ class Test_LinearPDEOnDudleyRect(Test_LinearPDE,Test_pdetools,Test_assemblage_2D
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnDudleyBrick(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyBrick(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -66,6 +65,59 @@ class Test_LinearPDEOnDudleyBrick(Test_LinearPDE,Test_pdetools,Test_assemblage_3
    def tearDown(self):
         del self.domain
 
+class Test_PDEToolsOnDudleyRect(Test_pdetools):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_PDEToolsOnDudleyBrick(Test_pdetools):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Brick(NE,NE,NE)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_AssemblageOnDudleyRect(Test_assemblage_2Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_AssemblageOnDudleyBrick(Test_assemblage_3Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Brick(NE,NE,NE)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_TransportPDEOnDudleyRect(Test_TransportPDE):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_TransportPDEOnDudleyBrick(Test_TransportPDE):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Brick(NE,NE,NE)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

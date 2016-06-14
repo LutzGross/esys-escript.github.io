@@ -42,7 +42,6 @@ from esys.escriptcore.testing import *
 from test_linearPDEs import Test_LinearPDE, Test_TransportPDE
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 from test_pdetools import Test_pdetools
-from esys.escript import *
 from esys.dudley import ReadMesh
 
 try:
@@ -52,20 +51,70 @@ except KeyError:
 
 DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
-NE=6 # number of element in each spatial direction (must be even)
-
-class Test_LinearPDEOnDudleyTet2D(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyTet2D(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
-   VERBOSE=False
    def setUp(self):
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
         self.order = 1
    def tearDown(self):
         del self.domain
 
+class Test_LinearPDEOnDudleyTet3D(Test_LinearPDE):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=True)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
 
-class Test_LinearPDEOnDudleyTet3D(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
+class Test_PDEToolsOnDudleyTet2D(Test_pdetools):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_PDEToolsOnDudleyTet3D(Test_pdetools):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=True)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_AssemblageOnDudleyTet2D(Test_assemblage_2Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_AssemblageOnDudleyTet3D(Test_assemblage_3Do1):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=True)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_TransportPDEOnDudleyTet2D(Test_TransportPDE):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_TransportPDEOnDudleyTet3D(Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
