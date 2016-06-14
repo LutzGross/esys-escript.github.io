@@ -39,6 +39,7 @@ from esys.escript import *
 import esys.escriptcore.utestselect as unittest
 
 class Test_symfuncs(unittest.TestCase):
+    RES_TOL = 1.e-7
 
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def test_div_Symbol(self):
