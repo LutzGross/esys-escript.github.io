@@ -25,17 +25,17 @@ __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_util import Test_util as Test_util
+from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 
-from esys.escript import *
+from esys.escript import FunctionOnBoundary, HAVE_SYMBOLS
 from esys.dudley import Rectangle,Brick,ReadMesh
 import os
 
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
 else:
-    print("Skipping symbolic tests since sympy is not available")
+    @unittest.skip("Skipping symbolic tests since sympy is not available")
     class Test_symfuncs:
         pass
 
@@ -54,10 +54,20 @@ DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 NE=4 # number elements, must be even
 
-class Test_UtilOnDudley(Test_util,Test_symfuncs):
+class Test_UtilOnDudley(Test_util):
    def setUp(self):
        self.domain = Rectangle(NE,NE+1)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+       self.workdir=DUDLEY_WORKDIR
+
+   def tearDown(self):
+       del self.functionspace
+       del self.domain
+
+class Test_SymFuncsOnDudley(Test_symfuncs):
+   def setUp(self):
+       self.domain = Rectangle(NE,NE+1)
+       self.functionspace = FunctionOnBoundary(self.domain)
        self.workdir=DUDLEY_WORKDIR
 
    def tearDown(self):
@@ -97,7 +107,6 @@ class Test_Util_SpatialFunctionsOnDudleyBrick(Test_Util_SpatialFunctions_noGradO
     def tearDown(self):
         del self.order
         del self.domain
-
 
 
 if __name__ == '__main__':

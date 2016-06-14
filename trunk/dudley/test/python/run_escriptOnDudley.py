@@ -38,7 +38,7 @@ try:
 except KeyError:
      DUDLEY_WORKDIR='.'
 
-NE=max(4, getMPISizeWorld()) # number elements, must be even
+NE = max(4, getMPISizeWorld())
 
 class Test_SharedOnDudley(Test_Shared):
   def setUp(self):
@@ -51,7 +51,7 @@ class Test_SharedOnDudley(Test_Shared):
 class Test_DomainOnDudley(Test_Domain):
    def setUp(self):
        self.boundary_tag_list = [1, 2, 10, 20]
-       self.domain =Rectangle(NE,NE+1)
+       self.domain = Rectangle(NE,NE+1)
        self.rdomain=self.domain
 
    def tearDown(self):
@@ -100,24 +100,44 @@ class Test_DomainOnDudley(Test_Domain):
        if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
 
-class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
+class Test_DumpOnDudley(Test_Dump):
    def setUp(self):
-       self.domain =Rectangle(NE,NE+1)
-       self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1)
-       self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,integrationOrder=2)
-       self.domain_with_different_sample_ordering =Rectangle(NE,NE+1, optimize=True)
-       self.filename_base=DUDLEY_WORKDIR
-       self.mainfs=Function(self.domain)
-       self.otherfs=Solution(self.domain)
+       self.domain = Rectangle(NE,NE+1)
+       self.domain_with_different_number_of_samples = Rectangle(2*NE,NE+1)
+       self.domain_with_different_number_of_data_points_per_sample = Rectangle(2*NE,NE+1,integrationOrder=2)
+       self.domain_with_different_sample_ordering = Rectangle(NE, NE+1, optimize=True)
+       self.filename_base = DUDLEY_WORKDIR
 
    def tearDown(self):
        del self.domain
        del self.domain_with_different_number_of_samples
        del self.domain_with_different_number_of_data_points_per_sample
        del self.domain_with_different_sample_ordering
+
+class Test_SetDataPointValueOnDudley(Test_SetDataPointValue):
+   def setUp(self):
+       self.domain = Rectangle(NE,NE+1)
+
+   def tearDown(self):
+       del self.domain
+
+class Test_GlobalMinMaxOnDudley(Test_GlobalMinMax):
+   def setUp(self):
+       self.domain = Rectangle(NE,NE+1)
+
+   def tearDown(self):
+       del self.domain
+
+class Test_LazyOnDudley(Test_Lazy):
+   def setUp(self):
+       self.domain = Rectangle(NE,NE+1)
+       self.mainfs = Function(self.domain)
+       self.otherfs = Solution(self.domain)
+
+   def tearDown(self):
+       del self.domain
        del self.mainfs
        del self.otherfs
-
 
 class Test_TableInterpolationOnDudley(Test_TableInterpolation):
     def setUp(self):

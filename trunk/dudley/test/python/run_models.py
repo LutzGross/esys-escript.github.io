@@ -299,7 +299,7 @@ class Darcy(unittest.TestCase): #subclassing required
         self.assertLess(Lsup(v-u_ref),self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.assertLess(Lsup(p-p_ref),self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
-class Test_Darcy2D(Darcy):
+class Test_Darcy2DOnDudley(Darcy):
     TOL=1e-8 if hasFeature('paso') else 1e-9
     TEST_TOL=2.e-3
     WIDTH=1.
@@ -310,7 +310,7 @@ class Test_Darcy2D(Darcy):
     def tearDown(self):
         del self.dom
 
-class Test_Darcy3D(Darcy):
+class Test_Darcy3DOnDudley(Darcy):
     TOL=1e-8 if hasFeature('paso') else 1e-9
     WIDTH=1.
     TEST_TOL=4.e-3
@@ -321,7 +321,7 @@ class Test_Darcy3D(Darcy):
     def tearDown(self):
         del self.dom
 
-class Test_Rheologies(unittest.TestCase):
+class Test_RheologiesOnDudley(unittest.TestCase):
      """
      this is the program used to generate the powerlaw tests:
 
@@ -502,7 +502,7 @@ class Test_Rheologies(unittest.TestCase):
          for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
 
 
-class Test_FaultSystem(unittest.TestCase):
+class Test_FaultSystemOnDudley(unittest.TestCase):
    EPS=1.e-8
    NE=10
    def test_Fault_MaxValue(self):
