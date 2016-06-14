@@ -37,8 +37,7 @@ try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
 except KeyError:
      FINLEY_WORKDIR='.'
-     
-     
+
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
 except KeyError:
@@ -47,7 +46,7 @@ except KeyError:
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 mpisize=getMPISizeWorld()
-NE=4 # number elements, must be even
+NE=4 # number of elements, must be even
 
 class Test_SharedOnFinley(Test_Shared):
   def setUp(self):
@@ -127,24 +126,44 @@ class Test_DomainOnFinley(Test_Domain):
        self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
 
-class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
+class Test_DumpOnFinley(Test_Dump):
    def setUp(self):
-       self.domain =Rectangle(NE,NE+1,2)
+       self.domain = Rectangle(NE, NE+1, 2)
        self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
        self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,2,integrationOrder=2)
        self.domain_with_different_sample_ordering =Rectangle(NE,NE+1,2, optimize=True)
        self.filename_base=FINLEY_WORKDIR
-       self.mainfs=Function(self.domain)
-       self.otherfs=Solution(self.domain)
 
    def tearDown(self):
        del self.domain
        del self.domain_with_different_number_of_samples
        del self.domain_with_different_number_of_data_points_per_sample
        del self.domain_with_different_sample_ordering
+
+class Test_SetDataPointValueOnFinley(Test_SetDataPointValue):
+   def setUp(self):
+       self.domain = Rectangle(NE, NE+1, 2)
+
+   def tearDown(self):
+       del self.domain
+
+class Test_GlobalMinMaxOnFinley(Test_GlobalMinMax):
+   def setUp(self):
+       self.domain = Rectangle(NE, NE+1, 2)
+
+   def tearDown(self):
+       del self.domain
+
+class Test_LazyOnFinley(Test_Lazy):
+   def setUp(self):
+       self.domain = Rectangle(NE,NE+1,2)
+       self.mainfs = Function(self.domain)
+       self.otherfs = Solution(self.domain)
+
+   def tearDown(self):
+       del self.domain
        del self.mainfs
        del self.otherfs
-
 
 class Test_TableInterpolationOnFinley(Test_TableInterpolation):
     def setUp(self):
@@ -163,17 +182,18 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
         del self.functionspaces
 
 
-#This functionality is only testes on Finley.
-#It is not finley specific but it does need a known set of input points so I've chosen to put it here
+# This functionality is only tested on Finley.
+# It is not finley specific but it does need a known set of input points
+# so I've chosen to put it here
 class Test_OtherInterpolationOnFinley(unittest.TestCase):
     def setUp(self):
         self.r=Rectangle(4,1).getX()[0]+2
         self.z=Data(2)
-        
+
     def tearDown(self):
         del self.z
         del self.r
-       
+
     def test_nonuniformint(self):
         self.assertRaises(RuntimeError, self.z.nonuniformInterpolate, [0,1], [5,6], True)
         self.assertRaises(RuntimeError, self.z.nonuniformInterpolate, [3,4], [5,6], True)
@@ -184,7 +204,7 @@ class Test_OtherInterpolationOnFinley(unittest.TestCase):
         self.assertTrue(Lsup(inf(tmp)-0.090909)<0.00001, "Internal interpolate failed")
         tmp=self.r.nonuniformInterpolate([2.125, 2.4, 2.5, 3.2], [1, -1, 2, 4], False)
         self.assertTrue(Lsup(sup(tmp)-3.42857)<0.00001, "Internal interpolate failed")
-        
+
     def test_nonuniformSlope(self):
         self.assertRaises(RuntimeError, self.z.nonuniformSlope, [0,1], [5,6], True)
         self.assertRaises(RuntimeError, self.z.nonuniformSlope, [3,4], [5,6], True)
@@ -193,7 +213,7 @@ class Test_OtherInterpolationOnFinley(unittest.TestCase):
         tmp=self.r.nonuniformSlope([2.125, 2.4, 2.5, 3.2], [1, -1, 2, 4], False)
         self.assertTrue(Lsup(sup(tmp)-30)<0.00001, "Internal interpolate failed")
         self.assertTrue(Lsup(inf(tmp)+7.27273)<0.00001, "Internal interpolate failed")
-        
+
 class Test_CSVOnFinley(Test_saveCSV):
     def setUp(self):
         try:
@@ -228,7 +248,7 @@ class Test_CSVOnFinley(Test_saveCSV):
     def tearDown(self):
         del self.domain
 
-    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+    @unittest.skipIf(mpisize > 1, "more than 1 MPI rank")
     def test_csv_multiFS(self):
         fname=os.path.join(self.workdir, "test_multifs.csv")
         sol=Data(8,Solution(self.domain))
@@ -252,7 +272,6 @@ class Test_CSVOnFinley(Test_saveCSV):
         self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
         self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
 
-        
 class Test_DiracOnFinley(unittest.TestCase):
   def test_rectconstr(self):
     self.assertRaises(ValueError, Rectangle, 4,4, diracPoints=[(0,0)])
@@ -261,7 +280,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     self.assertRaises(ValueError, Rectangle, 4,4, diracPoints=[(0,0), (1,1)], diracTags=["cows"])
     self.assertRaises(ValueError, Rectangle, 4,4, diracPoints=[(0,)], diracTags=["test"])
     z=Rectangle(4,4, diracPoints=[(0,0), (0.25,0.25)], diracTags=[40,51])
-    z=Rectangle(4,4, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"]) 
+    z=Rectangle(4,4, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
       self.assertEqual(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
@@ -280,7 +299,7 @@ class Test_DiracOnFinley(unittest.TestCase):
       self.assertEqual(inf(v[1]), 0.5)
     self.assertEqual(z.showTagNames(), 'A, B, C, bottom, left, right, top')
     self.assertEqual(z.getTag("C"), 42)
-   
+
   def test_brickconstr(self):
     self.assertRaises(ValueError, Brick, 4,4, diracPoints=[(0,0,0)])
     self.assertRaises(ValueError, Brick, 4,4, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40])
@@ -288,7 +307,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     self.assertRaises(ValueError, Brick, 4,4, diracPoints=[(0,0,0), (1,1,1)], diracTags=["cows"])
     self.assertRaises(ValueError, Brick, 4,4, diracPoints=[(0,0)], diracTags=["test"])
     z=Brick(4,4, diracPoints=[(0,0,0), (0.25,0.25, 0.25)], diracTags=[40,51])
-    z=Brick(4,4, diracPoints=[(0.125,0.625,0), (0.5,1,0), (0.75, 0.25, 0.51), (0.89, 0.875,1)], diracTags=["A", "B", "A", "C"]) 
+    z=Brick(4,4, diracPoints=[(0.125,0.625,0), (0.5,1,0), (0.75, 0.25, 0.51), (0.89, 0.875,1)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
       self.assertEqual(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 0.0), (0.75, 0.25, 1), (1.0, 0.75, 1.0)])
@@ -316,7 +335,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     self.assertRaises(ValueError, ReadMesh, fname, diracPoints=[(0,0)])
     self.assertRaises(ValueError, ReadMesh, fname, diracPoints=[(0,0), (1,1)], diracTags=[40])
     self.assertRaises(ValueError, ReadMesh, fname, diracPoints=[(0,0), (1,1)], diracTags=["cows"])
-    z=ReadMesh(fname, diracPoints=[(0,0), (0.25,0.25)], diracTags=[40,51])   
+    z=ReadMesh(fname, diracPoints=[(0,0), (0.25,0.25)], diracTags=[40,51])
     z=ReadMesh(fname, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
@@ -335,7 +354,7 @@ class Test_DiracOnFinley(unittest.TestCase):
       self.assertEqual(inf(v[0]), -10)
       self.assertEqual(inf(v[1]), 0.5)
     self.assertEqual(z.showTagNames(), 'A, B, C, bottom, left, right, top')
-    self.assertEqual(z.getTag("C"), 42)    
+    self.assertEqual(z.getTag("C"), 42)
 
 
   def test_brickReadMesh(self):
@@ -344,7 +363,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     self.assertRaises(ValueError, ReadMesh, fname, diracPoints=[(0,0,0)])
     self.assertRaises(ValueError, ReadMesh, fname, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40])
     self.assertRaises(ValueError, ReadMesh, fname, diracPoints=[(0,0,0), (1,1,1)], diracTags=["cows"])
-    z=ReadMesh(fname, diracPoints=[(0,0,1), (0.25,0.25, 0.25)], diracTags=[40,51])   
+    z=ReadMesh(fname, diracPoints=[(0,0,1), (0.25,0.25, 0.25)], diracTags=[40,51])
     z=ReadMesh(fname, diracPoints=[(0.125,0.625,0), (0.5,1,1), (0.75, 0.25,0), (0.89, 0.875, 0.5)], diracTags=["A", "B", "A", "C"])
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
@@ -365,9 +384,7 @@ class Test_DiracOnFinley(unittest.TestCase):
       self.assertEqual(inf(v[1]), 0.5)
       self.assertEqual(inf(v[2]), -0.5)
     self.assertEqual(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
-    self.assertEqual(z.getTag("C"), 203)    
-
-
+    self.assertEqual(z.getTag("C"), 203)
 
   def test_rectReadGmsh(self):
     fname=os.path.join(FINLEY_TEST_MESH_PATH, 'rect_test.msh')

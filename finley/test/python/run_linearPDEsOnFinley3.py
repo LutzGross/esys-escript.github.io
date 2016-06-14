@@ -39,14 +39,9 @@ import os
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE, Test_Helmholtz, Test_LameEquation
-from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
-                            Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
-from test_pdetools import Test_pdetools, Test_pdetools_noLumping
-from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces, ReadMesh
-import sys
-
+from test_linearPDEs import Test_Helmholtz, Test_LameEquation, Test_Poisson
+from test_assemblage import Test_assemblage_2Do1_Contact, Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
+from esys.finley import Rectangle, ReadMesh
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -61,14 +56,15 @@ class Test_LameOnFinley(Test_LameEquation):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useElementsOnFace=0, useFullElementOrder=True)
+        self.domain = Rectangle(NE, NE, 2, useElementsOnFace=0, useFullElementOrder=True)
    def tearDown(self):
         del self.domain
+
 class Test_PoissonOnFinley(Test_Poisson):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useElementsOnFace=0,useFullElementOrder=True)
+        self.domain = Rectangle(NE, NE, 2, useElementsOnFace=0, useFullElementOrder=True)
    def tearDown(self):
         del self.domain
 
@@ -76,23 +72,15 @@ class Test_HelmholtzOnFinley(Test_Helmholtz):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useElementsOnFace=0,useFullElementOrder=True)
+        self.domain = Rectangle(NE, NE, 2, useElementsOnFace=0, useFullElementOrder=True)
    def tearDown(self):
         del self.domain
-
 
 class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do1_Contact.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do1_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -100,14 +88,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do2_Contact.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do2_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -115,14 +96,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do1_Contact.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do1_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -130,14 +104,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do2_Contact.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do2_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -146,14 +113,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1,useElementsOnFace=True)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=1,useElementsOnFace=True)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do1_Contact_withElementsOnFace.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do1_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
@@ -161,14 +121,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2,useElementsOnFace=True)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Rectangle(n0=int(NE/2),n1=NE,l0=0.5,order=2,useElementsOnFace=True)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do2_Contact_withElementsOnFace.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do2_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
@@ -176,14 +129,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do1_Contact_withElementsOnFace.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do1_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
@@ -191,14 +137,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-       # d1 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-       # x1 = ContinuousFunction(d1).getX()
-       # ContinuousFunction(d1).setTags(1,Scalar(1,ContinuousFunction(d1)))
-       # d2 = Brick(n0=int(NE/2),n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-       # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
-       # d2.setX(d2.getX()+[0.5,0.,0.])
-       # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do2_Contact_withElementsOnFace.fly"))
+       self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do2_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 

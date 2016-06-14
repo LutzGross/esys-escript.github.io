@@ -38,7 +38,7 @@ NE=10 # number of element in each spatial direction (must be even)
 # trilinos and paso are different
 TOL = 1.e-7 if hasFeature('paso') else 5.e-7
 
-class Test_LinearPDEOnFinleyHex3DOrder2_part2(Test_pdetools):
+class Test_PDEToolsOnFinleyHex3DOrder2(Test_pdetools):
    RES_TOL=TOL
    ABS_TOL=1.e-8
    def setUp(self):

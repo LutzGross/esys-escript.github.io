@@ -26,21 +26,15 @@ __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-import tempfile
-      
-
-
-VERBOSE=False  and True
 
 from esys.escript import *
 from esys.escript.models import DarcyFlow
 from esys.finley import Rectangle, Brick
 
-from math import pi
-import numpy
-import sys
 import os
-#====================================================================================================================
+
+VERBOSE=False
+
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
 except KeyError:
@@ -312,7 +306,7 @@ class Darcy2D(Darcy): #subclassing required
     WIDTH=1.
     SOLVER=DarcyFlow.POST
     def setUp(self):
-        NE=40  # wrning smaller NE may case a failure for VarioF tests due to discretization errors.
+        NE=40  # warning: smaller NE may case a failure for VarioF tests due to discretization errors.
         self.dom = Rectangle(NE,NE)
         self.rescaleDomain()
     def tearDown(self):
@@ -334,7 +328,7 @@ class Darcy3D(Darcy): #subclassing required
     WIDTH=1.
     SOLVER=DarcyFlow.POST
     def setUp(self):
-        NE=29  # wrning smaller NE may case a failure for VarioF tests due to discretization errors.
+        NE=29  # warning: smaller NE may case a failure for VarioF tests due to discretization errors.
         self.dom = Brick(NE,NE,NE)
         self.rescaleDomain()
     def tearDown(self):

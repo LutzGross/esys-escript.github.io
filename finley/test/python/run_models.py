@@ -25,24 +25,17 @@ __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-      
+
 VERBOSE = False
 
 from esys.escript import *
-from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem
-from esys.escript.models import Mountains
+from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, Mountains
 from esys.finley import Rectangle, Brick
 
 from math import pi
-import numpy, os, sys, tempfile
-#======================================================================
-try:
-     FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
-except KeyError:
-     FINLEY_WORKDIR='.'
+import numpy
 
-#======================================================================
-class Test_StokesProblemCartesian2D(unittest.TestCase):
+class Test_StokesProblemCartesianOnFinley2D(unittest.TestCase):
    def setUp(self):
        NE=6
        self.TOL=1e-3
@@ -59,15 +52,15 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
               +whereZero(x[0]-1)  * [1.,1.] \
               +whereZero(x[1])    * [1.,0.] \
               +whereZero(x[1]-1)  * [1.,1.]
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0*mask,p0,verbose=VERBOSE,max_iter=100,usePCG=True)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(p+P1*x[0]*x[1])
@@ -85,9 +78,9 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
               +whereZero(x[0]-1)  * [1.,1.] \
               +whereZero(x[1])    * [1.,0.] \
               +whereZero(x[1]-1)  * [1.,1.]
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
@@ -110,16 +103,16 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
               +whereZero(x[0]-1)  * [1.,1.] \
               +whereZero(x[1])    * [1.,0.] \
               +whereZero(x[1]-1)  * [1.,1.]
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=True)
        # u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=True)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)/P1
@@ -137,15 +130,15 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
               +whereZero(x[0]-1)  * [1.,1.] \
               +whereZero(x[1])    * [1.,0.] \
               +whereZero(x[1]-1)  * [1.,1.]
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=50,usePCG=False,iter_restart=18)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)
@@ -163,15 +156,15 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
               +whereZero(x[0]-1)  * [1.,1.] \
               +whereZero(x[1])    * [1.,0.] \
               +whereZero(x[1]-1)  * [1.,1.]
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=20,usePCG=False)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)
@@ -190,23 +183,23 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
               +whereZero(x[0]-1)  * [1.,1.] \
               +whereZero(x[1])    * [1.,0.] \
               +whereZero(x[1]-1)  * [1.,1.]
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*[0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=False)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])/0.25
        error_p=Lsup(P1*x[0]*x[1]+p)/P1
        self.assertTrue(error_p<10*self.TOL, "pressure error too large.")
        self.assertTrue(error_v0<10*self.TOL, "0-velocity error too large.")
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
-#======================================================================
-class Test_StokesProblemCartesian3D(unittest.TestCase):
+
+class Test_StokesProblemCartesianOnFinley3D(unittest.TestCase):
    def setUp(self):
        NE=6
        self.TOL=1e-4
@@ -226,16 +219,15 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
-       
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE ,max_iter=100,usePCG=True)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
@@ -257,10 +249,9 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
-       
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
@@ -287,20 +278,19 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
-       
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE ,max_iter=100,usePCG=True)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
-       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)/P1 
+       error_p=Lsup(P1*x[0]*x[1]*x[2]+p)/P1
        self.assertTrue(error_p<10*self.TOL, "pressure error too large.")
        self.assertTrue(error_v0<10*self.TOL, "0-velocity error too large.")
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
@@ -319,16 +309,15 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
-       
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=False,iter_restart=20)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
@@ -349,16 +338,15 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
-       
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL/10)
        u,p=sp.solve(u0,p0, verbose=VERBOSE,max_iter=100,usePCG=False)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
@@ -379,16 +367,15 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
               +whereZero(x[1]-1)  * [1.,1.,1.] \
               +whereZero(x[2])    * [1.,1.,0.] \
               +whereZero(x[2]-1)  * [1.,1.,1.]
-       
-       
+
        sp=StokesProblemCartesian(self.domain)
-       
+
        sp.initialize(f=F,fixed_u_mask=mask,eta=ETA)
        u0=(1-x[0])*x[0]*(1-x[1])*x[1]*[0.,0.,1.]
        p0=Scalar(-P1,ReducedSolution(self.domain))
        sp.setTolerance(self.TOL)
        u,p=sp.solve(u0,p0, verbose=VERBOSE ,max_iter=100,usePCG=False)
-       
+
        error_v0=Lsup(u[0]-u0[0])
        error_v1=Lsup(u[1]-u0[1])
        error_v2=Lsup(u[2]-u0[2])/0.25**2
@@ -397,9 +384,8 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        self.assertTrue(error_v0<10*self.TOL, "0-velocity error too large.")
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
        self.assertTrue(error_v2<10*self.TOL, "2-velocity error too large.")
-#======================================================================
 
-class Test_Mountains3D(unittest.TestCase):
+class Test_MountainsOnFinley3D(unittest.TestCase):
    def setUp(self):
        NE=16
        self.TOL=1e-4
@@ -424,11 +410,11 @@ class Test_Mountains3D(unittest.TestCase):
        mts=Mountains(self.domain,eps=EPS)
        mts.setVelocity(v)
        Z=mts.update()
-       
+
        error_int=abs(integrate(Z*whereZero(FunctionOnBoundary(self.domain).getX()[2]-1.)))
        self.assertTrue(error_int<self.TOL, "Boundary intergral is too large.")
 
-class Test_Mountains2D(unittest.TestCase):
+class Test_MountainsOnFinley2D(unittest.TestCase):
    def setUp(self):
        NE=16
        self.TOL=1e-4
@@ -446,18 +432,16 @@ class Test_Mountains2D(unittest.TestCase):
        a1=-(a0*n0)/n1
        v[0]=a0*sin(pi*n0*x[0])* cos(pi*n1*x[1])
        v[1]=a1*cos(pi*n0*x[0])* sin(pi*n1*x[1])
-       
+
        H_t=Scalar(0.0, Solution(self.domain))
        mts=Mountains(self.domain,eps=EPS)
        mts.setVelocity(v)
        Z=mts.update()
-       
+
        error_int=abs(integrate(Z*whereZero(FunctionOnBoundary(self.domain).getX()[1]-1.)))
        self.assertTrue(error_int<self.TOL, "Boundary intergral is too large.")
-       
 
-
-class Test_Rheologies(unittest.TestCase):
+class Test_RheologiesOnFinley(unittest.TestCase):
      """
      this is the program used to generate the powerlaw tests:
 
@@ -541,7 +525,7 @@ class Test_Rheologies(unittest.TestCase):
          self.assertTrue(eta>=0,"eta needs to be positive (test %s)"%id)
          error=abs(gamma_dot_*eta-tau_ref)
          self.assertTrue(error<=self.TOL*tau_ref,"eta is wrong: error = gamma_dot_*eta-tau_ref = %s * %s - %s = %s (test %s)"%(gamma_dot_,eta,tau_ref,error,id))
-        
+
      def test_PowerLaw_Linear(self):
          taus= [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
          gamma_dot_s=[0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0]
@@ -550,7 +534,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setPowerLaw(eta_N=2.)
          pl.setEtaTolerance(self.TOL)
          for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
-        
+
      def test_PowerLaw_QuadLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
          gamma_dot_s=[0.0, 405.0, 1610.0, 3615.0, 6420.0, 10025.0, 14430.0, 19635.0, 25640.0, 32445.0, 40050.0, 44055.0, 48060.0, 52065.0, 56070.0, 60075.0]
@@ -637,7 +621,7 @@ class Test_Rheologies(unittest.TestCase):
          self.assertRaises(ValueError, pl.getEtaEff,gamma_dot_s[0])
          for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
 
-class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
+class Test_IncompressibleIsotropicFlowCartesianOnFinley(unittest.TestCase):
    TOL=1.e-5
    VERBOSE=False # or True
    A=1.
@@ -654,8 +638,8 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
    eta_2=400.
    N_1=2.
    N_2=3.
-   def getReference(self, t):
 
+   def getReference(self, t):
       B=self.tau_Y/sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)
       x=self.dom.getX()
 
@@ -708,7 +692,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
             else:
                v_mask[d]=whereZero(x[d])
       mod.setExternals(F=BF,fixed_v_mask=v_mask)
-       
+
       n=self.dom.getNormal()
       N_t=0
       errors=[]
@@ -734,6 +718,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
          self.assertTrue( error_v <= 10*self.TOL, "time step %s: velocity error %s too high."%(N_t,error_v) )
          self.assertTrue( error_t <= 10*self.TOL, "time step %s: time marker error %s too high."%(N_t,error_t) )
          self.assertTrue( error_s <= 10*self.TOL, "time step %s: stress error %s too high."%(N_t,error_s) )
+
    def tearDown(self):
         del self.dom
 
@@ -819,8 +804,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
        self.latestart=False
        self.runIt(free=0)
 
-
-class Test_FaultSystem(unittest.TestCase):
+class Test_FaultSystemOnFinley(unittest.TestCase):
    EPS=1.e-8
    NE=10
    def test_Fault_MaxValue(self):
@@ -912,7 +896,6 @@ class Test_FaultSystem(unittest.TestCase):
       self.assertTrue(  t == 1, "wrong min tag")
       self.assertTrue(  abs(l-0.70710678118654) <= self.EPS,  "wrong min location")
 
-      
    def test_Fault2D(self):
       f=FaultSystem(dim=2)
       top1=[ [1.,0.], [1.,1.], [0.,1.] ]
@@ -1251,7 +1234,7 @@ class Test_FaultSystem(unittest.TestCase):
       self.assertTrue( isinstance(sn[1], numpy.ndarray), "wrong class of bottom vertex 0")
       self.assertTrue( numpy.linalg.norm(sn[1]-[0.,0.70710678118654746,0.70710678118654746]) < self.EPS, "wrong bottom vertex 1 ")
       dv=f.getDepthVectors(1)
-      self.assertTrue( len(dv) == 3, "wrong number of depth vectors.") 
+      self.assertTrue( len(dv) == 3, "wrong number of depth vectors.")
       self.assertTrue( isinstance(dv[0], numpy.ndarray), "wrong class of depth vector 0")
       self.assertTrue( numpy.linalg.norm(dv[0]-[14.142135623730951, 0., -14.142135623730951]) < self.EPS, "wrong depth vector 0 ")
       self.assertTrue( isinstance(dv[1], numpy.ndarray), "wrong class of depth vector 1")
@@ -1423,7 +1406,6 @@ class Test_FaultSystem(unittest.TestCase):
       self.assertTrue( s<0, "wrong side.")
       self.assertTrue( abs(d-1.)<self.EPS, "wrong distance.")
 
-    
       s,d=f.getSideAndDistance([0.,0.,0.], tag=2)
       self.assertTrue( s<0, "wrong side.")
       self.assertTrue( abs(d-10.)<self.EPS, "wrong distance.")
