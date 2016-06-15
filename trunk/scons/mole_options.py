@@ -14,15 +14,10 @@
 #
 ##############################################################################
 
-escript_opts_version = 203
+from templates.macports_options import *
 
-cxx_extra = '-std=c++11'
-boost_prefix = '/opt/local'
-boost_libs = ['boost_python-mt']
-cppunit_prefix = '/opt/local'
-cppunit_libs = ['cppunit']
-netcdf = True
-netcdf_prefix = '/opt/local'
-netcdf_libs = ['netcdf_c++', 'netcdf']
-tools_names = ['clang']
+pythoncmd = 'python3'
+boost_libs = ['boost_python3']
+silo_prefix = '/opt/local'
+silo_libs = ['siloh5']
 

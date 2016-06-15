@@ -18,7 +18,6 @@
 # Refer to README_FIRST for usage instructions.
 
 escript_opts_version = 203
-cxx_extra = '-std=c++11'
 openmp = True
 boost_prefix = '/opt/local'
 cppunit_prefix = '/opt/local'
