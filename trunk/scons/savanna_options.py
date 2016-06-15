@@ -23,7 +23,7 @@ except:
 
 escript_opts_version = 203
 
-cxx_extra = '-sox -I/sw/pymodules/2.7/scipy-0.15.1-haswell/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-sox -I/sw/pymodules/3.5/scipy-0.17.1-haswell/lib/python3.5/site-packages/numpy-1.11.0-py3.5-linux-x86_64.egg/numpy/core/include'
 
 ld_extra = '-ipo-separate -shared-intel -L/sw/libs/hdf5/1.8.14/lib'
 ld_extra += ' -wd11021 '  #silence icpc warnings about symbols ipo can't see
@@ -32,14 +32,16 @@ werror = False
 verbose = True
 openmp = True
 
+pythoncmd = "python3"
+
 mpi = 'INTELMPI'
 mpi_prefix = '/sw/intel/impi/5.1.1.109/intel64'
 #cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
 cuda_prefix = ['/sw/libs/cuda/7.5/include', '/sw/libs/cuda/7.5/lib64']
 
-boost_prefix = '/sw/libs/boost/1.57.0'
-boost_libs = ['boost_python']
+boost_prefix = '/sw/libs/boost/1.61.0'
+boost_libs = ['boost_python3']
 cppunit_prefix = '/sw/libs/cppunit/1.13.2'
 netcdf = True
 netcdf_prefix = '/sw/libs/netcdf/4.1.3'
@@ -49,7 +51,7 @@ parmetis_prefix = '/sw/libs/parmetis/4.0.3-impi'
 parmetis_libs = ['parmetis']
 
 mkl = True
-_mklroot='/sw/intel/compilers_and_libraries_2016.0.109/linux/mkl'
+_mklroot='/sw/intel/compilers_and_libraries_2016.1.150/linux/mkl'
 mkl_prefix = ['%s/include'%_mklroot, '%s/lib/intel64'%_mklroot]
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 #boomeramg = True
@@ -68,7 +70,7 @@ postlaunch = ""
 
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2016.0.109'})]
+tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2016.1.150'})]
 
 # uncomment the following four options to build with mpt (check modules!)
 #build_dir = 'buildmpt'
