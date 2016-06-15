@@ -16,9 +16,8 @@
 
 from guineapig_options import *
 
-pythoncmd = 'python3'
-boost_libs = boost_py3_libs
+pythoncmd = 'python'
+boost_libs = boost_py2_libs
 
-# This seemed as good a place as any to test this
-cxx_extra += '-Wextra -Wno-unused-parameter -DEXWRITECHK'
+cxx_extra += " -DEXWRITECHK"
 

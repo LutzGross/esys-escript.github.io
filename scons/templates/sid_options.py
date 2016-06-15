@@ -56,6 +56,7 @@ for name in spath:
 boost_libs = [p2name[3:-3]]
 
 # this can be used by options files importing us
+boost_py2_libs = [p2name[3:-3]]
 boost_py3_libs = [p3name[3:-3]]
 
 from site_init import getdebbuildflags
