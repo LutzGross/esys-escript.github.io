@@ -20,4 +20,6 @@ pythoncmd = 'python3'
 boost_libs = ['boost_python3']
 silo_prefix = '/opt/local'
 silo_libs = ['siloh5']
+trilinos = True
+trilinos_prefix = '/opt/local'
 
