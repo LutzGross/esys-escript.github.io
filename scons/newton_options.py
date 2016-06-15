@@ -14,9 +14,8 @@
 #
 ##############################################################################
 
-from templates.sid_options import *
+from templates.sid_py3_options import *
 
-openmp = 0
 umfpack = True
 silo = True
 
