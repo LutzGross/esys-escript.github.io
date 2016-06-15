@@ -640,7 +640,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_RILU(SimpleSolveOrder2)
 
 ### PCG + ILUT
 
-class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
+class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
