@@ -239,7 +239,7 @@ if env['cxx'] != 'default':
     env['CXX'] = env['cxx']
 
 # default compiler/linker options
-cc_flags = ''
+cc_flags = '-std=c++11'
 cc_optim = ''
 cc_debug = ''
 omp_flags = ''
