@@ -14,18 +14,17 @@
 #
 ##############################################################################
 
-from templates.sid_options import *
+from templates.sid_py3_mpi_options import *
 
 # disabled until the boost issue is fixed.
 #cuda = True
 nvccflags = "-ccbin=g++-4.9 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
-mpi = 'OPENMPI'
 parmetis = True
 umfpack = True
 silo = True
-#trilinos = True
+trilinos = True
 trilinos_prefix = '/opt/trilinos_hybrid_eti'
-cxx_extra += " -Wno-deprecated-declarations "
+cxx_extra += " -Wextra -Wno-deprecated-declarations -Wno-unused-parameter"
 launcher = "mpirun ${AGENTOVERRIDE} ${EE} --host %h --map-by node:pe=%t -bind-to none -np %N %b"
 
