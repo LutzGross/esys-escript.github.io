@@ -14,6 +14,8 @@
 #
 ##############################################################################
 
+from templates.sid_py3_mpi_options import *
+
 escript_opts_version = 203
 #cuda = True
 cc_optim = '-O3 -march=native'
@@ -25,28 +27,16 @@ nvccflags = "-arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 #debug = True
 #ld_extra = '-fsanitize=address'
 verbose = True
-openmp = True
-mpi = 'OPENMPI'
-mpi_prefix = '/usr/lib/openmpi'
-mpi_libs = ['mpi_cxx', 'mpi']
-boost_libs = ['libboost_python-py27']
-netcdf = True
 parmetis = True
 trilinos = True
 trilinos_prefix = '/opt/trilinos'
-#papi = True
-#papi_prefix = '/usr/local'
-#papi_libs = ['papi']
-#papi_instrument_solver = True
 umfpack = True
-umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 silo = True
-silo_libs = ['siloh5']
 visit = False
 visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 #visit_libs = ['simV2']
+launcher = "mpirun ${AGENTOVERRIDE} ${EE} --host %h --map-by node:pe=%t -bind-to none -np %N %b"
 
 #longindices = True
 #cxx_extra += ' -Wconversion'
