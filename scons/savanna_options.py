@@ -14,10 +14,12 @@
 #
 ##############################################################################
 
+MKLROOT=None
 try:
     import os
     if not 'escript/dev-deps' in os.environ['LOADEDMODULES'].split(':'):
         print("WARNING: The escript/dev-deps module does not appear to be loaded!")
+    MKLROOT = os.environ['MKLROOT']
 except:
     pass
 
@@ -49,9 +51,11 @@ netcdf_libs = ['netcdf_c++', 'netcdf', 'hdf5']
 parmetis = True
 parmetis_prefix = '/sw/libs/parmetis/4.0.3-impi'
 parmetis_libs = ['parmetis']
+trilinos = True
+trilinos_prefix = '/sw/libs/trilinos/snapshot-hybrid-eti'
 
 mkl = True
-_mklroot='/sw/intel/compilers_and_libraries_2016.1.150/linux/mkl'
+_mklroot=MKLROOT or '/sw/intel/compilers_and_libraries_2016.1.150/linux/mkl'
 mkl_prefix = ['%s/include'%_mklroot, '%s/lib/intel64'%_mklroot]
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 #boomeramg = True
