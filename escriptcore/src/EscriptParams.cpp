@@ -101,6 +101,9 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_HAVE_BOOST_IO
     features.insert("unzip");
 #endif
+#ifdef ESYS_INDEXTYPE_LONG
+    features.insert("longindex");
+#endif
 
     //TODO: these should be replaced by a runtime check in python
 #ifdef ESYS_HAVE_GMSH

@@ -36,6 +36,7 @@ from esys.ripley import MultiResolutionDomain
 from esys.escript.linearPDEs import SolverOptions
 
 HAVE_TRILINOS = hasFeature('trilinos')
+skip_muelu_long = hasFeature("longindex")
 
 # number of elements in the spatial directions
 NE0=10
@@ -83,6 +84,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly)
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
+    SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS
@@ -186,6 +188,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
 
 ### LSQR + AMG
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -198,6 +201,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveSingleOnly):
 
 ### PCG + AMG
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -209,6 +213,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
         del self.domain
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes3D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)

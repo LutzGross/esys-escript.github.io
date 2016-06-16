@@ -36,6 +36,7 @@ from esys.escript import hasFeature, SolverOptions
 from esys.escript.linearPDEs import SolverOptions
 
 HAVE_TRILINOS = hasFeature('trilinos')
+skip_muelu_long = hasFeature("longindex")
 
 # number of elements in the spatial directions
 NE0=12
@@ -165,6 +166,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOnTri
 
 ### PCG + AMG
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
@@ -175,6 +177,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveDudleyBrick_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
@@ -209,6 +212,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_GaussSeidel(SimpleSolveOnTrilin
 
 ### MINRES + AMG
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
@@ -219,6 +223,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
