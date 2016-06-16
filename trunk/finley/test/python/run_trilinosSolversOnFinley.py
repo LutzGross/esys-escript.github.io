@@ -36,6 +36,7 @@ from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
 HAVE_TRILINOS = hasFeature('trilinos')
+skip_muelu_long = hasFeature("longindex")
 
 # number of elements in the spatial directions
 NE0=12
@@ -346,6 +347,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_GaussSeidel(SimpleSol
 
 ### PCG + AMG
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
@@ -356,6 +358,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
@@ -366,6 +369,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
@@ -376,6 +380,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_AMG(SimpleSolveSingleOnly)
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
@@ -430,6 +435,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_GaussSeidel(SimpleSolveO
 
 ### MINRES + AMG
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
@@ -440,6 +446,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_AMG(SimpleSolveSingleOnl
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
@@ -450,6 +457,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
@@ -460,6 +468,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_AMG(SimpleSolveSingleOn
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)

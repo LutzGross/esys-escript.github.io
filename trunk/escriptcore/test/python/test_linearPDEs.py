@@ -39,8 +39,9 @@ import esys.escriptcore.utestselect as unittest
 
 mpisize = getMPISizeWorld()
 skip_amg = hasFeature("paso") and mpisize > 1
-# Trilinos MueLu does not work for block matrices yet
+# Trilinos MueLu does not work for block matrices or indextype long
 no_paso = not hasFeature("paso")
+skip_muelu_long = no_paso and hasFeature("longindex")
 
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
@@ -1752,6 +1753,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_PCG_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1822,6 +1824,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_BICGSTAB_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1868,12 +1871,13 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setNumSweeps(80)
+        mypde.getSolverOptions().setNumSweeps(150)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_MINRES_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1926,6 +1930,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_TFQMR_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1978,6 +1983,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_PRES20_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2032,6 +2038,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_GMRESnoRestart_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2088,6 +2095,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_GMRES_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2144,6 +2152,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_GMRES_truncation_restart_AMG(self):
         if self.order!=2:
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -2263,6 +2272,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     @unittest.skipIf(no_paso, "MueLu not compatible with Block matrices yet")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_PCG_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2356,6 +2366,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     @unittest.skipIf(no_paso, "MueLu not compatible with Block matrices yet")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_BICGSTAB_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2421,6 +2432,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     @unittest.skipIf(no_paso, "MueLu not compatible with Block matrices yet")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_PRES20_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2486,6 +2498,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     @unittest.skipIf(no_paso, "MueLu not compatible with Block matrices yet")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_GMRESnoRestart_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2553,6 +2566,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     @unittest.skipIf(no_paso, "MueLu not compatible with Block matrices yet")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_GMRES_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
@@ -2622,6 +2636,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
     @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
     @unittest.skipIf(no_paso, "MueLu not compatible with Block matrices yet")
+    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
     def test_GMRES_truncation_restart_AMG_System(self):
         if self.order!=2:
             A=Tensor4(0.,Function(self.domain))
