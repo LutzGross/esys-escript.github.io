@@ -19,6 +19,10 @@
 
 #include <escript/DataTypes.h>
 
+#ifndef ESYS_MPI
+#include <escript/EsysMPI.h> // for MPI_Comm typedef
+#include <Teuchos_DefaultComm.hpp>
+#endif
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_RowMatrix.hpp>
 
@@ -75,7 +79,7 @@ Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
 #ifdef ESYS_MPI
     return Teuchos::rcp(new Teuchos::MpiComm<int>(comm));
 #else
-    return Teuchos::DefaultComm<int>::getDefaultSerialComm(NULL);
+    return Teuchos::DefaultComm<int>::getComm();
 #endif
 }
 
