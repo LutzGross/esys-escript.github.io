@@ -424,12 +424,15 @@ if HAVE_FINLEY:
     mt2d.MT_2D._solver = "DIRECT"
     mt2d.MT_2D._debug   = False
 
-    if mt2d.MT_2D._solver == "DIRECT" and escript.getMPISizeWorld() > 1:
-        print("Direct solvers and multiple MPI processes are not currently supported")
+    if mt2d.MT_2D._solver == "DIRECT" and not escript.hasFeature('paso'):
+        print("Trilinos direct solvers cannot currently handle PDE systems. Please compile with Paso.")
     elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
-        print("escript was not built with support for direct solvers, aborting")
+        if escript.getMPISizeWorld() > 1:
+            print("Direct solvers and multiple MPI processes are not currently supported.")
+        else:
+            print("escript was not built with support for direct solvers, aborting.")
     elif not escript.hasFeature('gmsh'):
-        print("This example requires gmsh")
+        print("This example requires gmsh, aborting.")
     else:
         # Instantiate an MT_2D object with required & optional parameters:
         obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
