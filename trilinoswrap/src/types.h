@@ -72,7 +72,11 @@ typedef BlockVectorType<cplx_t> ComplexBlockVector;
 inline
 Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
 {
+#ifdef ESYS_MPI
     return Teuchos::rcp(new Teuchos::MpiComm<int>(comm));
+#else
+    return Teuchos::DefaultComm<int>::getDefaultSerialComm(NULL);
+#endif
 }
 
 } // namespace esys_trilinos
