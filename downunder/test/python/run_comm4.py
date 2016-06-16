@@ -454,7 +454,6 @@ class Test_COMMEMI4(unittest.TestCase):
     @unittest.skipIf(not HAVE_FINLEY, "Test requires finley to be available")
     @unittest.skipIf(not HAVE_GMSH, "Test requires gmsh to be available")
     @unittest.skipIf(not escript.getEscriptParamInt("PASO_DIRECT"), "Missing direct solvers")
-    @unittest.skipIf(escript.getMPISizeWorld() > 1, "Direct solvers and MPI are currently incompatible")
     def test_comm4(self):
         # ---
         # Initialisations

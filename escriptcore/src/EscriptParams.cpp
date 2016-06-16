@@ -125,7 +125,7 @@ int EscriptParams::getInt(const std::string& name, int sentinel) const
         if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
             return false;
 #endif
-        return hasFeature("umfpack") || hasFeature("mkl");
+        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl"));
     }
 
     if (name == "AUTOLAZY")
