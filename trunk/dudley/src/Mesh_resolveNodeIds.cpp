@@ -77,10 +77,8 @@ void DudleyDomain::resolveNodeIds()
 #pragma omp parallel for
     for (index_t n = 0; n < newNumNodes; n++) {
 #ifdef BOUNDS_CHECK
-        if (newLocalToGlobalNodeLabels[n] >= len || newLocalToGlobalNodeLabels[n] < 0) {
-            printf("BOUNDS_CHECK %s %d n=%d\n", __FILE__, __LINE__, n);
-            exit(1);
-        }
+        ESYS_ASSERT(newLocalToGlobalNodeLabels[n] < len, "BOUNDS_CHECK");
+        ESYS_ASSERT(newLocalToGlobalNodeLabels[n] >= 0, "BOUNDS_CHECK");
 #endif
         globalToNewLocalNodeLabels[newLocalToGlobalNodeLabels[n]] = n;
         newLocalToGlobalNodeLabels[n] += min_id;

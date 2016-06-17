@@ -126,16 +126,8 @@ bool dropTree(index_t root, const Pattern* pattern, index_t* AssignedLevel,
                 const index_t itest = pattern->index[j];
                 if (AssignedLevel[itest] < 0) {
 #ifdef BOUNDS_CHECK
-                    if (itest < 0 || itest >= N) {
-                        printf("BOUNDS_CHECK %s %d itest=%d\n",
-                                __FILE__, __LINE__, itest);
-                        exit(1);
-                    }
-                    if (level_top < 0 || level_top >= N) {
-                        printf("BOUNDS_CHECK %s %d level_top=%d\n",
-                                __FILE__, __LINE__, level_top);
-                        exit(1);
-                    }
+                    ESYS_ASSERT(itest >= 0 && itest < N, "BOUNDS_CHECK: itest=" << itest << ", N=" << N);
+                    ESYS_ASSERT(level_top >= 0 && level_top < N, "BOUNDS_CHECK: level_top=" << level_top << ", N=" << N);
 #endif
                     AssignedLevel[itest] = nlvls;
                     VerticesInTree[level_top] = itest;
@@ -184,7 +176,7 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
     // create an ordering with increasing degree
     qsort(degAndIdx, (size_t)N, sizeof(DegreeAndIdx), comparDegreeAndIdx);
     index_t root = degAndIdx[0].idx;
-    dim_t numLabledVertices = 0;
+    dim_t numLabeledVertices = 0;
 
     while (root >= 0) {
         dim_t max_LevelWidth = N+1;
@@ -193,13 +185,10 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
                         &numLevels, firstVertexInLevel, max_LevelWidth, N)) {
             // find new maximum level width
             max_LevelWidth=0;
-            for (i=0; i<numLevels; ++i) {
 #ifdef BOUNDS_CHECK
-                if (i >= N+1) {
-                    printf("BOUNDS_CHECK %s %d i=%d N=%d\n", __FILE__,
-                            __LINE__, i, N); exit(1);
-                }
+            ESYS_ASSERT(numLevels <= N, "BOUNDS_CHECK: numLevels=" << numLevels << ", N=" << N);
 #endif
+            for (i = 0; i < numLevels; ++i) {
                 max_LevelWidth=std::max(max_LevelWidth, firstVertexInLevel[i+1]-firstVertexInLevel[i]);
             }
             // find a vertex in the last level which has minimum degree
@@ -215,21 +204,27 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
             }
             // save the vertices in the current tree
             numVerticesInTree=firstVertexInLevel[numLevels];
-            for (i=0;i<firstVertexInLevel[numLevels];++i) {
 #ifdef BOUNDS_CHECK
-                if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d firstVertexInLevel[numLevels]=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N, firstVertexInLevel[numLevels]); exit(1); }
+            ESYS_ASSERT(numLabeledVertices+firstVertexInLevel[numLevels] < N,
+                    "BOUNDS_CHECK: numLabeledVertices=" << numLabeledVertices
+                    << ", root=" << root << ", N=" << N
+                    << ", first[numLevels]=" << firstVertexInLevel[numLevels]);
 #endif
-                oldLabel[numLabledVertices+i]=VerticesInTree[i];
+            for (i = 0; i < firstVertexInLevel[numLevels]; ++i) {
+                oldLabel[numLabeledVertices+i]=VerticesInTree[i];
             }
         }
+#ifdef BOUNDS_CHECK
+            ESYS_ASSERT(numLabeledVertices+numVerticesInTree < N,
+                    "BOUNDS_CHECK: numLabeledVertices=" << numLabeledVertices
+                    << ", root=" << root << ", N=" << N
+                    << ", numVerticesInTree=" << numVerticesInTree);
+#endif
         // now the vertices in the current tree
         for (i=0; i<numVerticesInTree; ++i) {
-#ifdef BOUNDS_CHECK
-            if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N); exit(1); }
-#endif
-            oldToNew[oldLabel[numLabledVertices+i]]=numLabledVertices+i;
+            oldToNew[oldLabel[numLabeledVertices+i]]=numLabeledVertices+i;
         }
-        numLabledVertices+=numVerticesInTree;
+        numLabeledVertices+=numVerticesInTree;
         // new search for a vertex which is not labeled yet
         root=-1;
         for (i=0; i<N; ++i) {

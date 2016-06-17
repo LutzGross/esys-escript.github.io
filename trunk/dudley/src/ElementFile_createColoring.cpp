@@ -56,19 +56,10 @@ void ElementFile::createColoring(dim_t nNodes, const index_t* dofMap)
                 bool independent = true;
                 for (int i = 0; i < NN; i++) {
 #ifdef BOUNDS_CHECK
-                    if (Nodes[INDEX2(i, e, NN)] < 0 || Nodes[INDEX2(i, e, NN)] >= nNodes)
-                    {
-                        printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d Nodes[INDEX2...]=%d\n", __FILE__,
-                               __LINE__, i, e, NN, idRange.first, Nodes[INDEX2(i, e, NN)]);
-                        exit(1);
-                    }
-                    if ((dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first) >= len
-                        || (dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first) < 0)
-                    {
-                        printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d dof=%d\n", __FILE__, __LINE__, i, e,
-                               NN, idRange.first, dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first);
-                        exit(1);
-                    }
+                    ESYS_ASSERT(Nodes[INDEX2(i, e, NN)] >= 0, "BOUNDS_CHECK");
+                    ESYS_ASSERT(Nodes[INDEX2(i, e, NN)] < nNodes, "BOUNDS_CHECK");
+                    ESYS_ASSERT(dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first < len, "BOUNDS_CHECK");
+                    ESYS_ASSERT(dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first >= 0, "BOUNDS_CHECK");
 #endif
                     if (maskDOF[dofMap[Nodes[INDEX2(i, e, NN)]] - idRange.first] > 0)
                     {
