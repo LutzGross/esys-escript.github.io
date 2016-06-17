@@ -37,7 +37,7 @@ openmp = True
 pythoncmd = "python3"
 
 mpi = 'INTELMPI'
-mpi_prefix = '/sw/intel/impi/5.1.1.109/intel64'
+mpi_prefix = '/sw/intel/impi/5.1.2.150/intel64'
 #cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
 cuda_prefix = ['/sw/libs/cuda/7.5/include', '/sw/libs/cuda/7.5/lib64']

@@ -55,13 +55,8 @@ void DudleyDomain::distributeByRankOfDOF(const std::vector<index_t>& dofDistribu
 #pragma omp parallel for
     for (index_t n = 0; n < m_nodes->getNumNodes(); n++) {
 #ifdef BOUNDS_CHECK
-        if ((m_nodes->globalDegreesOfFreedom[n] - dofRange.first) >= len
-            || (m_nodes->globalDegreesOfFreedom[n] - dofRange.first) < 0) {
-            printf("BOUNDS_CHECK %s:%d, n=%d, gDOF[n]=%d, min_id=%d, len=%d\n",
-                   __FILE__, __LINE__, n, m_nodes->globalDegreesOfFreedom[n],
-                   dofRange.first, len);
-            exit(1);
-        }
+        ESYS_ASSERT(m_nodes->globalDegreesOfFreedom[n] - dofRange.first < len, "BOUNDS_CHECK");
+        ESYS_ASSERT(m_nodes->globalDegreesOfFreedom[n] - dofRange.first >= 0, "BOUNDS_CHECK");
 #endif
         localDOF_mask[m_nodes->globalDegreesOfFreedom[n] - dofRange.first] = n;
     }

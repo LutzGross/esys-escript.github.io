@@ -77,8 +77,9 @@ void NodeFile::createDOFMappingAndCoupling()
     index_t* shared = new index_t[numNodes * (p_max - p_min + 1)];
     index_t* locDOFMask = new index_t[len_loc_dof];
     index_t* nodeMask = new index_t[numNodes];
-
-    ESYS_ASSERT(myLastDOF-min_DOF <= len_loc_dof, "out of bounds!");
+#ifdef BOUNDS_CHECK
+    ESYS_ASSERT(myLastDOF-min_DOF <= len_loc_dof, "BOUNDS_CHECK");
+#endif
 
 #pragma omp parallel
     {
@@ -93,10 +94,7 @@ void NodeFile::createDOFMappingAndCoupling()
             const index_t k = globalDegreesOfFreedom[i];
             if (k > -1) {
 #ifdef BOUNDS_CHECK
-                if ((k - min_DOF) >= len_loc_dof) {
-                    printf("BOUNDS_CHECK %s %d i=%d k=%d min_DOF=%d\n", __FILE__, __LINE__, i, k, min_DOF);
-                    exit(1);
-                }
+                ESYS_ASSERT(k-min_DOF < len_loc_dof, "BOUNDS_CHECK");
 #endif
                 locDOFMask[k - min_DOF] = UNUSED - 1;
             }
@@ -120,10 +118,7 @@ void NodeFile::createDOFMappingAndCoupling()
             const index_t firstDOF = std::max(min_DOF, dofDistribution->first_component[p]);
             const index_t lastDOF = std::min(max_DOF + 1, dofDistribution->first_component[p + 1]);
 #ifdef BOUNDS_CHECK
-            if (lastDOF-min_DOF > len_loc_dof) {
-                printf("BOUNDS_CHECK %s %d p=%d\n", __FILE__, __LINE__, p);
-                exit(1);
-            }
+            ESYS_ASSERT(lastDOF-min_DOF <= len_loc_dof, "BOUNDS_CHECK");
 #endif
             for (index_t i = firstDOF - min_DOF; i < lastDOF - min_DOF; ++i) {
                 if (locDOFMask[i] == UNUSED - 1) {
@@ -155,10 +150,7 @@ void NodeFile::createDOFMappingAndCoupling()
 
     // define how to get DOF values for controlled but other processors
 #ifdef BOUNDS_CHECK
-    if (numNodes && offsetInShared.back() >= numNodes * (p_max - p_min + 1)) {
-        printf("BOUNDS_CHECK %s %d\n", __FILE__, __LINE__);
-        exit(1);
-    }
+    ESYS_ASSERT(numNodes == 0 || offsetInShared.back() < numNodes * (p_max - p_min + 1), "BOUNDS_CHECK");
 #endif
 #pragma omp parallel for
     for (index_t i = 0; i < lastn; ++i)
