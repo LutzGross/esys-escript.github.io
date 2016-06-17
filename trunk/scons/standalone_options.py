@@ -14,24 +14,6 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript/finley on Linux.
-# Copy this file to <hostname>_options.py, where <hostname> is your machine's
-# short hostname, then customize to your needs.
-
-# PREFIXES:
-# There are two ways to specify where to find dependent headers and libraries
-# (via the <dependency>_prefix):
-# 1) If your installation follows the general scheme where headers are located
-#    in <prefix>/include[32,64], and libraries in <prefix>/lib[32,64] then
-#    it is sufficient to specify this prefix, e.g. boost_prefix='/usr'
-# 2) Otherwise provide a list with two elements, where the first one is the
-#    include path, and the second the library path, e.g.
-#    boost_prefix=['/usr/include/boost1_44', '/usr/lib']
-# All <dependency>_prefix settings default to '/usr'
-
-# The options file version. SCons will refuse to build if there have been
-# changes to the set of variables and your file has not been updated.
-# This setting is mandatory.
 escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
@@ -237,7 +219,7 @@ netcdf_prefix = ['../pkg/netcdf/include/', '../pkg/netcdf/lib/']
 
 #iknowwhatimdoing = False
 
-#forcelazy = 'leave_alone'
+#forcelazy = 'auto'
 
-#forcecollres = 'leave_alone'
+#forcecollres = 'auto'
 
