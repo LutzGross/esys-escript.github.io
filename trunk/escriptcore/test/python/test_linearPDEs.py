@@ -560,7 +560,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.")
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
-        if hasFeature('paso') and not getEscriptParamInt('PASO_DIRECT'):
+        if not hasFeature('trilinos') and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1720,7 +1720,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnDirect(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if hasFeature('paso') and not getEscriptParamInt('PASO_DIRECT'):
+        if not hasFeature('trilinos') and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1790,7 +1790,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if hasFeature('paso') and not getEscriptParamInt('PASO_DIRECT'):
+        if not hasFeature('trilinos') and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2220,7 +2220,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if hasFeature('paso') and not getEscriptParamInt('PASO_DIRECT'):
+        if not hasFeature('trilinos') and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2314,7 +2314,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if hasFeature('paso') and not getEscriptParamInt('PASO_DIRECT'):
+        if not hasFeature('trilinos') and not getEscriptParamInt('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
