@@ -255,7 +255,7 @@ escript_opts_version = 202
 
 #iknowwhatimdoing = False
 
-#forcelazy = 'leave_alone'
+#forcelazy = 'auto'
 
-#forcecollres = 'leave_alone'
+#forcecollres = 'auto'
 

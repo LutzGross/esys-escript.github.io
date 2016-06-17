@@ -135,8 +135,8 @@ vars.AddVariables(
   # An option for specifying the compiler tools
   ('tools_names', 'Compiler tools to use', ['default']),
   ('env_export', 'Environment variables to be passed to tools',[]),
-  EnumVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
-  EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
+  TristateVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'auto'),
+  TristateVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'auto'),
   BoolVariable('build_shared', '(deprecated option, ignored)', True),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
@@ -306,15 +306,15 @@ if env['longindices']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
 
 # set up the autolazy values
-if env['forcelazy'] == 'on':
+if env['forcelazy'] == 1:
     env.Append(CPPDEFINES=['FAUTOLAZYON'])
-elif env['forcelazy'] == 'off':
+elif env['forcelazy'] == 0:
     env.Append(CPPDEFINES=['FAUTOLAZYOFF'])
 
 # set up the collective resolve values
-if env['forcecollres'] == 'on':
+if env['forcecollres'] == 1:
     env.Append(CPPDEFINES=['FRESCOLLECTON'])
-elif env['forcecollres'] == 'off':
+elif env['forcecollres'] == 0:
     env.Append(CPPDEFINES=['FRESCOLLECTOFF'])
 
 # allow non-standard C if requested

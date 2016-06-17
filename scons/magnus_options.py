@@ -239,7 +239,7 @@ env_export = os.environ.keys()
 
 #iknowwhatimdoing = False
 
-#forcelazy = 'leave_alone'
+#forcelazy = 'auto'
 
-#forcecollres = 'leave_alone'
+#forcecollres = 'auto'
 
