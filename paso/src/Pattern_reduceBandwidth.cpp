@@ -205,7 +205,7 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
             // save the vertices in the current tree
             numVerticesInTree=firstVertexInLevel[numLevels];
 #ifdef BOUNDS_CHECK
-            ESYS_ASSERT(numLabeledVertices+firstVertexInLevel[numLevels] < N,
+            ESYS_ASSERT(numLabeledVertices+firstVertexInLevel[numLevels] <= N,
                     "BOUNDS_CHECK: numLabeledVertices=" << numLabeledVertices
                     << ", root=" << root << ", N=" << N
                     << ", first[numLevels]=" << firstVertexInLevel[numLevels]);
@@ -215,7 +215,7 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
             }
         }
 #ifdef BOUNDS_CHECK
-            ESYS_ASSERT(numLabeledVertices+numVerticesInTree < N,
+            ESYS_ASSERT(numLabeledVertices+numVerticesInTree <= N,
                     "BOUNDS_CHECK: numLabeledVertices=" << numLabeledVertices
                     << ", root=" << root << ", N=" << N
                     << ", numVerticesInTree=" << numVerticesInTree);
