@@ -50,7 +50,7 @@ SolverBuddy::SolverBuddy() :
     tolerance(1e-8),
     absolute_tolerance(0.),
     inner_tolerance(0.9),
-    drop_tolerance(0.01),
+    drop_tolerance(0.0005),
     drop_storage(2.),
     iter_max(100000),
     inner_iter_max(10),

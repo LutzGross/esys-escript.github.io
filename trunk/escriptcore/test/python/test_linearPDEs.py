@@ -1846,7 +1846,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILUT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
