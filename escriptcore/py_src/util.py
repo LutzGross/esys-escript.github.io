@@ -46,6 +46,8 @@ import os
 import warnings
 import numpy
 warnings.simplefilter('default', category=DeprecationWarning)
+# suppress the following which comes from sympy with python 3.5
+warnings.filterwarnings('ignore', category=DeprecationWarning, message='inspect.getargspec.*')
 
 from . import escriptcpp as escore
 from .escriptcpp import C_GeneralTensorProduct, Data
