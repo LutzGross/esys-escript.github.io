@@ -452,7 +452,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setInnerTolerance(0.4)
         self.assertTrue(sb.getInnerTolerance() == 0.4, "InnerTolerance is wrong.")
 
-        self.assertTrue(sb.getDropTolerance() == 0.01, "initial DropTolerance is wrong.")
+        self.assertTrue(sb.getDropTolerance() == 0.0005, "initial DropTolerance is wrong.")
         self.assertRaises(ValueError,sb.setDropTolerance,-1)
         sb.setDropTolerance(0.5)
         self.assertTrue(sb.getDropTolerance() == 0.5, "DropDropTolerance is wrong.")
