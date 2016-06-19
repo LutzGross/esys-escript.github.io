@@ -811,8 +811,9 @@ class NonlinearPDE(object):
         res=ev.evaluate()
         if len(names)==1: res=[res]
         self.trace3("RHS expressions evaluated in %f seconds."%(time()-T0))
-        for i in range(len(names)):
-            self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        if self._debug > self.DEBUG2:
+            for i in range(len(names)):
+                self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         coeffs_f=dict(zip(names,res))
         #
 
@@ -948,7 +949,7 @@ class NonlinearPDE(object):
         """
         ev=symb.Evaluator()
         names=[]
-        for name in expressions:
+        for name in sorted(expressions):
             if name in self.__COEFFICIENTS:
                 ev.addExpression(expressions[name])
                 names.append(name)
@@ -960,8 +961,9 @@ class NonlinearPDE(object):
         res=ev.evaluate()
         if len(names)==1: res=[res]
         self.trace3("RHS expressions evaluated in %f seconds."%(time()-T0))
-        for i in range(len(names)):
-            self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        if self._debug > self.DEBUG2:
+            for i in range(len(names)):
+                self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         args=dict(zip(names,res))
         # reset coefficients may be set at previous calls:
         for n in self.__COEFFICIENTS:
@@ -975,7 +977,7 @@ class NonlinearPDE(object):
         """
         ev=symb.Evaluator()
         names=[]
-        for name in expressions:
+        for name in sorted(expressions):
             if not name in self.__COEFFICIENTS:
                 ev.addExpression(expressions[name])
                 names.append(name)
@@ -987,8 +989,9 @@ class NonlinearPDE(object):
         res=ev.evaluate()
         if len(names)==1: res=[res]
         self.trace3("Matrix expressions evaluated in %f seconds."%(time()-T0))
-        for i in range(len(names)):
-            self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        if self._debug > self.DEBUG2:
+            for i in range(len(names)):
+                self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         self._lpde.setValue(**dict(zip(names,res)))
 
     def _updateLinearPDE(self, expressions, subs, **constants):
