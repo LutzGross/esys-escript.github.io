@@ -1871,7 +1871,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setNumSweeps(150)
+        if not hasFeature('paso'):
+            mypde.getSolverOptions().setNumSweeps(350)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')

@@ -190,6 +190,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveSingleOnly):
+    SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
