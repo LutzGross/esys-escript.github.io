@@ -29,7 +29,7 @@ nvccflags = "-arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 verbose = True
 parmetis = True
 trilinos = True
-trilinos_prefix = '/opt/trilinos'
+trilinos_prefix = '/opt/trilinos_hybrid_eti'
 umfpack = True
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 silo = True

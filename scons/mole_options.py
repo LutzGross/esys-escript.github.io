@@ -17,7 +17,7 @@
 from templates.macports_options import *
 
 pythoncmd = 'python3'
-boost_libs = ['boost_python3']
+boost_libs = ['boost_python3-mt']
 silo_prefix = '/opt/local'
 silo_libs = ['siloh5']
 trilinos = True
