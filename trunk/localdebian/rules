@@ -121,23 +121,10 @@ override_dh_shlibdeps:
 
 	
 override_dh_python2:
-	dh_python2 --compile-all -ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename usr/lib/python-escript/esys
-	dh_python2 --compile-all -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python-escript-mpi/esys
+	dh_python2 -ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename usr/lib/python-escript/esys
+	dh_python2 -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python-escript-mpi/esys
 	
 override_dh_python3:
-	dh_python3 --compile-all -ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript/esys
-	dh_python3 --compile-all -ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript-mpi/esys
+	dh_python3 -ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript/esys
+	dh_python3 -ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript-mpi/esys
 
-	
-override_dh_gencontrol:
-	dh_gencontrol
-	# This is not strictly part of gencontrol
-	# it just needs to be somewhere around it
-	sed -i -e 's/#PACKAGE#/python-escript/' debian/python-escript/DEBIAN/prerm
-	sed -i -e 's/pyclean [^>]/pyclean -p python-escript /' debian/python-escript/DEBIAN/prerm
-	sed -i -e 's/#PACKAGE#/python-escript-mpi/' debian/python-escript-mpi/DEBIAN/prerm
-	sed -i -e 's/pyclean [^>]/pyclean -p python-escript-mpi /' debian/python-escript-mpi/DEBIAN/prerm
-	sed -i -e 's/#PACKAGE#/python-escript-mpi/' debian/python-escript-mpi/DEBIAN/prerm
-	sed -i -e 's/pyclean [^>]/pyclean -p python-escript-mpi /' debian/python-escript-mpi/DEBIAN/prerm
-	sed -i -e 's/#PACKAGE#/python3-escript-mpi/' debian/python3-escript-mpi/DEBIAN/prerm
-	sed -i -e 's/py3clean [^>]/py3clean -p python3-escript-mpi /' debian/python3-escript-mpi/DEBIAN/prerm

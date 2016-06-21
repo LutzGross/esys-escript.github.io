@@ -1,6 +1,17 @@
+python-escript (4.2.0.1-2) unstable; urgency=medium
+
+  [ Joel Fenwick ]
+  * [35b8cd4] Remove dud file + shorten copyright file
+
+  [ Anton Gladky ]
+  * [9f90d8c] Add libnetcdf-dev to build-depends. (Closes: #825874)
+  * [e75b88b] Add myself to uploaders.
+
+ -- Anton Gladky <gladk@debian.org>  Wed, 01 Jun 2016 21:21:46 +0200
+
 python-escript (4.2.0.1-1) unstable; urgency=low
   * First debian release of escript. (Closes: 783157)
- -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 30 May 2016 14:09:00 +1000
+ -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 04 Apr 2016 10:49:00 +1000
 
 Old Changelog:
 python-escript (4.1-1) experimental; urgency=low
