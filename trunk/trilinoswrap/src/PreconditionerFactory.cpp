@@ -20,7 +20,7 @@
 #include <escript/SolverOptions.h>
 
 #include <Ifpack2_Factory.hpp>
-#ifndef ESYS_INDEXTYPE_LONG
+#if 1 //ndef ESYS_INDEXTYPE_LONG
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 #endif
 
