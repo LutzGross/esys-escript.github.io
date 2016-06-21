@@ -36,7 +36,7 @@ from esys.escript import hasFeature, SolverOptions
 from esys.escript.linearPDEs import SolverOptions
 
 HAVE_TRILINOS = hasFeature('trilinos')
-skip_muelu_long = hasFeature("longindex")
+skip_muelu_long = False #hasFeature("longindex")
 
 # number of elements in the spatial directions
 NE0=12
