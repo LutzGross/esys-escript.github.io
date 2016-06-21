@@ -69,6 +69,7 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
             solver = factory.create("GMRES", solverParams);
             break;
         case escript::SO_METHOD_LSQR:
+            solverParams->set("Rel Mat Err", sb.getTolerance());
             solver = factory.create("LSQR", solverParams);
             break;
         case escript::SO_METHOD_MINRES:
