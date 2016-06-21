@@ -1,9 +1,9 @@
 Source: python-escript
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
-Uploaders: Joel Fenwick <j.oelpublic@gmail.com>
+Uploaders: Joel Fenwick <j.oelpublic@gmail.com>, Anton Gladky <gladk@debian.org>
 Section: science
 Priority: extra
-Build-Depends: python-all-dev (>= 2.6.6-3~),
+Build-Depends: python-all-dev,
                python3-all-dev,
                python-numpy,
                python3-numpy,
@@ -20,6 +20,7 @@ Build-Depends: python-all-dev (>= 2.6.6-3~),
                ghostscript,
                texlive-latex-extra,
                latex-xcolor,
+               lsb-release,
                libopenmpi-dev,
                openmpi-bin,
                debhelper (>= 9),
