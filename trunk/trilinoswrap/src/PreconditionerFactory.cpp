@@ -45,7 +45,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             break;
         case escript::SO_PRECONDITIONER_AMG:
             {
-#ifndef ESYS_INDEXTYPE_LONG
+#if 1 //ndef ESYS_INDEXTYPE_LONG
                 params->set("max levels", sb.getLevelMax());
                 params->set("number of equations", 1);
                 params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
