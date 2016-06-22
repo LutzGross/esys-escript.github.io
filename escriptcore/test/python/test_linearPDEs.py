@@ -41,7 +41,7 @@ mpisize = getMPISizeWorld()
 skip_amg = hasFeature("paso") and mpisize > 1
 # Trilinos MueLu does not work for block matrices or indextype long
 no_paso = not hasFeature("paso")
-skip_muelu_long = no_paso and hasFeature("longindex")
+skip_muelu_long = False #no_paso and hasFeature("longindex")
 
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
