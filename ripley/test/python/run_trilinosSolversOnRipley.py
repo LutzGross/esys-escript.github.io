@@ -57,14 +57,18 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
         break
 
 @unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
-class SimpleSolveSingleOnly(SimpleSolveTestCase):
+class SimpleSolveOnTrilinos(SimpleSolveTestCase):
+    pass
+
+@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
+class SimpleSolveSingleOnly(SimpleSolveOnTrilinos):
     @unittest.expectedFailure
     def test_system(self):
         return super(SimpleSolveSingleOnly, self).test_system()
 
 ### BiCGStab + Jacobi
 
-class Test_SimpleSolveRipley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -74,7 +78,7 @@ class Test_SimpleSolveRipley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -87,7 +91,7 @@ class Test_SimpleSolveRipley3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveSingleOnly):
 
 ### GMRES + Jacobi
 
-class Test_SimpleSolveRipley2D_Trilinos_GMRES_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -97,7 +101,7 @@ class Test_SimpleSolveRipley2D_Trilinos_GMRES_Jacobi(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Trilinos_GMRES_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley3D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS
@@ -109,7 +113,7 @@ class Test_SimpleSolveRipley3D_Trilinos_GMRES_Jacobi(SimpleSolveSingleOnly):
 
 ### PCG + Jacobi
 
-class Test_SimpleSolveRipley2D_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -119,7 +123,7 @@ class Test_SimpleSolveRipley2D_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley3D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS
@@ -131,7 +135,7 @@ class Test_SimpleSolveRipley3D_Trilinos_PCG_Jacobi(SimpleSolveSingleOnly):
 
 ### MINRES + Jacobi
 
-class Test_SimpleSolveRipley2D_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -141,7 +145,7 @@ class Test_SimpleSolveRipley2D_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley3D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS
@@ -153,7 +157,7 @@ class Test_SimpleSolveRipley3D_Trilinos_MINRES_Jacobi(SimpleSolveSingleOnly):
 
 ### TFQMR + RILU
 
-class Test_SimpleSolveRipley2D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -163,7 +167,7 @@ class Test_SimpleSolveRipley2D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveRipley3D_Trilinos_TFQMR_RILU(SimpleSolveSingleOnly):
+class Test_SimpleSolveRipley3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS

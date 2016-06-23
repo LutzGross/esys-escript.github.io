@@ -54,7 +54,7 @@ class SimpleSolveSingleOnly(SimpleSolveOnTrilinos):
     def test_system(self):
         return super(SimpleSolveSingleOnly, self).test_system()
 
-class SimpleSolveOrder2(SimpleSolveSingleOnly):
+class SimpleSolveOrder2(SimpleSolveTestCase):
     def _getGrad(self, system):
         """returns exact gradient"""
         dim = self.domain.getDim()
@@ -134,6 +134,12 @@ class SimpleSolveOrder2(SimpleSolveSingleOnly):
                 pde.setValue(Y=-20.)
             else:
                 pde.setValue(Y=-60.)
+
+@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
+class SimpleSolveOrder2SingleOnly(SimpleSolveOrder2):
+    @unittest.expectedFailure
+    def test_system(self):
+        return super(SimpleSolveOrder2SingleOnly, self).test_system()
 
 ### BiCGStab + Jacobi
 
@@ -360,7 +366,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2):
+class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2SingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -382,7 +388,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_AMG(SimpleSolveSingleOnly)
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2):
+class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_AMG(SimpleSolveOrder2SingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -448,7 +454,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_AMG(SimpleSolveSingleOnl
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2):
+class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2SingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -470,7 +476,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_AMG(SimpleSolveSingleOn
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2):
+class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_AMG(SimpleSolveOrder2SingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
