@@ -48,13 +48,12 @@ OPTIMIZE=True
 class SimpleSolveOnTrilinos(SimpleSolveTestCase):
     pass
 
-@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
 class SimpleSolveSingleOnly(SimpleSolveOnTrilinos):
     @unittest.expectedFailure
     def test_system(self):
         return super(SimpleSolveSingleOnly, self).test_system()
 
-class SimpleSolveOrder2(SimpleSolveTestCase):
+class SimpleSolveOrder2(SimpleSolveOnTrilinos):
     def _getGrad(self, system):
         """returns exact gradient"""
         dim = self.domain.getDim()
@@ -135,7 +134,6 @@ class SimpleSolveOrder2(SimpleSolveTestCase):
             else:
                 pde.setValue(Y=-60.)
 
-@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
 class SimpleSolveOrder2SingleOnly(SimpleSolveOrder2):
     @unittest.expectedFailure
     def test_system(self):
