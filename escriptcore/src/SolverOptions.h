@@ -32,7 +32,6 @@ SO_TARGET_GPU: use GPUs to solve system
 SO_PACKAGE_CUSP: CUDA sparse linear algebra package
 SO_PACKAGE_MKL: Intel's MKL solver library
 SO_PACKAGE_PASO: PASO solver package
-SO_PACKAGE_PASTIX: the Pastix direct solver_package
 SO_PACKAGE_SUPER_LU: the Super_LU solver package
 SO_PACKAGE_TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
 SO_PACKAGE_UMFPACK: The UMFPACK library
@@ -98,7 +97,6 @@ enum SolverOptions
     SO_PACKAGE_CUSP,
     SO_PACKAGE_MKL,
     SO_PACKAGE_PASO,
-    SO_PACKAGE_PASTIX,
     SO_PACKAGE_SUPER_LU,
     SO_PACKAGE_TRILINOS,
     SO_PACKAGE_UMFPACK,
@@ -351,7 +349,7 @@ public:
 
         \param package key of the solver package to be used, should be in
                `SO_DEFAULT`, `SO_PACKAGE_CUSP`, `SO_PACKAGE_PASO`,
-               `SO_PACKAGE_PASTIX`, `SO_PACKAGE_MKL`, `SO_PACKAGE_UMFPACK`,
+               `SO_PACKAGE_MKL`, `SO_PACKAGE_UMFPACK`,
                `SO_PACKAGE_SUPER_LU`, `SO_PACKAGE_TRILINOS`
 
         \note Not all packages are supported on all implementation.

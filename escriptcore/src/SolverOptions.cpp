@@ -188,7 +188,6 @@ const char* SolverBuddy::getName(int key) const
         case SO_PACKAGE_CUSP: return "CUSP";
         case SO_PACKAGE_MKL: return "MKL";
         case SO_PACKAGE_PASO: return "PASO";
-        case SO_PACKAGE_PASTIX: return "PASTIX";
         case SO_PACKAGE_SUPER_LU: return "SUPER_LU";
         case SO_PACKAGE_TRILINOS: return "TRILINOS";
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
@@ -481,9 +480,6 @@ void SolverBuddy::setSolverMethod(int method)
 #elif defined ESYS_HAVE_MKL
             this->method = meth;
             break;
-#elif defined PASTIX
-            this->method = meth;
-            break;
 #else
             throw ValueError("Cannot use DIRECT solver method, the running "
                     "escript was not compiled with a direct solver enabled");
@@ -524,7 +520,6 @@ void SolverBuddy::setPackage(int package)
         case SO_PACKAGE_CUSP:
         case SO_PACKAGE_MKL:
         case SO_PACKAGE_PASO:
-        case SO_PACKAGE_PASTIX:
         case SO_PACKAGE_SUPER_LU:
         case SO_PACKAGE_TRILINOS:
         case SO_PACKAGE_UMFPACK:
