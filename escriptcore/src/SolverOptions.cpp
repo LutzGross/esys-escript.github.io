@@ -470,13 +470,7 @@ void SolverBuddy::setSolverMethod(int method)
             this->method = meth;
             break;
         case SO_METHOD_DIRECT:
-#ifdef ESYS_HAVE_UMFPACK
-            this->method = meth;
-            break;
-#elif defined ESYS_HAVE_TRILINOS
-            this->method = meth;
-            break;
-#elif defined ESYS_HAVE_MKL
+#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
             this->method = meth;
             break;
 #else
