@@ -27,7 +27,7 @@ __all__ = ['AcousticWaveForm']
 
 from .base import ForwardModel
 from esys.downunder.coordinates import makeTransformation
-from esys.escript import Data, DiracDeltaFunctions, FunctionOnBoundary
+from esys.escript import Data, DiracDeltaFunctions, FunctionOnBoundary, hasFeature
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.util import *
 import numpy as np
