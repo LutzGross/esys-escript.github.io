@@ -53,7 +53,7 @@ mpisize = getMPISizeWorld()
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
 # only consider Paso since Trilinos direct solvers do not support PDE systems
-HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
+HAVE_DIRECT = hasFeature("PASO_DIRECT") #or hasFeature('trilinos')
 
 @unittest.skipUnless(HAVE_RIPLEY, "Ripley module not available")
 @unittest.skipUnless(HAVE_DIRECT, "more than 1 MPI rank or missing direct solver")
