@@ -548,8 +548,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getPackage() == so.CUSP, "CUSP is not set.")
         sb.setPackage(so.SUPER_LU)
         self.assertTrue(sb.getPackage() == so.SUPER_LU, "SUPER_LU is not set.")
-        sb.setPackage(so.PASTIX)
-        self.assertTrue(sb.getPackage() == so.PASTIX, "PASTIX is not set.")
         sb.setPackage(so.MKL)
         self.assertTrue(sb.getPackage() == so.MKL, "MKL is not set.")
         sb.setPackage(so.UMFPACK)

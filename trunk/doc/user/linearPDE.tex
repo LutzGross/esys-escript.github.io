@@ -565,7 +565,7 @@ The value of \var{package} must be one of the constants:\\
  \member{SolverOptions.CUSP} -- CUDA sparse linear algebra package\\
  \member{SolverOptions.MKL} -- Intel MKL direct solver\\
  \member{SolverOptions.PASO} -- built-in PASO solver library\\
- \member{SolverOptions.PASTIX} -- Pastix direct solver package\\
+ \member{SolverOptions.TRILINOS} -- Trilinos solver package\\
  \member{SolverOptions.SUPER_LU} -- Super LU solver package\\
  \member{SolverOptions.UMFPACK} -- direct solver from the UMFPACK library.\\
 Not all packages are supported on all implementations. An exception may be
@@ -988,8 +988,8 @@ mesh to minimize fill-in.
 the SuperLU library~\cite{SuperLU} is used as a solver.
 \end{memberdesc}
 
-\begin{memberdesc}[SolverOptions]{PASTIX}
-the Pastix library~\cite{PASTIX} is used as a solver.
+\begin{memberdesc}[SolverOptions]{TRILINOS}
+the Trilinos library~\cite{Trilinos} is used as a solver.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{NO_PRECONDITIONER}

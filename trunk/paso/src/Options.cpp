@@ -241,8 +241,6 @@ const char* Options::name(int key)
             return "DEFAULT_REORDERING";
        case PASO_SUPER_LU:
             return "SUPER_LU";
-       case PASO_PASTIX:
-            return "PASTIX";
        case PASO_YAIR_SHAPIRA_COARSENING:
             return "YAIR_SHAPIRA_COARSENING";
        case PASO_RUGE_STUEBEN_COARSENING:
@@ -379,8 +377,6 @@ int Options::getPackage(int solver, int pack, bool symmetry,
                     out = PASO_MKL;
 #elif defined ESYS_HAVE_UMFPACK
                     out = PASO_UMFPACK;
-#elif defined PASTIX
-                    out = PASO_PASTIX
 #endif
                 } else{
 #ifdef ESYS_HAVE_MKL
@@ -397,7 +393,6 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 
         case PASO_MKL:
         case PASO_UMFPACK:
-        case PASO_PASTIX:
         case PASO_TRILINOS:
             out = pack;
             break;
@@ -418,8 +413,6 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_MKL;
         case escript::SO_PACKAGE_PASO:
             return PASO_PASO;
-        case escript::SO_PACKAGE_PASTIX:
-            return PASO_PASTIX;
         case escript::SO_PACKAGE_SUPER_LU:
             return PASO_SUPER_LU;
         case escript::SO_PACKAGE_TRILINOS:
