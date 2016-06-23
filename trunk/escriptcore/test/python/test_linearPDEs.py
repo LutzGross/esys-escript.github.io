@@ -32,7 +32,7 @@ Test suite for linearPDEs class
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate, getMPISizeWorld, hasFeature
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, canInterpolate, getMPISizeWorld, hasFeature
 from esys.escript.linearPDEs import SolverBuddy, LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
 import numpy
 import esys.escriptcore.utestselect as unittest
@@ -41,6 +41,7 @@ mpisize = getMPISizeWorld()
 skip_amg = hasFeature("paso") and mpisize > 1
 # Trilinos MueLu does not work for block matrices or indextype long
 no_paso = not hasFeature("paso")
+no_direct = not hasFeature('trilinos') and not hasFeature('PASO_DIRECT') and mpisize == 1
 skip_muelu_long = False #no_paso and hasFeature("longindex")
 
 class Test_linearPDEs(unittest.TestCase):
@@ -556,7 +557,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.")
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
-        if not hasFeature('trilinos') and mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if no_direct:
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1716,7 +1717,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnDirect(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if not hasFeature('trilinos') and mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if not hasFeature('trilinos') and mpisize == 1 and not hasFeature('PASO_DIRECT'):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1786,7 +1787,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if not hasFeature('trilinos') and mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if no_direct:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2217,7 +2218,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if not hasFeature('trilinos') and mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if no_direct:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2311,7 +2312,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if not hasFeature('trilinos') and mpisize == 1 and not getEscriptParamInt('PASO_DIRECT'):
+        if no_direct:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))

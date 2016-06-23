@@ -32,6 +32,7 @@ from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.util import *
 import numpy as np
 
+HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 
 class AcousticWaveForm(ForwardModel):
     """
@@ -193,9 +194,8 @@ class AcousticWaveForm(ForwardModel):
 
         :rtype: `LinearPDE`
         """
-        from esys.escript import getEscriptParamInt
         if self.__pde is None:
-            if getEscriptParamInt("PASO_DIRECT")==0:
+            if not HAVE_DIRECT:
                 raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
             pde=LinearPDE(self.__domain, numEquations=2)
             D=pde.createCoefficient('D')

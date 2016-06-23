@@ -52,6 +52,7 @@ except ImportError:
     HAVE_FINLEY = False
 
 HAVE_GMSH = escript.hasFeature("gmsh")
+HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
 
 
 # this is mainly to avoid warning messages
@@ -375,9 +376,9 @@ def generateCommemi1Mesh():
 
 
 class Test_COMMEMI1(unittest.TestCase):
-    @unittest.skipIf(not HAVE_FINLEY, "Test requires finley to be available")
-    @unittest.skipIf(not HAVE_GMSH, "Test requires gmsh to be available")
-    @unittest.skipIf(not escript.getEscriptParamInt("PASO_DIRECT"), "Missing direct solvers")
+    @unittest.skipUnless(HAVE_FINLEY, "Test requires finley to be available")
+    @unittest.skipUnless(HAVE_GMSH, "Test requires gmsh to be available")
+    @unittest.skipUnless(HAVE_DIRECT, "Missing direct solver")
     def test_comm1(self):
         # ---
         # Initialisations

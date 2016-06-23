@@ -30,12 +30,14 @@ import numpy
 import esys.downunder.magtel2d as mt2d
 import esys.escript            as escript
 import esys.escript.pdetools   as pdetools
+
 try:
     import esys.finley         as finley
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False
 
+HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
 
 def setupMesh(mode, coord, elem_sizes):         
     #---------------------------------------------------------------------------
@@ -526,7 +528,7 @@ if HAVE_FINLEY:
 
     if mt2d.MT_2D._solver == "DIRECT" and not escript.hasFeature('paso'):
         print("Trilinos direct solvers cannot currently handle PDE systems. Please compile with Paso.")
-    elif mt2d.MT_2D._solver == "DIRECT" and not escript.getEscriptParamInt('PASO_DIRECT'):
+    elif mt2d.MT_2D._solver == "DIRECT" and not HAVE_DIRECT:
         if escript.getMPISizeWorld() > 1:
             print("Direct solvers and multiple MPI processes are not currently supported.")
         else:

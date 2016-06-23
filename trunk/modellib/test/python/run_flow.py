@@ -39,7 +39,7 @@ else:
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
-from esys.escript import getEscriptParamInt
+from esys.escript import hasFeature
 from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.flow import SteadyIncompressibleFlow
@@ -51,7 +51,7 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
-have_direct=getEscriptParamInt("PASO_DIRECT")
+HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 
 #Link() behaves badly inside a TestCase class
 def run(dom, stream):
@@ -99,7 +99,7 @@ class Test_RunFlow(unittest.TestCase):
         sys.stdout = self.old
 
     @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
-    @unittest.skipIf(not have_direct, "Direct solver not available")
+    @unittest.skipIf(not HAVE_DIRECT, "Direct solver not available")
     def test_order2(self):
         dom=RectangularDomain()
         dom.order=2

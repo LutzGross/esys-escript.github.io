@@ -116,18 +116,6 @@ EscriptParams::EscriptParams()
 
 int EscriptParams::getInt(const std::string& name, int sentinel) const
 {
-    // TODO: These tests should happen in the appropriate python files instead
-    if (name == "PASO_DIRECT") {
-        // This is not in the constructor because escriptparams could be
-        // constructed before main (and hence no opportunity to call INIT)
-#ifdef ESYS_MPI
-        int size;
-        if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
-            return false;
-#endif
-        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl"));
-    }
-
     if (name == "AUTOLAZY")
         return autoLazy;
     else if (name == "LAZY_STR_FMT")
@@ -177,6 +165,17 @@ bp::list EscriptParams::listEscriptParams() const
 
 bool EscriptParams::hasFeature(const std::string& name) const
 {
+    if (name == "PASO_DIRECT") {
+        // This is not in the constructor because escriptparams could be
+        // constructed before main (and hence no opportunity to call INIT)
+#ifdef ESYS_MPI
+        int size;
+        if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
+            return false;
+#endif
+        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl"));
+    }
+
     return features.count(name) > 0;
 }
 

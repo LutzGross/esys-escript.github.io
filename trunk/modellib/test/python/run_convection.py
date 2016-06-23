@@ -48,10 +48,11 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
+HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from esys.escript import getEscriptParamInt
+from esys.escript import hasFeature
 from esys.escript.modelframe import Link,Simulation
 from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
 from esys.modellib.flow import SteadyIncompressibleFlow
@@ -149,7 +150,7 @@ def run(dom, stream):
     s.writeXML(stream)
     s.run()
 
-@unittest.skipIf(not getEscriptParamInt("PASO_DIRECT"), "Direct solver not available")
+@unittest.skipUnless(HAVE_DIRECT, "Direct solver not available")
 class Test_Convection(unittest.TestCase):
     def setUp(self):
         import sys
@@ -160,13 +161,13 @@ class Test_Convection(unittest.TestCase):
         import sys
         sys.stdout = self.old
 
-    @unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
+    @unittest.skipUnless(HAVE_FINLEY, "Finley module not available")
     def test_order2(self):
         dom=RectangularDomain()
         dom.order=2
         run(dom, sys.stdout)
 
-    @unittest.skipIf(not HAVE_DUDLEY or not HAVE_FINLEY, "Dudley module not available")
+    @unittest.skipUnless(HAVE_DUDLEY and HAVE_FINLEY, "Dudley module not available")
     def test_order1(self):
         dom=RectangularDomain(esys.dudley)
         dom.order=1

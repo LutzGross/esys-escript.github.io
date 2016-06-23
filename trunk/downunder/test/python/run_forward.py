@@ -34,7 +34,6 @@ from esys.escript import unitsSI as U
 from esys.escript import *
 from esys.weipa import saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
-from esys.escript import getEscriptParamInt
 from esys.escript.pdetools import Locator
 
 try:
@@ -53,21 +52,11 @@ mpisize = getMPISizeWorld()
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
-try:
-    TEST_DATA_ROOT=os.environ['DOWNUNDER_TEST_DATA_ROOT']
-except KeyError:
-    TEST_DATA_ROOT='ref_data'
-
-try:
-    WORKDIR=os.environ['DOWNUNDER_WORKDIR']
-except KeyError:
-    WORKDIR='.'
-
 # only consider Paso since Trilinos direct solvers do not support PDE systems
-HAVE_DIRECT = getEscriptParamInt("PASO_DIRECT")
+HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 
-@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
-@unittest.skipIf(HAVE_DIRECT!=1, "more than 1 MPI rank or missing direct solver")
+@unittest.skipUnless(HAVE_RIPLEY, "Ripley module not available")
+@unittest.skipUnless(HAVE_DIRECT, "more than 1 MPI rank or missing direct solver")
 class TestAcousticInversion(unittest.TestCase):
     def test_API(self):
 
@@ -291,7 +280,7 @@ class TestSubsidence(unittest.TestCase):
         ref=abs((d2-d0)/INC)
         self.assertLess(abs((d2-d0)/INC+integrate(grad_d* dP)), ref * 1.e-5)
 
-@unittest.skipIf(not HAVE_FINLEY, "Finley module not available")
+@unittest.skipUnless(HAVE_FINLEY, "Finley module not available")
 class TestDCResistivity(unittest.TestCase):
 
     def test_PDE2D(self):
@@ -424,8 +413,8 @@ class TestIsostaticPressure(unittest.TestCase):
         p_ref=-(1.-domain.getX()[2])*(981.+26700+1000)
         self.assertLess(Lsup(p0-p_ref), 1e-6 * Lsup(p_ref))
 
-@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
-@unittest.skipIf(HAVE_DIRECT!=1, "more than 1 MPI rank or missing direct solver")
+@unittest.skipUnless(HAVE_RIPLEY, "Ripley module not available")
+@unittest.skipUnless(HAVE_DIRECT, "more than 1 MPI rank or missing direct solver")
 class TestMT2DModelTEMode(unittest.TestCase):
     def test_API(self):
         domain=ripRectangle(25, 25, d1=mpisize)
@@ -575,8 +564,8 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertLess( abs( d1-d0-integrate(dg0*p) ), 1e-2*abs(d1-d0) )
 
 
-@unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
-@unittest.skipIf(HAVE_DIRECT!=1, "more than 1 MPI rank or missing direct solver")
+@unittest.skipUnless(HAVE_RIPLEY, "Ripley module not available")
+@unittest.skipUnless(HAVE_DIRECT, "more than 1 MPI rank or missing direct solver")
 class TestMT2DModelTMMode(unittest.TestCase):
     def test_API(self):
         domain=ripRectangle(25, 25, d0=mpisize)
