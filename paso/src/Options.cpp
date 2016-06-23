@@ -239,8 +239,6 @@ const char* Options::name(int key)
             return "RILU";
        case PASO_DEFAULT_REORDERING:
             return "DEFAULT_REORDERING";
-       case PASO_SUPER_LU:
-            return "SUPER_LU";
        case PASO_YAIR_SHAPIRA_COARSENING:
             return "YAIR_SHAPIRA_COARSENING";
        case PASO_RUGE_STUEBEN_COARSENING:
@@ -413,8 +411,6 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_MKL;
         case escript::SO_PACKAGE_PASO:
             return PASO_PASO;
-        case escript::SO_PACKAGE_SUPER_LU:
-            return PASO_SUPER_LU;
         case escript::SO_PACKAGE_TRILINOS:
             return PASO_TRILINOS;
         case escript::SO_PACKAGE_UMFPACK:

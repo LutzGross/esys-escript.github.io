@@ -188,7 +188,6 @@ const char* SolverBuddy::getName(int key) const
         case SO_PACKAGE_CUSP: return "CUSP";
         case SO_PACKAGE_MKL: return "MKL";
         case SO_PACKAGE_PASO: return "PASO";
-        case SO_PACKAGE_SUPER_LU: return "SUPER_LU";
         case SO_PACKAGE_TRILINOS: return "TRILINOS";
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
 
@@ -520,7 +519,6 @@ void SolverBuddy::setPackage(int package)
         case SO_PACKAGE_CUSP:
         case SO_PACKAGE_MKL:
         case SO_PACKAGE_PASO:
-        case SO_PACKAGE_SUPER_LU:
         case SO_PACKAGE_TRILINOS:
         case SO_PACKAGE_UMFPACK:
             this->package = pack;
