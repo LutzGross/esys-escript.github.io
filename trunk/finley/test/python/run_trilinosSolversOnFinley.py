@@ -54,6 +54,7 @@ class SimpleSolveSingleOnly(SimpleSolveOnTrilinos):
         return super(SimpleSolveSingleOnly, self).test_system()
 
 class SimpleSolveOrder2(SimpleSolveOnTrilinos):
+    SOLVER_TOL = 1.e-9
     def _getGrad(self, system):
         """returns exact gradient"""
         dim = self.domain.getDim()
@@ -340,7 +341,6 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_GaussSeidel(SimpleSol
         del self.domain
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOrder2):
-    SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
