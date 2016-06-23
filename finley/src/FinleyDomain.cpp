@@ -1791,6 +1791,14 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 
     // the configuration of finley should have taken care that we have either
     // paso or trilinos so here's how we prioritize
+#if defined(ESYS_HAVE_PASO) && defined(ESYS_HAVE_TRILINOS)
+    // we have Paso & Trilinos so use Trilinos for parallel direct solvers
+    if (package == escript::SO_DEFAULT &&
+            sb.getSolverMethod() == escript::SO_METHOD_DIRECT &&
+            getMPISize() > 1) {
+        package = escript::SO_PACKAGE_TRILINOS;
+    }
+#endif
 #ifdef ESYS_HAVE_PASO
     if (package == escript::SO_DEFAULT)
         package = escript::SO_PACKAGE_PASO;
