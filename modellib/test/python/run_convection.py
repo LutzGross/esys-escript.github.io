@@ -35,6 +35,16 @@ else:
     #being passed to a python3 style StringIO that expects unicode
     from StringIO import StringIO
 
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
+from esys.escript import hasFeature
+from esys.escript.modelframe import Link,Simulation
+from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
+from esys.modellib.flow import SteadyIncompressibleFlow
+from esys.modellib.temperature import TemperatureAdvection
+from esys.modellib.materials import SimpleEarthModel,GravityForce
+from esys.modellib.visualization import WriteVTK
+
 try:
     import esys.dudley
     HAVE_DUDLEY = True
@@ -48,18 +58,8 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
-HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
-
-import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
-from esys.escript import hasFeature
-from esys.escript.modelframe import Link,Simulation
-from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
-from esys.modellib.flow import SteadyIncompressibleFlow
-from esys.modellib.temperature import TemperatureAdvection
-from esys.modellib.materials import SimpleEarthModel,GravityForce
-from esys.modellib.visualization import WriteVTK
-
+# TODO: once Amesos2 can deal with block matrices uncomment
+HAVE_DIRECT = hasFeature("PASO_DIRECT") #or hasFeature('trilinos')
 
 try:
    WORKDIR=os.environ['MODELLIB_WORKDIR']
