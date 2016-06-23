@@ -2840,23 +2840,24 @@ def mkDir(*pathname):
     :type pathname: ``str`` or ``sequence of strings``
     :note: The method is MPI safe.
     """
-    errno=0
-    p_fail=None
-    if getMPIRankWorld()==0:
+    errno = 0
+    p_fail = None
+    e = None
+    if getMPIRankWorld() == 0:
       for p in pathname:
        if os.path.exists(p):
           if not os.path.isdir(p):
-                errno=2
-                p_fail=p
+                errno = 2
+                p_fail = p
        else:
           try:
               os.makedirs(p)
           except Exception as e:
-              errno=1
-              p_fail=p
+              errno = 1
+              p_fail = p
     
-    errno=getMPIWorldMax(errno)
-    if errno>0:
+    errno = getMPIWorldMax(errno)
+    if errno > 0:
          if errno==2:
             if p_fail is None:
                raise IOError("Unable to create directory.")
