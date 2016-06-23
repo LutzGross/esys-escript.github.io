@@ -51,7 +51,8 @@ try:
 except ImportError:
     HAVE_FINLEY = False
 
-HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
+# TODO: once Amesos2 can deal with block matrices uncomment
+HAVE_DIRECT = hasFeature("PASO_DIRECT") #or hasFeature('trilinos')
 
 #Link() behaves badly inside a TestCase class
 def run(dom, stream):
