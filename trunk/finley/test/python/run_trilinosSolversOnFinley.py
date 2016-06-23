@@ -664,7 +664,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_ILUT(SimpleSolveSingleOnly)
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_ILUT(SimpleSolveOrder2):
+class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_ILUT(SimpleSolveOrder2SingleOnly):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -684,7 +684,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_ILUT(SimpleSolveSingleOnly
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_ILUT(SimpleSolveOrder2):
+class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_ILUT(SimpleSolveOrder2SingleOnly):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
