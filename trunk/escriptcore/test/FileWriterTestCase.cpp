@@ -79,6 +79,9 @@ void FileWriterTestCase::testAll()
     CPPUNIT_ASSERT(fw->writeAt(oss, 16*(mpirank+1)) == true);
     CPPUNIT_ASSERT(oss.str().length() == 0);
     fw->close();
+#ifdef ESYS_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     CPPUNIT_ASSERT(fileSize(filename) == 16*mpisize+4);
     delete fw;
 }
