@@ -2842,7 +2842,7 @@ def mkDir(*pathname):
     """
     errno = 0
     p_fail = None
-    e = None
+    ex = None
     if getMPIRankWorld() == 0:
       for p in pathname:
        if os.path.exists(p):
@@ -2853,6 +2853,7 @@ def mkDir(*pathname):
           try:
               os.makedirs(p)
           except Exception as e:
+              ex = e
               errno = 1
               p_fail = p
     
@@ -2863,13 +2864,13 @@ def mkDir(*pathname):
                raise IOError("Unable to create directory.")
             else:
                raise IOError("Unable to create directory %s. It already exists and is not a directory."%p_fail)
-         elif e is None:
+         elif ex is None:
             if p_fail is None:
                raise IOError("Unable to create directory.")
             else:
                raise IOError("Unable to create directory %s."%p_fail)
          else:
-            if len(str(e)) > 0:
+            if len(str(ex)) > 0:
                raise IOError(str(e))
             else:
                if p_fail is None:
