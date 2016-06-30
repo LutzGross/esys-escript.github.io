@@ -1732,7 +1732,6 @@ bool FinleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                        << functionSpaceType_target;
                     throw ValueError(ss.str());
             }
-            break;
     }
     stringstream ss;
     ss << "Interpolation On Domain: Finley does not know anything "
