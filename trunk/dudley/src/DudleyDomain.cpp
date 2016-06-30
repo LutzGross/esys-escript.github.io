@@ -974,7 +974,6 @@ void DudleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
     switch (grad.getFunctionSpace().getTypeCode()) {
         case Nodes:
             throw ValueError("Gradient at nodes is not supported.");
-        break;
         case Elements:
         case ReducedElements:
             Assemble_gradient(m_nodes, m_elements, grad, nodeData);
@@ -1149,13 +1148,11 @@ bool DudleyDomain::isCellOriented(int functionSpaceCode) const
         case ReducedElements:
         case ReducedFaceElements:
             return true;
-        default:
-            stringstream ss;
-            ss << "isCellOriented: Dudley does not know anything about "
-                  "function space type " << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return false;
+    stringstream ss;
+    ss << "isCellOriented: Dudley does not know anything about "
+          "function space type " << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 bool
@@ -1264,7 +1261,6 @@ bool DudleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                        << functionSpaceType_target;
                     throw ValueError(ss.str());
             }
-            break;
         case Elements:
             return (functionSpaceType_target == Elements ||
                     functionSpaceType_target == ReducedElements);
@@ -1295,13 +1291,11 @@ bool DudleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                     throw ValueError(ss.str());
             }
             break;
-        default:
-            stringstream ss;
-            ss << "Interpolation On Domain: Dudley does not know anything "
-                  "about function space type " << functionSpaceType_source;
-            throw ValueError(ss.str());
     }
-    return false;
+    stringstream ss;
+    ss << "Interpolation On Domain: Dudley does not know anything "
+          "about function space type " << functionSpaceType_source;
+    throw ValueError(ss.str());
 }
 
 signed char DudleyDomain::preferredInterpolationOnDomain(
@@ -1546,13 +1540,11 @@ int DudleyDomain::getNumberOfTagsInUse(int functionSpaceCode) const
             return m_faceElements->tagsInUse.size();
         case Points:
             return m_points->tagsInUse.size();
-        default:
-            stringstream ss;
-            ss << "Dudley does not know anything about function space type "
-               << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return 0;
+    stringstream ss;
+    ss << "Dudley does not know anything about function space type "
+       << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 const int* DudleyDomain::borrowListOfTagsInUse(int functionSpaceCode) const
@@ -1582,13 +1574,11 @@ const int* DudleyDomain::borrowListOfTagsInUse(int functionSpaceCode) const
                 return NULL;
             else
                 return &m_points->tagsInUse[0];
-        default:
-            stringstream ss;
-            ss << "Dudley does not know anything about function space type "
-               << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return NULL;
+    stringstream ss;
+    ss << "Dudley does not know anything about function space type "
+       << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 
@@ -1625,13 +1615,11 @@ int DudleyDomain::getApproximationOrder(int functionSpaceCode) const
         case ReducedElements:
         case ReducedFaceElements:
             return 0;
-        default:
-            stringstream ss;
-            ss << "Dudley does not know anything about function space type "
-               << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return -1;
+    stringstream ss;
+    ss << "Dudley does not know anything about function space type "
+       << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 escript::Data DudleyDomain::randomFill(

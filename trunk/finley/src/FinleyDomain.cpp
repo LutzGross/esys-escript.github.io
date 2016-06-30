@@ -1084,7 +1084,6 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     break;
                 case DegreesOfFreedom:
                     throw ValueError("Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
-                    break;
                 case ReducedDegreesOfFreedom:
                     Assemble_CopyNodalData(m_nodes, target, in);
                     break;
@@ -1484,13 +1483,11 @@ bool FinleyDomain::isCellOriented(int functionSpaceCode) const
         case ReducedContactElementsZero:
         case ReducedContactElementsOne:
             return true;
-        default:
-            stringstream ss;
-            ss << "isCellOriented: Finley does not know anything about "
-                  "function space type " << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return false;
+    stringstream ss;
+    ss << "isCellOriented: Finley does not know anything about "
+          "function space type " << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 bool
@@ -1642,7 +1639,6 @@ bool FinleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                        << functionSpaceType_target;
                     throw ValueError(ss.str());
             }
-            break;
         case ReducedNodes:
             switch(functionSpaceType_target) {
                 case ReducedNodes:
@@ -1667,7 +1663,6 @@ bool FinleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                        << functionSpaceType_target;
                     throw ValueError(ss.str());
             }
-            break;
         case Elements:
             return (functionSpaceType_target == Elements ||
                     functionSpaceType_target == ReducedElements);
@@ -1713,7 +1708,6 @@ bool FinleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                        << functionSpaceType_target;
                     throw ValueError(ss.str());
             }
-            break;
         case ReducedDegreesOfFreedom:
             switch(functionSpaceType_target) {
                 case ReducedDegreesOfFreedom:
@@ -1739,13 +1733,11 @@ bool FinleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
                     throw ValueError(ss.str());
             }
             break;
-        default:
-            stringstream ss;
-            ss << "Interpolation On Domain: Finley does not know anything "
-                  "about function space type " << functionSpaceType_source;
-            throw ValueError(ss.str());
     }
-    return false;
+    stringstream ss;
+    ss << "Interpolation On Domain: Finley does not know anything "
+          "about function space type " << functionSpaceType_source;
+    throw ValueError(ss.str());
 }
 
 signed char FinleyDomain::preferredInterpolationOnDomain(
@@ -2026,13 +2018,11 @@ int FinleyDomain::getNumberOfTagsInUse(int functionSpaceCode) const
         case ContactElementsOne:
         case ReducedContactElementsOne:
             return m_contactElements->tagsInUse.size();
-        default:
-            stringstream ss;
-            ss << "Finley does not know anything about function space type "
-               << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return 0;
+    stringstream ss;
+    ss << "Finley does not know anything about function space type "
+       << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 const int* FinleyDomain::borrowListOfTagsInUse(int functionSpaceCode) const
@@ -2074,15 +2064,12 @@ const int* FinleyDomain::borrowListOfTagsInUse(int functionSpaceCode) const
                 return NULL;
             else
                 return &m_contactElements->tagsInUse[0];
-        default:
-            stringstream ss;
-            ss << "Finley does not know anything about function space type "
-               << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return NULL;
+    stringstream ss;
+    ss << "Finley does not know anything about function space type "
+       << functionSpaceCode;
+    throw ValueError(ss.str());
 }
-
 
 bool FinleyDomain::canTag(int functionSpaceCode) const
 {
@@ -2128,13 +2115,11 @@ int FinleyDomain::getApproximationOrder(int functionSpaceCode) const
         case ReducedContactElementsZero:
         case ReducedContactElementsOne:
             return reducedIntegrationOrder;
-        default:
-            stringstream ss;
-            ss << "Finley does not know anything about function space type "
-               << functionSpaceCode;
-            throw ValueError(ss.str());
     }
-    return -1;
+    stringstream ss;
+    ss << "Finley does not know anything about function space type "
+       << functionSpaceCode;
+    throw ValueError(ss.str());
 }
 
 escript::Data FinleyDomain::randomFill(
