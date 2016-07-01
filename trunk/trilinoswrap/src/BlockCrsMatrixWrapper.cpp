@@ -157,18 +157,18 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
 
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
-                                  const Teuchos::ArrayView<const ST>& rowMask,
-                                  const Teuchos::ArrayView<const ST>& colView,
-                                  ST mdv)
+                               const Teuchos::ArrayView<const real_t>& rowMask,
+                               const Teuchos::ArrayView<const real_t>& colView,
+                               ST mdv)
 {
-    RCP<VectorType<ST> > lclCol = rcp(new VectorType<ST>(mat.getRangeMap(),
-                                                 colView, colView.size(), 1));
+    RCP<VectorType<real_t> > lclCol = rcp(new VectorType<real_t>(
+                               mat.getRangeMap(), colView, colView.size(), 1));
     RCP<MapType> cpm = rcpFromRef(colPointMap);
-    RCP<VectorType<ST> > gblCol = rcp(new VectorType<ST>(cpm, 1));
+    RCP<VectorType<real_t> > gblCol = rcp(new VectorType<real_t>(cpm, 1));
 
     const ImportType importer(mat.getRangeMap(), cpm);
     gblCol->doImport(*lclCol, importer, Tpetra::INSERT);
-    Teuchos::ArrayRCP<const ST> colMask(gblCol->getData(0));
+    Teuchos::ArrayRCP<const real_t> colMask(gblCol->getData(0));
     const real_t eps = escript::DataTypes::real_t_eps();
     const ST zero = Teuchos::ScalarTraits<ST>::zero();
 

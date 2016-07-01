@@ -47,8 +47,8 @@ public:
     /// notifies the matrix that a set of changes has occured.
     void fillComplete(bool localOnly);
 
-    void nullifyRowsAndCols(const Teuchos::ArrayView<const ST>& rowMask,
-                            const Teuchos::ArrayView<const ST>& colView,
+    void nullifyRowsAndCols(const Teuchos::ArrayView<const real_t>& rowMask,
+                            const Teuchos::ArrayView<const real_t>& colView,
                             ST mdv);
 
     void add(const std::vector<LO>& rowIndex, const std::vector<ST>& array);
