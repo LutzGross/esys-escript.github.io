@@ -130,7 +130,7 @@ class PDECoef(object):
     CONTACT_REDUCED=15
     DIRACDELTA=16
 
-    def __init__(self, where, pattern, altering):
+    def __init__(self, where, pattern, altering, complex=False):
        """
        Initialises a PDE coefficient type.
 
@@ -152,11 +152,15 @@ class PDECoef(object):
        :param altering: indicates what part of the PDE is altered if the
                         coefficient is altered
        :type altering: one of `OPERATOR`, `RIGHTHANDSIDE`, `BOTH`
+       :param complex: if true, this coefficient is part of a complex-valued
+                       PDE and values will be converted to complex.
+       :type complex: ``boolean``
        """
        super(PDECoef, self).__init__()
-       self.what=where
-       self.pattern=pattern
-       self.altering=altering
+       self.what = where
+       self.pattern = pattern
+       self.altering = altering
+       self.complex = complex
        self.resetValue()
 
     def resetValue(self):
@@ -227,7 +231,7 @@ class PDECoef(object):
        :param reducedSolutionOrder: True to indicate that reduced order is used
                                     to represent the solution
        :type reducedSolutionOrder: ``bool``
-       :param newValue: number of components of the PDE solution
+       :param newValue: new value of coefficient
        :type newValue: any object that can be converted into a
                        `Data` object with the appropriate shape
                        and `FunctionSpace`
@@ -253,7 +257,11 @@ class PDECoef(object):
        if not newValue.isEmpty():
            if not self.getShape(domain,numEquations,numSolutions)==newValue.getShape():
                raise IllegalCoefficientValue("Expected shape of coefficient is %s but actual shape is %s."%(self.getShape(domain,numEquations,numSolutions),newValue.getShape()))
-       self.value=newValue
+           if newValue.isComplex() and not self.complex:
+               raise IllegalCoefficientValue("Cannot assign a complex value to a real-valued coefficient!")
+           elif not newValue.isComplex() and self.complex:
+               newValue.promote()
+       self.value = newValue
 
     def isAlteringOperator(self):
         """
@@ -411,7 +419,7 @@ class LinearProblem(object):
    problem will be solved to get the unknown *u*.
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
+   def __init__(self,domain,numEquations=None,numSolutions=None,complex=False,debug=False):
      """
      Initializes a linear problem.
 
@@ -422,33 +430,40 @@ class LinearProblem(object):
      :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the
                           coefficients.
+     :param complex: if True this problem will have complex coefficients and
+                     a complex-valued result.
      :param debug: if True debug information is printed
 
      """
      super(LinearProblem, self).__init__()
 
+     self.__complex=complex
      self.__debug=debug
      self.__domain=domain
      self.domainSupportsAssemblers = hasattr(domain, "createAssembler")
      self.assembler = None
      if self.domainSupportsAssemblers:
-            self.assembler = domain.createAssembler("DefaultAssembler", [])
+        options=[]
+        if complex:
+            options=[('dummy', escore.Data(0.j))]
+        self.assembler = domain.createAssembler("DefaultAssembler", options)
      self.__numEquations=numEquations
      self.__numSolutions=numSolutions
      self.__altered_coefficients=False
      self.__reduce_equation_order=False
      self.__reduce_solution_order=False
      self.__sym=False
-     self.setSolverOptions()
      self.__is_RHS_valid=False
      self.__is_operator_valid=False
      self.__COEFFICIENTS={}
      self.__solution_rtol=1.e99
      self.__solution_atol=1.e99
+     self.setSolverOptions()
      self.setSymmetryOff()
      # initialize things:
      self.resetAllCoefficients()
      self.initializeSystem()
+
    # ==========================================================================
    #    general stuff:
    # ==========================================================================
@@ -460,6 +475,7 @@ class LinearProblem(object):
      :rtype: ``str``
      """
      return "<LinearProblem %d>"%id(self)
+
    # ==========================================================================
    #    debug :
    # ==========================================================================
@@ -515,6 +531,7 @@ class LinearProblem(object):
            self.__COEFFICIENTS[name]=type
            self.__COEFFICIENTS[name].resetValue()
            self.trace("coefficient %s has been introduced."%name)
+
    def resetRightHandSideCoefficients(self):
        """
        Resets all coefficients defining the right hand side
@@ -532,6 +549,7 @@ class LinearProblem(object):
      :rtype: `Domain`
      """
      return self.__domain
+
    def getDomainStatus(self):
      """
      Return the status indicator of the domain
@@ -543,6 +561,7 @@ class LinearProblem(object):
      Return the domain status used to build the current system
      """
      return self.__system_status
+
    def setSystemStatus(self,status=None):
      """
      Sets the system status to ``status`` if ``status`` is not present the
@@ -655,6 +674,7 @@ class LinearProblem(object):
           self.__solver_options=options
        else:
           raise ValueError("options must be a SolverOptions object.")
+       self.__solver_options.setComplex(self.isComplex())
        self.__solver_options.setSymmetry(self.__sym)
 
    def getSolverOptions(self):
@@ -674,6 +694,16 @@ class LinearProblem(object):
       :rtype: ``bool``
       """
       return self.getSolverOptions().getSolverMethod() in [ SolverOptions.ROWSUM_LUMPING, SolverOptions.HRZ_LUMPING ]
+
+   def isComplex(self):
+       """
+       Returns true if this is a complex-valued LinearProblem, false if
+       real-valued.
+
+       :rtype: ``bool``
+       """
+       return self.__complex
+
    # ==========================================================================
    #    symmetry  flag:
    # ==========================================================================
@@ -712,6 +742,7 @@ class LinearProblem(object):
       :note: The method overwrites the symmetry flag set by the solver options
       """
       self.getSolverOptions().setSymmetry(flag)
+
    # ==========================================================================
    # function space handling for the equation as well as the solution
    # ==========================================================================
@@ -749,7 +780,6 @@ class LinearProblem(object):
      """
      self.setReducedOrderForSolutionTo(flag)
      self.setReducedOrderForEquationTo(flag)
-
 
    def setReducedOrderForSolutionOn(self):
      """
@@ -838,6 +868,7 @@ class LinearProblem(object):
         self.setReducedOrderForEquationOn()
      else:
         self.setReducedOrderForEquationOff()
+
    def getOperatorType(self):
       """
       Returns the current system type.
@@ -988,7 +1019,8 @@ class LinearProblem(object):
      :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
-        return escore.Data(0.,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
+        zero = 0.j if self.isComplex() else 0.
+        return escore.Data(zero,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
@@ -1162,20 +1194,22 @@ class LinearProblem(object):
        Returns an instance of a new right hand side.
        """
        self.trace("New right hand side is allocated.")
+       zero = 0.j if self.isComplex() else 0.
        if self.getNumEquations()>1:
-           return escore.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
+           return escore.Data(zero,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
        else:
-           return escore.Data(0.,(),self.getFunctionSpaceForEquation(),True)
+           return escore.Data(zero,(),self.getFunctionSpaceForEquation(),True)
 
    def createSolution(self):
        """
        Returns an instance of a new solution.
        """
        self.trace("New solution is allocated.")
-       if self.getNumSolutions()>1:
-           return escore.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
+       zero = 0.j if self.isComplex() else 0.
+       if self.getNumSolutions() > 1:
+           return escore.Data(zero,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
        else:
-           return escore.Data(0.,(),self.getFunctionSpaceForSolution(),True)
+           return escore.Data(zero,(),self.getFunctionSpaceForSolution(),True)
 
    def resetSolution(self):
        """
@@ -1197,6 +1231,7 @@ class LinearProblem(object):
           self.__solution_atol=self.getSolverOptions().getAbsoluteTolerance()
           self.validSolution()
        self.__solution=u
+
    def getCurrentSolution(self):
        """
        Returns the solution in its current state.
@@ -1617,7 +1652,7 @@ class LinearPDE(LinearProblem):
 
    """
 
-   def __init__(self,domain,numEquations=None,numSolutions=None,debug=False):
+   def __init__(self,domain,numEquations=None,numSolutions=None,complex=False,debug=False):
      """
      Initializes a new linear PDE.
 
@@ -1631,35 +1666,35 @@ class LinearPDE(LinearProblem):
      :param debug: if True debug information is printed
 
      """
-     super(LinearPDE, self).__init__(domain,numEquations,numSolutions,debug)
+     super(LinearPDE, self).__init__(domain,numEquations,numSolutions,complex,debug)
      #
      #   the coefficients of the PDE:
      #
      self.introduceCoefficients(
-       A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
-       B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
-       D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       X=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
-       Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       d_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       y_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       A_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
-       B_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       C_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
-       D_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       X_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
-       Y_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       d_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
-       y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
-       r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
-       q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
+       A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
+       B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
+       D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       X=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE, complex),
+       Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       d_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       y_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       A_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
+       B_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       C_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
+       D_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       X_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE, complex),
+       Y_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       d_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
+       y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
+       r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, complex),
+       q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH, False) )
 
    def __str__(self):
      """
