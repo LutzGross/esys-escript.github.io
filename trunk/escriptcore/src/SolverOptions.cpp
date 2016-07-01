@@ -56,6 +56,7 @@ SolverBuddy::SolverBuddy() :
     inner_iter_max(10),
     truncation(20),
     restart(0),
+    is_complex(false),
     symmetric(false),
     verbose(false),
     adapt_inner_tolerance(true),
@@ -756,6 +757,16 @@ void SolverBuddy::setRelaxationFactor(double factor)
 double SolverBuddy::getRelaxationFactor() const
 {
     return relaxation;
+}
+
+bool SolverBuddy::isComplex() const
+{
+    return is_complex;
+}
+
+void SolverBuddy::setComplex(bool flag)
+{
+    is_complex = flag;
 }
 
 bool SolverBuddy::isSymmetric() const
