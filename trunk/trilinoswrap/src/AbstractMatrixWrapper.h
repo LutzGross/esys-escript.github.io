@@ -40,9 +40,10 @@ public:
     virtual void fillComplete(bool localOnly) = 0;
 
     /// sets certain entries to zero, and main diagonal to `mdv`
-    virtual void nullifyRowsAndCols(const Teuchos::ArrayView<const ST>& rowMask,
-                                    const Teuchos::ArrayView<const ST>& colView,
-                                    ST mdv) = 0;
+    virtual void nullifyRowsAndCols(
+                              const Teuchos::ArrayView<const real_t>& rowMask,
+                              const Teuchos::ArrayView<const real_t>& colView,
+                              ST mdv) = 0;
 
     /// adds entries of an element matrix to this matrix
     virtual void add(const std::vector<LO>& rowIndex,
