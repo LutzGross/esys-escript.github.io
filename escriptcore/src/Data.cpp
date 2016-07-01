@@ -268,6 +268,16 @@ Data::Data(real_t value,
     m_protected=false;
 }
 
+Data::Data(cplx_t value,
+           const DataTypes::ShapeType& dataPointShape,
+           const FunctionSpace& what,
+           bool expanded)
+        :  m_lazy(false)
+{
+    initialise(value, dataPointShape, what, expanded);
+    m_protected=false;
+}
+
 // Ordering is: shape, functionspace, expanded
 Data::Data(boost::python::object value,
        boost::python::object par2,
