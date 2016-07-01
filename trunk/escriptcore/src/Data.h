@@ -103,7 +103,7 @@ class Data {
      \brief
      Constructor which creates a Data with points having the specified shape.
 
-     \param value - Input - Single value applied to all Data.
+     \param value - Input - Single real value applied to all Data.
      \param dataPointShape - Input - The shape of each data point.
      \param what - Input - A description of what this data represents.
      \param expanded - Input - Flag, if true fill the entire container with
@@ -111,6 +111,23 @@ class Data {
                        mechanism will be used.
   */
   Data(DataTypes::real_t value,
+       const DataTypes::ShapeType& dataPointShape,
+       const FunctionSpace& what,
+       bool expanded);
+
+  /**
+     \brief
+     Constructor which creates a Data with points having the specified shape.
+
+     \param value - Input - Single complex value applied to all Data.
+     \param dataPointShape - Input - The shape of each data point.
+     \param what - Input - A description of what this data represents.
+     \param expanded - Input - Flag, if true fill the entire container with
+                       the given value. Otherwise a more efficient storage
+                       mechanism will be used.
+  */
+  explicit
+  Data(DataTypes::cplx_t value,
        const DataTypes::ShapeType& dataPointShape,
        const FunctionSpace& what,
        bool expanded);
