@@ -567,20 +567,24 @@ if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
     install_all_list += ['install_pythonMPI', 'install_overlord']
 
+env['buildvars']['paso'] = int(env['paso'])
 if env['paso']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_PASO'])
     build_all_list += ['build_paso']
     install_all_list += ['install_paso']
 
+env['buildvars']['paso'] = int(env['trilinos'])
 if env['trilinos']:
     build_all_list += ['build_trilinoswrap']
     install_all_list += ['install_trilinoswrap']
 
+env['buildvars']['domains'] = ','.join(env['domains'])
 for domain in env['domains']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_'+domain.upper()])
     build_all_list += ['build_%s'%domain]
     install_all_list += ['install_%s'%domain]
 
+env['buildvars']['weipa'] = int(env['weipa'])
 if env['weipa']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_WEIPA'])
     build_all_list += ['build_weipa']
