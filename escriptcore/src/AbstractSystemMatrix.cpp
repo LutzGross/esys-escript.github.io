@@ -71,7 +71,10 @@ Data AbstractSystemMatrix::vectorMultiply(const Data& right) const
     if (getRowBlockSize() > 1)
         shape.push_back(getRowBlockSize());
 
-    Data out(0., shape, getRowFunctionSpace(), true);
+    Data out = right.isComplex() ?
+        Data(DataTypes::cplx_t(0), shape, getRowFunctionSpace(), true) :
+        Data(0., shape, getRowFunctionSpace(), true);
+
     Data in(right, getColumnFunctionSpace());
     ypAx(out, in);
     return out;
