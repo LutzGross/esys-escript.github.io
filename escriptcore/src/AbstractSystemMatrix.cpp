@@ -97,7 +97,9 @@ Data AbstractSystemMatrix::solve(const Data& in,
     DataTypes::ShapeType shape;
     if (getRowBlockSize() > 1)
         shape.push_back(getColumnBlockSize());
-    Data out(0., shape, getColumnFunctionSpace(), true);
+    Data out = in.isComplex() ?
+        Data(DataTypes::cplx_t(0), shape, getColumnFunctionSpace(), true) :
+        Data(0., shape, getColumnFunctionSpace(), true);
     setToSolution(out, *const_cast<Data*>(&in), options);
     return out;
 }

@@ -173,12 +173,10 @@ void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
     const Teuchos::ArrayView<const real_t> colView(col_q.getSampleDataRO(0),
                             col_q.getNumDataPoints()*col_q.getDataPointSize());
 
-    // TODO:
     if (m_isComplex)
-        throw escript::NotImplementedError("nullifyRowsAndCols: complex "
-                                           "version not implemented");
-
-    mat->nullifyRowsAndCols(rowMask, colView, mdv);
+        cmat->nullifyRowsAndCols(rowMask, colView, mdv);
+    else
+        mat->nullifyRowsAndCols(rowMask, colView, mdv);
 }
 
 void TrilinosMatrixAdapter::saveHB(const std::string& filename) const

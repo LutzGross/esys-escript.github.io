@@ -151,18 +151,19 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
 
 template<typename ST>
 void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
-                                  const Teuchos::ArrayView<const ST>& rowMask,
-                                  const Teuchos::ArrayView<const ST>& colView,
-                                  ST mdv)
+                               const Teuchos::ArrayView<const real_t>& rowMask,
+                               const Teuchos::ArrayView<const real_t>& colView,
+                               ST mdv)
 {
     const_TrilinosMap_ptr rowMap(mat.getRowMap());
-    RCP<VectorType<ST> > lclCol = rcp(new VectorType<ST>(rowMap, colView,
-			   				 colView.size(), 1));
-    RCP<VectorType<ST> > gblCol = rcp(new VectorType<ST>(mat.getColMap(), 1));
+    RCP<VectorType<real_t> > lclCol = rcp(new VectorType<real_t>(rowMap,
+                                                  colView, colView.size(), 1));
+    RCP<VectorType<real_t> > gblCol = rcp(new VectorType<real_t>(
+                                                          mat.getColMap(), 1));
 
     const ImportType importer(rowMap, mat.getColMap());
     gblCol->doImport(*lclCol, importer, Tpetra::INSERT);
-    Teuchos::ArrayRCP<const ST> colMask(gblCol->getData(0));
+    Teuchos::ArrayRCP<const real_t> colMask(gblCol->getData(0));
     const ST zero = Teuchos::ScalarTraits<ST>::zero();
 
     resumeFill();
@@ -178,9 +179,9 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
         for (size_t c = 0; c < indices.size(); c++) {
             const LO lclcol = indices[c];
             const GO col = mat.getColMap()->getGlobalElement(lclcol);
-            if (rowMask[lclrow] != zero || colMask[lclcol] != zero) {
+            if (rowMask[lclrow] != 0. || colMask[lclcol] != 0.) {
                 cols.push_back(lclcol);
-                vals.push_back(row==col ? (ST)mdv : zero);
+                vals.push_back(row==col ? mdv : zero);
             }
         }
         if (cols.size() > 0)
