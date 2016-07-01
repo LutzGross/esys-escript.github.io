@@ -1169,6 +1169,12 @@ args("source", "q", "r","factor"),
         ":note: RILU with a relaxation factor 0 is identical to ILU0")
     .def("getRelaxationFactor", &escript::SolverBuddy::getRelaxationFactor,"Returns the relaxation factor used to add dropped elements in RILU to the main diagonal.\n\n"
         ":rtype: ``float``")
+    .def("isComplex", &escript::SolverBuddy::isComplex,"Checks if the coefficient matrix is set to be complex-valued.\n\n"
+        ":return: True if a complex-valued PDE is indicated, False otherwise\n"
+        ":rtype: ``bool``")
+    .def("setComplex", &escript::SolverBuddy::setComplex, args("complex"),"Sets the complex flag for the coefficient matrix to ``flag``.\n\n"
+        ":param flag: If True, the complex flag is set otherwise reset.\n"
+        ":type flag: ``bool``")
     .def("isSymmetric", &escript::SolverBuddy::isSymmetric,"Checks if symmetry of the coefficient matrix is indicated.\n\n"
         ":return: True if a symmetric PDE is indicated, False otherwise\n"
         ":rtype: ``bool``")

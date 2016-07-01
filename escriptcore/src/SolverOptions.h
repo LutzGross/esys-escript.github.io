@@ -611,6 +611,20 @@ public:
     double getRelaxationFactor() const;
 
     /**
+        Checks if the coefficient matrix is set to be complex-valued.
+
+        \return true if a complex-valued PDE is indicated, false otherwise
+    */
+    bool isComplex() const;
+
+    /**
+        Sets the complex flag for the coefficient matrix to ``flag``.
+
+        \param complex If true, the complex flag is set otherwise reset.
+    */
+    void setComplex(bool complex);
+
+    /**
         Checks if symmetry of the coefficient matrix is indicated.
 
         \return true if a symmetric PDE is indicated, false otherwise
@@ -865,6 +879,7 @@ protected:
     int inner_iter_max;
     int truncation;
     int restart; //0 will have to be None in python, will get tricky
+    bool is_complex;
     bool symmetric;
     bool verbose;
     bool adapt_inner_tolerance;
