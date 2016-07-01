@@ -36,6 +36,7 @@ namespace ripley {
 
 using escript::DataTypes::dim_t;
 using escript::DataTypes::index_t;
+using escript::DataTypes::cplx_t;
 using escript::DataTypes::real_t;
 
 typedef std::pair<index_t,index_t> IndexPair;

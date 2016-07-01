@@ -1988,8 +1988,9 @@ void Rectangle::populateDofMap()
 }
 
 //private
+template<typename Scalar>
 void Rectangle::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
-         const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
+         const vector<Scalar>& EM_S, const vector<Scalar>& EM_F, bool addS,
          bool addF, index_t firstNode, int nEq, int nComp) const
 {
     IndexVector rowIndex(4);
@@ -1998,7 +1999,7 @@ void Rectangle::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
     rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
     rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
     if (addF) {
-        double *F_p=F.getSampleDataRW(0);
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
         for (index_t i=0; i<rowIndex.size(); i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for (int eq=0; eq<nEq; eq++) {
@@ -2008,9 +2009,19 @@ void Rectangle::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
         }
     }
     if (addS) {
-        addToSystemMatrix(S, rowIndex, nEq, EM_S);
+        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
     }
 }
+
+template
+void Rectangle::addToMatrixAndRHS<real_t>(AbstractSystemMatrix* S, escript::Data& F,
+         const vector<real_t>& EM_S, const vector<real_t>& EM_F, bool addS,
+         bool addF, index_t firstNode, int nEq, int nComp) const;
+
+template
+void Rectangle::addToMatrixAndRHS<cplx_t>(AbstractSystemMatrix* S, escript::Data& F,
+         const vector<cplx_t>& EM_S, const vector<cplx_t>& EM_F, bool addS,
+         bool addF, index_t firstNode, int nEq, int nComp) const;
 
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,
@@ -2512,8 +2523,21 @@ dim_t Rectangle::findNode(const double *coords) const
 Assembler_ptr Rectangle::createAssembler(string type,
                                          const DataMap& constants) const
 {
+    bool isComplex = false;
+    DataMap::const_iterator it;
+    for (it = constants.begin(); it != constants.end(); it++) {
+        if (!it->second.isEmpty() && it->second.isComplex()) {
+            isComplex = true;
+            break;
+        }
+    }
+
     if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NE, m_NN));
+        if (isComplex) {
+            return Assembler_ptr(new DefaultAssembler2D<cplx_t>(shared_from_this(), m_dx, m_NE, m_NN));
+        } else {
+            return Assembler_ptr(new DefaultAssembler2D<real_t>(shared_from_this(), m_dx, m_NE, m_NN));
+        }
     } else if (type.compare("WaveAssembler") == 0) {
         return Assembler_ptr(new WaveAssembler2D(shared_from_this(), m_dx, m_NE, m_NN, constants));
     } else if (type.compare("LameAssembler") == 0) {

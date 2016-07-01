@@ -50,7 +50,8 @@ enum SystemMatrixType {
     SMT_PASO = 1<<8,
     SMT_CUSP = 1<<9,
     SMT_TRILINOS = 1<<10,
-    SMT_SYMMETRIC = 1<<15
+    SMT_SYMMETRIC = 1<<15,
+    SMT_COMPLEX = 1<<16
 };
 
 /**
@@ -787,9 +788,10 @@ protected:
             const IndexVector& myRows, const IndexVector& myColumns) const;
 #endif
 
+    template<typename Scalar>
     void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                            const IndexVector& nodes, dim_t numEq,
-                           const DoubleVector& array) const;
+                           const std::vector<Scalar>& array) const;
 
     void addPoints(const std::vector<double>& coords,
                    const std::vector<int>& tags);

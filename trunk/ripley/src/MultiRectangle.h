@@ -27,7 +27,7 @@ namespace ripley {
 */
 class RIPLEY_DLL_API MultiRectangle: public Rectangle
 {
-    friend class DefaultAssembler2D;
+    template<class Scalar> friend class DefaultAssembler2D;
     friend class WaveAssembler2D;
     friend class LameAssembler2D;
 public:

@@ -17,6 +17,7 @@
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
+#include <escript/DataTypes.h>
 #include <escript/index.h>
 
 using namespace std;
@@ -25,8 +26,9 @@ using escript::Data;
 
 namespace ripley {
 
-void DefaultAssembler2D::collateFunctionSpaceTypes(vector<int>& fsTypes, 
-                                                   const DataMap& coefs) const
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::collateFunctionSpaceTypes(
+                             vector<int>& fsTypes, const DataMap& coefs) const
 {
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs.find("A")->second.getFunctionSpace().getTypeCode());
@@ -46,7 +48,8 @@ void DefaultAssembler2D::collateFunctionSpaceTypes(vector<int>& fsTypes,
 // wrappers
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
     const Data& A = unpackData("A", coefs);
@@ -59,7 +62,9 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
 
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
+                                        AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const 
 {
     const Data& d = unpackData("d", coefs);
@@ -67,7 +72,9 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
     assemblePDEBoundarySingle(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
+                                        AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
     const Data& A = unpackData("A", coefs);
@@ -79,7 +86,8 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
     assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                                         AbstractSystemMatrix* mat, Data& rhs,
                                         const DataMap& coefs) const
 {
@@ -88,7 +96,8 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
     assemblePDEBoundarySingleReduced(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
     const Data& A = unpackData("A", coefs);
@@ -100,7 +109,9 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
+                                        AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
     const Data& d = unpackData("d", coefs);
@@ -108,7 +119,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
     assemblePDEBoundarySystem(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
+                                        AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
     const Data& A = unpackData("A", coefs); 
@@ -120,7 +133,8 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
     assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                                         AbstractSystemMatrix* mat, Data& rhs,
                                         const DataMap& coefs) const
 {
@@ -133,7 +147,8 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
 // PDE SINGLE
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
                                       Data& rhs, const Data& A, const Data& B,
                                       const Data& C, const Data& D,
                                       const Data& X, const Data& Y) const
@@ -171,100 +186,101 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
     const int NE1 = m_NE[1];
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
     const bool addEM_F = (!X.isEmpty() || !Y.isEmpty());
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4, 0);
-        vector<double> EM_F(4, 0);
+        vector<Scalar> EM_S(4*4, zero);
+        vector<Scalar> EM_F(4, zero);
 
-        for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+        for (index_t k1_0 = 0; k1_0 < 2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<NE1; k1+=2) {
-                for (index_t k0=0; k0<NE0; ++k0)  {
+            for (index_t k1 = k1_0; k1 < NE1; k1+=2) {
+                for (index_t k0 = 0; k0 < NE0; ++k0)  {
                     const index_t e = k0 + NE0*k1;
                     if (addEM_S)
-                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_S.begin(), EM_S.end(), zero);
                     if (addEM_F)
-                        fill(EM_F.begin(), EM_F.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), zero);
                     ///////////////
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
-                        const double* A_p = A.getSampleDataRO(e);
+                        const Scalar* A_p = A.getSampleDataRO(e, zero);
                         if (A.actsExpanded()) {
-                            const double A_00_0 = A_p[INDEX3(0,0,0,2,2)];
-                            const double A_01_0 = A_p[INDEX3(0,1,0,2,2)];
-                            const double A_10_0 = A_p[INDEX3(1,0,0,2,2)];
-                            const double A_11_0 = A_p[INDEX3(1,1,0,2,2)];
-                            const double A_00_1 = A_p[INDEX3(0,0,1,2,2)];
-                            const double A_01_1 = A_p[INDEX3(0,1,1,2,2)];
-                            const double A_10_1 = A_p[INDEX3(1,0,1,2,2)];
-                            const double A_11_1 = A_p[INDEX3(1,1,1,2,2)];
-                            const double A_00_2 = A_p[INDEX3(0,0,2,2,2)];
-                            const double A_01_2 = A_p[INDEX3(0,1,2,2,2)];
-                            const double A_10_2 = A_p[INDEX3(1,0,2,2,2)];
-                            const double A_11_2 = A_p[INDEX3(1,1,2,2,2)];
-                            const double A_00_3 = A_p[INDEX3(0,0,3,2,2)];
-                            const double A_01_3 = A_p[INDEX3(0,1,3,2,2)];
-                            const double A_10_3 = A_p[INDEX3(1,0,3,2,2)];
-                            const double A_11_3 = A_p[INDEX3(1,1,3,2,2)];
-                            const double tmp0 = w3*(A_11_0 + A_11_1 + A_11_2 + A_11_3);
-                            const double tmp1 = w1*(A_01_0 + A_01_3 - A_10_1 - A_10_2);
-                            const double tmp2 = w4*(A_00_2 + A_00_3);
-                            const double tmp3 = w0*(A_00_0 + A_00_1);
-                            const double tmp4 = w5*(A_01_2 - A_10_3);
-                            const double tmp5 = w2*(-A_01_1 + A_10_0);
-                            const double tmp6 = w5*(A_01_3 + A_10_0);
-                            const double tmp7 = w3*(-A_11_0 - A_11_1 - A_11_2 - A_11_3);
-                            const double tmp8 = w6*(A_00_0 + A_00_1 + A_00_2 + A_00_3);
-                            const double tmp9 = w1*(A_01_1 + A_01_2 + A_10_1 + A_10_2);
-                            const double tmp10 = w2*(-A_01_0 - A_10_3);
-                            const double tmp11 = w4*(A_00_0 + A_00_1);
-                            const double tmp12 = w0*(A_00_2 + A_00_3);
-                            const double tmp13 = w5*(A_01_1 - A_10_0);
-                            const double tmp14 = w2*(-A_01_2 + A_10_3);
-                            const double tmp15 = w7*(A_11_0 + A_11_2);
-                            const double tmp16 = w4*(-A_00_2 - A_00_3);
-                            const double tmp17 = w0*(-A_00_0 - A_00_1);
-                            const double tmp18 = w5*(A_01_3 + A_10_3);
-                            const double tmp19 = w8*(A_11_1 + A_11_3);
-                            const double tmp20 = w2*(-A_01_0 - A_10_0);
-                            const double tmp21 = w7*(A_11_1 + A_11_3);
-                            const double tmp22 = w4*(-A_00_0 - A_00_1);
-                            const double tmp23 = w0*(-A_00_2 - A_00_3);
-                            const double tmp24 = w5*(A_01_0 + A_10_0);
-                            const double tmp25 = w8*(A_11_0 + A_11_2);
-                            const double tmp26 = w2*(-A_01_3 - A_10_3);
-                            const double tmp27 = w5*(-A_01_1 - A_10_2);
-                            const double tmp28 = w1*(-A_01_0 - A_01_3 - A_10_0 - A_10_3);
-                            const double tmp29 = w2*(A_01_2 + A_10_1);
-                            const double tmp30 = w7*(-A_11_1 - A_11_3);
-                            const double tmp31 = w1*(-A_01_1 - A_01_2 + A_10_0 + A_10_3);
-                            const double tmp32 = w5*(-A_01_0 + A_10_2);
-                            const double tmp33 = w8*(-A_11_0 - A_11_2);
-                            const double tmp34 = w6*(-A_00_0 - A_00_1 - A_00_2 - A_00_3);
-                            const double tmp35 = w2*(A_01_3 - A_10_1);
-                            const double tmp36 = w5*(A_01_0 + A_10_3);
-                            const double tmp37 = w2*(-A_01_3 - A_10_0);
-                            const double tmp38 = w7*(-A_11_0 - A_11_2);
-                            const double tmp39 = w5*(-A_01_3 + A_10_1);
-                            const double tmp40 = w8*(-A_11_1 - A_11_3);
-                            const double tmp41 = w2*(A_01_0 - A_10_2);
-                            const double tmp42 = w5*(A_01_1 - A_10_3);
-                            const double tmp43 = w2*(-A_01_2 + A_10_0);
-                            const double tmp44 = w5*(A_01_2 - A_10_0);
-                            const double tmp45 = w2*(-A_01_1 + A_10_3);
-                            const double tmp46 = w5*(-A_01_0 + A_10_1);
-                            const double tmp47 = w2*(A_01_3 - A_10_2);
-                            const double tmp48 = w5*(-A_01_1 - A_10_1);
-                            const double tmp49 = w2*(A_01_2 + A_10_2);
-                            const double tmp50 = w5*(-A_01_3 + A_10_2);
-                            const double tmp51 = w2*(A_01_0 - A_10_1);
-                            const double tmp52 = w5*(-A_01_2 - A_10_1);
-                            const double tmp53 = w2*(A_01_1 + A_10_2);
-                            const double tmp54 = w5*(-A_01_2 - A_10_2);
-                            const double tmp55 = w2*(A_01_1 + A_10_1);
+                            const Scalar A_00_0 = A_p[INDEX3(0,0,0,2,2)];
+                            const Scalar A_01_0 = A_p[INDEX3(0,1,0,2,2)];
+                            const Scalar A_10_0 = A_p[INDEX3(1,0,0,2,2)];
+                            const Scalar A_11_0 = A_p[INDEX3(1,1,0,2,2)];
+                            const Scalar A_00_1 = A_p[INDEX3(0,0,1,2,2)];
+                            const Scalar A_01_1 = A_p[INDEX3(0,1,1,2,2)];
+                            const Scalar A_10_1 = A_p[INDEX3(1,0,1,2,2)];
+                            const Scalar A_11_1 = A_p[INDEX3(1,1,1,2,2)];
+                            const Scalar A_00_2 = A_p[INDEX3(0,0,2,2,2)];
+                            const Scalar A_01_2 = A_p[INDEX3(0,1,2,2,2)];
+                            const Scalar A_10_2 = A_p[INDEX3(1,0,2,2,2)];
+                            const Scalar A_11_2 = A_p[INDEX3(1,1,2,2,2)];
+                            const Scalar A_00_3 = A_p[INDEX3(0,0,3,2,2)];
+                            const Scalar A_01_3 = A_p[INDEX3(0,1,3,2,2)];
+                            const Scalar A_10_3 = A_p[INDEX3(1,0,3,2,2)];
+                            const Scalar A_11_3 = A_p[INDEX3(1,1,3,2,2)];
+                            const Scalar tmp0 = w3*(A_11_0 + A_11_1 + A_11_2 + A_11_3);
+                            const Scalar tmp1 = w1*(A_01_0 + A_01_3 - A_10_1 - A_10_2);
+                            const Scalar tmp2 = w4*(A_00_2 + A_00_3);
+                            const Scalar tmp3 = w0*(A_00_0 + A_00_1);
+                            const Scalar tmp4 = w5*(A_01_2 - A_10_3);
+                            const Scalar tmp5 = w2*(-A_01_1 + A_10_0);
+                            const Scalar tmp6 = w5*(A_01_3 + A_10_0);
+                            const Scalar tmp7 = w3*(-A_11_0 - A_11_1 - A_11_2 - A_11_3);
+                            const Scalar tmp8 = w6*(A_00_0 + A_00_1 + A_00_2 + A_00_3);
+                            const Scalar tmp9 = w1*(A_01_1 + A_01_2 + A_10_1 + A_10_2);
+                            const Scalar tmp10 = w2*(-A_01_0 - A_10_3);
+                            const Scalar tmp11 = w4*(A_00_0 + A_00_1);
+                            const Scalar tmp12 = w0*(A_00_2 + A_00_3);
+                            const Scalar tmp13 = w5*(A_01_1 - A_10_0);
+                            const Scalar tmp14 = w2*(-A_01_2 + A_10_3);
+                            const Scalar tmp15 = w7*(A_11_0 + A_11_2);
+                            const Scalar tmp16 = w4*(-A_00_2 - A_00_3);
+                            const Scalar tmp17 = w0*(-A_00_0 - A_00_1);
+                            const Scalar tmp18 = w5*(A_01_3 + A_10_3);
+                            const Scalar tmp19 = w8*(A_11_1 + A_11_3);
+                            const Scalar tmp20 = w2*(-A_01_0 - A_10_0);
+                            const Scalar tmp21 = w7*(A_11_1 + A_11_3);
+                            const Scalar tmp22 = w4*(-A_00_0 - A_00_1);
+                            const Scalar tmp23 = w0*(-A_00_2 - A_00_3);
+                            const Scalar tmp24 = w5*(A_01_0 + A_10_0);
+                            const Scalar tmp25 = w8*(A_11_0 + A_11_2);
+                            const Scalar tmp26 = w2*(-A_01_3 - A_10_3);
+                            const Scalar tmp27 = w5*(-A_01_1 - A_10_2);
+                            const Scalar tmp28 = w1*(-A_01_0 - A_01_3 - A_10_0 - A_10_3);
+                            const Scalar tmp29 = w2*(A_01_2 + A_10_1);
+                            const Scalar tmp30 = w7*(-A_11_1 - A_11_3);
+                            const Scalar tmp31 = w1*(-A_01_1 - A_01_2 + A_10_0 + A_10_3);
+                            const Scalar tmp32 = w5*(-A_01_0 + A_10_2);
+                            const Scalar tmp33 = w8*(-A_11_0 - A_11_2);
+                            const Scalar tmp34 = w6*(-A_00_0 - A_00_1 - A_00_2 - A_00_3);
+                            const Scalar tmp35 = w2*(A_01_3 - A_10_1);
+                            const Scalar tmp36 = w5*(A_01_0 + A_10_3);
+                            const Scalar tmp37 = w2*(-A_01_3 - A_10_0);
+                            const Scalar tmp38 = w7*(-A_11_0 - A_11_2);
+                            const Scalar tmp39 = w5*(-A_01_3 + A_10_1);
+                            const Scalar tmp40 = w8*(-A_11_1 - A_11_3);
+                            const Scalar tmp41 = w2*(A_01_0 - A_10_2);
+                            const Scalar tmp42 = w5*(A_01_1 - A_10_3);
+                            const Scalar tmp43 = w2*(-A_01_2 + A_10_0);
+                            const Scalar tmp44 = w5*(A_01_2 - A_10_0);
+                            const Scalar tmp45 = w2*(-A_01_1 + A_10_3);
+                            const Scalar tmp46 = w5*(-A_01_0 + A_10_1);
+                            const Scalar tmp47 = w2*(A_01_3 - A_10_2);
+                            const Scalar tmp48 = w5*(-A_01_1 - A_10_1);
+                            const Scalar tmp49 = w2*(A_01_2 + A_10_2);
+                            const Scalar tmp50 = w5*(-A_01_3 + A_10_2);
+                            const Scalar tmp51 = w2*(A_01_0 - A_10_1);
+                            const Scalar tmp52 = w5*(-A_01_2 - A_10_1);
+                            const Scalar tmp53 = w2*(A_01_1 + A_10_2);
+                            const Scalar tmp54 = w5*(-A_01_2 - A_10_2);
+                            const Scalar tmp55 = w2*(A_01_1 + A_10_1);
                             EM_S[INDEX2(0,0,4)]+=tmp15 + tmp16 + tmp17 + tmp18 + tmp19 + tmp20 + tmp9;
                             EM_S[INDEX2(0,1,4)]+=tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5;
                             EM_S[INDEX2(0,2,4)]+=tmp31 + tmp34 + tmp38 + tmp39 + tmp40 + tmp41;
@@ -282,62 +298,62 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
                             EM_S[INDEX2(3,2,4)]+=tmp0 + tmp1 + tmp11 + tmp12 + tmp13 + tmp14;
                             EM_S[INDEX2(3,3,4)]+=tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp9;
                         } else { // constant data
-                            const double A_00 = A_p[INDEX2(0,0,2)];
-                            const double A_01 = A_p[INDEX2(0,1,2)];
-                            const double A_10 = A_p[INDEX2(1,0,2)];
-                            const double A_11 = A_p[INDEX2(1,1,2)];
-                            const double tmp0 = 6*w1*(A_01 - A_10);
-                            const double tmp1 = 6*w1*(A_01 + A_10);
-                            const double tmp2 = 6*w1*(-A_01 - A_10);
-                            const double tmp3 = 6*w1*(-A_01 + A_10);
-                            EM_S[INDEX2(0,0,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp1;
-                            EM_S[INDEX2(0,1,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp0;
-                            EM_S[INDEX2(0,2,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp3;
-                            EM_S[INDEX2(0,3,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp2;
-                            EM_S[INDEX2(1,0,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp3;
-                            EM_S[INDEX2(1,1,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp2;
-                            EM_S[INDEX2(1,2,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp1;
-                            EM_S[INDEX2(1,3,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp0;
-                            EM_S[INDEX2(2,0,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp0;
-                            EM_S[INDEX2(2,1,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp1;
-                            EM_S[INDEX2(2,2,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp2;
-                            EM_S[INDEX2(2,3,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp3;
-                            EM_S[INDEX2(3,0,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp2;
-                            EM_S[INDEX2(3,1,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp3;
-                            EM_S[INDEX2(3,2,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp0;
-                            EM_S[INDEX2(3,3,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp1;
+                            const Scalar A_00 = A_p[INDEX2(0,0,2)];
+                            const Scalar A_01 = A_p[INDEX2(0,1,2)];
+                            const Scalar A_10 = A_p[INDEX2(1,0,2)];
+                            const Scalar A_11 = A_p[INDEX2(1,1,2)];
+                            const Scalar tmp0 = 6.*w1*(A_01 - A_10);
+                            const Scalar tmp1 = 6.*w1*(A_01 + A_10);
+                            const Scalar tmp2 = 6.*w1*(-A_01 - A_10);
+                            const Scalar tmp3 = 6.*w1*(-A_01 + A_10);
+                            EM_S[INDEX2(0,0,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp1;
+                            EM_S[INDEX2(0,1,4)]+=8.*A_00*w6 + 4.*A_11*w3 + tmp0;
+                            EM_S[INDEX2(0,2,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp3;
+                            EM_S[INDEX2(0,3,4)]+=4.*A_00*w6 - 4.*A_11*w3 + tmp2;
+                            EM_S[INDEX2(1,0,4)]+=8.*A_00*w6 + 4.*A_11*w3 + tmp3;
+                            EM_S[INDEX2(1,1,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp2;
+                            EM_S[INDEX2(1,2,4)]+=4.*A_00*w6 - 4.*A_11*w3 + tmp1;
+                            EM_S[INDEX2(1,3,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp0;
+                            EM_S[INDEX2(2,0,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp0;
+                            EM_S[INDEX2(2,1,4)]+=4.*A_00*w6 - 4.*A_11*w3 + tmp1;
+                            EM_S[INDEX2(2,2,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp2;
+                            EM_S[INDEX2(2,3,4)]+=8.*A_00*w6 + 4.*A_11*w3 + tmp3;
+                            EM_S[INDEX2(3,0,4)]+=4.*A_00*w6 - 4.*A_11*w3 + tmp2;
+                            EM_S[INDEX2(3,1,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp3;
+                            EM_S[INDEX2(3,2,4)]+=8.*A_00*w6 + 4.*A_11*w3 + tmp0;
+                            EM_S[INDEX2(3,3,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp1;
                         }
                     }
                     ///////////////
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
-                        const double* B_p=B.getSampleDataRO(e);
+                        const Scalar* B_p = B.getSampleDataRO(e, zero);
                         if (B.actsExpanded()) {
-                            const double B_0_0 = B_p[INDEX2(0,0,2)];
-                            const double B_1_0 = B_p[INDEX2(1,0,2)];
-                            const double B_0_1 = B_p[INDEX2(0,1,2)];
-                            const double B_1_1 = B_p[INDEX2(1,1,2)];
-                            const double B_0_2 = B_p[INDEX2(0,2,2)];
-                            const double B_1_2 = B_p[INDEX2(1,2,2)];
-                            const double B_0_3 = B_p[INDEX2(0,3,2)];
-                            const double B_1_3 = B_p[INDEX2(1,3,2)];
-                            const double tmp0 = w11*(B_1_0 + B_1_1);
-                            const double tmp1 = w14*(B_1_2 + B_1_3);
-                            const double tmp2 = w15*(-B_0_1 - B_0_3);
-                            const double tmp3 = w10*(-B_0_0 - B_0_2);
-                            const double tmp4 = w11*(B_1_2 + B_1_3);
-                            const double tmp5 = w14*(B_1_0 + B_1_1);
-                            const double tmp6 = w11*(-B_1_2 - B_1_3);
-                            const double tmp7 = w14*(-B_1_0 - B_1_1);
-                            const double tmp8 = w11*(-B_1_0 - B_1_1);
-                            const double tmp9 = w14*(-B_1_2 - B_1_3);
-                            const double tmp10 = w10*(-B_0_1 - B_0_3);
-                            const double tmp11 = w15*(-B_0_0 - B_0_2);
-                            const double tmp12 = w15*(B_0_0 + B_0_2);
-                            const double tmp13 = w10*(B_0_1 + B_0_3);
-                            const double tmp14 = w10*(B_0_0 + B_0_2);
-                            const double tmp15 = w15*(B_0_1 + B_0_3);
+                            const Scalar B_0_0 = B_p[INDEX2(0,0,2)];
+                            const Scalar B_1_0 = B_p[INDEX2(1,0,2)];
+                            const Scalar B_0_1 = B_p[INDEX2(0,1,2)];
+                            const Scalar B_1_1 = B_p[INDEX2(1,1,2)];
+                            const Scalar B_0_2 = B_p[INDEX2(0,2,2)];
+                            const Scalar B_1_2 = B_p[INDEX2(1,2,2)];
+                            const Scalar B_0_3 = B_p[INDEX2(0,3,2)];
+                            const Scalar B_1_3 = B_p[INDEX2(1,3,2)];
+                            const Scalar tmp0 = w11*(B_1_0 + B_1_1);
+                            const Scalar tmp1 = w14*(B_1_2 + B_1_3);
+                            const Scalar tmp2 = w15*(-B_0_1 - B_0_3);
+                            const Scalar tmp3 = w10*(-B_0_0 - B_0_2);
+                            const Scalar tmp4 = w11*(B_1_2 + B_1_3);
+                            const Scalar tmp5 = w14*(B_1_0 + B_1_1);
+                            const Scalar tmp6 = w11*(-B_1_2 - B_1_3);
+                            const Scalar tmp7 = w14*(-B_1_0 - B_1_1);
+                            const Scalar tmp8 = w11*(-B_1_0 - B_1_1);
+                            const Scalar tmp9 = w14*(-B_1_2 - B_1_3);
+                            const Scalar tmp10 = w10*(-B_0_1 - B_0_3);
+                            const Scalar tmp11 = w15*(-B_0_0 - B_0_2);
+                            const Scalar tmp12 = w15*(B_0_0 + B_0_2);
+                            const Scalar tmp13 = w10*(B_0_1 + B_0_3);
+                            const Scalar tmp14 = w10*(B_0_0 + B_0_2);
+                            const Scalar tmp15 = w15*(B_0_1 + B_0_3);
                             EM_S[INDEX2(0,0,4)]+=B_0_0*w12 + B_0_1*w10 + B_0_2*w15 + B_0_3*w13 + B_1_0*w16 + B_1_1*w14 + B_1_2*w11 + B_1_3*w17;
                             EM_S[INDEX2(0,1,4)]+=B_0_0*w10 + B_0_1*w12 + B_0_2*w13 + B_0_3*w15 + tmp0 + tmp1;
                             EM_S[INDEX2(0,2,4)]+=B_1_0*w11 + B_1_1*w17 + B_1_2*w16 + B_1_3*w14 + tmp14 + tmp15;
@@ -355,56 +371,56 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
                             EM_S[INDEX2(3,2,4)]+=-B_0_0*w15 - B_0_1*w13 - B_0_2*w12 - B_0_3*w10 + tmp6 + tmp7;
                             EM_S[INDEX2(3,3,4)]+=-B_0_0*w13 - B_0_1*w15 - B_0_2*w10 - B_0_3*w12 - B_1_0*w17 - B_1_1*w11 - B_1_2*w14 - B_1_3*w16;
                         } else { // constant data
-                            const double B_0 = B_p[0];
-                            const double B_1 = B_p[1];
-                            EM_S[INDEX2(0,0,4)]+= 2*B_0*w18 + 2*B_1*w19;
-                            EM_S[INDEX2(0,1,4)]+= 2*B_0*w18 +   B_1*w19;
-                            EM_S[INDEX2(0,2,4)]+=   B_0*w18 + 2*B_1*w19;
-                            EM_S[INDEX2(0,3,4)]+=   B_0*w18 +   B_1*w19;
-                            EM_S[INDEX2(1,0,4)]+=-2*B_0*w18 +   B_1*w19;
-                            EM_S[INDEX2(1,1,4)]+=-2*B_0*w18 + 2*B_1*w19;
-                            EM_S[INDEX2(1,2,4)]+=  -B_0*w18 +   B_1*w19;
-                            EM_S[INDEX2(1,3,4)]+=  -B_0*w18 + 2*B_1*w19;
-                            EM_S[INDEX2(2,0,4)]+=   B_0*w18 - 2*B_1*w19;
-                            EM_S[INDEX2(2,1,4)]+=   B_0*w18 -   B_1*w19;
-                            EM_S[INDEX2(2,2,4)]+= 2*B_0*w18 - 2*B_1*w19;
-                            EM_S[INDEX2(2,3,4)]+= 2*B_0*w18 -   B_1*w19;
-                            EM_S[INDEX2(3,0,4)]+=  -B_0*w18 -   B_1*w19;
-                            EM_S[INDEX2(3,1,4)]+=  -B_0*w18 - 2*B_1*w19;
-                            EM_S[INDEX2(3,2,4)]+=-2*B_0*w18 -   B_1*w19;
-                            EM_S[INDEX2(3,3,4)]+=-2*B_0*w18 - 2*B_1*w19;
+                            const Scalar B_0 = B_p[0];
+                            const Scalar B_1 = B_p[1];
+                            EM_S[INDEX2(0,0,4)]+= 2.*B_0*w18 + 2.*B_1*w19;
+                            EM_S[INDEX2(0,1,4)]+= 2.*B_0*w18 +    B_1*w19;
+                            EM_S[INDEX2(0,2,4)]+=    B_0*w18 + 2.*B_1*w19;
+                            EM_S[INDEX2(0,3,4)]+=    B_0*w18 +    B_1*w19;
+                            EM_S[INDEX2(1,0,4)]+=-2.*B_0*w18 +    B_1*w19;
+                            EM_S[INDEX2(1,1,4)]+=-2.*B_0*w18 + 2.*B_1*w19;
+                            EM_S[INDEX2(1,2,4)]+=   -B_0*w18 +    B_1*w19;
+                            EM_S[INDEX2(1,3,4)]+=   -B_0*w18 + 2.*B_1*w19;
+                            EM_S[INDEX2(2,0,4)]+=    B_0*w18 - 2.*B_1*w19;
+                            EM_S[INDEX2(2,1,4)]+=    B_0*w18 -    B_1*w19;
+                            EM_S[INDEX2(2,2,4)]+= 2.*B_0*w18 - 2.*B_1*w19;
+                            EM_S[INDEX2(2,3,4)]+= 2.*B_0*w18 -    B_1*w19;
+                            EM_S[INDEX2(3,0,4)]+=   -B_0*w18 -    B_1*w19;
+                            EM_S[INDEX2(3,1,4)]+=   -B_0*w18 - 2.*B_1*w19;
+                            EM_S[INDEX2(3,2,4)]+=-2.*B_0*w18 -    B_1*w19;
+                            EM_S[INDEX2(3,3,4)]+=-2.*B_0*w18 - 2.*B_1*w19;
                         }
                     }
                     ///////////////
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
-                        const double* C_p=C.getSampleDataRO(e);
+                        const Scalar* C_p = C.getSampleDataRO(e, zero);
                         if (C.actsExpanded()) {
-                            const double C_0_0 = C_p[INDEX2(0,0,2)];
-                            const double C_1_0 = C_p[INDEX2(1,0,2)];
-                            const double C_0_1 = C_p[INDEX2(0,1,2)];
-                            const double C_1_1 = C_p[INDEX2(1,1,2)];
-                            const double C_0_2 = C_p[INDEX2(0,2,2)];
-                            const double C_1_2 = C_p[INDEX2(1,2,2)];
-                            const double C_0_3 = C_p[INDEX2(0,3,2)];
-                            const double C_1_3 = C_p[INDEX2(1,3,2)];
-                            const double tmp0 = w11*(C_1_0 + C_1_1);
-                            const double tmp1 = w14*(C_1_2 + C_1_3);
-                            const double tmp2 = w15*(C_0_0 + C_0_2);
-                            const double tmp3 = w10*(C_0_1 + C_0_3);
-                            const double tmp4 = w11*(-C_1_0 - C_1_1);
-                            const double tmp5 = w14*(-C_1_2 - C_1_3);
-                            const double tmp6 = w11*(-C_1_2 - C_1_3);
-                            const double tmp7 = w14*(-C_1_0 - C_1_1);
-                            const double tmp8 = w11*(C_1_2 + C_1_3);
-                            const double tmp9 = w14*(C_1_0 + C_1_1);
-                            const double tmp10 = w10*(-C_0_1 - C_0_3);
-                            const double tmp11 = w15*(-C_0_0 - C_0_2);
-                            const double tmp12 = w15*(-C_0_1 - C_0_3);
-                            const double tmp13 = w10*(-C_0_0 - C_0_2);
-                            const double tmp14 = w10*(C_0_0 + C_0_2);
-                            const double tmp15 = w15*(C_0_1 + C_0_3);
+                            const Scalar C_0_0 = C_p[INDEX2(0,0,2)];
+                            const Scalar C_1_0 = C_p[INDEX2(1,0,2)];
+                            const Scalar C_0_1 = C_p[INDEX2(0,1,2)];
+                            const Scalar C_1_1 = C_p[INDEX2(1,1,2)];
+                            const Scalar C_0_2 = C_p[INDEX2(0,2,2)];
+                            const Scalar C_1_2 = C_p[INDEX2(1,2,2)];
+                            const Scalar C_0_3 = C_p[INDEX2(0,3,2)];
+                            const Scalar C_1_3 = C_p[INDEX2(1,3,2)];
+                            const Scalar tmp0 = w11*(C_1_0 + C_1_1);
+                            const Scalar tmp1 = w14*(C_1_2 + C_1_3);
+                            const Scalar tmp2 = w15*(C_0_0 + C_0_2);
+                            const Scalar tmp3 = w10*(C_0_1 + C_0_3);
+                            const Scalar tmp4 = w11*(-C_1_0 - C_1_1);
+                            const Scalar tmp5 = w14*(-C_1_2 - C_1_3);
+                            const Scalar tmp6 = w11*(-C_1_2 - C_1_3);
+                            const Scalar tmp7 = w14*(-C_1_0 - C_1_1);
+                            const Scalar tmp8 = w11*(C_1_2 + C_1_3);
+                            const Scalar tmp9 = w14*(C_1_0 + C_1_1);
+                            const Scalar tmp10 = w10*(-C_0_1 - C_0_3);
+                            const Scalar tmp11 = w15*(-C_0_0 - C_0_2);
+                            const Scalar tmp12 = w15*(-C_0_1 - C_0_3);
+                            const Scalar tmp13 = w10*(-C_0_0 - C_0_2);
+                            const Scalar tmp14 = w10*(C_0_0 + C_0_2);
+                            const Scalar tmp15 = w15*(C_0_1 + C_0_3);
                             EM_S[INDEX2(0,0,4)]+=C_0_0*w12 + C_0_1*w10 + C_0_2*w15 + C_0_3*w13 + C_1_0*w16 + C_1_1*w14 + C_1_2*w11 + C_1_3*w17;
                             EM_S[INDEX2(0,1,4)]+=-C_0_0*w12 - C_0_1*w10 - C_0_2*w15 - C_0_3*w13 + tmp0 + tmp1;
                             EM_S[INDEX2(0,2,4)]+=-C_1_0*w16 - C_1_1*w14 - C_1_2*w11 - C_1_3*w17 + tmp14 + tmp15;
@@ -422,47 +438,47 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
                             EM_S[INDEX2(3,2,4)]+=C_0_0*w13 + C_0_1*w15 + C_0_2*w10 + C_0_3*w12 + tmp6 + tmp7;
                             EM_S[INDEX2(3,3,4)]+=-C_0_0*w13 - C_0_1*w15 - C_0_2*w10 - C_0_3*w12 - C_1_0*w17 - C_1_1*w11 - C_1_2*w14 - C_1_3*w16;
                         } else { // constant data
-                            const double C_0 = C_p[0];
-                            const double C_1 = C_p[1];
-                            EM_S[INDEX2(0,0,4)]+= 2*C_0*w18 + 2*C_1*w19;
-                            EM_S[INDEX2(0,1,4)]+=-2*C_0*w18 +   C_1*w19;
-                            EM_S[INDEX2(0,2,4)]+=   C_0*w18 - 2*C_1*w19;
-                            EM_S[INDEX2(0,3,4)]+=  -C_0*w18 -   C_1*w19;
-                            EM_S[INDEX2(1,0,4)]+= 2*C_0*w18 +   C_1*w19;
-                            EM_S[INDEX2(1,1,4)]+=-2*C_0*w18 + 2*C_1*w19;
-                            EM_S[INDEX2(1,2,4)]+=   C_0*w18 -   C_1*w19;
-                            EM_S[INDEX2(1,3,4)]+=  -C_0*w18 - 2*C_1*w19;
-                            EM_S[INDEX2(2,0,4)]+=   C_0*w18 + 2*C_1*w19;
-                            EM_S[INDEX2(2,1,4)]+=  -C_0*w18 +   C_1*w19;
-                            EM_S[INDEX2(2,2,4)]+= 2*C_0*w18 - 2*C_1*w19;
-                            EM_S[INDEX2(2,3,4)]+=-2*C_0*w18 -   C_1*w19;
-                            EM_S[INDEX2(3,0,4)]+=   C_0*w18 +   C_1*w19;
-                            EM_S[INDEX2(3,1,4)]+=  -C_0*w18 + 2*C_1*w19;
-                            EM_S[INDEX2(3,2,4)]+= 2*C_0*w18 -   C_1*w19;
-                            EM_S[INDEX2(3,3,4)]+=-2*C_0*w18 - 2*C_1*w19;
+                            const Scalar C_0 = C_p[0];
+                            const Scalar C_1 = C_p[1];
+                            EM_S[INDEX2(0,0,4)]+= 2.*C_0*w18 + 2.*C_1*w19;
+                            EM_S[INDEX2(0,1,4)]+=-2.*C_0*w18 +    C_1*w19;
+                            EM_S[INDEX2(0,2,4)]+=    C_0*w18 - 2.*C_1*w19;
+                            EM_S[INDEX2(0,3,4)]+=   -C_0*w18 -    C_1*w19;
+                            EM_S[INDEX2(1,0,4)]+= 2.*C_0*w18 +    C_1*w19;
+                            EM_S[INDEX2(1,1,4)]+=-2.*C_0*w18 + 2.*C_1*w19;
+                            EM_S[INDEX2(1,2,4)]+=    C_0*w18 -    C_1*w19;
+                            EM_S[INDEX2(1,3,4)]+=   -C_0*w18 - 2.*C_1*w19;
+                            EM_S[INDEX2(2,0,4)]+=    C_0*w18 + 2.*C_1*w19;
+                            EM_S[INDEX2(2,1,4)]+=   -C_0*w18 +    C_1*w19;
+                            EM_S[INDEX2(2,2,4)]+= 2.*C_0*w18 - 2.*C_1*w19;
+                            EM_S[INDEX2(2,3,4)]+=-2.*C_0*w18 -    C_1*w19;
+                            EM_S[INDEX2(3,0,4)]+=    C_0*w18 +    C_1*w19;
+                            EM_S[INDEX2(3,1,4)]+=   -C_0*w18 + 2.*C_1*w19;
+                            EM_S[INDEX2(3,2,4)]+= 2.*C_0*w18 -    C_1*w19;
+                            EM_S[INDEX2(3,3,4)]+=-2.*C_0*w18 - 2.*C_1*w19;
                         }
                     }
                     ///////////////
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
-                        const double* D_p=D.getSampleDataRO(e);
+                        const Scalar* D_p = D.getSampleDataRO(e, zero);
                         if (D.actsExpanded()) {
-                            const double D_0 = D_p[0];
-                            const double D_1 = D_p[1];
-                            const double D_2 = D_p[2];
-                            const double D_3 = D_p[3];
-                            const double tmp0 = w21*(D_2 + D_3);
-                            const double tmp1 = w20*(D_0 + D_1);
-                            const double tmp2 = w22*(D_0 + D_1 + D_2 + D_3);
-                            const double tmp3 = w21*(D_0 + D_1);
-                            const double tmp4 = w20*(D_2 + D_3);
-                            const double tmp5 = w22*(D_1 + D_2);
-                            const double tmp6 = w21*(D_0 + D_2);
-                            const double tmp7 = w20*(D_1 + D_3);
-                            const double tmp8 = w21*(D_1 + D_3);
-                            const double tmp9 = w20*(D_0 + D_2);
-                            const double tmp10 = w22*(D_0 + D_3);
+                            const Scalar D_0 = D_p[0];
+                            const Scalar D_1 = D_p[1];
+                            const Scalar D_2 = D_p[2];
+                            const Scalar D_3 = D_p[3];
+                            const Scalar tmp0 = w21*(D_2 + D_3);
+                            const Scalar tmp1 = w20*(D_0 + D_1);
+                            const Scalar tmp2 = w22*(D_0 + D_1 + D_2 + D_3);
+                            const Scalar tmp3 = w21*(D_0 + D_1);
+                            const Scalar tmp4 = w20*(D_2 + D_3);
+                            const Scalar tmp5 = w22*(D_1 + D_2);
+                            const Scalar tmp6 = w21*(D_0 + D_2);
+                            const Scalar tmp7 = w20*(D_1 + D_3);
+                            const Scalar tmp8 = w21*(D_1 + D_3);
+                            const Scalar tmp9 = w20*(D_0 + D_2);
+                            const Scalar tmp10 = w22*(D_0 + D_3);
                             EM_S[INDEX2(0,0,4)]+=D_0*w23 + D_3*w24 + tmp5;
                             EM_S[INDEX2(0,1,4)]+=tmp0 + tmp1;
                             EM_S[INDEX2(0,2,4)]+=tmp8 + tmp9;
@@ -480,94 +496,94 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
                             EM_S[INDEX2(3,2,4)]+=tmp3 + tmp4;
                             EM_S[INDEX2(3,3,4)]+=D_0*w24 + D_3*w23 + tmp5;
                         } else { // constant data
-                            const double D_0 = D_p[0];
-                            EM_S[INDEX2(0,0,4)]+=16*D_0*w22;
-                            EM_S[INDEX2(0,1,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(0,2,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(0,3,4)]+=4*D_0*w22;
-                            EM_S[INDEX2(1,0,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(1,1,4)]+=16*D_0*w22;
-                            EM_S[INDEX2(1,2,4)]+=4*D_0*w22;
-                            EM_S[INDEX2(1,3,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(2,0,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(2,1,4)]+=4*D_0*w22;
-                            EM_S[INDEX2(2,2,4)]+=16*D_0*w22;
-                            EM_S[INDEX2(2,3,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(3,0,4)]+=4*D_0*w22;
-                            EM_S[INDEX2(3,1,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(3,2,4)]+=8*D_0*w22;
-                            EM_S[INDEX2(3,3,4)]+=16*D_0*w22;
+                            const Scalar D_0 = D_p[0];
+                            EM_S[INDEX2(0,0,4)]+=16.*D_0*w22;
+                            EM_S[INDEX2(0,1,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(0,2,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(0,3,4)]+= 4.*D_0*w22;
+                            EM_S[INDEX2(1,0,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(1,1,4)]+=16.*D_0*w22;
+                            EM_S[INDEX2(1,2,4)]+= 4.*D_0*w22;
+                            EM_S[INDEX2(1,3,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(2,0,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(2,1,4)]+= 4.*D_0*w22;
+                            EM_S[INDEX2(2,2,4)]+=16.*D_0*w22;
+                            EM_S[INDEX2(2,3,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(3,0,4)]+= 4.*D_0*w22;
+                            EM_S[INDEX2(3,1,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(3,2,4)]+= 8.*D_0*w22;
+                            EM_S[INDEX2(3,3,4)]+=16.*D_0*w22;
                         }
                     }
                     ///////////////
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
-                        const double* X_p=X.getSampleDataRO(e);
+                        const Scalar* X_p = X.getSampleDataRO(e, zero);
                         if (X.actsExpanded()) {
-                            const double X_0_0 = X_p[INDEX2(0,0,2)];
-                            const double X_1_0 = X_p[INDEX2(1,0,2)];
-                            const double X_0_1 = X_p[INDEX2(0,1,2)];
-                            const double X_1_1 = X_p[INDEX2(1,1,2)];
-                            const double X_0_2 = X_p[INDEX2(0,2,2)];
-                            const double X_1_2 = X_p[INDEX2(1,2,2)];
-                            const double X_0_3 = X_p[INDEX2(0,3,2)];
-                            const double X_1_3 = X_p[INDEX2(1,3,2)];
-                            const double tmp0 = 6*w15*(X_0_2 + X_0_3);
-                            const double tmp1 = 6*w10*(X_0_0 + X_0_1);
-                            const double tmp2 = 6*w11*(X_1_0 + X_1_2);
-                            const double tmp3 = 6*w14*(X_1_1 + X_1_3);
-                            const double tmp4 = 6*w11*(X_1_1 + X_1_3);
-                            const double tmp5 = w25*(X_0_0 + X_0_1);
-                            const double tmp6 = w26*(X_0_2 + X_0_3);
-                            const double tmp7 = 6*w14*(X_1_0 + X_1_2);
-                            const double tmp8 = w27*(X_1_0 + X_1_2);
-                            const double tmp9 = w28*(X_1_1 + X_1_3);
-                            const double tmp10 = w25*(-X_0_2 - X_0_3);
-                            const double tmp11 = w26*(-X_0_0 - X_0_1);
-                            const double tmp12 = w27*(X_1_1 + X_1_3);
-                            const double tmp13 = w28*(X_1_0 + X_1_2);
-                            const double tmp14 = w25*(X_0_2 + X_0_3);
-                            const double tmp15 = w26*(X_0_0 + X_0_1);
+                            const Scalar X_0_0 = X_p[INDEX2(0,0,2)];
+                            const Scalar X_1_0 = X_p[INDEX2(1,0,2)];
+                            const Scalar X_0_1 = X_p[INDEX2(0,1,2)];
+                            const Scalar X_1_1 = X_p[INDEX2(1,1,2)];
+                            const Scalar X_0_2 = X_p[INDEX2(0,2,2)];
+                            const Scalar X_1_2 = X_p[INDEX2(1,2,2)];
+                            const Scalar X_0_3 = X_p[INDEX2(0,3,2)];
+                            const Scalar X_1_3 = X_p[INDEX2(1,3,2)];
+                            const Scalar tmp0 = 6.*w15*(X_0_2 + X_0_3);
+                            const Scalar tmp1 = 6.*w10*(X_0_0 + X_0_1);
+                            const Scalar tmp2 = 6.*w11*(X_1_0 + X_1_2);
+                            const Scalar tmp3 = 6.*w14*(X_1_1 + X_1_3);
+                            const Scalar tmp4 = 6.*w11*(X_1_1 + X_1_3);
+                            const Scalar tmp5 = w25*(X_0_0 + X_0_1);
+                            const Scalar tmp6 = w26*(X_0_2 + X_0_3);
+                            const Scalar tmp7 = 6.*w14*(X_1_0 + X_1_2);
+                            const Scalar tmp8 = w27*(X_1_0 + X_1_2);
+                            const Scalar tmp9 = w28*(X_1_1 + X_1_3);
+                            const Scalar tmp10 = w25*(-X_0_2 - X_0_3);
+                            const Scalar tmp11 = w26*(-X_0_0 - X_0_1);
+                            const Scalar tmp12 = w27*(X_1_1 + X_1_3);
+                            const Scalar tmp13 = w28*(X_1_0 + X_1_2);
+                            const Scalar tmp14 = w25*(X_0_2 + X_0_3);
+                            const Scalar tmp15 = w26*(X_0_0 + X_0_1);
                             EM_F[0]+=tmp0 + tmp1 + tmp2 + tmp3;
                             EM_F[1]+=tmp4 + tmp5 + tmp6 + tmp7;
                             EM_F[2]+=tmp10 + tmp11 + tmp8 + tmp9;
                             EM_F[3]+=tmp12 + tmp13 + tmp14 + tmp15;
                         } else { // constant data
-                            const double X_0 = X_p[0];
-                            const double X_1 = X_p[1];
-                            EM_F[0]+= 6*X_0*w18 + 6*X_1*w19;
-                            EM_F[1]+=-6*X_0*w18 + 6*X_1*w19;
-                            EM_F[2]+= 6*X_0*w18 - 6*X_1*w19;
-                            EM_F[3]+=-6*X_0*w18 - 6*X_1*w19;
+                            const Scalar X_0 = X_p[0];
+                            const Scalar X_1 = X_p[1];
+                            EM_F[0]+= 6.*X_0*w18 + 6.*X_1*w19;
+                            EM_F[1]+=-6.*X_0*w18 + 6.*X_1*w19;
+                            EM_F[2]+= 6.*X_0*w18 - 6.*X_1*w19;
+                            EM_F[3]+=-6.*X_0*w18 - 6.*X_1*w19;
                         }
                     }
                     ///////////////
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
-                        const double* Y_p=Y.getSampleDataRO(e);
+                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
                         if (Y.actsExpanded()) {
-                            const double Y_0 = Y_p[0];
-                            const double Y_1 = Y_p[1];
-                            const double Y_2 = Y_p[2];
-                            const double Y_3 = Y_p[3];
-                            const double tmp0 = 6*w22*(Y_1 + Y_2);
-                            const double tmp1 = 6*w22*(Y_0 + Y_3);
-                            EM_F[0]+=6*Y_0*w20 + 6*Y_3*w21 + tmp0;
-                            EM_F[1]+=6*Y_1*w20 + 6*Y_2*w21 + tmp1;
-                            EM_F[2]+=6*Y_1*w21 + 6*Y_2*w20 + tmp1;
-                            EM_F[3]+=6*Y_0*w21 + 6*Y_3*w20 + tmp0;
+                            const Scalar Y_0 = Y_p[0];
+                            const Scalar Y_1 = Y_p[1];
+                            const Scalar Y_2 = Y_p[2];
+                            const Scalar Y_3 = Y_p[3];
+                            const Scalar tmp0 = 6.*w22*(Y_1 + Y_2);
+                            const Scalar tmp1 = 6.*w22*(Y_0 + Y_3);
+                            EM_F[0]+=6.*Y_0*w20 + 6.*Y_3*w21 + tmp0;
+                            EM_F[1]+=6.*Y_1*w20 + 6.*Y_2*w21 + tmp1;
+                            EM_F[2]+=6.*Y_1*w21 + 6.*Y_2*w20 + tmp1;
+                            EM_F[3]+=6.*Y_0*w21 + 6.*Y_3*w20 + tmp0;
                         } else { // constant data
-                            EM_F[0]+=36*Y_p[0]*w22;
-                            EM_F[1]+=36*Y_p[0]*w22;
-                            EM_F[2]+=36*Y_p[0]*w22;
-                            EM_F[3]+=36*Y_p[0]*w22;
+                            EM_F[0]+=36.*Y_p[0]*w22;
+                            EM_F[1]+=36.*Y_p[0]*w22;
+                            EM_F[2]+=36.*Y_p[0]*w22;
+                            EM_F[3]+=36.*Y_p[0]*w22;
                         }
                     }
 
                     // add to matrix (if addEM_S) and RHS (if addEM_F)
-                    const index_t firstNode=m_NN[0]*k1+k0;
+                    const index_t firstNode = m_NN[0]*k1+k0;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
                                               addEM_F, firstNode);
                 } // end k0 loop
@@ -580,8 +596,10 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
 // PDE SINGLE BOUNDARY
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
-                                Data& rhs, const Data& d, const Data& y) const
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
+                                        AbstractSystemMatrix* mat, Data& rhs,
+                                        const Data& d, const Data& y) const
 {
     const double SQRT3 = 1.73205080756887719318;
     const double w5 = m_dx[0]/12;
@@ -598,19 +616,20 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
     const int NE1 = m_NE[1];
     const bool addEM_S = !d.isEmpty();
     const bool addEM_F = !y.isEmpty();
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4);
-        vector<double> EM_F(4);
+        vector<Scalar> EM_S(4*4);
+        vector<Scalar> EM_F(4);
 
         if (domain->m_faceOffset[0] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[1] = 0;
-                EM_F[3] = 0;
+                EM_F[1] = zero;
+                EM_F[3] = zero;
             }
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
@@ -620,33 +639,33 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(k1);
+                        const Scalar* d_p = d.getSampleDataRO(k1, zero);
                         if (d.actsExpanded()) {
-                            const double d_0 = d_p[0];
-                            const double d_1 = d_p[1];
-                            const double tmp0 = w2*(d_0 + d_1);
+                            const Scalar d_0 = d_p[0];
+                            const Scalar d_1 = d_p[1];
+                            const Scalar tmp0 = w2*(d_0 + d_1);
                             EM_S[INDEX2(0,0,4)] = d_0*w0 + d_1*w1;
                             EM_S[INDEX2(2,0,4)] = tmp0;
                             EM_S[INDEX2(0,2,4)] = tmp0;
                             EM_S[INDEX2(2,2,4)] = d_0*w1 + d_1*w0;
                         } else { // constant data
-                            EM_S[INDEX2(0,0,4)] = 4*d_p[0]*w2;
-                            EM_S[INDEX2(2,0,4)] = 2*d_p[0]*w2;
-                            EM_S[INDEX2(0,2,4)] = 2*d_p[0]*w2;
-                            EM_S[INDEX2(2,2,4)] = 4*d_p[0]*w2;
+                            EM_S[INDEX2(0,0,4)] = 4.*d_p[0]*w2;
+                            EM_S[INDEX2(2,0,4)] = 2.*d_p[0]*w2;
+                            EM_S[INDEX2(0,2,4)] = 2.*d_p[0]*w2;
+                            EM_S[INDEX2(2,2,4)] = 4.*d_p[0]*w2;
                         }
                     }
                     ///////////////
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(k1);
+                        const Scalar* y_p = y.getSampleDataRO(k1, zero);
                         if (y.actsExpanded()) {
                             EM_F[0] = w3*y_p[0] + w4*y_p[1];
                             EM_F[2] = w3*y_p[1] + w4*y_p[0];
                         } else { // constant data
-                            EM_F[0] = 6*w2*y_p[0];
-                            EM_F[2] = 6*w2*y_p[0];
+                            EM_F[0] = 6.*w2*y_p[0];
+                            EM_F[2] = 6.*w2*y_p[0];
                         }
                     }
                     const index_t firstNode=m_NN[0]*k1;
@@ -658,10 +677,10 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 
         if (domain->m_faceOffset[1] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[0] = 0;
-                EM_F[2] = 0;
+                EM_F[0] = zero;
+                EM_F[2] = zero;
             }
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
@@ -672,36 +691,36 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
-                            const double d_0 = d_p[0];
-                            const double d_1 = d_p[1];
-                            const double tmp0 = w2*(d_0 + d_1);
+                            const Scalar d_0 = d_p[0];
+                            const Scalar d_1 = d_p[1];
+                            const Scalar tmp0 = w2*(d_0 + d_1);
                             EM_S[INDEX2(1,1,4)] = d_0*w0 + d_1*w1;
                             EM_S[INDEX2(3,1,4)] = tmp0;
                             EM_S[INDEX2(1,3,4)] = tmp0;
                             EM_S[INDEX2(3,3,4)] = d_0*w1 + d_1*w0;
                         } else { // constant data
-                            EM_S[INDEX2(1,1,4)] = 4*d_p[0]*w2;
-                            EM_S[INDEX2(3,1,4)] = 2*d_p[0]*w2;
-                            EM_S[INDEX2(1,3,4)] = 2*d_p[0]*w2;
-                            EM_S[INDEX2(3,3,4)] = 4*d_p[0]*w2;
+                            EM_S[INDEX2(1,1,4)] = 4.*d_p[0]*w2;
+                            EM_S[INDEX2(3,1,4)] = 2.*d_p[0]*w2;
+                            EM_S[INDEX2(1,3,4)] = 2.*d_p[0]*w2;
+                            EM_S[INDEX2(3,3,4)] = 4.*d_p[0]*w2;
                         }
                     }
                     ///////////////
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             EM_F[1] = w3*y_p[0] + w4*y_p[1];
                             EM_F[3] = w3*y_p[1] + w4*y_p[0];
                         } else { // constant data
-                            EM_F[1] = 6*w2*y_p[0];
-                            EM_F[3] = 6*w2*y_p[0];
+                            EM_F[1] = 6.*w2*y_p[0];
+                            EM_F[3] = 6.*w2*y_p[0];
                         }
                     }
-                    const index_t firstNode=m_NN[0]*(k1+1)-2;
+                    const index_t firstNode = m_NN[0]*(k1+1)-2;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
                                               addEM_F, firstNode);
                 }
@@ -710,10 +729,10 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 
         if (domain->m_faceOffset[2] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[2] = 0;
-                EM_F[3] = 0;
+                EM_F[2] = zero;
+                EM_F[3] = zero;
             }
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
@@ -724,36 +743,36 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
-                            const double d_0 = d_p[0];
-                            const double d_1 = d_p[1];
-                            const double tmp0 = w5*(d_0 + d_1);
+                            const Scalar d_0 = d_p[0];
+                            const Scalar d_1 = d_p[1];
+                            const Scalar tmp0 = w5*(d_0 + d_1);
                             EM_S[INDEX2(0,0,4)] = d_0*w6 + d_1*w7;
                             EM_S[INDEX2(1,0,4)] = tmp0;
                             EM_S[INDEX2(0,1,4)] = tmp0;
                             EM_S[INDEX2(1,1,4)] = d_0*w7 + d_1*w6;
                         } else { // constant data
-                            EM_S[INDEX2(0,0,4)] = 4*d_p[0]*w5;
-                            EM_S[INDEX2(1,0,4)] = 2*d_p[0]*w5;
-                            EM_S[INDEX2(0,1,4)] = 2*d_p[0]*w5;
-                            EM_S[INDEX2(1,1,4)] = 4*d_p[0]*w5;
+                            EM_S[INDEX2(0,0,4)] = 4.*d_p[0]*w5;
+                            EM_S[INDEX2(1,0,4)] = 2.*d_p[0]*w5;
+                            EM_S[INDEX2(0,1,4)] = 2.*d_p[0]*w5;
+                            EM_S[INDEX2(1,1,4)] = 4.*d_p[0]*w5;
                         }
                     }
                     ///////////////
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             EM_F[0] = w8*y_p[0] + w9*y_p[1];
                             EM_F[1] = w8*y_p[1] + w9*y_p[0];
                         } else { // constant data
-                            EM_F[0] = 6*w5*y_p[0];
-                            EM_F[1] = 6*w5*y_p[0];
+                            EM_F[0] = 6.*w5*y_p[0];
+                            EM_F[1] = 6.*w5*y_p[0];
                         }
                     }
-                    const index_t firstNode=k0;
+                    const index_t firstNode = k0;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
                                               addEM_F, firstNode);
                 }
@@ -762,10 +781,10 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 
         if (domain->m_faceOffset[3] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[0] = 0;
-                EM_F[1] = 0;
+                EM_F[0] = zero;
+                EM_F[1] = zero;
             }
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
@@ -776,33 +795,33 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
-                            const double d_0 = d_p[0];
-                            const double d_1 = d_p[1];
-                            const double tmp0 = w5*(d_0 + d_1);
+                            const Scalar d_0 = d_p[0];
+                            const Scalar d_1 = d_p[1];
+                            const Scalar tmp0 = w5*(d_0 + d_1);
                             EM_S[INDEX2(2,2,4)] = d_0*w6 + d_1*w7;
                             EM_S[INDEX2(3,2,4)] = tmp0;
                             EM_S[INDEX2(2,3,4)] = tmp0;
                             EM_S[INDEX2(3,3,4)] = d_0*w7 + d_1*w6;
                         } else { // constant data
-                            EM_S[INDEX2(2,2,4)] = 4*d_p[0]*w5;
-                            EM_S[INDEX2(3,2,4)] = 2*d_p[0]*w5;
-                            EM_S[INDEX2(2,3,4)] = 2*d_p[0]*w5;
-                            EM_S[INDEX2(3,3,4)] = 4*d_p[0]*w5;
+                            EM_S[INDEX2(2,2,4)] = 4.*d_p[0]*w5;
+                            EM_S[INDEX2(3,2,4)] = 2.*d_p[0]*w5;
+                            EM_S[INDEX2(2,3,4)] = 2.*d_p[0]*w5;
+                            EM_S[INDEX2(3,3,4)] = 4.*d_p[0]*w5;
                         }
                     }
                     ///////////////
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             EM_F[2] = w8*y_p[0] + w9*y_p[1];
                             EM_F[3] = w8*y_p[1] + w9*y_p[0];
                         } else { // constant data
-                            EM_F[2] = 6*w5*y_p[0];
-                            EM_F[3] = 6*w5*y_p[0];
+                            EM_F[2] = 6.*w5*y_p[0];
+                            EM_F[3] = 6.*w5*y_p[0];
                         }
                     }
                     const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
@@ -818,7 +837,9 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
 // PDE SINGLE REDUCED
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
+                                    AbstractSystemMatrix* mat,
                                     Data& rhs, const Data& A, const Data& B,
                                     const Data& C, const Data& D,
                                     const Data& X, const Data& Y) const
@@ -833,12 +854,13 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
     const int NE1 = m_NE[1];
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
     const bool addEM_F = (!X.isEmpty() || !Y.isEmpty());
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4, 0);
-        vector<double> EM_F(4, 0);
+        vector<Scalar> EM_S(4*4, zero);
+        vector<Scalar> EM_F(4, zero);
 
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
@@ -846,23 +868,23 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                 for (index_t k0=0; k0<NE0; ++k0)  {
                     const index_t e = k0 + NE0*k1;
                     if (addEM_S)
-                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_S.begin(), EM_S.end(), zero);
                     if (addEM_F)
-                        fill(EM_F.begin(), EM_F.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), zero);
                     ///////////////
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
-                        const double* A_p=A.getSampleDataRO(e);
-                        const double A_00 = A_p[INDEX2(0,0,2)];
-                        const double A_10 = A_p[INDEX2(1,0,2)];
-                        const double A_01 = A_p[INDEX2(0,1,2)];
-                        const double A_11 = A_p[INDEX2(1,1,2)];
-                        const double tmp0 = (A_01 + A_10)*w0;
-                        const double tmp1 = A_00*w5;
-                        const double tmp2 = A_01*w0;
-                        const double tmp3 = A_10*w0;
-                        const double tmp4 = A_11*w4;
+                        const Scalar* A_p = A.getSampleDataRO(e, zero);
+                        const Scalar A_00 = A_p[INDEX2(0,0,2)];
+                        const Scalar A_10 = A_p[INDEX2(1,0,2)];
+                        const Scalar A_01 = A_p[INDEX2(0,1,2)];
+                        const Scalar A_11 = A_p[INDEX2(1,1,2)];
+                        const Scalar tmp0 = (A_01 + A_10)*w0;
+                        const Scalar tmp1 = A_00*w5;
+                        const Scalar tmp2 = A_01*w0;
+                        const Scalar tmp3 = A_10*w0;
+                        const Scalar tmp4 = A_11*w4;
                         EM_S[INDEX2(0,0,4)]+=tmp4 + tmp0 + tmp1;
                         EM_S[INDEX2(1,0,4)]+=tmp4 - tmp1 + tmp3 - tmp2;
                         EM_S[INDEX2(2,0,4)]+=tmp2 - tmp3 - tmp4 + tmp1;
@@ -884,9 +906,9 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
-                        const double* B_p=B.getSampleDataRO(e);
-                        const double tmp0 = B_p[0]*w2;
-                        const double tmp1 = B_p[1]*w1;
+                        const Scalar* B_p = B.getSampleDataRO(e, zero);
+                        const Scalar tmp0 = B_p[0]*w2;
+                        const Scalar tmp1 = B_p[1]*w1;
                         EM_S[INDEX2(0,0,4)]+=-tmp0 - tmp1;
                         EM_S[INDEX2(1,0,4)]+= tmp0 - tmp1;
                         EM_S[INDEX2(2,0,4)]+= tmp1 - tmp0;
@@ -908,9 +930,9 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
-                        const double* C_p=C.getSampleDataRO(e);
-                        const double tmp0 = C_p[0]*w2;
-                        const double tmp1 = C_p[1]*w1;
+                        const Scalar* C_p = C.getSampleDataRO(e, zero);
+                        const Scalar tmp0 = C_p[0]*w2;
+                        const Scalar tmp1 = C_p[1]*w1;
                         EM_S[INDEX2(0,0,4)]+=-tmp1 - tmp0;
                         EM_S[INDEX2(1,0,4)]+=-tmp1 - tmp0;
                         EM_S[INDEX2(2,0,4)]+=-tmp1 - tmp0;
@@ -932,7 +954,7 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
-                        const double* D_p=D.getSampleDataRO(e);
+                        const Scalar* D_p = D.getSampleDataRO(e, zero);
                         EM_S[INDEX2(0,0,4)]+=D_p[0]*w3;
                         EM_S[INDEX2(1,0,4)]+=D_p[0]*w3;
                         EM_S[INDEX2(2,0,4)]+=D_p[0]*w3;
@@ -954,9 +976,9 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
-                        const double* X_p=X.getSampleDataRO(e);
-                        const double wX0 = 4*X_p[0]*w2;
-                        const double wX1 = 4*X_p[1]*w1;
+                        const Scalar* X_p = X.getSampleDataRO(e, zero);
+                        const Scalar wX0 = 4.*X_p[0]*w2;
+                        const Scalar wX1 = 4.*X_p[1]*w1;
                         EM_F[0]+=-wX0 - wX1;
                         EM_F[1]+=-wX1 + wX0;
                         EM_F[2]+=-wX0 + wX1;
@@ -966,11 +988,11 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
-                        const double* Y_p=Y.getSampleDataRO(e);
-                        EM_F[0]+=4*Y_p[0]*w3;
-                        EM_F[1]+=4*Y_p[0]*w3;
-                        EM_F[2]+=4*Y_p[0]*w3;
-                        EM_F[3]+=4*Y_p[0]*w3;
+                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
+                        EM_F[0]+=4.*Y_p[0]*w3;
+                        EM_F[1]+=4.*Y_p[0]*w3;
+                        EM_F[2]+=4.*Y_p[0]*w3;
+                        EM_F[3]+=4.*Y_p[0]*w3;
                     }
 
                     // add to matrix (if addEM_S) and RHS (if addEM_F)
@@ -987,7 +1009,8 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
 // PDE SINGLE REDUCED BOUNDARY
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                                         AbstractSystemMatrix* mat, Data& rhs,
                                         const Data& d, const Data& y) const
 {
@@ -997,19 +1020,20 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
     const int NE1 = m_NE[1];
     const bool addEM_S = !d.isEmpty();
     const bool addEM_F = !y.isEmpty();
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4, 0);
-        vector<double> EM_F(4, 0);
+        vector<Scalar> EM_S(4*4, zero);
+        vector<Scalar> EM_F(4, zero);
 
         if (domain->m_faceOffset[0] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[1] = 0;
-                EM_F[3] = 0;
+                EM_F[1] = zero;
+                EM_F[3] = zero;
             }
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
@@ -1019,7 +1043,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(k1);
+                        const Scalar* d_p = d.getSampleDataRO(k1, zero);
                         EM_S[INDEX2(0,0,4)] = d_p[0]*w1;
                         EM_S[INDEX2(2,0,4)] = d_p[0]*w1;
                         EM_S[INDEX2(0,2,4)] = d_p[0]*w1;
@@ -1029,9 +1053,9 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(k1);
-                        EM_F[0] = 2*w1*y_p[0];
-                        EM_F[2] = 2*w1*y_p[0];
+                        const Scalar* y_p = y.getSampleDataRO(k1, zero);
+                        EM_F[0] = 2.*w1*y_p[0];
+                        EM_F[2] = 2.*w1*y_p[0];
                     }
                     const index_t firstNode=m_NN[0]*k1;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
@@ -1042,10 +1066,10 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
 
         if (domain->m_faceOffset[1] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[0] = 0;
-                EM_F[2] = 0;
+                EM_F[0] = zero;
+                EM_F[2] = zero;
             }
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
@@ -1056,7 +1080,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         EM_S[INDEX2(1,1,4)] = d_p[0]*w1;
                         EM_S[INDEX2(3,1,4)] = d_p[0]*w1;
                         EM_S[INDEX2(1,3,4)] = d_p[0]*w1;
@@ -1066,9 +1090,9 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
-                        EM_F[1] = 2*w1*y_p[0];
-                        EM_F[3] = 2*w1*y_p[0];
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        EM_F[1] = 2.*w1*y_p[0];
+                        EM_F[3] = 2.*w1*y_p[0];
                     }
                     const index_t firstNode=m_NN[0]*(k1+1)-2;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
@@ -1079,10 +1103,10 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
 
         if (domain->m_faceOffset[2] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[2] = 0;
-                EM_F[3] = 0;
+                EM_F[2] = zero;
+                EM_F[3] = zero;
             }
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
@@ -1093,7 +1117,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         EM_S[INDEX2(0,0,4)] = d_p[0]*w0;
                         EM_S[INDEX2(1,0,4)] = d_p[0]*w0;
                         EM_S[INDEX2(0,1,4)] = d_p[0]*w0;
@@ -1103,11 +1127,11 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
-                        EM_F[0] = 2*w0*y_p[0];
-                        EM_F[1] = 2*w0*y_p[0];
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        EM_F[0] = 2.*w0*y_p[0];
+                        EM_F[1] = 2.*w0*y_p[0];
                     }
-                    const index_t firstNode=k0;
+                    const index_t firstNode = k0;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
                                               addEM_F, firstNode);
                 }
@@ -1116,10 +1140,10 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
 
         if (domain->m_faceOffset[3] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F) {
-                EM_F[0] = 0;
-                EM_F[1] = 0;
+                EM_F[0] = zero;
+                EM_F[1] = zero;
             }
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
@@ -1130,7 +1154,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         EM_S[INDEX2(2,2,4)] = d_p[0]*w0;
                         EM_S[INDEX2(3,2,4)] = d_p[0]*w0;
                         EM_S[INDEX2(2,3,4)] = d_p[0]*w0;
@@ -1140,9 +1164,9 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
-                        EM_F[2] = 2*w0*y_p[0];
-                        EM_F[3] = 2*w0*y_p[0];
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        EM_F[2] = 2.*w0*y_p[0];
+                        EM_F[3] = 2.*w0*y_p[0];
                     }
                     const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
                     domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
@@ -1157,7 +1181,8 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
 // PDE SYSTEM
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                                      Data& rhs, const Data& A, const Data& B,
                                      const Data& C, const Data& D,
                                      const Data& X, const Data& Y) const
@@ -1202,12 +1227,13 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     const int NE1 = m_NE[1];
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
     const bool addEM_F = (!X.isEmpty() || !Y.isEmpty());
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4*numEq*numComp, 0);
-        vector<double> EM_F(4*numEq, 0);
+        vector<Scalar> EM_S(4*4*numEq*numComp, zero);
+        vector<Scalar> EM_F(4*numEq, zero);
 
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
@@ -1215,89 +1241,89 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                 for (index_t k0=0; k0 < NE0; ++k0)  {
                     const index_t e = k0 + NE0*k1;
                     if (addEM_S)
-                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_S.begin(), EM_S.end(), zero);
                     if (addEM_F)
-                        fill(EM_F.begin(), EM_F.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), zero);
                     ///////////////
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
-                        const double* A_p = A.getSampleDataRO(e);
+                        const Scalar* A_p = A.getSampleDataRO(e, zero);
                         if (A.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double A_00_0 = A_p[INDEX5(k,0,m,0,0,numEq,2,numComp,2)];
-                                    const double A_01_0 = A_p[INDEX5(k,0,m,1,0,numEq,2,numComp,2)];
-                                    const double A_10_0 = A_p[INDEX5(k,1,m,0,0,numEq,2,numComp,2)];
-                                    const double A_11_0 = A_p[INDEX5(k,1,m,1,0,numEq,2,numComp,2)];
-                                    const double A_00_1 = A_p[INDEX5(k,0,m,0,1,numEq,2,numComp,2)];
-                                    const double A_01_1 = A_p[INDEX5(k,0,m,1,1,numEq,2,numComp,2)];
-                                    const double A_10_1 = A_p[INDEX5(k,1,m,0,1,numEq,2,numComp,2)];
-                                    const double A_11_1 = A_p[INDEX5(k,1,m,1,1,numEq,2,numComp,2)];
-                                    const double A_00_2 = A_p[INDEX5(k,0,m,0,2,numEq,2,numComp,2)];
-                                    const double A_01_2 = A_p[INDEX5(k,0,m,1,2,numEq,2,numComp,2)];
-                                    const double A_10_2 = A_p[INDEX5(k,1,m,0,2,numEq,2,numComp,2)];
-                                    const double A_11_2 = A_p[INDEX5(k,1,m,1,2,numEq,2,numComp,2)];
-                                    const double A_00_3 = A_p[INDEX5(k,0,m,0,3,numEq,2,numComp,2)];
-                                    const double A_01_3 = A_p[INDEX5(k,0,m,1,3,numEq,2,numComp,2)];
-                                    const double A_10_3 = A_p[INDEX5(k,1,m,0,3,numEq,2,numComp,2)];
-                                    const double A_11_3 = A_p[INDEX5(k,1,m,1,3,numEq,2,numComp,2)];
-                                    const double tmp0 = w3*(A_11_0 + A_11_1 + A_11_2 + A_11_3);
-                                    const double tmp1 = w1*(A_01_0 + A_01_3 - A_10_1 - A_10_2);
-                                    const double tmp2 = w4*(A_00_2 + A_00_3);
-                                    const double tmp3 = w0*(A_00_0 + A_00_1);
-                                    const double tmp4 = w5*(A_01_2 - A_10_3);
-                                    const double tmp5 = w2*(-A_01_1 + A_10_0);
-                                    const double tmp6 = w5*(A_01_3 + A_10_0);
-                                    const double tmp7 = w3*(-A_11_0 - A_11_1 - A_11_2 - A_11_3);
-                                    const double tmp8 = w6*(A_00_0 + A_00_1 + A_00_2 + A_00_3);
-                                    const double tmp9 = w1*(A_01_1 + A_01_2 + A_10_1 + A_10_2);
-                                    const double tmp10 = w2*(-A_01_0 - A_10_3);
-                                    const double tmp11 = w4*(A_00_0 + A_00_1);
-                                    const double tmp12 = w0*(A_00_2 + A_00_3);
-                                    const double tmp13 = w5*(A_01_1 - A_10_0);
-                                    const double tmp14 = w2*(-A_01_2 + A_10_3);
-                                    const double tmp15 = w7*(A_11_0 + A_11_2);
-                                    const double tmp16 = w4*(-A_00_2 - A_00_3);
-                                    const double tmp17 = w0*(-A_00_0 - A_00_1);
-                                    const double tmp18 = w5*(A_01_3 + A_10_3);
-                                    const double tmp19 = w8*(A_11_1 + A_11_3);
-                                    const double tmp20 = w2*(-A_01_0 - A_10_0);
-                                    const double tmp21 = w7*(A_11_1 + A_11_3);
-                                    const double tmp22 = w4*(-A_00_0 - A_00_1);
-                                    const double tmp23 = w0*(-A_00_2 - A_00_3);
-                                    const double tmp24 = w5*(A_01_0 + A_10_0);
-                                    const double tmp25 = w8*(A_11_0 + A_11_2);
-                                    const double tmp26 = w2*(-A_01_3 - A_10_3);
-                                    const double tmp27 = w5*(-A_01_1 - A_10_2);
-                                    const double tmp28 = w1*(-A_01_0 - A_01_3 - A_10_0 - A_10_3);
-                                    const double tmp29 = w2*(A_01_2 + A_10_1);
-                                    const double tmp30 = w7*(-A_11_1 - A_11_3);
-                                    const double tmp31 = w1*(-A_01_1 - A_01_2 + A_10_0 + A_10_3);
-                                    const double tmp32 = w5*(-A_01_0 + A_10_2);
-                                    const double tmp33 = w8*(-A_11_0 - A_11_2);
-                                    const double tmp34 = w6*(-A_00_0 - A_00_1 - A_00_2 - A_00_3);
-                                    const double tmp35 = w2*(A_01_3 - A_10_1);
-                                    const double tmp36 = w5*(A_01_0 + A_10_3);
-                                    const double tmp37 = w2*(-A_01_3 - A_10_0);
-                                    const double tmp38 = w7*(-A_11_0 - A_11_2);
-                                    const double tmp39 = w5*(-A_01_3 + A_10_1);
-                                    const double tmp40 = w8*(-A_11_1 - A_11_3);
-                                    const double tmp41 = w2*(A_01_0 - A_10_2);
-                                    const double tmp42 = w5*(A_01_1 - A_10_3);
-                                    const double tmp43 = w2*(-A_01_2 + A_10_0);
-                                    const double tmp44 = w5*(A_01_2 - A_10_0);
-                                    const double tmp45 = w2*(-A_01_1 + A_10_3);
-                                    const double tmp46 = w5*(-A_01_0 + A_10_1);
-                                    const double tmp47 = w2*(A_01_3 - A_10_2);
-                                    const double tmp48 = w5*(-A_01_1 - A_10_1);
-                                    const double tmp49 = w2*(A_01_2 + A_10_2);
-                                    const double tmp50 = w5*(-A_01_3 + A_10_2);
-                                    const double tmp51 = w2*(A_01_0 - A_10_1);
-                                    const double tmp52 = w5*(-A_01_2 - A_10_1);
-                                    const double tmp53 = w2*(A_01_1 + A_10_2);
-                                    const double tmp54 = w5*(-A_01_2 - A_10_2);
-                                    const double tmp55 = w2*(A_01_1 + A_10_1);
+                                    const Scalar A_00_0 = A_p[INDEX5(k,0,m,0,0,numEq,2,numComp,2)];
+                                    const Scalar A_01_0 = A_p[INDEX5(k,0,m,1,0,numEq,2,numComp,2)];
+                                    const Scalar A_10_0 = A_p[INDEX5(k,1,m,0,0,numEq,2,numComp,2)];
+                                    const Scalar A_11_0 = A_p[INDEX5(k,1,m,1,0,numEq,2,numComp,2)];
+                                    const Scalar A_00_1 = A_p[INDEX5(k,0,m,0,1,numEq,2,numComp,2)];
+                                    const Scalar A_01_1 = A_p[INDEX5(k,0,m,1,1,numEq,2,numComp,2)];
+                                    const Scalar A_10_1 = A_p[INDEX5(k,1,m,0,1,numEq,2,numComp,2)];
+                                    const Scalar A_11_1 = A_p[INDEX5(k,1,m,1,1,numEq,2,numComp,2)];
+                                    const Scalar A_00_2 = A_p[INDEX5(k,0,m,0,2,numEq,2,numComp,2)];
+                                    const Scalar A_01_2 = A_p[INDEX5(k,0,m,1,2,numEq,2,numComp,2)];
+                                    const Scalar A_10_2 = A_p[INDEX5(k,1,m,0,2,numEq,2,numComp,2)];
+                                    const Scalar A_11_2 = A_p[INDEX5(k,1,m,1,2,numEq,2,numComp,2)];
+                                    const Scalar A_00_3 = A_p[INDEX5(k,0,m,0,3,numEq,2,numComp,2)];
+                                    const Scalar A_01_3 = A_p[INDEX5(k,0,m,1,3,numEq,2,numComp,2)];
+                                    const Scalar A_10_3 = A_p[INDEX5(k,1,m,0,3,numEq,2,numComp,2)];
+                                    const Scalar A_11_3 = A_p[INDEX5(k,1,m,1,3,numEq,2,numComp,2)];
+                                    const Scalar tmp0 = w3*(A_11_0 + A_11_1 + A_11_2 + A_11_3);
+                                    const Scalar tmp1 = w1*(A_01_0 + A_01_3 - A_10_1 - A_10_2);
+                                    const Scalar tmp2 = w4*(A_00_2 + A_00_3);
+                                    const Scalar tmp3 = w0*(A_00_0 + A_00_1);
+                                    const Scalar tmp4 = w5*(A_01_2 - A_10_3);
+                                    const Scalar tmp5 = w2*(-A_01_1 + A_10_0);
+                                    const Scalar tmp6 = w5*(A_01_3 + A_10_0);
+                                    const Scalar tmp7 = w3*(-A_11_0 - A_11_1 - A_11_2 - A_11_3);
+                                    const Scalar tmp8 = w6*(A_00_0 + A_00_1 + A_00_2 + A_00_3);
+                                    const Scalar tmp9 = w1*(A_01_1 + A_01_2 + A_10_1 + A_10_2);
+                                    const Scalar tmp10 = w2*(-A_01_0 - A_10_3);
+                                    const Scalar tmp11 = w4*(A_00_0 + A_00_1);
+                                    const Scalar tmp12 = w0*(A_00_2 + A_00_3);
+                                    const Scalar tmp13 = w5*(A_01_1 - A_10_0);
+                                    const Scalar tmp14 = w2*(-A_01_2 + A_10_3);
+                                    const Scalar tmp15 = w7*(A_11_0 + A_11_2);
+                                    const Scalar tmp16 = w4*(-A_00_2 - A_00_3);
+                                    const Scalar tmp17 = w0*(-A_00_0 - A_00_1);
+                                    const Scalar tmp18 = w5*(A_01_3 + A_10_3);
+                                    const Scalar tmp19 = w8*(A_11_1 + A_11_3);
+                                    const Scalar tmp20 = w2*(-A_01_0 - A_10_0);
+                                    const Scalar tmp21 = w7*(A_11_1 + A_11_3);
+                                    const Scalar tmp22 = w4*(-A_00_0 - A_00_1);
+                                    const Scalar tmp23 = w0*(-A_00_2 - A_00_3);
+                                    const Scalar tmp24 = w5*(A_01_0 + A_10_0);
+                                    const Scalar tmp25 = w8*(A_11_0 + A_11_2);
+                                    const Scalar tmp26 = w2*(-A_01_3 - A_10_3);
+                                    const Scalar tmp27 = w5*(-A_01_1 - A_10_2);
+                                    const Scalar tmp28 = w1*(-A_01_0 - A_01_3 - A_10_0 - A_10_3);
+                                    const Scalar tmp29 = w2*(A_01_2 + A_10_1);
+                                    const Scalar tmp30 = w7*(-A_11_1 - A_11_3);
+                                    const Scalar tmp31 = w1*(-A_01_1 - A_01_2 + A_10_0 + A_10_3);
+                                    const Scalar tmp32 = w5*(-A_01_0 + A_10_2);
+                                    const Scalar tmp33 = w8*(-A_11_0 - A_11_2);
+                                    const Scalar tmp34 = w6*(-A_00_0 - A_00_1 - A_00_2 - A_00_3);
+                                    const Scalar tmp35 = w2*(A_01_3 - A_10_1);
+                                    const Scalar tmp36 = w5*(A_01_0 + A_10_3);
+                                    const Scalar tmp37 = w2*(-A_01_3 - A_10_0);
+                                    const Scalar tmp38 = w7*(-A_11_0 - A_11_2);
+                                    const Scalar tmp39 = w5*(-A_01_3 + A_10_1);
+                                    const Scalar tmp40 = w8*(-A_11_1 - A_11_3);
+                                    const Scalar tmp41 = w2*(A_01_0 - A_10_2);
+                                    const Scalar tmp42 = w5*(A_01_1 - A_10_3);
+                                    const Scalar tmp43 = w2*(-A_01_2 + A_10_0);
+                                    const Scalar tmp44 = w5*(A_01_2 - A_10_0);
+                                    const Scalar tmp45 = w2*(-A_01_1 + A_10_3);
+                                    const Scalar tmp46 = w5*(-A_01_0 + A_10_1);
+                                    const Scalar tmp47 = w2*(A_01_3 - A_10_2);
+                                    const Scalar tmp48 = w5*(-A_01_1 - A_10_1);
+                                    const Scalar tmp49 = w2*(A_01_2 + A_10_2);
+                                    const Scalar tmp50 = w5*(-A_01_3 + A_10_2);
+                                    const Scalar tmp51 = w2*(A_01_0 - A_10_1);
+                                    const Scalar tmp52 = w5*(-A_01_2 - A_10_1);
+                                    const Scalar tmp53 = w2*(A_01_1 + A_10_2);
+                                    const Scalar tmp54 = w5*(-A_01_2 - A_10_2);
+                                    const Scalar tmp55 = w2*(A_01_1 + A_10_1);
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp15 + tmp16 + tmp17 + tmp18 + tmp19 + tmp20 + tmp9;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5;
                                     EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp31 + tmp34 + tmp38 + tmp39 + tmp40 + tmp41;
@@ -1319,30 +1345,30 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
-                                    const double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
-                                    const double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
-                                    const double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
-                                    const double tmp0 = 6*w1*(A_01 - A_10);
-                                    const double tmp1 = 6*w1*(A_01 + A_10);
-                                    const double tmp2 = 6*w1*(-A_01 - A_10);
-                                    const double tmp3 = 6*w1*(-A_01 + A_10);
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp1;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp0;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp3;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp2;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp3;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp2;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp1;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp0;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp0;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp2;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp3;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=4*A_00*w6 - 4*A_11*w3 + tmp2;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=-4*A_00*w6 - 8*A_11*w3 + tmp3;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=8*A_00*w6 + 4*A_11*w3 + tmp0;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=-8*A_00*w6 + 8*A_11*w3 + tmp1;
+                                    const Scalar A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
+                                    const Scalar A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
+                                    const Scalar A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
+                                    const Scalar A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
+                                    const Scalar tmp0 = 6.*w1*(A_01 - A_10);
+                                    const Scalar tmp1 = 6.*w1*(A_01 + A_10);
+                                    const Scalar tmp2 = 6.*w1*(-A_01 - A_10);
+                                    const Scalar tmp3 = 6.*w1*(-A_01 + A_10);
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+= 8.*A_00*w6 + 4.*A_11*w3 + tmp0;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp3;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+= 4.*A_00*w6 - 4.*A_11*w3 + tmp2;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+= 8.*A_00*w6 + 4.*A_11*w3 + tmp3;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp2;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+= 4.*A_00*w6 - 4.*A_11*w3 + tmp1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp0;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp0;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+= 4.*A_00*w6 - 4.*A_11*w3 + tmp1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp2;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+= 8.*A_00*w6 + 4.*A_11*w3 + tmp3;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+= 4.*A_00*w6 - 4.*A_11*w3 + tmp2;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=-4.*A_00*w6 - 8.*A_11*w3 + tmp3;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+= 8.*A_00*w6 + 4.*A_11*w3 + tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=-8.*A_00*w6 + 8.*A_11*w3 + tmp1;
                                 }
                             }
                         }
@@ -1351,34 +1377,34 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
-                        const double* B_p=B.getSampleDataRO(e);
+                        const Scalar* B_p = B.getSampleDataRO(e, zero);
                         if (B.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double B_0_0 = B_p[INDEX4(k,0,m,0, numEq,2,numComp)];
-                                    const double B_1_0 = B_p[INDEX4(k,1,m,0, numEq,2,numComp)];
-                                    const double B_0_1 = B_p[INDEX4(k,0,m,1, numEq,2,numComp)];
-                                    const double B_1_1 = B_p[INDEX4(k,1,m,1, numEq,2,numComp)];
-                                    const double B_0_2 = B_p[INDEX4(k,0,m,2, numEq,2,numComp)];
-                                    const double B_1_2 = B_p[INDEX4(k,1,m,2, numEq,2,numComp)];
-                                    const double B_0_3 = B_p[INDEX4(k,0,m,3, numEq,2,numComp)];
-                                    const double B_1_3 = B_p[INDEX4(k,1,m,3, numEq,2,numComp)];
-                                    const double tmp0 = w11*(B_1_0 + B_1_1);
-                                    const double tmp1 = w14*(B_1_2 + B_1_3);
-                                    const double tmp2 = w15*(-B_0_1 - B_0_3);
-                                    const double tmp3 = w10*(-B_0_0 - B_0_2);
-                                    const double tmp4 = w11*(B_1_2 + B_1_3);
-                                    const double tmp5 = w14*(B_1_0 + B_1_1);
-                                    const double tmp6 = w11*(-B_1_2 - B_1_3);
-                                    const double tmp7 = w14*(-B_1_0 - B_1_1);
-                                    const double tmp8 = w11*(-B_1_0 - B_1_1);
-                                    const double tmp9 = w14*(-B_1_2 - B_1_3);
-                                    const double tmp10 = w10*(-B_0_1 - B_0_3);
-                                    const double tmp11 = w15*(-B_0_0 - B_0_2);
-                                    const double tmp12 = w15*(B_0_0 + B_0_2);
-                                    const double tmp13 = w10*(B_0_1 + B_0_3);
-                                    const double tmp14 = w10*(B_0_0 + B_0_2);
-                                    const double tmp15 = w15*(B_0_1 + B_0_3);
+                                    const Scalar B_0_0 = B_p[INDEX4(k,0,m,0, numEq,2,numComp)];
+                                    const Scalar B_1_0 = B_p[INDEX4(k,1,m,0, numEq,2,numComp)];
+                                    const Scalar B_0_1 = B_p[INDEX4(k,0,m,1, numEq,2,numComp)];
+                                    const Scalar B_1_1 = B_p[INDEX4(k,1,m,1, numEq,2,numComp)];
+                                    const Scalar B_0_2 = B_p[INDEX4(k,0,m,2, numEq,2,numComp)];
+                                    const Scalar B_1_2 = B_p[INDEX4(k,1,m,2, numEq,2,numComp)];
+                                    const Scalar B_0_3 = B_p[INDEX4(k,0,m,3, numEq,2,numComp)];
+                                    const Scalar B_1_3 = B_p[INDEX4(k,1,m,3, numEq,2,numComp)];
+                                    const Scalar tmp0 = w11*(B_1_0 + B_1_1);
+                                    const Scalar tmp1 = w14*(B_1_2 + B_1_3);
+                                    const Scalar tmp2 = w15*(-B_0_1 - B_0_3);
+                                    const Scalar tmp3 = w10*(-B_0_0 - B_0_2);
+                                    const Scalar tmp4 = w11*(B_1_2 + B_1_3);
+                                    const Scalar tmp5 = w14*(B_1_0 + B_1_1);
+                                    const Scalar tmp6 = w11*(-B_1_2 - B_1_3);
+                                    const Scalar tmp7 = w14*(-B_1_0 - B_1_1);
+                                    const Scalar tmp8 = w11*(-B_1_0 - B_1_1);
+                                    const Scalar tmp9 = w14*(-B_1_2 - B_1_3);
+                                    const Scalar tmp10 = w10*(-B_0_1 - B_0_3);
+                                    const Scalar tmp11 = w15*(-B_0_0 - B_0_2);
+                                    const Scalar tmp12 = w15*(B_0_0 + B_0_2);
+                                    const Scalar tmp13 = w10*(B_0_1 + B_0_3);
+                                    const Scalar tmp14 = w10*(B_0_0 + B_0_2);
+                                    const Scalar tmp15 = w15*(B_0_1 + B_0_3);
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=B_0_0*w12 + B_0_1*w10 + B_0_2*w15 + B_0_3*w13 + B_1_0*w16 + B_1_1*w14 + B_1_2*w11 + B_1_3*w17;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=B_0_0*w10 + B_0_1*w12 + B_0_2*w13 + B_0_3*w15 + tmp0 + tmp1;
                                     EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=B_1_0*w11 + B_1_1*w17 + B_1_2*w16 + B_1_3*w14 + tmp14 + tmp15;
@@ -1400,24 +1426,24 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double wB0 = B_p[INDEX3(k,0,m,numEq,2)]*w18;
-                                    const double wB1 = B_p[INDEX3(k,1,m,numEq,2)]*w19;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+= 2*wB0 + 2*wB1;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+= 2*wB0 +   wB1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=   wB0 + 2*wB1;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=   wB0 +   wB1;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=-2*wB0 +   wB1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=-2*wB0 + 2*wB1;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=  -wB0 +   wB1;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=  -wB0 + 2*wB1;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=   wB0 - 2*wB1;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=   wB0 -   wB1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+= 2*wB0 - 2*wB1;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+= 2*wB0 -   wB1;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=  -wB0 -   wB1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=  -wB0 - 2*wB1;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=-2*wB0 -   wB1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=-2*wB0 - 2*wB1;
+                                    const Scalar wB0 = B_p[INDEX3(k,0,m,numEq,2)]*w18;
+                                    const Scalar wB1 = B_p[INDEX3(k,1,m,numEq,2)]*w19;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+= 2.*wB0 + 2.*wB1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+= 2.*wB0 +    wB1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=    wB0 + 2.*wB1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=    wB0 +    wB1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=-2.*wB0 +    wB1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=-2.*wB0 + 2.*wB1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=   -wB0 +    wB1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=   -wB0 + 2.*wB1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=    wB0 - 2.*wB1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=    wB0 -    wB1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+= 2.*wB0 - 2.*wB1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+= 2.*wB0 -    wB1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=   -wB0 -    wB1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=   -wB0 - 2.*wB1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=-2.*wB0 -    wB1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=-2.*wB0 - 2.*wB1;
                                 }
                             }
                         }
@@ -1426,34 +1452,34 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
-                        const double* C_p=C.getSampleDataRO(e);
+                        const Scalar* C_p = C.getSampleDataRO(e, zero);
                         if (C.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double C_0_0 = C_p[INDEX4(k,m,0, 0, numEq,numComp,2)];
-                                    const double C_1_0 = C_p[INDEX4(k,m,1, 0, numEq,numComp,2)];
-                                    const double C_0_1 = C_p[INDEX4(k,m,0, 1, numEq,numComp,2)];
-                                    const double C_1_1 = C_p[INDEX4(k,m,1, 1, numEq,numComp,2)];
-                                    const double C_0_2 = C_p[INDEX4(k,m,0, 2, numEq,numComp,2)];
-                                    const double C_1_2 = C_p[INDEX4(k,m,1, 2, numEq,numComp,2)];
-                                    const double C_0_3 = C_p[INDEX4(k,m,0, 3, numEq,numComp,2)];
-                                    const double C_1_3 = C_p[INDEX4(k,m,1, 3, numEq,numComp,2)];
-                                    const double tmp0 = w11*(C_1_0 + C_1_1);
-                                    const double tmp1 = w14*(C_1_2 + C_1_3);
-                                    const double tmp2 = w15*(C_0_0 + C_0_2);
-                                    const double tmp3 = w10*(C_0_1 + C_0_3);
-                                    const double tmp4 = w11*(-C_1_0 - C_1_1);
-                                    const double tmp5 = w14*(-C_1_2 - C_1_3);
-                                    const double tmp6 = w11*(-C_1_2 - C_1_3);
-                                    const double tmp7 = w14*(-C_1_0 - C_1_1);
-                                    const double tmp8 = w11*(C_1_2 + C_1_3);
-                                    const double tmp9 = w14*(C_1_0 + C_1_1);
-                                    const double tmp10 = w10*(-C_0_1 - C_0_3);
-                                    const double tmp11 = w15*(-C_0_0 - C_0_2);
-                                    const double tmp12 = w15*(-C_0_1 - C_0_3);
-                                    const double tmp13 = w10*(-C_0_0 - C_0_2);
-                                    const double tmp14 = w10*(C_0_0 + C_0_2);
-                                    const double tmp15 = w15*(C_0_1 + C_0_3);
+                                    const Scalar C_0_0 = C_p[INDEX4(k,m,0, 0, numEq,numComp,2)];
+                                    const Scalar C_1_0 = C_p[INDEX4(k,m,1, 0, numEq,numComp,2)];
+                                    const Scalar C_0_1 = C_p[INDEX4(k,m,0, 1, numEq,numComp,2)];
+                                    const Scalar C_1_1 = C_p[INDEX4(k,m,1, 1, numEq,numComp,2)];
+                                    const Scalar C_0_2 = C_p[INDEX4(k,m,0, 2, numEq,numComp,2)];
+                                    const Scalar C_1_2 = C_p[INDEX4(k,m,1, 2, numEq,numComp,2)];
+                                    const Scalar C_0_3 = C_p[INDEX4(k,m,0, 3, numEq,numComp,2)];
+                                    const Scalar C_1_3 = C_p[INDEX4(k,m,1, 3, numEq,numComp,2)];
+                                    const Scalar tmp0 = w11*(C_1_0 + C_1_1);
+                                    const Scalar tmp1 = w14*(C_1_2 + C_1_3);
+                                    const Scalar tmp2 = w15*(C_0_0 + C_0_2);
+                                    const Scalar tmp3 = w10*(C_0_1 + C_0_3);
+                                    const Scalar tmp4 = w11*(-C_1_0 - C_1_1);
+                                    const Scalar tmp5 = w14*(-C_1_2 - C_1_3);
+                                    const Scalar tmp6 = w11*(-C_1_2 - C_1_3);
+                                    const Scalar tmp7 = w14*(-C_1_0 - C_1_1);
+                                    const Scalar tmp8 = w11*(C_1_2 + C_1_3);
+                                    const Scalar tmp9 = w14*(C_1_0 + C_1_1);
+                                    const Scalar tmp10 = w10*(-C_0_1 - C_0_3);
+                                    const Scalar tmp11 = w15*(-C_0_0 - C_0_2);
+                                    const Scalar tmp12 = w15*(-C_0_1 - C_0_3);
+                                    const Scalar tmp13 = w10*(-C_0_0 - C_0_2);
+                                    const Scalar tmp14 = w10*(C_0_0 + C_0_2);
+                                    const Scalar tmp15 = w15*(C_0_1 + C_0_3);
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=C_0_0*w12 + C_0_1*w10 + C_0_2*w15 + C_0_3*w13 + C_1_0*w16 + C_1_1*w14 + C_1_2*w11 + C_1_3*w17;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=-C_0_0*w12 - C_0_1*w10 - C_0_2*w15 - C_0_3*w13 + tmp0 + tmp1;
                                     EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=-C_1_0*w16 - C_1_1*w14 - C_1_2*w11 - C_1_3*w17 + tmp14 + tmp15;
@@ -1475,24 +1501,24 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double wC0 = C_p[INDEX3(k,m,0,numEq,numComp)]*w18;
-                                    const double wC1 = C_p[INDEX3(k,m,1,numEq,numComp)]*w19;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+= 2*wC0 + 2*wC1;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=-2*wC0 +   wC1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=   wC0 - 2*wC1;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=  -wC0 -   wC1;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+= 2*wC0 +   wC1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=-2*wC0 + 2*wC1;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=   wC0 -   wC1;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=  -wC0 - 2*wC1;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=   wC0 + 2*wC1;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=  -wC0 +   wC1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+= 2*wC0 - 2*wC1;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=-2*wC0 -   wC1;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=   wC0 +   wC1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=  -wC0 + 2*wC1;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+= 2*wC0 -   wC1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=-2*wC0 - 2*wC1;
+                                    const Scalar wC0 = C_p[INDEX3(k,m,0,numEq,numComp)]*w18;
+                                    const Scalar wC1 = C_p[INDEX3(k,m,1,numEq,numComp)]*w19;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+= 2.*wC0 + 2.*wC1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=-2.*wC0 +    wC1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=    wC0 - 2.*wC1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=   -wC0 -    wC1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+= 2.*wC0 +    wC1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=-2.*wC0 + 2.*wC1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=    wC0 -    wC1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=   -wC0 - 2.*wC1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=    wC0 + 2.*wC1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=   -wC0 +    wC1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+= 2.*wC0 - 2.*wC1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=-2.*wC0 -    wC1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=    wC0 +    wC1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=   -wC0 + 2.*wC1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+= 2.*wC0 -    wC1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=-2.*wC0 - 2.*wC1;
                                 }
                             }
                         }
@@ -1501,25 +1527,25 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
-                        const double* D_p=D.getSampleDataRO(e);
+                        const Scalar* D_p = D.getSampleDataRO(e, zero);
                         if (D.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double D_0 = D_p[INDEX3(k,m,0,numEq,numComp)];
-                                    const double D_1 = D_p[INDEX3(k,m,1,numEq,numComp)];
-                                    const double D_2 = D_p[INDEX3(k,m,2,numEq,numComp)];
-                                    const double D_3 = D_p[INDEX3(k,m,3,numEq,numComp)];
-                                    const double tmp0 = w21*(D_2 + D_3);
-                                    const double tmp1 = w20*(D_0 + D_1);
-                                    const double tmp2 = w22*(D_0 + D_1 + D_2 + D_3);
-                                    const double tmp3 = w21*(D_0 + D_1);
-                                    const double tmp4 = w20*(D_2 + D_3);
-                                    const double tmp5 = w22*(D_1 + D_2);
-                                    const double tmp6 = w21*(D_0 + D_2);
-                                    const double tmp7 = w20*(D_1 + D_3);
-                                    const double tmp8 = w21*(D_1 + D_3);
-                                    const double tmp9 = w20*(D_0 + D_2);
-                                    const double tmp10 = w22*(D_0 + D_3);
+                                    const Scalar D_0 = D_p[INDEX3(k,m,0,numEq,numComp)];
+                                    const Scalar D_1 = D_p[INDEX3(k,m,1,numEq,numComp)];
+                                    const Scalar D_2 = D_p[INDEX3(k,m,2,numEq,numComp)];
+                                    const Scalar D_3 = D_p[INDEX3(k,m,3,numEq,numComp)];
+                                    const Scalar tmp0 = w21*(D_2 + D_3);
+                                    const Scalar tmp1 = w20*(D_0 + D_1);
+                                    const Scalar tmp2 = w22*(D_0 + D_1 + D_2 + D_3);
+                                    const Scalar tmp3 = w21*(D_0 + D_1);
+                                    const Scalar tmp4 = w20*(D_2 + D_3);
+                                    const Scalar tmp5 = w22*(D_1 + D_2);
+                                    const Scalar tmp6 = w21*(D_0 + D_2);
+                                    const Scalar tmp7 = w20*(D_1 + D_3);
+                                    const Scalar tmp8 = w21*(D_1 + D_3);
+                                    const Scalar tmp9 = w20*(D_0 + D_2);
+                                    const Scalar tmp10 = w22*(D_0 + D_3);
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=D_0*w23 + D_3*w24 + tmp5;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0 + tmp1;
                                     EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp8 + tmp9;
@@ -1541,23 +1567,23 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double D_0 = D_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=16*D_0*w22;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=4*D_0*w22;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=16*D_0*w22;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=4*D_0*w22;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=4*D_0*w22;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=16*D_0*w22;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=4*D_0*w22;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=8*D_0*w22;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=16*D_0*w22;
+                                    const Scalar D_0 = D_p[INDEX2(k, m, numEq)];
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=16.*D_0*w22;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+= 4.*D_0*w22;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=16.*D_0*w22;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+= 4.*D_0*w22;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+= 4.*D_0*w22;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=16.*D_0*w22;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+= 4.*D_0*w22;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+= 8.*D_0*w22;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=16.*D_0*w22;
                                 }
                             }
                         }
@@ -1566,33 +1592,33 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
-                        const double* X_p=X.getSampleDataRO(e);
+                        const Scalar* X_p = X.getSampleDataRO(e, zero);
                         if (X.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const double X_0_0 = X_p[INDEX3(k,0,0,numEq,2)];
-                                const double X_1_0 = X_p[INDEX3(k,1,0,numEq,2)];
-                                const double X_0_1 = X_p[INDEX3(k,0,1,numEq,2)];
-                                const double X_1_1 = X_p[INDEX3(k,1,1,numEq,2)];
-                                const double X_0_2 = X_p[INDEX3(k,0,2,numEq,2)];
-                                const double X_1_2 = X_p[INDEX3(k,1,2,numEq,2)];
-                                const double X_0_3 = X_p[INDEX3(k,0,3,numEq,2)];
-                                const double X_1_3 = X_p[INDEX3(k,1,3,numEq,2)];
-                                const double tmp0 = 6*w15*(X_0_2 + X_0_3);
-                                const double tmp1 = 6*w10*(X_0_0 + X_0_1);
-                                const double tmp2 = 6*w11*(X_1_0 + X_1_2);
-                                const double tmp3 = 6*w14*(X_1_1 + X_1_3);
-                                const double tmp4 = 6*w11*(X_1_1 + X_1_3);
-                                const double tmp5 = w25*(X_0_0 + X_0_1);
-                                const double tmp6 = w26*(X_0_2 + X_0_3);
-                                const double tmp7 = 6*w14*(X_1_0 + X_1_2);
-                                const double tmp8 = w27*(X_1_0 + X_1_2);
-                                const double tmp9 = w28*(X_1_1 + X_1_3);
-                                const double tmp10 = w25*(-X_0_2 - X_0_3);
-                                const double tmp11 = w26*(-X_0_0 - X_0_1);
-                                const double tmp12 = w27*(X_1_1 + X_1_3);
-                                const double tmp13 = w28*(X_1_0 + X_1_2);
-                                const double tmp14 = w25*(X_0_2 + X_0_3);
-                                const double tmp15 = w26*(X_0_0 + X_0_1);
+                                const Scalar X_0_0 = X_p[INDEX3(k,0,0,numEq,2)];
+                                const Scalar X_1_0 = X_p[INDEX3(k,1,0,numEq,2)];
+                                const Scalar X_0_1 = X_p[INDEX3(k,0,1,numEq,2)];
+                                const Scalar X_1_1 = X_p[INDEX3(k,1,1,numEq,2)];
+                                const Scalar X_0_2 = X_p[INDEX3(k,0,2,numEq,2)];
+                                const Scalar X_1_2 = X_p[INDEX3(k,1,2,numEq,2)];
+                                const Scalar X_0_3 = X_p[INDEX3(k,0,3,numEq,2)];
+                                const Scalar X_1_3 = X_p[INDEX3(k,1,3,numEq,2)];
+                                const Scalar tmp0 = 6.*w15*(X_0_2 + X_0_3);
+                                const Scalar tmp1 = 6.*w10*(X_0_0 + X_0_1);
+                                const Scalar tmp2 = 6.*w11*(X_1_0 + X_1_2);
+                                const Scalar tmp3 = 6.*w14*(X_1_1 + X_1_3);
+                                const Scalar tmp4 = 6.*w11*(X_1_1 + X_1_3);
+                                const Scalar tmp5 =    w25*(X_0_0 + X_0_1);
+                                const Scalar tmp6 =    w26*(X_0_2 + X_0_3);
+                                const Scalar tmp7 = 6.*w14*(X_1_0 + X_1_2);
+                                const Scalar tmp8 =    w27*(X_1_0 + X_1_2);
+                                const Scalar tmp9 =    w28*(X_1_1 + X_1_3);
+                                const Scalar tmp10 =   w25*(-X_0_2- X_0_3);
+                                const Scalar tmp11 =   w26*(-X_0_0- X_0_1);
+                                const Scalar tmp12 =   w27*(X_1_1 + X_1_3);
+                                const Scalar tmp13 =   w28*(X_1_0 + X_1_2);
+                                const Scalar tmp14 =   w25*(X_0_2 + X_0_3);
+                                const Scalar tmp15 =   w26*(X_0_0 + X_0_1);
                                 EM_F[INDEX2(k,0,numEq)]+=tmp0 + tmp1 + tmp2 + tmp3;
                                 EM_F[INDEX2(k,1,numEq)]+=tmp4 + tmp5 + tmp6 + tmp7;
                                 EM_F[INDEX2(k,2,numEq)]+=tmp10 + tmp11 + tmp8 + tmp9;
@@ -1600,12 +1626,12 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                const double wX0 = X_p[INDEX2(k, 0, numEq)]*w18;
-                                const double wX1 = X_p[INDEX2(k, 1, numEq)]*w19;
-                                EM_F[INDEX2(k,0,numEq)]+= 6*wX0 + 6*wX1;
-                                EM_F[INDEX2(k,1,numEq)]+=-6*wX0 + 6*wX1;
-                                EM_F[INDEX2(k,2,numEq)]+= 6*wX0 - 6*wX1;
-                                EM_F[INDEX2(k,3,numEq)]+=-6*wX0 - 6*wX1;
+                                const Scalar wX0 = X_p[INDEX2(k, 0, numEq)]*w18;
+                                const Scalar wX1 = X_p[INDEX2(k, 1, numEq)]*w19;
+                                EM_F[INDEX2(k,0,numEq)]+= 6.*wX0 + 6.*wX1;
+                                EM_F[INDEX2(k,1,numEq)]+=-6.*wX0 + 6.*wX1;
+                                EM_F[INDEX2(k,2,numEq)]+= 6.*wX0 - 6.*wX1;
+                                EM_F[INDEX2(k,3,numEq)]+=-6.*wX0 - 6.*wX1;
                             }
                         }
                     }
@@ -1613,26 +1639,26 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
-                        const double* Y_p=Y.getSampleDataRO(e);
+                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
                         if (Y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const double Y_0 = Y_p[INDEX2(k, 0, numEq)];
-                                const double Y_1 = Y_p[INDEX2(k, 1, numEq)];
-                                const double Y_2 = Y_p[INDEX2(k, 2, numEq)];
-                                const double Y_3 = Y_p[INDEX2(k, 3, numEq)];
-                                const double tmp0 = 6*w22*(Y_1 + Y_2);
-                                const double tmp1 = 6*w22*(Y_0 + Y_3);
-                                EM_F[INDEX2(k,0,numEq)]+=6*Y_0*w20 + 6*Y_3*w21 + tmp0;
-                                EM_F[INDEX2(k,1,numEq)]+=6*Y_1*w20 + 6*Y_2*w21 + tmp1;
-                                EM_F[INDEX2(k,2,numEq)]+=6*Y_1*w21 + 6*Y_2*w20 + tmp1;
-                                EM_F[INDEX2(k,3,numEq)]+=6*Y_0*w21 + 6*Y_3*w20 + tmp0;
+                                const Scalar Y_0 = Y_p[INDEX2(k, 0, numEq)];
+                                const Scalar Y_1 = Y_p[INDEX2(k, 1, numEq)];
+                                const Scalar Y_2 = Y_p[INDEX2(k, 2, numEq)];
+                                const Scalar Y_3 = Y_p[INDEX2(k, 3, numEq)];
+                                const Scalar tmp0 = 6.*w22*(Y_1 + Y_2);
+                                const Scalar tmp1 = 6.*w22*(Y_0 + Y_3);
+                                EM_F[INDEX2(k,0,numEq)]+=6.*Y_0*w20 + 6.*Y_3*w21 + tmp0;
+                                EM_F[INDEX2(k,1,numEq)]+=6.*Y_1*w20 + 6.*Y_2*w21 + tmp1;
+                                EM_F[INDEX2(k,2,numEq)]+=6.*Y_1*w21 + 6.*Y_2*w20 + tmp1;
+                                EM_F[INDEX2(k,3,numEq)]+=6.*Y_0*w21 + 6.*Y_3*w20 + tmp0;
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,0,numEq)]+=36*Y_p[k]*w22;
-                                EM_F[INDEX2(k,1,numEq)]+=36*Y_p[k]*w22;
-                                EM_F[INDEX2(k,2,numEq)]+=36*Y_p[k]*w22;
-                                EM_F[INDEX2(k,3,numEq)]+=36*Y_p[k]*w22;
+                                EM_F[INDEX2(k,0,numEq)]+=36.*Y_p[k]*w22;
+                                EM_F[INDEX2(k,1,numEq)]+=36.*Y_p[k]*w22;
+                                EM_F[INDEX2(k,2,numEq)]+=36.*Y_p[k]*w22;
+                                EM_F[INDEX2(k,3,numEq)]+=36.*Y_p[k]*w22;
                             }
                         }
                     }
@@ -1651,8 +1677,10 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
 // PDE SYSTEM BOUNDARY
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
-                               Data& rhs, const Data& d, const Data& y) const
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
+                                        AbstractSystemMatrix* mat, Data& rhs,
+                                        const Data& d, const Data& y) const
 {
     dim_t numEq, numComp;
     if (!mat) {
@@ -1676,18 +1704,19 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
     const int NE1 = m_NE[1];
     const bool addEM_S = !d.isEmpty();
     const bool addEM_F = !y.isEmpty();
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4*numEq*numComp, 0);
-        vector<double> EM_F(4*numEq, 0);
+        vector<Scalar> EM_S(4*4*numEq*numComp, zero);
+        vector<Scalar> EM_F(4*numEq, zero);
 
         if (domain->m_faceOffset[0] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
@@ -1697,13 +1726,13 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                    const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                    const double tmp0 = w2*(d_0 + d_1);
+                                    const Scalar d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                    const Scalar d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                    const Scalar tmp0 = w2*(d_0 + d_1);
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = d_0*w0 + d_1*w1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)] = tmp0;
                                     EM_S[INDEX4(k,m,0,2,numEq,numComp,4)] = tmp0;
@@ -1713,11 +1742,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = 4*d_0*w2;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = 4*d_0*w2;
+                                    const Scalar d_0 = d_p[INDEX2(k, m, numEq)];
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = 4.*d_0*w2;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)] = 2.*d_0*w2;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)] = 2.*d_0*w2;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = 4.*d_0*w2;
                                 }
                             }
                         }
@@ -1726,11 +1755,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const Scalar y_1 = y_p[INDEX2(k, 1, numEq)];
                                 EM_F[INDEX2(k,0,numEq)] = w3*y_0 + w4*y_1;
                                 EM_F[INDEX2(k,2,numEq)] = w3*y_1 + w4*y_0;
                             }
@@ -1750,9 +1779,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 
         if (domain->m_faceOffset[1] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
@@ -1762,13 +1791,13 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                    const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                    const double tmp0 = w2*(d_0 + d_1);
+                                    const Scalar d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                    const Scalar d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                    const Scalar tmp0 = w2*(d_0 + d_1);
                                     EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = d_0*w0 + d_1*w1;
                                     EM_S[INDEX4(k,m,3,1,numEq,numComp,4)] = tmp0;
                                     EM_S[INDEX4(k,m,1,3,numEq,numComp,4)] = tmp0;
@@ -1778,11 +1807,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = 4*d_0*w2;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)] = 2*d_0*w2;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = 4*d_0*w2;
+                                    const Scalar d_0 = d_p[INDEX2(k, m, numEq)];
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = 4.*d_0*w2;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)] = 2.*d_0*w2;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)] = 2.*d_0*w2;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = 4.*d_0*w2;
                                 }
                             }
                         }
@@ -1791,11 +1820,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const Scalar y_1 = y_p[INDEX2(k, 1, numEq)];
                                 EM_F[INDEX2(k,1,numEq)] = w3*y_0 + w4*y_1;
                                 EM_F[INDEX2(k,3,numEq)] = w3*y_1 + w4*y_0;
                             }
@@ -1815,9 +1844,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 
         if (domain->m_faceOffset[2] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
@@ -1827,13 +1856,13 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                    const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                    const double tmp0 = w5*(d_0 + d_1);
+                                    const Scalar d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                    const Scalar d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                    const Scalar tmp0 = w5*(d_0 + d_1);
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = d_0*w6 + d_1*w7;
                                     EM_S[INDEX4(k,m,1,0,numEq,numComp,4)] = tmp0;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)] = tmp0;
@@ -1843,11 +1872,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = 4*d_0*w5;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = 4*d_0*w5;
+                                    const Scalar d_0 = d_p[INDEX2(k, m, numEq)];
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = 4.*d_0*w5;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)] = 2.*d_0*w5;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)] = 2.*d_0*w5;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = 4.*d_0*w5;
                                 }
                             }
                         }
@@ -1856,11 +1885,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const Scalar y_1 = y_p[INDEX2(k, 1, numEq)];
                                 EM_F[INDEX2(k,0,numEq)] = w8*y_0 + w9*y_1;
                                 EM_F[INDEX2(k,1,numEq)] = w8*y_1 + w9*y_0;
                             }
@@ -1880,9 +1909,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 
         if (domain->m_faceOffset[3] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
@@ -1892,13 +1921,13 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
-                                    const double d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
-                                    const double tmp0 = w5*(d_0 + d_1);
+                                    const Scalar d_0 = d_p[INDEX3(k,m,0,numEq,numComp)];
+                                    const Scalar d_1 = d_p[INDEX3(k,m,1,numEq,numComp)];
+                                    const Scalar tmp0 = w5*(d_0 + d_1);
                                     EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = d_0*w6 + d_1*w7;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)] = tmp0;
                                     EM_S[INDEX4(k,m,2,3,numEq,numComp,4)] = tmp0;
@@ -1908,11 +1937,11 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = 4*d_0*w5;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)] = 2*d_0*w5;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = 4*d_0*w5;
+                                    const Scalar d_0 = d_p[INDEX2(k, m, numEq)];
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = 4.*d_0*w5;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)] = 2.*d_0*w5;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)] = 2.*d_0*w5;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)] = 4.*d_0*w5;
                                 }
                             }
                         }
@@ -1921,18 +1950,18 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
-                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const Scalar y_1 = y_p[INDEX2(k, 1, numEq)];
                                 EM_F[INDEX2(k,2,numEq)] = w8*y_0 + w9*y_1;
                                 EM_F[INDEX2(k,3,numEq)] = w8*y_1 + w9*y_0;
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                EM_F[INDEX2(k,2,numEq)] = 6*w5*y_p[k];
-                                EM_F[INDEX2(k,3,numEq)] = 6*w5*y_p[k];
+                                EM_F[INDEX2(k,2,numEq)] = 6.*w5*y_p[k];
+                                EM_F[INDEX2(k,3,numEq)] = 6.*w5*y_p[k];
                             }
                         }
                     }
@@ -1949,7 +1978,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 // PDE SYSTEM REDUCED
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
+                                    AbstractSystemMatrix* mat,
                                     Data& rhs, const Data& A, const Data& B,
                                     const Data& C, const Data& D,
                                     const Data& X, const Data& Y) const
@@ -1972,33 +2003,34 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
     const int NE1 = m_NE[1];
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
     const bool addEM_F = (!X.isEmpty() || !Y.isEmpty());
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4*numEq*numComp, 0);
-        vector<double> EM_F(4*numEq, 0);
+        vector<Scalar> EM_S(4*4*numEq*numComp, zero);
+        vector<Scalar> EM_F(4*numEq, zero);
 
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
             for (index_t k1=k1_0; k1<NE1; k1+=2) {
                 for (index_t k0=0; k0<NE0; ++k0)  {
                     if (addEM_S)
-                        fill(EM_S.begin(), EM_S.end(), 0);
+                        fill(EM_S.begin(), EM_S.end(), zero);
                     if (addEM_F)
-                        fill(EM_F.begin(), EM_F.end(), 0);
+                        fill(EM_F.begin(), EM_F.end(), zero);
                     const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
-                        const double* A_p=A.getSampleDataRO(e);
+                        const Scalar* A_p = A.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double Aw00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)]*w5;
-                                const double Aw01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)]*w0;
-                                const double Aw10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)]*w0;
-                                const double Aw11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)]*w4;
+                                const Scalar Aw00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)]*w5;
+                                const Scalar Aw01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)]*w0;
+                                const Scalar Aw10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)]*w0;
+                                const Scalar Aw11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)]*w4;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+= Aw00 + Aw01 + Aw10 + Aw11;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=-Aw00 - Aw01 + Aw10 + Aw11;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+= Aw00 + Aw01 - Aw10 - Aw11;
@@ -2022,11 +2054,11 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
-                        const double* B_p=B.getSampleDataRO(e);
+                        const Scalar* B_p = B.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double wB0 = B_p[INDEX3(k,0,m, numEq, 2)]*w2;
-                                const double wB1 = B_p[INDEX3(k,1,m, numEq, 2)]*w1;
+                                const Scalar wB0 = B_p[INDEX3(k,0,m, numEq, 2)]*w2;
+                                const Scalar wB1 = B_p[INDEX3(k,1,m, numEq, 2)]*w1;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=-wB0 - wB1;
                                 EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=-wB0 - wB1;
                                 EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=-wB0 - wB1;
@@ -2050,11 +2082,11 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
-                        const double* C_p=C.getSampleDataRO(e);
+                        const Scalar* C_p = C.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double wC0 = C_p[INDEX3(k, m, 0, numEq, numComp)]*w2;
-                                const double wC1 = C_p[INDEX3(k, m, 1, numEq, numComp)]*w1;
+                                const Scalar wC0 = C_p[INDEX3(k, m, 0, numEq, numComp)]*w2;
+                                const Scalar wC1 = C_p[INDEX3(k, m, 1, numEq, numComp)]*w1;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=-wC0 - wC1;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=-wC0 - wC1;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=-wC0 - wC1;
@@ -2078,10 +2110,10 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
-                        const double* D_p=D.getSampleDataRO(e);
+                        const Scalar* D_p = D.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double wD0 = D_p[INDEX2(k, m, numEq)]*w3;
+                                const Scalar wD0 = D_p[INDEX2(k, m, numEq)]*w3;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=wD0;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=wD0;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=wD0;
@@ -2105,10 +2137,10 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
-                        const double* X_p=X.getSampleDataRO(e);
+                        const Scalar* X_p = X.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
-                            const double wX0 = 4*X_p[INDEX2(k, 0, numEq)]*w2;
-                            const double wX1 = 4*X_p[INDEX2(k, 1, numEq)]*w1;
+                            const Scalar wX0 = 4.*X_p[INDEX2(k, 0, numEq)]*w2;
+                            const Scalar wX1 = 4.*X_p[INDEX2(k, 1, numEq)]*w1;
                             EM_F[INDEX2(k,0,numEq)]+=-wX0 - wX1;
                             EM_F[INDEX2(k,1,numEq)]+= wX0 - wX1;
                             EM_F[INDEX2(k,2,numEq)]+=-wX0 + wX1;
@@ -2119,12 +2151,12 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
-                        const double* Y_p=Y.getSampleDataRO(e);
+                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
-                            EM_F[INDEX2(k,0,numEq)]+=4*Y_p[k]*w3;
-                            EM_F[INDEX2(k,1,numEq)]+=4*Y_p[k]*w3;
-                            EM_F[INDEX2(k,2,numEq)]+=4*Y_p[k]*w3;
-                            EM_F[INDEX2(k,3,numEq)]+=4*Y_p[k]*w3;
+                            EM_F[INDEX2(k,0,numEq)]+=4.*Y_p[k]*w3;
+                            EM_F[INDEX2(k,1,numEq)]+=4.*Y_p[k]*w3;
+                            EM_F[INDEX2(k,2,numEq)]+=4.*Y_p[k]*w3;
+                            EM_F[INDEX2(k,3,numEq)]+=4.*Y_p[k]*w3;
                         }
                     }
 
@@ -2142,7 +2174,8 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
 // PDE SYSTEM REDUCED BOUNDARY
 /****************************************************************************/
 
-void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                                          AbstractSystemMatrix* mat, Data& rhs,
                                          const Data& d, const Data& y) const
 {
@@ -2159,18 +2192,19 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
     const int NE1 = m_NE[1];
     const bool addEM_S = !d.isEmpty();
     const bool addEM_F = !y.isEmpty();
+    const Scalar zero = static_cast<Scalar>(0);
     rhs.requireWrite();
 
 #pragma omp parallel
     {
-        vector<double> EM_S(4*4*numEq*numComp, 0);
-        vector<double> EM_F(4*numEq, 0);
+        vector<Scalar> EM_S(4*4*numEq*numComp, zero);
+        vector<Scalar> EM_F(4*numEq, zero);
 
         if (domain->m_faceOffset[0] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
@@ -2179,10 +2213,10 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(k1);
+                        const Scalar* d_p = d.getSampleDataRO(k1, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
+                                const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,0,2,numEq,numComp,4)] = tmp0;
@@ -2194,7 +2228,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(k1);
+                        const Scalar* y_p = y.getSampleDataRO(k1, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,0,numEq)] = 2*w1*y_p[k];
                             EM_F[INDEX2(k,2,numEq)] = 2*w1*y_p[k];
@@ -2209,9 +2243,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
 
         if (domain->m_faceOffset[1] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
@@ -2221,10 +2255,10 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
+                                const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
                                 EM_S[INDEX4(k,m,1,1,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,3,1,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,1,3,numEq,numComp,4)] = tmp0;
@@ -2236,10 +2270,10 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
-                            EM_F[INDEX2(k,1,numEq)] = 2*w1*y_p[k];
-                            EM_F[INDEX2(k,3,numEq)] = 2*w1*y_p[k];
+                            EM_F[INDEX2(k,1,numEq)] = 2.*w1*y_p[k];
+                            EM_F[INDEX2(k,3,numEq)] = 2.*w1*y_p[k];
                         }
                     }
                     const index_t firstNode=m_NN[0]*(k1+1)-2;
@@ -2251,9 +2285,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
 
         if (domain->m_faceOffset[2] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
@@ -2263,10 +2297,10 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
+                                const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,0,1,numEq,numComp,4)] = tmp0;
@@ -2278,10 +2312,10 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
-                            EM_F[INDEX2(k,0,numEq)] = 2*w0*y_p[k];
-                            EM_F[INDEX2(k,1,numEq)] = 2*w0*y_p[k];
+                            EM_F[INDEX2(k,0,numEq)] = 2.*w0*y_p[k];
+                            EM_F[INDEX2(k,1,numEq)] = 2.*w0*y_p[k];
                         }
                     }
                     const index_t firstNode=k0;
@@ -2293,9 +2327,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
 
         if (domain->m_faceOffset[3] > -1) {
             if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), 0);
+                fill(EM_S.begin(), EM_S.end(), zero);
             if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), 0);
+                fill(EM_F.begin(), EM_F.end(), zero);
 
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
@@ -2305,10 +2339,10 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const double* d_p=d.getSampleDataRO(e);
+                        const Scalar* d_p = d.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
+                                const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
                                 EM_S[INDEX4(k,m,2,2,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,3,2,numEq,numComp,4)] = tmp0;
                                 EM_S[INDEX4(k,m,2,3,numEq,numComp,4)] = tmp0;
@@ -2320,7 +2354,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const double* y_p=y.getSampleDataRO(e);
+                        const Scalar* y_p = y.getSampleDataRO(e, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,2,numEq)] = 2*w0*y_p[k];
                             EM_F[INDEX2(k,3,numEq)] = 2*w0*y_p[k];
@@ -2335,6 +2369,9 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
     } // end of parallel section
 }
 
+// instantiate our two supported versions
+template class DefaultAssembler2D<escript::DataTypes::real_t>;
+template class DefaultAssembler2D<escript::DataTypes::cplx_t>;
 
 } // namespace ripley
 

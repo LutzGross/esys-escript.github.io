@@ -851,18 +851,27 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         if (m_mpiInfo->size > 1) {
             throw NotImplementedError("CUSP matrices are not supported with more than one rank");
         }
+        if (sb.isComplex()) {
+            throw NotImplementedError("CUSP does not support complex-valued matrices");
+        }
         int type = (int)SMT_CUSP;
         if (sb.isSymmetric())
             type |= (int)SMT_SYMMETRIC;
         return type;
     } else if (package == escript::SO_PACKAGE_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS
-        return (int)SMT_TRILINOS;
+        int type = (int)SMT_TRILINOS;
+        if (sb.isComplex())
+            type |= (int)SMT_COMPLEX;
+        return type;
 #else
         throw RipleyException("Trilinos requested but not built with Trilinos.");
 #endif
     }
 #ifdef ESYS_HAVE_PASO
+    if (sb.isComplex()) {
+        throw NotImplementedError("Paso does not support complex-valued matrices");
+    }
     // in all other cases we use PASO
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
             sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
@@ -931,8 +940,9 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
     } else if (type & (int)SMT_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS
         const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        bool isComplex = (type & (int)SMT_COMPLEX);
         escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo, row_blocksize,
-                    row_functionspace, graph));
+                    row_functionspace, graph, isComplex));
         return sm;
 #else
         throw RipleyException("newSystemMatrix: ripley was not compiled with "
@@ -1354,9 +1364,10 @@ esys_trilinos::const_TrilinosGraph_ptr RipleyDomain::createTrilinosGraph(
 #endif // ESYS_HAVE_TRILINOS
 
 //protected
-void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
-                                     const IndexVector& nodes, dim_t numEq,
-                                     const DoubleVector& array) const
+template<>
+void RipleyDomain::addToSystemMatrix<real_t>(escript::AbstractSystemMatrix* mat,
+                                         const IndexVector& nodes, dim_t numEq,
+                                         const DoubleVector& array) const
 {
 #ifdef ESYS_HAVE_PASO
     paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
@@ -1380,6 +1391,23 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
     }
 #endif
     throw RipleyException("addToSystemMatrix: unknown system matrix type");
+}
+
+//protected
+template<>
+void RipleyDomain::addToSystemMatrix<cplx_t>(escript::AbstractSystemMatrix* mat,
+                                         const IndexVector& nodes, dim_t numEq,
+                                         const vector<cplx_t>& array) const
+{
+#ifdef ESYS_HAVE_TRILINOS
+    TrilinosMatrixAdapter* tm = dynamic_cast<TrilinosMatrixAdapter*>(mat);
+    if (tm) {
+        tm->add(nodes, array);
+        return;
+    }
+#endif
+    throw RipleyException("addToSystemMatrix: only Trilinos matrices support "
+                          "complex-valued assembly!");
 }
 
 #ifdef ESYS_HAVE_PASO
