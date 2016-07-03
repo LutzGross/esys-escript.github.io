@@ -64,6 +64,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             break;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
         case escript::SO_PRECONDITIONER_JACOBI:
+          {
             ifprec = factory.create<const Matrix>("RELAXATION", mat);
             if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
                 params->set("relaxation: type", "Jacobi");
@@ -72,9 +73,11 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                             "Symmetric Gauss-Seidel" : "Gauss-Seidel"));
             }
             params->set("relaxation: sweeps", sb.getNumSweeps());
-            params->set("relaxation: damping factor", sb.getRelaxationFactor());
+            const ST fac = static_cast<ST>(sb.getRelaxationFactor());
+            params->set("relaxation: damping factor", fac);
             //params->set("relaxation: backward mode", true);
             break;
+          }
         case escript::SO_PRECONDITIONER_ILU0: // to avoid test failures
         case escript::SO_PRECONDITIONER_RILU:
             if (dynamic_cast<const Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
