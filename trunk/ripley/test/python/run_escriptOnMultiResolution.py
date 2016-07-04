@@ -30,7 +30,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.ripley import MultiRectangle, MultiBrick, ripleycpp, MultiResolutionDomain
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
-from test_objects import Test_Domain, Test_GlobalMinMax, Test_Lazy
+from test_objects import Test_Domain, Test_Lazy
 
 from test_shared import Test_Shared
 

@@ -596,8 +596,8 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param check_boundaries: If True, an exception will the thrown if the data object contains values"
         "outside the range given by ``in``.\n"
     )	 
-    .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint,"Please consider using getInfLocator() from pdetools instead.")
-    .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint, "Please consider using getSupLocator() from pdetools instead.")
+    .def("internal_minGlobalDataPoint",&escript::Data::minGlobalDataPoint,"Please consider using getInfLocator() from pdetools instead.")
+    .def("internal_maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint, "Please consider using getSupLocator() from pdetools instead.")
     .def("getTagNumber",&escript::Data::getTagNumber,args("dpno"),"Return tag number for the specified datapoint\n\n"
         ":rtype: int\n"
         ":param dpno: datapoint number\n"

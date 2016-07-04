@@ -30,7 +30,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
-        Test_TableInterpolation, Test_Domain, Test_GlobalMinMax, Test_Lazy
+        Test_TableInterpolation, Test_Domain, Test_Lazy
 from test_shared import Test_Shared
 
 try:
@@ -141,13 +141,6 @@ class Test_DumpOnFinley(Test_Dump):
        del self.domain_with_different_sample_ordering
 
 class Test_SetDataPointValueOnFinley(Test_SetDataPointValue):
-   def setUp(self):
-       self.domain = Rectangle(NE, NE+1, 2)
-
-   def tearDown(self):
-       del self.domain
-
-class Test_GlobalMinMaxOnFinley(Test_GlobalMinMax):
    def setUp(self):
        self.domain = Rectangle(NE, NE+1, 2)
 

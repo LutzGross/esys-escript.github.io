@@ -147,7 +147,7 @@ class DarcyFlow(object):
       """
       if location_of_fixed_pressure is not None: 
            self.location_of_fixed_pressure=util.wherePositive(util.interpolate(location_of_fixed_pressure, self.__pde_p.getFunctionSpaceForCoefficient("q")))
-           self.ref_point_id=self.location_of_fixed_pressure.maxGlobalDataPoint()
+           self.ref_point_id=self.location_of_fixed_pressure.internal_maxGlobalDataPoint()
            if not self.location_of_fixed_pressure.getTupleForGlobalDataPoint(*self.ref_point_id)[0] > 0: raise ValueError("pressure needs to be fixed at least one point.")
            self.ref_point=self.__pde_p.getFunctionSpaceForCoefficient("q").getX().getTupleForGlobalDataPoint(*self.ref_point_id)
            if self.verbose: print(("DarcyFlow: reference point at %s."%(self.ref_point,)))

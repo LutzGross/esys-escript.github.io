@@ -30,7 +30,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.dudley import Rectangle, Brick
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
-        Test_TableInterpolation, Test_Domain, Test_GlobalMinMax, Test_Lazy
+        Test_TableInterpolation, Test_Domain, Test_Lazy
 from test_shared import Test_Shared
 
 try:
@@ -115,13 +115,6 @@ class Test_DumpOnDudley(Test_Dump):
        del self.domain_with_different_sample_ordering
 
 class Test_SetDataPointValueOnDudley(Test_SetDataPointValue):
-   def setUp(self):
-       self.domain = Rectangle(NE,NE+1)
-
-   def tearDown(self):
-       del self.domain
-
-class Test_GlobalMinMaxOnDudley(Test_GlobalMinMax):
    def setUp(self):
        self.domain = Rectangle(NE,NE+1)
 
