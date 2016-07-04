@@ -23,6 +23,9 @@
 namespace dudley {
 namespace util {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
 /// comparison function for sortValueAndIndex
 bool ValueAndIndexCompare(const std::pair<int,int> &i, const std::pair<int, int> &j)
 {
@@ -47,8 +50,9 @@ void gather(int len, const index_t* index, int numData, const double* in,
     }
 }
 
+template<typename Scalar>
 void addScatter(int len, const index_t* index, int numData,
-                const double* in, double* out, index_t upperBound)
+                const Scalar* in, Scalar* out, index_t upperBound)
 {
     for (int s = 0; s < len; s++) {
         for (int i = 0; i < numData; i++) {
@@ -58,6 +62,13 @@ void addScatter(int len, const index_t* index, int numData,
         }
     }
 }
+
+template
+void addScatter<real_t>(int len, const index_t* index, int numData,
+                                 const real_t* in, real_t* out, index_t upperBound);
+template
+void addScatter<cplx_t>(int len, const index_t* index, int numData,
+                                 const cplx_t* in, cplx_t* out, index_t upperBound);
 
 void smallMatMult(int A1, int A2, double* A, int B2, const double* B,
                   const double* C)
