@@ -44,6 +44,7 @@ using esys_trilinos::const_TrilinosGraph_ptr;
 
 using namespace std;
 namespace bp = boost::python;
+using escript::NotImplementedError;
 using escript::ValueError;
 
 namespace dudley {
