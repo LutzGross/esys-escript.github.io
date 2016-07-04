@@ -121,7 +121,7 @@ namespace DataTypes
   /**
      \brief
      Copy a data slice specified by the given region and offset from the
-     "other" view into the "left" view at the given offset.
+     "other" vector into the "left" vector at the given offset.
 
      \param left - vector to copy into
      \param leftShape - shape of datapoints for the left vector
@@ -130,7 +130,7 @@ namespace DataTypes
      \param otherShape - shape of datapoints for the other vector
      \param otherOffset - location within other vector to start copying from
      \param region - Input -
-                      Region in other view to copy data from.
+                      Region in other vector to copy data from.
   */
    template <class VEC>
    ESCRIPT_DLL_API
@@ -144,27 +144,27 @@ namespace DataTypes
              const RegionLoopRangeType& region)
    {
       //
-      // Make sure views are not empty
+      // Make sure vectors are not empty
 
       ESYS_ASSERT(!left.size()==0, "left data is empty.");
       ESYS_ASSERT(!other.size()==0, "other data is empty.");
 
       //
-      // Check the view to be sliced from is compatible with the region to be sliced,
-      // and that the region to be sliced is compatible with this view:
+      // Check the vector to be sliced from is compatible with the region to be sliced,
+      // and that the region to be sliced is compatible with this vector:
       ESYS_ASSERT(checkOffset(leftOffset,left.size(),noValues(leftShape)),
-                 "offset incompatible with this view.");
+                 "offset incompatible with this vector.");
       ESYS_ASSERT(otherOffset+noValues(leftShape)<=other.size(),
-                 "offset incompatible with other view.");
+                 "offset incompatible with other vector.");
 
       ESYS_ASSERT(getRank(otherShape)==region.size(),
-                 "slice not same rank as view to be sliced from.");
+                 "slice not same rank as vector to be sliced from.");
 
       ESYS_ASSERT(noValues(leftShape)==noValues(getResultSliceShape(region)),
-                 "slice shape not compatible shape for this view.");
+                 "slice shape not compatible shape for this vector.");
 
       //
-      // copy the values in the specified region of the other view into this view
+      // copy the values in the specified region of the other vector into this vector
 
       // the following loops cannot be parallelised due to the numCopy counter
       int numCopy=0;
@@ -251,30 +251,30 @@ namespace DataTypes
                  const RegionLoopRangeType& region)
    {
       //
-      // Make sure views are not empty
+      // Make sure vectors are not empty
 
-      ESYS_ASSERT(left.size()!=0, "this view is empty.");
-      ESYS_ASSERT(other.size()!=0, "other view is empty.");
+      ESYS_ASSERT(left.size()!=0, "this vector is empty.");
+      ESYS_ASSERT(other.size()!=0, "other vector is empty.");
 
       //
-      // Check this view is compatible with the region to be sliced,
-      // and that the region to be sliced is compatible with the other view:
+      // Check this vector is compatible with the region to be sliced,
+      // and that the region to be sliced is compatible with the other vector:
 
       ESYS_ASSERT(checkOffset(otherOffset,other.size(),noValues(otherShape)),
-                 "offset incompatible with other view.");
+                 "offset incompatible with other vector.");
       ESYS_ASSERT(leftOffset+noValues(otherShape)<=left.size(),
-                 "offset incompatible with this view.");
+                 "offset incompatible with this vector.");
 
       ESYS_ASSERT(getRank(leftShape)==region.size(),
-                 "slice not same rank as this view.");
+                 "slice not same rank as this vector.");
 
       ESYS_ASSERT(getRank(otherShape)==0 || noValues(otherShape)==noValues(getResultSliceShape(region)),
-                 "slice shape not compatible shape for other view.");
+                 "slice shape not compatible shape for other vector.");
 
       //
-      // copy the values in the other view into the specified region of this view
+      // copy the values in the other vector into the specified region of this vector
 
-      // allow for case where other view is a scalar
+      // allow for case where other vector is a scalar
       if (getRank(otherShape)==0) {
 
          // the following loops cannot be parallelised due to the numCopy counter

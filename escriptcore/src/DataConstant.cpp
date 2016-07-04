@@ -89,7 +89,11 @@ DataConstant::DataConstant(const DataConstant& other,
     int len = getNoValues();
     if (other.isComplex())
     {
-        throw DataException("Complex not supported for this op");
+        // allocate space for this new DataConstant's data
+        m_data_c.resize(len,0.,len);
+        // load the view with the data from the slice
+        DataTypes::copySlice(m_data_c,getShape(),0,other.getVectorROC(),other.getShape(),0,region_loop_range);
+	m_iscompl=true; 	
     }
     else
     {
@@ -97,6 +101,7 @@ DataConstant::DataConstant(const DataConstant& other,
         m_data_r.resize(len,0.,len);
         // load the view with the data from the slice
         DataTypes::copySlice(m_data_r,getShape(),0,other.getVectorRO(),other.getShape(),0,region_loop_range);
+	m_iscompl=false;
     }
 }
 
@@ -296,8 +301,14 @@ DataConstant::setSlice(const DataAbstract* value,
     throw DataException (DataTypes::createShapeErrorMessage(
                 "Error - Couldn't copy slice due to shape mismatch.",shape,value->getShape()));
   }
-  //   getPointDataView().copySliceFrom(tempDataConst->getPointDataView(),region_loop_range);
-  DataTypes::copySliceFrom(m_data_r,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
+  if (value->isComplex())
+  {
+      DataTypes::copySliceFrom(m_data_c,getShape(),0,tempDataConst->getVectorROC(), tempDataConst->getShape(),0,region_loop_range);
+  }
+  else
+  {
+      DataTypes::copySliceFrom(m_data_r,getShape(),0,tempDataConst->getVectorRO(), tempDataConst->getShape(),0,region_loop_range);
+  }
 }
 
 
