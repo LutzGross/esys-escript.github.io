@@ -354,9 +354,9 @@ class Locator(object):
        if iterative:
            self.__id=[]
            for p in x:
-              self.__id.append(util.length(xxx-p[:self.__function_space.getDim()]).minGlobalDataPoint())
+              self.__id.append(util.length(xxx-p[:self.__function_space.getDim()]).internal_minGlobalDataPoint())
        else:
-           self.__id=util.length(xxx-x[:self.__function_space.getDim()]).minGlobalDataPoint()
+           self.__id=util.length(xxx-x[:self.__function_space.getDim()]).internal_minGlobalDataPoint()
 
      def __str__(self):
        """
@@ -460,7 +460,7 @@ def getInfLocator(arg):
     if not isinstance(arg, escore.Data):
        raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.inf(arg)
-    loc=util.length(arg-a_inf).minGlobalDataPoint()     # This gives us the location but not coords
+    loc=util.length(arg-a_inf).internal_minGlobalDataPoint()     # This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
     x_min=x.getTupleForGlobalDataPoint(*loc)
     return Locator(arg.getFunctionSpace(),x_min)
@@ -470,9 +470,9 @@ def getSupLocator(arg):
     Return a Locator for a point with the sup value over all arg.
     """
     if not isinstance(arg, escore.Data):
-       raise TypeError("getInfLocator: Unknown argument type.")
+       raise TypeError("getSupLocator: Unknown argument type.")
     a_inf=util.sup(arg)
-    loc=util.length(arg-a_inf).minGlobalDataPoint()     # This gives us the location but not coords
+    loc=util.length(arg-a_inf).internal_minGlobalDataPoint()     # This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
     x_min=x.getTupleForGlobalDataPoint(*loc)
     return Locator(arg.getFunctionSpace(),x_min)

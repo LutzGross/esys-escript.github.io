@@ -498,7 +498,7 @@ class FaultSystem(object):
      x=f.getFunctionSpace().getX()
      for t in self.getTags():
         p,m=self.getParametrization(x,tag=t, tol=tol)
-        loc=((m*f)+(1.-m)*ref).maxGlobalDataPoint()
+        loc=((m*f)+(1.-m)*ref).internal_maxGlobalDataPoint()
         f_t=f.getTupleForGlobalDataPoint(*loc)[0]
         if f_t>f_max:
            f_max=f_t
@@ -527,7 +527,7 @@ class FaultSystem(object):
      x=f.getFunctionSpace().getX()
      for t in self.getTags():
         p,m=self.getParametrization(x,tag=t, tol=tol)
-        loc=((m*f)+(1.-m)*ref).minGlobalDataPoint()
+        loc=((m*f)+(1.-m)*ref).internal_minGlobalDataPoint()
         f_t=f.getTupleForGlobalDataPoint(*loc)[0]
         if f_t<f_min:
            f_min=f_t

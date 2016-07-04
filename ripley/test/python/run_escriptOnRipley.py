@@ -30,7 +30,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.ripley import Rectangle, Brick, ripleycpp
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
-from test_objects import Test_Domain, Test_GlobalMinMax, Test_Lazy
+from test_objects import Test_Domain, Test_Lazy
 
 from test_shared import Test_Shared
 
@@ -100,7 +100,7 @@ class Test_DomainOnRipley(Test_Domain):
         if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
         for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
 
-class Test_DataOpsOnRipley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
+class Test_DataOpsOnRipley(Test_Dump, Test_SetDataPointValue, Test_Lazy):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.domain_with_different_number_of_samples=Rectangle(n0=7*NE*NX-1, n1=3*NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
