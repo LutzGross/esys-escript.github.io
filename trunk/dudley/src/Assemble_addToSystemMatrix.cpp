@@ -28,6 +28,9 @@ using esys_trilinos::TrilinosMatrixAdapter;
 
 namespace dudley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
 #ifdef ESYS_HAVE_PASO
 static void addToSystemMatrixPasoCSC(paso::SystemMatrix* S,
                                      const std::vector<index_t>& Nodes,
@@ -40,9 +43,11 @@ static void addToSystemMatrixPasoCSR(paso::SystemMatrix* S,
                                      const std::vector<double>& array);
 #endif
 
-void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* S,
-                                const std::vector<index_t>& Nodes, int numEq,
-                                const std::vector<double>& array)
+template<>
+void Assemble_addToSystemMatrix<real_t>(escript::AbstractSystemMatrix* S,
+                                        const std::vector<index_t>& Nodes,
+                                        int numEq,
+                                        const std::vector<real_t>& array)
 {
 #ifdef ESYS_HAVE_PASO
     paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S);
@@ -65,6 +70,23 @@ void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* S,
 #endif
     throw DudleyException("Assemble_addToSystemMatrix: unsupported system "
                           "matrix type.");
+}
+
+template<>
+void Assemble_addToSystemMatrix<cplx_t>(escript::AbstractSystemMatrix* S,
+                                        const std::vector<index_t>& Nodes,
+                                        int numEq,
+                                        const std::vector<cplx_t>& array)
+{
+#ifdef ESYS_HAVE_TRILINOS
+    TrilinosMatrixAdapter* tmat = dynamic_cast<TrilinosMatrixAdapter*>(S);
+    if (tmat) {
+        tmat->add(Nodes, array);
+        return;
+    }
+#endif
+    throw DudleyException("addToSystemMatrix: only Trilinos matrices support "
+                          "complex-valued assembly!");
 }
 
 #ifdef ESYS_HAVE_PASO

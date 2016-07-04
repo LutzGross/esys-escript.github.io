@@ -71,7 +71,8 @@ typedef std::map<std::string, int> TagMap;
 
 enum SystemMatrixType {
     SMT_PASO = 1<<8,
-    SMT_TRILINOS = 1<<10
+    SMT_TRILINOS = 1<<10,
+    SMT_COMPLEX = 1<<16
 };
 
 /**

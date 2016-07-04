@@ -70,6 +70,7 @@ void Assemble_PDE_Points(const AssembleParameters& p,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac);
 
+template<typename Scalar = double>
 void Assemble_PDE_Single_2D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
@@ -96,9 +97,10 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
 /// (i_Eq=0:Eq; j_Eq=0:NN_Eq).
 /// The routine has to be called from a parallel region and assumes that
 /// array is fully packed.
+template<typename Scalar>
 void Assemble_addToSystemMatrix(escript::AbstractSystemMatrix* S,
                                 const std::vector<index_t>& Nodes, int numEq,
-                                const std::vector<double>& array);
+                                const std::vector<Scalar>& array);
 
 /// Assembles the mass matrix in lumped form.
 /// The coefficient D has to be defined on the integration points or not

@@ -49,6 +49,10 @@
 
 namespace dudley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+using escript::NotImplementedError;
+
 inline void setNumSamplesError(const char* c, int n0, int n1)
 {
     std::stringstream ss;
@@ -119,6 +123,15 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     } else if (!Y.isEmpty() && Y.getFunctionSpace().getTypeCode()!=funcspace) {
         throw DudleyException("Assemble_PDE: unexpected function space type for coefficient Y");
     }
+
+    // get value type
+    bool isComplex = false;
+    isComplex = isComplex || (!A.isEmpty() && A.isComplex());
+    isComplex = isComplex || (!B.isEmpty() && B.isComplex());
+    isComplex = isComplex || (!C.isEmpty() && C.isComplex());
+    isComplex = isComplex || (!D.isEmpty() && D.isComplex());
+    isComplex = isComplex || (!X.isEmpty() && X.isComplex());
+    isComplex = isComplex || (!Y.isEmpty() && Y.isComplex());
 
     bool reducedIntegrationOrder;
     if (funcspace == DUDLEY_ELEMENTS) {
@@ -191,24 +204,44 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
             throw DudleyException("Dudley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
         } else {
-            Assemble_PDE_Points(p, D, Y);
+            if (isComplex) {
+                throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+            } else {
+                Assemble_PDE_Points(p, D, Y);
+            }
         }
     } else {
         if (p.numEqu > 1) {
             // system of PDEs
             if (p.numDim == 3) {
-                Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
+                if (isComplex) {
+                    throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+                } else {
+                    Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
+                }
             } else if (p.numDim == 2) {
-                Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
+                if (isComplex) {
+                    throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+                } else {
+                    Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
+                }
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");
             }
         } else {
             // single PDE
             if (p.numDim == 3) {
-                Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
+                if (isComplex) {
+                    throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+                } else {
+                    Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
+                }
             } else if (p.numDim == 2) {
-                Assemble_PDE_Single_2D(p, A, B, C, D, X, Y);
+                if (isComplex) {
+                    Assemble_PDE_Single_2D<cplx_t>(p, A, B, C, D, X, Y);
+                } else {
+                    Assemble_PDE_Single_2D<real_t>(p, A, B, C, D, X, Y);
+                }
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");
             }
