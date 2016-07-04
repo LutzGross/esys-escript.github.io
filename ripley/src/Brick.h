@@ -27,7 +27,7 @@ namespace ripley {
 */
 class RIPLEY_DLL_API Brick: public RipleyDomain
 {
-    friend class DefaultAssembler3D;
+    template<class Scalar> friend class DefaultAssembler3D;
     friend class WaveAssembler3D;
     friend class LameAssembler3D;
 public:
@@ -243,8 +243,10 @@ protected:
 
     void populateSampleIds();
     void populateDofMap();
+
+    template<typename Scalar>
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
-           const DoubleVector& EM_S, const DoubleVector& EM_F,
+           const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
 
     template<typename ValueType>

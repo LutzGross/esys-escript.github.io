@@ -2962,8 +2962,9 @@ void Brick::populateDofMap()
 }
 
 //private
+template<typename Scalar>
 void Brick::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
-         const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
+         const vector<Scalar>& EM_S, const vector<Scalar>& EM_F, bool addS,
          bool addF, index_t firstNode, int nEq, int nComp) const
 {
     IndexVector rowIndex(8);
@@ -2976,19 +2977,29 @@ void Brick::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
     rowIndex[6] = m_dofMap[firstNode+m_NN[0]*(m_NN[1]+1)];
     rowIndex[7] = m_dofMap[firstNode+m_NN[0]*(m_NN[1]+1)+1];
     if (addF) {
-        double *F_p=F.getSampleDataRW(0);
-        for (index_t i=0; i<rowIndex.size(); i++) {
-            if (rowIndex[i]<getNumDOF()) {
-                for (int eq=0; eq<nEq; eq++) {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for (index_t i = 0; i < rowIndex.size(); i++) {
+            if (rowIndex[i] < getNumDOF()) {
+                for (int eq = 0; eq < nEq; eq++) {
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
         }
     }
     if (addS) {
-        addToSystemMatrix(S, rowIndex, nEq, EM_S);
+        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
     }
 }
+
+template
+void Brick::addToMatrixAndRHS<real_t>(AbstractSystemMatrix* S, escript::Data& F,
+         const vector<real_t>& EM_S, const vector<real_t>& EM_F, bool addS,
+         bool addF, index_t firstNode, int nEq, int nComp) const;
+
+template
+void Brick::addToMatrixAndRHS<cplx_t>(AbstractSystemMatrix* S, escript::Data& F,
+         const vector<cplx_t>& EM_S, const vector<cplx_t>& EM_F, bool addS,
+         bool addF, index_t firstNode, int nEq, int nComp) const;
 
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,
@@ -3648,8 +3659,21 @@ dim_t Brick::findNode(const double *coords) const
 
 Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) const
 {
+    bool isComplex = false;
+    DataMap::const_iterator it;
+    for (it = constants.begin(); it != constants.end(); it++) {
+        if (!it->second.isEmpty() && it->second.isComplex()) {
+            isComplex = true;
+            break;
+        }
+    }
+
     if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NE, m_NN));
+        if (isComplex) {
+            return Assembler_ptr(new DefaultAssembler3D<cplx_t>(shared_from_this(), m_dx, m_NE, m_NN));
+        } else {
+            return Assembler_ptr(new DefaultAssembler3D<real_t>(shared_from_this(), m_dx, m_NE, m_NN));
+        }
     } else if (type.compare("WaveAssembler") == 0) {
         return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NE, m_NN, constants));
     } else if (type.compare("LameAssembler") == 0) {

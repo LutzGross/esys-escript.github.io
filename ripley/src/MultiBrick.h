@@ -27,7 +27,7 @@ namespace ripley {
 */
 class RIPLEY_DLL_API MultiBrick: public Brick
 {
-    friend class DefaultAssembler3D;
+    template<class Scalar> friend class DefaultAssembler3D;
     friend class WaveAssembler3D;
     friend class LameAssembler3D;
 public:
