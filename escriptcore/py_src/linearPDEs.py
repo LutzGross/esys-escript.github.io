@@ -289,6 +289,15 @@ class PDECoef(object):
         else:
             return None
 
+    def isComplex(self):
+        """
+        Checks if the coefficient is complex-valued.
+
+        :rtype: ``bool``
+        :return: True if the coefficient is complex-valued, False otherwise.
+        """
+        return self.complex
+
     def estimateNumEquationsAndNumSolutions(self,domain,shape=()):
        """
        Tries to estimate the number of equations and number of solutions if
@@ -1019,7 +1028,7 @@ class LinearProblem(object):
      :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
-        zero = 0.j if self.isComplex() else 0.
+        zero = 0.j if self.__COEFFICIENTS[name].isComplex() else 0.
         return escore.Data(zero,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
