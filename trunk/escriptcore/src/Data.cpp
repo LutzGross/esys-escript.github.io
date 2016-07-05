@@ -3276,6 +3276,10 @@ Data::typeMatchLeft(Data& right) const
     {
         right.resolve();
     }
+    if (isComplex())
+    {
+        right.complicate();
+    }
     if (isExpanded()) {
         right.expand();
     } else if (isTagged()) {
