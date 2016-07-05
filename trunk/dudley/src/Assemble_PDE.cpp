@@ -232,9 +232,9 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             // single PDE
             if (p.numDim == 3) {
                 if (isComplex) {
-                    throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+                    Assemble_PDE_Single_3D<cplx_t>(p, A, B, C, D, X, Y);
                 } else {
-                    Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
+                    Assemble_PDE_Single_3D<real_t>(p, A, B, C, D, X, Y);
                 }
             } else if (p.numDim == 2) {
                 if (isComplex) {
