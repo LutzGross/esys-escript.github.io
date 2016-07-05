@@ -271,7 +271,7 @@ DataConstant::getPointOffset(int sampleNo,
 DataTypes::RealVectorType::size_type
 DataConstant::getLength() const
 {
-  return m_data_r.size();
+    return std::max(m_data_c.size(), m_data_r.size());  
 }
 
 DataAbstract*

@@ -4396,9 +4396,18 @@ Data::toString() const
 #endif
 
     if (localNeedSummary){
-        stringstream temp;
-        temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
-        return  temp.str();
+        if (isComplex())
+	{
+	    stringstream temp;
+	    temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
+	    return  temp.str();
+	}
+	else
+	{
+	    stringstream temp;
+	    temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
+	    return  temp.str();
+	}
     }
     return m_data->toString();
 }
