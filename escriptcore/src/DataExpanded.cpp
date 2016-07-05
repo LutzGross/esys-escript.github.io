@@ -510,7 +510,7 @@ void DataExpanded::complicate()
 
 DataTypes::RealVectorType::size_type DataExpanded::getLength() const
 {
-    return m_data_r.size();
+    return std::max(m_data_c.size(), m_data_r.size());  
 }
 
 void DataExpanded::copyToDataPoint(int sampleNo, int dataPointNo, const DataTypes::cplx_t value)
