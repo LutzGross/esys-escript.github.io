@@ -51,7 +51,6 @@ namespace dudley {
 
 using escript::DataTypes::real_t;
 using escript::DataTypes::cplx_t;
-using escript::NotImplementedError;
 
 inline void setNumSamplesError(const char* c, int n0, int n1)
 {
@@ -205,9 +204,9 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             throw DudleyException("Dudley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
         } else {
             if (isComplex) {
-                throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+                Assemble_PDE_Points<cplx_t>(p, D, Y);
             } else {
-                Assemble_PDE_Points(p, D, Y);
+                Assemble_PDE_Points<real_t>(p, D, Y);
             }
         }
     } else {

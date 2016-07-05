@@ -41,20 +41,22 @@
 
 namespace dudley {
 
+template<typename Scalar>
 void Assemble_PDE_Points(const AssembleParameters& p,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac)
 {
-    double* F_p = NULL;
+    Scalar* F_p = NULL;
+    const Scalar zero = static_cast<Scalar>(0);
     if (!p.F.isEmpty()) {
         p.F.requireWrite();
-        F_p = p.F.getSampleDataRW(0);
+        F_p = p.F.getSampleDataRW(0, zero);
     }
 
 #pragma omp parallel
     {
         std::vector<index_t> rowIndex(1);
-        std::vector<double> values(p.numEqu*p.numEqu);
+        std::vector<Scalar> values(p.numEqu*p.numEqu);
 
         for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
             // loop over all elements
@@ -63,13 +65,13 @@ void Assemble_PDE_Points(const AssembleParameters& p,
                 if (p.elements->Color[e] == color) {
                     rowIndex[0] = p.DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
-                        const double* y_dirac_p = y_dirac.getSampleDataRO(e);
+                        const Scalar* y_dirac_p = y_dirac.getSampleDataRO(e, zero);
                         util::addScatter(1, &rowIndex[0], p.numEqu,
                                          y_dirac_p, F_p, p.DOF_UpperBound);
                     }
                    
                     if (!d_dirac.isEmpty()) {
-                        const double* EM_S = d_dirac.getSampleDataRO(e);
+                        const Scalar* EM_S = d_dirac.getSampleDataRO(e, zero);
                         values.assign(EM_S, EM_S+p.numEqu*p.numEqu);
                         Assemble_addToSystemMatrix(p.S, rowIndex, p.numEqu,
                                                    values);
@@ -79,6 +81,14 @@ void Assemble_PDE_Points(const AssembleParameters& p,
         } // end color loop
     } // end parallel region
 }
+
+// instantiate our two supported versions
+template void Assemble_PDE_Points<escript::DataTypes::real_t>(
+                            const AssembleParameters& p,
+                            const escript::Data& d, const escript::Data& y);
+template void Assemble_PDE_Points<escript::DataTypes::cplx_t>(
+                            const AssembleParameters& p,
+                            const escript::Data& d, const escript::Data& y);
 
 } // namespace dudley
 
