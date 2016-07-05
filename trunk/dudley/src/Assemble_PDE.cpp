@@ -221,9 +221,9 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                 }
             } else if (p.numDim == 2) {
                 if (isComplex) {
-                    throw NotImplementedError("Assemble_PDE: complex assembly not implemented yet.");
+                    Assemble_PDE_System_2D<cplx_t>(p, A, B, C, D, X, Y);
                 } else {
-                    Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
+                    Assemble_PDE_System_2D<real_t>(p, A, B, C, D, X, Y);
                 }
             } else {
                 throw DudleyException("Assemble_PDE supports spatial dimensions 2 and 3 only.");

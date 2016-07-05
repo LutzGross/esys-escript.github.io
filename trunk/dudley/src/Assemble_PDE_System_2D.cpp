@@ -44,6 +44,7 @@
 
 namespace dudley {
 
+template<typename Scalar>
 void Assemble_PDE_System_2D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
@@ -56,10 +57,11 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
     bool expandedD = D.actsExpanded();
     bool expandedX = X.actsExpanded();
     bool expandedY = Y.actsExpanded();
-    double* F_p = NULL;
+    const Scalar zero = static_cast<Scalar>(0);
+    Scalar* F_p = NULL;
     if (!p.F.isEmpty()) {
         p.F.requireWrite();
-        F_p = p.F.getSampleDataRW(0);
+        F_p = p.F.getSampleDataRW(0, zero);
     }
     const double* S = p.shapeFns;
     const size_t len_EM_S = p.numShapes * p.numShapes * p.numEqu * p.numEqu;
@@ -67,8 +69,8 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
 
 #pragma omp parallel
     {
-        std::vector<double> EM_S(len_EM_S);
-        std::vector<double> EM_F(len_EM_F);
+        std::vector<Scalar> EM_S(len_EM_S);
+        std::vector<Scalar> EM_F(len_EM_F);
         std::vector<index_t> row_index(p.numShapes);
 
         for (index_t color = p.elements->minColor; color <= p.elements->maxColor; color++) {
@@ -78,8 +80,8 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                 if (p.elements->Color[e] == color) {
                     const double vol = p.jac->absD[e] * p.jac->quadweight;
                     const double* DSDX = &p.jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)];
-                    std::fill(EM_S.begin(), EM_S.end(), 0);
-                    std::fill(EM_F.begin(), EM_F.end(), 0);
+                    std::fill(EM_S.begin(), EM_S.end(), zero);
+                    std::fill(EM_F.begin(), EM_F.end(), zero);
                     bool add_EM_F = false;
                     bool add_EM_S = false;
 
@@ -87,15 +89,15 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
-                        const double* A_p = A.getSampleDataRO(e);
+                        const Scalar* A_p = A.getSampleDataRO(e, zero);
                         add_EM_S = true;
                         if (expandedA) {
-                            const double* A_q = &A_p[INDEX6(0, 0, 0, 0, 0, 0, p.numEqu, DIM, p.numEqu, DIM, p.numQuad)];
+                            const Scalar* A_q = &A_p[INDEX6(0, 0, 0, 0, 0, 0, p.numEqu, DIM, p.numEqu, DIM, p.numQuad)];
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
                                     for (int k = 0; k < p.numEqu; k++) {
                                         for (int m = 0; m < p.numEqu; m++) {
-                                            double f = 0;
+                                            Scalar f = zero;
                                             for (int q = 0; q < p.numQuad; q++) {
                                                 f +=
                                                     vol * (DSDX[INDEX3(s, 0, q, p.numShapes, DIM)] *
@@ -119,13 +121,13 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                         } else {
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
-                                    double f00 = 0;
-                                    double f01 = 0;
-                                    double f10 = 0;
-                                    double f11 = 0;
+                                    Scalar f00 = zero;
+                                    Scalar f01 = zero;
+                                    Scalar f10 = zero;
+                                    Scalar f11 = zero;
                                     for (int q = 0; q < p.numQuad; q++) {
-                                        const double f0 = vol * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
-                                        const double f1 = vol * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
+                                        const Scalar f0 = vol * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
+                                        const Scalar f1 = vol * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
                                         f00 += f0 * DSDX[INDEX3(r, 0, q, p.numShapes, DIM)];
                                         f01 += f0 * DSDX[INDEX3(r, 1, q, p.numShapes, DIM)];
                                         f10 += f1 * DSDX[INDEX3(r, 0, q, p.numShapes, DIM)];
@@ -149,15 +151,15 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
-                        const double* B_p = B.getSampleDataRO(e);
+                        const Scalar* B_p = B.getSampleDataRO(e, zero);
                         add_EM_S = true;
                         if (expandedB) {
-                            const double* B_q = &B_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, DIM, p.numEqu, p.numQuad)];
+                            const Scalar* B_q = &B_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, DIM, p.numEqu, p.numQuad)];
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
                                     for (int k = 0; k < p.numEqu; k++) {
                                         for (int m = 0; m < p.numEqu; m++) {
-                                            double f = 0;
+                                            Scalar f = zero;
                                             for (int q = 0; q < p.numQuad; q++) {
                                                 f += vol * S[INDEX2(r, q, p.numShapes)] *
                                                     (DSDX[INDEX3(s, 0, q, p.numShapes, DIM)] *
@@ -173,10 +175,10 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                         } else {
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
-                                    double f0 = 0;
-                                    double f1 = 0;
+                                    Scalar f0 = zero;
+                                    Scalar f1 = zero;
                                     for (int q = 0; q < p.numQuad; q++) {
-                                        const double f = vol * S[INDEX2(r, q, p.numShapes)];
+                                        const Scalar f = vol * S[INDEX2(r, q, p.numShapes)];
                                         f0 += f * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
                                         f1 += f * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
                                     }
@@ -195,15 +197,15 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
-                        const double* C_p = C.getSampleDataRO(e);
+                        const Scalar* C_p = C.getSampleDataRO(e, zero);
                         add_EM_S = true;
                         if (expandedC) {
-                            const double* C_q = &C_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, p.numEqu, DIM, p.numQuad)];
+                            const Scalar* C_q = &C_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, p.numEqu, DIM, p.numQuad)];
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
                                     for (int k = 0; k < p.numEqu; k++) {
                                         for (int m = 0; m < p.numEqu; m++) {
-                                            double f = 0;
+                                            Scalar f = zero;
                                             for (int q = 0; q < p.numQuad; q++) {
                                                 f += vol * S[INDEX2(s, q, p.numShapes)] *
                                                     (C_q[INDEX4(k, m, 0, q, p.numEqu, p.numEqu, DIM)] *
@@ -219,10 +221,10 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                         } else {
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
-                                    double f0 = 0;
-                                    double f1 = 0;
+                                    Scalar f0 = zero;
+                                    Scalar f1 = zero;
                                     for (int q = 0; q < p.numQuad; q++) {
-                                        const double f = vol * S[INDEX2(s, q, p.numShapes)];
+                                        const Scalar f = vol * S[INDEX2(s, q, p.numShapes)];
                                         f0 += f * DSDX[INDEX3(r, 0, q, p.numShapes, DIM)];
                                         f1 += f * DSDX[INDEX3(r, 1, q, p.numShapes, DIM)];
                                     }
@@ -241,15 +243,15 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
-                        const double* D_p = D.getSampleDataRO(e);
+                        const Scalar* D_p = D.getSampleDataRO(e, zero);
                         add_EM_S = true;
                         if (expandedD) {
-                            const double* D_q = &D_p[INDEX4(0, 0, 0, 0, p.numEqu, p.numEqu, p.numQuad)];
+                            const Scalar* D_q = &D_p[INDEX4(0, 0, 0, 0, p.numEqu, p.numEqu, p.numQuad)];
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
                                     for (int k = 0; k < p.numEqu; k++) {
                                         for (int m = 0; m < p.numEqu; m++) {
-                                            double f = 0;
+                                            Scalar f = zero;
                                             for (int q = 0; q < p.numQuad; q++) {
                                                 f +=
                                                     vol * S[INDEX2(s, q, p.numShapes)] *
@@ -264,7 +266,7 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                         } else {
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int r = 0; r < p.numShapes; r++) {
-                                    double f = 0;
+                                    Scalar f = zero;
                                     for (int q = 0; q < p.numQuad; q++)
                                         f += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(r, q, p.numShapes)];
                                     for (int k = 0; k < p.numEqu; k++) {
@@ -281,13 +283,13 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
-                        const double* X_p = X.getSampleDataRO(e);
+                        const Scalar* X_p = X.getSampleDataRO(e, zero);
                         add_EM_F = true;
                         if (expandedX) {
-                            const double* X_q = &X_p[INDEX4(0, 0, 0, 0, p.numEqu, DIM, p.numQuad)];
+                            const Scalar* X_q = &X_p[INDEX4(0, 0, 0, 0, p.numEqu, DIM, p.numQuad)];
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int k = 0; k < p.numEqu; k++) {
-                                    double f = 0;
+                                    Scalar f = zero;
                                     for (int q = 0; q < p.numQuad; q++) {
                                         f +=
                                             vol * (DSDX[INDEX3(s, 0, q, p.numShapes, DIM)] *
@@ -300,8 +302,8 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                             }
                         } else {
                             for (int s = 0; s < p.numShapes; s++) {
-                                double f0 = 0;
-                                double f1 = 0;
+                                Scalar f0 = zero;
+                                Scalar f1 = zero;
                                 for (int q = 0; q < p.numQuad; q++) {
                                     f0 += vol * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
                                     f1 += vol * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
@@ -316,13 +318,13 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
-                        const double* Y_p = Y.getSampleDataRO(e);
+                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
                         add_EM_F = true;
                         if (expandedY) {
-                            const double* Y_q = &Y_p[INDEX3(0, 0, 0, p.numEqu, p.numQuad)];
+                            const Scalar* Y_q = &Y_p[INDEX3(0, 0, 0, p.numEqu, p.numQuad)];
                             for (int s = 0; s < p.numShapes; s++) {
                                 for (int k = 0; k < p.numEqu; k++) {
-                                    double f = 0;
+                                    Scalar f = zero;
                                     for (int q = 0; q < p.numQuad; q++)
                                         f += vol * S[INDEX2(s, q, p.numShapes)] * Y_q[INDEX2(k, q, p.numEqu)];
                                     EM_F[INDEX2(k, s, p.numEqu)] += f;
@@ -330,7 +332,7 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                             }
                         } else {
                             for (int s = 0; s < p.numShapes; s++) {
-                                double f = 0;
+                                Scalar f = zero;
                                 for (int q = 0; q < p.numQuad; q++)
                                     f += vol * S[INDEX2(s, q, p.numShapes)];
                                 for (int k = 0; k < p.numEqu; k++)
@@ -355,6 +357,18 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
         } // end color loop
     } // end parallel region
 }
+
+// instantiate our two supported versions
+template void Assemble_PDE_System_2D<escript::DataTypes::real_t>(
+                            const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
+template void Assemble_PDE_System_2D<escript::DataTypes::cplx_t>(
+                            const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
 } // namespace dudley
 
