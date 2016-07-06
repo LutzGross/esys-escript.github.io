@@ -223,7 +223,11 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             if (p.numDim == 3) {
                 Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim == 2) {
-                Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
+                if (isComplex) {
+                    Assemble_PDE_System_2D<cplx_t>(p, A, B, C, D, X, Y);
+                } else {
+                    Assemble_PDE_System_2D<real_t>(p, A, B, C, D, X, Y);
+                }
             } else if (p.numDim == 1) {
                 Assemble_PDE_System_1D(p, A, B, C, D, X, Y);
             } else {

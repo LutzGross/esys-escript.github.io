@@ -289,7 +289,6 @@ void Assemble_PDE_Single_2D(const AssembleParameters& p,
                                     p.row_numShapesTotal, &row_index[0],
                                     p.numEqu, p.col_numShapesTotal,
                                     &row_index[0], p.numComp, &EM_S[0]);
-
                     } // end of isub
                 } // end color check
             } // end element loop
