@@ -43,7 +43,7 @@ except KeyError:
     WORKDIR='.'
 
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
-class Test_MagneticInversion(unittest.TestCase):
+class Test_JoinInversion(unittest.TestCase):
     def test_2D_inversion(self):
         logging.getLogger('inv.MinimizerLBFGS').setLevel(logging.CRITICAL)
         logging.getLogger('inv.JointGravityMagneticInversion').setLevel(logging.CRITICAL)
@@ -86,7 +86,7 @@ class Test_MagneticInversion(unittest.TestCase):
         domainbuilder.setBackgroundMagneticFluxDensity(B_b)
 
         inv=JointGravityMagneticInversion()
-        inv.setSolverTolerance(1e-4)
+        inv.setSolverTolerance(1e-3)
         inv.setSolverMaxIterations(500)
         inv.setup(domainbuilder)
 
