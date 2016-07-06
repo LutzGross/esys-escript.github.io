@@ -44,6 +44,7 @@ using esys_trilinos::const_TrilinosGraph_ptr;
 
 using namespace std;
 namespace bp = boost::python;
+using escript::NotImplementedError;
 using escript::ValueError;
 
 namespace finley {
@@ -1187,8 +1188,8 @@ void FinleyDomain::setToNormal(escript::Data& normal) const
 void FinleyDomain::interpolateAcross(escript::Data& /*target*/,
                                     const escript::Data& /*source*/) const
 {
-    throw escript::NotImplementedError("Finley does not allow interpolation "
-                                       "across domains.");
+    throw NotImplementedError("Finley does not allow interpolation across "
+                              "domains.");
 }
 
 //

@@ -92,6 +92,7 @@ void Assemble_PDE_Single_1D(const AssembleParameters& p,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
+template<typename Scalar>
 void Assemble_PDE_Single_2D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
@@ -123,9 +124,10 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
 void Assemble_PDE_System_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y);
 
+template<typename Scalar = double>
 void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
                   const index_t* Nodes_Equa, int num_Equa, int NN_Sol,
-                  const index_t* Nodes_Sol, int num_Sol, const double* array);
+                  const index_t* Nodes_Sol, int num_Sol, const Scalar* array);
 
 void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
@@ -146,12 +148,17 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 /// copies node coordinates into expanded Data object `x`
 void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x);
 
+/// calculates the normal vector at quadrature points on face elements
 void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
                         escript::Data& normals);
 
+/// calculates the minimum distance between two vertices of elements and
+/// assigns the value to each quadrature point in `size`
 void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
                       escript::Data& size);
 
+/// Assemblage of Jacobians: calculates the gradient of nodal data at
+/// quadrature points
 void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                        escript::Data& gradient, const escript::Data& data);
 

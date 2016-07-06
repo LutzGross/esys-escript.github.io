@@ -14,13 +14,12 @@
 *
 *****************************************************************************/
 
-
 /****************************************************************************
 
   Assembles the system of numEqu PDEs into the stiffness matrix S and right
   hand side F:
 
-      -div(A*grad u)-div(B*u)+C*grad u + D*u= -div X + Y
+      -div(A*grad u)-div(B*u)+C*grad u + D*u = -div X + Y
 
       -(A_{k,i,m,j} u_m,j)_i-(B_{k,i,m} u_m)_i+C_{k,m,j} u_m,j-D_{k,m} u_m = -(X_{k,i})_i + Y_k
 
@@ -52,6 +51,9 @@
 
 namespace finley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
 inline void setNumSamplesError(const char* c, int n0, int n1)
 {
     std::stringstream ss;
@@ -61,7 +63,7 @@ inline void setNumSamplesError(const char* c, int n0, int n1)
     throw escript::ValueError(errorMsg);
 }
 
-inline void setShapeError(const char* c, int num, const int *dims)
+inline void setShapeError(const char* c, int num, const int* dims)
 {
     std::stringstream ss;
     ss << "Assemble_PDE: shape of coefficient " << c
@@ -105,7 +107,7 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     if (!D.isEmpty()) funcspace=D.getFunctionSpace().getTypeCode();
     if (!X.isEmpty()) funcspace=X.getFunctionSpace().getTypeCode();
     if (!Y.isEmpty()) funcspace=Y.getFunctionSpace().getTypeCode();
-    if (funcspace==-1)
+    if (funcspace == -1)
         return; // all data are empty
 
     // check if all function spaces are the same
@@ -122,6 +124,15 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     } else if (!Y.isEmpty() && Y.getFunctionSpace().getTypeCode()!=funcspace) {
         throw escript::ValueError("Assemble_PDE: unexpected function space type for coefficient Y");
     }
+
+    // get value type
+    bool isComplex = false;
+    isComplex = isComplex || (!A.isEmpty() && A.isComplex());
+    isComplex = isComplex || (!B.isEmpty() && B.isComplex());
+    isComplex = isComplex || (!C.isEmpty() && C.isComplex());
+    isComplex = isComplex || (!D.isEmpty() && D.isComplex());
+    isComplex = isComplex || (!X.isEmpty() && X.isComplex());
+    isComplex = isComplex || (!Y.isEmpty() && Y.isComplex());
 
     bool reducedIntegrationOrder;
     if (funcspace==FINLEY_ELEMENTS) {
@@ -168,7 +179,7 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     // check the dimensions:
     if (p.numEqu != p. numComp) {
         throw escript::ValueError("Assemble_PDE requires number of equations == number of solutions.");
-    } else if (p.numEqu==1) {
+    } else if (p.numEqu == 1) {
         const int dimensions[2] = { p.numDim, p.numDim };
         if (!A.isDataPointShapeEqual(2, dimensions)) {
             setShapeError("A", 2, dimensions);
@@ -202,28 +213,32 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     }
 
     if (p.numSides == 1) {
-        if (funcspace==FINLEY_POINTS) {
+        if (funcspace == FINLEY_POINTS) {
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
                 throw escript::ValueError("Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
                 Assemble_PDE_Points(p, D, Y);
             }
         } else if (p.numEqu > 1) { // system of PDEs
-            if (p.numDim==3) {
+            if (p.numDim == 3) {
                 Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
-            } else if (p.numDim==2) {
+            } else if (p.numDim == 2) {
                 Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
-            } else if (p.numDim==1) {
+            } else if (p.numDim == 1) {
                 Assemble_PDE_System_1D(p, A, B, C, D, X, Y);
             } else {
                 throw escript::ValueError("Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         } else { // single PDE
-            if (p.numDim==3) {
+            if (p.numDim == 3) {
                 Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
-            } else if (p.numDim==2) {
-                Assemble_PDE_Single_2D(p, A, B, C, D, X, Y);
-            } else if (p.numDim==1) {
+            } else if (p.numDim == 2) {
+                if (isComplex) {
+                    Assemble_PDE_Single_2D<cplx_t>(p, A, B, C, D, X, Y);
+                } else {
+                    Assemble_PDE_Single_2D<real_t>(p, A, B, C, D, X, Y);
+                }
+            } else if (p.numDim == 1) {
                 Assemble_PDE_Single_1D(p, A, B, C, D, X, Y);
             } else {
                 throw escript::ValueError("Assemble_PDE supports spatial dimensions 1,2,3 only.");

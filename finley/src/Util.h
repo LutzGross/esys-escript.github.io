@@ -49,8 +49,9 @@ void gather(int len, const index_t* index, int numData, const double* in,
 /// adds array `in` into `out` using an `index`:
 ///   out(1:numData,index[p])+=in(1:numData,p) where
 ///   p={k=1...len, index[k]<upperBound}
+template<typename Scalar>
 void addScatter(int len, const index_t* index, int numData,
-                const double* in, double *out, index_t upperBound);
+                const Scalar* in, Scalar* out, index_t upperBound);
 
 /// multiplies two matrices: A(1:A1,1:A2) := B(1:A1,1:B2)*C(1:B2,1:A2)
 void smallMatMult(int A1, int A2, double* A, int B2,
