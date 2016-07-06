@@ -76,8 +76,8 @@ void Assemble_PDE_Single_2D(const AssembleParameters& p,
             for (index_t e = 0; e < p.elements->numElements; e++) {
                 if (p.elements->Color[e] == color) {
                     for (int isub = 0; isub < p.numSub; isub++) {
-                        const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
-                        const double *DSDX=&(p.row_jac->DSDX[INDEX5(0,0,0,isub,e, p.row_numShapesTotal,DIM,p.numQuadSub,p.numSub)]);
+                        const double* Vol = &(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
+                        const double* DSDX = &(p.row_jac->DSDX[INDEX5(0,0,0,isub,e, p.row_numShapesTotal,DIM,p.numQuadSub,p.numSub)]);
                         std::fill(EM_S.begin(), EM_S.end(), zero);
                         std::fill(EM_F.begin(), EM_F.end(), zero);
                         bool add_EM_F = false;
