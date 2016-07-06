@@ -105,6 +105,7 @@ void Assemble_PDE_Single_3D(const AssembleParameters& p,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
+template<typename Scalar>
 void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y);
 
@@ -125,6 +126,7 @@ void Assemble_PDE_System_3D(const AssembleParameters& p,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
+template<typename Scalar>
 void Assemble_PDE_System_C(const AssembleParameters& p, const escript::Data& D,
                            const escript::Data& Y);
 

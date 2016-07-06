@@ -264,9 +264,17 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
             throw escript::ValueError("Assemble_PDE: Contact elements require A, B, C and X to be empty.");
         } else if (p.numEqu > 1) { // system of PDEs
-            Assemble_PDE_System_C(p, D, Y);
+            if (isComplex) {
+                Assemble_PDE_System_C<cplx_t>(p, D, Y);
+            } else {
+                Assemble_PDE_System_C<real_t>(p, D, Y);
+            }
         } else { // single PDE
-            Assemble_PDE_Single_C(p, D, Y);
+            if (isComplex) {
+                Assemble_PDE_Single_C<cplx_t>(p, D, Y);
+            } else {
+                Assemble_PDE_Single_C<real_t>(p, D, Y);
+            }
         }
     } else {
         throw escript::ValueError("Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
