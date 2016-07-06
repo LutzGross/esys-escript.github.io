@@ -1406,8 +1406,9 @@ escript::ASM_ptr FinleyDomain::newSystemMatrix(int row_blocksize,
             throw ValueError("element order of matrix rows and columns must "
                              "match when using Trilinos");
         const_TrilinosGraph_ptr graph(getTrilinosGraph(reduceRowOrder));
+        bool isComplex = (type & (int)SMT_COMPLEX);
         escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo,
-                    row_blocksize, row_functionspace, graph));
+                    row_blocksize, row_functionspace, graph, isComplex));
         return sm;
 #else
         throw FinleyException("newSystemMatrix: finley was not compiled "
@@ -1783,10 +1784,14 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     // the configuration of finley should have taken care that we have either
     // paso or trilinos so here's how we prioritize
 #if defined(ESYS_HAVE_PASO) && defined(ESYS_HAVE_TRILINOS)
-    // we have Paso & Trilinos so use Trilinos for parallel direct solvers
+    // we have Paso & Trilinos so use Trilinos for parallel direct solvers and
+    // for complex problems
     if (package == escript::SO_DEFAULT &&
             sb.getSolverMethod() == escript::SO_METHOD_DIRECT &&
             getMPISize() > 1) {
+        package = escript::SO_PACKAGE_TRILINOS;
+    }
+    if (package == escript::SO_DEFAULT && sb.isComplex()) {
         package = escript::SO_PACKAGE_TRILINOS;
     }
 #endif
@@ -1800,12 +1805,18 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 #endif
     if (package == escript::SO_PACKAGE_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS
-        return (int)SMT_TRILINOS;
+        int type = (int)SMT_TRILINOS;
+        if (sb.isComplex())
+            type |= (int)SMT_COMPLEX;
+        return type;
 #else
         throw FinleyException("Trilinos requested but not built with Trilinos.");
 #endif
     }
 #ifdef ESYS_HAVE_PASO
+    if (sb.isComplex()) {
+        throw NotImplementedError("Paso does not support complex-valued matrices");
+    }
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
                 sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
                 sb.isSymmetric(), m_mpiInfo);
