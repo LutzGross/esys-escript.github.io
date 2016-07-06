@@ -198,7 +198,7 @@ void Assemble_PDE_System_2D(const AssembleParameters& p,
                                                 for (int q = 0; q < p.numQuadSub; q++) {
                                                     f += Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*(
                                                             C_q[INDEX4(k,m,0,q,p.numEqu,p.numComp,DIM)]*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)]
-                                                           +C_q[INDEX4(k,m,1,q,p.numEqu,p.numComp,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)]);
+                                                          + C_q[INDEX4(k,m,1,q,p.numEqu,p.numComp,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)]);
                                                 }
                                                 EM_S[INDEX4(k,m,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]+=f;
                                             }
