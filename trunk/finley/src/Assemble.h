@@ -83,6 +83,7 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y);
 
+template<typename Scalar>
 void Assemble_PDE_Points(const AssembleParameters& p,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac);
