@@ -217,7 +217,11 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
                 throw escript::ValueError("Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
-                Assemble_PDE_Points(p, D, Y);
+                if (isComplex) {
+                    Assemble_PDE_Points<cplx_t>(p, D, Y);
+                } else {
+                    Assemble_PDE_Points<real_t>(p, D, Y);
+                }
             }
         } else if (p.numEqu > 1) { // system of PDEs
             if (p.numDim == 3) {

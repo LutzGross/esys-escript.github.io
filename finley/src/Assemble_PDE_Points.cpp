@@ -14,7 +14,6 @@
 *
 *****************************************************************************/
 
-
 /****************************************************************************
 
   Assembles the system of numEqu PDEs into the stiffness matrix S and right
@@ -40,14 +39,16 @@
 
 namespace finley {
 
+template<typename Scalar>
 void Assemble_PDE_Points(const AssembleParameters& p,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac)
 {
-    double* F_p = NULL;
+    Scalar* F_p = NULL;
+    const Scalar zero = static_cast<Scalar>(0);
     if (!p.F.isEmpty()) {
         p.F.requireWrite();
-        F_p = p.F.getSampleDataRW(0);
+        F_p = p.F.getSampleDataRW(0, zero);
     }
 
 #pragma omp parallel
@@ -57,22 +58,31 @@ void Assemble_PDE_Points(const AssembleParameters& p,
 #pragma omp for
             for (index_t e = 0; e < p.elements->numElements; e++) {
                 if (p.elements->Color[e] == color) {
-                    index_t row_index = p.row_DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
+                    index_t rowIndex = p.row_DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
-                        const double* y_dirac_p = y_dirac.getSampleDataRO(e);
-                        util::addScatter(1, &row_index, p.numEqu,
+                        const Scalar* y_dirac_p = y_dirac.getSampleDataRO(e, zero);
+                        util::addScatter(1, &rowIndex, p.numEqu,
                                          y_dirac_p, F_p, p.row_DOF_UpperBound);
                     }
+                   
                     if (!d_dirac.isEmpty()) {
-                        const double* d_dirac_p = d_dirac.getSampleDataRO(e);
-                        Assemble_addToSystemMatrix(p.S, 1, &row_index,
-                                p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
+                        const Scalar* d_dirac_p = d_dirac.getSampleDataRO(e, zero);
+                        Assemble_addToSystemMatrix(p.S, 1, &rowIndex,
+                                p.numEqu, 1, &rowIndex, p.numComp, d_dirac_p);
                     }
                 } // end color check
             } // end element loop
         } // end color loop
-    } // end parallel section
+    } // end parallel region
 }
+
+// instantiate our two supported versions
+template void Assemble_PDE_Points<escript::DataTypes::real_t>(
+                            const AssembleParameters& p,
+                            const escript::Data& d, const escript::Data& y);
+template void Assemble_PDE_Points<escript::DataTypes::cplx_t>(
+                            const AssembleParameters& p,
+                            const escript::Data& d, const escript::Data& y);
 
 } // namespace finley
 
