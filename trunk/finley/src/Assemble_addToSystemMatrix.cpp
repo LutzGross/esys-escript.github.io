@@ -28,22 +28,26 @@ using esys_trilinos::TrilinosMatrixAdapter;
 
 namespace finley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
 #ifdef ESYS_HAVE_PASO
 static void addToSystemMatrixPasoCSC(paso::SystemMatrix* S, int NN_Equa,
                                      const index_t* Nodes_Equa, int num_Equa,
                                      int NN_Sol, const index_t* Nodes_Sol,
-                                     int num_Sol, const double* array);
+                                     int num_Sol, const real_t* array);
 
 static void addToSystemMatrixPasoCSR(paso::SystemMatrix* S, int NN_Equa,
                                     const index_t* Nodes_Equa, int num_Equa,
                                     int NN_Sol, const index_t* Nodes_Sol,
-                                    int num_Sol, const double* array);
+                                    int num_Sol, const real_t* array);
 #endif
 
-void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
-                                const index_t* Nodes_Equa, int num_Equa,
-                                int NN_Sol, const index_t* Nodes_Sol,
-                                int num_Sol, const double* array)
+template<>
+void Assemble_addToSystemMatrix<real_t>(escript::ASM_ptr S, int NN_Equa,
+                                    const index_t* Nodes_Equa, int num_Equa,
+                                    int NN_Sol, const index_t* Nodes_Sol,
+                                    int num_Sol, const real_t* array)
 {
 #ifdef ESYS_HAVE_PASO
     paso::SystemMatrix* pmat = dynamic_cast<paso::SystemMatrix*>(S.get());
@@ -66,7 +70,7 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
     if (tmat) {
         IndexVector rowIdx(Nodes_Equa, Nodes_Equa+NN_Equa);
         //IndexVector colIdx(Nodes_Sol, Nodes_Sol+NN_Sol);
-        std::vector<double> arr(array, array+(NN_Equa*NN_Sol*num_Sol*num_Equa));
+        std::vector<real_t> arr(array, array+(NN_Equa*NN_Sol*num_Sol*num_Equa));
         tmat->add(rowIdx, arr);
         return;
     }
@@ -75,11 +79,31 @@ void Assemble_addToSystemMatrix(escript::ASM_ptr S, int NN_Equa,
                           "matrix type.");
 }
 
+template<>
+void Assemble_addToSystemMatrix<cplx_t>(escript::ASM_ptr S, int NN_Equa,
+                                    const index_t* Nodes_Equa, int num_Equa,
+                                    int NN_Sol, const index_t* Nodes_Sol,
+                                    int num_Sol, const cplx_t* array)
+{
+#ifdef ESYS_HAVE_TRILINOS
+    TrilinosMatrixAdapter* tmat = dynamic_cast<TrilinosMatrixAdapter*>(S.get());
+    if (tmat) {
+        IndexVector rowIdx(Nodes_Equa, Nodes_Equa+NN_Equa);
+        //IndexVector colIdx(Nodes_Sol, Nodes_Sol+NN_Sol);
+        std::vector<cplx_t> arr(array, array+(NN_Equa*NN_Sol*num_Sol*num_Equa));
+        tmat->add(rowIdx, arr);
+        return;
+    }
+#endif
+    throw FinleyException("addToSystemMatrix: only Trilinos matrices support "
+                          "complex-valued assembly!");
+}
+
 #ifdef ESYS_HAVE_PASO
 void addToSystemMatrixPasoCSC(paso::SystemMatrix* in, int NN_Equa,
                               const index_t* Nodes_Equa, int num_Equa,
                               int NN_Sol, const index_t* Nodes_Sol,
-                              int num_Sol, const double* array)
+                              int num_Sol, const real_t* array)
 {
     const int index_offset = (in->type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     const int row_block_size = in->row_block_size;
@@ -92,13 +116,13 @@ void addToSystemMatrixPasoCSC(paso::SystemMatrix* in, int NN_Equa,
 
     const index_t* mainBlock_ptr = in->mainBlock->pattern->ptr;
     const index_t* mainBlock_index = in->mainBlock->pattern->index;
-    double* mainBlock_val = in->mainBlock->val;
+    real_t* mainBlock_val = in->mainBlock->val;
     const index_t* col_coupleBlock_ptr = in->col_coupleBlock->pattern->ptr;
     const index_t* col_coupleBlock_index = in->col_coupleBlock->pattern->index;
-    double* col_coupleBlock_val = in->col_coupleBlock->val;
+    real_t* col_coupleBlock_val = in->col_coupleBlock->val;
     //const index_t* row_coupleBlock_ptr = in->row_coupleBlock->pattern->ptr;
     const index_t* row_coupleBlock_index = in->row_coupleBlock->pattern->index;
-    double* row_coupleBlock_val = in->row_coupleBlock->val;
+    real_t* row_coupleBlock_val = in->row_coupleBlock->val;
 
     for (int k_Sol = 0; k_Sol < NN_Sol; ++k_Sol) {
         // Down columns of array
@@ -181,7 +205,7 @@ void addToSystemMatrixPasoCSC(paso::SystemMatrix* in, int NN_Equa,
 void addToSystemMatrixPasoCSR(paso::SystemMatrix* in, int NN_Equa,
                               const index_t* Nodes_Equa, int num_Equa,
                               int NN_Sol, const index_t* Nodes_Sol,
-                              int num_Sol, const double* array)
+                              int num_Sol, const real_t* array)
 {
     const int index_offset = (in->type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     const int row_block_size = in->row_block_size;
@@ -194,13 +218,13 @@ void addToSystemMatrixPasoCSR(paso::SystemMatrix* in, int NN_Equa,
 
     const index_t* mainBlock_ptr = in->mainBlock->pattern->ptr;
     const index_t* mainBlock_index = in->mainBlock->pattern->index;
-    double* mainBlock_val = in->mainBlock->val;
+    real_t* mainBlock_val = in->mainBlock->val;
     const index_t* col_coupleBlock_ptr = in->col_coupleBlock->pattern->ptr;
     const index_t* col_coupleBlock_index = in->col_coupleBlock->pattern->index;
-    double* col_coupleBlock_val = in->col_coupleBlock->val;
+    real_t* col_coupleBlock_val = in->col_coupleBlock->val;
     const index_t* row_coupleBlock_ptr = in->row_coupleBlock->pattern->ptr;
     const index_t* row_coupleBlock_index = in->row_coupleBlock->pattern->index;
-    double* row_coupleBlock_val = in->row_coupleBlock->val;
+    real_t* row_coupleBlock_val = in->row_coupleBlock->val;
 
     for (int k_Equa = 0; k_Equa < NN_Equa; ++k_Equa) {
         // Down columns of array
