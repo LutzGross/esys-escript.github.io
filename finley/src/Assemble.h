@@ -112,6 +112,7 @@ void Assemble_PDE_System_1D(const AssembleParameters& p,
                             const escript::Data& C, const escript::Data& D,
                             const escript::Data& X, const escript::Data& Y);
 
+template<typename Scalar>
 void Assemble_PDE_System_2D(const AssembleParameters& p,
                             const escript::Data& A, const escript::Data& B,
                             const escript::Data& C, const escript::Data& D,
