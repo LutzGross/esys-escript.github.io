@@ -125,11 +125,12 @@ void SharedDataTestCase::testGetSampleRW()
   Data d((double)42,DataTypes::scalarShape, getSharedFs(),false);
   Data L=d.delay();
   
-  
+  std::cerr << "Please ignore the shared object message. We are testing the error checking.\n";
 #ifdef SLOWSHARECHECK
   // now change the data directly
   CPPUNIT_ASSERT_THROW(*d.getSampleDataRW(0)=17, DataException);
 #endif  
+  std::cerr << "End ignore message\n";
   // Now try again properly 
   d.requireWrite();
   *d.getSampleDataRW(0)=17;
