@@ -250,6 +250,7 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
     double solvertime = gettime()-T0;
 
     if (monitor.converged()) {
+        sb.updateDiagnostics("converged", true);
         if (sb.isVerbose()) {
             std::cout << "Solver converged to " << monitor.relative_tolerance()
                 << " relative tolerance after " << monitor.iteration_count()
@@ -261,6 +262,8 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
             << " to " << monitor.relative_tolerance() << " rel. tolerance."
             << std::endl;
     }
+    sb.updateDiagnostics("num_iter", monitor.iteration_count());
+    sb.updateDiagnostics("net_time", solvertime);
 }
 
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
