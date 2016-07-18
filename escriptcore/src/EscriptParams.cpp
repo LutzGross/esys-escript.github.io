@@ -46,7 +46,7 @@ EscriptParams::EscriptParams()
 #else
     resolveCollective = 0;
 #endif
-    tooManyLevels = 70;
+    tooManyLevels = 9;	// this is fairly arbitrary
     tooManyLines = 80;
 
     // now populate feature set
