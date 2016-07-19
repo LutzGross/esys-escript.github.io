@@ -140,11 +140,16 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         solver->setProblem(problem);
         Belos::ReturnType result = solver->solve();
         const int numIters = solver->getNumIters();
+        double tol = sb.getTolerance();
+        try {
+            tol = solver->achievedTol();
+        } catch (...) {
+        }
         if (sb.isVerbose()) {
             if (result == Belos::Converged) {
                 std::cout << "The solver took " << numIters
-                   << " iteration(s) to reach a relative residual tolerance of "
-                   << sb.getTolerance() << "." << std::endl;
+                   << " iteration(s) to reach a residual tolerance of "
+                   << tol << "." << std::endl;
             } else {
                 std::cout << "The solver took " << numIters
                    << " iteration(s), but did not reach a relative residual "
@@ -157,7 +162,7 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         }
         sb.updateDiagnostics("net_time", solverTime);
         sb.updateDiagnostics("num_iter", numIters);
-        sb.updateDiagnostics("residual_norm", solver->achievedTol());
+        sb.updateDiagnostics("residual_norm", tol);
     }
     X->get1dCopy(x, x.size());
 }

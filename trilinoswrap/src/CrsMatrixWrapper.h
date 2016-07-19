@@ -18,6 +18,8 @@
 #define __ESYS_TRILINOS_CRSMATRIXWRAPPER_H__
 
 #include <trilinoswrap/AbstractMatrixWrapper.h>
+#include <trilinoswrap/Amesos2Wrapper.h>
+#include <trilinoswrap/BelosWrapper.h>
 
 #include <Tpetra_CrsMatrix.hpp>
 
@@ -64,6 +66,8 @@ public:
 
 private:
     Matrix mat;
+    mutable Teuchos::RCP<ProblemType<ST> > m_solver;
+    mutable Teuchos::RCP<DirectSolverType<Matrix,VectorType<ST> > > m_direct;
     LO maxLocalRow;
 };
 
