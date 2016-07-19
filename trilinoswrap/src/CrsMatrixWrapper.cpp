@@ -124,7 +124,7 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         RCP<ProblemType<ST> > problem = rcp(new ProblemType<ST>(A, X, B));
 
         if (!prec.is_null()) {
-            // Trilinos BiCGStab does not currently support left preconditioners
+            // Trilinos BiCGStab does not support left preconditioners
             if (sb.getSolverMethod() == escript::SO_METHOD_BICGSTAB)
                 problem->setRightPrec(prec);
             else
@@ -133,18 +133,26 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         problem->setProblem();
         solver->setProblem(problem);
         Belos::ReturnType result = solver->solve();
+        const int numIters = solver->getNumIters();
         if (sb.isVerbose()) {
-            const int numIters = solver->getNumIters();
             if (result == Belos::Converged) {
+                sb.updateDiagnostics("converged", true);
                 std::cout << "The solver took " << numIters
-                   << " iteration(s) to reach a relative residual tolerance of "
-                   << sb.getTolerance() << "." << std::endl;
+                   << " iteration(s) to reach a residual tolerance of "
+                   << solver->achievedTol() << "." << std::endl;
             } else {
                 std::cout << "The solver took " << numIters
                    << " iteration(s), but did not reach a relative residual "
                    "tolerance of " << sb.getTolerance() << "." << std::endl;
             }
         }
+        double solverTime = 0.;
+        for (auto t: problem->getTimers()) {
+            solverTime += t->totalElapsedTime();
+        }
+        sb.updateDiagnostics("net_time", solverTime);
+        sb.updateDiagnostics("num_iter", numIters);
+        sb.updateDiagnostics("residual_norm", solver->achievedTol());
     }
     X->get1dCopy(x, x.size());
 }

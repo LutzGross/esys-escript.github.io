@@ -189,8 +189,12 @@ public:
                  "net_time", "residual_norm", "converged").
         \param value new value of the diagnostic information
     */
-    void updateDiagnostics(const std::string key,
-                           const boost::python::object& value);
+    void updateDiagnosticsPy(const std::string& key,
+                             const boost::python::object& value);
+
+    void updateDiagnostics(const std::string& key, bool value);
+    void updateDiagnostics(const std::string& key, int value);
+    void updateDiagnostics(const std::string& key, double value);
 
     /**
         Returns the diagnostic information for the given ``name``.

@@ -1002,7 +1002,7 @@ args("source", "q", "r","factor"),
     .def("resetDiagnostics", &escript::SolverBuddy::resetDiagnostics, args("all")=false,"Resets the diagnostics\n\n"
         ":param all: if ``all`` is ``True`` all diagnostics including accumulative counters are reset.\n"
         ":type all: ``bool``")
-    .def("_updateDiagnostics", &escript::SolverBuddy::updateDiagnostics, args("key", "value"),"Updates diagnostic information\n\n"
+    .def("_updateDiagnostics", &escript::SolverBuddy::updateDiagnosticsPy, args("key", "value"),"Updates diagnostic information\n\n"
         ":param name: name of  diagnostic information\n"
         ":type name: ``str`` in the list 'num_iter', 'num_level',\n"
         "'num_inner_iter', 'time', 'set_up_time', 'net_time',\n"
