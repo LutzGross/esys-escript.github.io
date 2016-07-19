@@ -273,9 +273,52 @@ void SolverBuddy::resetDiagnostics(bool all)
     }
 }
 
-void SolverBuddy::updateDiagnostics(std::string name, const bp::object& value)
+void SolverBuddy::updateDiagnostics(const std::string& name, bool value)
 {
+    if (name == "converged") {
+        converged = value;
+    } else if (name == "time_step_backtracking_used") {
+        time_step_backtracking_used = value;
+    } else {
+        throw ValueError(std::string("Unknown diagnostic: ") + name);
+    }
+}
 
+void SolverBuddy::updateDiagnostics(const std::string& name, int value)
+{
+    if (name == "num_iter") {
+        cum_num_iter += num_iter = value;
+    } else if (name == "num_level") {
+        num_level = value;
+    } else if (name == "num_inner_iter") {
+        cum_num_inner_iter += num_inner_iter = value;
+    } else if (name == "num_coarse_unknowns") {
+        num_coarse_unknowns = value;
+    } else {
+        throw ValueError(std::string("Unknown diagnostic: ") + name);
+    }
+}
+
+void SolverBuddy::updateDiagnostics(const std::string& name, double value)
+{
+    if (name == "time") {
+        cum_time += time = value;
+    } else if (name == "set_up_time") {
+        cum_set_up_time += set_up_time = value;
+    } else if (name == "net_time") {
+        cum_net_time += net_time = value;
+    } else if (name == "residual_norm") {
+        residual_norm = value;
+    } else if (name == "coarse_level_sparsity") {
+        coarse_level_sparsity = value;
+    } else {
+        throw ValueError(std::string("Unknown diagnostic: ") + name);
+    }
+}
+
+void SolverBuddy::updateDiagnosticsPy(const std::string& name,
+                                      const bp::object& value)
+{
     int i=0;
     double d=0; // to keep older compilers happy
     bool b=false;

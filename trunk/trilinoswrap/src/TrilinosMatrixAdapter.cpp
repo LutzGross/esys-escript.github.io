@@ -130,7 +130,7 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
     }
 
     options.attr("resetDiagnostics")();
-    escript::SolverBuddy sb = bp::extract<escript::SolverBuddy>(options);
+    escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy&>(options);
     out.expand();
     out.requireWrite();
     in.expand();
