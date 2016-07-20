@@ -36,7 +36,7 @@ silo = True
 visit = False
 visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 #visit_libs = ['simV2']
-launcher = "mpirun ${AGENTOVERRIDE} ${EE} --host %h --map-by node:pe=%t -bind-to none -np %N %b"
+launcher = "mpirun ${AGENTOVERRIDE} ${EE} --map-by node:pe=%t -bind-to none -np %N %b"
 
 #longindices = True
 #cxx_extra += ' -Wconversion'
