@@ -16,6 +16,7 @@
 
 #include <trilinoswrap/PreconditionerFactory.h>
 #include <trilinoswrap/TrilinosAdapterException.h>
+#include <trilinoswrap/util.h>
 
 #include <escript/SolverOptions.h>
 
@@ -24,7 +25,11 @@
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 #endif
 
+#include <boost/python/dict.hpp>
+
 using Teuchos::RCP;
+
+namespace bp = boost::python;
 
 namespace esys_trilinos {
 
@@ -32,14 +37,16 @@ template<typename ST>
 RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                                       const escript::SolverBuddy& sb)
 {
+    using util::extractParamIfSet;
+
     typedef MatrixType<ST> Matrix;
 
     RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     Ifpack2::Factory factory;
     RCP<OpType<ST> > prec;
     RCP<Ifpack2::Preconditioner<ST,LO,GO,NT> > ifprec;
+    const bp::dict& pyParams = sb.getTrilinosParameters();
 
-    // TODO: options!
     switch (sb.getPreconditioner()) {
         case escript::SO_PRECONDITIONER_NONE:
             break;
@@ -61,6 +68,12 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
         case escript::SO_PRECONDITIONER_ILUT:
             ifprec = factory.create<const Matrix>("ILUT", mat);
             params->set("fact: drop tolerance", sb.getDropTolerance());
+            // override if set explicitly for trilinos
+            extractParamIfSet<int>("fact: ilut level-of-fill", pyParams, *params);
+            extractParamIfSet<ST>("fact: drop tolerance", pyParams, *params);
+            extractParamIfSet<ST>("fact: absolute threshold", pyParams, *params);
+            extractParamIfSet<ST>("fact: relative threshold", pyParams, *params);
+            extractParamIfSet<ST>("fact: relax value", pyParams, *params);
             break;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
         case escript::SO_PRECONDITIONER_JACOBI:
