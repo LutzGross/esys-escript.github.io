@@ -17,6 +17,7 @@
 #ifndef __ESCRIPT_SOLVEROPTIONS_H__
 #define __ESCRIPT_SOLVEROPTIONS_H__
 
+#include <boost/python/dict.hpp>
 #include <boost/python/object.hpp>
 #include "system_dep.h"
 
@@ -160,6 +161,7 @@ class ESCRIPT_DLL_API SolverBuddy
 {
 public:
     SolverBuddy();
+    ~SolverBuddy();
 
     /**
         Returns a string reporting the current settings
@@ -858,8 +860,27 @@ public:
     */
     SolverOptions getODESolver() const;
 
+    /**
+        Sets a Trilinos preconditioner/solver parameter.
+        \note Escript does not check for validity of the parameter name
+        (e.g. spelling mistakes). Parameters are passed 1:1 to escript's
+        Trilinos wrapper and from there to the relevant Trilinos package.
+        See the relevant Trilinos documentation for valid parameter strings
+        and values.
+        \note This method does nothing in a non-Trilinos build.
+    */
+    void setTrilinosParameter(const std::string& name,
+                              const boost::python::object& value);
+
+    /**
+        Returns a boost python dictionary of set Trilinos parameters.
+        \note This method returns an empty dictionary in a non-Trilinos build.
+    */
+    boost::python::dict getTrilinosParameters() const;
 
 protected:
+    boost::python::dict trilinosParams;
+
     SolverOptions target;
     SolverOptions package;
     SolverOptions method;
