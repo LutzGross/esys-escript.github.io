@@ -16,40 +16,26 @@
 
 #include <trilinoswrap/BelosWrapper.h>
 #include <trilinoswrap/TrilinosAdapterException.h>
+#include <trilinoswrap/util.h>
 
 #include <escript/SolverOptions.h>
 
 #include <BelosSolverFactory.hpp>
 #include <BelosTpetraAdapter.hpp>
 
-#include <boost/python.hpp>
 #include <boost/python/dict.hpp>
 
-using escript::ValueError;
 using Teuchos::RCP;
 
 namespace bp = boost::python;
 
 namespace esys_trilinos {
 
-template<typename T>
-void extractParamIfSet(const std::string& name, const bp::dict& pyDict,
-                       Teuchos::ParameterList& params)
-{
-    if (pyDict.has_key(name)) {
-        bp::object bpo = pyDict.get(name);
-        if (bp::extract<T>(bpo).check()) {
-            T val = bp::extract<T>(bpo);
-            params.set(name, val);
-        } else {
-            throw ValueError("Wrong type for option " + name);
-        }
-    }
-}
-
 template<typename ST>
 RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
 {
+    using util::extractParamIfSet;
+
     Belos::SolverFactory<ST, VectorType<ST>, OpType<ST> > factory;
     RCP<SolverType<ST> > solver;
     RCP<Teuchos::ParameterList> solverParams = Teuchos::parameterList();
