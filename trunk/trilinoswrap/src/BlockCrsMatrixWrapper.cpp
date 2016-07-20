@@ -102,43 +102,65 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
     if (sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
         throw TrilinosAdapterException("Amesos2 does not currently support "
                                        "block matrices!");
-        /*
-        RCP<DirectSolverType<Matrix,Vector> > solver =
-                                createDirectSolver<Matrix,Vector>(sb, A, X, B);
-        if (sb.isVerbose()) {
-            std::cout << solver->description() << std::endl;
-            std::cout << "Performing symbolic factorization..." << std::flush;
+#if 0
+        RCP<DirectSolverType<Matrix,Vector> > solver(m_direct);
+        if (solver.is_null()) {
+            solver = createDirectSolver<Matrix,Vector>(sb, A, X, B);
+            m_direct = solver;
+            if (sb.isVerbose()) {
+                std::cout << solver->description() << std::endl;
+                std::cout << "Performing symbolic factorization..." << std::flush;
+            }
+            solver->symbolicFactorization();
+            if (sb.isVerbose()) {
+                std::cout << "done\nPerforming numeric factorization..." << std::flush;
+            }
+            solver->numericFactorization();
+            if (sb.isVerbose()) {
+                std::cout << "done\n" << std::flush;
+            }
+        } else {
+            solver->setX(X);
+            solver->setB(B);
         }
-        solver->symbolicFactorization();
         if (sb.isVerbose()) {
-            std::cout << "done\nPerforming numeric factorization..." << std::flush;
-        }
-        solver->numericFactorization();
-        if (sb.isVerbose()) {
-            std::cout << "done\nSolving system..." << std::flush;
+            std::cout << "Solving system..." << std::flush;
         }
         solver->solve();
         if (sb.isVerbose()) {
             std::cout << "done" << std::endl;
-            RCP<Teuchos::FancyOStream> fos(Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout)));Op
+            RCP<Teuchos::FancyOStream> fos(Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout)));
             solver->printTiming(*fos, Teuchos::VERB_HIGH);
         }
-*/
+#endif
     } else { // iterative solver
-        RCP<SolverType<ST> > solver = createSolver<ST>(sb);
-        RCP<OpType<ST> > prec = createPreconditioner<ST>(A, sb);
-        RCP<ProblemType<ST> > problem = rcp(new ProblemType<ST>(A, X, B));
-
-        if (!prec.is_null()) {
-            // Trilinos BiCGStab does not currently support left preconditioners
-            if (sb.getSolverMethod() == escript::SO_METHOD_BICGSTAB)
-                problem->setRightPrec(prec);
-            else
-                problem->setLeftPrec(prec);
+        double t0 = Teuchos::Time::wallTime();
+        RCP<ProblemType<ST> > problem(m_solver);
+        if (problem.is_null()) {
+            problem = rcp(new ProblemType<ST>(A, X, B));
+            m_solver = problem;
+            RCP<OpType<ST> > prec = createPreconditioner<ST>(A, sb);
+            if (!prec.is_null()) {
+                // Trilinos BiCGStab does not support left preconditioners
+                if (sb.getSolverMethod() == escript::SO_METHOD_BICGSTAB)
+                    problem->setRightPrec(prec);
+                else
+                    problem->setLeftPrec(prec);
+            }
+            problem->setHermitian(sb.isSymmetric());
+            problem->setProblem();
+        } else {
+            for (auto t: problem->getTimers()) {
+                t->reset();
+            }
+            problem->setProblem(X, B);
         }
-        problem->setProblem();
+
+        double t1 = Teuchos::Time::wallTime();
+        RCP<SolverType<ST> > solver = createSolver<ST>(sb);
         solver->setProblem(problem);
         Belos::ReturnType result = solver->solve();
+        double t2 = Teuchos::Time::wallTime();
         const int numIters = solver->getNumIters();
         double tol = sb.getTolerance();
         try {
@@ -147,6 +169,7 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         }
         if (sb.isVerbose()) {
             if (result == Belos::Converged) {
+                sb.updateDiagnostics("converged", true);
                 std::cout << "The solver took " << numIters
                    << " iteration(s) to reach a residual tolerance of "
                    << tol << "." << std::endl;
@@ -160,7 +183,9 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         for (auto t: problem->getTimers()) {
             solverTime += t->totalElapsedTime();
         }
+        sb.updateDiagnostics("set_up_time", t1-t0);
         sb.updateDiagnostics("net_time", solverTime);
+        sb.updateDiagnostics("time", t2-t0);
         sb.updateDiagnostics("num_iter", numIters);
         sb.updateDiagnostics("residual_norm", tol);
     }
@@ -235,6 +260,7 @@ template<typename ST>
 void BlockCrsMatrixWrapper<ST>::resetValues()
 {
     mat.setAllToScalar(static_cast<ST>(0.));
+    m_solver.reset();
 }
 
 // instantiate

@@ -18,6 +18,7 @@
 #define __ESYS_TRILINOS_BLOCKCRSMATRIXWRAPPER_H__
 
 #include <trilinoswrap/AbstractMatrixWrapper.h>
+#include <trilinoswrap/BelosWrapper.h>
 
 #include <Tpetra_Experimental_BlockCrsMatrix.hpp>
 
@@ -62,6 +63,7 @@ public:
 private:
     int blockSize;
     Matrix mat;
+    mutable Teuchos::RCP<ProblemType<ST> > m_solver;
     MapType colPointMap;
     LO maxLocalRow;
 };
