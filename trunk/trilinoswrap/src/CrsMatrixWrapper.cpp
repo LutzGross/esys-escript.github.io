@@ -102,7 +102,7 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
             solver = createDirectSolver<Matrix,Vector>(sb, A, X, B);
             m_direct = solver;
             if (sb.isVerbose()) {
-                std::cout << solver->description() << std::endl;
+                std::cout << "Using " << solver->description() << std::endl;
                 std::cout << "Performing symbolic factorization..." << std::flush;
             }
             solver->symbolicFactorization();
@@ -114,6 +114,9 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
                 std::cout << "done\n" << std::flush;
             }
         } else {
+            if (sb.isVerbose()) {
+                std::cout << "Using " << solver->description() << std::endl;
+            }
             solver->setX(X);
             solver->setB(B);
         }
@@ -152,6 +155,9 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
 
         double t1 = Teuchos::Time::wallTime();
         RCP<SolverType<ST> > solver = createSolver<ST>(sb);
+        if (sb.isVerbose()) {
+            std::cout << "Using " << solver->description() << std::endl;
+        }
         solver->setProblem(problem);
         Belos::ReturnType result = solver->solve();
         double t2 = Teuchos::Time::wallTime();

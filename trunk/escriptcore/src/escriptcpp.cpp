@@ -995,6 +995,17 @@ args("source", "q", "r","factor"),
 
 
   class_<escript::SolverBuddy, escript::SB_ptr >("SolverBuddy","",init<>())
+    .def("setTrilinosParameter", &escript::SolverBuddy::setTrilinosParameter,
+            "Sets a Trilinos preconditioner/solver parameter.\n\n"
+        ":note Escript does not check for validity of the parameter name\n"
+        "(e.g. spelling mistakes). Parameters are passed 1:1 to escript's\n"
+        "Trilinos wrapper and from there to the relevant Trilinos package.\n"
+        "See the relevant Trilinos documentation for valid parameter strings\n"
+        "and values."
+        ":note This method does nothing in a non-Trilinos build.")
+    .def("getTrilinosParameters", &escript::SolverBuddy::getTrilinosParameters,
+            "Returns a dictionary of set Trilinos parameters.\n\n"
+        ":note This method returns an empty dictionary in a non-Trilinos build.")
     .def("getSummary", &escript::SolverBuddy::getSummary,"Returns a string reporting the current settings")
     .def("__str__", &escript::SolverBuddy::getSummary)
     .def("getName", &escript::SolverBuddy::getName, args("key"),"Returns the name of a given key\n\n"

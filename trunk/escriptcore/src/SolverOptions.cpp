@@ -74,6 +74,11 @@ SolverBuddy::SolverBuddy() :
     resetDiagnostics(true);
 }
 
+SolverBuddy::~SolverBuddy()
+{
+}
+
+
 std::string SolverBuddy::getSummary() const
 {
     std::stringstream out;
@@ -1022,6 +1027,19 @@ void SolverBuddy::setODESolver(int method)
 SolverOptions SolverBuddy::getODESolver() const
 {
     return ode_solver;
+}
+
+void SolverBuddy::setTrilinosParameter(const std::string& name,
+                                       const bp::object& value)
+{
+#ifdef ESYS_HAVE_TRILINOS
+    trilinosParams[name] = value;
+#endif
+}
+
+bp::dict SolverBuddy::getTrilinosParameters() const
+{
+    return trilinosParams;
 }
 
 } // namespace escript
