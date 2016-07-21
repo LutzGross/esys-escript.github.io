@@ -58,6 +58,62 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                 params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
                 params->set("problem: symmetric", sb.isSymmetric());
                 params->set("verbosity", sb.isVerbose()? "high":"none");
+                // override parameters if set explicitly for trilinos
+                // The set of available parameters is documented in the MueLu
+                // user's guide (PDF download)
+                // NOTE: passing sub parameter lists is not supported via
+                // python due to escript's SolverBuddy constraints.
+                // Use the 'xml parameter file' option instead.
+                extractParamIfSet<std::string>("problem: type", pyParams, *params);
+                extractParamIfSet<std::string>("verbosity", pyParams, *params);
+                extractParamIfSet<int>("number of equations", pyParams, *params);
+                extractParamIfSet<int>("max levels", pyParams, *params);
+                extractParamIfSet<std::string>("cycle type", pyParams, *params);
+                extractParamIfSet<bool>("problem: symmetric", pyParams, *params);
+                extractParamIfSet<std::string>("xml parameter file", pyParams, *params);
+                extractParamIfSet<std::string>("smoother: pre or post", pyParams, *params);
+                extractParamIfSet<std::string>("smoother: type", pyParams, *params);
+                extractParamIfSet<std::string>("smoother: pre type", pyParams, *params);
+                extractParamIfSet<std::string>("smoother: post type", pyParams, *params);
+                extractParamIfSet<int>("coarse: max size", pyParams, *params);
+                extractParamIfSet<std::string>("coarse: type", pyParams, *params);
+                extractParamIfSet<std::string>("aggregation: type", pyParams, *params);
+                extractParamIfSet<std::string>("aggregation: ordering", pyParams, *params);
+                extractParamIfSet<std::string>("aggregation: drop scheme", pyParams, *params);
+                extractParamIfSet<ST>("aggregation: drop tol", pyParams, *params);
+                extractParamIfSet<int>("aggregation: min agg size", pyParams, *params);
+                extractParamIfSet<int>("aggregation: max agg size", pyParams, *params);
+                extractParamIfSet<ST>("aggregation: Dirichlet threshold", pyParams, *params);
+                extractParamIfSet<bool>("aggregation: export visualization data", pyParams, *params);
+                extractParamIfSet<std::string>("aggregation: output filename", pyParams, *params);
+                extractParamIfSet<int>("aggregation: output file: time step", pyParams, *params);
+                extractParamIfSet<int>("aggregation: output file: iter", pyParams, *params);
+                extractParamIfSet<std::string>("aggregation: output file: agg style", pyParams, *params);
+                extractParamIfSet<bool>("aggregation: output file: fine graph edges", pyParams, *params);
+                extractParamIfSet<bool>("aggregation: output file: coarse graph edges", pyParams, *params);
+                extractParamIfSet<bool>("aggregation: output file: build colormap", pyParams, *params);
+                extractParamIfSet<bool>("repartition: enable", pyParams, *params);
+                extractParamIfSet<std::string>("repartition: partitioner", pyParams, *params);
+                extractParamIfSet<int>("repartition: start level", pyParams, *params);
+                extractParamIfSet<int>("repartition: min rows per proc", pyParams, *params);
+                extractParamIfSet<ST>("repartition: max imbalance", pyParams, *params);
+                extractParamIfSet<bool>("repartition: remap parts", pyParams, *params);
+                extractParamIfSet<bool>("repartition: rebalance P and R", pyParams, *params);
+                extractParamIfSet<std::string>("multigrid algorithm", pyParams, *params);
+                extractParamIfSet<int>("semicoarsen: coarsen rate", pyParams, *params);
+                extractParamIfSet<ST>("sa: damping factor", pyParams, *params);
+                extractParamIfSet<bool>("sa: use filtered matrix", pyParams, *params);
+                extractParamIfSet<bool>("filtered matrix: use lumping", pyParams, *params);
+                extractParamIfSet<bool>("filtered matrix: reuse eigenvalue", pyParams, *params);
+                extractParamIfSet<std::string>("emin: iterative method", pyParams, *params);
+                extractParamIfSet<int>("emin: num iterations", pyParams, *params);
+                extractParamIfSet<int>("emin: num reuse iterations", pyParams, *params);
+                extractParamIfSet<std::string>("emin: pattern", pyParams, *params);
+                extractParamIfSet<int>("emin: pattern order", pyParams, *params);
+                extractParamIfSet<std::string>("reuse: type", pyParams, *params);
+                extractParamIfSet<bool>("print initial parameters", pyParams, *params);
+                extractParamIfSet<bool>("print unused parameters", pyParams, *params);
+                extractParamIfSet<bool>("transpose: use implicit", pyParams, *params);
                 RCP<OpType<ST> > A(Teuchos::rcp_const_cast<Matrix>(mat));
                 prec = MueLu::CreateTpetraPreconditioner(A, *params);
 #else
@@ -68,12 +124,13 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
         case escript::SO_PRECONDITIONER_ILUT:
             ifprec = factory.create<const Matrix>("ILUT", mat);
             params->set("fact: drop tolerance", sb.getDropTolerance());
+            params->set("fact: relax value", sb.getRelaxationFactor());
             // override if set explicitly for trilinos
-            extractParamIfSet<int>("fact: ilut level-of-fill", pyParams, *params);
+            extractParamIfSet<ST>("fact: relax value", pyParams, *params);
             extractParamIfSet<ST>("fact: drop tolerance", pyParams, *params);
+            extractParamIfSet<int>("fact: ilut level-of-fill", pyParams, *params);
             extractParamIfSet<ST>("fact: absolute threshold", pyParams, *params);
             extractParamIfSet<ST>("fact: relative threshold", pyParams, *params);
-            extractParamIfSet<ST>("fact: relax value", pyParams, *params);
             break;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
         case escript::SO_PRECONDITIONER_JACOBI:
@@ -88,7 +145,12 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             params->set("relaxation: sweeps", sb.getNumSweeps());
             const ST fac = static_cast<ST>(sb.getRelaxationFactor());
             params->set("relaxation: damping factor", fac);
-            //params->set("relaxation: backward mode", true);
+            // override if set explicitly for trilinos
+            extractParamIfSet<int>("relaxation: sweeps", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: damping factor", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: min diagonal value", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: zero starting solution", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: backward mode", pyParams, *params);
             break;
           }
         case escript::SO_PRECONDITIONER_ILU0: // to avoid test failures
@@ -99,6 +161,12 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
                 ifprec = factory.create<const Matrix>("RILUK", mat);
             }
             params->set("fact: relax value", sb.getRelaxationFactor());
+            // override if set explicitly for trilinos
+            extractParamIfSet<ST>("fact: relax value", pyParams, *params);
+            extractParamIfSet<int>("fact: iluk level-of-fill", pyParams, *params);
+            extractParamIfSet<int>("fact: iluk level-of-overlap", pyParams, *params);
+            extractParamIfSet<ST>("fact: absolute threshold", pyParams, *params);
+            extractParamIfSet<ST>("fact: relative threshold", pyParams, *params);
             break;
         default:
             throw escript::ValueError("Unsupported preconditioner requested.");
