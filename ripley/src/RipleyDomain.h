@@ -51,7 +51,8 @@ enum SystemMatrixType {
     SMT_CUSP = 1<<9,
     SMT_TRILINOS = 1<<10,
     SMT_SYMMETRIC = 1<<15,
-    SMT_COMPLEX = 1<<16
+    SMT_COMPLEX = 1<<16,
+    SMT_UNROLL = 1<<17
 };
 
 /**

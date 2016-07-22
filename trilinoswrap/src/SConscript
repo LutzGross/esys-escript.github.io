@@ -24,6 +24,7 @@ sources = """
   CrsMatrixWrapper.cpp
   PreconditionerFactory.cpp
   TrilinosMatrixAdapter.cpp
+  UnrolledBlockCrsMatrixWrapper.cpp
 """.split()
 
 headers = """
@@ -35,6 +36,7 @@ headers = """
   PreconditionerFactory.h
   TrilinosAdapterException.h
   TrilinosMatrixAdapter.h
+  UnrolledBlockCrsMatrixWrapper.h
   types.h
   util.h
 """.split()
