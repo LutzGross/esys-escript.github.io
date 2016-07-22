@@ -1084,8 +1084,9 @@ escript::ASM_ptr DudleyDomain::newSystemMatrix(int row_blocksize,
 #ifdef ESYS_HAVE_TRILINOS
         const_TrilinosGraph_ptr graph(getTrilinosGraph());
         bool isComplex = (type & (int)SMT_COMPLEX);
-        escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo,
-                    row_blocksize, row_functionspace, graph, isComplex));
+        bool unroll = (type & (int)SMT_UNROLL);
+        escript::ASM_ptr sm(new TrilinosMatrixAdapter(m_mpiInfo, row_blocksize,
+                    row_functionspace, graph, isComplex, unroll));
         return sm;
 #else
         throw DudleyException("newSystemMatrix: dudley was not compiled "
@@ -1367,6 +1368,13 @@ int DudleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         int type = (int)SMT_TRILINOS;
         if (sb.isComplex())
             type |= (int)SMT_COMPLEX;
+        // TODO: This is required because MueLu (AMG) and Amesos2 (direct) do
+        // not support block matrices at this point. Remove once they do...
+        if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_AMG ||
+                sb.getPreconditioner() == escript::SO_PRECONDITIONER_ILUT ||
+                sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
+            type |= (int)SMT_UNROLL;
+        }
         return type;
 #else
         throw DudleyException("Trilinos requested but not built with Trilinos.");
