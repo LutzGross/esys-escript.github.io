@@ -64,7 +64,7 @@ public:
 
     void saveMM(const std::string& filename) const;
 
-private:
+protected:
     Matrix mat;
     mutable Teuchos::RCP<ProblemType<ST> > m_solver;
     mutable Teuchos::RCP<DirectSolverType<Matrix,VectorType<ST> > > m_direct;

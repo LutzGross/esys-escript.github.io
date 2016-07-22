@@ -38,7 +38,8 @@ public:
     */
     TrilinosMatrixAdapter(escript::JMPI mpiInfo, int blocksize,
                           const escript::FunctionSpace& fs,
-                          const_TrilinosGraph_ptr graph, bool isComplex=false);
+                          const_TrilinosGraph_ptr graph,
+                          bool isComplex = false, bool unroll = false);
 
     virtual ~TrilinosMatrixAdapter() {}
 

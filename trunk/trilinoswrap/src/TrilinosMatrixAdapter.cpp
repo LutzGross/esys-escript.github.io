@@ -18,6 +18,8 @@
 #include "BlockCrsMatrixWrapper.h" 
 #include "CrsMatrixWrapper.h" 
 #include "TrilinosAdapterException.h" 
+#include "UnrolledBlockCrsMatrixWrapper.h" 
+#include "util.h" 
 
 #include <escript/index.h>
 #include <escript/Data.h>
@@ -31,7 +33,7 @@ namespace esys_trilinos {
 
 TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
         int blocksize, const escript::FunctionSpace& fs,
-        const_TrilinosGraph_ptr graph, bool isComplex) :
+        const_TrilinosGraph_ptr graph, bool isComplex, bool unroll) :
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),
     m_mpiInfo(mpiInfo),
     m_isComplex(isComplex)
@@ -39,12 +41,18 @@ TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
     if (isComplex) {
         if (blocksize == 1) {
             cmat = rcp(new CrsMatrixWrapper<cplx_t>(graph));
+        } else if (unroll) {
+            const_TrilinosGraph_ptr newGraph(util::unrollCrsGraph(graph, blocksize));
+            cmat = rcp(new UnrolledBlockCrsMatrixWrapper<cplx_t>(newGraph, blocksize));
         } else {
             cmat = rcp(new BlockCrsMatrixWrapper<cplx_t>(graph, blocksize));
         }
     } else {
         if (blocksize == 1) {
             mat = rcp(new CrsMatrixWrapper<real_t>(graph));
+        } else if (unroll) {
+            const_TrilinosGraph_ptr newGraph(util::unrollCrsGraph(graph, blocksize));
+            mat = rcp(new UnrolledBlockCrsMatrixWrapper<real_t>(newGraph, blocksize));
         } else {
             mat = rcp(new BlockCrsMatrixWrapper<real_t>(graph, blocksize));
         }
@@ -58,8 +66,9 @@ void TrilinosMatrixAdapter::add<real_t>(const std::vector<LO>& rowIdx,
     if (m_isComplex) {
         throw escript::ValueError("Please use complex array to add to complex "
                                   "matrix!");
-    } else
+    } else {
         (*mat).add(rowIdx, array);
+    }
 }
 
 template<>
@@ -67,7 +76,7 @@ void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
                                         const std::vector<cplx_t>& array)
 {
     if (m_isComplex) {
-        cmat->add(rowIdx, array);
+        (*cmat).add(rowIdx, array);
     } else {
         throw escript::ValueError("Please use real-valued array to add to "
                                   "real-valued matrix!");
