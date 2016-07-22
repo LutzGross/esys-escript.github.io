@@ -68,12 +68,6 @@ def Brick(**kwargs):
 class SimpleSolveOnTrilinos(SimpleSolveTestCase):
     pass
 
-@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
-class SimpleSolveSingleOnly(SimpleSolveOnTrilinos):
-    @unittest.expectedFailure
-    def test_system(self):
-        return super(SimpleSolveSingleOnly, self).test_system()
-
 ### BiCGStab + Jacobi
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
@@ -193,7 +187,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 ### LSQR + AMG
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -207,7 +201,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveSingleOnly):
 ### PCG + AMG
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -219,7 +213,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveMultiRes3D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveMultiRes3D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS
@@ -231,7 +225,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
 
 ### PCG + ILUT
 
-class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
@@ -242,7 +236,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
         del self.domain
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-class Test_SimpleSolveMultiRes3D_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
+class Test_SimpleSolveMultiRes3D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS
