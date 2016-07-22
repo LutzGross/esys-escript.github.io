@@ -42,7 +42,7 @@ void UnrolledBlockCrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                 for (int ci = 0; ci < emSize; ci++) {
                     for (int cj = 0; cj < blockSize; cj++) {
                         cols[ci*blockSize + cj] = rowIdx[ci] * blockSize + cj;
-                        const size_t srcIdx = INDEX4(cj, rj, ci, ri, blockSize, blockSize, emSize);
+                        const size_t srcIdx = INDEX4(rj, cj, ri, ci, blockSize, blockSize, emSize);
                         vals[ci*blockSize + cj] = array[srcIdx];
                     }
                 }
