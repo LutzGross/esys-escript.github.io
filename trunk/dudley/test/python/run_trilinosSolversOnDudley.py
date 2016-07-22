@@ -48,12 +48,6 @@ OPTIMIZE=True
 class SimpleSolveOnTrilinos(SimpleSolveTestCase):
     pass
 
-@unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
-class SimpleSolveSingleOnly(SimpleSolveOnTrilinos):
-    @unittest.expectedFailure
-    def test_system(self):
-        return super(SimpleSolveSingleOnly, self).test_system()
-
 ### BiCGStab + Jacobi
 
 class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
@@ -167,7 +161,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOnTri
 ### PCG + AMG
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -178,7 +172,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveDudleyBrick_Trilinos_PCG_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveDudleyBrick_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -213,7 +207,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_TFQMR_GaussSeidel(SimpleSolveOnTrilin
 ### MINRES + AMG
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -224,7 +218,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_AMG(SimpleSolveSingleOnly):
+class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -324,7 +318,7 @@ class Test_SimpleSolveDudleyBrick_Trilinos_MINRES_RILU(SimpleSolveOnTrilinos):
 
 ### PCG + ILUT
 
-class Test_SimpleSolveDudleyRect_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
+class Test_SimpleSolveDudleyRect_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
@@ -334,7 +328,7 @@ class Test_SimpleSolveDudleyRect_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveDudleyBrick_Trilinos_PCG_ILUT(SimpleSolveSingleOnly):
+class Test_SimpleSolveDudleyBrick_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.TRILINOS
