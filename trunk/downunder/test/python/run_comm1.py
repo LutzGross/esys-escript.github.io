@@ -52,8 +52,7 @@ except ImportError:
     HAVE_FINLEY = False
 
 HAVE_GMSH = escript.hasFeature("gmsh")
-# TODO: once Amesos2 can deal with block matrices uncomment
-HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") #or escript.hasFeature('trilinos')
+HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
 
 
 # this is mainly to avoid warning messages
@@ -517,7 +516,7 @@ class Test_COMMEMI1(unittest.TestCase):
 
         # Setup interpolation to get values at specified stations (for comparison):
         fi = InterpolatedUnivariateSpline(x, y0)
-        # Save esscript values at comparison points in text file:
+        # Save escript values at comparison points in text file:
         # re-enable to allow comparisons
         #numpy.savetxt("commemi1_"+mode.lower()+".dat", numpy.column_stack((xs,fi(xs))), fmt='%g')
 
@@ -583,24 +582,24 @@ class Test_COMMEMI1(unittest.TestCase):
             indices.append(mindex)
 
         # The following are very simple checks based on the visual shape of the correct result
-        maxdiff=0
+        maxdiff = 0
         for i in range(len(indices)):
             if abs(y0[indices[i]]-ra[i])>maxdiff:
-                maxdiff=abs(y0[indices[i]]-ra[i])
+                maxdiff = abs(y0[indices[i]]-ra[i])
 
-        if maxdiff>5:           #Threshold is pretty arbitrary
-            raise RuntimeError("Mismatch with reference data")
+        # Threshold is pretty arbitrary
+        self.assertLess(maxdiff, 5) # "Mismatch with reference data"
 
         c=0
         for y in y1:
-            if y<46:
+            if y < 46:
                 c+=1
 
-        if not (74 < escript.Lsup(y1) < 81):
-            raise RuntimeError("Peak of bottom plot is off.")
+        self.assertLess(74, escript.Lsup(y1)) # "Peak of bottom plot is off."
+        self.assertLess(escript.Lsup(y1), 81) # "Peak of bottom plot is off."
 
-        if not (0.78 < c/len(y1) < 0.80):
-            raise RuntimeError("Bottom plot has too many high points")
+        self.assertLess(0.78, c/len(y1)) # "Bottom plot has too many high points"
+        self.assertLess(c/len(y1), 0.8) # "Bottom plot has too many high points"
 
         #
         print (datetime.datetime.now()-startTime)

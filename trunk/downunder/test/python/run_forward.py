@@ -52,8 +52,7 @@ mpisize = getMPISizeWorld()
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
-# only consider Paso since Trilinos direct solvers do not support PDE systems
-HAVE_DIRECT = hasFeature("PASO_DIRECT") #or hasFeature('trilinos')
+HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 
 @unittest.skipUnless(HAVE_RIPLEY, "Ripley module not available")
 @unittest.skipUnless(HAVE_DIRECT, "more than 1 MPI rank or missing direct solver")
@@ -474,10 +473,10 @@ class TestMT2DModelTEMode(unittest.TestCase):
         args=model.getArguments(SIGMA)
         Ex=args[0]
         Exz=args[1]
-        self.assertTrue(Lsup(Ex[0]-Ex0_ex) <= 1e-4 * Lsup(Ex0_ex))
-        self.assertTrue(Lsup(Ex[1]-Ex1_ex) <= 1e-4 * Lsup(Ex1_ex))
-        self.assertTrue(Lsup(Exz[0]-Ex0_ex_z) <= 1e-2 * Lsup(Ex0_ex_z))
-        self.assertTrue(Lsup(Exz[1]-Ex1_ex_z) <= 1e-2 * Lsup(Ex1_ex_z))
+        self.assertLess(Lsup(Ex[0]-Ex0_ex), 1e-4 * Lsup(Ex0_ex))
+        self.assertLess(Lsup(Ex[1]-Ex1_ex), 1e-4 * Lsup(Ex1_ex))
+        self.assertLess(Lsup(Exz[0]-Ex0_ex_z), 1e-2 * Lsup(Ex0_ex_z))
+        self.assertLess(Lsup(Exz[1]-Ex1_ex_z), 1e-2 * Lsup(Ex1_ex_z))
 
         argsr=model.getArguments(0.)
         ref=model.getDefect(0., *argsr)
@@ -487,7 +486,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         d=model.getDefect(SIGMA, *args)
         self.assertTrue( d > 0.)
         self.assertTrue( ref > 0.)
-        self.assertTrue( d <= 3e-3 * ref ) # d should be zero (some sort of)
+        self.assertLess( d, 3e-3 * ref ) # d should be zero (some sort of)
 
         z=ReducedFunction(domain).getX()[1]
         Ex0_ex=cos(k.imag*(z-1))*exp(k.real*(z-1))
