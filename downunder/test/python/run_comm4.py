@@ -44,8 +44,7 @@ except ImportError:
     HAVE_FINLEY = False
 
 HAVE_GMSH = escript.hasFeature("gmsh")
-# TODO: once Amesos2 can deal with block matrices uncomment
-HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") #or escript.hasFeature('trilinos')
+HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
 
 # Matplotlib uses outdated code -- ignore the warnings until an update is available:
 import warnings
