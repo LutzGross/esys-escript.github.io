@@ -866,6 +866,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         // TODO: This is required because MueLu (AMG) and Amesos2 (direct) do
         // not support block matrices at this point. Remove once they do...
         if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_AMG ||
+                sb.getPreconditioner() == escript::SO_PRECONDITIONER_ILUT ||
                 sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
             type |= (int)SMT_UNROLL;
         }
