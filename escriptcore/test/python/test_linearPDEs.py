@@ -1714,23 +1714,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    def test_symmetryOnDirect(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if not hasFeature('trilinos') and mpisize == 1 and not hasFeature('PASO_DIRECT'):
-            with self.assertRaises(ValueError) as package:
-                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('not compiled' in str(package.exception))
-            return
-        else:
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if hasFeature('paso') and mpisize > 1:
-            with self.assertRaises(RuntimeError) as package:
-                u=mypde.getSolution()
-        else:
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2208,30 +2191,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    def test_symmetryOnDirect_System(self):
-        A=Tensor4(0.,Function(self.domain))
-        D=Tensor(1.,Function(self.domain))
-        Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
-            A[i,:,i,:]=kronecker(self.domain)
-            D[i,i]+=i
-            Y[i]+=i
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=A,D=D,Y=Y)
-        if no_direct:
-            with self.assertRaises(ValueError) as package:
-                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('not compiled' in str(package.exception))
-            return
-        else:
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if hasFeature('paso') and mpisize > 1:
-            with self.assertRaises(RuntimeError) as package:
-                u=mypde.getSolution()
-        else:
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
+
     def test_PCG_JACOBI_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
