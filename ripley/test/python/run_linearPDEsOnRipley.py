@@ -50,7 +50,7 @@ try:
 except KeyError:
      RIPLEY_TEST_DATA='.'
 
-NE=12 # number of element in each spatial direction (must be even)
+NE=8 # number of element in each spatial direction (must be even)
 mpiSize=getMPISizeWorld()
 
 class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
