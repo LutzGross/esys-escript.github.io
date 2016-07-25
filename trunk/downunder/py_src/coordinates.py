@@ -29,8 +29,7 @@ __all__ = ['ReferenceSystem', 'CartesianReferenceSystem',
     'GeodeticReferenceSystem', 'SphericalReferenceSystem',
     'WGS84ReferenceSystem', 'GRS80ReferenceSystem',
     'SpatialCoordinateTransformation', 'GeodeticCoordinateTransformation',
-    'CartesianCoordinateTransformation', 'makeTranformation',
-    'makeTransformation']
+    'CartesianCoordinateTransformation', 'makeTransformation']
 
 from esys.escript import unitsSI as U
 import esys.escript as esc
@@ -422,25 +421,6 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
 
         self._volumefactor=v
         self._scaling_factors = s
-
-def makeTranformation(domain, coordinates=None):
-    """
-    DEPRECATED
-    
-    returns a `SpatialCoordinateTransformation` for the given domain
-    
-    :param domain: domain in the domain of the coordinate transformation
-    :type domain: `esys.escript.AbstractDomain`
-    :param coordinates: the reference system or spatial coordinate system.
-    :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
-    :return: the spatial coordinate system for the given domain of the specified 
-             reference system ``coordinates``. If ``coordinates`` is already spatial coordinate system based on the 
-             riven domain ``coordinates`` is returned. Otherwise an appropriate spatial coordinate system 
-             is created.
-    :rtype: `SpatialCoordinateTransformation` 
-    """
-    print("WARNING: makeTranformation is deprecated, use makeTransformation")
-    return makeTransformation(domain, coordinates)
 
 def makeTransformation(domain, coordinates=None):
     """
