@@ -58,8 +58,14 @@ HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 @unittest.skipUnless(HAVE_DIRECT, "more than 1 MPI rank or missing direct solver")
 class TestAcousticInversion(unittest.TestCase):
     def test_API(self):
+        NE=20
+        for x in [int(sqrt(mpisize)),2,3,5,7,1]:
+            NX=x
+            NY=mpisize//x
+            if NX*NY == mpisize:
+                break
+        domain=ripRectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=[(0.5,1.)], diracTags=['sss'])
 
-        domain=ripRectangle(20,20, diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=2.
 
         data=Data([1,2], FunctionOnBoundary(domain))
@@ -82,7 +88,14 @@ class TestAcousticInversion(unittest.TestCase):
         self.assertEqual(pde.getDomain(),  domain)
 
     def test_numeric2DscaleF(self):
-        domain=ripRectangle(100,100, diracPoints=[(0.5,1.)], diracTags=['sss'])
+        NE=40
+        for x in [int(sqrt(mpisize)),2,3,5,7,1]:
+            NX=x
+            NY=mpisize//x
+            if NX*NY == mpisize:
+                break
+        domain=ripRectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=[(0.5,1.)], diracTags=['sss'])
+        #domain=ripRectangle(100,100, diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=2.
 
         # test solution is u = a * z where a is complex
@@ -163,7 +176,12 @@ class TestAcousticInversion(unittest.TestCase):
         self.assertLess( abs(d2-d0-integrate(dg0[1]*p)), 1e-2*abs(d2-d0) )
 
     def test_numeric2DnoscaleF(self):
-        domain=ripRectangle(10,20, diracPoints=[(0.5,1.)], diracTags=['sss'])
+        for x in [int(sqrt(mpisize)),2,3,5,7,1]:
+            NX=x
+            NY=mpisize//x
+            if NX*NY == mpisize:
+                break
+        domain=ripRectangle(n0=10*NX-1, n1=20*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=1.5
 
         # test solution is u = a * z where a is complex
@@ -251,7 +269,7 @@ class TestSubsidence(unittest.TestCase):
         lam=2.
         mu=1.
         INC=0.01
-        domain=ripBrick(20,20,20*mpisize-1 , d2=mpisize)
+        domain=ripBrick(20,20,min(99,20*mpisize-1) , d2=mpisize)
 
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
@@ -448,7 +466,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         SIGMA=15.
         k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
         NE=101
-        domain=ripRectangle(NE,NE, d1=mpisize)
+        domain=ripRectangle(max(NE,30*mpisize-1),max(NE,30*mpisize-1), d1=mpisize)
 
         Z0=0.5
         H=1./NE
@@ -511,7 +529,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
 
         NE=101
-        domain=ripRectangle(NE,NE, d1=mpisize)
+        domain=ripRectangle(max(NE,50*mpisize-1), max(NE,50*mpisize-1), d1=mpisize)
 
         Z0=0.5
         IMP=-(1j*omega*mu0)/k*(cmath.exp(k*Z0)-cmath.exp(-k*Z0))/(cmath.exp(k*Z0)+cmath.exp(-k*Z0))
@@ -668,7 +686,7 @@ class TestMT2DModelTMMode(unittest.TestCase):
 
         L=1
         NE=101
-        domain=ripRectangle(NE,NE, d0=mpisize)
+        domain=ripRectangle(max(NE,50*mpisize-1), max(NE,50*mpisize-1), d1=mpisize)
 
         Z0=0.5
         IMP=RHO*k*(cmath.exp(k*(Z0-L))-cmath.exp(-k*(Z0-L)))/(cmath.exp(k*(Z0-L))+cmath.exp(-k*(Z0-L)))
