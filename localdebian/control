@@ -24,7 +24,8 @@ Build-Depends: python-all-dev,
                libopenmpi-dev,
                openmpi-bin,
                debhelper (>= 9),
-               dh-python
+               dh-python,
+               libsuitesparse-dev
 Standards-Version: 3.9.8
 Homepage: https://launchpad.net/escript-finley
 X-Python-Version: >=2.7
