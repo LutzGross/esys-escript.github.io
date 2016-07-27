@@ -1,3 +1,10 @@
+python-escript (4.9-1) unstable; urgency=medium
+
+  [ Joel Fenwick ]
+  * preparing for release
+
+ -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 04 Apr 2016 10:49:00 +1000
+
 python-escript (4.2.0.1-2) unstable; urgency=medium
 
   [ Joel Fenwick ]
