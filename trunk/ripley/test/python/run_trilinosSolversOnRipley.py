@@ -175,11 +175,15 @@ class Test_SimpleSolveRipley3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveRipley2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
+    SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
+
+    def _setSolverOptions(self, so):
+        so.setTrilinosParameter("number of equations", 2)
 
     def tearDown(self):
         del self.domain
@@ -194,6 +198,9 @@ class Test_SimpleSolveRipley2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
+    def _setSolverOptions(self, so):
+        so.setTrilinosParameter("number of equations", 2)
+
     def tearDown(self):
         del self.domain
 
@@ -204,6 +211,9 @@ class Test_SimpleSolveRipley3D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
+
+    def _setSolverOptions(self, so):
+        so.setTrilinosParameter("number of equations", 3)
 
     def tearDown(self):
         del self.domain
@@ -221,6 +231,7 @@ class Test_SimpleSolveRipley2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
         del self.domain
 
 class Test_SimpleSolveRipley3D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
+    SOLVER_TOL = 1.e-9
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         self.package = SolverOptions.TRILINOS

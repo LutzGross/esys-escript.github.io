@@ -129,6 +129,10 @@ class SimpleSolveTestCase(unittest.TestCase):
             pde.setValue(r=u_ex, q=mask, A=kronecker(dim),
                          y=inner(g_ex, self.domain.getNormal()))
 
+    def _setSolverOptions(self, so):
+        """override this to modify solver options prior to solving"""
+        pass
+
     def getPDE(self, system):
         dim = self.domain.getDim()
         if system:
@@ -137,11 +141,13 @@ class SimpleSolveTestCase(unittest.TestCase):
             pde=LinearPDE(self.domain, numEquations=1)
 
         self._setCoefficients(pde, system)
-        pde.getSolverOptions().setPackage(self.package)
-        pde.getSolverOptions().setSolverMethod(self.method)
-        pde.getSolverOptions().setPreconditioner(self.preconditioner)
-        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
-        pde.getSolverOptions().setVerbosity(self.SOLVER_VERBOSE)
+        so = pde.getSolverOptions()
+        so.setPackage(self.package)
+        so.setSolverMethod(self.method)
+        so.setPreconditioner(self.preconditioner)
+        so.setTolerance(self.SOLVER_TOL)
+        so.setVerbosity(self.SOLVER_VERBOSE)
+        self._setSolverOptions(so)
         return pde, self._getSolution(system), self._getGrad(system)
 
     def test_single(self):
