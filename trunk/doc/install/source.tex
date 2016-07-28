@@ -39,8 +39,8 @@ See Appendix~\ref{app:cxxfeatures} for a list.
 
 Our current test compilers include:
 \begin{itemize}
- \item g++ 4.7.2, 4.9.2, 5.3.1
- \item clang++ (OSX 10.10 default)
+ \item g++ (5 and 6)
+ \item clang++ (OSX 10.11 default)
  \item intel icpc v15, v16
 \end{itemize}
 
@@ -73,7 +73,7 @@ If not, then consult the documentation for your MPI libraries (or the compiler d
 If you are using MacOSX, then see the next section, if not, then skip to Section~\ref{sec:build}.
 
 \section{MacOS}
-This release of \escript has only been tested on OSX 10.9 and 10.10.
+This release of \escript has only been tested on OSX 10.11.
 For this section we assume you are using either \texttt{homebrew} or \texttt{MacPorts} as a package 
 manager\footnote{Note that package managers will make changes to your computer based on programs configured by other people from 
 various places around the internet. It is important to satisfy yourself as to the security of those systems.}.
@@ -127,7 +127,7 @@ sudo aptitude install python-sympy python-matplotlib python-scipy
 sudo aptitude install python-pyproj python-gdal 
 \end{shellCode}
 
-\noindent If you are running \textit{Jessie}, (or if \textit{wheezy-backports} is in your \texttt{apt} sources) you can use:
+\noindent If you are running \textit{Wheezy}, you can use:
 \begin{shellCode}
 sudo aptitude install gmsh 
 \end{shellCode}
