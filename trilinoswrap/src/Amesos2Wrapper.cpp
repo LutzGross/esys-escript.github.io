@@ -50,7 +50,21 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
     // did user request specific direct solver or not?
     const bool dontcare = method == escript::SO_METHOD_DIRECT;
 
-    if ((dontcare || method == escript::SO_METHOD_DIRECT_MUMPS) &&
+    if ((dontcare || method == escript::SO_METHOD_DIRECT_TRILINOS) &&
+            Amesos2::query("klu2")) {
+        solver = Amesos2::create<Matrix, Vector>("klu2", A, X, B);
+        Teuchos::ParameterList solverParams(solver->name());
+        // the doco says these params exist but clearly they don't :-(
+        //solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
+        //solverParams.set("SymmetricMode", sb.isSymmetric());
+        extractParamIfSet<std::string>("Trans", pyParams, solverParams);
+        extractParamIfSet<bool>("Equil", pyParams, solverParams);
+        extractParamIfSet<std::string>("IterRefine", pyParams, solverParams);
+        extractParamIfSet<bool>("SymmetricMode", pyParams, solverParams);
+        extractParamIfSet<ST>("DiagPivotThresh", pyParams, solverParams);
+        extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
+        amesosParams->set(solver->name(), solverParams);
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_MUMPS) &&
             Amesos2::query("MUMPS")) {
         solver = Amesos2::create<Matrix, Vector>("MUMPS", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
@@ -64,20 +78,6 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         extractParamIfSet<int>("ICNTL(6)", pyParams, solverParams);
         extractParamIfSet<int>("ICNTL(9)", pyParams, solverParams);
         extractParamIfSet<int>("ICNTL(11)", pyParams, solverParams);
-        amesosParams->set(solver->name(), solverParams);
-    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_TRILINOS) &&
-            Amesos2::query("klu2")) {
-        solver = Amesos2::create<Matrix, Vector>("klu2", A, X, B);
-        Teuchos::ParameterList solverParams(solver->name());
-        // the doco says these params exist but clearly they don't :-(
-        //solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        //solverParams.set("SymmetricMode", sb.isSymmetric());
-        extractParamIfSet<std::string>("Trans", pyParams, solverParams);
-        extractParamIfSet<bool>("Equil", pyParams, solverParams);
-        extractParamIfSet<std::string>("IterRefine", pyParams, solverParams);
-        extractParamIfSet<bool>("SymmetricMode", pyParams, solverParams);
-        extractParamIfSet<ST>("DiagPivotThresh", pyParams, solverParams);
-        extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
         amesosParams->set(solver->name(), solverParams);
     } else if ((dontcare || method == escript::SO_METHOD_DIRECT_TRILINOS) &&
             Amesos2::query("Basker")) {
