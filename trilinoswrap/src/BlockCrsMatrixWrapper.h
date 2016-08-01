@@ -37,7 +37,7 @@ public:
     */
     BlockCrsMatrixWrapper(const_TrilinosGraph_ptr graph, int blocksize);
 
-    void resetValues();
+    void resetValues(bool preserveSolverData = false);
 
     /// notifies the matrix that changes are about to happen.
     inline void resumeFill() {}

@@ -31,7 +31,7 @@ class AbstractMatrixWrapper
 public:
     virtual ~AbstractMatrixWrapper() {}
 
-    virtual void resetValues() = 0;
+    virtual void resetValues(bool preserveSolverData) = 0;
 
     /// notifies the matrix that changes are about to happen.
     virtual void resumeFill() = 0;

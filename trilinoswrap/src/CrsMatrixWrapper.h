@@ -38,7 +38,7 @@ public:
     */
     CrsMatrixWrapper(const_TrilinosGraph_ptr graph);
 
-    void resetValues();
+    void resetValues(bool preserveSolverData = false);
 
     /// notifies the matrix that changes are about to happen.
     inline void resumeFill()
@@ -66,7 +66,9 @@ public:
 
 protected:
     Matrix mat;
+    mutable bool m_resetCalled;
     mutable Teuchos::RCP<ProblemType<ST> > m_solver;
+    mutable Teuchos::RCP<OpType<ST> > m_preconditioner;
     mutable Teuchos::RCP<DirectSolverType<Matrix,VectorType<ST> > > m_direct;
     LO maxLocalRow;
 };

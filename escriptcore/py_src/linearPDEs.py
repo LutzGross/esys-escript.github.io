@@ -458,6 +458,7 @@ class LinearProblem(object):
         self.assembler = domain.createAssembler("DefaultAssembler", options)
      self.__numEquations=numEquations
      self.__numSolutions=numSolutions
+     self.__preservePreconditioner=False
      self.__altered_coefficients=False
      self.__reduce_equation_order=False
      self.__reduce_solution_order=False
@@ -712,6 +713,33 @@ class LinearProblem(object):
        :rtype: ``bool``
        """
        return self.__complex
+
+   def shouldPreservePreconditioner(self):
+       """
+       Returns true if the preconditioner / factorisation should be kept even
+       when resetting the operator.
+
+       :rtype: ``bool``
+       """
+       return self.__preservePreconditioner
+
+   def preservePreconditioner(self, preserve = True):
+       """
+       Notifies the PDE that the preconditioner should not be reset when
+       making changes to the operator.
+
+       Building the preconditioner data can be quite expensive (e.g. for
+       multigrid methods) so if it is known that changes to the operator are
+       going to be minor calling this method can speed up successive PDE
+       solves.
+
+       :note: Not all operator types support this.
+       :param preserve: if True, preconditioner will be preserved, otherwise
+                        it will be reset when making changes to the operator,
+                        which is the default behaviour.
+       :type preserve: ``bool``
+       """
+       self.__preservePreconditioner =  preserve
 
    # ==========================================================================
    #    symmetry  flag:
@@ -1281,7 +1309,7 @@ class LinearProblem(object):
                self.__operator.setToZero()
            else:
                if self.getOperatorType() == self.getRequiredOperatorType():
-                   self.__operator.resetValues()
+                   self.__operator.resetValues(self.shouldPreservePreconditioner())
                else:
                    self.__operator=self.createOperator()
                    self.__operator_type=self.getRequiredOperatorType()

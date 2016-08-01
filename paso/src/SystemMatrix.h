@@ -88,7 +88,7 @@ public:
         }
     }
 
-    virtual void resetValues();
+    virtual void resetValues(bool preserveSolverData = false);
 
     /// Nullifies rows in the matrix.
     /// The rows are marked by positive values in mask_row. Values on the

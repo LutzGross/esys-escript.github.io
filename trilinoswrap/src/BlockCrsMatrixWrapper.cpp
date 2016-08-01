@@ -258,10 +258,12 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
 }
 
 template<typename ST>
-void BlockCrsMatrixWrapper<ST>::resetValues()
+void BlockCrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 {
     mat.setAllToScalar(static_cast<ST>(0.));
-    m_solver.reset();
+    if (!preserveSolverData) {
+        m_solver.reset();
+    }
 }
 
 // instantiate

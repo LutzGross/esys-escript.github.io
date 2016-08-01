@@ -25,6 +25,8 @@
 
 #include <Kokkos_DefaultNode.hpp>
 #include <MatrixMarket_Tpetra.hpp>
+#include <MueLu_CreateTpetraPreconditioner.hpp>
+
 #include <Tpetra_DefaultPlatform.hpp>
 #include <Tpetra_Vector.hpp>
 
@@ -36,7 +38,8 @@ namespace esys_trilinos {
 
 template<typename ST>
 CrsMatrixWrapper<ST>::CrsMatrixWrapper(const_TrilinosGraph_ptr graph) :
-    mat(graph)
+    mat(graph),
+    m_resetCalled(false)
 {
     mat.fillComplete();
     maxLocalRow = graph->getRowMap()->getMaxLocalIndex();
@@ -118,6 +121,11 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
             if (sb.isVerbose()) {
                 std::cout << "Using " << solver->description() << std::endl;
             }
+            if (m_resetCalled) {
+                // matrix structure never changes
+                solver->setA(A, Amesos2::SYMBFACT);
+                m_resetCalled = false;
+            }
             solver->setX(X);
             solver->setB(B);
         }
@@ -138,6 +146,7 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
             problem = rcp(new ProblemType<ST>(A, X, B));
             m_solver = problem;
             RCP<OpType<ST> > prec = createPreconditioner<ST>(A, sb);
+            m_preconditioner = prec;
             if (!prec.is_null()) {
                 // Trilinos BiCGStab does not support left preconditioners
                 if (sb.getSolverMethod() == escript::SO_METHOD_BICGSTAB)
@@ -150,6 +159,16 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
         } else {
             for (auto t: problem->getTimers()) {
                 t->reset();
+            }
+            if (m_resetCalled) {
+                // special case for MueLu preconditioner - call Reuse...
+                // which honours the "reuse: type" parameter.
+                RCP<MueLu::TpetraOperator<ST,LO,GO,NT> > mlOp =
+                    Teuchos::rcp_dynamic_cast<MueLu::TpetraOperator<ST,LO,GO,NT> >(m_preconditioner);
+                if (mlOp.get()) {
+                    RCP<Matrix> A_(Teuchos::rcp_const_cast<Matrix>(A));
+                    MueLu::ReuseTpetraPreconditioner(A_, *mlOp);
+                }
             }
             problem->setProblem(X, B);
         }
@@ -241,13 +260,16 @@ void CrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
 }
 
 template<typename ST>
-void CrsMatrixWrapper<ST>::resetValues()
+void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 {
     resumeFill();
     mat.setAllToScalar(static_cast<ST>(0.));
     fillComplete(true);
-    m_direct.reset();
-    m_solver.reset();
+    if (!preserveSolverData) {
+        m_solver.reset();
+        m_preconditioner.reset();
+    }
+    m_resetCalled = true;
 }
 
 

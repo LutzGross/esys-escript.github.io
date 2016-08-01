@@ -126,7 +126,7 @@ void AbstractSystemMatrix::saveHB(const std::string& fileName) const
     throw SystemMatrixException("Harwell-Boeing interface not available.");
 }
 
-void AbstractSystemMatrix::resetValues()
+void AbstractSystemMatrix::resetValues(bool preserveSolverData)
 {
     throw SystemMatrixException("resetValues() is not implemented.");
 }
