@@ -55,6 +55,12 @@ enum SystemMatrixType {
     SMT_UNROLL = 1<<17
 };
 
+enum DecompositionPolicy {
+    DECOMP_ADD_ELEMENTS,
+    DECOMP_EXPAND,
+    DECOMP_STRICT
+};
+
 /**
    \brief
    Structure that wraps parameters for the grid reading routines.
@@ -106,6 +112,9 @@ public:
        Destructor
     */
     ~RipleyDomain();
+
+    static void setDecompositionPolicy(DecompositionPolicy value);
+    static DecompositionPolicy getDecompositionPolicy();
 
     /**
      \brief
@@ -857,6 +866,8 @@ protected:
     virtual dim_t getDofOfNode(dim_t node) const = 0;
 
 private:
+    static DecompositionPolicy m_decompPolicy;
+
 #ifdef ESYS_HAVE_PASO
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes

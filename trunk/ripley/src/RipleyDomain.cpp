@@ -50,6 +50,18 @@ using esys_trilinos::const_TrilinosGraph_ptr;
 
 namespace ripley {
 
+DecompositionPolicy RipleyDomain::m_decompPolicy = DECOMP_ADD_ELEMENTS;
+
+void RipleyDomain::setDecompositionPolicy(DecompositionPolicy value)
+{
+    m_decompPolicy = value;
+}
+
+DecompositionPolicy RipleyDomain::getDecompositionPolicy()
+{
+    return m_decompPolicy;
+}
+
 void tupleListToMap(DataMap& mapping, const bp::list& list)
 {
     for (int i = 0; i < len(list); i++) {
