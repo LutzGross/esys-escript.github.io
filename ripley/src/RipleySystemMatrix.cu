@@ -463,7 +463,7 @@ void SystemMatrix::saveHB(const std::string& filename) const
     throw RipleyException("Harwell-Boeing interface not available.");
 }
 
-void SystemMatrix::resetValues()
+void SystemMatrix::resetValues(bool preserveSolverData)
 {
     mat.values.values.assign(mat.values.values.size(), 0.);
     matrixAltered = true;

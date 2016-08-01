@@ -1340,19 +1340,20 @@ int DudleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
     int package = sb.getPackage();
+    escript::SolverOptions method = sb.getSolverMethod();
+    bool isDirect = escript::isDirectSolver(method);
 
     // the configuration of dudley should have taken care that we have either
     // paso or trilinos so here's how we prioritize
 #if defined(ESYS_HAVE_PASO) && defined(ESYS_HAVE_TRILINOS)
     // we have Paso & Trilinos so use Trilinos for parallel direct solvers and
     // for complex problems
-    if (package == escript::SO_DEFAULT &&
-            sb.getSolverMethod() == escript::SO_METHOD_DIRECT &&
-            getMPISize() > 1) {
-        package = escript::SO_PACKAGE_TRILINOS;
-    }
-    if (package == escript::SO_DEFAULT && sb.isComplex()) {
-        package = escript::SO_PACKAGE_TRILINOS;
+    if (package == escript::SO_DEFAULT) {
+        if ((method == escript::SO_METHOD_DIRECT && getMPISize() > 1)
+                || isDirect
+                || sb.isComplex()) {
+            package = escript::SO_PACKAGE_TRILINOS;
+        }
     }
 #endif
 #ifdef ESYS_HAVE_PASO
@@ -1368,11 +1369,11 @@ int DudleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         int type = (int)SMT_TRILINOS;
         if (sb.isComplex())
             type |= (int)SMT_COMPLEX;
-        // TODO: This is required because MueLu (AMG) and Amesos2 (direct) do
-        // not support block matrices at this point. Remove once they do...
+        // This is required because MueLu (AMG) and Amesos2 (direct) do not
+        // support block matrices at this point. Remove if they ever do...
         if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_AMG ||
                 sb.getPreconditioner() == escript::SO_PRECONDITIONER_ILUT ||
-                sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
+                isDirect) {
             type |= (int)SMT_UNROLL;
         }
         return type;
@@ -1385,7 +1386,7 @@ int DudleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         throw NotImplementedError("Paso does not support complex-valued matrices");
     }
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
-                sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
+                method, sb.getPreconditioner(), sb.getPackage(),
                 sb.isSymmetric(), m_mpiInfo);
 #else
     throw DudleyException("Unable to find a working solver library!");

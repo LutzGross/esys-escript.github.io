@@ -100,7 +100,7 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
     RCP<Vector> B = rcp(new Vector(mat.getRangeMap(), b, b.size(), 1));
     RCP<const Matrix> A = rcpFromRef(mat);
 
-    if (util::wantsDirectSolver(sb.getSolverMethod())) {
+    if (escript::isDirectSolver(sb.getSolverMethod())) {
         throw TrilinosAdapterException("Amesos2 does not currently support "
                                        "block matrices!");
 #if 0

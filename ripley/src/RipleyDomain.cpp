@@ -814,13 +814,15 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
     int package = sb.getPackage();
+    escript::SolverOptions method = sb.getSolverMethod();
+    bool isDirect = escript::isDirectSolver(method);
 
     // use CUSP for single rank and supported solvers+preconditioners if CUDA
     // is available, PASO or Trilinos otherwise
 #ifdef ESYS_HAVE_CUDA
     if (package == escript::SO_DEFAULT) {
         if (m_mpiInfo->size == 1) {
-            switch (sb.getSolverMethod()) {
+            switch (method) {
                 case escript::SO_DEFAULT:
                 case escript::SO_METHOD_BICGSTAB:
                 case escript::SO_METHOD_CGLS:
@@ -845,10 +847,12 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     // paso or trilinos so here's how we prioritize
 #if defined(ESYS_HAVE_PASO) && defined(ESYS_HAVE_TRILINOS)
     // we have Paso & Trilinos so use Trilinos for parallel direct solvers
-    if (package == escript::SO_DEFAULT &&
-            sb.getSolverMethod() == escript::SO_METHOD_DIRECT &&
-            getMPISize() > 1) {
-        package = escript::SO_PACKAGE_TRILINOS;
+    if (package == escript::SO_DEFAULT) {
+        if ((method == escript::SO_METHOD_DIRECT && getMPISize() > 1)
+                || isDirect
+                || sb.isComplex()) {
+            package = escript::SO_PACKAGE_TRILINOS;
+        }
     }
 #endif
 #ifdef ESYS_HAVE_PASO
@@ -875,11 +879,11 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         int type = (int)SMT_TRILINOS;
         if (sb.isComplex())
             type |= (int)SMT_COMPLEX;
-        // TODO: This is required because MueLu (AMG) and Amesos2 (direct) do
-        // not support block matrices at this point. Remove once they do...
+        // This is required because MueLu (AMG) and Amesos2 (direct) do not
+        // support block matrices at this point. Remove if they ever do...
         if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_AMG ||
                 sb.getPreconditioner() == escript::SO_PRECONDITIONER_ILUT ||
-                sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
+                isDirect) {
             type |= (int)SMT_UNROLL;
         }
         return type;
@@ -893,7 +897,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     }
     // in all other cases we use PASO
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
-            sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
+            method, sb.getPreconditioner(), sb.getPackage(),
             sb.isSymmetric(), m_mpiInfo);
 #else
     throw RipleyException("Unable to find a working solver library!");

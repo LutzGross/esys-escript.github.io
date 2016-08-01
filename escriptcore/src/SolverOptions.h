@@ -165,6 +165,22 @@ enum SolverOptions
     SO_REORDERING_NONE
 };
 
+/// returns true if the passed solver method refers to a direct solver type
+inline bool isDirectSolver(const SolverOptions& method)
+{
+    switch (method) {
+        case SO_METHOD_DIRECT:
+        case SO_METHOD_DIRECT_MUMPS:
+        case SO_METHOD_DIRECT_PARDISO:
+        case SO_METHOD_DIRECT_SUPERLU:
+        case SO_METHOD_DIRECT_TRILINOS:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
 class ESCRIPT_DLL_API SolverBuddy
 {
 public:
