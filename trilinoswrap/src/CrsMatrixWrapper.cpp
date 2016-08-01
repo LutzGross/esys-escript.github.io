@@ -19,6 +19,7 @@
 #include "BelosWrapper.h" 
 #include "PreconditionerFactory.h" 
 #include "TrilinosAdapterException.h" 
+#include "util.h" 
 
 #include <escript/SolverOptions.h>
 
@@ -96,7 +97,7 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
     RCP<Vector> B = rcp(new Vector(mat.getRangeMap(), b, b.size(), 1));
     RCP<const Matrix> A = rcpFromRef(mat);
 
-    if (sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
+    if (util::wantsDirectSolver(sb.getSolverMethod())) {
         RCP<DirectSolverType<Matrix,Vector> > solver(m_direct);
         if (solver.is_null()) {
             solver = createDirectSolver<Matrix,Vector>(sb, A, X, B);

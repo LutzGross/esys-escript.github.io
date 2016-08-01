@@ -203,6 +203,10 @@ const char* SolverBuddy::getName(int key) const
         case SO_METHOD_CHOLEVSKY: return "CHOLEVSKY";
         case SO_METHOD_CR: return "CR";
         case SO_METHOD_DIRECT: return "DIRECT";
+        case SO_METHOD_DIRECT_MUMPS: return "DIRECT_MUMPS";
+        case SO_METHOD_DIRECT_PARDISO: return "DIRECT_PARDISO";
+        case SO_METHOD_DIRECT_SUPERLU: return "DIRECT_SUPERLU";
+        case SO_METHOD_DIRECT_TRILINOS: return "DIRECT_TRILINOS";
         case SO_METHOD_GMRES: return "GMRES";
         case SO_METHOD_HRZ_LUMPING: return "HRZ_LUMPING";
         case SO_METHOD_ITERATIVE: return "ITERATIVE";
@@ -519,8 +523,17 @@ void SolverBuddy::setSolverMethod(int method)
             this->method = meth;
             break;
         case SO_METHOD_DIRECT:
+        case SO_METHOD_DIRECT_MUMPS:
+        case SO_METHOD_DIRECT_PARDISO:
+        case SO_METHOD_DIRECT_SUPERLU:
+        case SO_METHOD_DIRECT_TRILINOS:
 #if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
+#ifndef ESYS_HAVE_TRILINOS
+            // translate specific direct solver setting to generic one for PASO
+            this->method = SO_METHOD_DIRECT;
+#else
             this->method = meth;
+#endif
             break;
 #else
             throw ValueError("Cannot use DIRECT solver method, the running "

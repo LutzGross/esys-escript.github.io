@@ -46,9 +46,12 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
     RCP<Teuchos::ParameterList> amesosParams = Teuchos::parameterList("Amesos2");
     const bp::dict& pyParams = sb.getTrilinosParameters();
 
-    //TODO: There is currently no way to query available direct solver packages
-    //      or set the solver to use from python...
-    if (Amesos2::query("MUMPS")) {
+    const escript::SolverOptions method = sb.getSolverMethod();
+    // did user request specific direct solver or not?
+    const bool dontcare = method == escript::SO_METHOD_DIRECT;
+
+    if ((dontcare || method == escript::SO_METHOD_DIRECT_MUMPS) &&
+            Amesos2::query("MUMPS")) {
         solver = Amesos2::create<Matrix, Vector>("MUMPS", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
         if (sb.isVerbose()) {
@@ -62,7 +65,8 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         extractParamIfSet<int>("ICNTL(9)", pyParams, solverParams);
         extractParamIfSet<int>("ICNTL(11)", pyParams, solverParams);
         amesosParams->set(solver->name(), solverParams);
-    } else if (Amesos2::query("klu2")) {
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_TRILINOS) &&
+            Amesos2::query("klu2")) {
         solver = Amesos2::create<Matrix, Vector>("klu2", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
         // the doco says these params exist but clearly they don't :-(
@@ -75,7 +79,11 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         extractParamIfSet<ST>("DiagPivotThresh", pyParams, solverParams);
         extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
         amesosParams->set(solver->name(), solverParams);
-    } else if (Amesos2::query("superludist")) {
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_TRILINOS) &&
+            Amesos2::query("Basker")) {
+        solver = Amesos2::create<Matrix, Vector>("Basker", A, X, B);
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_SUPERLU) &&
+            Amesos2::query("superludist")) {
         solver = Amesos2::create<Matrix, Vector>("superludist", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
         extractParamIfSet<int>("npcol", pyParams, solverParams);
@@ -83,7 +91,8 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
         extractParamIfSet<bool>("ReplaceTinyPivot", pyParams, solverParams);
         amesosParams->set(solver->name(), solverParams);
-    } else if (Amesos2::query("superlu")) {
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_SUPERLU) &&
+            Amesos2::query("superlu")) {
         solver = Amesos2::create<Matrix, Vector>("superlu", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
         solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
@@ -102,33 +111,8 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         extractParamIfSet<std::string>("ILU_MILU", pyParams, solverParams);
         extractParamIfSet<ST>("ILU_FillTol", pyParams, solverParams);
         amesosParams->set(solver->name(), solverParams);
-    } else if (Amesos2::query("pardiso_mkl")) {
-        solver = Amesos2::create<Matrix, Vector>("pardiso_mkl", A, X, B);
-        Teuchos::ParameterList solverParams(solver->name());
-        extractParamIfSet<int>("IPARM(2)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(4)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(8)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(10)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(18)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(24)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(25)", pyParams, solverParams);
-        extractParamIfSet<int>("IPARM(60)", pyParams, solverParams);
-        amesosParams->set(solver->name(), solverParams);
-    } else if (Amesos2::query("lapack")) {
-        solver = Amesos2::create<Matrix, Vector>("lapack", A, X, B);
-    } else if (Amesos2::query("amesos2_cholmod")) {
-        solver = Amesos2::create<Matrix, Vector>("amesos2_cholmod", A, X, B);
-        Teuchos::ParameterList solverParams(solver->name());
-        solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        solverParams.set("SymmetricMode", sb.isSymmetric());
-        extractParamIfSet<std::string>("Trans", pyParams, solverParams);
-        extractParamIfSet<bool>("Equil", pyParams, solverParams);
-        extractParamIfSet<std::string>("IterRefine", pyParams, solverParams);
-        extractParamIfSet<bool>("SymmetricMode", pyParams, solverParams);
-        extractParamIfSet<ST>("DiagPivotThresh", pyParams, solverParams);
-        extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
-        amesosParams->set(solver->name(), solverParams);
-    } else if (Amesos2::query("superlumt")) {
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_SUPERLU) &&
+            Amesos2::query("superlumt")) {
         solver = Amesos2::create<Matrix, Vector>("superlumt", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
         solverParams.set("nprocs", omp_get_max_threads());
@@ -143,8 +127,39 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         extractParamIfSet<ST>("DiagPivotThresh", pyParams, solverParams);
         extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
         amesosParams->set(solver->name(), solverParams);
+    } else if ((dontcare || method == escript::SO_METHOD_DIRECT_PARDISO) &&
+            Amesos2::query("pardiso_mkl")) {
+        solver = Amesos2::create<Matrix, Vector>("pardiso_mkl", A, X, B);
+        Teuchos::ParameterList solverParams(solver->name());
+        extractParamIfSet<int>("IPARM(2)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(4)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(8)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(10)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(18)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(24)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(25)", pyParams, solverParams);
+        extractParamIfSet<int>("IPARM(60)", pyParams, solverParams);
+        amesosParams->set(solver->name(), solverParams);
+    } else if (Amesos2::query("amesos2_cholmod")) {
+        solver = Amesos2::create<Matrix, Vector>("amesos2_cholmod", A, X, B);
+        Teuchos::ParameterList solverParams(solver->name());
+        solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
+        solverParams.set("SymmetricMode", sb.isSymmetric());
+        extractParamIfSet<std::string>("Trans", pyParams, solverParams);
+        extractParamIfSet<bool>("Equil", pyParams, solverParams);
+        extractParamIfSet<std::string>("IterRefine", pyParams, solverParams);
+        extractParamIfSet<bool>("SymmetricMode", pyParams, solverParams);
+        extractParamIfSet<ST>("DiagPivotThresh", pyParams, solverParams);
+        extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
+        amesosParams->set(solver->name(), solverParams);
+    } else if (Amesos2::query("lapack")) {
+        solver = Amesos2::create<Matrix, Vector>("lapack", A, X, B);
     } else {
-        throw TrilinosAdapterException("Could not find an Amesos2 direct solver!");
+        if (dontcare) {
+            throw TrilinosAdapterException("Could not find an Amesos2 direct solver!");
+        } else {
+            throw TrilinosAdapterException("The requested direct solver is not available!");
+        }
     }
     solver->setParameters(amesosParams);
     return solver;
