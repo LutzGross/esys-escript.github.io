@@ -100,7 +100,7 @@ void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
     RCP<Vector> B = rcp(new Vector(mat.getRangeMap(), b, b.size(), 1));
     RCP<const Matrix> A = rcpFromRef(mat);
 
-    if (util::wantsDirectSolver(sb.getSolverMethod())) {
+    if (escript::isDirectSolver(sb.getSolverMethod())) {
         RCP<DirectSolverType<Matrix,Vector> > solver(m_direct);
         if (solver.is_null()) {
             solver = createDirectSolver<Matrix,Vector>(sb, A, X, B);

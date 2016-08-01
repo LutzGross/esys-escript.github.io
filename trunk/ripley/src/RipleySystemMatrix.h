@@ -52,7 +52,7 @@ public:
 
     virtual void saveHB(const std::string& filename) const;
 
-    virtual void resetValues();
+    virtual void resetValues(bool preserveSolverData = false);
 
     void add(const IndexVector& rowIndex, const std::vector<double>& array);
 
