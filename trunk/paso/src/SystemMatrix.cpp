@@ -299,10 +299,11 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
     }
 }
 
-void SystemMatrix::resetValues()
+void SystemMatrix::resetValues(bool preserveSolverData)
 {
     setValues(0.);
-    solve_free(this);
+    if (!preserveSolverData)
+        solve_free(this);
 }
 
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,

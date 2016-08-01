@@ -157,7 +157,7 @@ public:
     /**
         \brief resets the matrix entries
     */
-    virtual void resetValues();
+    virtual void resetValues(bool preserveSolverData = false);
 
 private:
 

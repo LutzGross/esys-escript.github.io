@@ -56,12 +56,12 @@ public:
 
     virtual void saveHB(const std::string& filename) const;
 
-    virtual void resetValues()
+    virtual void resetValues(bool preserveSolverData = false)
     {
         if (m_isComplex)
-            cmat->resetValues();
+            cmat->resetValues(preserveSolverData);
         else
-            mat->resetValues();
+            mat->resetValues(preserveSolverData);
     }
 
     /// notifies the matrix that changes are about to happen.
