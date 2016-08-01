@@ -502,6 +502,15 @@ BOOST_PYTHON_MODULE(ripleycpp)
     scope().attr("DATATYPE_FLOAT32") = (int)ripley::DATATYPE_FLOAT32;
     scope().attr("DATATYPE_FLOAT64") = (int)ripley::DATATYPE_FLOAT64;
 
+    scope().attr("DECOMP_ADD_ELEMENTS") = (int)ripley::DECOMP_ADD_ELEMENTS;
+    scope().attr("DECOMP_EXPAND") = (int)ripley::DECOMP_EXPAND;
+    scope().attr("DECOMP_STRICT") = (int)ripley::DECOMP_STRICT;
+
+    def("setDecompositionPolicy", ripley::RipleyDomain::setDecompositionPolicy,
+        args("value"),
+        "Sets the automatic domain decomposition policy for new domains.\n\n"
+        ":param value: policy\n:type value: ``int``");
+
     def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,
         arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,
         arg("diracPoints")=list(),arg("diracTags")=list(),
