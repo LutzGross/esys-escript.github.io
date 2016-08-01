@@ -86,7 +86,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
         d1=1;
     }
 
-    bool warn=false;
+    bool warn = false;
     vector<int> factors;
     int ranks = m_mpiInfo->size;
     dim_t epr[2] = {n0,n1};
@@ -134,22 +134,47 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
     m_dx[0] = l0/n0;
     m_dx[1] = l1/n1;
 
+    warn = false;
     if ((n0+1)%d0 > 0) {
-        n0=(dim_t)round((float)(n0+1)/d0+0.5)*d0-1;
-        l0=m_dx[0]*n0;
-        std::cout << "Warning: Adjusted number of elements and length. N0="
-            << n0 << ", l0=" << l0 << std::endl;
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l0 = m_dx[0]*n0; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n0 = (dim_t)round((float)(n0+1)/d0+0.5)*d0-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
     }
     if ((n1+1)%d1 > 0) {
-        n1=(dim_t)round((float)(n1+1)/d1+0.5)*d1-1;
-        l1=m_dx[1]*n1;
-        std::cout << "Warning: Adjusted number of elements and length. N1="
-            << n1 << ", l1=" << l1 << std::endl;
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l1 = m_dx[1]*n1; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n1 = (dim_t)round((float)(n1+1)/d1+0.5)*d1-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2))
         throw ValueError("Too few elements for the number of ranks");
 
+    if (warn) {
+        if (getDecompositionPolicy() == DECOMP_STRICT) {
+            throw ValueError("Unable to decompose domain to the number of "
+                    "MPI ranks without adding elements and the policy "
+                    "is set to STRICT. Use setDecompositionPolicy() "
+                    "to allow adding elements.");
+        } else {
+            std::cout << "Warning: Domain setup has been adjusted as follows "
+                    "to allow decomposition into " << m_mpiInfo->size
+                    << " MPI ranks:" << std::endl
+                    << "    N0=" << n0 << ", l0=" << l0 << std::endl
+                    << "    N1=" << n1 << ", l1=" << l1 << std::endl;
+        }
+    }
     m_gNE[0] = n0;
     m_gNE[1] = n1;
     m_origin[0] = x0;

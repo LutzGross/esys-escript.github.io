@@ -146,28 +146,59 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     m_dx[1] = l1/n1;
     m_dx[2] = l2/n2;
 
+    warn = false;
     if ((n0+1)%d0 > 0) {
-        n0=(dim_t)round((float)(n0+1)/d0+0.5)*d0-1;
-        l0=m_dx[0]*n0;
-        std::cout << "Warning: Adjusted number of elements and length. N0="
-            << n0 << ", l0=" << l0 << std::endl;
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l0 = m_dx[0]*n0; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n0 = (dim_t)round((float)(n0+1)/d0+0.5)*d0-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
     }
     if ((n1+1)%d1 > 0) {
-        n1=(dim_t)round((float)(n1+1)/d1+0.5)*d1-1;
-        l1=m_dx[1]*n1;
-        std::cout << "Warning: Adjusted number of elements and length. N1="
-            << n1 << ", l1=" << l1 << std::endl;
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l1 = m_dx[1]*n1; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n1 = (dim_t)round((float)(n1+1)/d1+0.5)*d1-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
     }
     if ((n2+1)%d2 > 0) {
-        n2=(dim_t)round((float)(n2+1)/d2+0.5)*d2-1;
-        l2=m_dx[2]*n2;
-        std::cout << "Warning: Adjusted number of elements and length. N2="
-            << n2 << ", l2=" << l2 << std::endl;
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l2 = m_dx[2]*n2; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n2 = (dim_t)round((float)(n2+1)/d2+0.5)*d2-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2) || (d2 > 1 && (n2+1)/d2<2))
         throw ValueError("Too few elements for the number of ranks");
 
+    if (warn) {
+        if (getDecompositionPolicy() == DECOMP_STRICT) {
+            throw ValueError("Unable to decompose domain to the number of "
+                    "MPI ranks without adding elements and the policy "
+                    "is set to STRICT. Use setDecompositionPolicy() "
+                    "to allow adding elements.");
+        } else {
+            std::cout << "Warning: Domain setup has been adjusted as follows "
+                    "to allow decomposition into " << m_mpiInfo->size
+                    << " MPI ranks:" << std::endl
+                    << "    N0=" << n0 << ", l0=" << l0 << std::endl
+                    << "    N1=" << n1 << ", l1=" << l1 << std::endl
+                    << "    N2=" << n2 << ", l2=" << l1 << std::endl;
+        }
+    }
     m_gNE[0] = n0;
     m_gNE[1] = n1;
     m_gNE[2] = n2;
