@@ -40,7 +40,11 @@ SO_METHOD_BICGSTAB: The stabilized Bi-Conjugate Gradient method
 SO_METHOD_CHOLEVSKY: The direct solver based on LDLT factorization (can only be applied for symmetric PDEs)
 SO_METHOD_CGS: The conjugate gradient square method
 SO_METHOD_CR: The conjugate residual method
-SO_METHOD_DIRECT: The direct solver based on LDU factorization
+SO_METHOD_DIRECT: A direct solver based on LDU factorization
+SO_METHOD_DIRECT_MUMPS: MUMPS parallel direct solver
+SO_METHOD_DIRECT_PARDISO: MKL Pardiso direct solver
+SO_METHOD_DIRECT_SUPERLU: SuperLU direct solver
+SO_METHOD_DIRECT_TRILINOS: Trilinos-based direct solver
 SO_METHOD_GMRES: The Gram-Schmidt minimum residual method
 SO_METHOD_HRZ_LUMPING: Matrix lumping using the HRZ approach
 SO_METHOD_ITERATIVE: The default iterative solver
@@ -107,6 +111,10 @@ enum SolverOptions
     SO_METHOD_CHOLEVSKY,
     SO_METHOD_CR,
     SO_METHOD_DIRECT,
+    SO_METHOD_DIRECT_MUMPS,
+    SO_METHOD_DIRECT_PARDISO,
+    SO_METHOD_DIRECT_SUPERLU,
+    SO_METHOD_DIRECT_TRILINOS,
     SO_METHOD_GMRES,
     SO_METHOD_HRZ_LUMPING,
     SO_METHOD_ITERATIVE,
@@ -313,7 +321,9 @@ public:
         iterative rather than a direct solver should be used.
 
         \param method key of the solver method to be used, should be in
-            `SO_DEFAULT`, `SO_METHOD_DIRECT`, `SO_METHOD_CHOLEVSKY`,
+            `SO_DEFAULT`, `SO_METHOD_DIRECT`, `SO_METHOD_DIRECT_MUMPS`,
+            `SO_METHOD_DIRECT_PARDISO`, `SO_METHOD_DIRECT_SUPERLU`,
+            `SO_METHOD_DIRECT_TRILINOS`, `SO_METHOD_CHOLEVSKY`,
             `SO_METHOD_PCG`, `SO_METHOD_CR`, `SO_METHOD_CGS`,
             `SO_METHOD_BICGSTAB`, `SO_METHOD_GMRES`, `SO_METHOD_PRES20`,
             `SO_METHOD_ROWSUM_LUMPING`, `SO_METHOD_HRZ_LUMPING`,

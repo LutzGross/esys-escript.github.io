@@ -18,6 +18,7 @@
 #define __ESYS_TRILINOSWRAP_UTIL_H__
 
 #include <escript/EsysException.h>
+#include <escript/SolverOptions.h>
 
 #include <Teuchos_ParameterList.hpp>
 
@@ -83,6 +84,20 @@ TrilinosGraph_ptr unrollCrsGraph(const_TrilinosGraph_ptr graph, int blockSize)
     return Teuchos::rcp(unrolledGraph);
 }
 
+inline bool wantsDirectSolver(const escript::SolverOptions& method)
+{
+    switch (method) {
+        case escript::SO_METHOD_DIRECT:
+        case escript::SO_METHOD_DIRECT_MUMPS:
+        case escript::SO_METHOD_DIRECT_PARDISO:
+        case escript::SO_METHOD_DIRECT_SUPERLU:
+        case escript::SO_METHOD_DIRECT_TRILINOS:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
 
 } // namespace util
 } // namespace esys_trilinos

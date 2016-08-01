@@ -18,6 +18,7 @@
 #include "BelosWrapper.h" 
 #include "PreconditionerFactory.h" 
 #include "TrilinosAdapterException.h" 
+#include "util.h" 
 
 #include <escript/index.h>
 #include <escript/SolverOptions.h>
@@ -99,7 +100,7 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
     RCP<Vector> B = rcp(new Vector(mat.getRangeMap(), b, b.size(), 1));
     RCP<const Matrix> A = rcpFromRef(mat);
 
-    if (sb.getSolverMethod() == escript::SO_METHOD_DIRECT) {
+    if (util::wantsDirectSolver(sb.getSolverMethod())) {
         throw TrilinosAdapterException("Amesos2 does not currently support "
                                        "block matrices!");
 #if 0
