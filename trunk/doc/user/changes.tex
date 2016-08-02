@@ -23,7 +23,12 @@
   \item Compilers are now required to support c++11 at minimum.
   \item Some support for storing and manipulating complex values in Data objects.
   \item Some solver configurations can solve PDEs with complex values.
-  \item Some support for Trilinos solvers.
+  \item Experimental support for Trilinos solvers and preconditioners.
+  \item \ripley by default no longer adjusts domain lengths when number of MPI ranks is unsuitable. A new function controls this behaviour.
+  \item Some C++ exceptions are now translated to equivalent Python exceptions (e.g. ValueError).
+  \item New \escript feature test function to interrogate build features at runtime.
+  \item Support for 'long' indices for very large local domains.
+  \item \escript is now more modular. New options can be used to select what to build.
 \end{itemize}
 
 \subsection*{4.0 to 4.1}
