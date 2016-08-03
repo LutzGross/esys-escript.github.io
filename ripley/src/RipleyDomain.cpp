@@ -815,7 +815,9 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
     int package = sb.getPackage();
     escript::SolverOptions method = sb.getSolverMethod();
+#ifdef ESYS_HAVE_TRILINOS
     bool isDirect = escript::isDirectSolver(method);
+#endif
 
     // use CUSP for single rank and supported solvers+preconditioners if CUDA
     // is available, PASO or Trilinos otherwise
