@@ -1341,7 +1341,9 @@ int DudleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 
     int package = sb.getPackage();
     escript::SolverOptions method = sb.getSolverMethod();
+#ifdef ESYS_HAVE_TRILINOS
     bool isDirect = escript::isDirectSolver(method);
+#endif
 
     // the configuration of dudley should have taken care that we have either
     // paso or trilinos so here's how we prioritize
