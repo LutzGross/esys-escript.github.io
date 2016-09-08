@@ -971,28 +971,26 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     IndexVector myRows(myNumTargets);
     IndexVector columns(numTargets);
     const IndexVector& dofMap = mapping.map;
-    const index_t* gNI = (use_reduced_elements ? globalReducedNodesIndex : globalNodesIndex);
 
 #pragma omp parallel
     {
 #pragma omp for nowait
         for (size_t i = 0; i < myNumTargets; i++) {
-            myRows[i] = gNI[dofMap[i]];
+            myRows[i] = globalDOFIndex[dofMap[i]];
         }
 #pragma omp for
         for (size_t i = 0; i < numTargets; i++) {
-            columns[i] = gNI[dofMap[i]];
+            columns[i] = globalDOFIndex[dofMap[i]];
         }
     } // end parallel section
 
+    const dim_t numTotal = dofDistribution->getGlobalNumComponents();
     if (use_reduced_elements) {
-        const dim_t numTotal = getGlobalNumReducedNodes();
         trilinosReducedRowMap.reset(new MapType(numTotal, myRows, 0,
                                       TeuchosCommFromEsysComm(MPIInfo->comm)));
         trilinosReducedColMap.reset(new MapType(numTotal, columns, 0,
                                       TeuchosCommFromEsysComm(MPIInfo->comm)));
     } else {
-        const dim_t numTotal = getGlobalNumNodes();
         trilinosRowMap.reset(new MapType(numTotal, myRows, 0,
                                       TeuchosCommFromEsysComm(MPIInfo->comm)));
         trilinosColMap.reset(new MapType(numTotal, columns, 0,
