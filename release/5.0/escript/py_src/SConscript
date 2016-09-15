@@ -1,0 +1,26 @@
+
+##############################################################################
+#
+# Copyright (c) 2013-2016 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+# get the source file names
+sources = Glob('*.py')
+
+# compile
+pyc = env.PyCompile(sources)
+
+# install
+py_inst = env.Install(Dir('escript', env['pyinstall']), pyc)
+env.Alias('install_escript', [py_inst])
