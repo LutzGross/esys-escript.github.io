@@ -2,7 +2,7 @@
 #Make the source tarball for debian release
 #Run this from a clean checkout
 
-SRCVERSION=`head -1 debian/changelog | tr -d '()' | tr -s '-' ' '| cut -d\  -f3`
+SRCVERSION=`head -1 localdebian/changelog | tr -d '()' | tr -s '-' ' '| cut -d\  -f3`
 
 svnversion | grep -q :
 if [ $? == 0 ]
