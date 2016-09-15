@@ -1,7 +1,7 @@
-python-escript (4.9-1) unstable; urgency=medium
+python-escript (5.0-1) unstable; urgency=medium
 
   [ Joel Fenwick ]
-  * preparing for release
+  * upstream release 5.0
 
  -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 04 Apr 2016 10:49:00 +1000
 
