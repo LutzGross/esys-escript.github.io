@@ -258,8 +258,8 @@ if cc_name == 'icpc':
     cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK"
-    omp_flags   = "-openmp"
-    omp_ldflags = "-openmp -openmp_report=1"
+    omp_flags   = "-qopenmp"
+    omp_ldflags = "-qopenmp" # removing -openmp-report (which is deprecated) because the replacement outputs to a file
     fatalwarning = "-Werror"
 elif cc_name[:3] == 'g++':
     # GNU C++ on any system
