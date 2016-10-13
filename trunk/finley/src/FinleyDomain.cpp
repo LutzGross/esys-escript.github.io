@@ -962,6 +962,8 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case ReducedElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedElements) {
                 Assemble_CopyElementData(m_elements, target, in);
+            } else if (target.getFunctionSpace().getTypeCode() == Elements) {
+                Assemble_CopyElementData(m_elements, target, in);
             } else {
                 throw ValueError("No interpolation with data on elements "
                                  "with reduced integration order possible.");
