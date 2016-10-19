@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-from templates.jessie_options import *
+from templates.sid_options import *
 
 debug = False
 
@@ -23,4 +23,9 @@ boost_libs = ['boost_python-py27']
 umfpack = True
 silo = True
 
-cxx_extra += ' -Wno-literal-suffix '
+cxx_extra += ' -Wno-literal-suffix -Wno-deprecated-declarations'
+
+trilinos=True
+trilinos_prefix='/opt/trilinos_hybrid'
+
+mpi='OPENMPI'

@@ -17,6 +17,6 @@
 from templates.jessie_py3_options import *
 
 debug = False
-lapack = 'clapack'
+#lapack = 'clapack'
 silo = True
 
