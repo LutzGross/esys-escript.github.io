@@ -130,7 +130,7 @@ class PDECoef(object):
     CONTACT_REDUCED=15
     DIRACDELTA=16
 
-    def __init__(self, where, pattern, altering, complex=False):
+    def __init__(self, where, pattern, altering, isComplex=False):
        """
        Initialises a PDE coefficient type.
 
@@ -152,16 +152,22 @@ class PDECoef(object):
        :param altering: indicates what part of the PDE is altered if the
                         coefficient is altered
        :type altering: one of `OPERATOR`, `RIGHTHANDSIDE`, `BOTH`
-       :param complex: if true, this coefficient is part of a complex-valued
+       :param isComplex: if true, this coefficient is part of a complex-valued
                        PDE and values will be converted to complex.
-       :type complex: ``boolean``
+       :type isComplex: ``boolean``
        """
        super(PDECoef, self).__init__()
        self.what = where
        self.pattern = pattern
        self.altering = altering
-       self.complex = complex
+       self.__complex = isComplex
        self.resetValue()
+
+    def isComplex(sef):
+        """
+        Returns true if the coefficient is complex
+        """
+        return self.__complex
 
     def resetValue(self):
        """
@@ -257,9 +263,9 @@ class PDECoef(object):
        if not newValue.isEmpty():
            if not self.getShape(domain,numEquations,numSolutions)==newValue.getShape():
                raise IllegalCoefficientValue("Expected shape of coefficient is %s but actual shape is %s."%(self.getShape(domain,numEquations,numSolutions),newValue.getShape()))
-           if newValue.isComplex() and not self.complex:
+           if newValue.isComplex() and not self.isComplex():
                raise IllegalCoefficientValue("Cannot assign a complex value to a real-valued coefficient!")
-           elif not newValue.isComplex() and self.complex:
+           elif not newValue.isComplex() and self.isComplex():
                newValue.promote()
        self.value = newValue
 
@@ -296,7 +302,7 @@ class PDECoef(object):
         :rtype: ``bool``
         :return: True if the coefficient is complex-valued, False otherwise.
         """
-        return self.complex
+        return self.__complex
 
     def estimateNumEquationsAndNumSolutions(self,domain,shape=()):
        """
@@ -428,7 +434,7 @@ class LinearProblem(object):
    problem will be solved to get the unknown *u*.
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None,complex=False,debug=False):
+   def __init__(self,domain,numEquations=None,numSolutions=None,isComplex=False,debug=False):
      """
      Initializes a linear problem.
 
@@ -439,21 +445,21 @@ class LinearProblem(object):
      :param numSolutions: number of solution components. If ``None`` the number
                           of solution components is extracted from the
                           coefficients.
-     :param complex: if True this problem will have complex coefficients and
+     :param isComplex: if True this problem will have complex coefficients and
                      a complex-valued result.
      :param debug: if True debug information is printed
 
      """
      super(LinearProblem, self).__init__()
 
-     self.__complex=complex
+     self.__complex=isComplex
      self.__debug=debug
      self.__domain=domain
      self.domainSupportsAssemblers = hasattr(domain, "createAssembler")
      self.assembler = None
      if self.domainSupportsAssemblers:
         options=[]
-        if complex:
+        if isComplex:
             options=[('dummy', escore.Data(0.j))]
         self.assembler = domain.createAssembler("DefaultAssembler", options)
      self.__numEquations=numEquations
@@ -1689,7 +1695,7 @@ class LinearPDE(LinearProblem):
 
    """
 
-   def __init__(self,domain,numEquations=None,numSolutions=None,complex=False,debug=False):
+   def __init__(self,domain,numEquations=None,numSolutions=None, isComplex=False,debug=False):
      """
      Initializes a new linear PDE.
 
@@ -1703,34 +1709,34 @@ class LinearPDE(LinearProblem):
      :param debug: if True debug information is printed
 
      """
-     super(LinearPDE, self).__init__(domain,numEquations,numSolutions,complex,debug)
+     super(LinearPDE, self).__init__(domain,numEquations,numSolutions,isComplex,debug)
      #
      #   the coefficients of the PDE:
      #
      self.introduceCoefficients(
-       A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
-       B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
-       D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       X=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE, complex),
-       Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       d_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       y_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       A_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
-       B_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       C_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, complex),
-       D_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       X_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE, complex),
-       Y_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       d_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, complex),
-       y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, complex),
-       r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, complex),
+       A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, isComplex),
+       B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, isComplex),
+       D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       X=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE, isComplex),
+       Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       d_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       y_contact=PDECoef(PDECoef.CONTACT,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       A_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, isComplex),
+       B_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       C_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR, isComplex),
+       D_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       X_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE, isComplex),
+       Y_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       d_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR, isComplex),
+       y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
+       r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, isComplex),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH, False) )
 
    def __str__(self):
@@ -2791,27 +2797,33 @@ class LameEquation(LinearPDE):
         self.trace("System status is %s."%self.getSystemStatus())
         return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
-def LinearSinglePDE(domain,debug=False):
+def LinearSinglePDE(domain, isComplex=False, debug=False):
    """
    Defines a single linear PDE.
 
    :param domain: domain of the PDE
    :type domain: `Domain`
+   :param isComplex: if true, this coefficient is part of a complex-valued
+                PDE and values will be converted to complex.
+   :type isComplex: ``boolean``
    :param debug: if True debug information is printed
    :rtype: `LinearPDE`
    """
-   return LinearPDE(domain,numEquations=1,numSolutions=1,debug=debug)
+   return LinearPDE(domain,numEquations=1,numSolutions=1,  isComplex=isComplex, debug=debug)
 
-def LinearPDESystem(domain,debug=False):
+def LinearPDESystem(domain, isComplex=False, debug=False):
    """
    Defines a system of linear PDEs.
 
    :param domain: domain of the PDEs
    :type domain: `Domain`
+   :param isComplex: if true, this coefficient is part of a complex-valued
+                PDE and values will be converted to complex.
+   :type isComplex: ``boolean``
    :param debug: if True debug information is printed
    :rtype: `LinearPDE`
    """
-   return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(),debug=debug)
+   return LinearPDE(domain,numEquations=domain.getDim(),numSolutions=domain.getDim(), isComplex=isComplex, debug=debug)
 
 
 class TransportPDE(LinearProblem):
