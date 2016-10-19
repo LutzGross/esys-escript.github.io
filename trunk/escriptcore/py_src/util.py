@@ -486,7 +486,6 @@ def inf(arg):
     else:
       raise TypeError("inf: Unknown argument type.")
 
-
 #=========================================================================
 #   some little helpers
 #=========================================================================
@@ -3071,3 +3070,15 @@ def condEval(f, tval, fval):
         return escore._condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
     return escore._condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
 
+def polarToCart(r, phase):
+    """
+    conversion from cartesian to polar coordinates
+    
+    :param r: length
+    :type r: any float type object
+    :param phase: the phase angle in rad
+    :type phase: any float type object
+    :return: cartesian representation as complex number
+    :rtype: appropriate complex
+    """
+    return r*exp(1*j*phase)
