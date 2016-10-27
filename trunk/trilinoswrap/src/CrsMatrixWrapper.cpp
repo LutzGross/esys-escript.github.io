@@ -242,7 +242,7 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
         for (size_t c = 0; c < indices.size(); c++) {
             const LO lclcol = indices[c];
             const GO col = mat.getColMap()->getGlobalElement(lclcol);
-            if (rowMask[lclrow] != 0. || colMask[lclcol] != 0.) {
+            if (rowMask[lclrow] > 0. || colMask[lclcol] > 0.) {
                 cols.push_back(lclcol);
                 vals.push_back(row==col ? mdv : zero);
             }
