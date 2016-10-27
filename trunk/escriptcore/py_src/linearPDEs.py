@@ -2044,7 +2044,6 @@ class LinearPDE(LinearProblem):
                  row_q=escore.Data(q,self.getFunctionSpaceForEquation())
                  col_q=escore.Data(q,self.getFunctionSpaceForSolution())
                  u=self.createSolution()
-                 print("r_s",str(r_s))
                  # workaround for Bug #389
                  if (u.isComplex()):
                     ur=u.real()
