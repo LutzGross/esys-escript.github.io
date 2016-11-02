@@ -66,6 +66,11 @@ Data Tensor(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
+Data TensorC(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
+{
+    DataTypes::ShapeType shape(2, what.getDomain()->getDim());
+    return Data(value, shape, what, expanded);
+}
 
 // We need to take some care here because this signature trumps the other one from boost's point of view
 Data TensorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
@@ -77,6 +82,13 @@ Data TensorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
     } catch(...) {
         PyErr_Clear();
     }
+    // now try to get a complex and route to scalar factory
+    try {
+        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
+        return TensorC(v, what, expanded);
+    } catch(...) {
+        PyErr_Clear();
+    }    
     DataTypes::ShapeType shape(2, what.getDomain()->getDim());
     Data d(o, what, expanded);
     if (d.getDataPointShape() != shape) {
@@ -92,6 +104,13 @@ Data Tensor3(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
+Data Tensor3C(DataTypes::cplx_t  value, const FunctionSpace& what, bool expanded)
+{
+    DataTypes::ShapeType shape(3, what.getDomain()->getDim());
+    return Data(value, shape, what, expanded);
+}
+
+
 Data Tensor3FromObj(bp::object o, const FunctionSpace& what, bool expanded)
 {
     // first try to get a double and route it to the other method
@@ -101,6 +120,13 @@ Data Tensor3FromObj(bp::object o, const FunctionSpace& what, bool expanded)
     } catch(...) {
         PyErr_Clear();
     }
+    // first try to get a complex and route it to the other method
+    try {
+        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
+        return Tensor3C(v, what, expanded);
+    } catch(...) {
+        PyErr_Clear();
+    }    
     DataTypes::ShapeType shape(3, what.getDomain()->getDim());
     Data d(o, what, expanded);
     if (d.getDataPointShape() != shape) {
@@ -116,6 +142,13 @@ Data Tensor4(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
+Data Tensor4C(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
+{
+    DataTypes::ShapeType shape(4, what.getDomain()->getDim());
+    return Data(value, shape, what, expanded);
+}
+
+
 Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
 {
     // first try to get a double and route it to the other method
@@ -125,6 +158,13 @@ Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
     } catch(...) {
         PyErr_Clear();
     }
+    // first try to get a double and route it to the other method
+    try {
+        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
+        return Tensor4C(v, what, expanded);
+    } catch(...) {
+        PyErr_Clear();
+    }    
     DataTypes::ShapeType shape(4, what.getDomain()->getDim());
     Data d(o, what, expanded);
     if (d.getDataPointShape() != shape) {
