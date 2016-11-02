@@ -36,6 +36,35 @@ Data Scalar(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
+Data Scalar(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
+{
+    // an empty shape is a scalar
+    DataTypes::ShapeType shape;
+    return Data(value, shape, what, expanded);
+}
+
+Data
+ScalarFromObj(boost::python::object o,
+	const FunctionSpace& what,
+	bool expanded)
+{
+    // check for real first
+    try {
+        double v = bp::extract<double>(o);
+        return Scalar(v, what, expanded);
+    } catch(...) {
+        PyErr_Clear();
+    }    
+    // check for real first
+    try {
+        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
+        return Scalar(v, what, expanded);
+    } catch(...) {
+        PyErr_Clear();
+    }    
+    throw DataException("Can not make a Scalar from a non-scalar value.");
+}
+
 Data Vector(double value, const FunctionSpace& what, bool expanded)
 {
     DataTypes::ShapeType shape(1, what.getDomain()->getDim());

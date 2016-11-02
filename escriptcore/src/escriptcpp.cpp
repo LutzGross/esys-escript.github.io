@@ -780,7 +780,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param domain:\n"
         ":type domain: `Domain`");
   def("loadIsConfigured",escript::loadConfigured,":return: True if the load function is configured.");
-  def("Scalar",escript::Scalar,
+  def("Scalar",escript::ScalarFromObj,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
        arg("expanded")=false),
