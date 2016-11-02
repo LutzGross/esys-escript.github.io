@@ -482,8 +482,16 @@ void
 DataConstant::setToZero()
 {
     CHECK_FOR_EX_WRITE
-    DataTypes::RealVectorType::size_type n=m_data_r.size();
-    for (int i=0; i<n ;++i) m_data_r[i]=0.;
+    if (isComplex())
+    {
+        DataTypes::CplxVectorType::size_type n=m_data_c.size();
+        for (int i=0; i<n ;++i) m_data_c[i]=0.;
+    }
+    else 
+    {
+        DataTypes::RealVectorType::size_type n=m_data_r.size();
+        for (int i=0; i<n ;++i) m_data_r[i]=0.;
+    }
 }
 
 void

@@ -1024,14 +1024,29 @@ void DataExpanded::setToZero()
     CHECK_FOR_EX_WRITE;
     const int numSamples = getNumSamples();
     const int numDataPointsPerSample = getNumDPPSample();
-    const DataTypes::RealVectorType::size_type n = getNoValues();
-#pragma omp parallel for
-    for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
-        for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
-            double* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
-            for (int i=0; i<n; ++i)
-                p[i] = 0.;
-        }
+    if (isComplex())
+    {
+	const DataTypes::CplxVectorType::size_type n = getNoValues();
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		DataTypes::cplx_t* p = &m_data_c[getPointOffset(sampleNo,dataPointNo)];
+		for (int i=0; i<n; ++i)
+		    p[i] = 0.;
+	    }
+	}
+    }
+    else
+    {
+	const DataTypes::RealVectorType::size_type n = getNoValues();
+    #pragma omp parallel for
+	for (int sampleNo = 0; sampleNo < numSamples; sampleNo++) {
+	    for (int dataPointNo = 0; dataPointNo < numDataPointsPerSample; dataPointNo++) {
+		double* p = &m_data_r[getPointOffset(sampleNo,dataPointNo)];
+		for (int i=0; i<n; ++i)
+		    p[i] = 0.;
+	    }
+	}
     }
 }
 

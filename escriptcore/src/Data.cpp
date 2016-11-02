@@ -747,6 +747,11 @@ Data::setToZero()
     }
     if (isLazy())
     {
+	// This can't actually be complex yet but Just putting in this for later
+        if (isComplex())
+	{
+	    throw DataException("Programmer Error - setToZero is not supported on lazy complex values.");
+	}
         DataTypes::RealVectorType v(getNoValues(),0);
         DataConstant* dc=new DataConstant(getFunctionSpace(),getDataPointShape(),v);
         DataLazy* dl=new DataLazy(dc->getPtr());
