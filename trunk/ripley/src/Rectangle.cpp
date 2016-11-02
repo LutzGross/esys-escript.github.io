@@ -1186,7 +1186,21 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 }
 
 //protected
-void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) const
+void Rectangle::assembleGradient(escript::Data& out,
+                                 const escript::Data& in) const
+{
+    if (out.isComplex() && in.isComplex())
+        assembleGradientImpl<cplx_t>(out, in);
+    else if (!out.isComplex() && !in.isComplex())
+        assembleGradientImpl<real_t>(out, in);
+    else
+        throw ValueError("Gradient: input & output complexity must match.");
+}
+
+//protected
+template<typename Scalar>
+void Rectangle::assembleGradientImpl(escript::Data& out,
+                                     const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
@@ -1197,24 +1211,25 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
     const double cy0 = .21132486540518711775/m_dx[1];
     const double cy1 = .78867513459481288225/m_dx[1];
     const double cy2 = 1./m_dx[1];
+    const Scalar zero = static_cast<Scalar>(0);
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_00(numComp);
-            vector<double> f_01(numComp);
-            vector<double> f_10(numComp);
-            vector<double> f_11(numComp);
+            vector<Scalar> f_00(numComp, zero);
+            vector<Scalar> f_01(numComp, zero);
+            vector<Scalar> f_10(numComp, zero);
+            vector<Scalar> f_11(numComp, zero);
 #pragma omp for
-            for (index_t k1=0; k1 < NE1; ++k1) {
-                for (index_t k0=0; k0 < NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
-                    for (index_t i=0; i < numComp; ++i) {
+            for (index_t k1 = 0; k1 < NE1; ++k1) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]), zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
@@ -1231,21 +1246,21 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_00(numComp);
-            vector<double> f_01(numComp);
-            vector<double> f_10(numComp);
-            vector<double> f_11(numComp);
+            vector<Scalar> f_00(numComp, zero);
+            vector<Scalar> f_01(numComp, zero);
+            vector<Scalar> f_10(numComp, zero);
+            vector<Scalar> f_11(numComp, zero);
 #pragma omp for
-            for (index_t k1=0; k1 < NE1; ++k1) {
-                for (index_t k0=0; k0 < NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2/2;
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2/2;
+            for (index_t k1 = 0; k1 < NE1; ++k1) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]), zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2 * 0.5;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2 * 0.5;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of k1 loop
@@ -1254,19 +1269,19 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_00(numComp);
-            vector<double> f_01(numComp);
-            vector<double> f_10(numComp);
-            vector<double> f_11(numComp);
+            vector<Scalar> f_00(numComp, zero);
+            vector<Scalar> f_01(numComp, zero);
+            vector<Scalar> f_10(numComp, zero);
+            vector<Scalar> f_11(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy2;
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
@@ -1276,13 +1291,13 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy2;
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
@@ -1292,13 +1307,13 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx2;
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx2;
@@ -1308,13 +1323,13 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx2;
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
                         o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx2;
@@ -1328,69 +1343,78 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_00(numComp);
-            vector<double> f_01(numComp);
-            vector<double> f_10(numComp);
-            vector<double> f_11(numComp);
+            vector<Scalar> f_00(numComp, zero);
+            vector<Scalar> f_01(numComp, zero);
+            vector<Scalar> f_10(numComp, zero);
+            vector<Scalar> f_11(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2/2;
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2 * 0.5;
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy2;
                     } // end of component loop i
                 } // end of k1 loop
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2/2;
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2 * 0.5;
                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy2;
                     } // end of component loop i
                 } // end of k1 loop
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx2;
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2/2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2 * 0.5;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx2;
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2/2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2 * 0.5;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of face 3
         } // end of parallel section
     }
 }
+
+// instantiate our two supported versions
+template
+void Rectangle::assembleGradientImpl<real_t>(escript::Data& out,
+                                             const escript::Data& in) const;
+
+template
+void Rectangle::assembleGradientImpl<cplx_t>(escript::Data& out,
+                                             const escript::Data& in) const;
 
 //protected
 void Rectangle::assembleIntegrate(vector<double>& integrals,
