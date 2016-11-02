@@ -415,19 +415,28 @@ class Locator(object):
         """
         if isinstance(data,escore.Data):
            dat=util.interpolate(data,self.getFunctionSpace())
-           id=self.getId()
+           ii=self.getId()
            r=data.getRank()
-           if isinstance(id,list):
+           if isinstance(ii,list):
                out=[]
-               for i in id:
-                  o=numpy.array(dat.getTupleForGlobalDataPoint(*i))
+               for i in ii:
+                  # workaround for bug #391
+                  if dat.isComplex():
+                      o=numpy.array(dat.real().getTupleForGlobalDataPoint(*i))+1j*numpy.array(dat.imag().getTupleForGlobalDataPoint(*i))
+                  else:
+                     o=numpy.array(dat.getTupleForGlobalDataPoint(*i))
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             out=numpy.array(dat.getTupleForGlobalDataPoint(*id))
+             # workaround for bug #391
+             if dat.isComplex():
+                 print "DDD"
+                 out=numpy.array(dat.real().getTupleForGlobalDataPoint(*ii))+1j*numpy.array(dat.imag().getTupleForGlobalDataPoint(*ii))
+             else:
+                 out=numpy.array(dat.getTupleForGlobalDataPoint(*ii))
              if data.getRank()==0:
                 return out[0]
              else:
