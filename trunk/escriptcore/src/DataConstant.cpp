@@ -288,6 +288,12 @@ DataConstant::setSlice(const DataAbstract* value,
   if (tempDataConst==0) {
     throw DataException("Programming error - casting to DataConstant.");
   }
+  
+  if (isComplex()!=value->isComplex())
+  {
+    throw DataException("Error - cannot copy between slices of different complexity.");
+  }  
+  
   CHECK_FOR_EX_WRITE
   //
   DataTypes::ShapeType shape(DataTypes::getResultSliceShape(region));
