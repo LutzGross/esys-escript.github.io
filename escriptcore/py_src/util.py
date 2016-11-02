@@ -2664,7 +2664,11 @@ def interpolate(arg,where):
        elif where == arg.getFunctionSpace():
           return arg
        else:
-          return escore.Data(arg,where)
+          # work around for Bug #390
+          if arg.isComplex():
+              return interpolate(arg.real(), where)+1j*interpolate(arg.imag(), where)
+          else:
+              return escore.Data(arg,where)
     elif isinstance(arg,sym.Symbol):
        return sym.symfn.interpolate(arg, where)
     else:
