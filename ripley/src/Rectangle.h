@@ -253,6 +253,10 @@ protected:
     virtual void populateDofMap();
 
     template<typename Scalar>
+    void assembleGradientImpl(escript::Data& out,
+                              const escript::Data& in) const;
+
+    template<typename Scalar>
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
