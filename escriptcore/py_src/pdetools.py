@@ -433,7 +433,6 @@ class Locator(object):
            else:
              # workaround for bug #391
              if dat.isComplex():
-                 print "DDD"
                  out=numpy.array(dat.real().getTupleForGlobalDataPoint(*ii))+1j*numpy.array(dat.imag().getTupleForGlobalDataPoint(*ii))
              else:
                  out=numpy.array(dat.getTupleForGlobalDataPoint(*ii))
