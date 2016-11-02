@@ -279,18 +279,42 @@ void DataExpanded::setSlice(const DataAbstract* value,
                 "Error - Couldn't copy slice due to shape mismatch.",
                 shape, value->getShape()));
 
-    // copy the data from the slice into this object
-    DataTypes::RealVectorType& vec=getVectorRW();
-    const ShapeType& mshape=getShape();
-    const DataTypes::RealVectorType& tVec=tempDataExp->getVectorRO();
-    const ShapeType& tShape=tempDataExp->getShape();
-#pragma omp parallel for
-    for (int i=0; i<m_noSamples; i++) {
-        for (int j=0; j<m_noDataPointsPerSample; j++) {
-            DataTypes::copySliceFrom(vec, mshape, getPointOffset(i,j), tVec,
-                                     tShape, tempDataExp->getPointOffset(i,j),
-                                     region_loop_range);
-        }
+    if (value->isComplex()!=isComplex())
+    {
+	throw DataException("Programmer Error: object and new value must be the same complexity.");
+    }
+
+    if (isComplex())
+    {
+	// copy the data from the slice into this object
+	DataTypes::CplxVectorType& vec=getVectorRWC();
+	const ShapeType& mshape=getShape();
+	const DataTypes::CplxVectorType& tVec=tempDataExp->getVectorROC();
+	const ShapeType& tShape=tempDataExp->getShape();
+    #pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		DataTypes::copySliceFrom(vec, mshape, getPointOffset(i,j), tVec,
+					tShape, tempDataExp->getPointOffset(i,j),
+					region_loop_range);
+	    }
+	}      
+    }
+    else
+    {
+	// copy the data from the slice into this object
+	DataTypes::RealVectorType& vec=getVectorRW();
+	const ShapeType& mshape=getShape();
+	const DataTypes::RealVectorType& tVec=tempDataExp->getVectorRO();
+	const ShapeType& tShape=tempDataExp->getShape();
+    #pragma omp parallel for
+	for (int i=0; i<m_noSamples; i++) {
+	    for (int j=0; j<m_noDataPointsPerSample; j++) {
+		DataTypes::copySliceFrom(vec, mshape, getPointOffset(i,j), tVec,
+					tShape, tempDataExp->getPointOffset(i,j),
+					region_loop_range);
+	    }
+	}
     }
 }
 
