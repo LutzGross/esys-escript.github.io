@@ -416,6 +416,10 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                 throw DataException("saveDataCSV: all data must be on the same domain.");
             }
         }
+        if (data[i].isComplex()) 
+	{
+	    throw DataException("saveDataCSV: complex values must be separated into components before calling this.");
+	}
     }
     if (hasmask) {
         if (mask.getDomain() != data[0].getDomain())
