@@ -1210,7 +1210,6 @@ Data::probeInterpolation(const FunctionSpace& functionspace) const
 Data
 Data::gradOn(const FunctionSpace& functionspace) const
 {
-    THROWONCOMPLEX
     if (isEmpty())
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
@@ -1220,6 +1219,8 @@ Data::gradOn(const FunctionSpace& functionspace) const
     DataTypes::ShapeType grad_shape=getDataPointShape();
     grad_shape.push_back(functionspace.getDim());
     Data out(0.0,grad_shape,functionspace,true);
+    if (isComplex())
+        out.complicate();
     getDomain()->setToGradient(out,*this);
     return out;
 }
@@ -1227,7 +1228,6 @@ Data::gradOn(const FunctionSpace& functionspace) const
 Data
 Data::grad() const
 {
-    THROWONCOMPLEX
     if (isEmpty())
     {
         throw DataException("Error - operation not permitted on instances of DataEmpty.");
