@@ -690,6 +690,7 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__lt__",block_cmp_data)
     .def("__le__",block_cmp_data)
     .def("__ge__",block_cmp_data)
+    .def("phase",&escript::Data::phase)
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 

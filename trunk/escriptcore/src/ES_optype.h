@@ -77,7 +77,8 @@ enum ES_optype
 	LESS=CONJ+1,		// a<b
 	GREATER=LESS+1,
 	GREATER_EQUAL=GREATER+1,
-	LESS_EQUAL=GREATER_EQUAL+1
+	LESS_EQUAL=GREATER_EQUAL+1,
+	PHS=LESS_EQUAL+1	// phase
 };
 
 const std::string&
