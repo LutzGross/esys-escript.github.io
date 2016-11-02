@@ -49,6 +49,32 @@ Scalar(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
+
+/**
+   \brief
+   Return a Data object containing scalar data-points.
+   ie: rank 0 data-points.
+   \param value - Input - Single value applied to all Data.
+   \param what - Input - A description of what this data represents.
+   \param expanded - Input - if true fill the entire container with 
+                     the value. Otherwise a more efficient storage 
+                     mechanism will be used.
+*/
+ESCRIPT_DLL_API Data
+Scalar(DataTypes::cplx_t value,
+       const FunctionSpace& what=FunctionSpace(),
+       bool expanded=false);
+
+/**
+ * \brief Python interface for the Scalar factory 
+*/
+ESCRIPT_DLL_API
+Data
+ScalarFromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
+
 /**
    \brief
    Return a Data object containing vector data-points.
