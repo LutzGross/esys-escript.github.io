@@ -56,6 +56,7 @@ bool supports_cplx(escript::ES_optype operation)
     case REAL: return true;
     case IMAG: return true;
     case RECIP: return true;
+    case PHS: return true;
     default:
       return false;	// let's be conservative
   }  
@@ -63,7 +64,7 @@ bool supports_cplx(escript::ES_optype operation)
 
 bool always_real(escript::ES_optype operation)
 {
-    return ((operation==REAL) || (operation==IMAG) || (operation==EZ) || (operation==NEZ) || (operation==ABS));
+    return ((operation==REAL) || (operation==IMAG) || (operation==EZ) || (operation==NEZ) || (operation==ABS) || (operation==PHS));
 }
 
 

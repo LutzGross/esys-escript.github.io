@@ -1842,6 +1842,28 @@ Data::imag() const
     }
 }
 
+Data
+Data::phase() const
+{
+    if (isLazy())
+    {
+        Data temp(*this);
+        temp.resolve();
+        return temp.phase();
+    }
+    if (isComplex())
+    {
+        return C_TensorUnaryOperation(*this, escript::ES_optype::PHS);      
+    }
+    else
+    {
+        return copySelf()*Data(0, m_data->getShape(), getFunctionSpace(),false);      // return an object with same tags etc but all values 0
+                                // This is not efficient, but why are you taking imag of R anyway?
+    }
+}
+
+
+
 
 
 Data

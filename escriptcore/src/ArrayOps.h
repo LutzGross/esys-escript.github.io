@@ -700,7 +700,12 @@ inline void tensor_unary_array_operation_real(const size_t size,
           for (size_t i = 0; i < size; ++i) {
               argRes[i] = abs_f(arg1[i]);
           }
-          break;     	  
+          break;  
+    case PHS:
+          for (size_t i = 0; i < size; ++i) {
+              argRes[i] = std::arg(arg1[i]);
+          }
+          break;
      default:
           throw DataException("Unsupported unary operation");      
    }  

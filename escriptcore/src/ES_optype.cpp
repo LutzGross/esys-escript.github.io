@@ -37,7 +37,8 @@ std::string ES_opstrings[]={"UNKNOWN","IDENTITY","+","-","*","/","^",
                         "condEval",
                         "hermitian","antihermitian",
 			"real","imaginary","conjugate",
-			"<", ">", ">=", "<="
+			"<", ">", ">=", "<=",
+			"phase"
 };
 
 
@@ -55,11 +56,12 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
                         G_CONDEVAL,
                         G_UNARY,G_UNARY,
                         G_UNARY_R, G_UNARY_R, G_UNARY,
-			G_UNARY_R, G_UNARY_R, G_UNARY_R, G_UNARY_R
+			G_UNARY_R, G_UNARY_R, G_UNARY_R, G_UNARY_R,
+			G_UNARY_R
 };
 
 
-int ES_opcount=53;
+int ES_opcount=54;
 }
 
 // Return a string representing the operation

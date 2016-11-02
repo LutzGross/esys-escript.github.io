@@ -972,6 +972,15 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   Data
   abs() const;
+  
+  /**
+     \brief
+     Return the phase/arg/angular-part of complex values.
+     *
+  */
+  Data
+  phase() const;
+  
 
   /**
      \brief
