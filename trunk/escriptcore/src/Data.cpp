@@ -776,6 +776,10 @@ Data::copyWithMask(const Data& other,
     {
         throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
     }
+    if (mask.isComplex())
+    {
+        throw DataException("Error - copyWithMask not permitted using a complex mask.");
+    }
     Data other2(other);
     Data mask2(mask);
     other2.resolve();
@@ -837,12 +841,6 @@ Data::copyWithMask(const Data& other,
         // and so I'm going to assume that you don't want your data objects getting a new shape.
         throw DataException("Attempt to copyWithMask into a scalar from an object or mask with rank>0.");
     }
-    exclusiveWrite();
-    // Now we iterate over the elements
-    RealVectorType& self=getReady()->getVectorRW();;
-    const RealVectorType& ovec=other2.getReadyPtr()->getVectorRO();
-    const RealVectorType& mvec=mask2.getReadyPtr()->getVectorRO();
-
     if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
     {
         // Not allowing this combination.
@@ -851,11 +849,42 @@ Data::copyWithMask(const Data& other,
         // or should the target object be reshaped to be a scalar as well.
         throw DataException("Attempt to copyWithMask from scalar mask and data into non-scalar target.");
     }
+    
+    if (isComplex()!=other2.isComplex())
+    {
+        complicate();
+        other2.complicate();
+    }
+    
+    exclusiveWrite();
+    if (!isComplex())
+    {
+	maskWorker(other2, mask2, DataTypes::real_t(0));
+    }
+    else
+    {
+	maskWorker(other2, mask2, DataTypes::cplx_t(0));
+    }
+}
+
+template <typename S>
+void 
+Data::maskWorker(Data& other2, Data& mask2, S sentinel)
+{
+     // Now we iterate over the elements
+    auto& self=getReady()->getTypedVectorRW(sentinel);
+    auto& ovec=other2.getReadyPtr()->getTypedVectorRO(sentinel);
+    auto& mvec=mask2.getReadyPtr()->getTypedVectorRO(DataTypes::real_t(0));
+
+    unsigned int selfrank=getDataPointRank();
+    unsigned int otherrank=other2.getDataPointRank();
+    unsigned int maskrank=mask2.getDataPointRank();    
+
     if ((selfrank>0) && (otherrank>0) &&(maskrank==0))
     {
         if (mvec[0]>0)          // copy whole object if scalar is >0
         {
-            copy(other);
+            copy(other2);
         }
         return;
     }
@@ -897,7 +926,8 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+	        // yes this is explicitly RealType but size_t should not vary
+	        DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
                 DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
                 DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
                 for (int j=0;j<getDataPointSize();++j)
@@ -922,9 +952,9 @@ Data::copyWithMask(const Data& other,
             for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+	        DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
                 DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);	      
                 for (int j=0;j<getDataPointSize();++j)
                 {
                     if (mvec[j+moff]>0)
