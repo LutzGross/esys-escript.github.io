@@ -324,6 +324,14 @@ protected:
     /// Trilinos graph structure, cached for efficiency
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
 #endif
+private:
+    template <typename S>
+    void interpolateNodesOnElementsWorker(escript::Data& out,
+                                  const escript::Data& in, bool reduced, S sentinel) const;
+    template <typename S>				  
+    void interpolateNodesOnFacesWorker(escript::Data& out,
+                                         const escript::Data& in,
+                                         bool reduced, S sentinel) const;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////

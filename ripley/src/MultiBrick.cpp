@@ -142,6 +142,24 @@ void MultiBrick::validateInterpolationAcross(int fsType_source,
 void MultiBrick::interpolateNodesToNodesFiner(const escript::Data& source,
         escript::Data& target, const MultiBrick& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateNodesToNodesFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesToNodesFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiBrick::interpolateNodesToNodesFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiBrick& other, S sentinel) const
+{
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NN0 = m_NN[0], NN1 = m_NN[1], NN2 = m_NN[2], *otherNN = other.getNumNodesPerDim();
     const dim_t numComp = source.getDataPointSize();
@@ -150,27 +168,31 @@ void MultiBrick::interpolateNodesToNodesFiner(const escript::Data& source,
     for (dim_t nz = 0; nz < NN2 - 1; nz++) { //source nodes
         for (dim_t ny = 0; ny < NN1 - 1; ny++) {
             for (dim_t nx = 0; nx < NN0 - 1; nx++) {
-                const double *x0y0z0 = source.getSampleDataRO(INDEX3(nx,   ny,   nz, NN0, NN1));
-                const double *x0y1z0 = source.getSampleDataRO(INDEX3(nx,   ny+1, nz, NN0, NN1));
-                const double *x1y0z0 = source.getSampleDataRO(INDEX3(nx+1, ny,   nz, NN0, NN1));
-                const double *x1y1z0 = source.getSampleDataRO(INDEX3(nx+1, ny+1, nz, NN0, NN1));
-                const double *x0y0z1 = source.getSampleDataRO(INDEX3(nx,   ny,   nz+1, NN0, NN1));
-                const double *x0y1z1 = source.getSampleDataRO(INDEX3(nx,   ny+1, nz+1, NN0, NN1));
-                const double *x1y0z1 = source.getSampleDataRO(INDEX3(nx+1, ny,   nz+1, NN0, NN1));
-                const double *x1y1z1 = source.getSampleDataRO(INDEX3(nx+1, ny+1, nz+1, NN0, NN1));
-                const double origin[3] = {getLocalCoordinate(nx, 0),
+                const S *x0y0z0 = source.getSampleDataRO(INDEX3(nx,   ny,   nz, NN0, NN1), sentinel);
+                const S *x0y1z0 = source.getSampleDataRO(INDEX3(nx,   ny+1, nz, NN0, NN1), sentinel);
+                const S *x1y0z0 = source.getSampleDataRO(INDEX3(nx+1, ny,   nz, NN0, NN1), sentinel);
+                const S *x1y1z0 = source.getSampleDataRO(INDEX3(nx+1, ny+1, nz, NN0, NN1), sentinel);
+                const S *x0y0z1 = source.getSampleDataRO(INDEX3(nx,   ny,   nz+1, NN0, NN1), sentinel);
+                const S *x0y1z1 = source.getSampleDataRO(INDEX3(nx,   ny+1, nz+1, NN0, NN1), sentinel);
+                const S *x1y0z1 = source.getSampleDataRO(INDEX3(nx+1, ny,   nz+1, NN0, NN1), sentinel);
+                const S *x1y1z1 = source.getSampleDataRO(INDEX3(nx+1, ny+1, nz+1, NN0, NN1), sentinel);
+                const S origin[3] = {getLocalCoordinate(nx, 0),
                                           getLocalCoordinate(ny, 1),
                                           getLocalCoordinate(nz, 2)};
                 for (int sz = 0; sz < scaling + 1; sz++) { //target nodes                
-                    const double z = (other.getLocalCoordinate(nz*scaling+sz, 2) - origin[2]) / m_dx[2];
+                    const S z = (other.getLocalCoordinate(nz*scaling+sz, 2) - origin[2]) / m_dx[2];
+		    const S mz = static_cast<S>(1)-z;
                     for (int sy = 0; sy < scaling + 1; sy++) {
-                        const double y = (other.getLocalCoordinate(ny*scaling+sy, 1) - origin[1]) / m_dx[1];
+                        const S y = (other.getLocalCoordinate(ny*scaling+sy, 1) - origin[1]) / m_dx[1];
+			const S my = static_cast<S>(1)-y;
                         for (int sx = 0; sx < scaling + 1; sx++) {
-                            const double x = (other.getLocalCoordinate(nx*scaling+sx, 0) - origin[0]) / m_dx[0];
-                            double *out = target.getSampleDataRW(INDEX3(nx*scaling+sx, ny*scaling+sy, nz*scaling+sz, otherNN[0], otherNN[1]));
+                            const S x = (other.getLocalCoordinate(nx*scaling+sx, 0) - origin[0]) / m_dx[0];
+			    const S mx = static_cast<S>(1)-x;
+                            S *out = target.getSampleDataRW(INDEX3(nx*scaling+sx, ny*scaling+sy, nz*scaling+sz, otherNN[0], otherNN[1]), sentinel);
+			    
                             for (int comp = 0; comp < numComp; comp++) {
-                                out[comp] = x0y0z0[comp]*(1-x)*(1-y)*(1-z) + x1y0z0[comp]*x*(1-y)*(1-z) + x0y1z0[comp]*(1-x)*y*(1-z) + x1y1z0[comp]*x*y*(1-z)
-                                          + x0y0z1[comp]*(1-x)*(1-y)*z     + x1y0z1[comp]*x*(1-y)*z     + x0y1z1[comp]*(1-x)*y*z     + x1y1z1[comp]*x*y*z;
+                                out[comp] = x0y0z0[comp]*(mx)*(my)*(mz) + x1y0z0[comp]*x*(my)*(mz) + x0y1z0[comp]*(mx)*y*(mz) + x1y1z0[comp]*x*y*(mz)
+                                          + x0y0z1[comp]*(mx)*(my)*z     + x1y0z1[comp]*x*(my)*z     + x0y1z1[comp]*(mx)*y*z     + x1y1z1[comp]*x*y*z;
                             }
                         }
                     }
@@ -183,6 +205,24 @@ void MultiBrick::interpolateNodesToNodesFiner(const escript::Data& source,
 void MultiBrick::interpolateReducedToElementsFiner(const escript::Data& source,
         escript::Data& target, const MultiBrick& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateReducedToElementsFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateReducedToElementsFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}        
+
+template <typename S>
+void MultiBrick::interpolateReducedToElementsFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiBrick& other, S sentinel) const
+{
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
     target.requireWrite();
@@ -191,7 +231,7 @@ void MultiBrick::interpolateReducedToElementsFiner(const escript::Data& source,
     for (dim_t ez = 0; ez < m_NE[2]; ez++) {
         for (dim_t ey = 0; ey < m_NE[1]; ey++) {
             for (dim_t ex = 0; ex < m_NE[0]; ex++) {
-                const double *in = source.getSampleDataRO(INDEX3(ex, ey, ez, m_NE[0], m_NE[1]));
+                const S *in = source.getSampleDataRO(INDEX3(ex, ey, ez, m_NE[0], m_NE[1]), sentinel);
                 //for each subelement
                 for (dim_t sz = 0; sz < scaling; sz++) {
                     const dim_t tz = ez*scaling + sz;
@@ -199,9 +239,9 @@ void MultiBrick::interpolateReducedToElementsFiner(const escript::Data& source,
                         const dim_t ty = ey*scaling + sy;
                         for (dim_t sx = 0; sx < scaling; sx++) {
                             const dim_t tx = ex*scaling + sx;
-                            double *out = target.getSampleDataRW(INDEX3(tx, ty, tz, m_NE[0]*scaling, m_NE[1]*scaling));
+                            S *out = target.getSampleDataRW(INDEX3(tx, ty, tz, m_NE[0]*scaling, m_NE[1]*scaling), sentinel);
                             for (dim_t comp = 0; comp < numComp; comp++) {
-                                const double quadvalue = in[comp];
+                                const S quadvalue = in[comp];
                                 for (int i = 0; i < 8; i++) {
                                     out[comp + i*numComp] = quadvalue;
                                 }
@@ -217,6 +257,26 @@ void MultiBrick::interpolateReducedToElementsFiner(const escript::Data& source,
 void MultiBrick::interpolateReducedToReducedFiner(const escript::Data& source,
         escript::Data& target, const MultiBrick& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateReducedToReducedFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateReducedToReducedFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}   
+
+
+
+template <typename S>
+void MultiBrick::interpolateReducedToReducedFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiBrick& other, S sentinel) const
+{
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
     target.requireWrite();
@@ -224,13 +284,13 @@ void MultiBrick::interpolateReducedToReducedFiner(const escript::Data& source,
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
         for (dim_t ex = 0; ex < m_NE[0]; ex++) {
-            const double *in = source.getSampleDataRO(ex + ey*m_NE[0]);
+            const S *in = source.getSampleDataRO(ex + ey*m_NE[0], sentinel);
             //for each subelement
             for (dim_t sy = 0; sy < scaling; sy++) {
                 const dim_t ty = ey*scaling + sy;
                 for (dim_t sx = 0; sx < scaling; sx++) {
                     const dim_t tx = ex*scaling + sx;
-                    double *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling);
+                    S *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling, sentinel);
                     for (dim_t comp = 0; comp < numComp; comp++) {
                         out[comp] = in[comp];
                     }
@@ -243,6 +303,24 @@ void MultiBrick::interpolateReducedToReducedFiner(const escript::Data& source,
 void MultiBrick::interpolateNodesToElementsFiner(const escript::Data& source,
         escript::Data& target, const MultiBrick& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateNodesToElementsFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesToElementsFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}   
+
+template <typename S>
+void MultiBrick::interpolateNodesToElementsFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiBrick& other, S sentinel) const
+{
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NE0 = m_NE[0], NE1 = m_NE[1], NE2 = m_NE[2], *theirNE = other.getNumElementsPerDim();
     const dim_t numComp = source.getDataPointSize();
@@ -251,102 +329,109 @@ void MultiBrick::interpolateNodesToElementsFiner(const escript::Data& source,
     for (dim_t ez = 0; ez < NE2; ez++) { //source nodes
         for (dim_t ey = 0; ey < NE1; ey++) {
             for (dim_t ex = 0; ex < NE0; ex++) {
-                const double *points[8] = {
-                        source.getSampleDataRO(INDEX3(ex,   ey,   ez, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex+1, ey,   ez, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex,   ey+1, ez, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex+1, ey+1, ez, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex,   ey,   ez+1, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex+1, ey,   ez+1, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex,   ey+1, ez+1, NE0+1, NE1+1)),
-                        source.getSampleDataRO(INDEX3(ex+1, ey+1, ez+1, NE0+1, NE1+1)),
+                const S *points[8] = {
+                        source.getSampleDataRO(INDEX3(ex,   ey,   ez, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex+1, ey,   ez, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex,   ey+1, ez, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex+1, ey+1, ez, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex,   ey,   ez+1, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex+1, ey,   ez+1, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex,   ey+1, ez+1, NE0+1, NE1+1), sentinel),
+                        source.getSampleDataRO(INDEX3(ex+1, ey+1, ez+1, NE0+1, NE1+1), sentinel),
                     };
-                const double origin[3] = {getLocalCoordinate(ex, 0),
+                const S origin[3] = {getLocalCoordinate(ex, 0),
                                           getLocalCoordinate(ey, 1),
                                           getLocalCoordinate(ez, 2)
                                           };
                 for (int sz = 0; sz < scaling; sz++) { //target elements
                     for (int sy = 0; sy < scaling; sy++) {
                         for (int sx = 0; sx < scaling; sx++) {
-                            const double x1 = (other.getLocalCoordinate(ex*scaling+sx, 0) - origin[0]) / m_dx[0] + FIRST_QUAD/scaling;
-                            const double x2 = x1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
-                            const double y1 = (other.getLocalCoordinate(ey*scaling+sy, 1) - origin[1]) / m_dx[1] + FIRST_QUAD/scaling;
-                            const double y2 = y1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
-                            const double z1 = (other.getLocalCoordinate(ez*scaling+sz, 2) - origin[2]) / m_dx[2] + FIRST_QUAD/scaling;
-                            const double z2 = z1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
-                            double *out = target.getSampleDataRW(INDEX3(ex*scaling+sx, ey*scaling+sy, ez*scaling+sz, theirNE[0], theirNE[1]));
+                            const S x1 = (other.getLocalCoordinate(ex*scaling+sx, 0) - origin[0]) / m_dx[0] + FIRST_QUAD/scaling;
+                            const S x2 = x1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
+                            const S y1 = (other.getLocalCoordinate(ey*scaling+sy, 1) - origin[1]) / m_dx[1] + FIRST_QUAD/scaling;
+                            const S y2 = y1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
+                            const S z1 = (other.getLocalCoordinate(ez*scaling+sz, 2) - origin[2]) / m_dx[2] + FIRST_QUAD/scaling;
+                            const S z2 = z1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
+			    const S mx1 = static_cast<S>(1)-x1;
+			    const S mx2 = static_cast<S>(1)-x2;
+			    const S my1 = static_cast<S>(1)-y1;
+			    const S my2 = static_cast<S>(1)-y2;
+			    const S mz1 = static_cast<S>(1)-z1;
+			    const S mz2 = static_cast<S>(1)-z2;
+			    
+                            S *out = target.getSampleDataRW(INDEX3(ex*scaling+sx, ey*scaling+sy, ez*scaling+sz, theirNE[0], theirNE[1]), sentinel);
                             for (int comp = 0; comp < numComp; comp++) {
                                 out[INDEX4(comp, 0, 0, 0, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x1)*(1-y1)*(1-z1)
-                                            + points[1][comp]*x1*(1-y1)*(1-z1) 
-                                            + points[2][comp]*(1-x1)*y1*(1-z1)
-                                            + points[3][comp]*x1*y1*(1-z1)
-                                            + points[4][comp]*(1-x1)*(1-y1)*z1
-                                            + points[5][comp]*x1*(1-y1)*z1 
-                                            + points[6][comp]*(1-x1)*y1*z1
+                                              points[0][comp]*(mx1)*(my1)*(mz1)
+                                            + points[1][comp]*x1*(my1)*(mz1) 
+                                            + points[2][comp]*(mx1)*y1*(mz1)
+                                            + points[3][comp]*x1*y1*(mz1)
+                                            + points[4][comp]*(mx1)*(my1)*z1
+                                            + points[5][comp]*x1*(my1)*z1 
+                                            + points[6][comp]*(mx1)*y1*z1
                                             + points[7][comp]*x1*y1*z1;
                                 out[INDEX4(comp, 1, 0, 0, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x2)*(1-y1)*(1-z1)
-                                            + points[1][comp]*x2*(1-y1)*(1-z1) 
-                                            + points[2][comp]*(1-x2)*y1*(1-z1)
-                                            + points[3][comp]*x2*y1*(1-z1)
-                                            + points[4][comp]*(1-x2)*(1-y1)*z1
-                                            + points[5][comp]*x2*(1-y1)*z1 
-                                            + points[6][comp]*(1-x2)*y1*z1
+                                              points[0][comp]*(mx2)*(my1)*(mz1)
+                                            + points[1][comp]*x2*(my1)*(mz1) 
+                                            + points[2][comp]*(mx2)*y1*(mz1)
+                                            + points[3][comp]*x2*y1*(mz1)
+                                            + points[4][comp]*(mx2)*(my1)*z1
+                                            + points[5][comp]*x2*(my1)*z1 
+                                            + points[6][comp]*(mx2)*y1*z1
                                             + points[7][comp]*x2*y1*z1;
                                 out[INDEX4(comp, 0, 1, 0, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x1)*(1-y2)*(1-z1)
-                                            + points[1][comp]*x1*(1-y2)*(1-z1) 
-                                            + points[2][comp]*(1-x1)*y2*(1-z1)
-                                            + points[3][comp]*x1*y2*(1-z1)
-                                            + points[4][comp]*(1-x1)*(1-y2)*z1
-                                            + points[5][comp]*x1*(1-y2)*z1 
-                                            + points[6][comp]*(1-x1)*y2*z1
+                                              points[0][comp]*(mx1)*(my2)*(mz1)
+                                            + points[1][comp]*x1*(my2)*(mz1) 
+                                            + points[2][comp]*(mx1)*y2*(mz1)
+                                            + points[3][comp]*x1*y2*(mz1)
+                                            + points[4][comp]*(mx1)*(my2)*z1
+                                            + points[5][comp]*x1*(my2)*z1 
+                                            + points[6][comp]*(mx1)*y2*z1
                                             + points[7][comp]*x1*y2*z1;
                                 out[INDEX4(comp, 1, 1, 0, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x2)*(1-y2)*(1-z1)
-                                            + points[1][comp]*x2*(1-y2)*(1-z1) 
-                                            + points[2][comp]*(1-x2)*y2*(1-z1)
-                                            + points[3][comp]*x2*y2*(1-z1)
-                                            + points[4][comp]*(1-x2)*(1-y2)*z1
-                                            + points[5][comp]*x2*(1-y2)*z1 
-                                            + points[6][comp]*(1-x2)*y2*z1
+                                              points[0][comp]*(mx2)*(my2)*(mz1)
+                                            + points[1][comp]*x2*(my2)*(mz1) 
+                                            + points[2][comp]*(mx2)*y2*(mz1)
+                                            + points[3][comp]*x2*y2*(mz1)
+                                            + points[4][comp]*(mx2)*(my2)*z1
+                                            + points[5][comp]*x2*(my2)*z1 
+                                            + points[6][comp]*(mx2)*y2*z1
                                             + points[7][comp]*x2*y2*z1;
                                 out[INDEX4(comp, 0, 0, 1, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x1)*(1-y1)*(1-z2)
-                                            + points[1][comp]*x1*(1-y1)*(1-z2) 
-                                            + points[2][comp]*(1-x1)*y1*(1-z2)
-                                            + points[3][comp]*x1*y1*(1-z2)
-                                            + points[4][comp]*(1-x1)*(1-y1)*z2
-                                            + points[5][comp]*x1*(1-y1)*z2 
-                                            + points[6][comp]*(1-x1)*y1*z2
+                                              points[0][comp]*(mx1)*(my1)*(mz2)
+                                            + points[1][comp]*x1*(my1)*(mz2) 
+                                            + points[2][comp]*(mx1)*y1*(mz2)
+                                            + points[3][comp]*x1*y1*(mz2)
+                                            + points[4][comp]*(mx1)*(my1)*z2
+                                            + points[5][comp]*x1*(my1)*z2 
+                                            + points[6][comp]*(mx1)*y1*z2
                                             + points[7][comp]*x1*y1*z2;
                                 out[INDEX4(comp, 1, 0, 1, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x2)*(1-y1)*(1-z2)
-                                            + points[1][comp]*x2*(1-y1)*(1-z2) 
-                                            + points[2][comp]*(1-x2)*y1*(1-z2)
-                                            + points[3][comp]*x2*y1*(1-z2)
-                                            + points[4][comp]*(1-x2)*(1-y1)*z2
-                                            + points[5][comp]*x2*(1-y1)*z2 
-                                            + points[6][comp]*(1-x2)*y1*z2
+                                              points[0][comp]*(mx2)*(my1)*(mz2)
+                                            + points[1][comp]*x2*(my1)*(mz2) 
+                                            + points[2][comp]*(mx2)*y1*(mz2)
+                                            + points[3][comp]*x2*y1*(mz2)
+                                            + points[4][comp]*(mx2)*(my1)*z2
+                                            + points[5][comp]*x2*(my1)*z2 
+                                            + points[6][comp]*(mx2)*y1*z2
                                             + points[7][comp]*x2*y1*z2;
                                 out[INDEX4(comp, 0, 1, 1, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x1)*(1-y2)*(1-z2)
-                                            + points[1][comp]*x1*(1-y2)*(1-z2) 
-                                            + points[2][comp]*(1-x1)*y2*(1-z2)
-                                            + points[3][comp]*x1*y2*(1-z2)
-                                            + points[4][comp]*(1-x1)*(1-y2)*z2
-                                            + points[5][comp]*x1*(1-y2)*z2 
-                                            + points[6][comp]*(1-x1)*y2*z2
+                                              points[0][comp]*(mx1)*(my2)*(mz2)
+                                            + points[1][comp]*x1*(my2)*(mz2) 
+                                            + points[2][comp]*(mx1)*y2*(mz2)
+                                            + points[3][comp]*x1*y2*(mz2)
+                                            + points[4][comp]*(mx1)*(my2)*z2
+                                            + points[5][comp]*x1*(my2)*z2 
+                                            + points[6][comp]*(mx1)*y2*z2
                                             + points[7][comp]*x1*y2*z2;
                                 out[INDEX4(comp, 1, 1, 1, numComp, 2, 2)] = 
-                                              points[0][comp]*(1-x2)*(1-y2)*(1-z2)
-                                            + points[1][comp]*x2*(1-y2)*(1-z2) 
-                                            + points[2][comp]*(1-x2)*y2*(1-z2)
-                                            + points[3][comp]*x2*y2*(1-z2)
-                                            + points[4][comp]*(1-x2)*(1-y2)*z2
-                                            + points[5][comp]*x2*(1-y2)*z2 
-                                            + points[6][comp]*(1-x2)*y2*z2
+                                              points[0][comp]*(mx2)*(my2)*(mz2)
+                                            + points[1][comp]*x2*(my2)*(mz2) 
+                                            + points[2][comp]*(mx2)*y2*(mz2)
+                                            + points[3][comp]*x2*y2*(mz2)
+                                            + points[4][comp]*(mx2)*(my2)*z2
+                                            + points[5][comp]*x2*(my2)*z2 
+                                            + points[6][comp]*(mx2)*y2*z2
                                             + points[7][comp]*x2*y2*z2;
                             }
                         }
@@ -359,6 +444,24 @@ void MultiBrick::interpolateNodesToElementsFiner(const escript::Data& source,
 
 void MultiBrick::interpolateElementsToElementsCoarser(const escript::Data& source,
         escript::Data& target, const MultiBrick& other) const
+{
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateElementsToElementsCoarserWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateElementsToElementsCoarserWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}   
+
+template <typename S>
+void MultiBrick::interpolateElementsToElementsCoarserWorker(const escript::Data& source,
+        escript::Data& target, const MultiBrick& other, S sentinel) const
 {
     const int scaling = m_subdivisions/other.getNumSubdivisionsPerElement();
     const double scaling_volume = (1./scaling)*(1./scaling)*(1./scaling);
@@ -384,7 +487,7 @@ void MultiBrick::interpolateElementsToElementsCoarser(const escript::Data& sourc
     for (dim_t tz = 0; tz < theirNE[2]; tz++) {
         for (dim_t ty = 0; ty < theirNE[1]; ty++) {
             for (dim_t tx = 0; tx < theirNE[0]; tx++) {
-                double *out = target.getSampleDataRW(INDEX3(tx, ty, tz, theirNE[0], theirNE[1]));
+                S *out = target.getSampleDataRW(INDEX3(tx, ty, tz, theirNE[0], theirNE[1]), sentinel);
                 //for each subelement
                 for (dim_t sz = 0; sz < scaling; sz++) {
                     const dim_t ez = tz*scaling + sz;
@@ -392,13 +495,13 @@ void MultiBrick::interpolateElementsToElementsCoarser(const escript::Data& sourc
                         const dim_t ey = ty*scaling + sy;
                         for (dim_t sx = 0; sx < scaling; sx++) {
                             const dim_t ex = tx*scaling + sx;
-                            const double *in = source.getSampleDataRO(INDEX3(ex, ey, ez, m_NE[0], m_NE[1]));
+                            const S *in = source.getSampleDataRO(INDEX3(ex, ey, ez, m_NE[0], m_NE[1]), sentinel);
                             for (int quad = 0; quad < 8; quad++) {
                                 int lx = sx*2 + quad%2;
                                 int ly = sy*2 + (quad%4)/2;
                                 int lz = sz*2 + quad/4;
                                 for (dim_t comp = 0; comp < numComp; comp++) {
-                                    const double quadvalue = scaling_volume * in[comp + quad*numComp];
+                                    const S quadvalue = scaling_volume * in[comp + quad*numComp];
                                     out[INDEX4(comp, 0, 0, 0, numComp, 2, 2)] += quadvalue * first_lagrange[lx] * first_lagrange[ly] * first_lagrange[lz];
                                     out[INDEX4(comp, 1, 0, 0, numComp, 2, 2)] += quadvalue * second_lagrange[lx] * first_lagrange[ly] * first_lagrange[lz];
                                     out[INDEX4(comp, 0, 1, 0, numComp, 2, 2)] += quadvalue * first_lagrange[lx] * second_lagrange[ly] * first_lagrange[lz];
@@ -417,9 +520,26 @@ void MultiBrick::interpolateElementsToElementsCoarser(const escript::Data& sourc
     }
 }
 
-
 void MultiBrick::interpolateElementsToElementsFiner(const escript::Data& source,
         escript::Data& target, const MultiBrick& other) const
+{
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateElementsToElementsFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateElementsToElementsFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}  
+
+template <typename S>
+void MultiBrick::interpolateElementsToElementsFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiBrick& other, S sentinel) const
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
@@ -441,7 +561,7 @@ void MultiBrick::interpolateElementsToElementsFiner(const escript::Data& source,
     for (dim_t ez = 0; ez < m_NE[2]; ez++) {
         for (dim_t ey = 0; ey < m_NE[1]; ey++) {
             for (dim_t ex = 0; ex < m_NE[0]; ex++) {
-                const double *in = source.getSampleDataRO(INDEX3(ex, ey, ez, m_NE[0], m_NE[1]));
+                const S *in = source.getSampleDataRO(INDEX3(ex, ey, ez, m_NE[0], m_NE[1]), sentinel);
                 //for each subelement
                 for (dim_t sz = 0; sz < scaling; sz++) {
                     const dim_t tz = ez*scaling + sz;
@@ -449,13 +569,13 @@ void MultiBrick::interpolateElementsToElementsFiner(const escript::Data& source,
                         const dim_t ty = ey*scaling + sy;
                         for (dim_t sx = 0; sx < scaling; sx++) {
                             const dim_t tx = ex*scaling + sx;
-                            double *out = target.getSampleDataRW(INDEX3(tx, ty, tz, m_NE[0]*scaling, m_NE[1]*scaling));
+                            S *out = target.getSampleDataRW(INDEX3(tx, ty, tz, m_NE[0]*scaling, m_NE[1]*scaling), sentinel);
                             for (int quad = 0; quad < 8; quad++) {
                                 const int lx = scaling*2*(quad%2) + sx*2;
                                 const int ly = scaling*2*((quad%4)/2) + sy*2;
                                 const int lz = scaling*2*(quad/4) + sz*2;
                                 for (dim_t comp = 0; comp < numComp; comp++) {
-                                    const double quadvalue = in[comp + quad*numComp];
+                                    const S quadvalue = in[comp + quad*numComp];
                                     out[INDEX4(comp, 0, 0, 0, numComp, 2, 2)] += quadvalue * lagranges[lx] * lagranges[ly] * lagranges[lz];
                                     out[INDEX4(comp, 0, 1, 0, numComp, 2, 2)] += quadvalue * lagranges[lx] * lagranges[ly+1] * lagranges[lz];
                                     out[INDEX4(comp, 1, 0, 0, numComp, 2, 2)] += quadvalue * lagranges[lx+1] * lagranges[ly] * lagranges[lz];

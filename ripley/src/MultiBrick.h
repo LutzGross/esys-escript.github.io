@@ -190,6 +190,23 @@ protected:
     dim_t findNode(const double *coords) const;
 
     const unsigned int m_subdivisions;
+private:
+    template <typename S>
+    void interpolateNodesToNodesFinerWorker(const escript::Data& source, escript::Data& target, const MultiBrick& other, S sentinel) const;
+    template <typename S>    
+    void interpolateNodesToElementsFinerWorker(const escript::Data& source, escript::Data& target, const MultiBrick& other, S sentinel) const;
+
+    template <typename S>    
+    void interpolateElementsToElementsCoarserWorker(const escript::Data& source, escript::Data& target, const MultiBrick& other, S sentinel) const;
+    template <typename S>
+    void interpolateElementsToElementsFinerWorker(const escript::Data& source, escript::Data& target, const MultiBrick& other, S sentinel) const;
+
+    template <typename S>
+    void interpolateReducedToElementsFinerWorker(const escript::Data& source, escript::Data& target, const MultiBrick& other, S sentinel) const;
+    template <typename S>
+    void interpolateReducedToReducedFinerWorker(const escript::Data& source, escript::Data& target, const MultiBrick& other, S sentinel) const;
+  
+    
 };
 
 
