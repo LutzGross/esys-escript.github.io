@@ -252,7 +252,7 @@ class PDECoef(object):
            if not newValue.isEmpty():
               if not newValue.getFunctionSpace() == self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder):
                 try:
-                  newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
+                    newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
                 except RuntimeError as er:
                  msg="Attempting to interpolate coefficient to function space %s encountered the following error: %s"%(self.getFunctionSpace(domain),str(er))
                  raise IllegalCoefficientFunctionSpace(msg)
@@ -2044,27 +2044,10 @@ class LinearPDE(LinearProblem):
                  row_q=escore.Data(q,self.getFunctionSpaceForEquation())
                  col_q=escore.Data(q,self.getFunctionSpaceForSolution())
                  u=self.createSolution()
-                 # workaround for Bug #389
-                 if (u.isComplex()):
-                    ur=u.real()
-                    ur.copyWithMask(r_s.real(),col_q)
-                    ui=u.imag()
-                    ui.copyWithMask(r_s.imag(),col_q)
-                    u=ur+1j*ui
-                 else:
-                    u.copyWithMask(r_s,col_q)
+                 u.copyWithMask(r_s,col_q)
                  righthandside-=operator*u                 
                  operator.nullifyRowsAndCols(row_q,col_q,1.)
-         # workaround for Bug #389
-         if (righthandside.isComplex()):
-             ur=righthandside.real()
-             ur.copyWithMask(r_s.real(),q)
-             ui=righthandside.imag()
-             ui.copyWithMask(r_s.imag(),q)
-             righthandside*=0
-             righthandside+=ur+1j*ui
-         else:
-             righthandside.copyWithMask(r_s,q)
+         righthandside.copyWithMask(r_s,q)
 
    def setValue(self,**coefficients):
       """
