@@ -450,22 +450,49 @@ void Data::init_from_data_and_fs(const Data& inData,
             }
             // if the data is not lazy, this will just be a cast to DataReady
             DataReady_ptr dr=inData.m_data->resolve();
-            DataConstant* dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getVectorRO());     
+	    DataConstant* dc=0;
+	    if (inData.isComplex())
+	    {
+                dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getTypedVectorRO((DataTypes::cplx_t)0));     	      
+	    }
+	    else
+	    {
+                dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getTypedVectorRO((DataTypes::real_t)0));     	      
+	    }
             set_m_data(DataAbstract_ptr(dc));
         } else {
-            Data tmp(0,inData.getDataPointShape(),functionspace,true);
-            // Note: Must use a reference or pointer to a derived object
-            // in order to get polymorphic behaviour. Shouldn't really
-            // be able to create an instance of AbstractDomain but that was done
-            // as a boost:python work around which may no longer be required.
-            /*const AbstractDomain& inDataDomain=inData.getDomain();*/
-            const_Domain_ptr inDataDomain=inData.getDomain();
-            if  (inDataDomain==functionspace.getDomain()) {
-                inDataDomain->interpolateOnDomain(tmp,inData);
-            } else {
-                inDataDomain->interpolateAcross(tmp,inData);
-            }
-            set_m_data(tmp.m_data);
+	    if (inData.isComplex())
+	    {
+		Data tmp((DataTypes::cplx_t)0,inData.getDataPointShape(),functionspace,true);
+		// Note: Must use a reference or pointer to a derived object
+		// in order to get polymorphic behaviour. Shouldn't really
+		// be able to create an instance of AbstractDomain but that was done
+		// as a boost:python work around which may no longer be required.
+		/*const AbstractDomain& inDataDomain=inData.getDomain();*/
+		const_Domain_ptr inDataDomain=inData.getDomain();
+		if  (inDataDomain==functionspace.getDomain()) {
+		    inDataDomain->interpolateOnDomain(tmp,inData);
+		} else {
+		    inDataDomain->interpolateAcross(tmp,inData);
+		}
+		set_m_data(tmp.m_data);	      	      
+	    }
+	    else
+	    {
+		Data tmp(0,inData.getDataPointShape(),functionspace,true);
+		// Note: Must use a reference or pointer to a derived object
+		// in order to get polymorphic behaviour. Shouldn't really
+		// be able to create an instance of AbstractDomain but that was done
+		// as a boost:python work around which may no longer be required.
+		/*const AbstractDomain& inDataDomain=inData.getDomain();*/
+		const_Domain_ptr inDataDomain=inData.getDomain();
+		if  (inDataDomain==functionspace.getDomain()) {
+		    inDataDomain->interpolateOnDomain(tmp,inData);
+		} else {
+		    inDataDomain->interpolateAcross(tmp,inData);
+		}
+		set_m_data(tmp.m_data);
+	    }
         }
     }
     m_protected=false;
