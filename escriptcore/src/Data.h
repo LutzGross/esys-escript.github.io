@@ -1612,7 +1612,9 @@ instead of manually manipulating process and point IDs.
    void init_from_data_and_fs(const Data& inData,
            const FunctionSpace& functionspace);   
    
-   
+   template <typename S>
+   void 
+   maskWorker(Data& other2, Data& mask2, S sentinel);
 
 template <class BinaryOp>
   DataTypes::real_t 
