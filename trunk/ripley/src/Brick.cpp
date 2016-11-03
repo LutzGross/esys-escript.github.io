@@ -3037,34 +3037,72 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
                                        const escript::Data& in,
                                        bool reduced) const
 {
+    if (out.isComplex()!=in.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");   
+    }
+    if (out.isComplex())
+    {
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));    
+    }
+    else
+    {
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));    
+    }  
+}
+//protected
+void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
+                                    bool reduced) const
+{
+    if (out.isComplex()!=in.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");   
+    }
+    if (out.isComplex())
+    {
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));    
+    }
+    else
+    {
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));    
+    }      
+}
+
+
+//private
+template <typename S>
+void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
+                                       const escript::Data& in,
+                                       bool reduced, S sentinel) const                                       
+{
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<S> f_000(numComp);
+            vector<S> f_001(numComp);
+            vector<S> f_010(numComp);
+            vector<S> f_011(numComp);
+            vector<S> f_100(numComp);
+            vector<S> f_101(numComp);
+            vector<S> f_110(numComp);
+            vector<S> f_111(numComp);
 #pragma omp for
             for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i])/8;
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(8);
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -3072,33 +3110,33 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
         } // end of parallel section
     } else {
         out.requireWrite();
-        const double c0 = .0094373878376559314545;
-        const double c1 = .035220810900864519624;
-        const double c2 = .13144585576580214704;
-        const double c3 = .49056261216234406855;
+        const S c0 = .0094373878376559314545;
+        const S c1 = .035220810900864519624;
+        const S c2 = .13144585576580214704;
+        const S c3 = .49056261216234406855;
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<S> f_000(numComp);
+            vector<S> f_001(numComp);
+            vector<S> f_010(numComp);
+            vector<S> f_011(numComp);
+            vector<S> f_100(numComp);
+            vector<S> f_101(numComp);
+            vector<S> f_110(numComp);
+            vector<S> f_111(numComp);
 #pragma omp for
             for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_000[i]*c3 + f_111[i]*c0 + c2*(f_001[i] + f_010[i] + f_100[i]) + c1*(f_011[i] + f_101[i] + f_110[i]);
                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_100[i]*c3 + c2*(f_000[i] + f_101[i] + f_110[i]) + c1*(f_001[i] + f_010[i] + f_111[i]);
@@ -3116,34 +3154,35 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
     }
 }
 
-//protected
-void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
-                                    bool reduced) const
+//private
+template <typename S>
+void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Data& in,
+                                    bool reduced, S sentinel) const
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<S> f_000(numComp);
+            vector<S> f_001(numComp);
+            vector<S> f_010(numComp);
+            vector<S> f_011(numComp);
+            vector<S> f_100(numComp);
+            vector<S> f_101(numComp);
+            vector<S> f_110(numComp);
+            vector<S> f_111(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i])/4;
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i])/static_cast<S>(4);
                         } // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -3152,13 +3191,13 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_100[i] + f_101[i] + f_110[i] + f_111[i])/4;
+                            o[INDEX2(i,numComp,0)] = (f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(4);
                         } // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -3167,13 +3206,13 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_100[i] + f_101[i])/4;
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_100[i] + f_101[i])/static_cast<S>(4);
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k2 loop
@@ -3182,13 +3221,13 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_010[i] + f_011[i] + f_110[i] + f_111[i])/4;
+                            o[INDEX2(i,numComp,0)] = (f_010[i] + f_011[i] + f_110[i] + f_111[i])/static_cast<S>(4);
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k2 loop
@@ -3197,13 +3236,13 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_010[i] + f_100[i] + f_110[i])/4;
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_010[i] + f_100[i] + f_110[i])/static_cast<S>(4);
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -3212,13 +3251,13 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = (f_001[i] + f_011[i] + f_101[i] + f_111[i])/4;
+                            o[INDEX2(i,numComp,0)] = (f_001[i] + f_011[i] + f_101[i] + f_111[i])/static_cast<S>(4);
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -3226,28 +3265,28 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
         } // end of parallel section
     } else {
         out.requireWrite();
-        const double c0 = 0.044658198738520451079;
-        const double c1 = 0.16666666666666666667;
-        const double c2 = 0.62200846792814621559;
+        const S c0 = 0.044658198738520451079;
+        const S c1 = 0.16666666666666666667;
+        const S c2 = 0.62200846792814621559;
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<S> f_000(numComp);
+            vector<S> f_001(numComp);
+            vector<S> f_010(numComp);
+            vector<S> f_011(numComp);
+            vector<S> f_100(numComp);
+            vector<S> f_101(numComp);
+            vector<S> f_110(numComp);
+            vector<S> f_111(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_011[i]*c0 + c1*(f_001[i] + f_010[i]);
                             o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_010[i]*c2 + c1*(f_000[i] + f_011[i]);
@@ -3261,11 +3300,11 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_100[i]*c2 + f_111[i]*c0 + c1*(f_101[i] + f_110[i]);
                             o[INDEX2(i,numComp,1)] = f_101[i]*c0 + f_110[i]*c2 + c1*(f_100[i] + f_111[i]);
@@ -3279,11 +3318,11 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_100[i]);
                             o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_101[i]);
@@ -3297,11 +3336,11 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_010[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_110[i]);
                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_111[i]);
@@ -3315,11 +3354,11 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_100[i]);
                             o[INDEX2(i,numComp,1)] = f_010[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_110[i]);
@@ -3333,11 +3372,11 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
+                        S* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), sentinel);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = f_001[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_101[i]);
                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_111[i]);

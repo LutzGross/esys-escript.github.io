@@ -118,8 +118,27 @@ void MultiRectangle::validateInterpolationAcross(int fsType_source,
     }
 }
 
+
 void MultiRectangle::interpolateNodesToNodesFiner(const escript::Data& source,
         escript::Data& target, const MultiRectangle& other) const
+{
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateNodesToNodesFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesToNodesFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiRectangle::interpolateNodesToNodesFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiRectangle& other, S sentinel) const
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NN0 = m_NN[0], NN1 = m_NN[1], otherNN0 = other.getNumNodesPerDim()[0];
@@ -128,18 +147,19 @@ void MultiRectangle::interpolateNodesToNodesFiner(const escript::Data& source,
 #pragma omp parallel for
     for (dim_t ny = 0; ny < NN1 - 1; ny++) { //source nodes
         for (dim_t nx = 0; nx < NN0 - 1; nx++) {
-            const double *x0y0 = source.getSampleDataRO(ny*NN0 + nx);
-            const double *x0y1 = source.getSampleDataRO((ny+1)*NN0 + nx);
-            const double *x1y0 = source.getSampleDataRO(ny*NN0 + nx + 1);
-            const double *x1y1 = source.getSampleDataRO((ny+1)*NN0 + nx + 1);
-            const double origin[2] = {getLocalCoordinate(nx, 0), getLocalCoordinate(ny, 1)};
+            const S *x0y0 = source.getSampleDataRO(ny*NN0 + nx, sentinel);
+            const S *x0y1 = source.getSampleDataRO((ny+1)*NN0 + nx, sentinel);
+            const S *x1y0 = source.getSampleDataRO(ny*NN0 + nx + 1, sentinel);
+            const S *x1y1 = source.getSampleDataRO((ny+1)*NN0 + nx + 1, sentinel);
+            const S origin[2] = {getLocalCoordinate(nx, 0), getLocalCoordinate(ny, 1)};
             for (int sy = 0; sy < scaling + 1; sy++) { //target nodes
-                const double y = (other.getLocalCoordinate(ny*scaling+sy, 1) - origin[1]) / m_dx[1];
+                const S y = (other.getLocalCoordinate(ny*scaling+sy, 1) - origin[1]) / m_dx[1];
                 for (int sx = 0; sx < scaling + 1; sx++) {
-                    const double x = (other.getLocalCoordinate(nx*scaling+sx, 0) - origin[0]) / m_dx[0];
-                    double *out = target.getSampleDataRW(nx*scaling+sx + (ny*scaling+sy)*otherNN0);
+                    const S x = (other.getLocalCoordinate(nx*scaling+sx, 0) - origin[0]) / m_dx[0];
+                    S *out = target.getSampleDataRW(nx*scaling+sx + (ny*scaling+sy)*otherNN0, sentinel);
                     for (int comp = 0; comp < numComp; comp++) {
-                        out[comp] = x0y0[comp]*(1-x)*(1-y) + x1y0[comp]*x*(1-y) + x0y1[comp]*(1-x)*y + x1y1[comp]*x*y;
+                        out[comp] = x0y0[comp]*(static_cast<S>(1)-x)*(static_cast<S>(1)-y) 
+			   + x1y0[comp]*x*(static_cast<S>(1)-y) + x0y1[comp]*(static_cast<S>(1)-x)*y + x1y1[comp]*x*y;
                     }
                 }
             }
@@ -150,6 +170,24 @@ void MultiRectangle::interpolateNodesToNodesFiner(const escript::Data& source,
 void MultiRectangle::interpolateReducedToElementsFiner(const escript::Data& source,
         escript::Data& target, const MultiRectangle& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateReducedToElementsFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateReducedToElementsFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiRectangle::interpolateReducedToElementsFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiRectangle& other, S sentinel) const
+{
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
     target.requireWrite();
@@ -157,15 +195,15 @@ void MultiRectangle::interpolateReducedToElementsFiner(const escript::Data& sour
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
         for (dim_t ex = 0; ex < m_NE[0]; ex++) {
-            const double *in = source.getSampleDataRO(ex + ey*m_NE[0]);
+            const S *in = source.getSampleDataRO(ex + ey*m_NE[0], sentinel);
             //for each subelement
             for (dim_t sy = 0; sy < scaling; sy++) {
                 const dim_t ty = ey*scaling + sy;
                 for (dim_t sx = 0; sx < scaling; sx++) {
                     const dim_t tx = ex*scaling + sx;
-                    double *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling);
+                    S *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling, sentinel);
                     for (dim_t comp = 0; comp < numComp; comp++) {
-                        const double quadvalue = in[comp];
+                        const S quadvalue = in[comp];
                         out[INDEX3(comp, 0, 0, numComp, 2)] = quadvalue;
                         out[INDEX3(comp, 0, 1, numComp, 2)] = quadvalue;
                         out[INDEX3(comp, 1, 0, numComp, 2)] = quadvalue;
@@ -177,8 +215,27 @@ void MultiRectangle::interpolateReducedToElementsFiner(const escript::Data& sour
     }
 }
 
+
 void MultiRectangle::interpolateReducedToReducedFiner(const escript::Data& source,
         escript::Data& target, const MultiRectangle& other) const
+{
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateReducedToReducedFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateReducedToReducedFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiRectangle::interpolateReducedToReducedFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiRectangle& other, S sentinel) const
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
@@ -187,13 +244,13 @@ void MultiRectangle::interpolateReducedToReducedFiner(const escript::Data& sourc
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
         for (dim_t ex = 0; ex < m_NE[0]; ex++) {
-            const double *in = source.getSampleDataRO(ex + ey*m_NE[0]);
+            const S *in = source.getSampleDataRO(ex + ey*m_NE[0], sentinel);
             //for each subelement
             for (dim_t sy = 0; sy < scaling; sy++) {
                 const dim_t ty = ey*scaling + sy;
                 for (dim_t sx = 0; sx < scaling; sx++) {
                     const dim_t tx = ex*scaling + sx;
-                    double *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling);
+                    S *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling, sentinel);
                     for (dim_t comp = 0; comp < numComp; comp++) {
                         out[comp] = in[comp];
                     }
@@ -203,8 +260,27 @@ void MultiRectangle::interpolateReducedToReducedFiner(const escript::Data& sourc
     }
 }
 
+
 void MultiRectangle::interpolateNodesToElementsFiner(const escript::Data& source,
         escript::Data& target, const MultiRectangle& other) const
+{
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateNodesToElementsFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesToElementsFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiRectangle::interpolateNodesToElementsFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiRectangle& other, S sentinel) const
 {
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t NE0 = m_NE[0], NE1 = m_NE[1];
@@ -213,23 +289,27 @@ void MultiRectangle::interpolateNodesToElementsFiner(const escript::Data& source
 #pragma omp parallel for
     for (dim_t ey = 0; ey < NE1; ey++) { //source nodes
         for (dim_t ex = 0; ex < NE0; ex++) {
-            const double *x0y0 = source.getSampleDataRO(ey*(NE0+1) + ex);
-            const double *x0y1 = source.getSampleDataRO((ey+1)*(NE0+1) + ex);
-            const double *x1y0 = source.getSampleDataRO(ey*(NE0+1) + ex + 1);
-            const double *x1y1 = source.getSampleDataRO((ey+1)*(NE0+1) + ex + 1);
-            const double origin[2] = {getLocalCoordinate(ex, 0), getLocalCoordinate(ey, 1)};
+            const S *x0y0 = source.getSampleDataRO(ey*(NE0+1) + ex, sentinel);
+            const S *x0y1 = source.getSampleDataRO((ey+1)*(NE0+1) + ex, sentinel);
+            const S *x1y0 = source.getSampleDataRO(ey*(NE0+1) + ex + 1, sentinel);
+            const S *x1y1 = source.getSampleDataRO((ey+1)*(NE0+1) + ex + 1, sentinel);
+            const S origin[2] = {getLocalCoordinate(ex, 0), getLocalCoordinate(ey, 1)};
             for (int sy = 0; sy < scaling; sy++) { //target elements
                 for (int sx = 0; sx < scaling; sx++) {
-                    const double x1 = (other.getLocalCoordinate(ex*scaling+sx, 0) - origin[0]) / m_dx[0] + FIRST_QUAD/scaling;
-                    const double x2 = x1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
-                    const double y1 = (other.getLocalCoordinate(ey*scaling+sy, 1) - origin[1]) / m_dx[1] + FIRST_QUAD/scaling;
-                    const double y2 = y1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
-                    double *out = target.getSampleDataRW(ex*scaling+sx + (ey*scaling+sy)*NE0*scaling);
+                    const S x1 = (other.getLocalCoordinate(ex*scaling+sx, 0) - origin[0]) / m_dx[0] + FIRST_QUAD/scaling;
+                    const S x2 = x1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
+                    const S y1 = (other.getLocalCoordinate(ey*scaling+sy, 1) - origin[1]) / m_dx[1] + FIRST_QUAD/scaling;
+                    const S y2 = y1 + (SECOND_QUAD - FIRST_QUAD)/scaling;
+		    const S mx1=static_cast<S>(1)-x1;
+		    const S mx2=static_cast<S>(1)-x2;
+		    const S my1=static_cast<S>(1)-y1;
+		    const S my2=static_cast<S>(1)-y2;
+                    S *out = target.getSampleDataRW(ex*scaling+sx + (ey*scaling+sy)*NE0*scaling, sentinel);
                     for (int comp = 0; comp < numComp; comp++) {
-                        out[INDEX3(comp, 0, 0, numComp, 2)] = x0y0[comp]*(1-x1)*(1-y1) + x1y0[comp]*x1*(1-y1) + x0y1[comp]*(1-x1)*y1 + x1y1[comp]*x1*y1;
-                        out[INDEX3(comp, 0, 1, numComp, 2)] = x0y0[comp]*(1-x1)*(1-y2) + x1y0[comp]*x1*(1-y2) + x0y1[comp]*(1-x1)*y2 + x1y1[comp]*x1*y2;
-                        out[INDEX3(comp, 1, 0, numComp, 2)] = x0y0[comp]*(1-x2)*(1-y1) + x1y0[comp]*x2*(1-y1) + x0y1[comp]*(1-x2)*y1 + x1y1[comp]*x2*y1;
-                        out[INDEX3(comp, 1, 1, numComp, 2)] = x0y0[comp]*(1-x2)*(1-y2) + x1y0[comp]*x2*(1-y2) + x0y1[comp]*(1-x2)*y2 + x1y1[comp]*x2*y2;
+                        out[INDEX3(comp, 0, 0, numComp, 2)] = x0y0[comp]*(mx1)*(my1) + x1y0[comp]*x1*(my1) + x0y1[comp]*(mx1)*y1 + x1y1[comp]*x1*y1;
+                        out[INDEX3(comp, 0, 1, numComp, 2)] = x0y0[comp]*(mx1)*(my2) + x1y0[comp]*x1*(my2) + x0y1[comp]*(mx1)*y2 + x1y1[comp]*x1*y2;
+                        out[INDEX3(comp, 1, 0, numComp, 2)] = x0y0[comp]*(mx2)*(my1) + x1y0[comp]*x2*(my1) + x0y1[comp]*(mx2)*y1 + x1y1[comp]*x2*y1;
+                        out[INDEX3(comp, 1, 1, numComp, 2)] = x0y0[comp]*(mx2)*(my2) + x1y0[comp]*x2*(my2) + x0y1[comp]*(mx2)*y2 + x1y1[comp]*x2*y2;
                     }
                 }
             }
@@ -240,14 +320,32 @@ void MultiRectangle::interpolateNodesToElementsFiner(const escript::Data& source
 void MultiRectangle::interpolateElementsToElementsCoarser(const escript::Data& source,
         escript::Data& target, const MultiRectangle& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateElementsToElementsCoarserWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateElementsToElementsCoarserWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiRectangle::interpolateElementsToElementsCoarserWorker(const escript::Data& source,
+        escript::Data& target, const MultiRectangle& other, S sentinel) const
+{
     const int scaling = m_subdivisions/other.getNumSubdivisionsPerElement();
-    const double scaling_volume = (1./scaling)*(1./scaling);
+    const S scaling_volume = (1./scaling)*(1./scaling);
     const dim_t *theirNE = other.getNumElementsPerDim();
     const dim_t numComp = source.getDataPointSize();
 
-    vector<double> points(scaling*2, 0);
-    vector<double> first_lagrange(scaling*2, 1);
-    vector<double> second_lagrange(scaling*2, 1);
+    vector<S> points(scaling*2, 0);
+    vector<S> first_lagrange(scaling*2, 1);
+    vector<S> second_lagrange(scaling*2, 1);
     
     for (int i = 0; i < scaling*2; i+=2) {
         points[i] = (i/2 + FIRST_QUAD)/scaling;
@@ -263,18 +361,18 @@ void MultiRectangle::interpolateElementsToElementsCoarser(const escript::Data& s
 #pragma omp parallel for
     for (dim_t ty = 0; ty < theirNE[1]; ty++) {
         for (dim_t tx = 0; tx < theirNE[0]; tx++) {
-            double *out = target.getSampleDataRW(tx + ty*theirNE[0]);
+            S *out = target.getSampleDataRW(tx + ty*theirNE[0], sentinel);
             //for each subelement
             for (dim_t sy = 0; sy < scaling; sy++) {
                 const dim_t ey = ty*scaling + sy;
                 for (dim_t sx = 0; sx < scaling; sx++) {
                     const dim_t ex = tx*scaling + sx;
-                    const double *in = source.getSampleDataRO(ex + ey*m_NE[0]);
+                    const S *in = source.getSampleDataRO(ex + ey*m_NE[0], sentinel);
                     for (int quad = 0; quad < 4; quad++) {
                         int lx = sx*2 + quad%2;
                         int ly = sy*2 + quad/2;
                         for (dim_t comp = 0; comp < numComp; comp++) {
-                            const double quadvalue = scaling_volume * in[comp + quad*numComp];
+                            const S quadvalue = scaling_volume * in[comp + quad*numComp];
                             out[INDEX3(comp, 0, 0, numComp, 2)] += quadvalue * first_lagrange[lx] * first_lagrange[ly];
                             out[INDEX3(comp, 0, 1, numComp, 2)] += quadvalue * first_lagrange[lx] * second_lagrange[ly];
                             out[INDEX3(comp, 1, 0, numComp, 2)] += quadvalue * second_lagrange[lx] * first_lagrange[ly];
@@ -291,11 +389,29 @@ void MultiRectangle::interpolateElementsToElementsCoarser(const escript::Data& s
 void MultiRectangle::interpolateElementsToElementsFiner(const escript::Data& source,
         escript::Data& target, const MultiRectangle& other) const
 {
+    if (source.isComplex()!=target.isComplex())
+    {
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");        
+    }
+    if (source.isComplex())
+    {
+        interpolateElementsToElementsFinerWorker(source, target, other, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateElementsToElementsFinerWorker(source, target, other, escript::DataTypes::real_t(0));      
+    }
+}
+
+template <typename S>
+void MultiRectangle::interpolateElementsToElementsFinerWorker(const escript::Data& source,
+        escript::Data& target, const MultiRectangle& other, S sentinel) const
+{
     const int scaling = other.getNumSubdivisionsPerElement()/m_subdivisions;
     const dim_t numComp = source.getDataPointSize();
 
-    vector<double> points(scaling*2, 0);
-    vector<double> lagranges(scaling*4, 1);
+    vector<S> points(scaling*2, 0);
+    vector<S> lagranges(scaling*4, 1);
 
     for (int i = 0; i < scaling*2; i+=2) {
         points[i] = (i/2 + FIRST_QUAD)/scaling;
@@ -310,18 +426,18 @@ void MultiRectangle::interpolateElementsToElementsFiner(const escript::Data& sou
 #pragma omp parallel for
     for (dim_t ey = 0; ey < m_NE[1]; ey++) {
         for (dim_t ex = 0; ex < m_NE[0]; ex++) {
-            const double *in = source.getSampleDataRO(ex + ey*m_NE[0]);
+            const S *in = source.getSampleDataRO(ex + ey*m_NE[0], sentinel);
             //for each subelement
             for (dim_t sy = 0; sy < scaling; sy++) {
                 const dim_t ty = ey*scaling + sy;
                 for (dim_t sx = 0; sx < scaling; sx++) {
                     const dim_t tx = ex*scaling + sx;
-                    double *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling);
+                    S *out = target.getSampleDataRW(tx + ty*m_NE[0]*scaling, sentinel);
                     for (int quad = 0; quad < 4; quad++) {
                         const int lx = scaling*2*(quad%2) + sx*2;
                         const int ly = scaling*2*(quad/2) + sy*2;
                         for (dim_t comp = 0; comp < numComp; comp++) {
-                            const double quadvalue = in[comp + quad*numComp];
+                            const S quadvalue = in[comp + quad*numComp];
                             out[INDEX3(comp, 0, 0, numComp, 2)] += quadvalue * lagranges[lx] * lagranges[ly];
                             out[INDEX3(comp, 0, 1, numComp, 2)] += quadvalue * lagranges[lx] * lagranges[ly+1];
                             out[INDEX3(comp, 1, 0, numComp, 2)] += quadvalue * lagranges[lx+1] * lagranges[ly];
