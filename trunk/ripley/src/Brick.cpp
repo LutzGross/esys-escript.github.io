@@ -1511,7 +1511,21 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 }
 
 //protected
-void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
+void Brick::assembleGradient(escript::Data& out,
+                             const escript::Data& in) const
+{
+    if (out.isComplex() != in.isComplex())
+        throw ValueError("Gradient: input & output complexity must match.");
+    else if (in.isComplex())
+        assembleGradientImpl<cplx_t>(out, in);
+    else
+        assembleGradientImpl<real_t>(out, in);
+}
+
+//protected
+template<typename Scalar>
+void Brick::assembleGradientImpl(escript::Data& out,
+                                 const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const double C0 = .044658198738520451079;
@@ -1524,45 +1538,46 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
     const dim_t NE2 = m_NE[2];
+    const Scalar zero = static_cast<Scalar>(0);
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<Scalar> f_000(numComp, zero);
+            vector<Scalar> f_001(numComp, zero);
+            vector<Scalar> f_010(numComp, zero);
+            vector<Scalar> f_011(numComp, zero);
+            vector<Scalar> f_100(numComp, zero);
+            vector<Scalar> f_101(numComp, zero);
+            vector<Scalar> f_110(numComp, zero);
+            vector<Scalar> f_111(numComp, zero);
 #pragma omp for
             for (index_t k2=0; k2 < NE2; ++k2) {
                 for (index_t k1=0; k1 < NE1; ++k1) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
-                            const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
-                            const double V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
-                            const double V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
-                            const double V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
-                            const double V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
-                            const double V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
-                            const double V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
-                            const double V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
-                            const double V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
-                            const double V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
-                            const double V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
+                            const Scalar V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
+                            const Scalar V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
+                            const Scalar V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
+                            const Scalar V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
+                            const Scalar V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
+                            const Scalar V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
+                            const Scalar V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
+                            const Scalar V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
+                            const Scalar V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
+                            const Scalar V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
+                            const Scalar V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
+                            const Scalar V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = V4;
                             o[INDEX3(i,2,0,numComp,3)] = V8;
@@ -1596,27 +1611,27 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<Scalar> f_000(numComp, zero);
+            vector<Scalar> f_001(numComp, zero);
+            vector<Scalar> f_010(numComp, zero);
+            vector<Scalar> f_011(numComp, zero);
+            vector<Scalar> f_100(numComp, zero);
+            vector<Scalar> f_101(numComp, zero);
+            vector<Scalar> f_110(numComp, zero);
+            vector<Scalar> f_111(numComp, zero);
 #pragma omp for
             for (index_t k2=0; k2 < NE2; ++k2) {
                 for (index_t k1=0; k1 < NE1; ++k1) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
@@ -1630,32 +1645,32 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<Scalar> f_000(numComp, zero);
+            vector<Scalar> f_001(numComp, zero);
+            vector<Scalar> f_010(numComp, zero);
+            vector<Scalar> f_011(numComp, zero);
+            vector<Scalar> f_100(numComp, zero);
+            vector<Scalar> f_101(numComp, zero);
+            vector<Scalar> f_110(numComp, zero);
+            vector<Scalar> f_111(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k1=0; k1 < NE1; ++k1) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,NE1));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(1,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(1,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(1,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,NE1), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / m_dx[1];
-                            const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / m_dx[1];
-                            const double V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / m_dx[2];
-                            const double V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / m_dx[2];
+                            const Scalar V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / m_dx[1];
+                            const Scalar V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / m_dx[1];
+                            const Scalar V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / m_dx[2];
+                            const Scalar V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = V0;
                             o[INDEX3(i,2,0,numComp,3)] = V2;
@@ -1676,20 +1691,20 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k1=0; k1 < NE1; ++k1) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,NE1));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,NE1), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
-                            const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
-                            const double V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / m_dx[2];
-                            const double V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / m_dx[2];
+                            const Scalar V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
+                            const Scalar V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
+                            const Scalar V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / m_dx[2];
+                            const Scalar V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = V0;
                             o[INDEX3(i,2,0,numComp,3)] = V2;
@@ -1710,19 +1725,19 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / m_dx[0];
-                            const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / m_dx[2];
-                            const double V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / m_dx[2];
+                            const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / m_dx[0];
+                            const Scalar V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / m_dx[2];
+                            const Scalar V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,0,numComp,3)] = V1;
@@ -1743,20 +1758,20 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
-                            const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
-                            const double V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / m_dx[2];
-                            const double V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / m_dx[2];
+                            const Scalar V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
+                            const Scalar V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
+                            const Scalar V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / m_dx[2];
+                            const Scalar V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,0,numComp,3)] = V2;
@@ -1777,20 +1792,20 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k1=0; k1 < NE1; ++k1) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / m_dx[0];
-                            const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / m_dx[0];
-                            const double V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / m_dx[1];
-                            const double V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / m_dx[1];
+                            const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / m_dx[0];
+                            const Scalar V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / m_dx[0];
+                            const Scalar V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / m_dx[1];
+                            const Scalar V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / m_dx[1];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = V2;
                             o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
@@ -1811,20 +1826,20 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k1=0; k1 < NE1; ++k1) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
-                            const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
-                            const double V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
-                            const double V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
+                            const Scalar V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
+                            const Scalar V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
+                            const Scalar V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
+                            const Scalar V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = V2;
                             o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
@@ -1846,27 +1861,27 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
         out.requireWrite();
 #pragma omp parallel
         {
-            vector<double> f_000(numComp);
-            vector<double> f_001(numComp);
-            vector<double> f_010(numComp);
-            vector<double> f_011(numComp);
-            vector<double> f_100(numComp);
-            vector<double> f_101(numComp);
-            vector<double> f_110(numComp);
-            vector<double> f_111(numComp);
+            vector<Scalar> f_000(numComp, zero);
+            vector<Scalar> f_001(numComp, zero);
+            vector<Scalar> f_010(numComp, zero);
+            vector<Scalar> f_011(numComp, zero);
+            vector<Scalar> f_100(numComp, zero);
+            vector<Scalar> f_101(numComp, zero);
+            vector<Scalar> f_110(numComp, zero);
+            vector<Scalar> f_111(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k1=0; k1 < NE1; ++k1) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,NE1));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(1,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(1,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(1,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,NE1), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / m_dx[1];
@@ -1879,15 +1894,15 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k1=0; k1 < NE1; ++k1) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,NE1));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,NE1), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / m_dx[1];
@@ -1900,15 +1915,15 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
@@ -1921,15 +1936,15 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k2=0; k2 < NE2; ++k2) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
@@ -1942,15 +1957,15 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k1=0; k1 < NE1; ++k1) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / m_dx[1];
@@ -1963,15 +1978,15 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 #pragma omp for nowait
                 for (index_t k1=0; k1 < NE1; ++k1) {
                     for (index_t k0=0; k0 < NE0; ++k0) {
-                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0));
+                        memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-2, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0), zero);
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / m_dx[1];
@@ -1983,6 +1998,15 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
         } // end of parallel section
     }
 }
+
+// instantiate our two supported versions
+template
+void Brick::assembleGradientImpl<real_t>(escript::Data& out,
+                                         const escript::Data& in) const;
+
+template
+void Brick::assembleGradientImpl<cplx_t>(escript::Data& out,
+                                         const escript::Data& in) const;
 
 //protected
 void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& arg) const
