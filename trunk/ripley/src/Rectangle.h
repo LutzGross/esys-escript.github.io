@@ -242,10 +242,11 @@ protected:
                              bool reducedRowOrder, bool reducedColOrder) const;
 #endif
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                  const escript::Data& in, bool reduced) const;
+                                  const escript::Data& in, bool reduced) const;	  
     virtual void interpolateNodesOnFaces(escript::Data& out,
                                          const escript::Data& in,
                                          bool reduced) const;
+
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
 
@@ -336,6 +337,14 @@ protected:
     /// Trilinos graph structure, cached for efficiency
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
 #endif
+private:
+    template <typename S>
+    void interpolateNodesOnElementsWorker(escript::Data& out,
+                                  const escript::Data& in, bool reduced, S sentinel) const;	  
+    template <typename S>
+    void interpolateNodesOnFacesWorker(escript::Data& out,
+                                         const escript::Data& in,
+                                         bool reduced, S sentinel) const;  
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
