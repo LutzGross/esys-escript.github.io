@@ -2604,9 +2604,6 @@ def grad(arg,where=None):
        else:
            return arg.grad(where)
     elif isinstance(arg,escore.Data):
-       # this is a work around for bug #386
-       if arg.isComplex():
-           return grad(arg.real())+grad(arg.imag())*1j
        if where is None:
           return arg._grad()
        else:
