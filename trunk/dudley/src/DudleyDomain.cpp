@@ -49,6 +49,9 @@ using escript::ValueError;
 
 namespace dudley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
 DudleyDomain::FunctionSpaceNamesMapType DudleyDomain::m_functionSpaceTypeNames;
 
 DudleyDomain::DudleyDomain(const string& name, int numDim, escript::JMPI jmpi) :
@@ -961,14 +964,12 @@ void DudleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
         throw ValueError("setToGradient: Illegal domain of gradient argument");
     if (*grad.getFunctionSpace().getDomain() != *this)
         throw ValueError("setToGradient: Illegal domain of gradient");
+    if (grad.isComplex() != arg.isComplex())
+        throw ValueError("setToGradient: Complexity of input and output must match");
 
     escript::Data nodeData;
-    if (getMPISize() > 1) {
-        if (arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
-            nodeData = escript::Data(arg, continuousFunction(*this));
-        } else {
-            nodeData = arg;
-        }
+    if (getMPISize() > 1 && arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
+        nodeData = escript::Data(arg, continuousFunction(*this));
     } else {
         nodeData = arg;
     }
@@ -977,11 +978,17 @@ void DudleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
             throw ValueError("Gradient at nodes is not supported.");
         case Elements:
         case ReducedElements:
-            Assemble_gradient(m_nodes, m_elements, grad, nodeData);
+            if (arg.isComplex())
+                Assemble_gradient<cplx_t>(m_nodes, m_elements, grad, nodeData);
+            else
+                Assemble_gradient<real_t>(m_nodes, m_elements, grad, nodeData);
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Assemble_gradient(m_nodes, m_faceElements, grad, nodeData);
+            if (arg.isComplex())
+                Assemble_gradient<cplx_t>(m_nodes, m_faceElements, grad, nodeData);
+            else
+                Assemble_gradient<real_t>(m_nodes, m_faceElements, grad, nodeData);
             break;
         case Points:
             throw ValueError("Gradient at points is not supported.");
