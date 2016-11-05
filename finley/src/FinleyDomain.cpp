@@ -49,6 +49,9 @@ using escript::ValueError;
 
 namespace finley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
 // define the static constants
 FinleyDomain::FunctionSpaceNamesMapType FinleyDomain::m_functionSpaceTypeNames;
 
@@ -1246,12 +1249,14 @@ void FinleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
         throw ValueError("setToGradient: Illegal domain of gradient argument");
     if (*grad.getFunctionSpace().getDomain() != *this)
         throw ValueError("setToGradient: Illegal domain of gradient");
+    if (grad.isComplex() != arg.isComplex())
+        throw ValueError("setToGradient: Complexity of input and output must match");
 
     escript::Data nodeData;
     if (getMPISize() > 1) {
         if (arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
             nodeData = escript::Data(arg, continuousFunction(*this));
-        } else if(arg.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
+        } else if (arg.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
             nodeData = escript::Data(arg, reducedContinuousFunction(*this));
         } else {
             nodeData = arg;
@@ -1266,17 +1271,26 @@ void FinleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
             throw ValueError("Gradient at reduced nodes is not supported.");
         case Elements:
         case ReducedElements:
-            Assemble_gradient(m_nodes, m_elements, grad, nodeData);
+            if (arg.isComplex())
+                Assemble_gradient<cplx_t>(m_nodes, m_elements, grad, nodeData);
+            else
+                Assemble_gradient<real_t>(m_nodes, m_elements, grad, nodeData);
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Assemble_gradient(m_nodes, m_faceElements, grad, nodeData);
+            if (arg.isComplex())
+                Assemble_gradient<cplx_t>(m_nodes, m_faceElements, grad, nodeData);
+            else
+                Assemble_gradient<real_t>(m_nodes, m_faceElements, grad, nodeData);
             break;
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            Assemble_gradient(m_nodes, m_contactElements, grad, nodeData);
+            if (arg.isComplex())
+                Assemble_gradient<cplx_t>(m_nodes, m_contactElements, grad, nodeData);
+            else
+                Assemble_gradient<real_t>(m_nodes, m_contactElements, grad, nodeData);
         break;
         case Points:
             throw ValueError("Gradient at points is not supported.");

@@ -165,6 +165,7 @@ void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
 
 /// Assemblage of Jacobians: calculates the gradient of nodal data at
 /// quadrature points
+template<typename Scalar>
 void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                        escript::Data& gradient, const escript::Data& data);
 
