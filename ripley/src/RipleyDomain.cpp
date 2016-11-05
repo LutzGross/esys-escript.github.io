@@ -382,6 +382,8 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
         throw ValueError("Illegal domain of interpolant");
     if (targetDomain != *this)
         throw ValueError("Illegal domain of interpolation target");
+    if (target.isComplex() != in.isComplex())
+        throw ValueError("Complexity of input and output must match");
 
     stringstream msg;
     msg << "interpolateOnDomain() not implemented for function space "
@@ -394,7 +396,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
 
     // simplest case: 1:1 copy
     if (inFS==outFS) {
-        copyData(target, in);
+        if (in.isComplex())
+            copyData<cplx_t>(target, in);
+        else
+            copyData<real_t>(target, in);
     // not allowed: reduced nodes/DOF->non-reduced nodes/DOF
     } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
             && (outFS==Nodes || outFS==DegreesOfFreedom)) {
@@ -402,13 +407,23 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                               "reduced data to non-reduced data.");
     } else if ((inFS==Elements && outFS==ReducedElements)
             || (inFS==FaceElements && outFS==ReducedFaceElements)) {
-        if (in.actsExpanded())
-            averageData(target, in);
-        else
-            copyData(target, in);
+        if (in.actsExpanded()) {
+            if (in.isComplex())
+                averageData<cplx_t>(target, in);
+            else
+                averageData<real_t>(target, in);
+        } else {
+            if (in.isComplex())
+                copyData<cplx_t>(target, in);
+            else
+                copyData<real_t>(target, in);
+        }
     } else if ((inFS==ReducedElements && outFS==Elements)
             || (inFS==ReducedFaceElements && outFS==FaceElements)) {
-        multiplyData(target, in);
+        if (in.isComplex())
+            multiplyData<cplx_t>(target, in);
+        else
+            multiplyData<real_t>(target, in);
     } else {
         switch (inFS) {
             case Nodes:
@@ -417,14 +432,20 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom:
                         if (getMPISize()==1)
-                            copyData(target, in);
+                            if (in.isComplex())
+                                copyData<cplx_t>(target, in);
+                            else
+                                copyData<real_t>(target, in);
                         else
                             nodesToDOF(target, in);
                         break;
 
                     case Nodes:
                     case ReducedNodes:
-                        copyData(target, in);
+                        if (in.isComplex())
+                            copyData<cplx_t>(target, in);
+                        else
+                            copyData<real_t>(target, in);
                         break;
                     case Elements:
                         interpolateNodesOnElements(target, in, false);
@@ -464,14 +485,20 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case Nodes:
                     case ReducedNodes:
                         if (getMPISize()==1)
-                            copyData(target, in);
+                            if (in.isComplex())
+                                copyData<cplx_t>(target, in);
+                            else
+                                copyData<real_t>(target, in);
                         else
                             dofToNodes(target, in);
                         break;
 
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom:
-                        copyData(target, in);
+                        if (in.isComplex())
+                            copyData<cplx_t>(target, in);
+                        else
+                            copyData<real_t>(target, in);
                         break;
 
                     case Elements:
@@ -1190,51 +1217,57 @@ void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
 }
 
 //protected
+template<typename Scalar>
 void RipleyDomain::copyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t numSamples = in.getNumSamples();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        copy(src, src+numComp, out.getSampleDataRW(i));
+    for (index_t i = 0; i < numSamples; i++) {
+        const Scalar* src = in.getSampleDataRO(i, zero);
+        copy(src, src+numComp, out.getSampleDataRW(i, zero));
     }
 }
 
 //protected
+template<typename Scalar>
 void RipleyDomain::averageData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = in.getNumDataPointsPerSample();
     const dim_t numSamples = in.getNumSamples();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        double* dest = out.getSampleDataRW(i);
-        for (index_t c=0; c<numComp; c++) {
-            double res=0.;
-            for (index_t q=0; q<dpp; q++)
-                res+=src[c+q*numComp];
-            *dest++ = res/dpp;
+    for (index_t i = 0; i < numSamples; i++) {
+        const Scalar* src = in.getSampleDataRO(i, zero);
+        Scalar* dest = out.getSampleDataRW(i, zero);
+        for (index_t c = 0; c < numComp; c++) {
+            Scalar res = zero;
+            for (index_t q = 0; q < dpp; q++)
+                res += src[c+q*numComp];
+            *dest++ = res / static_cast<real_t>(dpp);
         }
     }
 }
 
 //protected
+template<typename Scalar>
 void RipleyDomain::multiplyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = out.getNumDataPointsPerSample();
     const dim_t numSamples = in.getNumSamples();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        double* dest = out.getSampleDataRW(i);
-        for (index_t c=0; c<numComp; c++) {
-            for (index_t q=0; q<dpp; q++)
+    for (index_t i = 0; i < numSamples; i++) {
+        const Scalar* src = in.getSampleDataRO(i, zero);
+        Scalar* dest = out.getSampleDataRW(i, zero);
+        for (index_t c = 0; c < numComp; c++) {
+            for (index_t q = 0; q < dpp; q++)
                 dest[c+q*numComp] = src[c];
         }
     }
