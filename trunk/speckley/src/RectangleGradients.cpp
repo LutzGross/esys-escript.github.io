@@ -20,23 +20,25 @@
 
 namespace speckley {
 
+template<typename Scalar>
 void Rectangle::gradient_order2(escript::Data& out, const escript::Data& in) const
 {
-    const double lagrange_deriv_0[3] = {-1.50000000000000, -0.500000000000000, 0.500000000000000};
-    const double lagrange_deriv_1[3] = {2.00000000000000, 0, -2.00000000000000};
-    const double lagrange_deriv_2[3] = {-0.500000000000000, 0.500000000000000, 1.50000000000000};
-    const double inv_jac[2] = {2/m_dx[0], 2/m_dx[1]}; //inverse jacobi
+    const real_t lagrange_deriv_0[3] = {-1.50000000000000, -0.500000000000000, 0.500000000000000};
+    const real_t lagrange_deriv_1[3] = {2.00000000000000, 0, -2.00000000000000};
+    const real_t lagrange_deriv_2[3] = {-0.500000000000000, 0.500000000000000, 1.50000000000000};
+    const real_t inv_jac[2] = {2/m_dx[0], 2/m_dx[1]}; //inverse jacobi
     const int numComp = in.getDataPointSize();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
     if (!in.actsExpanded()) {
 #pragma omp parallel for
         for (int ei = 0; ei < m_NE[1]; ++ei) {
             for (int ej = 0; ej < m_NE[0]; ++ej) {
-                const double *e = in.getSampleDataRO(INDEX2(ej,ei,m_NE[0]));
-                double *grad = out.getSampleDataRW(INDEX2(ej,ei,m_NE[0]));
+                const Scalar* e = in.getSampleDataRO(INDEX2(ej,ei,m_NE[0]), zero);
+                Scalar* grad = out.getSampleDataRW(INDEX2(ej,ei,m_NE[0]), zero);
                 for (int comp = 0; comp < numComp; ++comp) {
-                    const double a = (lagrange_deriv_0[0] * e[comp] + lagrange_deriv_1[0] * e[comp] + lagrange_deriv_2[0] * e[comp]) * inv_jac[0];
-                    const double b = (lagrange_deriv_0[0] * e[comp] + lagrange_deriv_1[0] * e[comp] + lagrange_deriv_2[0] * e[comp]) * inv_jac[1];
+                    const Scalar a = (lagrange_deriv_0[0] * e[comp] + lagrange_deriv_1[0] * e[comp] + lagrange_deriv_2[0] * e[comp]) * inv_jac[0];
+                    const Scalar b = (lagrange_deriv_0[0] * e[comp] + lagrange_deriv_1[0] * e[comp] + lagrange_deriv_2[0] * e[comp]) * inv_jac[1];
                     for (int j = 0; j < 3; ++j) {
                         for (int i = 0; i < 3; ++i) {
                             const index_t ind = INDEX4(0,comp,i,j,2,numComp,3);
@@ -51,8 +53,8 @@ void Rectangle::gradient_order2(escript::Data& out, const escript::Data& in) con
 #pragma omp parallel for
         for (int ei = 0; ei < m_NE[1]; ++ei) {
             for (int ej = 0; ej < m_NE[0]; ++ej) {
-                const double *e = in.getSampleDataRO(INDEX2(ej,ei,m_NE[0]));
-                double *grad = out.getSampleDataRW(INDEX2(ej,ei,m_NE[0]));
+                const Scalar* e = in.getSampleDataRO(INDEX2(ej,ei,m_NE[0]), zero);
+                Scalar* grad = out.getSampleDataRW(INDEX2(ej,ei,m_NE[0]), zero);
                 for (int j = 0; j < 3; ++j) {
                     for (int i = 0; i < 3; ++i) {
                         for (int comp = 0; comp < numComp; ++comp) {
@@ -66,6 +68,7 @@ void Rectangle::gradient_order2(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order3(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[4] = {-3.00000000000000, -0.809016994374948, 0.309016994374948, -0.500000000000000};
     const double lagrange_deriv_1[4] = {4.04508497187474, 4.44089209850063e-16, -1.11803398874990, 1.54508497187474};
@@ -112,6 +115,7 @@ void Rectangle::gradient_order3(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order4(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[5] = {-4.99999999999999, -1.24099025303098, 0.374999999999999, -0.259009746969017, 0.499999999999999};
     const double lagrange_deriv_1[5] = {6.75650248872424, -6.66133814775094e-15, -1.33658457769545, 0.763762615825974, -1.41016417794243};
@@ -159,6 +163,7 @@ void Rectangle::gradient_order4(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order5(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[6] = {-7.50000000000002, -1.78636494833911, 0.484951047853572, -0.269700610832040, 0.237781177984232, -0.500000000000002};
     const double lagrange_deriv_1[6] = {10.1414159363197, 2.13162820728030e-14, -1.72125695283023, 0.786356672223240, -0.653547507429800, 1.34991331419049};
@@ -207,6 +212,7 @@ void Rectangle::gradient_order5(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order6(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[7] = {-10.5000000000000, -2.44292601424426, 0.625256665515336, -0.312499999999997, 0.226099400942572, -0.226611870395444, 0.500000000000001};
     const double lagrange_deriv_1[7] = {14.2015766029198, -4.17443857259059e-14, -2.21580428316997, 0.907544471268819, -0.616390835517577, 0.602247179635785, -1.31737343570244};
@@ -256,6 +262,7 @@ void Rectangle::gradient_order6(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order7(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[8] = {-13.9999999999999, -3.20991570300295, 0.792476681320508, -0.372150435728592, 0.243330712723790, -0.203284568900591, 0.219957514771299, -0.499999999999980};
     const double lagrange_deriv_1[8] = {18.9375986071174, -6.23945339839338e-14, -2.80647579473643, 1.07894468879045, -0.661157350900312, 0.537039586157660, -0.573565414940254, 1.29768738832019};
@@ -306,6 +313,7 @@ void Rectangle::gradient_order7(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order8(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[9] = {-18.0000000000010, -4.08701370203454, 0.985360090074639, -0.444613449281139, 0.273437500000029, -0.207734512035617, 0.189655591978376, -0.215654018702531, 0.500000000000095};
     const double lagrange_deriv_1[9] = {24.3497451715930, 1.34892097491957e-12, -3.48835875343438, 1.28796075006388, -0.741782397916244, 0.547300160534042, -0.492350938315503, 0.555704981283736, -1.28483063269969};
@@ -357,6 +365,7 @@ void Rectangle::gradient_order8(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order9(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[10] = {-22.4999999999988, -5.07406470297709, 1.20335199285206, -0.528369376820220, 0.312047255608382, -0.223527944742433, 0.186645789393719, -0.180786585489230, 0.212702758009187, -0.500000000000077};
     const double lagrange_deriv_1[10] = {30.4381450292820, -1.52677870346452e-12, -4.25929735496529, 1.52990263818163, -0.845813573406436, 0.588082143045176, -0.483462326333953, 0.464274958908154, -0.543753738235757, 1.27595483609299};
@@ -409,6 +418,7 @@ void Rectangle::gradient_order9(escript::Data& out, const escript::Data& in) con
     }
 }
 
+template<typename Scalar>
 void Rectangle::gradient_order10(escript::Data& out, const escript::Data& in) const {
     const double lagrange_deriv_0[11] = {-27.4999999999896, -6.17098569730879, 1.44617248279108, -0.622725214738251, 0.357476373116252, -0.246093749999837, 0.194287668796289, -0.172970108511720, 0.174657862947473, -0.210587346312973, 0.500000000000200};
     const double lagrange_deriv_1[11] = {37.2028673819635, -1.45093936865237e-11, -5.11821182477732, 1.80264679987985, -0.968487138802308, 0.646939963832195, -0.502643313012917, 0.443395636437341, -0.445313527290911, 0.535331085929629, -1.26956267628665};
@@ -462,4 +472,62 @@ void Rectangle::gradient_order10(escript::Data& out, const escript::Data& in) co
     }
 }
 
-}
+// instantiate
+template
+void Rectangle::gradient_order2<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order2<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order3<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order3<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order4<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order4<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order5<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order5<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order6<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order6<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order7<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order7<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order8<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order8<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order9<real_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order9<cplx_t>(escript::Data& out,
+                                        const escript::Data& in) const;
+template
+void Rectangle::gradient_order10<real_t>(escript::Data& out,
+                                         const escript::Data& in) const;
+template
+void Rectangle::gradient_order10<cplx_t>(escript::Data& out,
+                                         const escript::Data& in) const;
+
+
+} // namespace speckley
+

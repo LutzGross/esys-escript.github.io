@@ -471,6 +471,9 @@ void SpeckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg
         }
     }
 
+    if (grad.isComplex() != arg.isComplex())
+        throw SpeckleyException("setToGradient: complexity of input and output must match");
+
     if (getMPISize() > 1) {
         if (arg.getFunctionSpace().getTypeCode()==DegreesOfFreedom) {
             escript::Data contArg(arg, escript::continuousFunction(*this));
