@@ -240,14 +240,23 @@ protected:
     virtual void reduceElements(escript::Data& out, const escript::Data& in) const;
 
 private:
+    template<typename Scalar>
     void gradient_order2(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order3(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order4(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order5(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order6(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order7(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order8(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order9(escript::Data&, const escript::Data&) const;
+    template<typename Scalar>
     void gradient_order10(escript::Data&, const escript::Data&) const;
 
     void reduction_order2(const escript::Data&, escript::Data&) const;

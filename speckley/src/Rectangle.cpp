@@ -987,23 +987,50 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
     }
 
     if (m_order == 2) {
-        gradient_order2(out,converted);
+        if (in.isComplex())
+            gradient_order2<cplx_t>(out,converted);
+        else
+            gradient_order2<real_t>(out,converted);
     } else if (m_order == 3) {
-        gradient_order3(out,converted);
+        if (in.isComplex())
+            gradient_order3<cplx_t>(out,converted);
+        else
+            gradient_order3<real_t>(out,converted);
     } else if (m_order == 4) {
-        gradient_order4(out,converted);
+        if (in.isComplex())
+            gradient_order4<cplx_t>(out,converted);
+        else
+            gradient_order4<real_t>(out,converted);
     } else if (m_order == 5) {
-        gradient_order5(out,converted);
+        if (in.isComplex())
+            gradient_order5<cplx_t>(out,converted);
+        else
+            gradient_order5<real_t>(out,converted);
     } else if (m_order == 6) {
-        gradient_order6(out,converted);
+        if (in.isComplex())
+            gradient_order6<cplx_t>(out,converted);
+        else
+            gradient_order6<real_t>(out,converted);
     } else if (m_order == 7) {
-        gradient_order7(out,converted);
+        if (in.isComplex())
+            gradient_order7<cplx_t>(out,converted);
+        else
+            gradient_order7<real_t>(out,converted);
     } else if (m_order == 8) {
-        gradient_order8(out,converted);
+        if (in.isComplex())
+            gradient_order8<cplx_t>(out,converted);
+        else
+            gradient_order8<real_t>(out,converted);
     } else if (m_order == 9) {
-        gradient_order9(out,converted);
+        if (in.isComplex())
+            gradient_order9<cplx_t>(out,converted);
+        else
+            gradient_order9<real_t>(out,converted);
     } else if (m_order == 10) {
-        gradient_order10(out,converted);
+        if (in.isComplex())
+            gradient_order10<cplx_t>(out,converted);
+        else
+            gradient_order10<real_t>(out,converted);
     }
 }
 
