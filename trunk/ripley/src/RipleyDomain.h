@@ -763,12 +763,15 @@ protected:
     assembler_t assembler_type;
 
     /// copies data in 'in' to 'out' (both must be on same function space)
+    template<typename Scalar>
     void copyData(escript::Data& out, const escript::Data& in) const;
 
     /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
+    template<typename Scalar>
     void averageData(escript::Data& out, const escript::Data& in) const;
 
     /// copies data in 'in' to 'out' (from reduced to non-reduced fs)
+    template<typename Scalar>
     void multiplyData(escript::Data& out, const escript::Data& in) const;
 
     // this is const because setTags is const
