@@ -179,7 +179,10 @@ class ESCRIPT_DLL_API DataVectorAlt {
   const_reference
   operator[](const size_type i) const;
 
-
+    // for compatibility with std::vector
+  ElementType* data();
+  const ElementType* data() const; 
+  
  protected:
 
  private:
@@ -191,6 +194,19 @@ class ESCRIPT_DLL_API DataVectorAlt {
   ElementType* m_array_data;
 };
 
+template <class T>
+inline
+typename DataVectorAlt<T>::ElementType* DataVectorAlt<T>::data()
+{
+    return m_array_data;
+}
+
+template <class T>
+inline
+const typename DataVectorAlt<T>::ElementType* DataVectorAlt<T>::data() const
+{
+    return m_array_data;  
+}
 
 template <class T>
 inline
