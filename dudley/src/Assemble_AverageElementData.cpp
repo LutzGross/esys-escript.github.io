@@ -28,6 +28,10 @@ void Assemble_AverageElementData(const ElementFile* elements,
     if (!elements)
         return;
 
+    if (out.isComplex() || in.isComplex())
+    {
+        throw DudleyException("Assemble_AverageElementData: complex arguments not supported.");      
+    }
     double wq;
     int numQuad_in, numQuad_out;
     if (hasReducedIntegrationOrder(in)) {
@@ -62,8 +66,8 @@ void Assemble_AverageElementData(const ElementFile* elements,
             const double volinv = 1. / vol;
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in.getSampleDataRO(n);
-                double* out_array = out.getSampleDataRW(n);
+                const double* in_array = in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0));
+                double* out_array = out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0));
                 for (int i = 0; i < numComps; ++i) {
                     double rtmp = 0.;
                     for (int q = 0; q < numQuad_in; ++q)
@@ -77,8 +81,8 @@ void Assemble_AverageElementData(const ElementFile* elements,
             const size_t numComps_size = numComps * sizeof(double);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in.getSampleDataRO(n);
-                double* out_array = out.getSampleDataRW(n);
+                const double* in_array = in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0));
+                double* out_array = out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0));
                 for (int q = 0; q < numQuad_out; q++)
                     memcpy(out_array + q * numComps, in_array, numComps_size);
             }

@@ -191,6 +191,10 @@ void ElementFile::optimizeOrdering()
 
 void ElementFile::setTags(int newTag, const escript::Data& mask)
 {
+    if (mask.isComplex())
+    {
+      throw DudleyException("ElementFile::setTags: mask argument must not be complex.");
+    }
     const int numQuad = hasReducedIntegrationOrder(mask) ? 1 : numNodes;
 
     if (1 != mask.getDataPointSize()) {
@@ -199,16 +203,17 @@ void ElementFile::setTags(int newTag, const escript::Data& mask)
         throw DudleyException("ElementFile::setTags: illegal number of samples of mask Data object");
     }
 
+    escript::DataTypes::real_t wantreal=0;
     if (mask.actsExpanded()) {
 #pragma omp parallel for
         for (index_t n = 0; n < numElements; n++) {
-            if (mask.getSampleDataRO(n)[0] > 0)
+            if (mask.getSampleDataRO(n, wantreal)[0] > 0)
                 Tag[n] = newTag;
         }
     } else {
 #pragma omp parallel for
         for (index_t n = 0; n < numElements; n++) {
-            const double* mask_array = mask.getSampleDataRO(n);
+            const double* mask_array = mask.getSampleDataRO(n, wantreal);
             bool check = false;
             for (int q = 0; q < numQuad; q++)
                 check = check || mask_array[q];

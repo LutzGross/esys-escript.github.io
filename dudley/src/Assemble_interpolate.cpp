@@ -29,6 +29,10 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (data.isComplex() || interpolated_data.isComplex())
+    {
+        throw DudleyException("Assemble_interpolate: complex arguments are not supported.");
+    }
     const int data_type = data.getFunctionSpace().getTypeCode();
     const bool reduced_integration = hasReducedIntegrationOrder(interpolated_data);
 
@@ -79,13 +83,13 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
         for (index_t e = 0; e < elements->numElements; e++) {
             for (int q = 0; q < NS_DOF; q++) {
                 const index_t i = elements->Nodes[INDEX2(q, e, NN)];
-                const double* data_array = data.getSampleDataRO(map[i]);
+                const double* data_array = data.getSampleDataRO(map[i], static_cast<escript::DataTypes::real_t>(0));
                 memcpy(&local_data[INDEX3(0, q, 0, numComps, NS_DOF)],
                        data_array, numComps_size);
             }
             // calculate interpolated_data=local_data*S
             util::smallMatSetMult1(1, numComps, numQuad,
-                            interpolated_data.getSampleDataRW(e), NS_DOF,
+                            interpolated_data.getSampleDataRW(e, static_cast<escript::DataTypes::real_t>(0)), NS_DOF,
                             &local_data[0], shapeFns);
         } // end of element loop
     } // end of parallel region

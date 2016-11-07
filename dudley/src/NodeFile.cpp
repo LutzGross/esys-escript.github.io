@@ -170,6 +170,10 @@ std::pair<index_t,index_t> NodeFile::getGlobalNodeIDIndexRange() const
 
 void NodeFile::setCoordinates(const escript::Data& newX)
 {
+    if (newX.isComplex())
+    {
+        throw escript::ValueError("NodeFile::setCoordinates: argument can not be complex.");
+    }
     if (newX.getDataPointSize() != numDim) {
         std::stringstream ss;
         ss << "NodeFile::setCoordinates: number of dimensions of new "
@@ -184,26 +188,29 @@ void NodeFile::setCoordinates(const escript::Data& newX)
     } else {
         const size_t numDim_size = numDim * sizeof(double);
         ++status;
+	escript::DataTypes::real_t wantreal=0;
 #pragma omp parallel for
         for (index_t n = 0; n < numNodes; n++) {
             memcpy(&Coordinates[INDEX2(0, n, numDim)],
-                    newX.getSampleDataRO(n), numDim_size);
+                    newX.getSampleDataRO(n, wantreal), numDim_size);
         }
     }
 }
 
 void NodeFile::setTags(int newTag, const escript::Data& mask)
 {
+  
     if (1 != mask.getDataPointSize()) {
         throw escript::ValueError("NodeFile::setTags: number of components of mask must be 1.");
     } else if (mask.getNumDataPointsPerSample() != 1 ||
             mask.getNumSamples() != numNodes) {
         throw escript::ValueError("NodeFile::setTags: illegal number of samples of mask Data object");
     }
-
+    
+    escript::DataTypes::real_t wantreal=0;
 #pragma omp parallel for
     for (index_t n = 0; n < numNodes; n++) {
-        if (mask.getSampleDataRO(n)[0] > 0)
+        if (mask.getSampleDataRO(n, wantreal)[0] > 0)
             Tag[n] = newTag;
     }
     updateTagList();

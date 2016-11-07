@@ -25,6 +25,10 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     if (!nodes)
         return;
 
+    if (in.isComplex() || out.isComplex())
+    {
+        throw escript::ValueError("Assemble_CopyNodalData: complex arguments not supported.");
+    }
     const int mpiSize = nodes->MPIInfo->size;
     const int numComps = out.getDataPointSize();
     const int in_data_type = in.getFunctionSpace().getTypeCode();
@@ -80,13 +84,13 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == DUDLEY_NODES) {
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)), in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0)), numComps_size);
             }
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
             const index_t* map = nodes->borrowDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)), in.getSampleDataRO(map[n], static_cast<escript::DataTypes::real_t>(0)),
                        numComps_size);
             }
         }
@@ -105,10 +109,10 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             for (index_t n = 0; n < numOut; n++) {
                 const index_t k = target[n];
                 if (k < upperBound) {
-                    memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
+                    memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)), in.getSampleDataRO(k, static_cast<escript::DataTypes::real_t>(0)),
                            numComps_size);
                 } else {
-                    memcpy(out.getSampleDataRW(n),
+                    memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)),
                            &recv_buffer[(k - upperBound) * numComps],
                            numComps_size);
                 }
@@ -135,7 +139,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 
             const ImportType importer(rowMap, colMap);
             const Teuchos::ArrayView<const real_t> localIn(
-                                               in.getSampleDataRO(0),
+                                               in.getSampleDataRO(0, static_cast<escript::DataTypes::real_t>(0)),
                                                in.getNumDataPoints()*numComps);
             Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
                                                   localIn, localIn.size(), 1));
@@ -151,7 +155,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         } else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n),
+                memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)), in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0)),
                        numComps_size);
             }
         }

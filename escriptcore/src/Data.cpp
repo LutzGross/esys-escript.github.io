@@ -5532,7 +5532,7 @@ escript::condEvalWorker(escript::Data& mask, escript::Data& trueval, escript::Da
     if (mask.isConstant() && trueval.isConstant() && falseval.isConstant())
     {
         Data result(0,trueval.getDataPointShape(), fs , false);
-        if (mask.getSampleDataRO(0,S)[0]>0)
+        if (mask.getSampleDataRO(0,static_cast<DataTypes::real_t>(0))[0]>0)	// mask is always real
         {
             result.copy(trueval);
         }

@@ -27,6 +27,10 @@ void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (out.isComplex())
+    {
+        throw DudleyException("Assemble_getSize: complex arguments are not supported.");      
+    }
     const int numDim = nodes->numDim;
 
     // now we look up what type of elements we need based on the function space
@@ -71,7 +75,7 @@ void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
             }
             max_diff = sqrt(max_diff);
             // set all values to max_diff
-            double* out_array = out.getSampleDataRW(e);
+            double* out_array = out.getSampleDataRW(e, static_cast<escript::DataTypes::real_t>(0));
             for (int q = 0; q < numQuad; q++)
                 out_array[q] = max_diff;
         }

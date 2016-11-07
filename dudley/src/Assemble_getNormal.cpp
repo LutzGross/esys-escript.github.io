@@ -28,6 +28,10 @@ void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (normal.isComplex())
+    {
+        throw DudleyException("Assemble_setNormal: complex arguments not supported.");
+    }
     const int NN = elements->numNodes;
     const int numDim = nodes->numDim;
     const int numQuad = (hasReducedIntegrationOrder(normal) ? 1 : NN);
@@ -73,7 +77,7 @@ void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
             util::smallMatMult(numDim, numDim_local * numQuad,
                                      &dVdv[0], NS, &local_X[0], dSdv);
             // get normalized vector
-            double* normal_array = normal.getSampleDataRW(e);
+            double* normal_array = normal.getSampleDataRW(e, static_cast<escript::DataTypes::real_t>(0));
             util::normalVector(numQuad, numDim, numDim_local, &dVdv[0], normal_array);
         }
     }

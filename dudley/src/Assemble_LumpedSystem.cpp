@@ -29,6 +29,11 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements || lumpedMat.isEmpty() || D.isEmpty())
         return;
 
+    if (D.isComplex() || lumpedMat.isComplex())
+    {
+        throw escript::ValueError("Assemble_LumpedSystem: complex arguments not supported.");
+    }
+    escript::DataTypes::real_t wantreal=0;    
     const int funcspace = D.getFunctionSpace().getTypeCode();
     bool reducedIntegrationOrder;
     // check function space of D
@@ -74,7 +79,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
     }
 
     lumpedMat.requireWrite();
-    double* lumpedMat_p = lumpedMat.getSampleDataRW(0);
+    double* lumpedMat_p = lumpedMat.getExpandedVectorReference(wantreal).data();
 
     if (funcspace==DUDLEY_POINTS) {
 #pragma omp parallel
@@ -84,7 +89,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e=0; e<elements->numElements; e++) {
                     if (elements->Color[e]==color) {
-                        const double* D_p = D.getSampleDataRO(e);
+                        const double* D_p = D.getSampleDataRO(e, wantreal);
                         util::addScatter(1,
                                       &p.DOF[elements->Nodes[INDEX2(0,e,p.NN)]],
                                       p.numEqu, D_p, lumpedMat_p,
@@ -112,7 +117,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
                                 const double vol = p.jac->absD[e] * p.jac->quadweight;
-                                const double* D_p = D.getSampleDataRO(e);
+                                const double* D_p = D.getSampleDataRO(e, wantreal);
                                 if (useHRZ) {
                                     double m_t = 0; // mass of the element
                                     for (int q = 0; q < p.numQuad; q++)
@@ -156,7 +161,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
                                 const double vol = p.jac->absD[e] * p.jac->quadweight;
-                                const double* D_p = D.getSampleDataRO(e);
+                                const double* D_p = D.getSampleDataRO(e, wantreal);
                                 if (useHRZ) { // HRZ lumping
                                     // mass of the element
                                     const double m_t = vol*p.numQuad;
@@ -201,7 +206,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
                                 const double vol = p.jac->absD[e] * p.jac->quadweight;
-                                const double* D_p = D.getSampleDataRO(e);
+                                const double* D_p = D.getSampleDataRO(e, wantreal);
 
                                 if (useHRZ) { // HRZ lumping
                                     for (int k = 0; k < p.numEqu; k++) {
@@ -253,7 +258,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                         for (index_t e = 0; e < elements->numElements; e++) {
                             if (elements->Color[e] == color) {
                                 const double vol = p.jac->absD[e] * p.jac->quadweight;
-                                const double* D_p = D.getSampleDataRO(e);
+                                const double* D_p = D.getSampleDataRO(e, wantreal);
 
                                 if (useHRZ) { // HRZ lumping
                                     double m_t = vol * p.numQuad; // mass of the element
