@@ -309,7 +309,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             out=Data(0,shape,function_space,false);
             if (!(var = dataFile.get_var("data")))
                 throw DataException("load: unable to find data in netCDF file.");
-            if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims) ) 
+            if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), dims) ) 
                 throw DataException("load: unable to recover data from netCDF file.");
         } else if (type == 1) { 
             // tagged data
@@ -380,7 +380,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                 out=Data(0,shape,function_space,true);
                 if (!(var = dataFile.get_var("data")))
                     throw DataException("load: unable to find data in netCDF file.");
-                if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims) ) 
+                if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), dims)) 
                     throw DataException("load: unable to recover data from netCDF file.");
                 if (failed >= 0) {
                     try {

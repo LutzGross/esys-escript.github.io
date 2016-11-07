@@ -34,7 +34,7 @@ inline
 DataTypes::RealVectorType::const_reference
 getRef(Data& d, int x, int y)
 {
-	return d.getDataAtOffsetRO(getRelIndex(d.getDataPointShape(),x,y));
+	return d.getDataAtOffsetRO(getRelIndex(d.getDataPointShape(),x,y), static_cast<DataTypes::real_t>(0));
 }  
 
 
