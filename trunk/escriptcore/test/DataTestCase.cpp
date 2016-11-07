@@ -46,14 +46,14 @@ inline
 DataTypes::RealVectorType::const_reference
 getRef(Data& d,int s1, int p1, int x, int y)
 {
-	return d.getDataAtOffsetRO(d.getDataOffset(s1,p1)+getRelIndex(d.getDataPointShape(),x,y));
+	return d.getDataAtOffsetRO(d.getDataOffset(s1,p1)+getRelIndex(d.getDataPointShape(),x,y), static_cast<DataTypes::real_t>(0));
 }
 
 inline
 DataTypes::RealVectorType::const_reference
 getRef(Data& d, int x, int y)
 {
-	return d.getDataAtOffsetRO(getRelIndex(d.getDataPointShape(),x,y));
+	return d.getDataAtOffsetRO(getRelIndex(d.getDataPointShape(),x,y), static_cast<DataTypes::real_t>(0));
 }
 
 }
@@ -97,7 +97,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{
 	    for (int i=0;i<DataTypes::noValues(shape);++i)
 	    {
-	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0))==deep.getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0)));
 	    }
 	}
 	if (delayed)
@@ -113,7 +113,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{	
 	    for (int i=0;i<DataTypes::noValues(shape);++i)
 	    {
-	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0))!=deep.getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0)));
 	    }
 	}
 	if (delayed)
@@ -130,7 +130,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{	
 	    for (int i=0;i<DataTypes::noValues(shape);++i)
 	    {
-	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0))==deep.getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0)));
 	    }
 	}
 	d->setToZero();
@@ -138,7 +138,7 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	{	
 	    for (int i=0;i<DataTypes::noValues(shape);++i)
 	    {
-	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
+	      CPPUNIT_ASSERT(d->getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0))!=deep.getDataAtOffsetRO(i, static_cast<DataTypes::real_t>(0)));
 	    }
 	}
 	delete dats[k];
@@ -181,8 +181,8 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	dats[k]->requireWrite();
 	if (!dats[k]->hasNoSamples())
 	{
-	    dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0))=1.0;
-	    dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1))=2.0;
+	    dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,0,0), static_cast<DataTypes::real_t>(0))=1.0;
+	    dats[k]->getDataAtOffsetRW(dats[k]->getDataOffset(0,0)+getRelIndex(viewShape,1,1), static_cast<DataTypes::real_t>(0))=2.0;
 	}
     	DataTypes::RegionType region;
     	region.push_back(DataTypes::RegionType::value_type(0,0));
@@ -213,7 +213,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	
 	if (!dats[k]->hasNoSamples())
 	{
-	    CPPUNIT_ASSERT(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
+	    CPPUNIT_ASSERT(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0), static_cast<DataTypes::real_t>(0))==1.0);
 	}
 	//
 	// create a rank 2 slice with four values
@@ -607,6 +607,7 @@ void DataTestCase::testDataConstant()
 void DataTestCase::testDataTagged()
 {
   cout << endl;
+  DataTypes::real_t dummyr=0;
 
   {
 
@@ -636,14 +637,14 @@ void DataTestCase::testDataTagged()
     CPPUNIT_ASSERT(myData.getLength()==3);
     
     CPPUNIT_ASSERT(myData.getNoValues()==3);
-    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(0)==0.0);
-    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(1)==1.0);
-    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(2)==2.0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(0, dummyr)==0.0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(1, dummyr)==1.0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(2, dummyr)==2.0);
 
 #ifdef EXWRITECHK		
     myData.requireWrite();
 #endif	    
-    double* sampleData=myData.getSampleDataRW(0);
+    double* sampleData=myData.getSampleDataRW(0, dummyr);
     for (int i=0; i<myData.getNoValues(); i++) {
       CPPUNIT_ASSERT(sampleData[i]==i);
     }
@@ -672,9 +673,9 @@ void DataTestCase::testDataTagged()
     CPPUNIT_ASSERT(myData.getDataPointRank()==1);
     CPPUNIT_ASSERT(myData.getNoValues()==3);
 
-    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+0)==2);
-    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+1)==3);
-    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+2)==4);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+0, dummyr)==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+1, dummyr)==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+2, dummyr)==4);
 
     sampleData=myData.getSampleDataByTag(1);
     for (int i=0; i<myData.getNoValues(); i++) {
@@ -823,7 +824,7 @@ void DataTestCase::testMoreOperations()
 	    {
 	      tmp+=getRef(dats[z],i,i);
 	    }
-	    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - tmp) <= REL_TOL*std::abs(tmp));
+	    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0, static_cast<DataTypes::real_t>(0)) - tmp) <= REL_TOL*std::abs(tmp));
 	}
   }
 
@@ -832,7 +833,7 @@ void DataTestCase::testMoreOperations()
 
 void DataTestCase::testOperations()
 {
-
+  DataTypes::real_t dummyr=0;
   cout << endl;
   TestDomain* tdp=new TestDomain(1,1,1);	// 1 points per sample, 1 samples, 1D coords
   Domain_ptr p(tdp);
@@ -1491,7 +1492,7 @@ cerr << "Ending sin" << endl;
       results[z].resolve();		
       if (!results[z].hasNoSamples())
       {    
-	  CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 0) <= REL_TOL*0); 
+	  CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0, dummyr) - 0) <= REL_TOL*0); 
       }
   }
   
@@ -1506,7 +1507,7 @@ cerr << "Ending sin" << endl;
     results[z].resolve();		
     if (!results[z].hasNoSamples())
     {    
-	CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
+	CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0, dummyr) - 5) <= REL_TOL*5);
     }
   }
 
@@ -1591,7 +1592,7 @@ cerr << "Ending sin" << endl;
 // Here we test the binary operators in complex expressions
 void DataTestCase::testBinary()
 {
-
+  DataTypes::real_t dummyr=0;
   cout << endl;
 
   // define the shape for the test data
@@ -1638,10 +1639,10 @@ void DataTestCase::testBinary()
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	  CPPUNIT_ASSERT(std::abs(r1.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
-	  CPPUNIT_ASSERT(std::abs(r2.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
-	  CPPUNIT_ASSERT(std::abs(r3.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
-	  CPPUNIT_ASSERT(std::abs(r4.getDataAtOffsetRO(i)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
+	  CPPUNIT_ASSERT(std::abs(r1.getDataAtOffsetRO(i, dummyr)-data[i]) <= REL_TOL*data[i]);
+	  CPPUNIT_ASSERT(std::abs(r2.getDataAtOffsetRO(i, dummyr)-data[i]) <= REL_TOL*data[i]);
+	  CPPUNIT_ASSERT(std::abs(r3.getDataAtOffsetRO(i, dummyr)-data[i]) <= REL_TOL*data[i]);
+	  CPPUNIT_ASSERT(std::abs(r4.getDataAtOffsetRO(i, dummyr)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
 	}
   }
 }

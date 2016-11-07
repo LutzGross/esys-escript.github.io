@@ -106,8 +106,8 @@ void SharedDataTestCase::testGetDataAtOffset()
   Data L=d.delay();
   // now change the data directly
   d.requireWrite();
-  d.getDataAtOffsetRW(0)=17;
-  CPPUNIT_ASSERT(L.getDataAtOffsetRO(0)==42);
+  d.getDataAtOffsetRW(0, static_cast<DataTypes::real_t>(0))=17;
+  CPPUNIT_ASSERT(L.getDataAtOffsetRO(0, static_cast<DataTypes::real_t>(0))==42);
 }
 
 void SharedDataTestCase::testGetDataPoint()

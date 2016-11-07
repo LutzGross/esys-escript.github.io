@@ -1566,10 +1566,10 @@ instead of manually manipulating process and point IDs.
   */
 
         DataTypes::RealVectorType::const_reference
-        getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
+        getDataAtOffsetRO(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy);
 
         DataTypes::RealVectorType::reference
-        getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy=0);
+        getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy);
         
         DataTypes::CplxVectorType::const_reference
         getDataAtOffsetRO(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);

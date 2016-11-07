@@ -1668,7 +1668,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
             // TODO: global error handling
             DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
 
-            memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(real_t));
+            memcpy(tmpData,&(getDataAtOffsetRO(offset, static_cast<DataTypes::real_t>(0))),length*sizeof(real_t));
         }
     }
 #ifdef ESYS_MPI
@@ -1758,6 +1758,7 @@ Data
 Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
 {
     THROWONCOMPLEX
+    DataTypes::real_t wantreal=0;
     if (isEmpty())  // do this before we attempt to interpolate
     {
      throw DataException("Error - Operations (bessel) not permitted on instances of DataEmpty.");
@@ -1778,8 +1779,8 @@ Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
 
     if (arg_0_Z.isConstant()) {
         res = Data(0.0, shape0, arg_0_Z.getFunctionSpace(),false);      // DataConstant output
-        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0));
-        real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
+        const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0, wantreal));
+        real_t *ptr_2 = &(res.getDataAtOffsetRW(0, wantreal));
         for (int i = 0; i < size0; ++i) {
             ptr_2[i] = besselfunc(order, ptr_0[i]);
         }
@@ -1795,8 +1796,8 @@ Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
         DataTagged* tmp_2=dynamic_cast<DataTagged*>(res.borrowData());
 
         // Get the pointers to the actual data
-        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
-        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
+        const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0, wantreal));
+        real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0, wantreal));
         // Compute a result for the default
         for (int i = 0; i < size0; ++i) {
             ptr_2[i] = besselfunc(order, ptr_0[i]);
@@ -1824,14 +1825,15 @@ Data::bessel(int order, real_t (*besselfunc) (int,real_t) )
         int sampleNo_0,dataPointNo_0;
         int numSamples_0 = arg_0_Z.getNumSamples();
         int numDataPointsPerSample_0 = arg_0_Z.getNumDataPointsPerSample();
+	DataTypes::real_t wantreal=0;
         #pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
         for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
             dataPointNo_0=0;
         //      for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
             int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
             int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-            const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-            real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+            const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, wantreal));
+            real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, wantreal));
             for (int i = 0; i < size0*numDataPointsPerSample_0; ++i) {
                 ptr_2[i] = besselfunc(order, ptr_0[i]);
             }
@@ -2859,10 +2861,11 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 #pragma omp parallel firstprivate(local_lowi,local_lowj) private(local_val,local_min)
     {
         local_min=min;
+	DataTypes::real_t wantreal=0;
 #pragma omp for private(i,j) schedule(static)
         for (i=0; i<numSamples; i++) {
             for (j=0; j<numDPPSample; j++) {
-                local_val=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
+                local_val=temp.getDataAtOffsetRO(temp.getDataOffset(i,j), wantreal);
                 if (local_val<local_min) {
                     local_min=local_val;
                     local_lowi=i;
@@ -2948,10 +2951,11 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
 #pragma omp parallel firstprivate(local_highi,local_highj) private(local_val,local_max)
     {
         local_max=max;
+	DataTypes::real_t wantreal=0;
 #pragma omp for private(i,j) schedule(static)
         for (i=0; i<numSamples; i++) {
             for (j=0; j<numDPPSample; j++) {
-                local_val=temp.getDataAtOffsetRO(temp.getDataOffset(i,j));
+                local_val=temp.getDataAtOffsetRO(temp.getDataOffset(i,j), wantreal);
                 if (local_val>local_max) {
                     local_max=local_val;
                     local_highi=i;
@@ -3646,9 +3650,10 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 	    }
 	    else
 	    {
+	        real_t dummyr=0;
 		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(0,0));
 		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(0,0));
-		real_t *ptr_2 = &(res.getDataAtOffsetRW(0));
+		real_t *ptr_2 = &(res.getDataAtOffsetRW(0, dummyr));
 		matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);	      
 	    }
 	}
@@ -3754,8 +3759,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 	    else
 	    {
 		// Prepare offset into DataConstant
+	        real_t dummyr=0;
 		int offset_0 = tmp_0->getPointOffset(0,0);
-		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+		const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
 
 		const real_t *ptr_1 = &(tmp_1->getDefaultValueRO(0));
 		real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
@@ -3943,7 +3949,8 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 	    }
 	    else
 	    {
-		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+		real_t dummyr=0;
+		const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
 		const real_t *ptr_0 = &(tmp_0->getDefaultValueRO(0));
 		real_t *ptr_2 = &(tmp_2->getDefaultValueRW(0));
 
@@ -4172,12 +4179,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
 		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
 		    int offset_0 = tmp_0->getPointOffset(sampleNo_0,0); // They're all the same, so just use #0
-		    const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
+		    const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
 		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
 			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
 			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
 			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
 		    }
 		}	      
@@ -4254,9 +4261,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
 			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
 			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
 			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
 		    }
 		}	      
@@ -4336,12 +4343,12 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 		#pragma omp parallel for private(sampleNo_0,dataPointNo_0) schedule(static)
 		for (sampleNo_0 = 0; sampleNo_0 < numSamples_0; sampleNo_0++) {
 		    int offset_1 = tmp_1->getPointOffset(sampleNo_0,0);
-		    const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
+		    const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
 		    for (dataPointNo_0 = 0; dataPointNo_0 < numDataPointsPerSample_0; dataPointNo_0++) {
 			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
 			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
 			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
 		    }
 		}	      
@@ -4424,9 +4431,9 @@ escript::C_GeneralTensorProduct(Data& arg_0,
 			int offset_0 = tmp_0->getPointOffset(sampleNo_0,dataPointNo_0);
 			int offset_1 = tmp_1->getPointOffset(sampleNo_0,dataPointNo_0);
 			int offset_2 = tmp_2->getPointOffset(sampleNo_0,dataPointNo_0);
-			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1));
-			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+			const real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+			const real_t *ptr_1 = &(arg_1_Z.getDataAtOffsetRO(offset_1, dummyr));
+			real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
 			matrix_matrix_product(SL, SM, SR, ptr_0, ptr_1, ptr_2, transpose);
 		    }
 		}	      
@@ -6138,10 +6145,11 @@ escript::C_TensorUnaryOperation(Data const &arg_0,
 #endif      
             if (startsample<numSamples_0)
             {
+	        real_t dummyr=0;
                 size_t offset_0 = tmp_0->getPointOffset(startsample,0);
                 size_t offset_2 = tmp_2->getPointOffset(startsample,0);
-                const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0));
-                DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2));
+                const DataTypes::real_t *ptr_0 = &(arg_0_Z.getDataAtOffsetRO(offset_0, dummyr));
+                DataTypes::real_t *ptr_2 = &(res.getDataAtOffsetRW(offset_2, dummyr));
                 if (always_real(operation))
                 {
                     tensor_unary_array_operation_real(size0*samples*numDataPointsPerSample_0, ptr_0, ptr_2, operation, tol);
