@@ -27,6 +27,10 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (data.isComplex())
+    {
+        throw DudleyException("Assemble_integrate: complex arguments not supported.");
+    }
     const int my_mpi_rank = nodes->MPIInfo->rank;
     const ElementFile_Jacobians* jac = elements->borrowJacobians(nodes,
                                          hasReducedIntegrationOrder(data));
@@ -51,7 +55,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
             for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
                     const double vol = jac->absD[e] * jac->quadweight;
-                    const double* data_array = data.getSampleDataRO(e);
+                    const double* data_array = data.getSampleDataRO(e, static_cast<escript::DataTypes::real_t>(0));
                     for (int q = 0; q < numQuadTotal; q++) {
                         for (int i = 0; i < numComps; i++)
                             out_local[i] += data_array[INDEX2(i, q, numComps)] * vol;
@@ -63,7 +67,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
             for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
                     const double vol = jac->absD[e] * jac->quadweight;
-                    const double* data_array = data.getSampleDataRO(e);
+                    const double* data_array = data.getSampleDataRO(e, static_cast<escript::DataTypes::real_t>(0));
                     double rtmp = 0.;
                     for (int q = 0; q < numQuadTotal; q++)
                         rtmp += vol;

@@ -25,7 +25,10 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
 {
     if (!elements)
         return;
-
+    if (out.isComplex() || in.isComplex())
+    {
+        throw DudleyException("Assemble_CopyElementData: complex arguments not supported.");
+    }
     dim_t numQuad = (hasReducedIntegrationOrder(in) ?
             QuadNums[elements->numDim][0] : QuadNums[elements->numDim][1]);
 
@@ -47,13 +50,13 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
             const size_t len_size = numComps * numQuad * sizeof(double);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++)
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), len_size);
+                memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)), in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0)), len_size);
         } else {
             const size_t len_size = numComps * sizeof(double);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in.getSampleDataRO(n);
-                double* out_array = out.getSampleDataRW(n);
+                const double* in_array = in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0));
+                double* out_array = out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0));
                 for (int q = 0; q < numQuad; q++)
                     memcpy(out_array + q * numComps, in_array, len_size);
             }

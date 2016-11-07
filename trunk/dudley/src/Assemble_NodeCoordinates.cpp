@@ -28,6 +28,11 @@ void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
     if (nodes == NULL)
         return;
 
+    if (x.isComplex())
+    {
+        throw escript::ValueError("Assemble_NodeCoordinates: complex arguments not supported");
+    }
+    
     const escript::DataTypes::ShapeType expectedShape(1, nodes->numDim);
 
     if (!x.numSamplesEqual(1, nodes->getNumNodes())) {
@@ -46,7 +51,7 @@ void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& x)
         x.requireWrite();
 #pragma omp parallel for
         for (dim_t n = 0; n < nodes->getNumNodes(); n++)
-            memcpy(x.getSampleDataRW(n),
+            memcpy(x.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)),
                     &nodes->Coordinates[INDEX2(0, n, nodes->numDim)], dim_size);
     }
 }
