@@ -5213,12 +5213,28 @@ Data::print()
     int i,j;
 
     printf( "Data is %dX%d\n", getNumSamples(), getNumDataPointsPerSample() );
-    for( i=0; i<getNumSamples(); i++ )
+    if (isComplex())
     {
-        printf( "[%6d]", i );
-        for( j=0; j<getNumDataPointsPerSample(); j++ )
-            printf( "\t%10.7g", (getSampleDataRW(i))[j] );    // doesn't really need RW access
-        printf( "\n" );
+	for( i=0; i<getNumSamples(); i++ )
+	{
+	    printf( "[%6d]", i );
+	    for( j=0; j<getNumDataPointsPerSample(); j++ )
+	    {
+	        DataTypes::cplx_t* v=getSampleDataRW(i, static_cast<DataTypes::cplx_t>(0));
+		printf( "\t%10.7g,%10.7g", std::real(v[j]), std::imag(v[j]) );    // doesn't really need RW access
+	    }
+	    printf( "\n" );
+	}      
+    }
+    else
+    {
+	for( i=0; i<getNumSamples(); i++ )
+	{
+	    printf( "[%6d]", i );
+	    for( j=0; j<getNumDataPointsPerSample(); j++ )
+		printf( "\t%10.7g", (getSampleDataRW(i, static_cast<DataTypes::real_t>(0)))[j] );    // doesn't really need RW access
+	    printf( "\n" );
+	}
     }
 }
 void
@@ -5455,6 +5471,26 @@ escript::applyBinaryCFunction(bp::object cfunc, bp::tuple shape, escript::Data& 
 Data
 escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval)
 {
+    if (trueval.isComplex()!=falseval.isComplex())
+    {
+        trueval.complicate();
+        falseval.complicate();
+    }
+    if (trueval.isComplex())
+    {
+        return condEvalWorker(mask, trueval, falseval, static_cast<DataTypes::cplx_t>(0));
+    }
+    else
+    {
+        return condEvalWorker(mask, trueval, falseval, static_cast<DataTypes::real_t>(0));
+    }
+}
+
+
+template <typename S>
+Data
+escript::condEvalWorker(escript::Data& mask, escript::Data& trueval, escript::Data& falseval, S sentinel)
+{
     // First, we need to make sure that trueval and falseval are compatible types.
     // also need to ensure that mask is a proper type for a mask
     // Need to choose a functionspace and shape for result
@@ -5496,7 +5532,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     if (mask.isConstant() && trueval.isConstant() && falseval.isConstant())
     {
         Data result(0,trueval.getDataPointShape(), fs , false);
-        if (mask.getSampleDataRO(0)[0]>0)
+        if (mask.getSampleDataRO(0,S)[0]>0)
         {
             result.copy(trueval);
         }
@@ -5529,18 +5565,19 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
         const DataTagged* tdat=dynamic_cast<const DataTagged*>(trueval.getReady());
         const DataTagged* fdat=dynamic_cast<const DataTagged*>(falseval.getReady());
         const DataTagged* mdat=dynamic_cast<DataTagged*>(mask.getReady());
-        RealVectorType::const_pointer srcptr;
+        //RealVectorType::const_pointer srcptr;
+	const S* srcptr;
 
         // default value first
         if (mdat->getDefaultValueRO(0)>0)
         {
-            srcptr=&(tdat->getDefaultValueRO(0));
+            srcptr=&(tdat->getDefaultValueRO(0, sentinel));
         } else {
-            srcptr=&(fdat->getDefaultValueRO(0));
+            srcptr=&(fdat->getDefaultValueRO(0, sentinel));
         }
         for (int i=0;i<trueval.getDataPointSize();++i)
         {
-            *(&(rdat->getDefaultValueRW(0))+i)=*(srcptr+i);
+            *(&(rdat->getDefaultValueRW(0, sentinel))+i)=*(srcptr+i);
         }
 
         // now we copy the tags from the mask - if the mask does not have it then it doesn't appear
@@ -5581,14 +5618,14 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
         }
         else
         {
-            Data result(0,trueval.getDataPointShape(), fs , true);  // Need to support non-expanded as well
+            Data result(sentinel,trueval.getDataPointShape(), fs , true);  // Need to support non-expanded as well
             // OPENMP 3.0 allows unsigned loop vars.
 #if defined(_OPENMP) && (_OPENMP < 200805)
             long i;
 #else
             size_t i;
 #endif
-            RealVectorType& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
+            auto& rvec=result.getReady()->getTypedVectorRW(sentinel);      // don't need to get acquireWrite since we made it
             unsigned int psize=result.getDataPointSize();
                 
             size_t numsamples=result.getNumSamples();
@@ -5598,15 +5635,15 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
             {
                 // We are assuming that the first datapoint in the sample determines which side to use
                 // for the whole sample.
-                const DataTypes::real_t* src=0;
-                const DataTypes::real_t* masksample=mask.getSampleDataRO(i);
+                const decltype(sentinel)* src=0;
+                const DataTypes::real_t* masksample=mask.getSampleDataRO(i, static_cast<DataTypes::real_t>(0));
                 if (masksample[0]>0)    // first scalar determines whole sample
                 {
-                    src=trueval.getSampleDataRO(i);
+                    src=trueval.getSampleDataRO(i, sentinel);
                 }
                 else
                 {
-                    src=falseval.getSampleDataRO(i);
+                    src=falseval.getSampleDataRO(i, sentinel);
                 }
                 for (int j=0;j<dppsample;++j)
                 {

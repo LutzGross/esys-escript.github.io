@@ -543,16 +543,17 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
         std::vector<int> offset(numdata);
         std::vector<const DataTypes::real_t*> samples(numdata);
 
+	const DataTypes::real_t onlyreal=0;
         for (int i=0; i<numsamples; ++i) {
             if (!best.ownSample(i)) {
                 continue;
             }
             wantrow = true;
             for (int d=0; d<numdata; ++d) {
-                samples[d] = data[d].getSampleDataRO(i);
+                samples[d] = data[d].getSampleDataRO(i, onlyreal);
             }
             if (hasmask) {
-                masksample = mask.getSampleDataRO(i);
+                masksample = mask.getSampleDataRO(i, onlyreal);
                 if (!expandedmask) {
                     // mask controls whole sample
                     if (masksample[0] <= 0) {

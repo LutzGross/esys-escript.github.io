@@ -1875,7 +1875,8 @@ template <class BinaryOp>
 #ifdef IKNOWWHATIMDOING
   friend Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
-  friend Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+  template <typename S>
+  friend Data condEvalWorker(escript::Data& mask, escript::Data& trueval, escript::Data& falseval, S sentinel);
   friend Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed, const boost::python::tuple& filter);
 
 };
