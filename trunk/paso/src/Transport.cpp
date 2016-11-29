@@ -186,7 +186,7 @@ void TransportProblem::copyConstraint(escript::Data& source, escript::Data& q,
 #endif
 }
 
-void TransportProblem::resetTransport() const
+void TransportProblem::resetTransport(bool preserveSolverData) const
 {
     const dim_t n = transport_matrix->getTotalNumRows();
     transport_matrix->setValues(0.);

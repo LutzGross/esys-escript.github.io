@@ -106,7 +106,7 @@ void AbstractTransportProblem::setToSolution(Data& out, Data &u0, Data& source,
 {
     throw NotImplementedError("setToSolution is not available");
 }
-void AbstractTransportProblem::resetTransport() const
+void AbstractTransportProblem::resetTransport(bool preserveSolverData) const
 {
     throw NotImplementedError("resetProblem is not implemented.");
 }
