@@ -23,6 +23,7 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
+from . import escriptcpp as esc
 import esys.escriptcore.linearPDEs as lpe
 import esys.escriptcore.util as es
 import math
@@ -130,7 +131,7 @@ class LevelSet(object):
 
     :return: reinitialized level set
     """
-    fs=es.ReducedFunction(self.__domain)
+    fs=esc.ReducedFunction(self.__domain)
     dtau = 0.2*self.__h
     n =0
     #g=grad(phi,fs)
@@ -156,7 +157,7 @@ class LevelSet(object):
       """
       Returns the volume of the *phi(x)<0* region.
       """
-      return integrate(es.whereNegative(self.__phi.interpolate(es.Function(self.__domain))))
+      return integrate(es.whereNegative(self.__phi.interpolate(esc.Function(self.__domain))))
 
 
   def getJumpingParameter(self, param_neg=-1, param_pos=1, phi=None):
@@ -198,7 +199,7 @@ class LevelSet(object):
       if smoothing_width is None: smoothing_width = self.__smooth
       if phi is None: phi = self.__phi
       s=smoothing_width*self.__h
-      phi_on_h=es.interpolate(phi,es.Function(self.__domain))
+      phi_on_h=es.interpolate(phi,esc.Function(self.__domain))
       mask_neg = es.whereNonNegative(-s-phi_on_h)
       mask_pos = es.whereNonNegative(phi_on_h-s)
       mask_interface = 1.-mask_neg-mask_pos
@@ -213,7 +214,7 @@ class LevelSet(object):
       if smoothing_width is None: smoothing_width = self.__smooth
       if phi is None: phi = self.__phi
       s=smoothing_width*self.__h 
-      phi_on_h=es.interpolate(phi,es.Function(self.__domain))
+      phi_on_h=es.interpolate(phi,esc.Function(self.__domain))
       return es.whereNegative(abs(phi_on_h)-s)
       
   def makeCharacteristicFunction(self, contour=0, phi=None, positiveSide=True, smoothing_width=None):
