@@ -30,6 +30,13 @@ import sys
 from esys.escript import *
 
 class TestDomainTests(unittest.TestCase):
+    """
+    escript has a (relatively) trivial domain implementatiobn (called TestDomain) 
+    to be used for testing escriptcore code without needing a full domain 
+    implementation such as finley.
+    
+    This set of tests checks that domain.
+    """
     TOL=EPSILON*100.
     def testreduction(self):
         dom = getTestDomainFunctionSpace(4,2,2).getDomain()

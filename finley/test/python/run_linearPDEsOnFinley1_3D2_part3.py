@@ -29,12 +29,12 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_assemblage_3Do2 import Test_assemblage_3Do2_cont
+from test_assemblage import Test_assemblage_3Do2
 from esys.finley import Brick
 
 NE=10 # number of element in each spatial direction (must be even)
 
-class Test_AssemblageOnFinleyHex3DOrder2_part3_2(Test_assemblage_3Do2_cont):
+class Test_AssemblageOnFinleyHex3DOrder2(Test_assemblage_3Do2):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
