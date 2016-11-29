@@ -110,7 +110,7 @@ public:
      \brief resets the transport operator typically as they have been updated.
   */
   ESCRIPT_DLL_API
-  virtual void resetTransport() const;
+  virtual void resetTransport(bool preserveSolverData) const;
 
   /**
      \brief

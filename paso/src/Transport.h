@@ -44,7 +44,7 @@ public:
 
     ~TransportProblem();
 
-    virtual void resetTransport() const;
+    virtual void resetTransport(bool preserveSolverData) const;
 
     void solve(double* u, double dt, double* u0, double* q, Options* options);
 
