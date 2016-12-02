@@ -310,6 +310,7 @@ ft=Unit("ft", "feet", 0., 0.3048 * m)
 Barrel=Unit("bbl","barrel", 0., 0.158987294928 * m**3)
 Mscf=Unit("MSCF", "thousand standard cubic feet", 0., 28.31685 * m**3)
 Mcf=1000. * ft**3
+ccm=cm**3
 #
 #  time
 #
