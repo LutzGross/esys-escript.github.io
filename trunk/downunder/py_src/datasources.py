@@ -737,7 +737,13 @@ class NetCdfData(DataSource):
 
     def getDataType(self):
         return self.__data_type
-
+        
+    def getScaleFactor(self):
+        """
+        returns the data scale factor for adjusting measurement to SI
+        """
+        return self.__scale_factor
+        
     def getSurveyData(self, domain, origin, NE, spacing):
         if not HAS_RIPLEY:
             raise RuntimeError("Ripley module not available for reading")
