@@ -60,6 +60,9 @@ import esys.escriptcore.utestselect as unittest
 import numpy
 from esys.escript import *
 from test_util_base import Test_util_base
+
+from test_util_reduction_new import Test_util_reduction_new
+
 from test_util_reduction_no_tagged_data import Test_util_reduction_no_tagged_data
 from test_util_reduction_with_tagged_data import Test_util_reduction_with_tagged_data
 from test_util_overloaded_binary_no_tagged_data import Test_util_overloaded_binary_no_tagged_data
@@ -75,7 +78,7 @@ from test_util_slicing_no_tagged_data import Test_util_slicing_no_tagged_data
 from test_util_slicing_with_tagged_data import Test_util_slicing_with_tagged_data
 
 
-class Test_util_reduction(Test_util_reduction_no_tagged_data,Test_util_reduction_with_tagged_data):
+class Test_util_reduction(Test_util_reduction_no_tagged_data,Test_util_reduction_with_tagged_data, Test_util_reduction_new):
    """ test for reduction operation Lsup,sup,inf for all data types"""
    pass 
 class Test_util_unary(Test_util_unary_no_tagged_data,Test_util_unary_with_tagged_data):
