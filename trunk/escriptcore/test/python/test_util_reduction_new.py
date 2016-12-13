@@ -42,7 +42,7 @@ import numpy
 from esys.escript import *
 from test_util_base import Test_util_base
 
-class Test_util_reduction_new(Test_util_base):
+class Test_util_values(unittest.TestCase):
     """
     test for reduction operation Lsup,sup,inf
     
@@ -63,23 +63,25 @@ class Test_util_reduction_new(Test_util_base):
     z2(3,3)
     z2(4,4)
     
+    However, some of the larger arrays are modified afterwards to ensure
+    that they contain at least one 0 for NaN checking purposes
     """
     def get_scalar_input1(self, cplx):
-        if cplx:
+        if not cplx:
             v1=0.6081355033581688
         else:
             v1=(0.27562178672620385+0.42446484939332796j)
         return (v1,v1)
 
     def get_scalar_input2(self, cplx):
-        if cplx:
+        if not cplx:
             v2=0.5327268994219874
         else:
             v2=(0.49976275640416334+0.4141087840210876j)
         return (v2,v2)
     
     def get_scalar_input3(self, cplx):
-        if cplx:
+        if not cplx:
             v3=0.4903827487969067
         else:
             v3=(0.4130410618402195+0.7195601418761082j)
@@ -270,7 +272,7 @@ class Test_util_reduction_new(Test_util_base):
                         (0.40921125173698586, -0.6302181341512401, 0.4857376224901844)), 
                         ((-0.5156818720590722, 0.3810418328134193, 0.5228685660307542), 
                         (0.44668606111653875, -0.8552520337523355, -0.30378907822454826), 
-                        (-0.572442375071903, 0.13397389728880899, 0.800878962384303)))
+                        (-0.572442375071903, 0.13397389728880899, 0.)))
             elif rank==4:
                 return ((((0.45433363368861773, 0.6498884169562154, 0.8968304717142223, 0.8907734241559906), 
                         (0.4777438965822781, 0.19219763395957137, 0.47760828704065156, 0.099611811950238), 
@@ -418,7 +420,7 @@ class Test_util_reduction_new(Test_util_base):
                         (((-0.5648616238096438+0.46394478768979586j), (-0.41003938415951235-0.33614785565882677j), (-0.3893130130095368+0.05645367151196268j), (0.3821121473593535+0.17991382827274327j)), 
                          ((-0.5139083991747512+0.789121431720947j), (-0.6171117805874629+0.3660741433822048j), (0.05303400234375011+0.5094418060177022j), (-0.3545806168076585+0.4629656377266379j)), 
                          ((0.2658032276104465+0.4237937984173149j), (0.18183157447480658+0.06623748664233398j), (0.12546831548404336-0.10575754034359075j), (-0.6833387940577664+0.23947306785979094j)), 
-                         ((-0.20503554348285624+0.21628529049971312j), (0.23649982943904524-0.6159980174662008j), (-0.20651357702330975+0.08458167450189069j), (0.08144906214310088+0.9658767390560214j)))))
+                         ((-0.20503554348285624+0.21628529049971312j), (0.23649982943904524-0.6159980174662008j), (-0.20651357702330975+0.08458167450189069j), (0.j)))))
 
     def get_python_input3(self, rank, cplx):
         if not cplx:
@@ -633,9 +635,21 @@ class Test_util_reduction_new(Test_util_base):
             oraclecheck=v[4]
             description=v[5]
             res=eval(op)
-            self.assertTrue(eval(misccheck),"Failed check for for "+description)
+            if misccheck is not None:
+                self.assertTrue(eval(misccheck),"Failed check for for "+description)
             oraclevalue=eval(oraclecheck)
             self.assertTrue(abs(res-oraclevalue)<=self.RES_TOL*abs(oraclevalue),"wrong result for "+description)
+            
+    def execute_ce_throws(self, pars):
+        for v in pars:
+            a=v[0]
+            op=v[1]
+            misccheck=v[2]
+            ref=v[3]
+            oraclecheck=v[4]
+            description=v[5]
+            with self.assertRaises(TypeError):            
+                res=eval(op)                
     
     def execute_t_params(self, pars):
         for v in pars:
@@ -656,50 +670,213 @@ class Test_util_reduction_new(Test_util_base):
                     oraclevalue=eval(oraclecheck)
                 else:
                     oraclevalue=ref
-                if not abs(res-oraclevalue)<=self.RES_TOL*abs(oraclevalue):
-                    print("res=",res," ov=",oraclevalue)               
                 self.assertTrue(abs(res-oraclevalue)<=self.RES_TOL*abs(oraclevalue),"wrong result for "+description+" for tag "+str(tagcount))
         
-        
-    def test_Lsup_new(self):
-        (f1,f2)=self.get_scalar_input1(False)
-        pars=[(f1, "Lsup(a)", "isinstance(res,float)", numpy.array(f2), "ref.max()", "Lsup - scalar")]
-        (f1,f2)=self.get_scalar_input1(True)
-        pars=[(f1, "Lsup(a)", "isinstance(res,float)", numpy.array(f2), "ref.max()", "Lsup - complex scalar")]
-        for c in (False, True):
+    def execute_t_throws(self, pars):
+        for v in pars:
+            description=v[0]
+            a=v[1]
+            tagcount=1
+            for step in v[2:]:
+                a.setTaggedValue(tagcount, step[0])
+                tagcount+=1
+                op=step[1]
+                misccheck=step[2]
+                ref=step[3]
+                oraclecheck=step[4]
+                with self.assertRaises(TypeError):            
+                    res=eval(op)  
+                    
+
+    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False):
+        """
+        supportcplx is a boolean indicating whether complex operations should be checked for values (True)
+             or tested to see if they raise (False)
+        opstring is a string of the operation to be performed (in terms of argument a) eg "Lsup(a)"
+        misccheck is a string giving a check to be run after the operation eg "isinstance(res,float)"
+        opname is a string used to describe the operation being tested eg "inf"
+        update1 and update2 are strings giving code used to update a variable rmerge to  
+            account for tag additions for tagged data.
+            eg:             update1="r2.min()"
+                            update2="min(rmerge, r3.min())"
+            would result in     rmerge=eval(update1) running after the first tag is calculatedand 
+                                rmerge=eval(update2) running after the second
+        """
+        if input_trans is None:
+            input_trans=lambda x: x
+        pars=[]
+        epars=[]    # operations which should throw
+        if not data_only:
+            (f1,f2)=self.get_scalar_input1(False)
+            pars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
+            if supportcplx:
+                (f1,f2)=self.get_scalar_input1(True)
+                pars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+            else:
+                (f1,f2)=self.get_scalar_input1(True)
+                epars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+        if supportcplx:
+            fields=(False, True)
+        else:
+            fields=(False,)
+        for c in fields:
+            dest=pars
             if c:
                 cs="complex "
             else:
                 cs=""
+            if c and not supportcplx:
+                dest=epars
             for rank in range(4):
-                (a, r)=self.get_array_input1(rank, c)
-                p=(a, "Lsup(a)", "isinstance(res,float)", numpy.array(r), "abs(ref).max()", "Lsup - "+cs+"array rank "+str(rank))
-                pars.append(p)
+                if not data_only:
+                    (a, r)=self.get_array_input1(rank, c)
+                    p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
+                    dest.append(p)
                 (a, r)=self.get_const_input1(rank, self.functionspace, c)
-                p=(a, "Lsup(a)", "isinstance(res,float)", numpy.array(r), "abs(ref).max()", "Lsup - "+cs+"Constant Data rank "+str(rank))
-                pars.append(p)
+                p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
+                dest.append(p)
                 (a, r)=self.get_expanded_input1(rank, self.functionspace, c)
-                p=(a, "Lsup(a)", "isinstance(res,float)", numpy.array(r), "abs(ref).max()", "Lsup - "+cs+"Expanded Data rank "+str(rank))
-                pars.append(p)
+                p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
+                dest.append(p)
         self.execute_ce_params(pars)
+        self.execute_ce_throws(epars)
         del pars
+        del epars
         tpars=[]    # tagged versions
-        for c in (False, True):
+        epars=[]
+        for c in fields:
+            dest=tpars
             if c:
                 cs="complex "
             else:
-                cs=""        
+                cs=""
+            if c and not supportcplx:
+                dest=epars                
             for rank in range(4):
-                test=["Lsup - "+cs+"tagged rank "+str(rank),]
+                test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
-                test.append(a)
+                test.append(input_trans(a))
                 r=numpy.array(r)
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
                 (t2, r2)=self.get_array_input2(rank, c)
-                rmerge=abs(r2).max()
-                test.append((t2, "Lsup(a)", "isinstance(res,float)", rmerge, None,))
+                rmerge=eval(update1)
+                test.append((input_trans(t2), opstring, misccheck, rmerge, None,))
                 (t3, r3)=self.get_array_input3(rank, c)
-                rmerge=max(rmerge, abs(r3).max())
-                test.append((t3, "Lsup(a)", "isinstance(res,float)", rmerge, None,))
-            tpars.append(test)
+                rmerge=eval(update2)
+                test.append((input_trans(t3), opstring, misccheck, rmerge, None,))
+            dest.append(test)
         self.execute_t_params(tpars)
+        self.execute_t_throws(epars)        
+
+def zero_to_nan(obj):
+    f=1./obj
+    return f/f
+
+class Test_util_reduction_new(Test_util_base, Test_util_values):        
+    def test_Lsup_new(self):
+        supportcplx=True
+        opstring="Lsup(a)"
+        misccheck="isinstance(res,float)"
+        oraclecheck="abs(ref).max()"
+        opname="Lsup"
+        update1="abs(r2).max()"
+        update2="max(rmerge, abs(r3).max())"        
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2)
+
+    def test_sup_new(self):
+        supportcplx=False
+        opstring="sup(a)"
+        misccheck="isinstance(res,float)"
+        oraclecheck="ref.max()"
+        opname="sup"
+        update1="r2.max()"
+        update2="max(rmerge, r3.max())"
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2)
+
+    def test_inf_new(self):
+        supportcplx=False
+        opstring="inf(a)"
+        misccheck="isinstance(res,float)"
+        oraclecheck="ref.min()"
+        opname="inf"
+        update1="r2.min()"
+        update2="min(rmerge, r3.min())"
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2)
+        
+    @unittest.skipIf(not hasFeature('NAN_CHECK'), "test only fires if NAN_CHECK is enabled")
+    def test_hasNaN(self):
+        # Need to check for hasNaN as well
+        supportcplx=False
+        opstring="a.hasNaN()"
+        misccheck=None
+        oraclecheck="0 in ref"
+        opname="hasNaN"
+        update1="0 in r2"
+        update2="rmerge or 0 in r3"
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=zero_to_nan, data_only=True)   
+        
+    # It would be a bit tricky to reformulate this into the new form 
+    # This will not test all possible type combinations 
+    @unittest.skipIf(not hasFeature('NAN_CHECK'), "test only fires if NAN_CHECK is enabled")
+    def test_NaNReduction_constData_rank4(self):
+        oarg=Data(numpy.array([[[[0.50544713768476202, 0.96922321849050874, -0.81524480218696649, -0.36499730379849193], 
+[-0.48131882706974372, 0.026812357207576465, 0.090903267401989618, -0.24742363369877829], [-0.51631372893805438, 
+0.30410275437953183, -0.75149566289642533, -0.19930300338453599]], [[0.82034878499482788, -0.70904661587698792, 
+-0.27637223434426073, -0.34818734117560401], [0.11686048779802416, -0.76746266142163178, -0.75578186306174833, 
+0.14509316330390232], [0.1590050723141736, 0.69684384552537937, -0.58747105640080832, -0.28640840371441523]]], 
+[[[0.14956532194045669, 0.081514192262221119, 0.32061383569406399, -0.2444346881437609], [0.79564139071785278, 
+-0.5456680167461434, 0.24722978802719742, 0.28286130725068315], [0.10385207763921711, -0.064749181840278336, 
+0.21325254547672734, -0.71875644540473838]], [[0.58552496009870802, 0.35472373485671338, -0.18411162994671826, 
+0.71609038134967773], [-0.20966804574945064, -0.49286619989346314, 0.85116051808632553, -0.94417114370961075], 
+[-0.40434528979823714, 0.62250343758157611, 0.64860074098639742, 0.0043146814280992096]]], [[[-0.14242849200713259, 
+0.42551908502898095, 0.7691157770973962, -0.37595641162856674], [0.026655444032149589, -0.82186407521644167, 
+0.40285091480648783, -0.53328831035315982], [-0.12887729257054481, 0.75610663428133451, 0.022049613835531723, 
+0.59949338706293043]], [[-0.34506254315071772, 0.019719877473602043, 0.10216765908478709, 0.022681548062032153], 
+[0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 
+0.18829632566943544, 0.12366885442775377, 0]]]]),self.functionspace)
+        arg=1/oarg       #will get us an inf
+        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
+        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")
+        arg=(1+0j)/oarg
+        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
+        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")
+        # Now testing tagged
+        arg.tag()
+        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")        
+                
+    @unittest.skipIf(not hasFeature('NAN_CHECK'), "test only fires if NAN_CHECK is enabled")
+    def test_NaNReduction_expandedData_rank4(self):
+        oarg=Data(numpy.array([[[[0.50544713768476202, 0.96922321849050874, -0.81524480218696649, -0.36499730379849193], 
+[-0.48131882706974372, 0.026812357207576465, 0.090903267401989618, -0.24742363369877829], [-0.51631372893805438, 
+0.30410275437953183, -0.75149566289642533, -0.19930300338453599]], [[0.82034878499482788, -0.70904661587698792, 
+-0.27637223434426073, -0.34818734117560401], [0.11686048779802416, -0.76746266142163178, -0.75578186306174833, 
+0.14509316330390232], [0.1590050723141736, 0.69684384552537937, -0.58747105640080832, -0.28640840371441523]]], 
+[[[0.14956532194045669, 0.081514192262221119, 0.32061383569406399, -0.2444346881437609], [0.79564139071785278, 
+-0.5456680167461434, 0.24722978802719742, 0.28286130725068315], [0.10385207763921711, -0.064749181840278336, 
+0.21325254547672734, -0.71875644540473838]], [[0.58552496009870802, 0.35472373485671338, -0.18411162994671826, 
+0.71609038134967773], [-0.20966804574945064, -0.49286619989346314, 0.85116051808632553, -0.94417114370961075], 
+[-0.40434528979823714, 0.62250343758157611, 0.64860074098639742, 0.0043146814280992096]]], [[[-0.14242849200713259, 
+0.42551908502898095, 0.7691157770973962, -0.37595641162856674], [0.026655444032149589, -0.82186407521644167, 
+0.40285091480648783, -0.53328831035315982], [-0.12887729257054481, 0.75610663428133451, 0.022049613835531723, 
+0.59949338706293043]], [[-0.34506254315071772, 0.019719877473602043, 0.10216765908478709, 0.022681548062032153], 
+[0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 
+0.18829632566943544, 0.12366885442775377, 0]]]]),self.functionspace, True)
+        arg=1/arg       #will get us an inf
+        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
+        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result") 
+        arg=(1+0j)/oarg
+        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
+        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")        
+    
+
+        
