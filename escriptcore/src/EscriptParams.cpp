@@ -68,9 +68,9 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_MPI
     features.insert("mpi");
 #endif
-#ifdef isnan
+        // Given c++11 we assume that this is
+        // supported now
     features.insert("NAN_CHECK");
-#endif
 #ifdef ESYS_HAVE_NETCDF
     features.insert("netcdf");
 #endif
