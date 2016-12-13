@@ -841,13 +841,13 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")
         arg=(1+0j)/oarg
         arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
-        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertRaises(RuntimeError,sup, arg)
+        self.assertRaises(RuntimeError,inf, arg)
         self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")
         # Now testing tagged
         arg.tag()
-        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertRaises(RuntimeError,sup, arg)
+        self.assertRaises(RuntimeError,inf, arg)
         self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")        
                 
     @unittest.skipIf(not hasFeature('NAN_CHECK'), "test only fires if NAN_CHECK is enabled")
@@ -867,15 +867,15 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
 0.59949338706293043]], [[-0.34506254315071772, 0.019719877473602043, 0.10216765908478709, 0.022681548062032153], 
 [0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 
 0.18829632566943544, 0.12366885442775377, 0]]]]),self.functionspace, True)
-        arg=1/arg       #will get us an inf
+        arg=1/oarg       #will get us an inf
         arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
         self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
         self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
         self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result") 
         arg=(1+0j)/oarg
         arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
-        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+        self.assertRaises(RuntimeError,sup, arg)
+        self.assertRaises(RuntimeError,inf, arg)
         self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")        
     
 
