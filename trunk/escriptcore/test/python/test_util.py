@@ -39,7 +39,6 @@ to run the use:
    suite.addTest(unittest.makeSuite(Test_utilOnBruce))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
-For function spaces which support tagging there is the extended test case Test_util_with_tagged_data available.
 This test assumes that samples with x_0 coordinate 0 are tagged with 1 and all samples tagged with 1 have x_0
 coordinate 0.
 
@@ -63,8 +62,6 @@ from test_util_base import Test_util_base
 
 from test_util_reduction_new import Test_util_reduction_new
 
-from test_util_reduction_no_tagged_data import Test_util_reduction_no_tagged_data
-from test_util_reduction_with_tagged_data import Test_util_reduction_with_tagged_data
 from test_util_overloaded_binary_no_tagged_data import Test_util_overloaded_binary_no_tagged_data
 from test_util_overloaded_binary_with_tagged_data import Test_util_overloaded_binary_with_tagged_data
 from test_util_unary_no_tagged_data import Test_util_unary_no_tagged_data
@@ -92,11 +89,11 @@ class Test_util_binary(Test_util_binary_no_tagged_data,Test_util_binary_with_tag
 class Test_util_overloaded_binary(Test_util_overloaded_binary_no_tagged_data,Test_util_overloaded_binary_with_tagged_data):
    """test for all overloaded operation"""
    pass
-class Test_util_with_tagged_data(Test_util_unary_with_tagged_data,Test_util_reduction_with_tagged_data,Test_util_binary_with_tagged_data,
+class Test_util_with_tagged_data(Test_util_unary_with_tagged_data,Test_util_binary_with_tagged_data,
   Test_util_overloaded_binary_with_tagged_data,Test_util_slicing_with_tagged_data):
    """test for all operations without tagged data"""
    pass
-class Test_util_no_tagged_data(Test_util_unary_no_tagged_data,Test_util_reduction_no_tagged_data,Test_util_binary_no_tagged_data,
+class Test_util_no_tagged_data(Test_util_unary_no_tagged_data,Test_util_binary_no_tagged_data,
   Test_util_overloaded_binary_no_tagged_data, Test_util_slicing_no_tagged_data):
    """all tests without tagged data"""
    pass
