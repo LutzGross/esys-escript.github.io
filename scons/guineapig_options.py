@@ -26,5 +26,5 @@ silo = True
 trilinos = True
 trilinos_prefix = '/opt/trilinos_hybrid_eti'
 cxx_extra += " -Wextra -Wno-deprecated-declarations -Wno-unused-parameter"
-launcher = "mpirun ${AGENTOVERRIDE} ${EE} --oversubscribe --map-by node:pe=%t -bind-to none -np %N %b"
+launcher = "mpirun ${AGENTOVERRIDE} ${EE} --mca io romio314 --oversubscribe --map-by node:pe=%t -bind-to none -np %N %b"
 
