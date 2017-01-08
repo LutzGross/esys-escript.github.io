@@ -21,7 +21,11 @@ escript_opts_version = 203
 #cxx_extra = '-Wno-literal-suffix'
 openmp = True
 #mpi = 'OPENMPI'
-mpi_prefix = '/usr/lib/openmpi'
+
+import os
+
+d_mpi_path = '/usr/include/openmpi'
+mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 mpi_libs = ['mpi_cxx', 'mpi']
 netcdf = True
 #umfpack = True
