@@ -97,6 +97,77 @@ class Test_util_unary_new(Test_util_values):
       self.iterateops(ops,vals)      
 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_abs_combined(self):
+        supportcplx=True
+        opstring="abs(a)"
+        misccheck="isinstance(res,float) or (isinstance(res, numpy.ndarray) and res.dtype.kind=='f') or (isinstance(res, Data) and not res.isComplex())"
+        oraclecheck="numpy.abs(ref)"
+        opname="abs"
+        update1="numpy.abs(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_acos_combined(self):
+        supportcplx=True
+        opstring="acos(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.arccos(ref)"
+        opname="acos"
+        update1="numpy.arccos(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_acosh_combined(self):
+        supportcplx=True
+        opstring="acosh(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.arccosh(ref)"
+        opname="acosh"
+        update1="numpy.arccosh(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: x+2)     
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_asin_combined(self):
+        supportcplx=True
+        opstring="asin(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.arcsin(ref)"
+        opname="asin"
+        update1="numpy.arcsin(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_asinh_combined(self):
+        supportcplx=True
+        opstring="asinh(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.arcsinh(ref)"
+        opname="asinh"
+        update1="numpy.arcsinh(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_atan_combined(self):
+        supportcplx=True
+        opstring="atan(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.arctan(ref)"
+        opname="atan"
+        update1="numpy.arctan(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_atanh_combined(self):
+        supportcplx=True
+        opstring="atanh(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.arctanh(ref)"
+        opname="atanh"
+        update1="numpy.arctanh(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_combined(self):
         supportcplx=True
         opstring="sin(a)"
@@ -118,6 +189,16 @@ class Test_util_unary_new(Test_util_values):
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_cosh_combined(self):
+        supportcplx=True
+        opstring="cosh(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.cosh(ref)"
+        opname="cosh"
+        update1="numpy.cosh(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_combined(self):
         supportcplx=True
         opstring="tan(a)"
@@ -127,6 +208,16 @@ class Test_util_unary_new(Test_util_values):
         update1="numpy.tan(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_tanh_combined(self):
+        supportcplx=True
+        opstring="tanh(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.tanh(ref)"
+        opname="tanh"
+        update1="numpy.tanh(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_combined(self):
         supportcplx=True
