@@ -52,7 +52,9 @@ except KeyError:
 
 class Test_util_values(unittest.TestCase):
     """
-    test for reduction operation Lsup,sup,inf
+    Please do not define tests in this class.
+    The idea is to make it easier to isolate groups of tests, which
+    will be harder if there are tests in the base class
     
     Sets of values could be generated as follows:
     def z2(levels, row):
@@ -74,6 +76,10 @@ class Test_util_values(unittest.TestCase):
     However, some of the larger arrays are modified afterwards to ensure
     that they contain at least one 0 for NaN checking purposes
     """
+
+    RES_TOL=1.e-7 # RES_TOLerance to compare results
+    DIFF_TOL=1.e-7 # RES_TOLerance to derivatices
+
     
     def get_scalar_inputL(self, cplx):
         if not cplx:
@@ -168,7 +174,7 @@ class Test_util_values(unittest.TestCase):
              ((69065.27619440478+6707.326801963689j), (30689.082128804977-86800.51053515819j), (49475.52450098609+20399.323850453336j), (-29667.120261194417+8908.992755905914j)))))
         else:
             if rank==0:
-                return 1968.4370221151426
+                return (1968.4370221151426,)
             if rank==1:
                 return (-24899.54037082102, -25.31549006801)
             if rank==2:
@@ -841,7 +847,15 @@ class Test_util_values(unittest.TestCase):
             description=v[5]
             res=eval(op)
             if misccheck is not None:
-                self.assertTrue(eval(misccheck),"Failed check for for "+description)
+                if not eval(misccheck):
+                    print("Failed check:"+misccheck)
+                    print(type(a))
+                    print(" vs ")
+                    print(type(res))
+                    print(" values:")
+                    print(a)
+                    print(res)
+                self.assertTrue(eval(misccheck),"Failed check for "+description)
             oraclevalue=eval(oraclecheck)
             self.assertTrue(Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue),"wrong result for "+description)
             
@@ -874,6 +888,20 @@ class Test_util_values(unittest.TestCase):
                     oraclevalue=eval(oraclecheck)
                 else:
                     oraclevalue=ref
+                if not Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue):
+                    print(v)
+                    print(" This step ")
+                    print(step)
+                    print("Failed comparison:")
+                    print(res)
+                    print(" vs ")
+                    print(oraclevalue)
+                    print(" a= ")
+                    print(a)
+                    print(" ref== ")
+                    print(ref)
+                    print(" oraclecheck= ")
+                    print(oraclecheck)
                 self.assertTrue(Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue),"wrong result for "+description+" for tag "+str(tagcount))
                 tagcount+=1
 
@@ -913,13 +941,19 @@ class Test_util_values(unittest.TestCase):
         epars=[]    # operations which should throw
         if not data_only:
             (f1,f2)=self.get_scalar_input1(False)
-            pars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
+            f1=input_trans(f1)
+            f2=input_trans(f2)
+            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
             if supportcplx:
                 (f1,f2)=self.get_scalar_input1(True)
-                pars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                f1=input_trans(f1)
+                f2=input_trans(f2)
+                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
             else:
                 (f1,f2)=self.get_scalar_input1(True)
-                epars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                f1=input_trans(f1)
+                f2=input_trans(f2)                
+                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
         if supportcplx:
             fields=(False, True)
         else:
@@ -935,13 +969,19 @@ class Test_util_values(unittest.TestCase):
             for rank in range(4):
                 if not data_only:
                     (a, r)=self.get_array_input1(rank, c)
-                    p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
+                    a=input_trans(a)
+                    r=input_trans(r)
+                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
                     dest.append(p)
                 (a, r)=self.get_const_input1(rank, self.functionspace, c)
-                p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
+                a=input_trans(a)
+                r=input_trans(numpy.array(r))                
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
                 dest.append(p)
                 (a, r)=self.get_expanded_input1(rank, self.functionspace, c)
-                p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
+                a=input_trans(a)
+                r=input_trans(numpy.array(r))                
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
                 dest.append(p)
         self.execute_ce_params(pars)
         self.execute_ce_throws(epars)
@@ -960,16 +1000,21 @@ class Test_util_values(unittest.TestCase):
             for rank in range(4):
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
-                test.append(input_trans(a))
-                r=numpy.array(r)
+                a=input_trans(a)
+                r=input_trans(numpy.array(r))                                
+                test.append(a)
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
                 (t2, r2)=self.get_array_input2(rank, c)
+                t2=input_trans(t2)
+                r2=input_trans(numpy.array(r2))
                 rmerge=eval(update1)
-                test.append((input_trans(t2), opstring, misccheck, rmerge, None,))
+                test.append((t2, opstring, misccheck, rmerge, None,))
                 if multisteptag:
                     (t3, r3)=self.get_array_input3(rank, c)
+                    t3=input_trans(t3)
+                    r3=input_trans(numpy.array(r3))
                     rmerge=eval(update2)
-                    test.append((input_trans(t3), opstring, misccheck, rmerge, None,))
+                    test.append((t3, opstring, misccheck, rmerge, None,))
                 dest.append(test)
         self.execute_t_params(tpars)
         self.execute_t_throws(epars)        
@@ -978,7 +1023,7 @@ class Test_util_values(unittest.TestCase):
     def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True):
         """
         (At time of writing) This is the same as generate_operation_test_batch but using
-        inputL to add some large values into the mix.
+        inputL to add some large (magnitude) values into the mix.
         supportcplx is a boolean indicating whether complex operations should be checked for values (True)
              or tested to see if they raise (False)
         opstring is a string of the operation to be performed (in terms of argument a) eg "Lsup(a)"
@@ -997,13 +1042,19 @@ class Test_util_values(unittest.TestCase):
         epars=[]    # operations which should throw
         if not data_only:
             (f1,f2)=self.get_scalar_inputL(False)
-            pars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
+            f1=input_trans(f1)
+            f2=input_trans(f2)
+            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
             if supportcplx:
                 (f1,f2)=self.get_scalar_inputL(True)
-                pars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                f1=input_trans(f1)
+                f2=input_trans(f2)                
+                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
             else:
                 (f1,f2)=self.get_scalar_inputL(True)
-                epars.append((input_trans(f1), opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                f1=input_trans(f1)
+                f2=input_trans(f2)                
+                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
         if supportcplx:
             fields=(False, True)
         else:
@@ -1019,13 +1070,19 @@ class Test_util_values(unittest.TestCase):
             for rank in range(4):
                 if not data_only:
                     (a, r)=self.get_array_inputL(rank, c)
-                    p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
+                    a=input_trans(a)
+                    r=input_trans(r)
+                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
                     dest.append(p)
                 (a, r)=self.get_const_inputL(rank, self.functionspace, c)
-                p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
+                a=input_trans(a)
+                r=input_trans(numpy.array(r))                
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
                 dest.append(p)
                 (a, r)=self.get_expanded_inputL(rank, self.functionspace, c)
-                p=(input_trans(a), opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
+                a=input_trans(a)
+                r=input_trans(numpy.array(r))
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
                 dest.append(p)
         self.execute_ce_params(pars)
         self.execute_ce_throws(epars)
@@ -1044,26 +1101,29 @@ class Test_util_values(unittest.TestCase):
             for rank in range(4):
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
-                test.append(input_trans(a))
-                r=numpy.array(r)
+                a=input_trans(a)
+                r=input_trans(numpy.array(r))                
+                test.append(a)
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
                 (t2, r2)=self.get_array_inputL(rank, c)
+                t2=input_trans(t2)
+                r2=input_trans(numpy.array(r2))
                 rmerge=eval(update1)
-                test.append((input_trans(t2), opstring, misccheck, rmerge, None,))
+                test.append((t2, opstring, misccheck, rmerge, None,))
                 if multisteptag:
                     (t3, r3)=self.get_array_input3(rank, c)
+                    t3=input_trans(t3)
+                    r3=input_trans(numpy.array(r3))
                     rmerge=eval(update2)
-                    test.append((input_trans(t3), opstring, misccheck, rmerge, None,))
+                    test.append((t3, opstring, misccheck, rmerge, None,))
                 dest.append(test)
         self.execute_t_params(tpars)
         self.execute_t_throws(epars) 
 
-class Test_util_base(unittest.TestCase):
+class Test_util_base(Test_util_values):
    """
    basic tests on util.py
    """
-   RES_TOL=1.e-7 # RES_TOLerance to compare results
-   DIFF_TOL=1.e-7 # RES_TOLerance to derivatices
 #=========================================================
 #  File writer
 #=========================================================
