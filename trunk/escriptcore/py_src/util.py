@@ -1449,7 +1449,8 @@ def length(arg):
    :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
    :rtype: ``float``, `escript.Data`, `Symbol` depending on the type of ``arg``
    """
-   return sqrt(inner(arg,arg))
+   a=abs(arg)
+   return sqrt(inner(a,a))
 
 def trace(arg,axis_offset=0):
    """
