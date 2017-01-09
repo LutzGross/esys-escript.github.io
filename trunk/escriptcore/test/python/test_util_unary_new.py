@@ -42,11 +42,11 @@ import numpy
 import math
 import cmath
 from esys.escript import *
-from test_util_base import Test_util_base
+from test_util_base import Test_util_base, Test_util_values
 
 haveLapack = hasFeature('lapack')
 
-class Test_util_unary_new(Test_util_base):
+class Test_util_unary_new(Test_util_values):
    """
    test for unary operations. No tagged data are tested.
    """
@@ -127,33 +127,35 @@ class Test_util_unary_new(Test_util_base):
         update1="numpy.tan(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
-   ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   #def test_log_combined(self):
-        #supportcplx=True
-        #opstring="log(a)"
-        #misccheck="isinstance(res,type(a))"
-        #oraclecheck="numpy.log(ref)"
-        #opname="log"
-        #update1="numpy.log(r2)"    # The updates are a problem here because this is not a reduction
-        #update2=None
-        #self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
-   ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   #def test_log10_combined(self):
-        #supportcplx=True
-        #opstring="log10(a)"
-        #misccheck="isinstance(res,type(a))"
-        #oraclecheck="numpy.log10(ref)"
-        #opname="log10"
-        #update1="numpy.log10(r2)"    # The updates are a problem here because this is not a reduction
-        #update2=None
-        #self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
-   ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   #def test_exp_combined(self):
-        #supportcplx=True
-        #opstring="exp(a)"
-        #misccheck="isinstance(res,type(a))"
-        #oraclecheck="numpy.exp(ref)"
-        #opname="exp"
-        #update1="numpy.exp(r2)"    # The updates are a problem here because this is not a reduction
-        #update2=None
-        #self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_log_combined(self):
+        supportcplx=True
+        opstring="log(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.log(ref)"
+        opname="log"
+        update1="numpy.log(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, 
+            input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_log10_combined(self):
+        supportcplx=True
+        opstring="log10(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.log10(ref)"
+        opname="log10"
+        update1="numpy.log10(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False,  
+            input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)         
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_exp_combined(self):
+        supportcplx=True
+        opstring="exp(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.exp(ref)"
+        opname="exp"
+        update1="numpy.exp(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         

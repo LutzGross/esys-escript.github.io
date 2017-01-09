@@ -438,7 +438,7 @@ def Lsup(arg):
     elif isinstance(arg,int):
         return abs(float(arg))
     else:
-        raise TypeError("Lsup: Unknown argument type.")
+        raise TypeError("Lsup: Unknown argument type ("+str(type(arg))+").")
 
 def sup(arg):
     """
