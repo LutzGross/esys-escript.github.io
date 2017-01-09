@@ -219,6 +219,16 @@ class Test_util_unary_new(Test_util_values):
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_length_combined(self):
+        supportcplx=True
+        opstring="length(a)"
+        misccheck="isinstance(res,float) or (isinstance(res,Data) and not res.isComplex())"
+        oraclecheck="numpy.linalg.norm(ref)"
+        opname="length"
+        update1="numpy.linalg.norm(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_combined(self):
         supportcplx=True
         opstring="log(a)"
@@ -239,7 +249,27 @@ class Test_util_unary_new(Test_util_values):
         update1="numpy.log10(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
         self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False,  
-            input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)         
+            input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)  
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_maxval_combined(self):
+        supportcplx=False
+        opstring="maxval(a)"
+        misccheck="isinstance(res,float) or (isinstance(a,numpy.ndarray) and res.dtype.kind=='f') or (isinstance(a, Data) and not res.isComplex())"
+        oraclecheck="numpy.max(ref)"
+        opname="maxval"
+        update1="numpy.max(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_minval_combined(self):
+        supportcplx=False
+        opstring="minval(a)"
+        misccheck="isinstance(res,float) or (isinstance(a,numpy.ndarray) and res.dtype.kind=='f') or (isinstance(a, Data) and not res.isComplex())"
+        oraclecheck="numpy.min(ref)"
+        opname="minval"
+        update1="numpy.min(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_combined(self):
         supportcplx=True
