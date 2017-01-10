@@ -451,6 +451,8 @@ def sup(arg):
     :raise TypeError: if type of ``arg`` cannot be processed
     """
     if isinstance(arg,numpy.ndarray):
+        if arg.dtype.kind=='c':
+            raise TypeError("sup: operation not supported for complex");         
         return arg.max()
     elif isinstance(arg,escore.Data):
         return arg._sup()
@@ -474,6 +476,8 @@ def inf(arg):
     :raise TypeError: if type of ``arg`` cannot be processed
     """
     if isinstance(arg,numpy.ndarray):
+        if arg.dtype.kind=='c':
+            raise TypeError("inf: operation not supported for complex");         
         return arg.min()
     elif isinstance(arg,escore.Data):
         return arg._inf()
@@ -1380,10 +1384,14 @@ def sign(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("sign: operation not supported for complex")        
       return wherePositive(arg)-whereNegative(arg)
    elif isinstance(arg,escore.Data):
       return arg._sign()
-   elif isinstance(arg,float) or isinstance(arg,complex) or isinstance(arg,int):
+   elif isinstance(arg,complex):
+       raise TypeError("sign: operation not supported for complex")
+   elif isinstance(arg,float) or isinstance(arg,int):
       if arg>0:
         return 1.
       elif arg<0:
