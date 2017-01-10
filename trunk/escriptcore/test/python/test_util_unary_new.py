@@ -125,7 +125,27 @@ class Test_util_unary_new(Test_util_values):
         opname="acosh"
         update1="numpy.arccosh(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: x+2)     
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: x+2)  
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_antihermitian_combined(self):
+        supportcplx=True
+        opstring="antihermitian(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="(ref-numpy.conjugate(transpose(ref)))/2"
+        opname="antihermitian"
+        update1="(r2-numpy.conjugate(transpose(r2)))/2"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))         
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_antisymmetric_combined(self):
+        supportcplx=True
+        opstring="antisymmetric(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="(ref-transpose(ref))/2"
+        opname="antisymmetric"
+        update1="(r2-transpose(r2))/2"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))            
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_combined(self):
         supportcplx=True
@@ -195,7 +215,17 @@ class Test_util_unary_new(Test_util_values):
         opname="exp"
         update1="numpy.exp(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_hermetitian_combined(self):
+        supportcplx=True
+        opstring="hermitian(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="(ref+numpy.conjugate(transpose(ref)))/2"
+        opname="hermitian"
+        update1="(r2+numpy.conjugate(transpose(r2)))/2"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_combined(self):
         supportcplx=False
