@@ -80,7 +80,7 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
     @unittest.skipIf(not hasFeature('NAN_CHECK'), "test only fires if NAN_CHECK is enabled")
     def test_hasNaN(self):
         # Need to check for hasNaN as well
-        supportcplx=False
+        supportcplx=True
         opstring="a.hasNaN()"
         misccheck=None
         oraclecheck="0 in ref"
