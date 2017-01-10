@@ -861,12 +861,13 @@ class Test_util_values(unittest.TestCase):
             oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
             if not oracleres:
                 print("Wrong result:"+oraclecheck)
-                print(type(a))
-                print(" vs ")
                 print(type(res))
+                print(" vs ")
+                print(type(oraclevalue))
                 print(" values:")
-                print(a)
-                print(res)                
+                print(res)
+                print(" vs ")
+                print(oraclevalue)                
             self.assertTrue(oracleres,"wrong result for "+description)
             
     def execute_ce_throws(self, pars):
