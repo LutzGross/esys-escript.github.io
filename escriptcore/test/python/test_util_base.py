@@ -877,17 +877,23 @@ class Test_util_values(unittest.TestCase):
             ref=v[3]
             oraclecheck=v[4]
             description=v[5]
-            with self.assertRaises(StandardError) as err:  
+            expected_exceptions=v[6]
+            if expected_exceptions is None:
+                expected_exceptions=(TypeError, RuntimeError)   # These are used for unsupported complex
+            with self.assertRaises(Exception) as err:  
                 res=eval(op)
+                print("Succeeded in evaluating "+str(op))
+                print("For a=")
+                print(str(a))
             # unfortunately, we don't return a single exception type in this case
-            self.assertTrue(isinstance(err.exception, TypeError) or isinstance(err.exception, RuntimeError), "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")
+            self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")
     
     def execute_t_params(self, pars):
         for v in pars:
             description=v[0]
             a=v[1]
             tagcount=1
-            for step in v[2:]:
+            for step in v[3:]:
                 a.setTaggedValue(tagcount, step[0])
                 op=step[1]
                 misccheck=step[2]
@@ -923,18 +929,22 @@ class Test_util_values(unittest.TestCase):
             description=v[0]
             a=v[1]
             tagcount=1
-            for step in v[2:]:
+            expected_exceptions=v[2]
+            if expected_exceptions is None:
+                expected_exceptions=(TypeError, RuntimeError)   # These are used for unsupported complex
+            for step in v[3:]:
                 a.setTaggedValue(tagcount, step[0])
                 op=step[1]
                 misccheck=step[2]
                 ref=step[3]
                 oraclecheck=step[4]
-                with self.assertRaises(StandardError) as err:  
+                with self.assertRaises(Exception) as err:  
                     res=eval(op)
-                self.assertTrue(isinstance(err.exception, TypeError) or isinstance(err.exception, RuntimeError), "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")                
+                self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")                
                 tagcount+=1
 
-    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4):
+    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4,
+                                      expect_raise_on_ranks=None, expected_exceptions=None):
         """
         supportcplx is a boolean indicating whether complex operations should be checked for values (True)
              or tested to see if they raise (False)
@@ -950,47 +960,49 @@ class Test_util_values(unittest.TestCase):
         """
         if input_trans is None:
             input_trans=lambda x: x
+        if expect_raise_on_ranks is None:
+            expect_raise_on_ranks=()
         pars=[]
         epars=[]    # operations which should throw
         if not data_only:
             (f1,f2)=self.get_scalar_input1(False)
             f1=input_trans(f1)
             f2=input_trans(f2)
-            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
+            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar", expected_exceptions))
             if supportcplx:
                 (f1,f2)=self.get_scalar_input1(True)
                 f1=input_trans(f1)
                 f2=input_trans(f2)
-                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar",expected_exceptions))
             else:
                 (f1,f2)=self.get_scalar_input1(True)
                 f1=input_trans(f1)
                 f2=input_trans(f2)                
-                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))
         for c in (False, True):
-            dest=pars
             if c:
                 cs="complex "
-                if not supportcplx:
-                    dest=epars
             else:
                 cs=""
             for rank in range(minrank, maxrank+1):
+                dest=pars
+                if rank in expect_raise_on_ranks or (c and not supportcplx):
+                    dest=epars                
                 if not data_only:
                     (a, r)=self.get_array_input1(rank, c)
                     a=input_trans(a)
                     r=input_trans(r)
-                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
+                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank), expected_exceptions)
                     dest.append(p)
                 (a, r)=self.get_const_input1(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))                
-                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank), expected_exceptions)
                 dest.append(p)
                 (a, r)=self.get_expanded_input1(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))                
-                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank), expected_exceptions)
                 dest.append(p)
         self.execute_ce_params(pars)
         self.execute_ce_throws(epars)
@@ -999,19 +1011,20 @@ class Test_util_values(unittest.TestCase):
         tpars=[]    # tagged versions
         epars=[]
         for c in (False, True):
-            dest=tpars
             if c:
                 cs="complex "
-                if not supportcplx:
-                    dest=epars                
             else:
                 cs=""
             for rank in range(minrank, maxrank+1):
+                dest=tpars
+                if rank in expect_raise_on_ranks or (c and not supportcplx):
+                    dest=epars                
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))                                
                 test.append(a)
+                test.append(expected_exceptions)
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
                 (t2, r2)=self.get_array_input2(rank, c)
                 t2=input_trans(t2)
@@ -1029,7 +1042,7 @@ class Test_util_values(unittest.TestCase):
         self.execute_t_throws(epars)        
 
 
-    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4):
+    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4, expect_raise_on_ranks=None, expected_exceptions=None):
         """
         (At time of writing) This is the same as generate_operation_test_batch but using
         inputL to add some large (magnitude) values into the mix.
@@ -1047,48 +1060,51 @@ class Test_util_values(unittest.TestCase):
         """
         if input_trans is None:
             input_trans=lambda x: x
+        if expect_raise_on_ranks is None:
+            expect_raise_on_ranks=()
         pars=[]
         epars=[]    # operations which should throw
         if not data_only:
             (f1,f2)=self.get_scalar_inputL(False)
             f1=input_trans(f1)
             f2=input_trans(f2)
-            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar"))
+            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar", expected_exceptions))
             if supportcplx:
                 (f1,f2)=self.get_scalar_inputL(True)
                 f1=input_trans(f1)
                 f2=input_trans(f2)                
-                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))
             else:
                 (f1,f2)=self.get_scalar_inputL(True)
                 f1=input_trans(f1)
                 f2=input_trans(f2)                
-                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
+                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))     
         for c in (False, True):
             dest=pars
             if c:
                 cs="complex "
-                if not supportcplx:
-                    dest=epars
             else:
                 cs=""
             for rank in range(minrank, maxrank+1):
+                dest=pars
+                if rank in expect_raise_on_ranks or (c and not supportcplx):
+                    dest=epars
                 if not data_only:
                     (a, r)=self.get_array_inputL(rank, c)
                     a=input_trans(a)
                     r=input_trans(r)
-                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank))
-                    dest.append(p)
+                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank), expected_exceptions)
+                    dest.append(p)                   
                 (a, r)=self.get_const_inputL(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))                
-                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank))
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank), expected_exceptions)
                 dest.append(p)
                 (a, r)=self.get_expanded_inputL(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))
-                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank))
-                dest.append(p)
+                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank), expected_exceptions)
+                dest.append(p)              
         self.execute_ce_params(pars)
         self.execute_ce_throws(epars)
         del pars
@@ -1104,11 +1120,15 @@ class Test_util_values(unittest.TestCase):
             else:
                 cs=""             
             for rank in range(minrank, maxrank+1):
+                dest=tpars
+                if rank in expect_raise_on_ranks or (c and not supportcplx):
+                    dest=epars                
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))                
                 test.append(a)
+                test.append(expected_exceptions)                
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
                 (t2, r2)=self.get_array_inputL(rank, c)
                 t2=input_trans(t2)
