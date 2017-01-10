@@ -237,6 +237,16 @@ class Test_util_unary_new(Test_util_values):
         update1="numpy.sqrt(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)          
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_symmetric_combined(self):
+        supportcplx=True
+        opstring="symmetric(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="(ref+transpose(ref))/2"
+        opname="symmetric"
+        update1="(r2+transpose(r2))/2"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_combined(self):
         supportcplx=True
