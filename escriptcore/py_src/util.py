@@ -791,8 +791,9 @@ def wherePositive(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("wherePositive: operation not supported for complex");
       out=numpy.greater(arg,numpy.zeros(arg.shape,numpy.float64))*1.
-      if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
    elif isinstance(arg,escore.Data):
       return arg._wherePositive()
@@ -824,8 +825,9 @@ def whereNegative(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("whereNegative: operation not supported for complex");
       out=numpy.less(arg,numpy.zeros(arg.shape,numpy.float64))*1.
-      if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNegative()
@@ -857,8 +859,9 @@ def whereNonNegative(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("whereNonNegative: operation not supported for complex");       
       out=numpy.greater_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
-      if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNonNegative()
@@ -890,8 +893,9 @@ def whereNonPositive(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("whereNonPositive: operation not supported for complex");       
       out=numpy.less_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
-      if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNonPositive()
@@ -1401,6 +1405,8 @@ def minval(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("minval: operation not supported for complex");       
       if arg.ndim==0:
          return float(arg)
       else:
@@ -1426,6 +1432,8 @@ def maxval(arg):
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
+      if arg.dtype.kind=='c':
+          raise TypeError("maxval: operation not supported for complex");
       if arg.ndim==0:
          return float(arg)
       else:
