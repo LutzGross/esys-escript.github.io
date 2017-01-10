@@ -1727,7 +1727,7 @@ def hermitian(arg):
            raise ValueError("argument must be square.")
       else:
         raise ValueError("rank 2 or 4 is required.")
-      return (arg+arg.transpose().conj())/2
+      return (arg+transpose(arg).conj())/2
     elif isinstance(arg,escore.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
@@ -1777,7 +1777,7 @@ def antihermitian(arg):
            raise ValueError("antihermitian: argument must be square.")
       else:
         raise ValueError("antihermitian: rank 2 or 4 is required.")
-      return (arg-arg.transpose().conj())/2
+      return (arg-transpose(arg).conj())/2
     elif isinstance(arg,escore.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
