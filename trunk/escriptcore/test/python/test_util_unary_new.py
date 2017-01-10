@@ -256,7 +256,22 @@ class Test_util_unary_new(Test_util_values):
         opname="tanh"
         update1="numpy.tanh(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_transpose_combined(self):
+        supportcplx=True
+        opstring="transpose(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.transpose(ref, axes=list(range(len(ref.shape)//2,len(ref.shape)))+list(range(0,len(ref.shape)//2)))"
+        opname="tranpose"
+        update1="numpy.transpose(r2, axes=list(range(len(r2.shape)//2,len(r2.shape)))+list(range(0,len(r2.shape)//2)))"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        opname="transpose-offset-1"
+        opstring="transpose(a,axis_offset=1)"        
+        oraclecheck="numpy.transpose(ref, axes=list(range(1,len(ref.shape)))+list(range(0,1)))"
+        update1="numpy.transpose(r2, axes=list(range(1,len(r2.shape)))+list(range(0,1)))"    # The updates are a problem here because this is not a reduction
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, data_only=True)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_combined(self):
         supportcplx=True

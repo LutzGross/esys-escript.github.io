@@ -847,7 +847,8 @@ class Test_util_values(unittest.TestCase):
             description=v[5]
             res=eval(op)
             if misccheck is not None:
-                if not eval(misccheck):
+                miscres=eval(misccheck)
+                if not miscres:
                     print("Failed check:"+misccheck)
                     print(type(a))
                     print(" vs ")
@@ -855,9 +856,18 @@ class Test_util_values(unittest.TestCase):
                     print(" values:")
                     print(a)
                     print(res)
-                self.assertTrue(eval(misccheck),"Failed check for "+description)
+                self.assertTrue(miscres,"Failed check for "+description)
             oraclevalue=eval(oraclecheck)
-            self.assertTrue(Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue),"wrong result for "+description)
+            oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
+            if not oracleres:
+                print("Wrong result:"+oraclecheck)
+                print(type(a))
+                print(" vs ")
+                print(type(res))
+                print(" values:")
+                print(a)
+                print(res)                
+            self.assertTrue(oracleres,"wrong result for "+description)
             
     def execute_ce_throws(self, pars):
         for v in pars:
