@@ -166,18 +166,6 @@ class Test_util_unary_new(Test_util_values):
         update1="numpy.arctanh(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
-        
-   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_sin_combined(self):
-        supportcplx=True
-        opstring="sin(a)"
-        misccheck="isinstance(res,type(a))"
-        oraclecheck="numpy.sin(ref)"
-        opname="sin"
-        update1="numpy.sin(r2)"    # The updates are a problem here because this is not a reduction
-        update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
-
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_combined(self):
         supportcplx=True
@@ -197,7 +185,58 @@ class Test_util_unary_new(Test_util_values):
         opname="cosh"
         update1="numpy.cosh(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)    
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_exp_combined(self):
+        supportcplx=True
+        opstring="exp(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.exp(ref)"
+        opname="exp"
+        update1="numpy.exp(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_inverse_combined(self):
+        supportcplx=False
+        opstring="inverse(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.linalg.inv(ref)"
+        opname="inverse"
+        update1="numpy.linalg.inv(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, minrank=2, maxrank=2, data_only=True)
+        # escript's inverse also supports scalars so need to check them separately
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_sin_combined(self):
+        supportcplx=True
+        opstring="sin(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.sin(ref)"
+        opname="sin"
+        update1="numpy.sin(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_sinh_combined(self):
+        supportcplx=True
+        opstring="sinh(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.sinh(ref)"
+        opname="sinh"
+        update1="numpy.sinh(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_sqrt_combined(self):
+        supportcplx=True
+        opstring="sqrt(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.sqrt(ref)"
+        opname="sqrt"
+        update1="numpy.sqrt(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_combined(self):
         supportcplx=True
@@ -270,13 +309,64 @@ class Test_util_unary_new(Test_util_values):
         update1="numpy.min(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
         self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
+     
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def test_exp_combined(self):
-        supportcplx=True
-        opstring="exp(a)"
+   def test_whereNegative_combined(self):
+        supportcplx=False
+        opstring="whereNegative(a)"
         misccheck="isinstance(res,type(a))"
-        oraclecheck="numpy.exp(ref)"
-        opname="exp"
-        update1="numpy.exp(r2)"    # The updates are a problem here because this is not a reduction
+        oraclecheck="numpy.where(ref<0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
+        opname="whereNegative"
+        update1="numpy.where(r2<0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)     
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_whereNonNegative_combined(self):
+        supportcplx=False
+        opstring="whereNonNegative(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.where(ref>=0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
+        opname="whereNonNegative"
+        update1="numpy.where(r2>=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)    
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_whereNonPositive_combined(self):
+        supportcplx=False
+        opstring="whereNonPositive(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.where(ref<=0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
+        opname="whereNonPositive"
+        update1="numpy.where(r2<=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_whereNonZero_combined(self):
+        supportcplx=True
+        opstring="whereNonZero(a)"
+        misccheck="isinstance(res,float) or (isinstance(res, numpy.ndarray) and res.dtype.kind=='f') or (isinstance(res, Data) and not res.isComplex())"
+        oraclecheck="numpy.where(ref!=0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
+        opname="whereNonZero"
+        update1="numpy.where(r2!=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)        
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_wherePositive_combined(self):
+        supportcplx=False
+        opstring="wherePositive(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.where(ref>0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
+        opname="wherePositive"
+        update1="numpy.where(r2>0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_whereZero_combined(self):
+        supportcplx=True
+        opstring="whereZero(a)"
+        misccheck="isinstance(res,float) or (isinstance(res, numpy.ndarray) and res.dtype.kind=='f') or (isinstance(res, Data) and not res.isComplex())"
+        oraclecheck="numpy.where(ref==0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
+        opname="whereZero"
+        update1="numpy.where(r2==0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)           

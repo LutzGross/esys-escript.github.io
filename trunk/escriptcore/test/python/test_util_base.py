@@ -867,8 +867,10 @@ class Test_util_values(unittest.TestCase):
             ref=v[3]
             oraclecheck=v[4]
             description=v[5]
-            with self.assertRaises(TypeError):            
-                res=eval(op)                
+            with self.assertRaises(StandardError) as err:  
+                res=eval(op)
+            # unfortunately, we don't return a single exception type in this case
+            self.assertTrue(isinstance(err.exception, TypeError) or isinstance(err.exception, RuntimeError), "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")
     
     def execute_t_params(self, pars):
         for v in pars:
@@ -917,11 +919,12 @@ class Test_util_values(unittest.TestCase):
                 misccheck=step[2]
                 ref=step[3]
                 oraclecheck=step[4]
-                with self.assertRaises(TypeError):            
-                    res=eval(op)  
+                with self.assertRaises(StandardError) as err:  
+                    res=eval(op)
+                self.assertTrue(isinstance(err.exception, TypeError) or isinstance(err.exception, RuntimeError), "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")                
                 tagcount+=1
 
-    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True):
+    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4):
         """
         supportcplx is a boolean indicating whether complex operations should be checked for values (True)
              or tested to see if they raise (False)
@@ -954,19 +957,15 @@ class Test_util_values(unittest.TestCase):
                 f1=input_trans(f1)
                 f2=input_trans(f2)                
                 epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
-        if supportcplx:
-            fields=(False, True)
-        else:
-            fields=(False,)
-        for c in fields:
+        for c in (False, True):
             dest=pars
             if c:
                 cs="complex "
+                if not supportcplx:
+                    dest=epars
             else:
                 cs=""
-            if c and not supportcplx:
-                dest=epars
-            for rank in range(4):
+            for rank in range(minrank, maxrank+1):
                 if not data_only:
                     (a, r)=self.get_array_input1(rank, c)
                     a=input_trans(a)
@@ -989,15 +988,15 @@ class Test_util_values(unittest.TestCase):
         del epars
         tpars=[]    # tagged versions
         epars=[]
-        for c in fields:
+        for c in (False, True):
             dest=tpars
             if c:
                 cs="complex "
+                if not supportcplx:
+                    dest=epars                
             else:
                 cs=""
-            if c and not supportcplx:
-                dest=epars                
-            for rank in range(4):
+            for rank in range(minrank, maxrank+1):
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
                 a=input_trans(a)
@@ -1020,7 +1019,7 @@ class Test_util_values(unittest.TestCase):
         self.execute_t_throws(epars)        
 
 
-    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True):
+    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4):
         """
         (At time of writing) This is the same as generate_operation_test_batch but using
         inputL to add some large (magnitude) values into the mix.
@@ -1055,19 +1054,15 @@ class Test_util_values(unittest.TestCase):
                 f1=input_trans(f1)
                 f2=input_trans(f2)                
                 epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar"))
-        if supportcplx:
-            fields=(False, True)
-        else:
-            fields=(False,)
-        for c in fields:
+        for c in (False, True):
             dest=pars
             if c:
                 cs="complex "
+                if not supportcplx:
+                    dest=epars
             else:
                 cs=""
-            if c and not supportcplx:
-                dest=epars
-            for rank in range(4):
+            for rank in range(minrank, maxrank+1):
                 if not data_only:
                     (a, r)=self.get_array_inputL(rank, c)
                     a=input_trans(a)
@@ -1090,15 +1085,15 @@ class Test_util_values(unittest.TestCase):
         del epars
         tpars=[]    # tagged versions
         epars=[]
-        for c in fields:
+        for c in (False, True):
             dest=tpars
             if c:
                 cs="complex "
+                if not supportcplx:
+                    dest=epars
             else:
-                cs=""
-            if c and not supportcplx:
-                dest=epars                
-            for rank in range(4):
+                cs=""             
+            for rank in range(minrank, maxrank+1):
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
                 (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
                 a=input_trans(a)
