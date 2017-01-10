@@ -1760,7 +1760,7 @@ def hermitian(arg):
 
 def antihermitian(arg):
     """
-    Returns the anti-symmetric part of the square matrix ``arg``. That is,
+    Returns the anti-hermitian part of the square matrix ``arg``. That is,
     *(arg-adjoint(arg))/2*.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
