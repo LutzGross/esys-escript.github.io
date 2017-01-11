@@ -944,7 +944,7 @@ class Test_util_values(unittest.TestCase):
                 self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")                
                 tagcount+=1
 
-    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4,
+    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, no_scalars=False, multisteptag=True, minrank=0, maxrank=4,
                                       expect_raise_on_ranks=None, expected_exceptions=None):
         """
         supportcplx is a boolean indicating whether complex operations should be checked for values (True)
@@ -965,7 +965,7 @@ class Test_util_values(unittest.TestCase):
             expect_raise_on_ranks=()
         pars=[]
         epars=[]    # operations which should throw
-        if not data_only:
+        if not no_scalars:
             (f1,f2)=self.get_scalar_input1(False)
             f1=input_trans(f1)
             f2=input_trans(f2)
@@ -989,7 +989,7 @@ class Test_util_values(unittest.TestCase):
                 dest=pars
                 if rank in expect_raise_on_ranks or (c and not supportcplx):
                     dest=epars                
-                if not data_only:
+                if not no_scalars:
                     (a, r)=self.get_array_input1(rank, c)
                     a=input_trans(a)
                     r=input_trans(r)
@@ -1043,7 +1043,7 @@ class Test_util_values(unittest.TestCase):
         self.execute_t_throws(epars)        
 
 
-    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, data_only=False, multisteptag=True, minrank=0, maxrank=4, expect_raise_on_ranks=None, expected_exceptions=None):
+    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, no_scalars=False, multisteptag=True, minrank=0, maxrank=4, expect_raise_on_ranks=None, expected_exceptions=None):
         """
         (At time of writing) This is the same as generate_operation_test_batch but using
         inputL to add some large (magnitude) values into the mix.
@@ -1065,7 +1065,7 @@ class Test_util_values(unittest.TestCase):
             expect_raise_on_ranks=()
         pars=[]
         epars=[]    # operations which should throw
-        if not data_only:
+        if not no_scalars:
             (f1,f2)=self.get_scalar_inputL(False)
             f1=input_trans(f1)
             f2=input_trans(f2)
@@ -1090,7 +1090,7 @@ class Test_util_values(unittest.TestCase):
                 dest=pars
                 if rank in expect_raise_on_ranks or (c and not supportcplx):
                     dest=epars
-                if not data_only:
+                if not no_scalars:
                     (a, r)=self.get_array_inputL(rank, c)
                     a=input_trans(a)
                     r=input_trans(r)

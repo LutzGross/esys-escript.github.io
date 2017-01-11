@@ -185,7 +185,17 @@ class Test_util_unary_new(Test_util_values):
         opname="atanh"
         update1="numpy.arctanh(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_clip_combined(self):
+        supportcplx=False
+        opstring="clip(a,minval=-0.5, maxval=0.5)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.clip(ref, -0.5, 0.5)"
+        opname="clip"
+        update1="numpy.clip(r2, -0.5, 0.5)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_combined(self):
         supportcplx=True
@@ -235,8 +245,18 @@ class Test_util_unary_new(Test_util_values):
         opname="inverse"
         update1="numpy.linalg.inv(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, minrank=2, maxrank=2, data_only=True)
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, minrank=2, maxrank=2, no_scalars=True)
         # escript's inverse also supports scalars so need to check them separately
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_sign_combined(self):
+        supportcplx=False
+        opstring="sign(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.sign(ref)"
+        opname="sign"
+        update1="numpy.sign(r2)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_combined(self):
         supportcplx=True
@@ -298,6 +318,18 @@ class Test_util_unary_new(Test_util_values):
         update2=None
         self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_trace_combined(self):
+        supportcplx=True
+        opstring="trace(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.trace(ref)"
+        opname="trace"
+        update1="numpy.trace(r2) if numpy.ndim(r2)>=2 else None"    # Avoid calling numpy.trace on small things
+        update2=None
+        # We could also check to see if it throws when given a scalar but we don't
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, no_scalars=True,
+                                           expect_raise_on_ranks=(0,1),expected_exceptions=(ValueError,))
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_combined(self):
         supportcplx=True
         opstring="transpose(a)"
@@ -311,7 +343,7 @@ class Test_util_unary_new(Test_util_values):
         opstring="transpose(a,axis_offset=1)"        
         oraclecheck="numpy.transpose(ref, axes=list(range(1,len(ref.shape)))+list(range(0,1)))"
         update1="numpy.transpose(r2, axes=list(range(1,len(r2.shape)))+list(range(0,1)))"    # The updates are a problem here because this is not a reduction
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, data_only=True)         
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, no_scalars=True)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_combined(self):
         supportcplx=True
