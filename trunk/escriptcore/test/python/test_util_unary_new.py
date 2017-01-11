@@ -215,7 +215,19 @@ class Test_util_unary_new(Test_util_values):
         opname="cosh"
         update1="numpy.cosh(r2)"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)    
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_combined(self):
+        supportcplx=True
+        opstring="eigenvalues(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.linalg.eigvals(ref) if numpy.ndim(ref)==2 else 0."
+        opname="eigenvalues"
+        update1="numpy.linalg.eigvals(r2) if numpy.ndim(r2)==2 else 0."    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False,
+                                                 expect_raise_on_ranks=(0,1,3,4), no_scalars=True, input_trans=lambda x: symmetric(x) if getRank(x)==2 else x)           
+        # We aren't testing the scalar case
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_combined(self):
         supportcplx=True
