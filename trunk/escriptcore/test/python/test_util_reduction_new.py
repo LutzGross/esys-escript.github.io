@@ -87,7 +87,7 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         opname="hasNaN"
         update1="bool(numpy.isnan(r2).max())"       # numpy.bool_ is not bool
         update2="rmerge or bool(numpy.isnan(r3).max())"
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=zero_to_nan, data_only=True)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=zero_to_nan, no_scalars=True)   
         
     # It would be a bit tricky to reformulate this into the new form 
     # This will not test all possible type combinations 
