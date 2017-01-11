@@ -308,7 +308,17 @@ class Test_util_unary_new(Test_util_values):
         opname="symmetric"
         update1="(r2+transpose(r2))/2"    # The updates are a problem here because this is not a reduction
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))          
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))         
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_swapaxes_combined(self):
+        supportcplx=True
+        opstring="swap_axes(a,axis0=0, axis1=getRank(a)-1)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.swapaxes(ref, 0,ref.ndim-1)"
+        opname="swap_axes"
+        update1="numpy.swapaxes(r2, 0, r2.ndim-1)"    # The updates are a problem here because this is not a reduction
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, minrank=2, maxrank=4,no_scalars=True)                
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_combined(self):
         supportcplx=True
