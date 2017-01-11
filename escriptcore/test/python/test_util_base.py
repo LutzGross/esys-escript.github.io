@@ -825,14 +825,14 @@ class Test_util_values(unittest.TestCase):
     
     def get_tagged_inputL(self, rank, fs, cplx):
         z=self.get_python_inputL(rank, cplx)
-        ref=self.get_array_inputL(rank, cplx)
+        ref=self.get_array_inputL(rank, cplx)[0]
         d=Data(z, fs)
         d.tag()
         return (d, ref)    
     
     def get_tagged_input1(self, rank, fs, cplx):
         z=self.get_python_input1(rank, cplx)
-        ref=self.get_array_input1(rank, cplx)
+        ref=self.get_array_input1(rank, cplx)[0]
         d=Data(z, fs)
         d.tag()
         return (d, ref)
@@ -883,9 +883,6 @@ class Test_util_values(unittest.TestCase):
                 expected_exceptions=(TypeError, RuntimeError)   # These are used for unsupported complex
             with self.assertRaises(Exception) as err:  
                 res=eval(op)
-                print("Succeeded in evaluating "+str(op))
-                print("For a=")
-                print(str(a))
             # unfortunately, we don't return a single exception type in this case
             self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")
     
@@ -1125,9 +1122,9 @@ class Test_util_values(unittest.TestCase):
                 if rank in expect_raise_on_ranks or (c and not supportcplx):
                     dest=epars                
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
-                (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
+                (a, r)=self.get_tagged_inputL(rank, self.functionspace, c)
                 a=input_trans(a)
-                r=input_trans(numpy.array(r))                
+                r=input_trans(numpy.array(r))
                 test.append(a)
                 test.append(expected_exceptions)                
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
