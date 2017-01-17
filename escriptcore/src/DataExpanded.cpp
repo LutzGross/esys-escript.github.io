@@ -252,6 +252,21 @@ DataAbstract* DataExpanded::deepCopy() const
     return new DataExpanded(*this);
 }
 
+DataAbstract*
+DataExpanded::zeroedCopy() const
+{
+    DataExpanded* p=0;
+    if (isComplex())
+    {
+        p=new DataExpanded(this->getFunctionSpace(), this->getShape(), DataTypes::cplx_t(0));
+    }
+    else
+    {
+        p=new DataExpanded(this->getFunctionSpace(), this->getShape(), DataTypes::real_t(0));
+    }   
+  return p;
+}
+
 DataAbstract* DataExpanded::getSlice(const DataTypes::RegionType& region) const
 {
     return new DataExpanded(*this,region);

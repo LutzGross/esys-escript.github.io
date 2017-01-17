@@ -155,6 +155,9 @@ public:
   DataAbstract* 
   deepCopy() const;
 
+  ESCRIPT_DLL_API
+  DataAbstract* 
+  zeroedCopy() const;  
 
   /**
      \brief

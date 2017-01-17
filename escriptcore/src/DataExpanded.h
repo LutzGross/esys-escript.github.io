@@ -193,6 +193,15 @@ TODO Note that this constructor will also copy data to all points if it only con
   DataAbstract*
   deepCopy() const;
 
+  /**
+     \brief Return an object with the same type, domain (and tags if appropriate)
+     as this, but all values are zeroed.
+  */  
+  ESCRIPT_DLL_API
+  virtual
+  DataAbstract*
+  zeroedCopy() const;    
+  
 
  /**
      \brief
