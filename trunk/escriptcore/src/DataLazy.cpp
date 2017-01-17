@@ -1895,7 +1895,12 @@ DataLazy::deepCopy() const
   }
 }
 
-
+// For this, we don't care what op you were doing because the answer is now zero
+DataAbstract* 
+DataLazy::zeroedCopy() const
+{
+  return new DataLazy(m_id->zeroedCopy()->getPtr());
+}
 
 // There is no single, natural interpretation of getLength on DataLazy.
 // Instances of DataReady can look at the size of their vectors.

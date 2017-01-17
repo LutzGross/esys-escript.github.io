@@ -786,8 +786,17 @@ Data::setToZero()
     }
     else
     {
-        exclusiveWrite();
-        m_data->setToZero();
+	// we don't want to call exclusiveWrite() here because
+        // as soon as we get the copy we'd overwrite it
+        if (isShared())
+        {	  
+                DataAbstract* t=m_data->zeroedCopy();
+                set_m_data(DataAbstract_ptr(t));
+        }	
+	else
+	{
+	    m_data->setToZero();
+	}
     }
 }
 

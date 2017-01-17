@@ -238,6 +238,22 @@ DataAbstract* DataConstant::deepCopy() const
 }
 
 
+DataAbstract* DataConstant::zeroedCopy() const
+{
+    DataConstant* p=0;
+    if (isComplex())
+    {
+        p=new DataConstant(this->getFunctionSpace(), this->getShape(), DataTypes::cplx_t(0));
+    }
+    else
+    {
+        p=new DataConstant(this->getFunctionSpace(), this->getShape(), DataTypes::real_t(0));
+    }
+    return p;
+}
+
+
+
 DataTypes::RealVectorType::size_type
 DataConstant::getPointOffset(int sampleNo,
                              int dataPointNo) const

@@ -56,6 +56,12 @@ DataEmpty::deepCopy() const
   return new DataEmpty();
 }
 
+DataAbstract*
+DataEmpty::zeroedCopy() const
+{
+  return new DataEmpty();
+}
+
 DataTypes::RealVectorType::size_type
 DataEmpty::getPointOffset(int sampleNo,
                           int dataPointNo) const 

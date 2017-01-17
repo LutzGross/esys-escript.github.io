@@ -296,6 +296,28 @@ DataTagged::deepCopy() const
   return new DataTagged(*this);
 }
 
+
+DataAbstract*
+DataTagged::zeroedCopy() const
+{
+    DataTagged* p=0;
+    if (isComplex())
+    {
+        DataTypes::CplxVectorType v(1);
+	v[0]=0;
+        p=new DataTagged(this->getFunctionSpace(), this->getShape(), v, this);
+    }
+    else
+    {
+        DataTypes::RealVectorType v(1);
+	v[0]=0;      
+        p=new DataTagged(this->getFunctionSpace(), this->getShape(), v, this);
+    }   
+  return p;
+}
+
+
+
 DataAbstract*
 DataTagged::getSlice(const DataTypes::RegionType& region) const 
 {

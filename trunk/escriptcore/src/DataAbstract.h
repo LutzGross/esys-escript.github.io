@@ -115,6 +115,16 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual
   DataAbstract*
   deepCopy() const =0 ;
+  
+  /**
+     \brief Return an object with the same type, domain (and tags if appropriate)
+     as this, but all values are zeroed.
+  */
+  virtual
+  DataAbstract*
+  zeroedCopy() const =0 ;
+  
+  
 
   /**
      \brief Return a data object with all points resolved.

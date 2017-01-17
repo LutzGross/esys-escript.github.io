@@ -143,6 +143,15 @@ typedef DataReady parent;
   DataAbstract*
   deepCopy() const;
 
+  /**
+     \brief Return an object with the same type, domain (and tags if appropriate)
+     as this, but all values are zeroed.
+  */  
+  ESCRIPT_DLL_API
+  virtual
+  DataAbstract*
+  zeroedCopy() const;  
+  
 
  /**
      \brief
