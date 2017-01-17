@@ -53,9 +53,8 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         misccheck="isinstance(res,float)"
         oraclecheck="abs(ref).max()"
         opname="Lsup"
-        update1="abs(r2).max()"
-        update2="max(rmerge, abs(r3).max())"        
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2)
+        update1="max(abs(r).max(),abs(r2).max())"
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
 
     def test_sup_new(self):
         supportcplx=False
@@ -63,9 +62,8 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         misccheck="isinstance(res,float)"
         oraclecheck="ref.max()"
         opname="sup"
-        update1="r2.max()"
-        update2="max(rmerge, r3.max())"
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2)
+        update1="max(r.max(), r2.max())"
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
 
     def test_inf_new(self):
         supportcplx=False
@@ -73,9 +71,8 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         misccheck="isinstance(res,float)"
         oraclecheck="ref.min()"
         opname="inf"
-        update1="r2.min()"
-        update2="min(rmerge, r3.min())"
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2)
+        update1="min(r.min(),r2.min())"
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
         
     @unittest.skipIf(not hasFeature('NAN_CHECK'), "test only fires if NAN_CHECK is enabled")
     def test_hasNaN(self):
@@ -85,9 +82,8 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         misccheck=None
         oraclecheck="0 in ref"
         opname="hasNaN"
-        update1="bool(numpy.isnan(r2).max())"       # numpy.bool_ is not bool
-        update2="rmerge or bool(numpy.isnan(r3).max())"
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=zero_to_nan, no_scalars=True)   
+        update1="bool(numpy.isnan(r).max()) or bool(numpy.isnan(r2).max())"       # numpy.bool_ is not bool
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=zero_to_nan, no_scalars=True)   
         
     # It would be a bit tricky to reformulate this into the new form 
     # This will not test all possible type combinations 

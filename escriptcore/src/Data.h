@@ -1838,7 +1838,7 @@ template <class BinaryOp>
         forceResolve();
         if (isShared())
         {
-                DataAbstract* t=m_data->deepCopy();
+                DataAbstract* t=m_data->zeroedCopy();
                 set_m_data(DataAbstract_ptr(t));
         }
 #ifdef EXWRITECHK               
@@ -2232,17 +2232,14 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
     for (std::list<int>::const_iterator i=used.begin();i!=used.end();++i)
     {
       int tag=*i;
-      if (tag==0)	// check for the default tag
+      DataTagged::DataMapType::const_iterator it=lookup.find(tag);
+      if ((tag==0) || (it==lookup.end()))	// check for the default tag
       {
-	  current_value=operation(current_value,escript::reductionOpVector(vec,shape,data.getDefaultOffset(),operation,initial_value));
+        current_value=operation(current_value,escript::reductionOpVector(vec,shape,data.getDefaultOffset(),operation,initial_value));
       }
       else
       {
-	  DataTagged::DataMapType::const_iterator it=lookup.find(tag);
-	  if (it!=lookup.end())
-	  {
-		  current_value=operation(current_value,escript::reductionOpVector(vec,shape,it->second,operation,initial_value));
-	  }
+        current_value=operation(current_value,escript::reductionOpVector(vec,shape,it->second,operation,initial_value));
       }
     }
     return current_value;    

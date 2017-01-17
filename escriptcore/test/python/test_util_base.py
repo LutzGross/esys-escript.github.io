@@ -80,6 +80,14 @@ class Test_util_values(unittest.TestCase):
     RES_TOL=1.e-7 # RES_TOLerance to compare results
     DIFF_TOL=1.e-7 # RES_TOLerance to derivatices
 
+    def makeTagged(self, fs, v1, v2):
+        """
+        Helper routine which makes a DataTagged containing the two values
+        (v1 as default and v2 as tag 1).
+        """
+        d=Data(v1, fs)
+        d.setTaggedValue(1, v2)
+        return d
     
     def get_scalar_inputL(self, cplx):
         if not cplx:
@@ -274,6 +282,13 @@ class Test_util_values(unittest.TestCase):
             v3=0.4903827487969067
         else:
             v3=(0.4130410618402195+0.7195601418761082j)
+        return (v3,v3)
+    
+    def get_scalar_input4(self, cplx):
+        if not cplx:
+            v3=-0.4555987934301202
+        else:
+            v3=(-0.2562657772006671-0.09989064526858904j)
         return (v3,v3)
 
     def get_python_input1(self, rank, cplx):
@@ -778,9 +793,181 @@ class Test_util_values(unittest.TestCase):
                         (0.689553296868146j, 0.773301352126767j, 0.7364812118860565j, 0.5377502245784462))))            
 
 
+    def get_python_input4(self, rank, cplx):
+        if not cplx:
+            if rank==0:
+                return (0.9153151043823012,)
+            elif rank==1:
+                return (-0.5162647246320071, -0.06342374260616546)
+            elif rank==2:
+                return ((0.7011839736500342, 0.625639950892529), (-0.17902320165992758, -0.049498389409131205))
+            elif rank==3:
+                return (((0.008309531806355519, 0.22817074073669497, 0.7216964601946423), 
+                         (0.33084432155377397, -0.48472374994936485, 0.4116921963539759), 
+                         (0.0257088350105531, -0.2370277105296692, 0.3798801329452163)), 
+                        ((0.01734050560720546, 0.16286702001136155, -0.6501064087150703), 
+                         (0.02818311904325488, -0.4169901835040347, 0.4086136135582773), 
+                         (0.5627838019596704, -0.16279418267275847, 0.581645077262897)), 
+                        ((0.6948207132066607, 0.23541367609085884, -0.4228977230091847), 
+                         (0.3216823894305869, 0.37129093662137924, -0.7134833270353387), 
+                         (0.710538786928389, -0.08441890458925416, -0.458946120570603)))
+            elif rank==4:((((0.37235501675945715, 0.11714100415866135, -0.034600745840691394, -0.15554835015413082), 
+                          (0.47232144877941096, 0.07592804193006697, 0.3405294503824112, 0.21948666128556615), 
+                          (-0.5332861513294131, -0.08886798656259431, -0.6083217502772487, 0.2316612945607922), 
+                          (0.5258922230225587, 0.08708823651373188, 0.4234306811212821, -0.04179959817125434)), 
+                         ((-0.3035688394279197, 0.49483554648710537, 0.05745994060999282, -0.12747381808333336), 
+                          (0.39332214767836104, 0.46534190633912254, 0.04365690803996003, 0.7650379849598341), 
+                          (0.1999985251338784, 0.0842829190391805, -0.16877153378631293, 0.31704188690973756), 
+                          (-0.329887201245436, -0.6511923884088605, -0.6220851080992487, -0.8494734189039839)), 
+                         ((-0.3231756242543622, -0.554464792835363, 0.4522418958171174, 0.7395807541527681), 
+                          (0.5498904829451162, -0.05590161752080769, 0.4965321688385663, 0.5728276202033591), 
+                          (0.5272647821134722, 0.5774470894044734, -0.12581800958739708, 0.9700828208339976), 
+                          (0.2893640797543078, -0.5484780137131635, 0.9149540829219327, -0.4070409332163506)), 
+                         ((0.8068861149817737, -0.08739646094657716, 0.15604945884485388, 0.2159877611783666), 
+                          (-0.08757552786227041, -0.5362091498098354, 0.1379626847994988, -0.02263864637679258), 
+                          (-0.05403837215914031, 0.6570928483791509, -0.014539560837078191, 0.1353955668770478), 
+                          (-0.033528144292161, -0.471223531770967, -0.012087259265455508, -0.4443704288092061))), 
+                        (((0.12815286370127177, 0.08288774005977806, -0.6591909957174392, -0.3227689715877514), 
+                          (-0.1560371012493621, 0.04563397602135244, 0.18608455069144747, -0.23618249688069137), 
+                          (-0.1857379168928618, -0.6112258715631804, 0.257168970542067, 0.46862986167858467), 
+                          (0.8134511475542548, -0.2930500911112336, 0.31803040987546893, -0.1662974948326531)), 
+                         ((0.09994879483867802, 0.11656104212951102, 0.24567744809079017, 0.2466674448155779), 
+                          (0.10560598300537649, 0.5594223586687221, -0.269996887150316, -0.006724786299250773), 
+                          (0.2494899758063036, -0.25302027094976054, 0.5346069245538014, 0.9394209073288707), 
+                          (0.4895739925732161, -0.6973902811154304, -0.04576531668146877, -0.05978124614419089)), 
+                         ((-0.4225874457751645, 0.06851122980870317, -0.12558552929455635, -0.059065175364745315), 
+                          (-0.5869469247109007, -0.4166268018632071, -0.17595117034871932, 0.34489468842970006), 
+                          (0.19428688924434412, -0.4410298941561428, -0.07610953060207504, 0.2917329578363864), 
+                          (-0.3087834675004315, -0.5017232119230198, 0.6463307399810825, -0.0997023137687646)), 
+                         ((-0.3721359342866154, 0.012800610965129966, -0.026147073121323694, 0.249394864255974), 
+                          (-0.19732520391810227, 0.6877652212967196, 0.09328828976651427, -0.6510049138630607), 
+                          (-0.4848547986972145, -0.35735976033028827, 0.09165186856904783, -0.40982007152443234), 
+                          (-0.574914716311232, -0.6488293490765211, 0.4883180795650498, -0.15158507647269426))), 
+                        (((0.5708514963046316, -0.21247793529126768, 0.11030963705086905, -0.4353799184220226), 
+                          (0.37323818315312085, -0.10788816216228836, -0.16605325912656543, 0.6104874356554703), 
+                          (-0.30847384861896465, -0.16679636365155348, 0.5922642783564169, 0.07864692847157684), 
+                          (0.2791875133546827, 0.09496780294295215, -0.45316050025403876, -0.1610271603413973)), 
+                         ((-0.42706418878716035, 0.2928066574998388, 0.571174679676169, -0.14560760969133357), 
+                          (0.9643430182032757, -0.008481138733699822, 0.39800339772985893, -0.7013700291692165), 
+                          (0.8355714997095827, -0.624788527855067, 0.05466250391400629, -0.9509878285060569), 
+                          (-0.0973807062547889, -0.5407506278578577, 0.09210951353229235, 0.154379276954291)), 
+                         ((0.020599999927309876, -0.27945772586433815, -0.4172996686676522, -0.01634325308254314), 
+                          (0.20212191256900158, 0.21234576281878903, -0.639142180879022, 0.5580272378144776), 
+                          (0.010545335242685194, 0.29112493809527284, 0.018635172247521647, -0.06613029570794826), 
+                          (0.155833422371511, -0.09759470769513245, -0.03063166472236889, -0.05428014538371495)), 
+                         ((0.23577186821185425, 0.1500579314912276, -0.3132878838809129, -0.1097762446447772), 
+                          (0.6269933317054381, 0.6145430525526924, -0.10380848715617585, -0.06442945507207776), 
+                          (0.2787614779979213, -0.7358725127577144, 0.20796477034679672, -0.23780046049837644), 
+                          (0.9267282798589614, 0.16997001112351162, -0.5282983087375479, 0.36538217505303483))), 
+                        (((-0.8579510472159081, -0.7246352503258299, -0.15510078775815894, 0.12619420876242404), 
+                          (0.24743683866122967, 0.5615110519360075, -0.3322404459371945, -0.7048709861468231), 
+                          (0.7028698531861565, -0.22853480716765995, 0.7720042932598191, -0.13166327267604216), 
+                          (-0.2435352215957982, 0.22931953113912795, 0.3655062306761121, -0.12152100998681392)), 
+                         ((-0.5677571978624529, 0.6521623982090801, 0.45610015782255964, 0.04035238030125632), 
+                          (-0.23851414230639378, -0.30637231258391073, 0.046201693717512704, -0.27136411183670195), 
+                          (0.6857476357642973, 0.3410717717617201, 0.01289524408298115, -0.013360855488527279), 
+                          (-0.032304469159492366, -0.0835492970599051, -0.0028734534647487653, -0.4654703960804025)), 
+                         ((-0.2290818436503651, -0.5296681103638246, 0.6162246876592932, 0.17128234890632854), 
+                          (-0.5811995554061062, 0.6417647758172681, 0.7628730887993724, -0.37912907041142807), 
+                          (-0.09316417943340105, -0.27095731560349645, 0.6194574328449272, -0.24948060355551438), 
+                          (0.5728337951942462, -0.0924305626769284, 0.3298848378599575, 0.415637420812042)), 
+                         ((-0.061049694343089045, -0.8003464214443662, 0.29655140456799867, -0.7735799111191699), 
+                          (0.29917720082276444, 0.3643378373698344, -0.7665309138650984, 0.35430115119764427), 
+                          (0.39429765393905847, -0.215211613577439, 0.22195510594293588, -0.20240345662915427), 
+                          (-0.06694319875792287, -0.6036398699231508, -0.6775777632295854, -0.13199173966023536))))
+            if rank==0:
+                return (0.1916945198248936-0.13520600821648232j,)
+            elif rank==1:
+                return (-0.1083940865407611-0.43931913768613384j,)
+            elif rank==2:
+                return (((-0.0008665125778035687+0.43157678379712805j), (0.6508260343349135-0.13342532131846585j)), 
+                        ((0.25346912744174943-0.6465790214072134j), (-0.15962337965743467-0.01177491815738152j)))
+            elif rank==3:
+                return ((((-0.11057636539275228-0.3175750394405701j), (0.7947500539520073-0.3434988438428338j), (-0.17008528220766383+0.22755084276175752j)),
+                         ((-0.21753248913138046+0.3073046922694095j), (-0.5987149773078468+0.6404407581234498j), (-0.2733628131901674-0.7312216337378827j)),
+                         ((0.46021781519502736-0.32179246699810604j), (-0.4650578935554821+0.5210104598763112j), (-0.36535537317523425+0.4289080712460789j))),
+                        (((-0.19578475796433725-0.1604786258607791j), (-0.070669831429362-0.34066414803932554j), (0.09414012129996285-0.14312760505028332j)),
+                         ((0.02962390819527594-0.08129940555056081j), (-0.29691277198852295+0.5445730330279386j), (-0.8314872838325128-0.10478982105017087j)),
+                         ((-0.4875034489526303+0.11245261823496877j), (0.307917858878609+0.4746451405124599j), (0.41480950330452204+0.4450092645412934j))),
+                        (((0.7567520084099626-0.5568082250793975j), (0.5933616991307173-0.03406028934656724j), (-0.5349903124170489-0.396773950179919j)),
+                         ((0.46555626239679515-0.16518290948365888j), (0.8398844896104096+0.28827801011043974j), (-0.05286735815237498-0.06537526369272817j)),
+                         ((-0.7873594868218297+0.23455905590585036j), (0.43718502738612375+0.17935920771077773j), (-0.16708210956083058-0.29630670019555294j))))
+            elif rank==4:
+                return (((((-0.37669743703656033+0.3367989420952414j), (0.3280202440259613-0.42443833914985585j), (0.5751207710641884-0.6671925997156294j), (0.033365010564720965+0.18416168128369115j)),
+                          ((-0.1305885333955732+0.258183803742714j), (0.5291111892948406+0.12768860044004038j), (0.3044538909411727+0.7018739119608393j), (-0.09384324555072743+0.44762291055240755j)),
+                          ((-0.5172985234092151-0.4246631134190011j), (-0.05697702151796369-0.38499672629412374j), (-0.16330371172505076+0.6329885254352636j), (0.005206064694582513-0.6979570589219142j)), 
+                          ((0.10042081122085011+0.2730078961548078j), (0.37702343940278005+0.3312339822361312j), (-0.38712718853663275+0.043310706850169245j), (-0.43842301200718425-0.15186366915048966j))), 
+                        (((0.5818010551152796-0.36497243994846373j), (0.19198280565084558-0.5011496107835725j), (0.24413432536571378-0.6379767379075698j), (0.34455193126269634-0.08664637040123147j)), 
+                         ((0.8168889487559259-0.9032656902589163j), (-0.5603456946720172-0.1195734571550765j), (-0.1605088593685251-0.13483121449943314j), (0.6174544850032535-0.44047675305704703j)), 
+                         ((-0.42307951312623815-0.30327702147916713j), (-0.2618637556175357-0.1986043745329351j), (0.04718850736664815-0.10738185754632579j), (0.23587778497574974-0.6504332945195135j)), 
+                         ((-0.05076119295424941+0.4047602633806563j), (0.11093393085917946+0.12427836254382474j), (-0.8132105391139205+0.37548311525522216j), (-0.26953236282243265-0.31159778790771064j))), 
+                        (((-0.39250877863236644-0.4881044190028637j), (-0.8360834411136835+0.02188471873683928j), (0.02679042509032048+0.6879063358020456j), (-0.10048291543082566-0.2233219762257277j)), 
+                         ((0.5390402819188123+0.1204054017602989j), (-0.2931730415212582+0.11535281644759132j), (-0.30548980198917564+0.026411218830157512j), (-0.19472436433201012+0.081056583169555j)),
+                         ((0.0005464858113309878+0.3225143801544309j), (-0.07709944497321652-0.7481530123633068j), (0.16337505191696478+0.5103151975086361j), (-0.12750402538858618+0.7545748937897574j)), 
+                         ((-0.9554831189812294+0.13987108056505082j), (-0.27483290404380223+0.8226848528344127j), (0.521831527873442+0.4970661477293601j), (0.9061234743087792-0.1504241528269118j))), 
+                        (((-0.1882846543421225+0.5304062832141554j), (0.10579078542556297+0.22780442714023064j), (-0.011294630508038805+0.5779466549586485j), (0.08025599710182507+0.12004966544994533j)), 
+                         ((-0.6586788023520793+0.29488829592817734j), (-0.5025090781370782-0.495410044054439j), (-0.10853891499487645+0.024651020003384483j), (-0.0009726817521150677-0.0764710138257787j)), 
+                         ((0.32613207343707196+0.7335754039319815j), (0.3508358997571207+0.3240452830066213j), (-0.3835841075004305-0.06342158227281525j), (0.32061104148045194+0.14435049185949667j)), 
+                         ((-0.4702553987233302+0.2965575488822829j), (0.2726823746215451+0.21252896664298115j), (-0.40480220218419416+0.5684528722603068j), (-0.8662951962865073-0.02018655350327081j)))), 
+                       ((((0.31691366872411453-0.16565320239992465j), (0.6119279222420073+0.4061058795460125j), (-0.2724431323567723+0.47301403973137435j), (-0.07564711093225085+0.3318822040674295j)), 
+                         ((0.35444199580157854-0.17921840306504822j), (0.029427102181375453-0.03357316416483169j), (-0.21032412371046783+0.01667316554624787j), (0.0663834457499225+0.2586952407467318j)), 
+                         ((0.20873626161577874+0.5387073631313459j), (-0.7679630879573601-0.6188379588287274j), (-0.3195249665071722-0.597193477248285j), (0.43272245800774456-0.23801421308823245j)), 
+                         ((-0.037613711494389857+0.10818062943154994j), (0.057829377352543676-0.04999419264444982j), (0.3022465975999099-0.5349078896215682j), (-0.5231242476811815+0.42998339300583244j))), 
+                        (((0.0856361897298803-0.6998154250460039j), (-0.11463868513147624+0.16152088708434365j), (-0.5127925687279636+0.11002739851016519j), (0.2599079869203247+0.02491071853128979j)), 
+                         ((0.7015604708055061-0.591598702814476j), (0.7022599678145434+0.41303884890699527j), (0.6770753952633466+0.003915616175995784j), (0.5221501522889332+0.015184149238084643j)), 
+                         ((-0.18955797508665606+0.5485819797109972j), (-0.2971676553030109-0.17836414101585318j), (-0.5711343992923511+0.06842526899025392j), (0.059265927050955236-0.6735602608611315j)), 
+                         ((-0.1520857966428928+0.29169887374589554j), (-0.3146943503222607+0.5076388713801581j), (0.9710102040544507-0.04876498142745134j), (-0.19853216294306686-0.6550688027359666j))), 
+                        (((0.18951981302782428-0.2412793295224065j), (-0.7777428226995063-0.365999090785438j), (0.6228318351380273+0.06995476281885704j), (-0.6740149120004719+0.10711001728991842j)),
+                         ((0.1129279157975297-0.4283924106357786j), (0.40438767481744564-0.2635679354391648j), (-0.29420852109617845+0.4847733937880756j), (-0.3510828870978512-0.11064283076221504j)), 
+                         ((-0.060808250212467274-0.3509555798569397j), (0.2310570876125041+0.27346891132233075j), (-0.07736476852424223-0.24833618620126674j), (-0.78074150969927-0.7230863125461435j)), 
+                         ((-0.4757051297031988-0.3783458735437233j), (-0.5401521152562118+0.035723203675678605j), (-0.17580640953890292+0.6827665743960223j), (0.39326629202893215-0.21993263281519704j))), 
+                        (((0.6386214443611579-0.764943290056036j), (0.18713633494964688+0.06363868519230131j), (0.29526336078276216+0.30178995300494826j), (0.05001443364181468-0.42881696117817625j)), 
+                         ((-0.5275034189476259+0.6550538425247074j), (0.6943261638500615+0.006776882726276523j), (0.5153311571315663-0.05413330835192531j), (0.2988153589979258+0.3049744060817169j)), 
+                         ((0.14785883887146767+0.0763051493978234j), (0.16312754082743042-0.03795584967477661j), (0.040229546593022913+0.16530303115245693j), (-0.1831772476291057+0.06328054147911466j)), 
+                         ((0.1476643669767913+0.325680674159183j), (0.14707868586431028+0.9047584008820329j), (0.9011552589577467+0.11447442281060494j), (0.005973469367093642+0.22263862886336694j)))), 
+                       ((((0.19283269000734593-0.28709497228064285j), (-0.47096481014533476-0.13173508510496024j), (0.562477770007406+0.26491027512352816j), (0.03783964186943933-0.03978396106597093j)), 
+                         ((-0.5333576204038937+0.20057170743675312j), (-0.5554481805321547-0.7626212986623081j), (-0.47686434977953773+0.5802686248218423j), (0.5920361023050167-0.14491946597655325j)), 
+                         ((-0.4126930229374297+0.39966003185091536j), (0.2850544980649773+0.7484131241244993j), (-0.13160190253004878-0.10190869345823672j), (0.34602765479100117-0.18205626983880596j)), 
+                         ((0.4219188545707674+0.5086508238768007j), (-0.0677006672392233-0.11766198036052333j), (0.45020863060305627+0.20389430038718892j), (-0.5125265629738844-0.4771765521430704j))), 
+                        (((0.37701640058097874+0.05204261987362635j), (0.17260326851591068+0.4285264843160088j), (0.10359131962737611-0.8137076321465101j), (-0.02286762418683419+0.34829474498525603j)), 
+                         ((-0.010410922319074811+0.09105220878486131j), (0.43519051427706756-0.20447320160562032j), (-0.14399460120821073-0.46777690039065734j), (-0.04872781035419649-0.4298525400055381j)), 
+                         ((0.18896093939688385-0.16705599789601278j), (-0.5364935215041872+0.3749309246942789j), (-0.18268036947723632-0.25385754338743693j), (-0.5091199532153567-0.32766264406763357j)), 
+                         ((-0.35235219578282473-0.661850620842785j), (-0.6072679594510126+0.09656978047989173j), (-0.5126540710595279-0.1672195227969181j), (-0.2830351750830662+0.12517368885386926j))), 
+                        (((0.04686974540685185+0.08438300173836044j), (-0.17974800480460484-0.5026848778236594j), (0.4496570044640005+0.5182953038532189j), (0.673892629006263-0.39593441606543756j)), 
+                         ((0.2166952267447365+0.191459813763583j), (0.6130127820906195+0.3500318802920196j), (-0.5419820712240513-0.13457437148792628j), (0.3343112127482648+0.07888610819775466j)), 
+                         ((-0.39276675341804346+0.7570076529568248j), (-0.3988406372126929-0.8608946218773403j), (0.576648779753566-0.6725693071527158j), (-0.4183085693722922-0.21421782809798817j)), 
+                         ((-0.3010231423615105-0.020535079475881957j), (0.006107583077576639-0.0812822534033596j), (-0.029724210300932086+0.35635178233793563j), (-0.20891136846604574-0.34703924148843457j))), 
+                        (((-0.07194174413486831-0.07558412271718051j), (0.04378297698600753+0.17934356988151767j), (-0.47189150794751766+0.5780327062551049j), (-0.5125220316089242+0.24892817111211096j)), 
+                         ((-0.36059488463245326-0.44683441504676813j), (-0.26735527077170973-0.3699650359773635j), (-0.3057966963958182-0.07264390084352956j), (-0.7281560219128018-0.3560659246206268j)), 
+                         ((0.1329046092679943-0.03153689763456646j), (-0.39271490859265534+0.2062873488401652j), (0.3802945078185428+0.013499908367005542j), (-0.1756191306230559+0.40464153144244697j)), 
+                         ((0.4802390728634319+0.5190956065611698j), (0.14465603430627616+0.005475878763732567j), (0.3018703057475889-0.0352888758412262j), (0.6943368615391298+0.019202869121973j)))), 
+                       ((((-0.07500673578875616+0.44031114122474946j), (-0.7205258224784314+0.16865003592058259j), (0.07737090079316822-0.1946277248102064j), (-0.34196425749144166+0.03817853010131156j)), 
+                         ((0.17755139682612575+0.8238455606059262j), (-0.6657721503572177+0.19793806270117809j), (0.29019650633065386-0.0952118701646486j), (0.14507433328106534-0.515594049976717j)), 
+                         ((-0.2046653289959417-0.3621700659367947j), (0.6793982849049701+0.3212370850216385j), (0.752468338707956-0.2485926849867901j), (0.5515361195592884-0.4034740977009965j)), 
+                         ((0.06814007049845194-0.598437803123891j), (-0.5946418447770585-0.6903237885619982j), (-0.36295182276739524-0.7047248113077316j), (0.4250255531847421-0.18162334572617966j))), 
+                        (((-0.330842360993192+0.6332178345844492j), (-0.1626525936800115+0.12616954195069585j), (-0.1140983493592932+0.16115787963839956j), (-0.5146861509822459-0.47712128557213807j)), 
+                         ((-0.5846954521386037+0.05824004235002933j), (-0.6485911018934266+0.16723477358583239j), (0.08398284507027964-0.43010971419153865j), (0.473289092320511-0.20201419097169482j)), 
+                         ((0.4304851671543479+0.3403150943545751j), (-0.5833160536688786+0.4728250155621482j), (0.07457807134020211-0.7490249718724199j), (-0.7171842661512965-0.4045396117992399j)), 
+                         ((0.38115752645606027-0.581098921622462j), (-0.5631172341731325-0.3169246082570121j), (-0.3187906517321565-0.04147798917128964j), (0.19509565877461577-0.2078658202899497j))), 
+                        (((0.8183607993729423+0.6099794355828236j), (-0.04871961343893161-0.07033624155755913j), (-0.5113369106671184+0.057386755559324376j), (-0.8572333770628078-0.11952395630018997j)), 
+                         ((-0.14669430492038193+0.22930953454219938j), (0.8593021941295018-0.6567284188814271j), (-0.3498005693861541+0.4978632770594925j), (0.09110494626854304+0.14596905700539575j)), 
+                         ((0.5821565237474922+0.0943377064392501j), (-0.12067415509324098-0.2752660016054119j), (-0.06217450649156364-0.024782412571600743j), (0.18973873165376154-0.4643249608246277j)), 
+                         ((0.221440302929653-0.013268267564226499j), (0.23727492055667987+0.24335036846179636j), (0.20590162356036257-0.7773726672859762j), (0.6650340170009239+0.23251699933937398j))), 
+                        (((-0.10862117873771637-0.37601603473231926j), (0.14702795412639624+0.2708674170765101j), (-0.6649779112242566-0.18174044911513143j), (-0.8835405205485383+0.67800004101369j)), 
+                         ((0.5595753470648851+0.06619472947501459j), (-0.5165025553457263+0.06614105368782663j), (0.6989509353083828-0.04232214137167867j), (0.27326536666764734+0.055971454399568965j)), 
+                         ((-0.4225563301191848-0.46504433769204656j), (0.021693692712496326+0.03736604787989928j), (-0.5231593756263367-0.2743293424312542j), (0.030072300170931987-0.5713925695108115j)), 
+                         ((0.2665173135965969-0.541283942963249j), (0.10755640859650628-0.30605105910067054j), (-0.5717247916937898+0.2531629402939769j), (0.6106906755601762-0.8354582126221755j)))))
+
     def get_array_inputL(self, rank, cplx):
         z=self.get_python_inputL(rank, cplx)
         return (numpy.array(z),numpy.array(z))
+    
+    # does not have the same range as get_array_inputL but hopefully this will be enough
+    # at the moment it is only used in tagged testing
+    def get_array_inputL2(self, rank, cplx):
+        z=self.get_python_input2(rank, cplx)
+        return (1000*numpy.array(z), 1000*numpy.array(z))
+        
         
     def get_array_input1(self, rank, cplx):
         z=self.get_python_input1(rank, cplx)
@@ -793,6 +980,10 @@ class Test_util_values(unittest.TestCase):
     def get_array_input3(self, rank, cplx):
         z=self.get_python_input3(rank, cplx)
         return (numpy.array(z),numpy.array(z))
+    
+    def get_array_input4(self, rank, cplx):
+        z=self.get_python_input4(rank, cplx)
+        return (numpy.array(z),numpy.array(z))    
 
     def get_const_inputL(self, rank, fs, cplx):
         z=self.get_python_inputL(rank, cplx)
@@ -941,7 +1132,7 @@ class Test_util_values(unittest.TestCase):
                 self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")                
                 tagcount+=1
 
-    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, no_scalars=False, multisteptag=True, minrank=0, maxrank=4,
+    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=None, no_scalars=False, minrank=0, maxrank=4,
                                       expect_raise_on_ranks=None, expected_exceptions=None):
         """
         supportcplx is a boolean indicating whether complex operations should be checked for values (True)
@@ -956,94 +1147,12 @@ class Test_util_values(unittest.TestCase):
             would result in     rmerge=eval(update1) running after the first tag is calculatedand 
                                 rmerge=eval(update2) running after the second
         """
-        if input_trans is None:
-            input_trans=lambda x: x
-        if expect_raise_on_ranks is None:
-            expect_raise_on_ranks=()
-        pars=[]
-        epars=[]    # operations which should throw
-        if not no_scalars:
-            (f1,f2)=self.get_scalar_input1(False)
-            f1=input_trans(f1)
-            f2=input_trans(f2)
-            pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar", expected_exceptions))
-            if supportcplx:
-                (f1,f2)=self.get_scalar_input1(True)
-                f1=input_trans(f1)
-                f2=input_trans(f2)
-                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar",expected_exceptions))
-            else:
-                (f1,f2)=self.get_scalar_input1(True)
-                f1=input_trans(f1)
-                f2=input_trans(f2)                
-                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))
-        for c in (False, True):
-            if c:
-                cs="complex "
-            else:
-                cs=""
-            for rank in range(minrank, maxrank+1):
-                dest=pars
-                if rank in expect_raise_on_ranks or (c and not supportcplx):
-                    dest=epars                
-                if not no_scalars:
-                    (a, r)=self.get_array_input1(rank, c)
-                    a=input_trans(a)
-                    r=input_trans(r)
-                    p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank), expected_exceptions)
-                    dest.append(p)
-                (a, r)=self.get_const_input1(rank, self.functionspace, c)
-                a=input_trans(a)
-                r=input_trans(numpy.array(r))                
-                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank), expected_exceptions)
-                dest.append(p)
-                (a, r)=self.get_expanded_input1(rank, self.functionspace, c)
-                a=input_trans(a)
-                r=input_trans(numpy.array(r))                
-                p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank), expected_exceptions)
-                dest.append(p)
-        self.execute_ce_params(pars)
-        self.execute_ce_throws(epars)
-        del pars
-        del epars
-        tpars=[]    # tagged versions
-        epars=[]
-        for c in (False, True):
-            if c:
-                cs="complex "
-            else:
-                cs=""
-            for rank in range(minrank, maxrank+1):
-                dest=tpars
-                if rank in expect_raise_on_ranks or (c and not supportcplx):
-                    dest=epars                
-                test=[opname+" - "+cs+"tagged rank "+str(rank),]
-                (a, r)=self.get_tagged_input1(rank, self.functionspace, c)
-                a=input_trans(a)
-                r=input_trans(numpy.array(r))                                
-                test.append(a)
-                test.append(expected_exceptions)
-                # arguments are new tagged value, operation, extra check, reference_value, reference_check
-                (t2, r2)=self.get_array_input2(rank, c)
-                t2=input_trans(t2)
-                r2=input_trans(numpy.array(r2))
-                rmerge=eval(update1)
-                test.append((t2, opstring, misccheck, rmerge, None,))
-                if multisteptag:
-                    (t3, r3)=self.get_array_input3(rank, c)
-                    t3=input_trans(t3)
-                    r3=input_trans(numpy.array(r3))
-                    rmerge=eval(update2)
-                    test.append((t3, opstring, misccheck, rmerge, None,))
-                dest.append(test)
-        self.execute_t_params(tpars)
-        self.execute_t_throws(epars)        
+        self.generate_operation_test_batch_driver(supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans, no_scalars, minrank, maxrank,
+                                      expect_raise_on_ranks, expected_exceptions, inp_scalar1=self.get_scalar_input1, inp_array1=self.get_array_input1, inp_array2=self.get_array_input2,  inp_const1=self.get_const_input1,  inp_expanded1=self.get_expanded_input1, inp_tagged1=self.get_tagged_input1)
 
-
-    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, input_trans=None, no_scalars=False, multisteptag=True, minrank=0, maxrank=4, expect_raise_on_ranks=None, expected_exceptions=None):
+    def generate_operation_test_batch_driver(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=None, no_scalars=False, minrank=0, maxrank=4,
+                                      expect_raise_on_ranks=None, expected_exceptions=None, inp_scalar1=None, inp_array1=None, inp_array2=None,  inp_const1=None,  inp_expanded1=None, inp_tagged1=None):
         """
-        (At time of writing) This is the same as generate_operation_test_batch but using
-        inputL to add some large (magnitude) values into the mix.
         supportcplx is a boolean indicating whether complex operations should be checked for values (True)
              or tested to see if they raise (False)
         opstring is a string of the operation to be performed (in terms of argument a) eg "Lsup(a)"
@@ -1063,22 +1172,21 @@ class Test_util_values(unittest.TestCase):
         pars=[]
         epars=[]    # operations which should throw
         if not no_scalars:
-            (f1,f2)=self.get_scalar_inputL(False)
+            (f1,f2)=inp_scalar1(False)
             f1=input_trans(f1)
             f2=input_trans(f2)
             pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - scalar", expected_exceptions))
             if supportcplx:
-                (f1,f2)=self.get_scalar_inputL(True)
+                (f1,f2)=inp_scalar1(True)
                 f1=input_trans(f1)
-                f2=input_trans(f2)                
-                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))
+                f2=input_trans(f2)
+                pars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar",expected_exceptions))
             else:
-                (f1,f2)=self.get_scalar_inputL(True)
+                (f1,f2)=inp_scalar1(True)
                 f1=input_trans(f1)
                 f2=input_trans(f2)                
-                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))     
+                epars.append((f1, opstring, misccheck, numpy.array(f2), oraclecheck, opname+" - complex scalar", expected_exceptions))
         for c in (False, True):
-            dest=pars
             if c:
                 cs="complex "
             else:
@@ -1086,23 +1194,23 @@ class Test_util_values(unittest.TestCase):
             for rank in range(minrank, maxrank+1):
                 dest=pars
                 if rank in expect_raise_on_ranks or (c and not supportcplx):
-                    dest=epars
+                    dest=epars                
                 if not no_scalars:
-                    (a, r)=self.get_array_inputL(rank, c)
+                    (a, r)=inp_array1(rank, c)
                     a=input_trans(a)
                     r=input_trans(r)
                     p=(a, opstring, misccheck, numpy.array(r), oraclecheck, opname+" - "+cs+"array rank "+str(rank), expected_exceptions)
-                    dest.append(p)                   
-                (a, r)=self.get_const_inputL(rank, self.functionspace, c)
+                    dest.append(p)
+                (a, r)=inp_const1(rank, self.functionspace, c)
                 a=input_trans(a)
                 r=input_trans(numpy.array(r))                
                 p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Constant Data rank "+str(rank), expected_exceptions)
                 dest.append(p)
-                (a, r)=self.get_expanded_inputL(rank, self.functionspace, c)
+                (a, r)=inp_expanded1(rank, self.functionspace, c)
                 a=input_trans(a)
-                r=input_trans(numpy.array(r))
+                r=input_trans(numpy.array(r))                
                 p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank), expected_exceptions)
-                dest.append(p)              
+                dest.append(p)
         self.execute_ce_params(pars)
         self.execute_ce_throws(epars)
         del pars
@@ -1110,38 +1218,173 @@ class Test_util_values(unittest.TestCase):
         tpars=[]    # tagged versions
         epars=[]
         for c in (False, True):
-            dest=tpars
             if c:
                 cs="complex "
-                if not supportcplx:
-                    dest=epars
             else:
-                cs=""             
+                cs=""
             for rank in range(minrank, maxrank+1):
                 dest=tpars
                 if rank in expect_raise_on_ranks or (c and not supportcplx):
                     dest=epars                
                 test=[opname+" - "+cs+"tagged rank "+str(rank),]
-                (a, r)=self.get_tagged_inputL(rank, self.functionspace, c)
+                (a, r)=inp_tagged1(rank, self.functionspace, c)
                 a=input_trans(a)
-                r=input_trans(numpy.array(r))
+                r=input_trans(numpy.array(r))                                
                 test.append(a)
-                test.append(expected_exceptions)                
+                test.append(expected_exceptions)
                 # arguments are new tagged value, operation, extra check, reference_value, reference_check
-                (t2, r2)=self.get_array_inputL(rank, c)
+                (t2, r2)=inp_array2(rank, c)
                 t2=input_trans(t2)
                 r2=input_trans(numpy.array(r2))
                 rmerge=eval(update1)
                 test.append((t2, opstring, misccheck, rmerge, None,))
-                if multisteptag:
-                    (t3, r3)=self.get_array_input3(rank, c)
-                    t3=input_trans(t3)
-                    r3=input_trans(numpy.array(r3))
-                    rmerge=eval(update2)
-                    test.append((t3, opstring, misccheck, rmerge, None,))
                 dest.append(test)
         self.execute_t_params(tpars)
-        self.execute_t_throws(epars) 
+        self.execute_t_throws(epars)   
+
+
+    def generate_operation_test_batch(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=None, no_scalars=False, minrank=0, maxrank=4,
+                                      expect_raise_on_ranks=None, expected_exceptions=None):
+        """
+        supportcplx is a boolean indicating whether complex operations should be checked for values (True)
+             or tested to see if they raise (False)
+        opstring is a string of the operation to be performed (in terms of argument a) eg "Lsup(a)"
+        misccheck is a string giving a check to be run after the operation eg "isinstance(res,float)"
+        opname is a string used to describe the operation being tested eg "inf"
+        update1 and update2 are strings giving code used to update a variable rmerge to  
+            account for tag additions for tagged data.
+            eg:             update1="r2.min()"
+                            update2="min(rmerge, r3.min())"
+            would result in     rmerge=eval(update1) running after the first tag is calculatedand 
+                                rmerge=eval(update2) running after the second
+        """
+        self.generate_operation_test_batch_driver(supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=input_trans, no_scalars=no_scalars, minrank=minrank, maxrank=maxrank,
+                                      expect_raise_on_ranks=expect_raise_on_ranks, expected_exceptions=expected_exceptions, inp_scalar1=self.get_scalar_input1, inp_array1=self.get_array_input1, inp_array2=self.get_array_input2,  inp_const1=self.get_const_input1,  inp_expanded1=self.get_expanded_input1, inp_tagged1=self.get_tagged_input1)
+
+
+    def generate_operation_test_batch_large(self, supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=None, no_scalars=False, minrank=0, maxrank=4, expect_raise_on_ranks=None, expected_exceptions=None):
+        """
+        Uses the same logic as generate_operation_test_batch but uses larger values.
+        supportcplx is a boolean indicating whether complex operations should be checked for values (True)
+             or tested to see if they raise (False)
+        opstring is a string of the operation to be performed (in terms of argument a) eg "Lsup(a)"
+        misccheck is a string giving a check to be run after the operation eg "isinstance(res,float)"
+        opname is a string used to describe the operation being tested eg "inf"
+        update1 and update2 are strings giving code used to update a variable rmerge to  
+            account for tag additions for tagged data.
+            eg:             update1="r2.min()"
+                            update2="min(rmerge, r3.min())"
+            would result in     rmerge=eval(update1) running after the first tag is calculatedand 
+                                rmerge=eval(update2) running after the second
+        """
+        self.generate_operation_test_batch_driver(supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans, no_scalars, minrank, maxrank,
+                                      expect_raise_on_ranks, expected_exceptions, inp_scalar1=self.get_scalar_inputL, inp_array1=self.get_array_inputL, inp_array2=self.get_array_inputL2,  inp_const1=self.get_const_inputL,  inp_expanded1=self.get_expanded_inputL, inp_tagged1=self.get_tagged_inputL)
+
+    def execute_binary_params(self, pars):
+        for v in pars:
+            a=v[0]
+            b=v[1]
+            op=v[2]
+            misccheck=v[3]
+            refa=v[4]
+            refb=v[5]
+            oraclecheck=v[6]
+            description=v[7]
+            res=eval(op)
+            if misccheck is not None:
+                miscres=eval(misccheck)
+                if not miscres:
+                    print("Failed check:"+misccheck)
+                    print(type(a))
+                    print(" , ")
+                    print(type(b))
+                    print(" vs ")
+                    print(type(res))
+                    print(" values:")
+                    print(a)
+                    print(" , ")
+                    print(b)
+                    print(res)
+                self.assertTrue(miscres,"Failed check for "+description)
+            oraclevalue=eval(oraclecheck)
+            oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
+            if not oracleres:
+                print("Wrong result:"+oraclecheck)
+                print(type(res))
+                print(" vs ")
+                print(type(oraclevalue))
+                print(" values:")
+                print(res)
+                print(" vs ")
+                print(oraclevalue)                
+            self.assertTrue(oracleres,"wrong result for "+description)
+
+
+
+    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4):
+        """
+        Generates a set of tests for binary operations.
+        It is similar to the unary versions but with some unneeded options removed.
+        For example, all operations in this type should accept complex arguments.
+        opstring is a string of the operation to be performed (in terms of arguments a and b) eg "inner(a,b)"
+        misccheck is a string giving a check to be run after the operation eg "isinstance(res,float)"
+        opname is a string used to describe the operation being tested eg "inner"
+        update1 is a string giving code used to update a variable rmerge to  
+            account for tag additions for tagged data.
+            eg:             update1="r2.min()"
+            would result in     rmerge=eval(update1) running after the first tag is calculated 
+        """
+        if input_trans is None:
+            input_trans=lambda x: x
+        pars=[]
+        for ac in (False, True):
+            for bc in (False, True):
+                astr="real" if ac else "complex"
+                bstr="real" if bc else "complex"
+                aargset=[]
+                bargset=[]
+                for atype in "SACTE":   # Scalar/Array/Constant/Tagged/Expanded
+                    aargs=[]
+                    if atype=='S':
+                        aargs=((self.get_scalar_input1(ac),astr+' scalar'),)
+                    elif atype=='A':
+                        for r in range(minrank, maxrank+1):
+                            aargs.append((self.get_array_input1(r,ac),astr+' array rank '+str(r)))
+                    elif atype=='C':
+                        for r in range(minrank, maxrank+1):
+                            aargs.append((self.get_const_input1(r, self.functionspace, ac), astr+' Constant rank '+str(r)))
+                    elif atype=='T':
+                        for r in range(minrank, maxrank+1):
+                            aargs.append((self.get_tagged_input1(r, self.functionspace, ac),astr+' Tagged rank '+str(r)))
+                    elif atype=='E':
+                        for r in range(minrank, maxrank+1):
+                            aargs.append((self.get_expanded_input1(r,self.functionspace, ac),astr+' Expanded rank '+str(r)))
+                    aargset.append(aargs)
+                for atype in "SACTE":   # Scalar/Array/Constant/Tagged/Expanded
+                    bargs=[]
+                    if atype=='S':
+                        bargs=((self.get_scalar_input2(ac),bstr+' scalar'),)
+                    elif atype=='A':
+                        for r in range(minrank, maxrank+1):
+                            bargs.append((self.get_array_input2(r,ac),bstr+' array rank '+str(r)))
+                    elif atype=='C':
+                        for r in range(minrank, maxrank+1):
+                            bargs.append((self.get_const_input2(r, self.functionspace, ac),bstr+' Constant rank '+str(r)))
+                    elif atype=='T':
+                        for r in range(minrank, maxrank+1):
+                            bargs.append((self.get_tagged_input2(r, self.functionspace, ac), bstr+' Tagged rank '+str(r)))
+                    elif atype=='E':
+                        for r in range(minrank, maxrank+1):
+                            bargs.append((self.get_expanded_input2(r, self.functionspace, ac),bstr+' Expanded rank '+str(r)))
+                    bargset.append(bargs)
+                # now we have a complete set of possible args    
+                for aarg in aargset:
+                    for barg in bargset:
+                        p=(aarg[0][0], barg[0][0], opstring, misccheck, 
+                           numpy.array(aarg[0][1]), numpy.array(barg[0][1]), 
+                           oraclecheck, opname+' '+aarg[1][0]+'/'+barg[1][0])
+                        pars.append(p)           
+        self.execute_binary_params(pars)
 
 class Test_util_base(Test_util_values):
    """

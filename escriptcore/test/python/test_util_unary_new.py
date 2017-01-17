@@ -46,9 +46,17 @@ from test_util_base import Test_util_base, Test_util_values
 
 haveLapack = hasFeature('lapack')
 
+def getTagStr(f, p=None):
+   if p is None:
+        return "self.makeTagged(self.functionspace, "+f+"(r), "+f+"(r2))"
+   else:
+        f1=f.replace(p,'r')
+        f2=f.replace(p,'r2')
+        return "self.makeTagged(self.functionspace, ("+f1+"), ("+f2+"))"
+
 class Test_util_unary_new(Test_util_values):
    """
-   test for unary operations. No tagged data are tested.
+   test for unary operations. 
    """
    def iterateops(self, ops, vals):
        """
@@ -103,9 +111,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,float) or (isinstance(res, numpy.ndarray) and res.dtype.kind=='f') or (isinstance(res, Data) and not res.isComplex())"
         oraclecheck="numpy.abs(ref)"
         opname="abs"
-        update1="numpy.abs(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.abs")    
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1)  
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acos_combined(self):
         supportcplx=True
@@ -113,9 +121,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.arccos(ref)"
         opname="acos"
-        update1="numpy.arccos(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.arccos")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acosh_combined(self):
         supportcplx=True
@@ -123,9 +131,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.arccosh(ref)"
         opname="acosh"
-        update1="numpy.arccosh(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.arccosh")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: x+2)  
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=lambda x: x+2)  
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_antihermitian_combined(self):
         supportcplx=True
@@ -133,9 +141,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="(ref-numpy.conjugate(transpose(ref)))/2"
         opname="antihermitian"
-        update1="(r2-numpy.conjugate(transpose(r2)))/2"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("(r2-numpy.conjugate(transpose(r2)))/2",p='r2')
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))         
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))         
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_antisymmetric_combined(self):
         supportcplx=True
@@ -143,9 +151,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="(ref-transpose(ref))/2"
         opname="antisymmetric"
-        update1="(r2-transpose(r2))/2"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("(r2-transpose(r2))/2",p='r2')
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))            
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))            
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_combined(self):
         supportcplx=True
@@ -153,9 +161,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.arcsin(ref)"
         opname="asin"
-        update1="numpy.arcsin(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.arcsin")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asinh_combined(self):
         supportcplx=True
@@ -163,9 +171,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.arcsinh(ref)"
         opname="asinh"
-        update1="numpy.arcsinh(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.arcsinh")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)   
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atan_combined(self):
         supportcplx=True
@@ -173,9 +181,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.arctan(ref)"
         opname="atan"
-        update1="numpy.arctan(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.arctan")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)   
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atanh_combined(self):
         supportcplx=True
@@ -183,9 +191,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.arctanh(ref)"
         opname="atanh"
-        update1="numpy.arctanh(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.arctanh")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1) 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_clip_combined(self):
         supportcplx=False
@@ -193,9 +201,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.clip(ref, -0.5, 0.5)"
         opname="clip"
-        update1="numpy.clip(r2, -0.5, 0.5)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.clip(r2, -0.5, 0.5)", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_combined(self):
         supportcplx=True
@@ -203,9 +211,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.cos(ref)"
         opname="cos"
-        update1="numpy.cos(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.cos")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)  
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cosh_combined(self):
         supportcplx=True
@@ -213,9 +221,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.cosh(ref)"
         opname="cosh"
-        update1="numpy.cosh(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.cosh")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)  
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_combined(self):
         supportcplx=True
@@ -223,10 +231,11 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.linalg.eigvals(ref) if numpy.ndim(ref)==2 else 0."
         opname="eigenvalues"
-        update1="numpy.linalg.eigvals(r2) if numpy.ndim(r2)==2 else 0."    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.sort(numpy.linalg.eigvals(r2)) if numpy.ndim(r2)==2 else 0.", p='r2')
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False,
-                                                 expect_raise_on_ranks=(0,1,3,4), no_scalars=True, input_trans=lambda x: symmetric(x) if getRank(x)==2 else x)           
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1,
+                                                 expect_raise_on_ranks=(0,1,3,4), no_scalars=True, 
+                                                 input_trans=lambda x: symmetric(x) if getRank(x)==2 else x)
         # We aren't testing the scalar case
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_combined(self):
@@ -235,9 +244,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.exp(ref)"
         opname="exp"
-        update1="numpy.exp(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.exp")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_hermetitian_combined(self):
         supportcplx=True
@@ -245,9 +254,10 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="(ref+numpy.conjugate(transpose(ref)))/2"
         opname="hermitian"
-        update1="(r2+numpy.conjugate(transpose(r2)))/2"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("(r2+numpy.conjugate(transpose(r2)))/2", p='r2')
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))          
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+                                            expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_combined(self):
         supportcplx=False
@@ -255,9 +265,10 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.linalg.inv(ref)"
         opname="inverse"
-        update1="numpy.linalg.inv(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.linalg.inv")
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, minrank=2, maxrank=2, no_scalars=True)
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+                                            minrank=2, maxrank=2, no_scalars=True)
         # escript's inverse also supports scalars so need to check them separately
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_combined(self):
@@ -266,9 +277,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.sign(ref)"
         opname="sign"
-        update1="numpy.sign(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.sign")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_combined(self):
         supportcplx=True
@@ -276,9 +287,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.sin(ref)"
         opname="sin"
-        update1="numpy.sin(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.sin")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)  
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sinh_combined(self):
         supportcplx=True
@@ -286,9 +297,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.sinh(ref)"
         opname="sinh"
-        update1="numpy.sinh(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.sinh")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)  
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sqrt_combined(self):
         supportcplx=True
@@ -296,9 +307,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.sqrt(ref)"
         opname="sqrt"
-        update1="numpy.sqrt(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.sqrt")  
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)          
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)          
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_symmetric_combined(self):
         supportcplx=True
@@ -306,9 +317,10 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="(ref+transpose(ref))/2"
         opname="symmetric"
-        update1="(r2+transpose(r2))/2"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("(r2+transpose(r2))/2", p='r2')
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))         
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+                                            expect_raise_on_ranks=(0,1,3), expected_exceptions=(ValueError,))         
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_combined(self):
         supportcplx=True
@@ -316,9 +328,10 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.swapaxes(ref, 0,ref.ndim-1)"
         opname="swap_axes"
-        update1="numpy.swapaxes(r2, 0, r2.ndim-1)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.swapaxes(r2, 0, r2.ndim-1)", p='r2')
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, minrank=2, maxrank=4,no_scalars=True)                
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+                                            minrank=2, maxrank=4,no_scalars=True)                
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_combined(self):
         supportcplx=True
@@ -326,9 +339,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.tan(ref)"
         opname="tan"
-        update1="numpy.tan(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.tan")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1) 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tanh_combined(self):
         supportcplx=True
@@ -336,9 +349,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.tanh(ref)"
         opname="tanh"
-        update1="numpy.tanh(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.tanh") 
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_combined(self):
         supportcplx=True
@@ -346,10 +359,11 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.trace(ref)"
         opname="trace"
-        update1="numpy.trace(r2) if numpy.ndim(r2)>=2 else None"    # Avoid calling numpy.trace on small things
+        update1=getTagStr("numpy.trace(r2) if numpy.ndim(r2)>=2 else None", p='r2')
         update2=None
         # We could also check to see if it throws when given a scalar but we don't
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, no_scalars=True,
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+                                      no_scalars=True, minrank=2,
                                            expect_raise_on_ranks=(0,1),expected_exceptions=(ValueError,))
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_combined(self):
@@ -358,14 +372,15 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.transpose(ref, axes=list(range(len(ref.shape)//2,len(ref.shape)))+list(range(0,len(ref.shape)//2)))"
         opname="tranpose"
-        update1="numpy.transpose(r2, axes=list(range(len(r2.shape)//2,len(r2.shape)))+list(range(0,len(r2.shape)//2)))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.transpose(r2, axes=list(range(len(r2.shape)//2,len(r2.shape)))+list(range(0,len(r2.shape)//2)))", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)   
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)   
         opname="transpose-offset-1"
-        opstring="transpose(a,axis_offset=1)"        
+        opstring="transpose(a,axis_offset=1)"
         oraclecheck="numpy.transpose(ref, axes=list(range(1,len(ref.shape)))+list(range(0,1)))"
-        update1="numpy.transpose(r2, axes=list(range(1,len(r2.shape)))+list(range(0,1)))"    # The updates are a problem here because this is not a reduction
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, no_scalars=True)         
+        update1=getTagStr("numpy.transpose(r2, axes=list(range(1,len(r2.shape)))+list(range(0,1)))", p='r2')
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1,
+                                      no_scalars=True)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_combined(self):
         supportcplx=True
@@ -373,9 +388,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,float) or (isinstance(res,Data) and not res.isComplex())"
         oraclecheck="numpy.linalg.norm(ref)"
         opname="length"
-        update1="numpy.linalg.norm(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.linalg.norm")
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)         
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_combined(self):
         supportcplx=True
@@ -383,10 +398,10 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.log(ref)"
         opname="log"
-        update1="numpy.log(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.log")
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False, 
-            input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+            input_trans=lambda x: numpy.abs(x)+1 if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x)+1 if type(x) is Data and not x.isComplex() else x+1)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log10_combined(self):
         supportcplx=True
@@ -394,10 +409,10 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.log10(ref)"
         opname="log10"
-        update1="numpy.log10(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.log10") 
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False,  
-            input_trans=lambda x: numpy.abs(x) if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x) if type(x) is Data and not x.isComplex() else x)  
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1,  
+            input_trans=lambda x: numpy.abs(x)+1 if type(x) is numpy.ndarray and x.dtype.kind=='f' else abs(x)+1 if type(x) is Data and not x.isComplex() else x+1)  
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maxval_combined(self):
         supportcplx=False
@@ -405,9 +420,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,float) or (isinstance(a,numpy.ndarray) and res.dtype.kind=='f') or (isinstance(a, Data) and not res.isComplex())"
         oraclecheck="numpy.max(ref)"
         opname="maxval"
-        update1="numpy.max(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.max") 
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)  
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1)  
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minval_combined(self):
         supportcplx=False
@@ -415,10 +430,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,float) or (isinstance(a,numpy.ndarray) and res.dtype.kind=='f') or (isinstance(a, Data) and not res.isComplex())"
         oraclecheck="numpy.min(ref)"
         opname="minval"
-        update1="numpy.min(r2)"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.min")    
         update2=None
-        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)          
-     
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1) 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNegative_combined(self):
         supportcplx=False
@@ -426,9 +440,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.where(ref<0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
         opname="whereNegative"
-        update1="numpy.where(r2<0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.where(r2<0, numpy.ones(r2.shape), numpy.zeros(r2.shape))", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)     
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)     
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonNegative_combined(self):
         supportcplx=False
@@ -436,9 +450,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.where(ref>=0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
         opname="whereNonNegative"
-        update1="numpy.where(r2>=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.where(r2>=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))", p='r2')    
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)    
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)    
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonPositive_combined(self):
         supportcplx=False
@@ -446,9 +460,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.where(ref<=0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
         opname="whereNonPositive"
-        update1="numpy.where(r2<=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.where(r2<=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonZero_combined(self):
         supportcplx=True
@@ -456,9 +470,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,float) or (isinstance(res, numpy.ndarray) and res.dtype.kind=='f') or (isinstance(res, Data) and not res.isComplex())"
         oraclecheck="numpy.where(ref!=0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
         opname="whereNonZero"
-        update1="numpy.where(r2!=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.where(r2!=0, numpy.ones(r2.shape), numpy.zeros(r2.shape))", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)        
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_combined(self):
         supportcplx=False
@@ -466,9 +480,9 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,type(a))"
         oraclecheck="numpy.where(ref>0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
         opname="wherePositive"
-        update1="numpy.where(r2>0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.where(r2>0, numpy.ones(r2.shape), numpy.zeros(r2.shape))", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False) 
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1) 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereZero_combined(self):
         supportcplx=True
@@ -476,6 +490,6 @@ class Test_util_unary_new(Test_util_values):
         misccheck="isinstance(res,float) or (isinstance(res, numpy.ndarray) and res.dtype.kind=='f') or (isinstance(res, Data) and not res.isComplex())"
         oraclecheck="numpy.where(ref==0, numpy.ones(ref.shape), numpy.zeros(ref.shape))"
         opname="whereZero"
-        update1="numpy.where(r2==0, numpy.ones(r2.shape), numpy.zeros(r2.shape))"    # The updates are a problem here because this is not a reduction
+        update1=getTagStr("numpy.where(r2==0, numpy.ones(r2.shape), numpy.zeros(r2.shape))", p='r2')
         update2=None
-        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1, update2, multisteptag=False)           
+        self.generate_operation_test_batch(supportcplx, opstring, misccheck, oraclecheck, opname, update1)
