@@ -968,7 +968,6 @@ class Test_util_values(unittest.TestCase):
         z=self.get_python_input2(rank, cplx)
         return (1000*numpy.array(z), 1000*numpy.array(z))
         
-        
     def get_array_input1(self, rank, cplx):
         z=self.get_python_input1(rank, cplx)
         return (numpy.array(z),numpy.array(z))
@@ -1007,6 +1006,14 @@ class Test_util_values(unittest.TestCase):
         r=base*mask+(1-mask)*base
         return (r, base)
  
+    def get_expanded_inputL2(self, rank, fs, cplx):
+        base=numpy.array(self.get_python_input1(rank, cplx))*1000
+        base=base.tolist()
+        x=fs.getX()[0]
+        mask=whereNegative(x-0.5)   # A trick from Lutz Gross' version of tests
+        r=base*mask+(1-mask)*base
+        return (r, base)
+ 
     def get_expanded_input1(self, rank, fs, cplx):
         base=self.get_python_input1(rank, cplx)
         x=fs.getX()[0]
@@ -1019,8 +1026,85 @@ class Test_util_values(unittest.TestCase):
         ref=self.get_array_inputL(rank, cplx)[0]
         d=Data(z, fs)
         d.tag()
-        return (d, ref)    
+        return (d, ref)   
+
+    def get_tagged_with_tagL1(self, rank, fs, cplx, set_tags=False):
+        ref=self.get_array_inputL(rank, cplx)[0]
+        d=Data(ref,fs)
+        if set_tags:
+            ref1=self.get_array_input2(rank, cplx)[0]*1000
+            for t in fs.getListOfTags():
+                d.setTaggedValue(t, ref1)
+                ref=ref1
+        return (d,ref)
     
+    def get_tagged_with_tagL2(self, rank, fs, cplx, set_tags=False):
+        ref=self.get_array_input2(rank, cplx)[0]*1000
+        d=Data(ref,fs)
+        if set_tags:
+            ref1=self.get_array_input3(rank, cplx)[0]*1000
+            for t in fs.getListOfTags():
+                d.setTaggedValue(t, ref1)
+                ref=ref1
+        return (d,ref)
+    
+    def get_tagged_input1(self, rank, fs, cplx):
+        z=self.get_python_input1(rank, cplx)
+        ref=self.get_array_input1(rank, cplx)[0]
+        d=Data(z, fs)
+        d.tag()
+        return (d, ref)
+    
+    def execute_ce_params(self, pars):
+        for v in pars:
+            a=v[0]
+            op=v[1]
+            misccheck=v[2]
+            ref=v[3]
+            oraclecheck=v[4]
+            description=v[5]
+            res=eval(op)
+            if misccheck is not None:
+                miscres=eval(misccheck)
+                if not miscres:
+                    print("Failed check:"+misccheck)
+                    print(type(a))
+                    print(" vs ")
+                    print(type(res))
+                    print(" values:")
+                    print(a)
+                    print(res)
+                self.assertTrue(miscres,"Failed check for "+description)
+            oraclevalue=eval(oraclecheck)
+            oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
+            if not oracleres:
+                print("Wrong result:"+oraclecheck)
+                print(type(res))
+                print(" vs ")
+                print(type(oraclevalue))
+                print(" values:")
+                print(res)
+                print(" vs ")
+                print(oraclevalue)                
+            self.assertTrue(oracleres,"wrong result for "+description)
+            
+    def execute_ce_throws(self, pars):
+        for v in pars:
+            a=v[0]
+    def get_expanded_input1(self, rank, fs, cplx):
+        base=self.get_python_input1(rank, cplx)
+        x=fs.getX()[0]
+        mask=whereNegative(x-0.5)   # A trick from Lutz Gross' version of tests
+        r=base*mask+(1-mask)*base
+        return (r, base)
+    
+    def get_tagged_inputL(self, rank, fs, cplx):
+        z=self.get_python_inputL(rank, cplx)
+        ref=self.get_array_inputL(rank, cplx)[0]
+        d=Data(z, fs)
+        d.tag()
+        return (d, ref)   
+
     def get_tagged_input1(self, rank, fs, cplx):
         z=self.get_python_input1(rank, cplx)
         ref=self.get_array_input1(rank, cplx)[0]
@@ -1310,8 +1394,13 @@ class Test_util_values(unittest.TestCase):
             oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
             if not oracleres:
                 print("Wrong result:"+oraclecheck)
+                print(" refa=")
+                print(str(refa))
+                print(" refb=")
+                print(str(refb))
+                print(" res=") 
                 print(type(res))
-                print(" vs ")
+                print(" vs oraclevalue=")
                 print(type(oraclevalue))
                 print(" values:")
                 print(res)
@@ -1321,7 +1410,7 @@ class Test_util_values(unittest.TestCase):
 
 
 
-    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4):
+    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True):
         """
         Generates a set of tests for binary operations.
         It is similar to the unary versions but with some unneeded options removed.
@@ -1344,45 +1433,47 @@ class Test_util_values(unittest.TestCase):
                 aargset=[]
                 bargset=[]
                 for atype in "SACTE":   # Scalar/Array/Constant/Tagged/Expanded
-                    aargs=[]
                     if atype=='S':
-                        aargs=((self.get_scalar_input1(ac),astr+' scalar'),)
+                        aargset.append((self.get_scalar_input1(ac),astr+' scalar'))
                     elif atype=='A':
                         for r in range(minrank, maxrank+1):
-                            aargs.append((self.get_array_input1(r,ac),astr+' array rank '+str(r)))
+                            aargset.append((self.get_array_input1(r,ac),astr+' array rank '+str(r)))
                     elif atype=='C':
                         for r in range(minrank, maxrank+1):
-                            aargs.append((self.get_const_input1(r, self.functionspace, ac), astr+' Constant rank '+str(r)))
+                            aargset.append((self.get_const_input1(r, self.functionspace, ac), astr+' Constant rank '+str(r)))
                     elif atype=='T':
                         for r in range(minrank, maxrank+1):
-                            aargs.append((self.get_tagged_input1(r, self.functionspace, ac),astr+' Tagged rank '+str(r)))
+                            aargset.append((self.get_tagged_with_tagL1(r, self.functionspace, ac, set_tags=False),astr+' Tagged rank '+str(r)))
                     elif atype=='E':
                         for r in range(minrank, maxrank+1):
-                            aargs.append((self.get_expanded_input1(r,self.functionspace, ac),astr+' Expanded rank '+str(r)))
-                    aargset.append(aargs)
+                            aargset.append((self.get_expanded_inputL(r,self.functionspace, ac),astr+' Expanded rank '+str(r)))
                 for atype in "SACTE":   # Scalar/Array/Constant/Tagged/Expanded
-                    bargs=[]
                     if atype=='S':
-                        bargs=((self.get_scalar_input2(ac),bstr+' scalar'),)
+                        bargset.append((self.get_scalar_input2(ac),bstr+' scalar'))
                     elif atype=='A':
                         for r in range(minrank, maxrank+1):
-                            bargs.append((self.get_array_input2(r,ac),bstr+' array rank '+str(r)))
+                            bargset.append((self.get_array_input2(r,ac),bstr+' array rank '+str(r)))
                     elif atype=='C':
                         for r in range(minrank, maxrank+1):
-                            bargs.append((self.get_const_input2(r, self.functionspace, ac),bstr+' Constant rank '+str(r)))
+                            bargset.append((self.get_const_input2(r, self.functionspace, ac),bstr+' Constant rank '+str(r)))
                     elif atype=='T':
                         for r in range(minrank, maxrank+1):
-                            bargs.append((self.get_tagged_input2(r, self.functionspace, ac), bstr+' Tagged rank '+str(r)))
+                            bargset.append((self.get_tagged_with_tagL2(r, self.functionspace, ac, set_tags=True), bstr+' Tagged rank '+str(r)))
                     elif atype=='E':
                         for r in range(minrank, maxrank+1):
-                            bargs.append((self.get_expanded_input2(r, self.functionspace, ac),bstr+' Expanded rank '+str(r)))
-                    bargset.append(bargs)
+                            bargset.append((self.get_expanded_inputL2(r, self.functionspace, ac),bstr+' Expanded rank '+str(r)))
                 # now we have a complete set of possible args    
                 for aarg in aargset:
                     for barg in bargset:
+                        if no_shape_mismatch:
+                            sa=getShape(aarg[0][0])
+                            sb=getShape(barg[0][0])
+                            if sa!=sb:
+                                if not permit_scalar_mismatch or (sa!=() and rb!=()):
+                                   continue
                         p=(aarg[0][0], barg[0][0], opstring, misccheck, 
                            numpy.array(aarg[0][1]), numpy.array(barg[0][1]), 
-                           oraclecheck, opname+' '+aarg[1][0]+'/'+barg[1][0])
+                           oraclecheck, opname+' '+aarg[1]+'/'+barg[1])
                         pars.append(p)           
         self.execute_binary_params(pars)
 
