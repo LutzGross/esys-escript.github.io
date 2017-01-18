@@ -504,8 +504,9 @@ def getRank(arg):
     :rtype: ``int``
     :raise TypeError: if type of ``arg`` cannot be processed
     """
-
-    if isinstance(arg,numpy.ndarray):
+    if isinstance(arg,list) or isinstance(arg,tuple):
+        return numpy.array(arg).ndim
+    elif isinstance(arg,numpy.ndarray):
         return arg.ndim
     elif isinstance(arg,escore.Data):
         return arg.getRank()
@@ -530,7 +531,7 @@ def getShape(arg):
 
     if isinstance(arg,numpy.ndarray):
         return arg.shape
-    elif isinstance(arg,list):
+    elif isinstance(arg,list) or isinstance(arg,tuple):
         return numpy.array(arg).shape
     elif isinstance(arg,escore.Data):
         return arg.getShape()
