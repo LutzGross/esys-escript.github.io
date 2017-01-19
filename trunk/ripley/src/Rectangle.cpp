@@ -1417,69 +1417,86 @@ void Rectangle::assembleGradientImpl<cplx_t>(escript::Data& out,
                                              const escript::Data& in) const;
 
 //protected
-void Rectangle::assembleIntegrate(vector<double>& integrals,
+void Rectangle::assembleIntegrate(vector<real_t>& integrals,
                                   const escript::Data& arg) const
+{
+    assembleIntegrateImpl<real_t>(integrals, arg);
+}
+
+//protected
+void Rectangle::assembleIntegrate(vector<cplx_t>& integrals,
+                                  const escript::Data& arg) const
+{
+    assembleIntegrateImpl<cplx_t>(integrals, arg);
+}
+
+//private
+template<typename Scalar>
+void Rectangle::assembleIntegrateImpl(vector<Scalar>& integrals,
+                                      const escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
     const index_t left = getFirstInDim(0);
     const index_t bottom = getFirstInDim(1);
-    const int fs=arg.getFunctionSpace().getTypeCode();
+    const int fs = arg.getFunctionSpace().getTypeCode();
+    const Scalar zero = static_cast<Scalar>(0);
+
     if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
-            const double w = m_dx[0]*m_dx[1]/4.;
+            vector<Scalar> int_local(numComp, zero);
+            const real_t w = m_dx[0]*m_dx[1]/4.;
 #pragma omp for nowait
             for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                    const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]));
-                    for (index_t i=0; i < numComp; ++i) {
-                        const double f0 = f[INDEX2(i,0,numComp)];
-                        const double f1 = f[INDEX2(i,1,numComp)];
-                        const double f2 = f[INDEX2(i,2,numComp)];
-                        const double f3 = f[INDEX2(i,3,numComp)];
-                        int_local[i]+=(f0+f1+f2+f3)*w;
+                    const Scalar* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]), zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        const Scalar f0 = f[INDEX2(i,0,numComp)];
+                        const Scalar f1 = f[INDEX2(i,1,numComp)];
+                        const Scalar f2 = f[INDEX2(i,2,numComp)];
+                        const Scalar f3 = f[INDEX2(i,3,numComp)];
+                        int_local[i] += (f0+f1+f2+f3)*w;
                     }  // end of component loop i
                 } // end of k0 loop
             } // end of k1 loop
 #pragma omp critical
             for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+                integrals[i] += int_local[i];
         } // end of parallel section
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
-        const double w = m_dx[0]*m_dx[1];
+        const real_t w = m_dx[0]*m_dx[1];
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
+            vector<Scalar> int_local(numComp, 0);
 #pragma omp for nowait
             for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                    const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]));
-                    for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*w;
+                    const Scalar* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]), zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        int_local[i] += f[i]*w;
                     }
                 }
             }
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
 
     } else if (fs == FaceElements && arg.actsExpanded()) {
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
-            const double w0 = m_dx[0]/2.;
-            const double w1 = m_dx[1]/2.;
+            vector<Scalar> int_local(numComp, zero);
+            const real_t w0 = m_dx[0]/2.;
+            const real_t w1 = m_dx[1]/2.;
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[0]+k1);
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k1, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                        const double f0 = f[INDEX2(i,0,numComp)];
-                        const double f1 = f[INDEX2(i,1,numComp)];
-                        int_local[i]+=(f0+f1)*w1;
+                        const Scalar f0 = f[INDEX2(i,0,numComp)];
+                        const Scalar f1 = f[INDEX2(i,1,numComp)];
+                        int_local[i] += (f0+f1)*w1;
                     }  // end of component loop i
                 } // end of k1 loop
             }
@@ -1487,11 +1504,11 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[1]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const double f0 = f[INDEX2(i,0,numComp)];
-                        const double f1 = f[INDEX2(i,1,numComp)];
-                        int_local[i]+=(f0+f1)*w1;
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        const Scalar f0 = f[INDEX2(i,0,numComp)];
+                        const Scalar f1 = f[INDEX2(i,1,numComp)];
+                        int_local[i] += (f0+f1)*w1;
                     }  // end of component loop i
                 } // end of k1 loop
             }
@@ -1499,11 +1516,11 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[2]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const double f0 = f[INDEX2(i,0,numComp)];
-                        const double f1 = f[INDEX2(i,1,numComp)];
-                        int_local[i]+=(f0+f1)*w0;
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        const Scalar f0 = f[INDEX2(i,0,numComp)];
+                        const Scalar f1 = f[INDEX2(i,1,numComp)];
+                        int_local[i] += (f0+f1)*w0;
                     }  // end of component loop i
                 } // end of k0 loop
             }
@@ -1511,29 +1528,29 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[3]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const double f0 = f[INDEX2(i,0,numComp)];
-                        const double f1 = f[INDEX2(i,1,numComp)];
-                        int_local[i]+=(f0+f1)*w0;
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        const Scalar f0 = f[INDEX2(i,0,numComp)];
+                        const Scalar f1 = f[INDEX2(i,1,numComp)];
+                        int_local[i] += (f0+f1)*w0;
                     }  // end of component loop i
                 } // end of k0 loop
             }
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
 
     } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
+            vector<Scalar> int_local(numComp, 0);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[0]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*m_dx[1];
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        int_local[i] += f[i]*m_dx[1];
                     }
                 }
             }
@@ -1541,9 +1558,9 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[1]+k1);
-                    for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*m_dx[1];
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k1, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        int_local[i] += f[i]*m_dx[1];
                     }
                 }
             }
@@ -1551,9 +1568,9 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[2]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*m_dx[0];
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        int_local[i] += f[i]*m_dx[0];
                     }
                 }
             }
@@ -1561,16 +1578,16 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                    const double* f = arg.getSampleDataRO(m_faceOffset[3]+k0);
-                    for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*m_dx[0];
+                    const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k0, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        int_local[i] += f[i]*m_dx[0];
                     }
                 }
             }
 
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
     } // function space selector
 }

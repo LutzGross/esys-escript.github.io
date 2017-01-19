@@ -633,9 +633,21 @@ void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
     }
 }
 
-void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data& arg) const
+void RipleyDomain::setToIntegrals(vector<real_t>& integrals, const escript::Data& arg) const
 {
-    const RipleyDomain& argDomain=dynamic_cast<const RipleyDomain&>(
+    setToIntegralsWorker<real_t>(integrals, arg);
+}
+
+void RipleyDomain::setToIntegrals(vector<cplx_t>& integrals, const escript::Data& arg) const
+{
+    setToIntegralsWorker<cplx_t>(integrals, arg);
+}
+
+template<typename Scalar>
+void RipleyDomain::setToIntegralsWorker(std::vector<Scalar>& integrals,
+                                        const escript::Data& arg) const
+{
+    const RipleyDomain& argDomain = dynamic_cast<const RipleyDomain&>(
             *(arg.getFunctionSpace().getDomain()));
     if (argDomain != *this)
         throw ValueError("setToIntegrals: illegal domain of integration kernel");
@@ -663,7 +675,6 @@ void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data
             throw ValueError(msg.str());
         }
     }
-
 }
 
 bool RipleyDomain::isCellOriented(int fsType) const

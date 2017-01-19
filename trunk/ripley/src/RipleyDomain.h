@@ -493,7 +493,10 @@ public:
        copies the integrals of the function defined by arg into integrals.
        arg has to be defined on this domain.
     */
-    virtual void setToIntegrals(DoubleVector& integrals, const escript::Data& arg) const;
+    virtual void setToIntegrals(std::vector<real_t>& integrals,
+                                const escript::Data& arg) const;
+    virtual void setToIntegrals(std::vector<cplx_t>& integrals,
+                                const escript::Data& arg) const;
 
 
     /**
@@ -833,7 +836,8 @@ protected:
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const = 0;
 
     /// copies the integrals of the function defined by 'arg' into 'integrals'
-    virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
+    virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const = 0;
+    virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const = 0;
 
 #ifdef ESYS_HAVE_TRILINOS
     /// returns the Trilinos matrix graph
@@ -894,6 +898,10 @@ private:
     void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
                           escript::Data& rhs, const DataMap& coefs,
                           Assembler_ptr assembler) const;
+
+    template<typename Scalar>
+    void setToIntegralsWorker(std::vector<Scalar>& integrals,
+                              const escript::Data& arg) const;
 
     /// finds the node that the given point coordinates belong to
     virtual dim_t findNode(const double *coords) const = 0;

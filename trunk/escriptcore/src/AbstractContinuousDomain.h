@@ -190,7 +190,10 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
      arg has to be defined on this.
      has to be implemented by the Domain Adapter.
   */
-  virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
+  virtual void setToIntegrals(std::vector<DataTypes::real_t>& integrals,
+                              const escript::Data& arg) const;
+  virtual void setToIntegrals(std::vector<DataTypes::cplx_t>& integrals,
+                              const escript::Data& arg) const;
 
 //  /**
 //     \brief
