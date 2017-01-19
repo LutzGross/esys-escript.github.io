@@ -1838,7 +1838,7 @@ template <class BinaryOp>
         forceResolve();
         if (isShared())
         {
-                DataAbstract* t=m_data->zeroedCopy();
+                DataAbstract* t=m_data->deepCopy();
                 set_m_data(DataAbstract_ptr(t));
         }
 #ifdef EXWRITECHK               
