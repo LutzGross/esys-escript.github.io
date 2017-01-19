@@ -229,7 +229,9 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out,
                                   const escript::Data& in) const;
-    virtual void assembleIntegrate(DoubleVector& integrals,
+    virtual void assembleIntegrate(std::vector<real_t>& integrals,
+                                   const escript::Data& arg) const;
+    virtual void assembleIntegrate(std::vector<cplx_t>& integrals,
                                    const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 
@@ -338,6 +340,9 @@ protected:
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
 #endif
 private:
+    template<typename Scalar>
+    void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
+
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,
                                   const escript::Data& in, bool reduced, S sentinel) const;	  

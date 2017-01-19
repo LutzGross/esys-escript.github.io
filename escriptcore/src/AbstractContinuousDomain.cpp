@@ -119,9 +119,17 @@ int AbstractContinuousDomain::getDiracDeltaFunctionsCode() const
   return 0;
 }
 
-void AbstractContinuousDomain::setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const
+void AbstractContinuousDomain::setToIntegrals(std::vector<DataTypes::real_t>& integrals,
+                                              const escript::Data& arg) const
 {
-  throwStandardException("AbstractContinuousDomain::setToIntegrals");
+  throwStandardException("AbstractContinuousDomain::setToIntegrals<real_t>");
+  return;
+}
+
+void AbstractContinuousDomain::setToIntegrals(std::vector<DataTypes::cplx_t>& integrals,
+                                              const escript::Data& arg) const
+{
+  throwStandardException("AbstractContinuousDomain::setToIntegrals<cplx_t>");
   return;
 }
 

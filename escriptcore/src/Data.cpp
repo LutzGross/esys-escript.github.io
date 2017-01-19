@@ -1696,12 +1696,15 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 bp::object
 Data::integrateToTuple_const() const
 {
-    THROWONCOMPLEX
     if (isLazy())
     {
         throw DataException("Error - cannot integrate for constant lazy data.");
     }
-    return integrateWorker();
+    if (isComplex()) {
+        return integrateWorker<cplx_t>();
+    } else {
+        return integrateWorker<real_t>();
+    }
 }
 
 bp::object
@@ -1711,10 +1714,14 @@ Data::integrateToTuple()
     {
         expand();       // Can't do a non-resolving version of this without changing the domain object
     }                     // see the dom->setToIntegrals call. Not saying it can't be done, just not doing it yet.
-    return integrateWorker();
-
+    if (isComplex()) {
+        return integrateWorker<cplx_t>();
+    } else {
+        return integrateWorker<real_t>();
+    }
 }
 
+template<typename Scalar>
 bp::object
 Data::integrateWorker() const
 {
@@ -1723,27 +1730,31 @@ Data::integrateWorker() const
 
     //
     // calculate the integral values
-    vector<real_t> integrals(dataPointSize);
-    vector<real_t> integrals_local(dataPointSize);
+    vector<Scalar> integrals(dataPointSize);
+    vector<Scalar> integrals_local(dataPointSize);
     const AbstractContinuousDomain* dom=dynamic_cast<const AbstractContinuousDomain*>(getDomain().get());
-    if (dom==0)
+    if (dom == 0)
     {                             
         throw DataException("Can not integrate over non-continuous domains.");
     }
 #ifdef ESYS_MPI
-    dom->setToIntegrals(integrals_local,*this);
+    dom->setToIntegrals(integrals_local, *this);
     // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
-    real_t *tmp = new real_t[dataPointSize];
-    real_t *tmp_local = new real_t[dataPointSize];
+    Scalar* tmp = new Scalar[dataPointSize];
+    Scalar* tmp_local = new Scalar[dataPointSize];
     for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
-    MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, getDomain()->getMPIComm() );
+    if (sizeof(Scalar) == sizeof(double)) {
+        MPI_Allreduce(&tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, getDomain()->getMPIComm());
+    } else {
+        MPI_Allreduce(&tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE_COMPLEX, MPI_SUM, getDomain()->getMPIComm());
+    }
     for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
-    bp::tuple result=pointToTuple(shape,tmp);
+    bp::tuple result = pointToTuple(shape, tmp);
     delete[] tmp;
     delete[] tmp_local;
 #else
-    dom->setToIntegrals(integrals,*this);
-    bp::tuple result=pointToTuple(shape,integrals);
+    dom->setToIntegrals(integrals, *this);
+    bp::tuple result = pointToTuple(shape, integrals);
 #endif
 
     return result;

@@ -1616,7 +1616,7 @@ instead of manually manipulating process and point IDs.
    void 
    maskWorker(Data& other2, Data& mask2, S sentinel);
 
-template <class BinaryOp>
+  template <class BinaryOp>
   DataTypes::real_t 
 #ifdef ESYS_MPI
   lazyAlgWorker(DataTypes::real_t init, MPI_Op mpiop_type);
@@ -1633,6 +1633,7 @@ template <class BinaryOp>
   DataTypes::real_t
   infWorker() const;
 
+  template<typename Scalar>
   boost::python::object
   integrateWorker() const;
 

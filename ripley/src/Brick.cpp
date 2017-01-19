@@ -2009,32 +2009,47 @@ void Brick::assembleGradientImpl<cplx_t>(escript::Data& out,
                                          const escript::Data& in) const;
 
 //protected
-void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& arg) const
+void Brick::assembleIntegrate(vector<real_t>& integrals, const escript::Data& arg) const
+{
+    assembleIntegrateImpl<real_t>(integrals, arg);
+}
+
+//protected
+void Brick::assembleIntegrate(vector<cplx_t>& integrals, const escript::Data& arg) const
+{
+    assembleIntegrateImpl<cplx_t>(integrals, arg);
+}
+
+//private
+template<typename Scalar>
+void Brick::assembleIntegrateImpl(vector<Scalar>& integrals, const escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
     const index_t left = (m_offset[0]==0 ? 0 : 1);
     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
     const index_t front = (m_offset[2]==0 ? 0 : 1);
     const int fs = arg.getFunctionSpace().getTypeCode();
+    const Scalar zero = static_cast<Scalar>(0);
+
     if (fs == Elements && arg.actsExpanded()) {
-        const double w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
+        const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
+            vector<Scalar> int_local(numComp, zero);
 #pragma omp for nowait
             for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
-                            const double f_4 = f[INDEX2(i,4,numComp)];
-                            const double f_5 = f[INDEX2(i,5,numComp)];
-                            const double f_6 = f[INDEX2(i,6,numComp)];
-                            const double f_7 = f[INDEX2(i,7,numComp)];
+                        const Scalar* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
+                            const Scalar f_4 = f[INDEX2(i,4,numComp)];
+                            const Scalar f_5 = f[INDEX2(i,5,numComp)];
+                            const Scalar f_6 = f[INDEX2(i,6,numComp)];
+                            const Scalar f_7 = f[INDEX2(i,7,numComp)];
                             int_local[i]+=(f_0+f_1+f_2+f_3+f_4+f_5+f_6+f_7)*w_0;
                         }  // end of component loop i
                     } // end of k0 loop
@@ -2042,50 +2057,50 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
             } // end of k2 loop
 
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
-        const double w_0 = m_dx[0]*m_dx[1]*m_dx[2];
+        const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2];
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
+            vector<Scalar> int_local(numComp, zero);
 #pragma omp for nowait
             for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_0;
+                        const Scalar* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_0;
                         }  // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
             } // end of k2 loop
 
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
 
     } else if (fs == FaceElements && arg.actsExpanded()) {
-        const double w_0 = m_dx[1]*m_dx[2]/4.;
-        const double w_1 = m_dx[0]*m_dx[2]/4.;
-        const double w_2 = m_dx[0]*m_dx[1]/4.;
+        const real_t w_0 = m_dx[1]*m_dx[2]/4.;
+        const real_t w_1 = m_dx[0]*m_dx[2]/4.;
+        const real_t w_2 = m_dx[0]*m_dx[1]/4.;
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
+            vector<Scalar> int_local(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i] += (f_0+f_1+f_2+f_3)*w_0;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2095,12 +2110,12 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
                         }  // end of component loop i
                     } // end of k1 loop
@@ -2111,12 +2126,12 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
                         }  // end of component loop i
                     } // end of k1 loop
@@ -2127,13 +2142,13 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i] += (f_0+f_1+f_2+f_3)*w_1;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2143,13 +2158,13 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i] += (f_0+f_1+f_2+f_3)*w_2;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2159,12 +2174,12 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double f_0 = f[INDEX2(i,0,numComp)];
-                            const double f_1 = f[INDEX2(i,1,numComp)];
-                            const double f_2 = f[INDEX2(i,2,numComp)];
-                            const double f_3 = f[INDEX2(i,3,numComp)];
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f_0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f_1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f_2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f_3 = f[INDEX2(i,3,numComp)];
                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
                         }  // end of component loop i
                     } // end of k1 loop
@@ -2172,24 +2187,24 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
             }
 
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
 
     } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
-        const double w_0 = m_dx[1]*m_dx[2];
-        const double w_1 = m_dx[0]*m_dx[2];
-        const double w_2 = m_dx[0]*m_dx[1];
+        const real_t w_0 = m_dx[1]*m_dx[2];
+        const real_t w_1 = m_dx[0]*m_dx[2];
+        const real_t w_2 = m_dx[0]*m_dx[1];
 #pragma omp parallel
         {
-            vector<double> int_local(numComp, 0);
+            vector<Scalar> int_local(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_0;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_0;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2199,9 +2214,9 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_0;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_0;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2211,9 +2226,9 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_1;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_1;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2223,9 +2238,9 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_1;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_1;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2235,9 +2250,9 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_2;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_2;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2247,17 +2262,17 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-                        const double* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_2;
+                        const Scalar* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            int_local[i] += f[i]*w_2;
                         }  // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
             }
 
 #pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
+            for (index_t i = 0; i < numComp; i++)
+                integrals[i] += int_local[i];
         } // end of parallel section
     } // function space selector
 }
