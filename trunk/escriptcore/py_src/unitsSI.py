@@ -79,6 +79,7 @@ from __future__ import print_function, division
     :var R_Earth: Earth's radius
     :var v_light: speed of light
     :var pi: value of pi accurate to 10 decimal places
+    :var Gravitational_Constant: gravitational constant
 """
 
 
