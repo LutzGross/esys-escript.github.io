@@ -20,6 +20,7 @@ try:
     if not 'escript/dev-deps' in os.environ['LOADEDMODULES'].split(':'):
         print("WARNING: The escript/dev-deps module does not appear to be loaded!")
     MKLROOT = os.environ['MKLROOT']
+    I_MPI_ROOT = os.environ['I_MPI_ROOT']
 except:
     pass
 
@@ -37,7 +38,8 @@ openmp = True
 pythoncmd = "python3"
 
 mpi = 'INTELMPI'
-mpi_prefix = '/sw/intel/impi/5.1.2.150/intel64'
+mpi_prefix = I_MPI_ROOT or '/sw/intel/impi/2017.0.098'
+mpi_prefix += '/intel64'
 #cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
 cuda_prefix = ['/sw/libs/cuda/7.5/include', '/sw/libs/cuda/7.5/lib64']
@@ -55,7 +57,7 @@ trilinos = True
 trilinos_prefix = '/sw/libs/trilinos/snapshot-hybrid-eti'
 
 mkl = True
-_mklroot=MKLROOT or '/sw/intel/compilers_and_libraries_2016.1.150/linux/mkl'
+_mklroot=MKLROOT or '/sw/intel/compilers_and_libraries_2017.0.098/linux/mkl'
 mkl_prefix = ['%s/include'%_mklroot, '%s/lib/intel64'%_mklroot]
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 #boomeramg = True
@@ -74,7 +76,7 @@ postlaunch = ""
 
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2016.1.150'})]
+tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2017.0.098'})]
 
 # uncomment the following four options to build with mpt (check modules!)
 #build_dir = 'buildmpt'
