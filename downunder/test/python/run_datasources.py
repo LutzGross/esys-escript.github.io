@@ -283,7 +283,7 @@ class TestNetCdfData(unittest.TestCase):
         try:
             import osgeo.osr
             for i in range(len(NC_ORIGIN)):
-                self.assertAlmostEqual(X0[i], NC_ORIGIN[i], msg="Data origin wrong")
+                self.assertAlmostEqual(X0[i], NC_ORIGIN[i], places=3, msg="Data origin wrong")
         except ImportError:
             print("Skipping test of data origin since gdal is not installed.")
 
