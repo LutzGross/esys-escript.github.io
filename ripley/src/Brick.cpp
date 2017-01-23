@@ -142,6 +142,9 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     double l0 = x1-x0;
     double l1 = y1-y0;
     double l2 = z1-z0;
+    m_dx[0] = l0/n0;
+    m_dx[1] = l1/n1;
+    m_dx[2] = l2/n2;
 
     warn = false;
     if ((n0+1)%d0 > 0) {
