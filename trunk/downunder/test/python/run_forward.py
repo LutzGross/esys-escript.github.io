@@ -176,12 +176,7 @@ class TestAcousticInversion(unittest.TestCase):
         self.assertLess( abs(d2-d0-integrate(dg0[1]*p)), 1e-2*abs(d2-d0) )
 
     def test_numeric2DnoscaleF(self):
-        for x in [int(sqrt(mpisize)),2,3,5,7,1]:
-            NX=x
-            NY=mpisize//x
-            if NX*NY == mpisize:
-                break
-        domain=ripRectangle(n0=10*NX-1, n1=20*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=[(0.5,1.)], diracTags=['sss'])
+        domain=ripRectangle(n0=10, n1=20, l0=1., l1=1., diracPoints=[(0.5,1.)], diracTags=['sss'])
         omega=1.5
 
         # test solution is u = a * z where a is complex
