@@ -145,6 +145,8 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                 warn = true;
                 break;
         }
+        // reset spacing
+        m_dx[0] = l0/n0;
     }
     if ((n1+1)%d1 > 0) {
         switch (getDecompositionPolicy()) {
@@ -156,6 +158,8 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                 warn = true;
                 break;
         }
+        // reset spacing
+        m_dx[1] = l1/n1;
     }
 
     if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2))
