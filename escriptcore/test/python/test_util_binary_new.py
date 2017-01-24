@@ -42,7 +42,65 @@ import numpy
 from esys.escript import *
 from test_util_base import Test_util_values
 
+
+
+
+        
+    
+
 class Test_util_binary_new(Test_util_values):
+    
+   def generate_indices(self, shape):
+        res=[0]*len(shape)
+        l=len(shape)
+        done=False
+        while not done:
+            yield tuple(res)
+            res[0]+=1
+            for i in range(l-1):
+                if res[i]>=shape[i]:
+                    res[i]=0
+                    res[i+1]+=1
+                else:
+                    break
+            # now we check the last digit
+            if res[l-1]>=shape[l-1]:
+                done=True
+        
+
+   def subst_outer(self, a, b):
+        if isinstance(a,float) or isinstance(a, complex):
+            a=(a,)
+        if isinstance(b,float) or isinstance(b, complex):
+            b=(b,)            
+        sa=getShape(a)
+        sb=getShape(b)
+        a=numpy.array(a)
+        b=numpy.array(b)
+        targettype=a.dtype if a.dtype.kind=='c' else b.dtype
+        if sa==():
+            if sb==():
+                return a*b
+            resshape=sb
+            res=numpy.zeros(resshape, dtype=targettype)            
+            for xb in self.generate_indices(sb):
+                res.itemset(xb,a*b.item(xb))  
+            return res
+        elif sb==():
+            resshape=sa
+            res=numpy.zeros(resshape, dtype=targettype)            
+            for xa in self.generate_indices(sa):
+                res.itemset(xa,a.item(xa)*b)            
+            return res
+        else:
+            resshape=sa+sb
+            res=numpy.zeros(resshape, dtype=targettype)            
+        for xa in self.generate_indices(sa):
+            for xb in self.generate_indices(sb):
+                res.itemset(xa+xb,a.item(xa)*b.item(xb))
+        return res    
+    
+    
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_combined(self):
        opstring='inner(a,b)'
@@ -52,7 +110,21 @@ class Test_util_binary_new(Test_util_values):
        noshapemismatch=True
        permitscalarmismatch=False
        self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)
-           
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_outer_combined(self):
+       
+       refa=numpy.array(0.16343477)
+       refb=numpy.array(-0.22889839)
+       self.subst_outer(refa, refb)
+       
+       opstring='outer(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="self.subst_outer(refa,refb)"
+       opname="outer"
+       noshapemismatch=True
+       permitscalarmismatch=True
+       capcombinedrank=True
+       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, cap_combined_rank=capcombinedrank)           
            
            
            
