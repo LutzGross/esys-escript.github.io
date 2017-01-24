@@ -1410,7 +1410,7 @@ class Test_util_values(unittest.TestCase):
 
 
 
-    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False):
+    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None):
         """
         Generates a set of tests for binary operations.
         It is similar to the unary versions but with some unneeded options removed.
@@ -1465,6 +1465,10 @@ class Test_util_values(unittest.TestCase):
                 # now we have a complete set of possible args    
                 for aarg in aargset:
                     for barg in bargset:
+                        if fix_rank_a is not None and getRank(aarg[0][0]) not in fix_rank_a:
+                            continue
+                        if fix_rank_b is not None and getRank(barg[0][0]) not in fix_rank_b:
+                            continue
                         if cap_combined_rank and getRank(aarg[0][0])+getRank(barg[0][0])>4:
                             continue  #resulting object too big
                         if no_shape_mismatch:
