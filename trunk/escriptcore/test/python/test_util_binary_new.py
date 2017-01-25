@@ -126,25 +126,15 @@ class Test_util_binary_new(Test_util_values):
        misccheck=None   # How to work out what the result of type should be
        oraclecheck="numpy.dot(refa,refb)"
        opname="matrix_mult"
-       noshapemismatch=False
-       permitscalarmismatch=True
-       capcombinedrank=False
        fix_rank_a=(2,)
-       fix_rank_b=(2,)  # You would think this should be (1,2)
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, cap_combined_rank=capcombinedrank, fix_rank_a=fix_rank_a, fix_rank_b=fix_rank_b)           
-       # We still need to test the MatrixVec case
-       # The current difficulty is that the generator makes rank 1 objects of size 1 not size 2
+       fix_rank_b=(1,2)  
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, fix_rank_a=fix_rank_a, fix_rank_b=fix_rank_b)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_matrix_mult_combined(self):
        opstring='transposed_matrix_mult(a,b)'
        misccheck=None   # How to work out what the result of type should be
        oraclecheck="numpy.dot(numpy.transpose(refa),refb)"
        opname="transposed_matrix_mult"
-       noshapemismatch=False
-       permitscalarmismatch=True
-       capcombinedrank=False
        fix_rank_a=(2,)
-       fix_rank_b=(2,)  # You would think this should be (1,2)
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, cap_combined_rank=capcombinedrank, fix_rank_a=fix_rank_a, fix_rank_b=fix_rank_b)           
-       # We still need to test the MatrixVec case
-       # The current difficulty is that the generator makes rank 1 objects of size 1 not size 2
+       fix_rank_b=(1,2) 
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, fix_rank_a=fix_rank_a, fix_rank_b=fix_rank_b)

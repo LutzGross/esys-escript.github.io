@@ -1112,6 +1112,31 @@ class Test_util_values(unittest.TestCase):
         d.tag()
         return (d, ref)
     
+    def get_array_by_shape(self, s, cplx):
+        dt=numpy.float64 if not cplx else numpy.complex128
+        n=numpy.prod(s)
+        a=numpy.arange(n, dtype=dt).reshape(s)
+        if cplx:
+            a-=((1+numpy.arange(n, dtype=dt))*1j).reshape(s)
+        return a
+    
+    def make_constant_from_array(self, a, fs):
+        d=Data(a, fs)
+        return d
+        
+    def make_tagged_from_array(self, a, fs):
+        d=Data(1.5, getShape(a), fs)
+        if a.dtype.kind=='c':
+            d.promote()
+        for n in fs.getListOfTags():
+            d.setTaggedValue(n, a)
+        return d
+        
+    def make_expanded_from_array(self, a, fs):
+        d=Data(a, fs)
+        d.expand()
+        return d
+    
     def execute_ce_params(self, pars):
         for v in pars:
             a=v[0]
@@ -1408,7 +1433,79 @@ class Test_util_values(unittest.TestCase):
                 print(oraclevalue)                
             self.assertTrue(oracleres,"wrong result for "+description)
 
-
+    def generate_binary_matrixlike_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None):
+        """
+        Generates a set of tests for binary operations.
+        It is similar to the unary versions but with some unneeded options removed.
+        For example, all operations in this type should accept complex arguments.
+        opstring is a string of the operation to be performed (in terms of arguments a and b) eg "inner(a,b)"
+        misccheck is a string giving a check to be run after the operation eg "isinstance(res,float)"
+        opname is a string used to describe the operation being tested eg "inner"
+        update1 is a string giving code used to update a variable rmerge to  
+            account for tag additions for tagged data.
+            eg:             update1="r2.min()"
+            would result in     rmerge=eval(update1) running after the first tag is calculated 
+        """
+        if input_trans is None:
+            input_trans=lambda x: x
+        pars=[]
+        for ac in (False, True):    # complex or real arguments
+            for bc in (False, True):
+                astr="real" if ac else "complex"
+                bstr="real" if bc else "complex"
+                aargset=[]
+                bargset=[]
+                if fix_rank_a is not None:
+                    arange=fix_rank_a
+                else:
+                    arange=range(minrank, maxrank+1)
+                if fix_rank_b is not None:
+                    brange=fix_rank_b
+                else:
+                    brange=range(minrank, maxrank+1)                    
+                for atype in "ACTE":   # Array/Constant/Tagged/Expanded
+                    if atype=='A':
+                        for r in arange:
+                            aargset.append((self.get_array_input1(r,ac),astr+' array rank '+str(r), r))
+                    elif atype=='C':
+                        for r in arange:
+                            aargset.append((self.get_const_input1(r, self.functionspace, ac), astr+' Constant rank '+str(r), r))
+                    elif atype=='T':
+                        for r in arange:
+                            aargset.append((self.get_tagged_with_tagL1(r, self.functionspace, ac, set_tags=False),astr+' Tagged rank '+str(r), r))
+                    elif atype=='E':
+                        for r in arange:
+                            aargset.append((self.get_expanded_inputL(r,self.functionspace, ac),astr+' Expanded rank '+str(r), r)) 
+                # Now we have a set of a args, match them with possible b's
+                for v in aargset:
+                    arg=v[0][0]
+                    argref=v[0][1]
+                    adescr=v[1]
+                    rank=v[2]
+                    for br in brange:
+                        tshape=(r,)*br
+                        bargref=self.get_array_by_shape(tshape, bc)
+                        
+                        # now convert it to each possbile input type
+                        barg=self.make_constant_from_array(bargref, self.functionspace)
+                        bdescr=bstr+' Constant rank '+str(br)
+                        p=(arg, barg, opstring, misccheck, 
+                           numpy.array(argref), numpy.array(bargref), 
+                           oraclecheck, opname+' '+adescr+'/'+bdescr)
+                        pars.append(p)      
+                        barg=self.make_tagged_from_array(bargref, self.functionspace)
+                        bdescr=bstr+' Tagged rank '+str(br)
+                        p=(arg, barg, opstring, misccheck, 
+                           numpy.array(argref), numpy.array(bargref), 
+                           oraclecheck, opname+' '+adescr+'/'+bdescr)
+                        pars.append(p)           
+                        barg=self.make_expanded_from_array(bargref, self.functionspace)
+                        bdescr=bstr+' Expanded rank '+str(br)
+                        p=(arg, barg, opstring, misccheck, 
+                           numpy.array(argref), numpy.array(bargref), 
+                           oraclecheck, opname+' '+adescr+'/'+bdescr)
+                        pars.append(p)           
+        self.execute_binary_params(pars)
 
     def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None):
         """
@@ -1426,49 +1523,53 @@ class Test_util_values(unittest.TestCase):
         if input_trans is None:
             input_trans=lambda x: x
         pars=[]
-        for ac in (False, True):
+        for ac in (False, True):    # complex or real arguments
             for bc in (False, True):
                 astr="real" if ac else "complex"
                 bstr="real" if bc else "complex"
                 aargset=[]
                 bargset=[]
+                if fix_rank_a is not None:
+                    arange=fix_rank_a
+                else:
+                    arange=range(minrank, maxrank+1)
+                if fix_rank_b is not None:
+                    brange=fix_rank_b
+                else:
+                    brange=range(minrank, maxrank+1)                    
                 for atype in "SACTE":   # Scalar/Array/Constant/Tagged/Expanded
                     if atype=='S':
                         aargset.append((self.get_scalar_input1(ac),astr+' scalar'))
                     elif atype=='A':
-                        for r in range(minrank, maxrank+1):
+                        for r in arange:
                             aargset.append((self.get_array_input1(r,ac),astr+' array rank '+str(r)))
                     elif atype=='C':
-                        for r in range(minrank, maxrank+1):
+                        for r in arange:
                             aargset.append((self.get_const_input1(r, self.functionspace, ac), astr+' Constant rank '+str(r)))
                     elif atype=='T':
-                        for r in range(minrank, maxrank+1):
+                        for r in arange:
                             aargset.append((self.get_tagged_with_tagL1(r, self.functionspace, ac, set_tags=False),astr+' Tagged rank '+str(r)))
                     elif atype=='E':
-                        for r in range(minrank, maxrank+1):
-                            aargset.append((self.get_expanded_inputL(r,self.functionspace, ac),astr+' Expanded rank '+str(r)))
+                        for r in arange:
+                            aargset.append((self.get_expanded_inputL(r,self.functionspace, ac),astr+' Expanded rank '+str(r)))     
                 for atype in "SACTE":   # Scalar/Array/Constant/Tagged/Expanded
                     if atype=='S':
                         bargset.append((self.get_scalar_input2(ac),bstr+' scalar'))
                     elif atype=='A':
-                        for r in range(minrank, maxrank+1):
+                        for r in brange:
                             bargset.append((self.get_array_input2(r,ac),bstr+' array rank '+str(r)))
                     elif atype=='C':
-                        for r in range(minrank, maxrank+1):
+                        for r in brange:
                             bargset.append((self.get_const_input2(r, self.functionspace, ac),bstr+' Constant rank '+str(r)))
                     elif atype=='T':
-                        for r in range(minrank, maxrank+1):
+                        for r in brange:
                             bargset.append((self.get_tagged_with_tagL2(r, self.functionspace, ac, set_tags=True), bstr+' Tagged rank '+str(r)))
                     elif atype=='E':
-                        for r in range(minrank, maxrank+1):
+                        for r in brange:
                             bargset.append((self.get_expanded_inputL2(r, self.functionspace, ac),bstr+' Expanded rank '+str(r)))
                 # now we have a complete set of possible args    
                 for aarg in aargset:
                     for barg in bargset:
-                        if fix_rank_a is not None and getRank(aarg[0][0]) not in fix_rank_a:
-                            continue
-                        if fix_rank_b is not None and getRank(barg[0][0]) not in fix_rank_b:
-                            continue
                         if cap_combined_rank and getRank(aarg[0][0])+getRank(barg[0][0])>4:
                             continue  #resulting object too big
                         if no_shape_mismatch:
