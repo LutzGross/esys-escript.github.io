@@ -126,15 +126,45 @@ class Test_util_binary_new(Test_util_values):
        misccheck=None   # How to work out what the result of type should be
        oraclecheck="numpy.dot(refa,refb)"
        opname="matrix_mult"
-       fix_rank_a=(2,)
-       fix_rank_b=(1,2)  
-       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, fix_rank_a=fix_rank_a, fix_rank_b=fix_rank_b)
+       aranks=(2,)
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_matrix_mult_combined(self):
        opstring='transposed_matrix_mult(a,b)'
        misccheck=None   # How to work out what the result of type should be
        oraclecheck="numpy.dot(numpy.transpose(refa),refb)"
        opname="transposed_matrix_mult"
-       fix_rank_a=(2,)
-       fix_rank_b=(1,2) 
-       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, fix_rank_a=fix_rank_a, fix_rank_b=fix_rank_b)
+       aranks=(2,)
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_matrix_transposed_mult_combined(self):
+       opstring='matrix_transposed_mult(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="numpy.dot(refa,numpy.transpose(refb))"
+       opname="matrix_transposed_mult"
+       aranks=(2,)
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)       
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_tensor_mult_combined(self):
+       opstring='tensor_mult(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="numpy.dot(refa,refb) if getRank(refa)==2 else numpy.tensordot(refa,refb)"
+       opname="tensor_mult"
+       aranks=(2,4)
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_transposed_tensor_mult_combined(self):
+       opstring='transposed_tensor_mult(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="numpy.dot(transpose(refa),refb) if getRank(refa)==2 else numpy.tensordot(transpose(refa),refb)"
+       opname="transposed_tensor_mult"
+       aranks=(2,4)
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks) 
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   #def test_tensor_transposed_mult_combined(self):
+       #opstring='tensor_transposed_mult(a,b)'
+       #misccheck=None   # How to work out what the result of type should be
+       #oraclecheck="numpy.dot(refa,transpose(refb)) if getRank(refa)==2 else numpy.tensordot(refa,transpose(refb))"
+       #opname="tensor_tranposed_mult"
+       #aranks=(2,4)
+       #self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)         
