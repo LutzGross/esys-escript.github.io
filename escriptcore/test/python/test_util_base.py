@@ -1433,7 +1433,7 @@ class Test_util_values(unittest.TestCase):
                 print(oraclevalue)                
             self.assertTrue(oracleres,"wrong result for "+description)
 
-    def generate_binary_matrixlike_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None):
+    def generate_binary_matrixlike_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, aranks=(2,)):
         """
         Generates a set of tests for binary operations.
         It is similar to the unary versions but with some unneeded options removed.
@@ -1455,14 +1455,7 @@ class Test_util_values(unittest.TestCase):
                 bstr="real" if bc else "complex"
                 aargset=[]
                 bargset=[]
-                if fix_rank_a is not None:
-                    arange=fix_rank_a
-                else:
-                    arange=range(minrank, maxrank+1)
-                if fix_rank_b is not None:
-                    brange=fix_rank_b
-                else:
-                    brange=range(minrank, maxrank+1)                    
+                arange=aranks
                 for atype in "ACTE":   # Array/Constant/Tagged/Expanded
                     if atype=='A':
                         for r in arange:
@@ -1482,10 +1475,13 @@ class Test_util_values(unittest.TestCase):
                     argref=v[0][1]
                     adescr=v[1]
                     rank=v[2]
+                    if rank==2:
+                        brange=(1,2)
+                    elif rank==4:
+                        brange=(2,3,4)
                     for br in brange:
-                        tshape=(r,)*br
+                        tshape=(rank,)*br
                         bargref=self.get_array_by_shape(tshape, bc)
-                        
                         # now convert it to each possbile input type
                         barg=self.make_constant_from_array(bargref, self.functionspace)
                         bdescr=bstr+' Constant rank '+str(br)
