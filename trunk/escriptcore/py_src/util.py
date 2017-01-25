@@ -2234,7 +2234,7 @@ def tensor_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
         return generalTensorProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError("tensor_mult: first argument must have rank 2 or 4")
+        raise ValueError("tensor_mult: first argument must have rank 2 or 4 and second rank must be in (1,2) or (2,3,4) respectively.")
 
 def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
