@@ -2573,7 +2573,11 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        for i in sh1[arg1.ndim-axis_offset:]: d01*=i
        arg0_c.resize((d0,d01))
        arg1_c.resize((d1,d01))
-       out=numpy.zeros((d0,d1),numpy.float64)
+       
+       if arg0_c.dtype!=numpy.float64:
+           out=numpy.zeros((d0,d1),arg0_c.dtype)
+       else:
+           out=numpy.zeros((d0,d1),numpy.float64)       
        for i0 in range(d0):
           for i1 in range(d1):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
