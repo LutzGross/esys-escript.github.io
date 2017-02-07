@@ -171,7 +171,7 @@ def checkPython(env):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
         env.Exit(1)
     if not conf.CheckFunc('Py_Exit', language='c++'):
-        print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
+        print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
         env.Exit(1)
 
     return conf.Finish()
