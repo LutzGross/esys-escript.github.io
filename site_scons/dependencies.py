@@ -75,6 +75,46 @@ def checkCompiler(env):
     
     return conf.Finish()
 
+def call_python_config(bin=None):
+    import subprocess
+    cmd=''
+    cmd+='import subprocess\n'
+    cmd+='import os\n'
+    cmd+='from distutils import sysconfig\n'
+    cmd+='pyversion=sysconfig.get_python_version()\n'
+    cmd+='sp=subprocess.Popen(["python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
+    cmd+='d=sp.stdout.readline().split()\n'
+    cmd+="libdirs=[z[2:] for z in d if z.startswith(b'-L')]\n"
+    cmd+="libs=[z[2:] for z in d if z.startswith(b'-lpython')]\n"
+    cmd+="target=''\n"
+    cmd+="for d in libdirs:\n"
+    cmd+="  for f in libs:\n"
+    cmd+="    s=os.path.join(d,b'lib'+f+b'.so')\n"
+    cmd+="    try:\n"
+    cmd+="      dummy=os.stat(s)\n"
+    cmd+="      if target=='':\n"
+    cmd+="        target=d\n"
+    cmd+="        libname=f\n"
+    cmd+="    except Exception:\n"
+    cmd+="      pass\n"
+    if bin is None:
+       exec(cmd)
+       ver=str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2])
+       return (target,libname,ver, sysconfig.get_python_inc())
+    # run an external python to get its library location
+    # yes we are starting another python just to run python?-config
+    cmd+="print(target.decode())\n"
+    cmd+="print(libname.decode())\n"
+    cmd+="import sys\n"
+    cmd+="print(str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2]))\n"
+    cmd+="print(sysconfig.get_python_inc())\n"
+    sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
+    target=sp.stdout.readline().strip()
+    libname=sp.stdout.readline().strip()
+    ver=sp.stdout.readline().strip()
+    pinc=sp.stdout.readline().strip()
+    return (target, libname, ver, pinc)
+
 def checkPython(env):
     # First we check to see if the config file has specified
     # where to find the file. Ideally, this should be automatic
@@ -82,64 +122,18 @@ def checkPython(env):
     # directory.
     # Use the python scons is running
     if env['pythoncmd'] == sys.executable:
-        python_inc_path=sysconfig.get_python_inc()
         if env['IS_WINDOWS']:
+            python_inc_path=sysconfig.get_python_inc()
             python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
-        elif env['PLATFORM']=='darwin':
-            python_lib_path=sysconfig.get_config_var('LIBPL')
-        else:
-            python_lib_path=sysconfig.get_config_var('LIBDIR')
-
-        if env['IS_WINDOWS']:
             python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+            verstring=".".join([str(i) for i in sys.version_info[:3]])
         else:
-            python_libs = sysconfig.get_config_var('LDLIBRARY')
-            if python_libs[:3] == 'lib':
-                python_libs = [python_libs[3:-3]]
-            else:
-                python_libs = ['python'+sysconfig.get_python_version()]
-
-        verstring=".".join([str(i) for i in sys.version_info[:3]])
+            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config()
 
     # if we want to use a python other than the one scons is running
     # Note: we assume scons is running python 2 in the following.
     else:
-        p = Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
-        verstring, _ = p.communicate()
-        verstring = verstring.strip()
-        ispython3 = (verstring[0] == '3')
-        initstring='from __future__ import print_function;from distutils import sysconfig;'
-        if env['pythonlibname'] != '':
-            python_libs = env['pythonlibname']
-        else: # work it out by calling python
-            cmd = 'print(sysconfig.get_config_var("LDLIBRARY"))'
-            p = Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
-            python_libs, _ = p.communicate()
-            if python_libs[:3] == 'lib':
-                python_libs = [python_libs.strip()[3:-3]]
-            else:
-                cmd = 'print("python"+sysconfig.get_python_version())'
-                p = Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
-                python_libs, _ = p.communicate()
-                python_libs = [python_libs.strip()]
-
-        p = Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
-        python_inc_path, _ = p.communicate()
-        if ispython3:
-            python_inc_path = python_inc_path.encode()
-        python_inc_path = python_inc_path.strip()
-        if env['PLATFORM'] == 'darwin':
-            cmd="sysconfig.get_config_var(\"LIBPL\")"
-        else:
-            cmd="sysconfig.get_config_var(\"LIBDIR\")"
-
-        p = Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
-        python_lib_path, _ = p.communicate()
-        if ispython3:
-            python_lib_path = python_lib_path.decode()
-        python_lib_path = python_lib_path.strip()
-
-
+        (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     env['python_version'] = verstring
     ispython3 = (verstring[0] == '3')
     if ispython3:
