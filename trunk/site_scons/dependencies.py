@@ -87,9 +87,18 @@ def call_python_config(bin=None):
     cmd+="libdirs=[z[2:] for z in d if z.startswith(b'-L')]\n"
     cmd+="libs=[z[2:] for z in d if z.startswith(b'-lpython')]\n"
     cmd+="target=''\n"
+    cmd+="libname=''\n"
     cmd+="for d in libdirs:\n"
     cmd+="  for f in libs:\n"
     cmd+="    s=os.path.join(d,b'lib'+f+b'.so')\n"
+    cmd+="    try:\n"
+    cmd+="      dummy=os.stat(s)\n"
+    cmd+="      if target=='':\n"
+    cmd+="        target=d\n"
+    cmd+="        libname=f\n"
+    cmd+="    except Exception:\n"
+    cmd+="      pass\n"
+    cmd+="    s=os.path.join(d,b'lib'+f+b'.dylib')\n"
     cmd+="    try:\n"
     cmd+="      dummy=os.stat(s)\n"
     cmd+="      if target=='':\n"
@@ -116,6 +125,7 @@ def call_python_config(bin=None):
     libname=sp.stdout.readline().strip()
     ver=sp.stdout.readline().strip()
     pinc=sp.stdout.readline().strip()
+    print((target, libname, ver, pinc))
     return (target, libname, ver, pinc)
 
 def checkPython(env):
