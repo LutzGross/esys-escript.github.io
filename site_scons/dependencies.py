@@ -103,8 +103,11 @@ def call_python_config(bin=None):
        return (target,libname,ver, sysconfig.get_python_inc())
     # run an external python to get its library location
     # yes we are starting another python just to run python?-config
-    cmd+="print(target.decode())\n"
-    cmd+="print(libname.decode())\n"
+    cmd+="if 'decode' in dir(target):\n"
+    cmd+="   target=target.decode()\n"
+    cmd+="   libname=libname.decode()\n"
+    cmd+="print(target)\n"
+    cmd+="print(libname)\n"
     cmd+="import sys\n"
     cmd+="print(str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2]))\n"
     cmd+="print(sysconfig.get_python_inc())\n"
