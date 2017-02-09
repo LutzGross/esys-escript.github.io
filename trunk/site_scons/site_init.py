@@ -112,8 +112,16 @@ def write_launcher(env):
     try:
         launchscript = os.path.join(env['bininstall'], 'run-escript')
         launcher=open(launchscript, 'w')
+        if not env['stdlocationisprefix']:
+            usestdlocation='0'
+            stdlocation='/usr/lib/python-escript'
+        else:
+            usestdlocation='1'
+            stdlocation=env['prefix']     
         for line in open('run-escript.in','r').readlines():
-            launcher.write(line.replace('@@PRELAUNCH', pre).replace('@@LAUNCH', cmd).replace('@@POSTLAUNCH', post))
+            s=line.replace('@@PRELAUNCH', pre).replace('@@LAUNCH', cmd).replace('@@POSTLAUNCH', post)
+            s=s.replace('@@STDLOCATION', usestdlocation).replace('@@ESROOT',stdlocation)
+            launcher.write(s)
         launcher.close()
         env.Execute(Chmod(launchscript, 0o755))
     except IOError:

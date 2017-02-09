@@ -152,7 +152,8 @@ vars.AddVariables(
   ('papi_prefix', 'Prefix/Paths to PAPI installation', default_prefix),
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
-  BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False)
+  BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
+  BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False)
 )
 
 ##################### Create environment and help text #######################
