@@ -17,7 +17,9 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 202
+escript_opts_version = 203
+
+import os
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -48,7 +50,7 @@ cxx = 'CC'
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = '-shared -fPIC -h gnu -h nomessage=47:1199:1794:1836:11709'
-cxx_extra = '-fPIC -I/group/geosciences953/escript_directory/escript/lib64/python2.6/site-packages/numpy/core/include'
+cxx_extra = '-fPIC'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
@@ -66,6 +68,8 @@ ld_extra = '-dynamic'
 prelaunch = ""
 launcher = "aprun -B %b"
 postlaunch = ""
+
+stdlocationisprefix = True
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -98,7 +102,9 @@ omp_ldflags = '-fopenmp'
 mpi = 'MPICH2'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/opt/cray/mpt/7.0.0/gni/mpich2-cray/83'
+# on magnus, this variable should be set by the programming environment
+mpi_prefix = os.environ['MPICH_DIR']
+
 
 # MPI libraries to link against. Compiler wrapper takes care of this
 #mpi_libs = ['mpich', 'mpichcxx']
@@ -109,8 +115,7 @@ mpi_libs = []
 #boost_prefix = '/ivec/cle50/devel/PrgEnv-intel/boost/1.55.0'
 #boost_prefix = '/ivec/cle50/devel/PrgEnv-gnu/5.0.41/boost/1.49.0'
 #boost_prefix = ['/home/caltinay/boost_1_55_0','/home/caltinay/boost_1_55_0/stage/lib']
-boost_prefix = '/group/geosciences953/escript_directory/escript'
-
+boost_prefix = '/group/pawsey0143/software/cle52up04/apps/PrgEnv-gnu/5.2.82/gcc/4.9.2/haswell/boost/1.57.0'
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
 
@@ -127,7 +132,9 @@ netcdf = True
 # Prefix or paths to netCDF headers and libraries. See note above.
 #netcdf_prefix = '/opt/cray/netcdf-hdf5parallel/4.3.0/CRAY/81'
 #netcdf_prefix = '/ivec/cle50/devel/PrgEnv-gnu/5.0.41/netcdf/4.1.3'
-netcdf_prefix = '/group/geosciences953/escript_directory/escript'
+#netcdf_prefix = '/group/geosciences953/escript_directory/escript'
+netcdf_prefix = '/group/pawsey0143/joel/netcdf'
+#netcdf_prefix=os.environ["NETCDF_DIR"]
 
 # netCDF library/libraries to link against
 netcdf_libs = ['netcdf_c++', 'netcdf']
@@ -200,7 +207,7 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+#silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 silo_prefix = '/group/geosciences953/escript_directory/escript'
