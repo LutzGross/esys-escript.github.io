@@ -24,7 +24,7 @@
 
 # set to 1 if this is part of a packaged build (.deb) and files will be
 # installed in standard locations rather than everything in a single directory
-STDLOCATION=0
+STDLOCATION=@@STDLOCATION
 
 # Now we find the location of this script
 # Note that this location should be absolute but does not need to be unique
@@ -45,7 +45,7 @@ die () {
 if [ $STDLOCATION -ne 0 ]
 then
     #Package building scripts will replace this line
-    ESCRIPT_ROOT=/usr/lib/python-escript
+    ESCRIPT_ROOT=@@ESROOT 
 else
   # We don't know the escript root so we need to work it out from the invocation
   # Need to match if the name contains /
