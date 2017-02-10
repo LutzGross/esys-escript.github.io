@@ -2048,7 +2048,7 @@ class LinearPDE(LinearProblem):
                  righthandside-=operator*u                 
                  operator.nullifyRowsAndCols(row_q,col_q,1.)
          righthandside.copyWithMask(r_s,q)
-
+         
    def setValue(self,**coefficients):
       """
       Sets new values to coefficients.

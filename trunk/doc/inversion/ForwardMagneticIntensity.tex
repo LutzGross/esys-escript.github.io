@@ -15,25 +15,40 @@
 
 
 \section{Linear Magnetic Intensity Inversion}\label{sec:forward magnetic intensity}
-An alternative target for then inversion is the intensity of the magnetic flux
-density $B=(B_i)$~\index{magnetic flux density} which is the Euclean norm $\|B\|$ of magnetic
-flux density anomaly $B$ where 
-\begin{equation}\label{ref:IMAG:EQU:1}
-\|B\|^2 =  B_i B_i
+An alternative target for then inversion is the intensity anomaly of the magnetic flux
+density. In this case the difference $b$ of the length of the total flux
+density $B^{tot}=B^b+B$ to the back ground flux density $B^b$~\index{magnetic flux density}:
+\begin{equation}\label{ref:IMAG:EQU:0}
+b=\|B^{tot}\| -\|B^{b}\|
 \end{equation}
-where we use the notations of the previous section~\ref{sec:forward magnetic}.   
-From the magnetic scalar potential we can calculate the magnetic flux density
-anomaly via Equation~(\ref{ref:MAG:EQU:8}) to calculate the defect to the given data.
+where is the Euclean norm is defined as  
+\begin{equation}\label{ref:IMAG:EQU:1}
+\|B\| =  \sqrt{B_i B_i}
+\end{equation}
+and we use the notations of the previous section~\ref{sec:forward magnetic}.   
+We have 
+\begin{equation}\label{ref:IMAG:EQU:1b}
+\|B^{tot}\|^2 = \|B^{b}\|^2 + 2 B^{b}_i B_i + \|B\|^2 \approx  \|B^{b}\|^2 + 2 B^{b}_i B_i
+\end{equation}
+where the term $\|B\|^2$ of the anomaly can is assumed to be neglagable. 
+This gives 
+\begin{equation}\label{ref:IMAG:EQU:1bb}
+\|B^{tot}\|  = \|B^{b}\| \sqrt{1 + \frac{2 B^{b}_i B_i}{\|B^{b}\|^2}} \approx  \|B^{b}\| \left(1 + \frac{B^{b}_i B_i}{\|B^{b}\|^2} \right) 
+\end{equation}
+and therefore
+\begin{equation}\label{ref:IMAG:EQU:0b}
+b= \frac{B^{b}_i B_i}{\|B^{b}\|}  = \hat{B}^{b}_i B_i \mbox{ with } \hat{B}^{b}_i = \frac{B^b_i}{\|B^{b}\|} 
+\end{equation}
 If $b^{(s)}_i$ is the measurement of the magnetic flux density intensity anomaly for
 survey $s$ and $\omega^{(s)}$ is a weighting factor the data defect
 $J^{mag}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
 \begin{equation}\label{ref:IMAG:EQU:9}
-J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} \left( \omega^{(s)} \cdot (\|B\|- b^{(s)} )\right)^2 dx
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} \left( \omega^{(s)} \cdot ( \hat{B}^{b}_i B_i - b^{(s)} )\right)^2 dx
 \end{equation} 
 
 The cost function kernel\index{cost function!kernel} is given as
 \begin{equation}\label{ref:IMAG:EQU:10}
-K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} \left( \omega^{(s)} \cdot (\sqrt{(k \cdot B^b_i - \psi_{,i})(k \cdot B^b_i - \psi_{,i})} - b^{(s)}) \right)^2
+K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} \left( \omega^{(s)} \cdot (k \cdot  \|B^{b}\|  -  \hat{B}^{b}_i \psi_{,i} - b^{(s)}) \right)^2
 \end{equation} 
 Notice that if magnetic flux density is measured in air one can ignore the
 $k\cdot B^b_i$ as the susceptibility is zero.
@@ -65,51 +80,6 @@ where $\alpha$ defines a scaling factor which is typically set to one and $L$ is
 $k'$ is considering the 
 derivative of the density with respect to the level set function. 
 
-
-======================================================================================
-For the magnetic inversion we use the anomaly of the magnetic flux
-density~\index{magnetic flux density} of the Earth.
-The controlling material parameter is the susceptibility~\index{susceptibility}
-$k$ of the rock.
-With magnetization $M$ and inducing magnetic field anomaly $H$, the magnetic
-flux density anomaly $B$ is given as
-\begin{equation}\label{ref:IMAG:EQU:1}
-B_i = \mu_0 \cdot ( H_i  + M_i )
-\end{equation}
-where $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$.
-In this forward model we make the simplifying assumption that the magnetization
-is proportional to the known geomagnetic flux density $B^b$:
-\begin{equation}\label{ref:IMAG:EQU:4}
-\mu_0  \cdot M_i = k \cdot B^b_i \;. 
-\end{equation}
-Values for the magnetic flux density can be obtained by the International
-Geomagnetic Reference Field (IGRF)~\cite{IGRF}
-(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}).
-In most cases it is reasonable to assume that that the background field is
-constant across the domain.
-
-The magnetic field anomaly $H$ can be represented by the gradient of a
-magnetic scalar potential\index{scalar potential!magnetic} $\psi$.
-We use the form 
-\begin{equation}\label{ref:IMAG:EQU:6}
-\mu_0  \cdot H_i = - \psi_{,i}
-\end{equation}
-With this notation one gets from Equations~(\ref{ref:MAG:EQU:1}) and~(\ref{ref:MAG:EQU:4}):
-\begin{equation}\label{ref:IMAG:EQU:7}
-B_i = - \psi_{,i}  + k \cdot B^b_i
-\end{equation}
-As the $B$ magnetic flux density anomaly is divergence free ($B_{i,i}=0$) we obtain the PDE
-\begin{equation}\label{ref:IMAG:EQU:8}
-- \psi_{,ii} = - (k B^r_i)_{,i} 
-\end{equation} 
-with $B^r_i=B^b_i$ which needs to be solved for a given susceptibility $k$.
-The magnetic scalar potential is set to zero at the top of the domain
-$\Gamma_{0}$.
-On all other faces the normal component of the magnetic flux density anomaly
-$B_i$ is set to zero, i.e. $n_i \psi_{,i} = k \cdot n_i  B^b_i$ with outer
-normal field $n_i$.
-
-Summation over $i$ is performed.
 
 
 \subsection{Usage}
@@ -157,23 +127,20 @@ If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
 known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
 \begin{equation}\label{ref:IMAG:EQU:201aa}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \int_{\Omega}  
-\sum_{s} (\omega^{(s)} 
-( \sqrt{B_lB_l}-b^{(s)}) )  \cdot ( \frac{\omega^{(s)}}{\sqrt{B_lB_l}} (B_i \Psi[p]_{,i} - p  \cdot B_i B^b_i  ) ) \; dx  
-\end{equation}
-where 
-\begin{equation}\label{ref:IMAG:EQU:201aaa}
-B_l = k \cdot B^b_l - \psi_{,l}    
+\sum_{s} 
+\omega^{(s)} \; \left(b^{(s)} - k \cdot  \|B^{b}\|  +  \hat{B}^{b}_i \psi_{,i}  \right)
+\cdot \omega^{(s)} \; \left(\hat{B}^{b}_i \Psi[p]_{,i} - p \cdot  \|B^{b}\| \right) \; dx  
 \end{equation}
 With
 \begin{equation}\label{ref:IMAG:EQU:202c}
 Y_i[\psi]=   \sum_{s} 
 (\omega^{(s)})^2 
-(1-\frac{b^{(s)})}{\sqrt{B_lB_l}} ) B_i
+\left(b^{(s)} - k \cdot  \|B^{b}\|  +  \hat{B}^{b}_i \psi_{,i} \right) \hat{B}^{b}_i
 \end{equation} 
 this is written as 
 \begin{equation}\label{ref:IMAG:EQU:202cc}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
-Y_i[\psi] \Psi[p]_{,i} - p \cdot Y_i[\psi]B^b_i   \; dx  
+(Y_i[\psi] \Psi[p]_{,i} -p \cdot Y_i[\psi]B^b_i)   \; dx  
 \end{equation} 
 We then set adjoint function $Y^*[\psi]$ as the solution of the equation 
 \begin{equation}\label{ref:IMAG:EQU:202d}

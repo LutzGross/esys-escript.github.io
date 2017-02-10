@@ -405,6 +405,7 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 x=x_new
                 if converged:
+                    self.logger.info("********** iteration %3d **********"%(n_iter+1,))
                     self.logger.info("\tJ(x) = %s"%Jx_new)
                     break
 
