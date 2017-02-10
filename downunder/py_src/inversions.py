@@ -35,7 +35,7 @@ from esys.escript import unitsSI as U
 from esys.weipa import createDataset
 
 from .inversioncostfunctions import InversionCostFunction
-from .forwardmodels import GravityModel, MagneticModel, SelfDemagnetizationModel
+from .forwardmodels import GravityModel, MagneticModel, MagneticIntensityModel, SelfDemagnetizationModel
 from .mappings import *
 from .minimizers import *
 from .regularizations import Regularization
@@ -46,12 +46,13 @@ class InversionDriver(object):
     """
     Base class for running an inversion
     """
-    def __init__(self, solverclass=None, debug=False, self_demagnetization=False):
+    def __init__(self, solverclass=None, debug=False, self_demagnetization=False, magnetic_intensity_data=False):
         """
         creates an instance of an inversion driver.
 
         :param solverclass: class of the solver to be used.
         :param self_demagnetization: if True self-demagnitization is applied.
+        :param magnetic_intensity_data: if True magnetic intensity is used in the cost function. 
         :type solverclass: 'AbstractMinimizer'.
         """
         # This configures basic logging to get some meaningful output
@@ -65,6 +66,7 @@ class InversionDriver(object):
         self.__solver=solverclass()
         self.initial_value = None
         self.self_demagnetization=self_demagnetization
+        self.magnetic_intensity_data=magnetic_intensity_data
         self.m=None
         self.fixGravityPotentialAtBottom()
         self.fixMagneticPotentialAtBottom()
@@ -355,7 +357,7 @@ class MagneticInversion(InversionDriver):
         :type domainbuilder: `DomainBuilder`
         :param k0: reference susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
         :type k0: ``float`` or ``Scalar``
-        :param dk: susceptibility scale, see `SusceptibilityMapping`. If not specified, 2750kg/m^3 is used.
+        :param dk: susceptibility scale, see `SusceptibilityMapping`. If not specified, 1. is used.
         :type dk: ``float`` or ``Scalar``
         :param z0: reference depth for depth weighting, see `SusceptibilityMapping`. If not specified, zero is used.
         :type z0: ``float`` or ``Scalar``
@@ -399,10 +401,16 @@ class MagneticInversion(InversionDriver):
         w=[]
         for B_i,sigma_i in surveys:
             w_i=es.safeDiv(1., sigma_i)
-            if B_i.getRank()==0:
-                B_i=B_i*d_b
-            if w_i.getRank()==0:
-                w_i=w_i*d_b
+            if self.magnetic_intensity_data:
+                if not B_i.getRank()==0:
+                    B_i=es.length(B_i)
+                if not w_i.getRank()==0:
+                    w_i=length(w_i)
+            else:
+                if B_i.getRank()==0:
+                    B_i=B_i*d_b
+                if w_i.getRank()==0:
+                    w_i=w_i*d_b
             B.append(B_i)
             w.append(w_i)
             self.logger.debug("Added magnetic survey:")
@@ -414,7 +422,10 @@ class MagneticInversion(InversionDriver):
         if self.self_demagnetization:
             forward_model=SelfDemagnetizationModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         else:
-            forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+            if self.magnetic_intensity_data:
+              forward_model=MagneticIntensityModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+            else:
+              forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         forward_model.rescaleWeights(k_scale=scale_mapping)
 
         #====================================================================
@@ -574,10 +585,16 @@ class JointGravityMagneticInversion(InversionDriver):
         w=[]
         for B_i,sigma_i in surveys:
             w_i=es.safeDiv(1., sigma_i)
-            if B_i.getRank()==0:
-                B_i=B_i*d_b
-            if w_i.getRank()==0:
-                w_i=w_i*d_b
+            if self.magnetic_intensity_data:
+                if not B_i.getRank()==0:
+                    B_i=es.length(B_i)
+                if not w_i.getRank()==0:
+                    w_i=length(w_i)
+            else:
+              if B_i.getRank()==0:
+                  B_i=B_i*d_b
+              if w_i.getRank()==0:
+                  w_i=w_i*d_b
             B.append(B_i)
             w.append(w_i)
             self.logger.debug("Added magnetic survey:")
@@ -589,7 +606,10 @@ class JointGravityMagneticInversion(InversionDriver):
         if self.self_demagnetization:
             magnetic_model=SelfDemagnetizationModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         else:
-            magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+            if self.magnetic_intensity_data:
+              magnetic_model=MagneticIntensityModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+            else:
+              magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
         #====================================================================
         self.logger.info("Setting cost function...")
@@ -753,9 +773,15 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         w=[]
         for B_i,sigma_i in surveys:
             w_i=es.safeDiv(1., sigma_i)
-            if B_i.getRank()==0:
+            if self.magnetic_intensity_data:
+              if not B_i.getRank()==0:
+                B_i=es.length(B_i)
+              if not w_i.getRank()==0:
+                w_i=length(w_i)
+            else:
+              if B_i.getRank()==0:
                 B_i=B_i*d_b
-            if w_i.getRank()==0:
+              if w_i.getRank()==0:
                 w_i=w_i*d_b
             B.append(B_i)
             w.append(w_i)
@@ -765,7 +791,13 @@ class StrongJointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up magnetic model...")
-        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+        if self.self_demagnetization:
+            magnetic_model=SelfDemagnetizationModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+        else:
+            if self.magnetic_intensity_data:
+              magnetic_model=MagneticIntensityModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
+            else:
+              magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
         #====================================================================
         self.logger.info("Setting cost function...")

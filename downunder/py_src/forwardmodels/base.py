@@ -139,7 +139,11 @@ class ForwardModelWithPotential(ForwardModel):
         self.__weight=[1.*ow for ow in self.__origweight]
 
         for s in range(len(self.__weight)):
-            A += integrate(abs(inner(self.__weight[s], self.__data[s]) * inner(self.__weight[s], 1/self.edge_lengths) * fetch_factor))
+            if self.__data[s].getShape() == ():
+               ff=self.__weight[s]**2*self.__data[s]/length(self.edge_lengths)
+            else:
+               ff=inner(self.__weight[s], self.__data[s]) * inner(self.__weight[s], 1/self.edge_lengths)
+            A += integrate(abs(ff * fetch_factor))
         if A > 0:
             A=sqrt(scale/A)/self.diameter
             if not self.__trafo.isCartesian():
@@ -157,6 +161,22 @@ class ForwardModelWithPotential(ForwardModel):
         """
         return self.__domain
 
+    def getMisfitWeights(self):
+        """
+        Returns the weights of the misfit function
+          
+        :rtype: ``list`` of ``Data``
+        """
+        return self.__weight
+
+    def getData(self):
+        """
+        Returns the data
+
+        :rtype: ``list`` of ``Data``
+        """
+        return self.__data
+      
     def getCoordinateTransformation(self):
         """
         returns the coordinate transformation being used

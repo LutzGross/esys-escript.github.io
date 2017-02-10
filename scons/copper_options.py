@@ -13,19 +13,21 @@
 #
 ##############################################################################
 
-from templates.wheezy_options import *
+from templates.jessie_mpi_options import *
 
 verbose = True
-
-#openmp = True 
-
-#mpi = 'OPENMPI'
-
-boost_libs = ['boost_python']
-
-parmetis = True
-
-umfpack = True
-
 silo = True
+#boost_libs = ['boost_python']
+umfpack = True
+werror=False
+
+trilinos=True
+trilinos_prefix="/opt/trilinos_hybrid"
+
+if False:
+  openmp = True 
+  parmetis = True
+
+  mpi = 'OPENMPI'
+
 
