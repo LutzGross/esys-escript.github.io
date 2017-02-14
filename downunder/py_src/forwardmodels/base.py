@@ -176,7 +176,14 @@ class ForwardModelWithPotential(ForwardModel):
         :rtype: ``list`` of ``Data``
         """
         return self.__data
-      
+    def getDataFunctionSpace(self):
+        """
+        Returns the ``FunctionSpace`` of the data
+
+        :rtype: ``FunctionSpace``
+        """
+        return self.getData()[0].getFunctionSpace()
+        
     def getCoordinateTransformation(self):
         """
         returns the coordinate transformation being used
