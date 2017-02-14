@@ -59,7 +59,7 @@ class MagneticModel(ForwardModelWithPotential):
         :type fixPotentialAtBottom: ``bool``
         """
         super(MagneticModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
-        background_magnetic_flux_density=interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
+        background_magnetic_flux_density=interpolate(background_magnetic_flux_density, self.getDataFunctionSpace() )
         if not self.getCoordinateTransformation().isCartesian():
             s = self.getCoordinateTransformation().getScalingFactors()
             v = self.getCoordinateTransformation().getVolumeFactor()
@@ -181,7 +181,7 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         """
         super(SelfDemagnetizationModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
         #=========================================================
-        background_magnetic_flux_density = interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
+        background_magnetic_flux_density = interpolate(background_magnetic_flux_density, self.getDataFunctionSpace())
         if not self.getCoordinateTransformation().isCartesian():
             s = self.getCoordinateTransformation().getScalingFactors()
             v = self.getCoordinateTransformation().getVolumeFactor()
@@ -329,7 +329,7 @@ class MagneticIntensityModel(ForwardModelWithPotential):
         :type fixPotentialAtBottom: ``bool``
         """
         super(MagneticIntensityModel, self).__init__(domain, w, b, coordinates, fixPotentialAtBottom, tol)
-        background_magnetic_flux_density=interpolate(background_magnetic_flux_density, b[0].getFunctionSpace())
+        background_magnetic_flux_density=interpolate(background_magnetic_flux_density, self.getDataFunctionSpace())
         if not self.getCoordinateTransformation().isCartesian():   # need to be checked!
             s = self.getCoordinateTransformation().getScalingFactors()
             v = self.getCoordinateTransformation().getVolumeFactor()
