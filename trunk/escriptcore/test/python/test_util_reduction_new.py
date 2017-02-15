@@ -142,7 +142,9 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
         self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
         self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
         self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result") 
+        oarg.resolve()  # to prevent autolazy and complex interfering
         arg=(1+0j)/oarg
+        arg.resolve() # to prevent autolazy and complex interfering
         arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
         self.assertRaises(RuntimeError,sup, arg)
         self.assertRaises(RuntimeError,inf, arg)
