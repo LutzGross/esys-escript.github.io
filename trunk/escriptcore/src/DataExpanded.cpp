@@ -23,12 +23,26 @@
 
 #include <limits>
 
+
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncDim.h>
+  #include <ncVar.h>
+  #include <ncFile.h>
+ #else
+  #include <netcdfcpp.h>
+ #endif
 #endif
 
 using namespace std;
 using namespace escript::DataTypes;
+
+#ifdef ESYS_HAVE_NETCDF
+ #ifdef NETCDF4
+  using namespace netCDF;
+ #endif
+#endif
+
 
 #ifdef SLOWSHARECHECK
   #define CHECK_FOR_EX_WRITE do {\
@@ -1089,6 +1103,147 @@ void DataExpanded::setToZero()
     }
 }
 
+#ifdef NETCDF4
+void DataExpanded::dump(const std::string fileName) const
+{
+#ifdef ESYS_HAVE_NETCDF
+    const int ldims=2+DataTypes::maxRank;
+    vector<NcDim> ncdims;
+    int rank = getRank();
+    int type=  getFunctionSpace().getTypeCode();
+    //int ndims =0;
+    long dims[ldims];
+    const double* d_ptr=&(m_data_r[0]);
+    const DataTypes::ShapeType& shape = getShape();
+    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
+    NcFile dataFile;
+    try
+    {
+        dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
+    }
+    catch (exceptions::NcException e)
+    {
+        throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");
+    }
+    int line=0;
+    try
+    {
+        const NcInt ni;
+        dataFile.putAtt("type_id", ni, 2);
+        line++;
+        dataFile.putAtt("rank", ni, rank);
+        line++;
+        dataFile.putAtt("function_space_type", ni, type);
+    }
+    catch (exceptions::NcException e)
+    {
+        switch (line)
+        {
+        case 0: throw DataException("DataExpanded::dump: appending data type to netCDF file failed.");
+        case 1: throw DataException("DataExpanded::dump: appending rank attribute to netCDF file failed.");
+        case 2: throw DataException("DataExpanded::dump: appending function space attribute to netCDF file failed.");
+            
+            
+        }
+        
+    }
+//     ndims=rank+2;
+    if ( rank >0 ) {
+        dims[0]=shape[0];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d0",shape[0]));
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("DataExpanded::dump: appending ncdim 0 to netCDF file failed.");
+        }
+    }
+    if ( rank >1 ) {
+        dims[1]=shape[1];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d1",shape[1]));
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("DataExpanded::dump: appending ncdim 1 to netCDF file failed.");
+        }
+    }
+    if ( rank >2 ) {
+        dims[2]=shape[2];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d2", shape[2]));            
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("DataExpanded::dump: appending ncdim 2 to netCDF file failed.");
+        }
+    }
+    if ( rank >3 ) {
+        dims[3]=shape[3];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d3", shape[3]));            
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("DataExpanded::dump: appending ncdim 3 to netCDF file failed.");
+        }
+    }
+    dims[rank]=getFunctionSpace().getNumDataPointsPerSample();    
+    try
+    {
+        ncdims.push_back(dataFile.addDim("num_data_points_per_sample", dims[rank]));
+    }
+    catch (exceptions::NcException e)
+    {
+        throw DataException("DataExpanded::dump: appending num_data_points_per_sample to netCDF file failed.");
+    }
+    dims[rank+1]=getFunctionSpace().getNumSamples();
+    try
+    {
+        ncdims.push_back(dataFile.addDim("num_samples", dims[rank+1]));
+    }
+    catch (exceptions::NcException e)
+    {
+        throw DataException("DataExpanded::dump: appending num_sample to netCDF file failed.");
+    }
+    if (getFunctionSpace().getNumSamples() > 0) {
+        line=0;
+        try
+        {
+            NcVar ids = dataFile.addVar("id", ncInt, ncdims[rank+1]);
+            line++;
+            const dim_t* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
+//             ids.put(ids_p,dims[rank+1]);
+            ids.putVar(ids_p);
+            line++;
+            NcVar var = dataFile.addVar("data", ncDouble, ncdims);
+            line++;
+            //var.put(d_ptr,dims);
+            var.putVar(d_ptr);
+        }
+        catch (exceptions::NcException e)
+        {
+            switch (line)
+            {
+            case 0:  throw DataException("DataExpanded::dump: appending reference id to netCDF file failed.");
+            case 1: throw DataException("DataExpanded::dump: copy reference id  to netCDF buffer failed.");
+            case 2: throw DataException("DataExpanded::dump: appending variable to netCDF file failed.");
+            case 3: throw DataException("DataExpanded::dump: copy data to netCDF buffer failed.");
+            }
+        }
+    }
+#else
+    throw DataException("DataExpanded::dump: not configured with netCDF. Please contact your installation manager.");
+#endif // ESYS_HAVE_NETCDF
+}
+
+#else
+
 void DataExpanded::dump(const std::string fileName) const
 {
 #ifdef ESYS_HAVE_NETCDF
@@ -1157,6 +1312,8 @@ void DataExpanded::dump(const std::string fileName) const
     throw DataException("DataExpanded::dump: not configured with netCDF. Please contact your installation manager.");
 #endif // ESYS_HAVE_NETCDF
 }
+
+#endif
 
 void DataExpanded::setTaggedValue(int tagKey,
                                   const DataTypes::ShapeType& pointshape,

@@ -23,8 +23,15 @@
 #include <complex>
 
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncDim.h>
+  #include <ncVar.h>
+  #include <ncFile.h>
+ #else
+  #include <netcdfcpp.h>
+ #endif
 #endif
+
 
 #ifdef SLOWSHARECHECK
   #define CHECK_FOR_EX_WRITE if (isShared()) {throw DataException("Attempt to modify shared object");}
@@ -33,6 +40,10 @@
 #endif
 
 using namespace std;
+
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
 
 namespace escript {
 
@@ -1282,6 +1293,147 @@ DataTagged::setToZero(){
     }
 }
 
+#ifdef NETCDF4
+void
+DataTagged::dump(const std::string fileName) const
+{
+#ifdef ESYS_HAVE_NETCDF
+    const int ldims=DataTypes::maxRank+1;
+    vector<NcDim >ncdims;
+    int rank = getRank();
+    int type=  getFunctionSpace().getTypeCode();
+    //int ndims =0;
+    long dims[ldims];
+    const double* d_ptr=&(m_data_r[0]);
+    DataTypes::ShapeType shape = getShape();
+    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+#ifdef ESYS_MPI
+    const int mpi_iam = mpiInfo->rank;
+    const int mpi_num = mpiInfo->size;
+    MPI_Status status;
+
+    /* Serialize NetCDF I/O */
+    if (mpi_iam > 0)
+        MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81803, mpiInfo->comm, &status);
+#endif
+
+    // Create the file.
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
+    NcFile dataFile;
+    try
+    {
+        dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
+    }
+    catch (exceptions::NcException e)
+    {
+        throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
+    }
+    int line=0;
+    try
+    {
+        const NcInt ni;
+        dataFile.putAtt("type_id", ni, 1);
+        line++;
+        dataFile.putAtt("rank", ni, rank);
+        line++;
+        dataFile.putAtt("function_space_type", ni, type);        
+    }
+    catch (exceptions::NcException e)
+    {
+        switch (line)
+        {
+        case 0: throw DataException("Error - DataTagged:: appending data type to netCDF file failed.");
+        case 1: throw DataException("Error - DataTagged:: appending rank attribute to netCDF file failed.");
+        case 2: throw DataException("Error - DataTagged:: appending function space attribute to netCDF file failed.");
+        }
+    }
+    //ndims=rank+1;
+    if ( rank >0 ) {
+        dims[0]=shape[0];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d0",shape[0]));
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("Error - DataTagged:: appending ncdimension 0 to netCDF file failed.");            
+        }
+    }
+    if ( rank >1 ) {
+        dims[1]=shape[1];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d1",shape[1]));            
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("Error - DataTagged:: appending ncdimension 1 to netCDF file failed.");
+        }
+    }
+    if ( rank >2 ) {
+        dims[2]=shape[2];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d2",shape[2]));            
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("Error - DataTagged:: appending ncdimension 2 to netCDF file failed.");
+        }
+    }
+    if ( rank >3 ) {
+        dims[3]=shape[3];
+        try
+        {
+            ncdims.push_back(dataFile.addDim("d3",shape[3]));            
+        }
+        catch (exceptions::NcException e)
+        {
+            throw DataException("Error - DataTagged:: appending ncdimension 3 to netCDF file failed.");
+        }
+    }
+    const DataTagged::DataMapType& thisLookup=getTagLookup();
+    DataTagged::DataMapType::const_iterator i;
+    DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
+    std::vector<int> tags;
+    tags.push_back(-1);
+    for (i=thisLookup.begin();i!=thisLookupEnd;i++)
+        tags.push_back(i->first);
+    dims[rank]=tags.size();
+    line=0;
+    try
+    {
+        ncdims.push_back(dataFile.addDim("num_tags", dims[rank]));
+        line++;
+        NcVar tags_var = dataFile.addVar("tags", ncInt, ncdims[rank]);
+        line++;
+        tags_var.putVar(&tags[0]);
+        line++;
+        NcVar var = dataFile.addVar("data", ncDouble, ncdims);
+        line++;
+        var.putVar(d_ptr);
+    }
+    catch (exceptions::NcException e)
+    {
+        switch (line)
+        {
+        case 0: throw DataException("Error - DataTagged:: appending num_tags to netCDF file failed.");  
+        case 1: throw DataException("Error - DataTagged:: appending tags to netCDF file failed.");    
+        case 2: throw DataException("Error - DataTagged:: copy tags to netCDF buffer failed.");
+        case 3: throw DataException("Error - DataTagged:: appending variable to netCDF file failed.");
+        case 4: throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");
+        }
+        
+    }
+#ifdef ESYS_MPI
+    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81803, MPI_COMM_WORLD);
+#endif
+    #else
+    throw DataException("Error - DataTagged:: dump is not configured with netCDF. Please contact your installation manager.");
+    #endif
+}
+
+#else
 void
 DataTagged::dump(const std::string fileName) const
 {
@@ -1376,6 +1528,7 @@ DataTagged::dump(const std::string fileName) const
    throw DataException("Error - DataTagged:: dump is not configured with netCDF. Please contact your installation manager.");
    #endif
 }
+#endif
 
 DataTypes::RealVectorType&
 DataTagged::getVectorRW()
