@@ -534,12 +534,12 @@ DataConstant::dump(const std::string fileName) const
     vector<NcDim> ncdims;
     int rank = getRank();
     int type=  getFunctionSpace().getTypeCode();
-    //int ndims =0;
     //long dims[DataTypes::maxRank];
     const double* d_ptr=&(m_data_r[0]);
     DataTypes::ShapeType shape = getShape();
     JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
 #ifdef ESYS_MPI
+    int ndims =0;    
     const int mpi_iam = mpiInfo->rank;
     const int mpi_num = mpiInfo->size;
     MPI_Status status;
