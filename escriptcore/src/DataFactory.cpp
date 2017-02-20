@@ -21,11 +21,24 @@
 
 #include <exception>
 #include <iostream>
+#include <fstream>
+
+
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncDim.h>
+  #include <ncVar.h>
+  #include <ncFile.h>
+ #else
+  #include <netcdfcpp.h>
+ #endif
 #endif
 
 namespace bp = boost::python;
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
+
 
 namespace escript {
 
@@ -203,6 +216,300 @@ Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
     return d;
 }
 
+#ifdef NETCDF4
+
+// Warning: at time of writing, calls to ncVar::getVar are not range checked as was done under the previous API
+// we want to see if it works first, but at some stage that should be tightened up
+
+Data load(const std::string fileName, const AbstractDomain& domain)
+{
+#ifdef ESYS_HAVE_NETCDF
+    JMPI mpiInfo(domain.getMPI());
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
+    NcFile dataFile;
+    try
+    {
+        // since we don't have a parameter path for specifying file type
+        // we'll look at the magic numbers
+        std::ifstream f(newFileName.c_str());
+        if (!f)
+        {
+            throw DataException("load: opening of netCDF file for input failed.");
+        }
+        char buff[5];
+        f.read(buff, 4);
+        if (!f)
+        {
+            throw DataException("load: opening of netCDF file for input failed.");
+        }
+        buff[4]=0;
+        NcFile::FileFormat fm=NcFile::FileFormat::classic;
+        if (strcmp(buff, "CDF\x01")==0)
+        {
+            fm=NcFile::FileFormat::classic;
+        }
+        else if (strcmp(buff, "CDF\x02")==0)
+        {
+            fm=NcFile::FileFormat::classic64;
+        }
+        else if (strncmp(buff, "HD5", 3)==0)
+        {
+            fm=NcFile::FileFormat::nc4;     // using this rather than nc4classic since we don't intend to write into the file
+        }
+        else
+        {
+            throw DataException("load: opening of netCDF file for input failed - unknown format.");
+        }
+        dataFile.open(newFileName.c_str(), NcFile::FileMode::read, fm);
+    }
+    catch (exceptions::NcException e)
+    {
+            throw DataException("load: opening of netCDF file for input failed.");
+    }
+    Data out;
+    int error = 0;
+    std::string msg;
+    try {
+        int line=0;
+        int rank=-1;
+        int type=-1;
+        int function_space_type=0;  // =0 should not actually be used but we keep compiler happy
+        try
+        {
+            // recover function space            
+            NcGroupAtt fst=dataFile.getAtt("function_space_type");
+            if (fst.getAttLength()!=1)
+            {
+                throw DataException("load: oversize attribute function_space_type");
+            }
+            fst.getValues(&function_space_type);
+        }
+        catch (exceptions::NcException e)
+        {
+                throw DataException("load: cannot recover function_space_type attribute from escript netCDF file.");    
+        }
+        line=0;
+        if (!domain.isValidFunctionSpaceType(function_space_type))
+        {       // jump to outer catch
+            throw DataException("load: function space type code in netCDF file is invalid for given domain.");
+        }
+        FunctionSpace function_space=FunctionSpace(domain.getPtr(), function_space_type);
+        try
+        {
+            line++;
+            NcGroupAtt rt=dataFile.getAtt("rank");
+            if (rt.getAttLength()!=1)
+            {
+                throw DataException("load: oversize attribute rank");
+            }
+            rt.getValues(&rank);
+            line++;
+            if (rank<0 || rank>DataTypes::maxRank)
+                throw DataException("load: rank in escript netCDF file is greater than maximum rank.");            
+            // recover type attribute
+            //   looks like we can have either "type" or "typeid"
+            NcGroupAtt tatt=dataFile.getAtt("type");
+            if (!tatt.isNull())
+            {
+                std::string type_str;
+                tatt.getValues(&type_str);
+                if (type_str=="constant")
+                {
+                    type = 0;
+                }
+                else if (type_str=="tagged")
+                {
+                    type = 1;
+                }
+                else // if (type_str=="expanded")
+                {
+                    type = 2;
+                }
+            }
+            else 
+            {
+                tatt=dataFile.getAtt("type_id");
+                if (!tatt.isNull())
+                {
+                    if (tatt.getAttLength()>1)
+                    {
+                        throw DataException("load: oversize attribute type_id");
+                    }
+                    //type=dataFile.getAtt("type_id").as_int(0);
+                    tatt.getValues(&type);
+                }
+                else
+                {
+                    throw DataException("load: cannot recover type attribute from escript netCDF file.");
+                }
+            }
+        }
+        catch (exceptions::NcException e)
+        {
+            switch (line)
+            {
+            case 1: throw DataException("load: cannot recover rank attribute from escript netCDF file.");
+            default:
+                throw DataException("load: unspecified error.");
+            }
+        }
+        // recover dimension
+        int ndims=dataFile.getDimCount();
+        int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
+        NcDim d_dim, tags_dim, num_samples_dim, num_data_points_per_sample_dim;
+        /* recover shape */
+        DataTypes::ShapeType shape;
+//        long dims[DataTypes::maxRank+2];
+        if (rank>0) {
+            if ((d_dim=dataFile.getDim("d0")).isNull() )
+                throw DataException("load: unable to recover d0 from netCDF file.");
+            d=d_dim.getSize();
+            shape.push_back(d);
+//             dims[0]=d;
+            len_data_point*=d;
+        }
+        if (rank>1) {
+            if ((d_dim=dataFile.getDim("d1")).isNull() )
+                throw DataException("load: unable to recover d1 from netCDF file.");
+            d=d_dim.getSize();
+            shape.push_back(d);
+//             dims[1]=d;
+            len_data_point*=d;
+        }
+        if (rank>2) {
+            if ((d_dim=dataFile.getDim("d2")).isNull() )
+                throw DataException("load: unable to recover d2 from netCDF file.");
+            d=d_dim.getSize();
+            shape.push_back(d);
+//             dims[2]=d;
+            len_data_point*=d;
+        }
+        if (rank>3) {
+            if ((d_dim=dataFile.getDim("d3")).isNull() )
+                throw DataException("load: unable to recover d3 from netCDF file.");
+            d=d_dim.getSize();
+            shape.push_back(d);
+//             dims[3]=d;
+            len_data_point*=d;
+        }
+
+        NcVar var, ids_var, tags_var;
+        if (type == 0) {
+            // constant data
+            if ( ! ( (ndims == rank && rank >0) || ( ndims ==1 && rank == 0 ) ) )
+                throw DataException("load: illegal number of dimensions for constant data in netCDF file.");
+            if (rank == 0) {
+                if ((d_dim=dataFile.getDim("l")).isNull() )
+                    throw DataException("load: unable to recover d0 for scalar constant data in netCDF file.");
+                int d0 = d_dim.getSize();
+                if (d0 != 1)
+                    throw DataException("load: d0 is expected to be one for scalar constant data in netCDF file.");
+//                 dims[0]=1;
+            }
+            out=Data(0,shape,function_space,false);
+            if ((var = dataFile.getVar("data")).isNull())
+                throw DataException("load: unable to find data in netCDF file.");
+            var.getVar(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))));
+        } else if (type == 1) { 
+            // tagged data
+            if ( ! (ndims == rank + 1) )
+                throw DataException("load: illegal number of dimensions for tagged data in netCDF file.");
+            if ((tags_dim=dataFile.getDim("num_tags")).isNull() )
+                throw DataException("load: unable to recover number of tags from netCDF file.");
+            ntags=tags_dim.getSize();
+//             dims[rank]=ntags;
+            std::vector<int> tags(ntags);
+            if (( tags_var = dataFile.getVar("tags")).isNull() )
+                throw DataException("load: unable to find tags in netCDF file.");
+            // oversize could be a problem here?
+            tags_var.getVar(&tags[0]);
+
+            // A) create a DataTagged dt
+            // B) Read data from file
+            // C) copy default value into dt
+            // D) copy tagged values into dt
+            // E) create a new Data based on dt
+
+            NcVar var1;
+            DataTypes::RealVectorType data1(len_data_point * ntags, 0., len_data_point * ntags);
+            if ((var1 = dataFile.getVar("data")).isNull())
+                throw DataException("load: unable to find data in netCDF file.");
+            var1.getVar(&(data1[0])); 
+            DataTagged* dt=new DataTagged(function_space, shape, &tags[0], data1);
+            out=Data(dt);
+        } else if (type == 2) {
+            // expanded data
+            if ( ! (ndims == rank + 2) )
+                throw DataException("load: illegal number of dimensions for expanded data in netCDF file.");
+            if ((num_samples_dim = dataFile.getDim("num_samples")).isNull() )
+                throw DataException("load: unable to recover number of samples from netCDF file.");
+            num_samples = num_samples_dim.getSize();
+            if ((num_data_points_per_sample_dim = dataFile.getDim("num_data_points_per_sample")).isNull() )
+                throw DataException("load: unable to recover number of data points per sample from netCDF file.");
+            num_data_points_per_sample=num_data_points_per_sample_dim.getSize();
+            // check shape:
+            if ( ! (num_samples == function_space.getNumSamples() && num_data_points_per_sample == function_space.getNumDataPointsPerSample()) )
+                throw DataException("load: data sample layout of file does not match data layout of function space.");
+            if (num_samples==0) {
+                out = Data(0,shape,function_space,true);
+            } else {
+                // get ids
+                if (( ids_var = dataFile.getVar("id")).isNull() )
+                    throw DataException("load: unable to find reference ids in netCDF file.");
+                const DataTypes::dim_t* ids_p=function_space.borrowSampleReferenceIDs();
+                std::vector<DataTypes::dim_t> ids_of_nc(num_samples);
+                // oversize could be a problem here
+                ids_var.getVar(&ids_of_nc[0]);
+                // check order:
+                int failed=-1, local_failed=-1, i;
+#pragma omp parallel private(local_failed)
+                {
+                    local_failed=-1;
+#pragma omp for private(i) schedule(static)
+                    for (i=0; i < num_samples; ++i) {
+                        if (ids_of_nc[i]!=ids_p[i]) local_failed=i;
+                    }
+#pragma omp critical
+                    if (local_failed>=0) failed = local_failed;
+                }
+                // get the data:
+//                 dims[rank]=num_data_points_per_sample;
+//                 dims[rank+1]=num_samples;
+                out=Data(0,shape,function_space,true);
+                if ((var = dataFile.getVar("data")).isNull())
+                    throw DataException("load: unable to find data in netCDF file.");
+                var.getVar(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))));
+                if (failed >= 0) {
+                    try {
+                        std::cout << "Information - load: start reordering data from netCDF file " << fileName << std::endl;
+                        out.borrowData()->reorderByReferenceIDs(&ids_of_nc[0]);
+                    } catch (std::exception&) {
+                        throw DataException("load: unable to reorder data in netCDF file.");
+                    }
+                }
+            }
+        } else {
+            throw DataException("load: unknown escript data type in netCDF file.");
+        }
+    } catch (DataException& e) {
+        error=1;
+        msg=e.what();
+    }
+    int gerror = error;
+    checkResult(error, gerror, mpiInfo);
+    if (gerror > 0) {
+        char* gmsg;
+        shipString(msg.c_str(), &gmsg, mpiInfo->comm);
+        throw DataException(gmsg);
+    }
+    return out;
+#else
+    throw DataException("load: not compiled with netCDF. Please contact your"
+                        " installation manager.");
+#endif // ESYS_HAVE_NETCDF
+}
+
+#else
 
 Data load(const std::string fileName, const AbstractDomain& domain)
 {
@@ -411,6 +718,8 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                         " installation manager.");
 #endif // ESYS_HAVE_NETCDF
 }
+
+#endif
 
 bool loadConfigured()
 {
