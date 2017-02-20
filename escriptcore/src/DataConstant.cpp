@@ -534,6 +534,7 @@ DataConstant::dump(const std::string fileName) const
     vector<NcDim> ncdims;
     int rank = getRank();
     int type=  getFunctionSpace().getTypeCode();
+
     //long dims[DataTypes::maxRank];
     const double* d_ptr=&(m_data_r[0]);
     DataTypes::ShapeType shape = getShape();
@@ -588,9 +589,13 @@ DataConstant::dump(const std::string fileName) const
             throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");           
         }
 //         dims[0]=1,
-//         ndims=1;
+#ifdef ESYS_MPI
+        ndims=1;
+#endif        
     } else {
-//         ndims=rank;
+#ifdef ESYS_MPI        
+        ndims=rank;
+#endif        
 //         dims[0]=shape[0];
         try
         {
@@ -637,7 +642,7 @@ DataConstant::dump(const std::string fileName) const
 
     try
     {
-        line=0;
+        line=0;     
         NcVar var = dataFile.addVar("data", ncDouble, ncdims);
         line++;
             // d_ptr is the data itself, dims is the shape
