@@ -39,13 +39,26 @@ using esys_trilinos::const_TrilinosGraph_ptr;
 #include <boost/scoped_array.hpp>
 
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncVar.h>
+  #include <ncDim.h>
+  #include <escript/NCHelper.h>
+ #else
+   #include <netcdfcpp.h>
+ #endif
 #endif
+
+
 
 using namespace std;
 namespace bp = boost::python;
 using escript::NotImplementedError;
 using escript::ValueError;
+
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
+
 
 namespace finley {
 
@@ -192,6 +205,359 @@ void FinleyDomain::relabelElementNodes(const IndexVector& newNode, index_t offse
     m_contactElements->relabelNodes(newNode, offset);
     m_points->relabelNodes(newNode, offset);
 }
+
+#ifdef NETCDF4
+
+void FinleyDomain::dump(const string& fileName) const
+{
+#ifdef ESYS_HAVE_NETCDF
+    NcDim ncdims[12];
+    NcVar ids;
+    index_t* index_ptr;
+#ifdef ESYS_INDEXTYPE_LONG
+    NcType ncIdxType = ncLong;
+#else
+    NcType ncIdxType = ncInt;
+#endif
+    int num_Tags = 0;
+    int mpi_size                     = getMPISize();
+    int mpi_rank                     = getMPIRank();
+    int numDim                       = m_nodes->numDim;
+    dim_t numNodes                   = m_nodes->getNumNodes();
+    dim_t num_Elements               = m_elements->numElements;
+    dim_t num_FaceElements           = m_faceElements->numElements;
+    dim_t num_ContactElements        = m_contactElements->numElements;
+    dim_t num_Points                 = m_points->numElements;
+    int num_Elements_numNodes        = m_elements->numNodes;
+    int num_FaceElements_numNodes    = m_faceElements->numNodes;
+    int num_ContactElements_numNodes = m_contactElements->numNodes;
+#ifdef ESYS_MPI
+    MPI_Status status;
+#endif
+
+    // Incoming token indicates it's my turn to write
+#ifdef ESYS_MPI
+    if (mpi_rank > 0)
+        MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, getMPIComm(), &status);
+#endif
+
+    const string newFileName(m_mpiInfo->appendRankToFileName(fileName));
+
+    // Figure out how much storage is required for tags
+    num_Tags = m_tagMap.size();
+    
+    NcFile dataFile;
+    try
+    {
+        dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
+    }
+    catch (exceptions::NcException e)
+    {
+        throw FinleyException("Error - DataExpanded:: opening of netCDF file for output failed.");
+    }    
+    
+    
+    string msgPrefix("Error in FinleyDomain::dump: NetCDF operation failed - ");
+    // Define dimensions (num_Elements and dim_Elements are identical,
+    // dim_Elements only appears if > 0)
+    if ((ncdims[0] = dataFile.addDim("numNodes", numNodes)).isNull() )
+        throw FinleyException(msgPrefix+"add_dim(numNodes)");
+    if ((ncdims[1] = dataFile.addDim("numDim", numDim)).isNull() )
+        throw FinleyException(msgPrefix+"add_dim(numDim)");
+    if ((ncdims[2] = dataFile.addDim("mpi_size_plus_1", mpi_size+1)).isNull() )
+        throw FinleyException(msgPrefix+"add_dim(mpi_size)");
+    if (num_Elements > 0)
+        if ((ncdims[3] = dataFile.addDim("dim_Elements", num_Elements)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_Elements)");
+    if (num_FaceElements > 0)
+        if ((ncdims[4] = dataFile.addDim("dim_FaceElements", num_FaceElements)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_FaceElements)");
+    if (num_ContactElements > 0)
+        if ((ncdims[5] = dataFile.addDim("dim_ContactElements", num_ContactElements)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_ContactElements)");
+    if (num_Points > 0)
+        if ((ncdims[6] = dataFile.addDim("dim_Points", num_Points)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_Points)");
+    if (num_Elements > 0)
+        if ((ncdims[7] = dataFile.addDim("dim_Elements_Nodes", num_Elements_numNodes)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_Elements_Nodes)");
+    if (num_FaceElements > 0)
+        if ((ncdims[8] = dataFile.addDim("dim_FaceElements_numNodes", num_FaceElements_numNodes)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_FaceElements_numNodes)");
+    if (num_ContactElements > 0)
+        if ((ncdims[9] = dataFile.addDim("dim_ContactElements_numNodes", num_ContactElements_numNodes)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_ContactElements_numNodes)");
+    if (num_Tags > 0)
+        if ((ncdims[10] = dataFile.addDim("dim_Tags", num_Tags)).isNull() )
+            throw FinleyException(msgPrefix+"add_dim(dim_Tags)");
+
+    // Attributes: MPI size, MPI rank, Name, order, reduced_order
+    NcInt ni;
+    if (dataFile.putAtt("index_size", ni, (int)sizeof(index_t)).isNull())
+        throw FinleyException(msgPrefix+"putAtt(index_size)");
+    if (dataFile.putAtt("mpi_size", ni, mpi_size).isNull())
+        throw FinleyException(msgPrefix+"putAtt(mpi_size)");
+    if (dataFile.putAtt("mpi_rank", ni, mpi_rank).isNull())
+        throw FinleyException(msgPrefix+"putAtt(mpi_rank)");
+    if (dataFile.putAtt("Name", m_name).isNull())
+        throw FinleyException(msgPrefix+"putAtt(Name)");
+    if (dataFile.putAtt("numDim", ni, numDim).isNull())
+        throw FinleyException(msgPrefix+"putAtt(order)");
+    if (dataFile.putAtt("order", ni, integrationOrder).isNull())
+        throw FinleyException(msgPrefix+"putAtt(order)");
+    if (dataFile.putAtt("reduced_order", ni, reducedIntegrationOrder).isNull())
+        throw FinleyException(msgPrefix+"putAtt(reduced_order)");
+    if (dataFile.putAtt("numNodes", ni, numNodes).isNull())
+        throw FinleyException(msgPrefix+"putAtt(numNodes)");
+    if (dataFile.putAtt("num_Elements", ni, num_Elements).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_Elements)");
+    if (dataFile.putAtt("num_FaceElements", ni, num_FaceElements).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_FaceElements)");
+    if (dataFile.putAtt("num_ContactElements", ni, num_ContactElements).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_ContactElements)");
+    if (dataFile.putAtt("num_Points", ni, num_Points).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_Points)");
+    if (dataFile.putAtt("num_Elements_numNodes", ni, num_Elements_numNodes).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_Elements_numNodes)");
+    if (dataFile.putAtt("num_FaceElements_numNodes", ni, num_FaceElements_numNodes).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_FaceElements_numNodes)");
+    if (dataFile.putAtt("num_ContactElements_numNodes", ni, num_ContactElements_numNodes).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_ContactElements_numNodes)");
+    if (dataFile.putAtt("Elements_TypeId", ni, m_elements->referenceElementSet->referenceElement->Type->TypeId).isNull() )
+        throw FinleyException(msgPrefix+"putAtt(Elements_TypeId)");
+    if (dataFile.putAtt("FaceElements_TypeId", ni, m_faceElements->referenceElementSet->referenceElement->Type->TypeId).isNull() )
+        throw FinleyException(msgPrefix+"putAtt(FaceElements_TypeId)");
+    if (dataFile.putAtt("ContactElements_TypeId", ni, m_contactElements->referenceElementSet->referenceElement->Type->TypeId).isNull() )
+        throw FinleyException(msgPrefix+"putAtt(ContactElements_TypeId)");
+    if (dataFile.putAtt("Points_TypeId", ni, m_points->referenceElementSet->referenceElement->Type->TypeId).isNull() )
+        throw FinleyException(msgPrefix+"putAtt(Points_TypeId)");
+    if (dataFile.putAtt("num_Tags", ni, num_Tags).isNull())
+        throw FinleyException(msgPrefix+"putAtt(num_Tags)");
+
+    // // // // // Nodes // // // // //
+
+    // Nodes nodeDistribution
+    if ((ids = dataFile.addVar("Nodes_NodeDistribution", ncIdxType, ncdims[2])).isNull() )
+        throw FinleyException(msgPrefix+"add_var(Nodes_NodeDistribution)");
+    index_ptr = &m_nodes->nodesDistribution->first_component[0];
+    ids.putVar(index_ptr);    // don't think I need to specify bounds here but it should be mpi_size+1
+
+    // Nodes degreesOfFreedomDistribution
+    if (( ids = dataFile.addVar("Nodes_DofDistribution", ncIdxType, ncdims[2])).isNull() )
+        throw FinleyException(msgPrefix+"add_var(Nodes_DofDistribution)");
+    index_ptr = &m_nodes->degreesOfFreedomDistribution->first_component[0];
+    ids.putVar(index_ptr);    // don't think I need to specify bounds here but it should be mpi_size+1
+
+    // Only write nodes if non-empty because NetCDF doesn't like empty arrays
+    // (it treats them as NC_UNLIMITED)
+    if (numNodes > 0) {
+        // Nodes Id
+        if (( ids = dataFile.addVar("Nodes_Id", ncIdxType, ncdims[0])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_Id)");
+        ids.putVar(&m_nodes->Id[0]);    // should be numNodes values written
+
+        // Nodes Tag
+        if (( ids = dataFile.addVar("Nodes_Tag", ncInt, ncdims[0])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_Tag)");
+        ids.putVar(&m_nodes->Tag[0]);    // should be numNodes values written
+
+        // Nodes gDOF
+        if (( ids = dataFile.addVar("Nodes_gDOF", ncIdxType, ncdims[0])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_gDOF)");
+        ids.putVar(&m_nodes->globalDegreesOfFreedom[0]);  // should be numNodes values written
+
+        // Nodes global node index
+        if (( ids = dataFile.addVar("Nodes_gNI", ncIdxType, ncdims[0])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_gNI)");
+        ids.putVar(&m_nodes->globalNodesIndex[0]);     // should be numNodes values written
+
+        // Nodes grDof
+        if (( ids = dataFile.addVar("Nodes_grDfI", ncIdxType, ncdims[0])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_grDfI)");
+        ids.putVar(&m_nodes->globalReducedDOFIndex[0]);     // should be numNodes values written
+
+        // Nodes grNI
+        if (( ids = dataFile.addVar("Nodes_grNI", ncIdxType, ncdims[0])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_grNI)");
+        ids.putVar(&m_nodes->globalReducedNodesIndex[0]);     // should be numNodes values written
+
+        // Nodes Coordinates
+        vector<NcDim> ncds;
+        ncds.push_back(ncdims[0]);
+        ncds.push_back(ncdims[1]);
+        if (( ids = dataFile.addVar("Nodes_Coordinates", ncDouble, ncds)).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Nodes_Coordinates)");
+        ids.putVar(m_nodes->Coordinates);  // should be (numNodes, numDim) values written
+    }
+
+    // // // // // Elements // // // // //
+    if (num_Elements > 0) {
+        // Elements_Id
+        if (( ids = dataFile.addVar("Elements_Id", ncIdxType, ncdims[3])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Elements_Id)");
+        ids.putVar(m_elements->Id);     // write num_Elements values
+
+        // Elements_Tag
+        if (( ids = dataFile.addVar("Elements_Tag", ncInt, ncdims[3])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Elements_Tag)");
+        ids.putVar(m_elements->Tag);   // write num_Elements values
+
+        // Elements_Owner
+        if (( ids = dataFile.addVar("Elements_Owner", ncInt, ncdims[3])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Elements_Owner)");
+        ids.putVar(m_elements->Owner);    // write num_Elements values
+
+        // Elements_Color
+        if (( ids = dataFile.addVar("Elements_Color", ncInt, ncdims[3])).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Elements_Color)");
+        ids.putVar(m_elements->Color);   // write num_Elements values
+
+        // Elements_Nodes
+        vector<NcDim> dv;
+        dv.push_back(ncdims[3]);
+        dv.push_back(ncdims[7]);
+        if (( ids = dataFile.addVar("Elements_Nodes", ncIdxType, dv) ).isNull() )
+            throw FinleyException(msgPrefix+"add_var(Elements_Nodes)");
+        ids.putVar(&m_elements->Nodes[0]); //(, num_Elements, num_Elements_numNodes) values written
+    }
+
+    // // // // // Face_Elements // // // // //
+    if (num_FaceElements > 0) {
+        // FaceElements_Id
+        if ((ids = dataFile.addVar("FaceElements_Id", ncIdxType, ncdims[4])).isNull())
+            throw FinleyException(msgPrefix+"add_var(FaceElements_Id)");
+        ids.putVar(m_faceElements->Id);   // num_FaceElements values written
+
+        // FaceElements_Tag
+        if ((ids = dataFile.addVar("FaceElements_Tag", ncInt, ncdims[4])).isNull())
+            throw FinleyException(msgPrefix+"add_var(FaceElements_Tag)");
+        ids.putVar(m_faceElements->Tag);    //  num_FaceElements
+
+        // FaceElements_Owner
+        if ((ids = dataFile.addVar("FaceElements_Owner", ncInt, ncdims[4])).isNull())
+            throw FinleyException(msgPrefix+"add_var(FaceElements_Owner)");
+        ids.putVar(m_faceElements->Owner);  // num_FaceElements
+
+        // FaceElements_Color
+        if ((ids = dataFile.addVar("FaceElements_Color", ncIdxType, ncdims[4])).isNull())
+            throw FinleyException(msgPrefix+"add_var(FaceElements_Color)");
+        ids.putVar(m_faceElements->Color);    // num_FaceElements
+
+        // FaceElements_Nodes
+        vector<NcDim> dv;
+        dv.push_back(ncdims[4]);
+        dv.push_back(ncdims[8]);
+        if ((ids = dataFile.addVar("FaceElements_Nodes", ncIdxType, dv)).isNull())
+            throw FinleyException(msgPrefix+"add_var(FaceElements_Nodes)");
+        ids.putVar(m_faceElements->Nodes);  // num_FaceElements_numNodes
+
+    }
+
+    // // // // // Contact_Elements // // // // //
+    if (num_ContactElements > 0) {
+        // ContactElements_Id
+        if ((ids = dataFile.addVar("ContactElements_Id", ncIdxType, ncdims[5])).isNull())
+            throw FinleyException(msgPrefix+"add_var(ContactElements_Id)");
+        ids.putVar(m_contactElements->Id);  // num_ContactElements values written
+
+        // ContactElements_Tag
+        if ((ids = dataFile.addVar("ContactElements_Tag", ncInt, ncdims[5])).isNull())
+            throw FinleyException(msgPrefix+"add_var(ContactElements_Tag)");
+        ids.putVar(m_contactElements->Tag);   // num_ContactElements values written
+
+        // ContactElements_Owner
+        if ((ids = dataFile.addVar("ContactElements_Owner", ncInt, ncdims[5])).isNull())
+            throw FinleyException(msgPrefix+"add_var(ContactElements_Owner)");
+        ids.putVar(m_contactElements->Owner);    // num_ContactElements values written
+
+        // ContactElements_Color
+        if ((ids = dataFile.addVar("ContactElements_Color", ncInt, ncdims[5])).isNull())
+            throw FinleyException(msgPrefix+"add_var(ContactElements_Color)");
+        ids.putVar(m_contactElements->Color); // num_ContactElements values written
+
+        // ContactElements_Nodes
+        vector<NcDim> dv;
+        dv.push_back(ncdims[5]);
+        dv.push_back(ncdims[9]);
+        if ((ids = dataFile.addVar("ContactElements_Nodes", ncIdxType, dv)).isNull())
+            throw FinleyException(msgPrefix+"add_var(ContactElements_Nodes)");
+        ids.putVar(m_contactElements->Nodes); // (num_ContactElements, num_ContactElements_numNodes) values written
+    }
+
+    // // // // // Points // // // // //
+    if (num_Points > 0) {
+        // Points_Id
+        if ((ids = dataFile.addVar("Points_Id", ncIdxType, ncdims[6])).isNull())
+            throw FinleyException(msgPrefix+"add_var(Points_Id)");
+        ids.putVar(m_points->Id); // num_Points
+
+        // Points_Tag
+        if ((ids = dataFile.addVar("Points_Tag", ncInt, ncdims[6])).isNull())
+            throw FinleyException(msgPrefix+"add_var(Points_Tag)");
+        ids.putVar(m_points->Tag);    // num_Points
+
+        // Points_Owner
+        if ((ids = dataFile.addVar("Points_Owner", ncInt, ncdims[6])).isNull())
+            throw FinleyException(msgPrefix+"add_var(Points_Owner)");
+        ids.putVar(m_points->Owner);  // num_Points
+
+        // Points_Color
+        if ((ids = dataFile.addVar("Points_Color", ncIdxType, ncdims[6])).isNull())
+            throw FinleyException(msgPrefix+"add_var(Points_Color)");
+        ids.putVar(m_points->Color);  // num_Points
+
+        // Points_Nodes
+        if ((ids = dataFile.addVar("Points_Nodes", ncIdxType, ncdims[6])).isNull())
+            throw FinleyException(msgPrefix+"add_var(Points_Nodes)");
+        ids.putVar(m_points->Nodes);  // num_Points)))
+
+    }
+
+    // // // // // TagMap // // // // //
+    if (num_Tags > 0) {
+        // Temp storage to gather node IDs
+        vector<int> Tags_keys;
+
+        // Copy tag data into temp arrays
+        TagMap::const_iterator it;
+        for (it = m_tagMap.begin(); it != m_tagMap.end(); it++) {
+            Tags_keys.push_back(it->second);
+        }
+
+        // Tags_keys
+        if ((ids = dataFile.addVar("Tags_keys", ncInt, ncdims[10])).isNull())
+            throw FinleyException(msgPrefix+"add_var(Tags_keys)");
+        ids.putVar(&Tags_keys[0]);  // num_Tags
+
+        // Tags_names_*
+        // This is an array of strings, it should be stored as an array but
+        // instead I have hacked in one attribute per string because the NetCDF
+        // manual doesn't tell how to do an array of strings
+        int i = 0;
+        for (it = m_tagMap.begin(); it != m_tagMap.end(); it++, i++) {
+            stringstream ss;
+            ss << "Tags_name_" << i;
+            const string name(ss.str());
+            if (dataFile.putAtt(name.c_str(), it->first).isNull())
+                throw FinleyException(msgPrefix+"add_att(Tags_names_X)");
+        }
+    }
+
+    // Send token to next MPI process so he can take his turn
+#ifdef ESYS_MPI
+    if (mpi_rank < mpi_size-1)
+        MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
+#endif
+
+    // NetCDF file is closed by destructor of NcFile object
+
+#else
+    throw FinleyException("FinleyDomain::dump: not configured with netCDF. "
+                          "Please contact your installation manager.");
+#endif // ESYS_HAVE_NETCDF
+}
+
+#else
 
 void FinleyDomain::dump(const string& fileName) const
 {
@@ -553,6 +919,8 @@ void FinleyDomain::dump(const string& fileName) const
                           "Please contact your installation manager.");
 #endif // ESYS_HAVE_NETCDF
 }
+
+#endif
 
 string FinleyDomain::getDescription() const
 {
