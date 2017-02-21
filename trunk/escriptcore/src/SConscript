@@ -48,6 +48,7 @@ sources = """
     LapackInverseHelper.cpp
     MPIDataReducer.cpp
     MPIScalarReducer.cpp
+    NCHelper.cpp
     NonReducedVariable.cpp
     NullDomain.cpp
     pyerr.cpp
@@ -99,6 +100,7 @@ headers = """
     FunctionSpaceFactory.h
     IndexList.h
     LapackInverseHelper.h
+    NCHelper.h
     NonReducedVariable.h
     NullDomain.h
     MPIDataReducer.h

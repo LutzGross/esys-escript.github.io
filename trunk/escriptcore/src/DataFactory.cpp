@@ -29,6 +29,9 @@
   #include <ncDim.h>
   #include <ncVar.h>
   #include <ncFile.h>
+  
+ #include "NCHelper.h"  
+  
  #else
   #include <netcdfcpp.h>
  #endif
@@ -227,44 +230,9 @@ Data load(const std::string fileName, const AbstractDomain& domain)
     JMPI mpiInfo(domain.getMPI());
     const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     NcFile dataFile;
-    try
+    if (!openNcFile(dataFile, newFileName))
     {
-        // since we don't have a parameter path for specifying file type
-        // we'll look at the magic numbers
-        std::ifstream f(newFileName.c_str());
-        if (!f)
-        {
-            throw DataException("load: opening of netCDF file for input failed.");
-        }
-        char buff[5];
-        f.read(buff, 4);
-        if (!f)
-        {
-            throw DataException("load: opening of netCDF file for input failed.");
-        }
-        buff[4]=0;
-        NcFile::FileFormat fm=NcFile::FileFormat::classic;
-        if (strcmp(buff, "CDF\x01")==0)
-        {
-            fm=NcFile::FileFormat::classic;
-        }
-        else if (strcmp(buff, "CDF\x02")==0)
-        {
-            fm=NcFile::FileFormat::classic64;
-        }
-        else if (strncmp(buff, "HD5", 3)==0)
-        {
-            fm=NcFile::FileFormat::nc4;     // using this rather than nc4classic since we don't intend to write into the file
-        }
-        else
-        {
-            throw DataException("load: opening of netCDF file for input failed - unknown format.");
-        }
-        dataFile.open(newFileName.c_str(), NcFile::FileMode::read, fm);
-    }
-    catch (exceptions::NcException e)
-    {
-            throw DataException("load: opening of netCDF file for input failed.");
+        throw DataException("load: opening of netCDF file for input failed.");
     }
     Data out;
     int error = 0;
