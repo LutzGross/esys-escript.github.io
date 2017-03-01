@@ -20,7 +20,14 @@
 #include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_NETCDF
+#ifdef NETCDF4
+  #include <ncDim.h>
+  #include <ncVar.h>
+  #include <ncFile.h>  
+  #include <escript/NCHelper.h>  
+#else
 #include <netcdfcpp.h>
+#endif
 #endif
 
 #include <boost/python/extract.hpp>
@@ -32,9 +39,31 @@ using namespace std;
 using namespace escript;
 namespace bp = boost::python;
 
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
+
 namespace dudley {
 
 #ifdef ESYS_HAVE_NETCDF
+#ifdef NETCDF4
+
+// A convenience method to retrieve an integer attribute from a NetCDF file
+template<typename T>
+T ncReadAtt(NcFile& dataFile, const string& fName, const string& attrName)
+{
+    NcGroupAtt attr = dataFile.getAtt(attrName.c_str());
+    if (attr.isNull()) {
+        stringstream msg;
+        msg << "loadMesh: Error retrieving integer attribute '" << attrName
+            << "' from NetCDF file '" << fName << "'";
+        throw IOError(msg.str());
+    }
+    T value;
+    attr.getValues(&value);
+    return value;
+}
+#else        
 // A convenience method to retrieve an integer attribute from a NetCDF file
 template<typename T>
 T ncReadAtt(NcFile* dataFile, const string& fName, const string& attrName)
@@ -51,6 +80,7 @@ T ncReadAtt(NcFile* dataFile, const string& fName, const string& attrName)
     return value;
 }
 #endif
+#endif
 
 inline void cleanupAndThrow(DudleyDomain* dom, string msg)
 {
@@ -58,6 +88,279 @@ inline void cleanupAndThrow(DudleyDomain* dom, string msg)
     string msgPrefix("loadMesh: NetCDF operation failed - ");
     throw IOError(msgPrefix+msg);
 }
+
+#ifdef NETCDF4
+
+Domain_ptr DudleyDomain::load(const string& fileName)
+{
+#ifdef ESYS_HAVE_NETCDF
+    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
+    const string fName(mpiInfo->appendRankToFileName(fileName));
+
+    // Open NetCDF file for reading
+    NcGroupAtt attr;
+    NcVar nc_var_temp;
+    NcFile dataFile;
+    if (!openNcFile(dataFile, fileName))
+    {
+        throw IOError("load: opening of netCDF file for input failed.");
+    }        
+
+    // Read NetCDF integer attributes
+
+    // index_size was only introduced with 64-bit index support so fall back
+    // to 32 bits if not found.
+    int index_size;
+    try {
+        index_size = ncReadAtt<int>(dataFile, fName, "index_size");
+    } catch (IOError& e) {
+        index_size = 4;
+    }
+    // technically we could cast if reading 32-bit data on 64-bit escript
+    // but cost-benefit analysis clearly favours this implementation for now
+    if (sizeof(index_t) != index_size) {
+        throw IOError("loadMesh: size of index types at runtime differ from dump file");
+    }
+
+    int mpi_size = ncReadAtt<int>(dataFile, fName, "mpi_size");
+    int mpi_rank = ncReadAtt<int>(dataFile, fName, "mpi_rank");
+    int numDim = ncReadAtt<int>(dataFile, fName, "numDim");
+    dim_t numNodes = ncReadAtt<dim_t>(dataFile, fName, "numNodes");
+    dim_t num_Elements = ncReadAtt<dim_t>(dataFile, fName, "num_Elements");
+    dim_t num_FaceElements = ncReadAtt<dim_t>(dataFile, fName, "num_FaceElements");
+    dim_t num_Points = ncReadAtt<dim_t>(dataFile, fName, "num_Points");
+    int num_Elements_numNodes = ncReadAtt<int>(dataFile, fName, "num_Elements_numNodes");
+    int Elements_TypeId = ncReadAtt<int>(dataFile, fName, "Elements_TypeId");
+    int num_FaceElements_numNodes = ncReadAtt<int>(dataFile, fName, "num_FaceElements_numNodes");
+    int FaceElements_TypeId = ncReadAtt<int>(dataFile, fName, "FaceElements_TypeId");
+    int Points_TypeId = ncReadAtt<int>(dataFile, fName, "Points_TypeId");
+    int num_Tags = ncReadAtt<int>(dataFile, fName, "num_Tags");
+
+    // Verify size and rank
+    if (mpiInfo->size != mpi_size) {
+        stringstream msg;
+        msg << "loadMesh: The NetCDF file '" << fName
+            << "' can only be read on " << mpi_size
+            << " CPUs. Currently running: " << mpiInfo->size;
+        throw DudleyException(msg.str());
+    }
+    if (mpiInfo->rank != mpi_rank) {
+        stringstream msg;
+        msg << "loadMesh: The NetCDF file '" << fName
+            << "' should be read on CPU #" << mpi_rank
+            << " and NOT on #" << mpiInfo->rank;
+        throw DudleyException(msg.str());
+    }
+
+    // Read mesh name
+    if ((attr=dataFile.getAtt("Name")), attr.isNull() ) {
+        stringstream msg;
+        msg << "loadMesh: Error retrieving mesh name from NetCDF file '"
+            << fName << "'";
+        throw IOError(msg.str());
+    }
+    string name;
+    attr.getValues(name);
+
+    // allocate mesh
+    DudleyDomain* dom = new DudleyDomain(name.c_str(), numDim, mpiInfo);
+
+    // read nodes
+    NodeFile* nodes = dom->getNodes();
+    nodes->allocTable(numNodes);
+    // Nodes_Id
+    if (( nc_var_temp = dataFile.getVar("Nodes_Id")), nc_var_temp.isNull() )
+        cleanupAndThrow(dom, "get_var(Nodes_Id)");
+    nc_var_temp.getVar(&nodes->Id[0]);    // numNodes) )
+    // Nodes_Tag
+    if (( nc_var_temp = dataFile.getVar("Nodes_Tag")), nc_var_temp.isNull() )
+        cleanupAndThrow(dom, "get_var(Nodes_Tag)");
+    nc_var_temp.getVar(&nodes->Tag[0]);   // numNodes
+    // Nodes_gDOF
+    if (( nc_var_temp = dataFile.getVar("Nodes_gDOF")), nc_var_temp.isNull() )
+        cleanupAndThrow(dom, "get_var(Nodes_gDOF)");
+    nc_var_temp.getVar(&nodes->globalDegreesOfFreedom[0]);  // numNodes
+    // Nodes_gNI
+    if (( nc_var_temp = dataFile.getVar("Nodes_gNI")), nc_var_temp.isNull() )
+        cleanupAndThrow(dom, "get_var(Nodes_gNI)");
+    nc_var_temp.getVar(&nodes->globalNodesIndex[0]);    // numNodes
+    // Nodes_Coordinates
+    if ((nc_var_temp = dataFile.getVar("Nodes_Coordinates")), nc_var_temp.isNull())
+        cleanupAndThrow(dom, "get_var(Nodes_Coordinates)");
+    nc_var_temp.getVar(&nodes->Coordinates[0]); // numNodes, numDim
+
+    nodes->updateTagList();
+
+    // read elements
+    ElementFile* elements = new ElementFile((ElementTypeId)Elements_TypeId, mpiInfo);
+    dom->setElements(elements);
+    elements->allocTable(num_Elements);
+    elements->minColor = 0;
+    elements->maxColor = num_Elements-1;
+    if (num_Elements > 0) {
+       // Elements_Id
+       if (( nc_var_temp = dataFile.getVar("Elements_Id")), nc_var_temp.isNull() )
+           cleanupAndThrow(dom, "get_var(Elements_Id)");
+       nc_var_temp.getVar(&elements->Id[0]);    // num_Elements
+       // Elements_Tag
+       if (( nc_var_temp = dataFile.getVar("Elements_Tag")), nc_var_temp.isNull())
+           cleanupAndThrow(dom, "get_var(Elements_Tag)");
+       nc_var_temp.getVar(&elements->Tag[0]);   // num_Elements
+       // Elements_Owner
+       if (( nc_var_temp = dataFile.getVar("Elements_Owner")), nc_var_temp.isNull() )
+           cleanupAndThrow(dom, "get_var(Elements_Owner)");
+       nc_var_temp.getVar(&elements->Owner[0]); // num_Elements
+       // Elements_Color
+       if (( nc_var_temp = dataFile.getVar("Elements_Color")), nc_var_temp.isNull() )
+           cleanupAndThrow(dom, "get_var(Elements_Color)");
+       nc_var_temp.getVar(&elements->Color[0]); // num_Elements
+       // Elements_Nodes
+       int* Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
+       if ((nc_var_temp = dataFile.getVar("Elements_Nodes")), nc_var_temp.isNull()) {
+           delete[] Elements_Nodes;
+           cleanupAndThrow(dom, "get_var(Elements_Nodes)");
+       }
+       nc_var_temp.getVar(&Elements_Nodes[0]);  // num_Elements, num_Elements_numNodes
+       // Copy temp array into elements->Nodes
+       for (index_t i = 0; i < num_Elements; i++) {
+           for (int j = 0; j < num_Elements_numNodes; j++) {
+               elements->Nodes[INDEX2(j,i,num_Elements_numNodes)]
+                    = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
+           }
+       }
+       delete[] Elements_Nodes;
+    } // num_Elements > 0
+    elements->updateTagList();
+
+    // get the face elements
+    ElementFile* faces = new ElementFile((ElementTypeId)FaceElements_TypeId, mpiInfo);
+    dom->setFaceElements(faces);
+    faces->allocTable(num_FaceElements);
+    faces->minColor = 0;
+    faces->maxColor = num_FaceElements-1;
+    if (num_FaceElements > 0) {
+        // FaceElements_Id
+        if (( nc_var_temp = dataFile.getVar("FaceElements_Id")), nc_var_temp.isNull() )
+            cleanupAndThrow(dom, "get_var(FaceElements_Id)");
+        nc_var_temp.getVar(&faces->Id[0]);  // num_FaceElements
+        // FaceElements_Tag
+        if (( nc_var_temp = dataFile.getVar("FaceElements_Tag")), nc_var_temp.isNull() )
+            cleanupAndThrow(dom, "get_var(FaceElements_Tag)");
+        nc_var_temp.getVar(&faces->Tag[0]); // num_FaceElements) )
+        // FaceElements_Owner
+        if (( nc_var_temp = dataFile.getVar("FaceElements_Owner")), nc_var_temp.isNull() )
+            cleanupAndThrow(dom, "get_var(FaceElements_Owner)");
+        nc_var_temp.getVar(&faces->Owner[0]);   //, num_FaceElements) )
+        // FaceElements_Color
+        if (( nc_var_temp = dataFile.getVar("FaceElements_Color")), nc_var_temp.isNull() )
+            cleanupAndThrow(dom, "get_var(FaceElements_Color)");
+        nc_var_temp.getVar(&faces->Color[0]);   //, num_FaceElements) )
+        // FaceElements_Nodes
+        int* FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
+        if ((nc_var_temp = dataFile.getVar("FaceElements_Nodes")), nc_var_temp.isNull()) {
+            delete[] FaceElements_Nodes;
+            cleanupAndThrow(dom, "get_var(FaceElements_Nodes)");
+        }
+        nc_var_temp.getVar(&(FaceElements_Nodes[0]));   // num_FaceElements, num_FaceElements_numNodes
+        // Copy temp array into faces->Nodes
+        for (index_t i = 0; i < num_FaceElements; i++) {
+            for (int j = 0; j < num_FaceElements_numNodes; j++) {
+                faces->Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
+            }
+        }
+        delete[] FaceElements_Nodes;
+    } // num_FaceElements > 0
+    faces->updateTagList();
+
+    // get the Points (nodal elements)
+    ElementFile* points = new ElementFile((ElementTypeId)Points_TypeId, mpiInfo);
+    dom->setPoints(points);
+    points->allocTable(num_Points);
+    points->minColor = 0;
+    points->maxColor = num_Points-1;
+    if (num_Points > 0) {
+        // Points_Id
+        if (( nc_var_temp = dataFile.getVar("Points_Id")), nc_var_temp.isNull())
+            cleanupAndThrow(dom, "get_var(Points_Id)");
+        nc_var_temp.getVar(&points->Id[0]); // num_Points
+        // Points_Tag
+        if (( nc_var_temp = dataFile.getVar("Points_Tag")), nc_var_temp.isNull())
+            cleanupAndThrow(dom, "get_var(Points_Tag)");
+        nc_var_temp.getVar(&points->Tag[0]);    // num_Points
+        // Points_Owner
+        if (( nc_var_temp = dataFile.getVar("Points_Owner")), nc_var_temp.isNull())
+            cleanupAndThrow(dom, "get_var(Points_Owner)");
+        nc_var_temp.getVar(&points->Owner[0]);   // num_Points
+        // Points_Color
+        if (( nc_var_temp = dataFile.getVar("Points_Color")), nc_var_temp.isNull())
+            cleanupAndThrow(dom, "get_var(Points_Color)");
+        nc_var_temp.getVar(&points->Color[0]);  // num_Points
+        // Points_Nodes
+        int* Points_Nodes = new int[num_Points];
+        if ((nc_var_temp = dataFile.getVar("Points_Nodes")), nc_var_temp.isNull()) {
+            delete[] Points_Nodes;
+            cleanupAndThrow(dom, "get_var(Points_Nodes)");
+        }
+        nc_var_temp.getVar(&Points_Nodes[0]);   // num_Points
+        // Copy temp array into points->Nodes
+        for (index_t i = 0; i < num_Points; i++) {
+            points->Id[points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
+        }
+        delete[] Points_Nodes;
+    } // num_Points > 0
+    points->updateTagList();
+
+    // get the tags
+    if (num_Tags > 0) {
+        // Temp storage to gather node IDs
+        int *Tags_keys = new int[num_Tags];
+        char name_temp[4096];
+        int i;
+
+        // Tags_keys
+        if (( nc_var_temp = dataFile.getVar("Tags_keys")), nc_var_temp.isNull() ) {
+            delete[] Tags_keys;
+            cleanupAndThrow(dom, "get_var(Tags_keys)");
+        }
+        nc_var_temp.getVar(&Tags_keys[0]);  // num_Tags
+        for (i=0; i<num_Tags; i++) {
+          // Retrieve tag name
+          sprintf(name_temp, "Tags_name_%d", i);
+          if ((attr=dataFile.getAtt(name_temp)), attr.isNull() ) {
+              delete[] Tags_keys;
+              stringstream msg;
+              msg << "get_att(" << name_temp << ")";
+              cleanupAndThrow(dom, msg.str());
+          }
+          string name;
+          attr.getValues(name);
+          dom->setTagMap(name.c_str(), Tags_keys[i]);
+        }
+        delete[] Tags_keys;
+    }
+
+    // Nodes_DofDistribution
+    IndexVector first_DofComponent(mpi_size+1);
+    if ((nc_var_temp = dataFile.getVar("Nodes_DofDistribution")), nc_var_temp.isNull() ) {
+        cleanupAndThrow(dom, "get_var(Nodes_DofDistribution)");
+    }
+    nc_var_temp.getVar(&first_DofComponent[0]); // mpi_size+1
+
+    // Nodes_NodeDistribution
+    IndexVector first_NodeComponent(mpi_size+1);
+    if ((nc_var_temp = dataFile.getVar("Nodes_NodeDistribution")), nc_var_temp.isNull() ) {
+        cleanupAndThrow(dom, "get_var(Nodes_NodeDistribution)");
+    }
+    nc_var_temp.getVar(&first_NodeComponent[0]); // mpi_size+1
+    dom->createMappings(first_DofComponent, first_NodeComponent);
+
+    return dom->getPtr();
+#else
+    throw DudleyException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
+#endif // ESYS_HAVE_NETCDF
+}
+
+#else
 
 Domain_ptr DudleyDomain::load(const string& fileName)
 {
@@ -365,6 +668,7 @@ Domain_ptr DudleyDomain::load(const string& fileName)
     throw DudleyException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
 #endif // ESYS_HAVE_NETCDF
 }
+#endif
 
 Domain_ptr readMesh(const string& fileName, int /*integrationOrder*/,
                     int /*reducedIntegrationOrder*/, bool optimize)

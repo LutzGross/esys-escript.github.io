@@ -28,9 +28,17 @@
 
 #include <boost/scoped_array.hpp>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <vector>
 
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncVar.h>
+  #include <ncDim.h>
+  #include <escript/NCHelper.h>
+
+ #else
+   #include <netcdfcpp.h>
+ #endif
 #endif
 
 #ifdef ESYS_HAVE_SILO
@@ -47,6 +55,10 @@
 namespace bm = boost::math;
 namespace bp = boost::python;
 using escript::FileWriter;
+
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
 
 namespace speckley {
 
@@ -200,6 +212,146 @@ bool Rectangle::operator==(const escript::AbstractDomain& other) const
     return false;
 }
 
+#ifdef NETCDF4
+
+void Rectangle::readNcGrid(escript::Data& out, std::string filename,
+        std::string varname, const ReaderParameters& params) const
+{
+#ifdef ESYS_HAVE_NETCDF
+    // check destination function space
+    dim_t myN0, myN1;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+//    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+    } else
+        throw SpeckleyException("readNcGrid(): invalid function space for output data object");
+
+    if (params.first.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'first' must have 2 entries");
+
+    if (params.numValues.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'numValues' must have 2 entries");
+
+    if (params.multiplier.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'multiplier' must have 2 entries");
+    for (size_t i=0; i<params.multiplier.size(); i++)
+        if (params.multiplier[i]<1)
+            throw SpeckleyException("readNcGrid(): all multipliers must be positive");
+    if (params.reverse.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'reverse' must have 2 entries");
+
+    // check file existence and size
+    NcFile f;
+    if (!openNcFile(f, filename))
+    {
+        throw SpeckleyException("readNcGrid(): cannot open file");
+    }       
+
+    NcVar var = f.getVar(varname.c_str());
+    if (var.isNull())
+        throw SpeckleyException("readNcGrid(): invalid variable");
+
+    // TODO: rank>0 data support
+    const int numComp = out.getDataPointSize();
+    if (numComp > 1)
+        throw SpeckleyException("readNcGrid(): only scalar data supported");
+
+    const int dims = var.getDimCount();
+    std::vector<long> edges(dims);
+    std::vector< NcDim > vard=var.getDims();
+    for (size_t i=0;i<vard.size();++i)
+    {
+        edges[i]=vard[i].getSize();
+    }       
+
+    // is this a slice of the data object (dims!=2)?
+    // note the expected ordering of edges (as in numpy: y,x)
+    if ( (dims==2 && (params.numValues[1] > edges[0] || params.numValues[0] > edges[1]))
+            || (dims==1 && params.numValues[1]>1) ) {
+        throw SpeckleyException("readNcGrid(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0]*params.multiplier[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1]*params.multiplier[1] <= m_offset[1])
+        return;
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const dim_t first0 = std::max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(dim_t(0), params.first[1]-m_offset[1]);
+    // indices to first value in file (not accounting for reverse yet)
+    dim_t idx0 = std::max(dim_t(0), m_offset[0]-params.first[0]);
+    dim_t idx1 = std::max(dim_t(0), m_offset[1]-params.first[1]);
+    // number of values to read
+    const dim_t num0 = std::min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = std::min(params.numValues[1]-idx1, myN1-first1);
+
+    // make sure we read the right block if going backwards through file
+    if (params.reverse[0])
+        idx0 = edges[dims-1]-num0-idx0;
+    if (dims>1 && params.reverse[1])
+        idx1 = edges[dims-2]-num1-idx1;
+
+    std::vector<double> values(num0*num1);
+    std::vector<size_t> startindex;
+    std::vector<size_t> counts;
+    if (dims==2) {
+        // var->set_cur(idx1, idx0);                // from old API
+        startindex.push_back(idx1);
+        startindex.push_back(idx0);
+        counts.push_back(num1);
+        counts.push_back(num0);
+        var.getVar(startindex, counts, &values[0]);   
+    } else {
+        //var->set_cur(idx0);
+        //var->get(&values[0], num0);
+        startindex.push_back(idx0);
+        counts.push_back(num0);
+        var.getVar(startindex, counts, &values[0]);   
+    }      
+
+    const int dpp = out.getNumDataPointsPerSample();
+    out.requireWrite();
+
+    // helpers for reversing
+    const dim_t x0 = (params.reverse[0] ? num0-1 : 0);
+    const int x_mult = (params.reverse[0] ? -1 : 1);
+    const dim_t y0 = (params.reverse[1] ? num1-1 : 0);
+    const int y_mult = (params.reverse[1] ? -1 : 1);
+
+    for (index_t y=0; y<num1; y++) {
+#pragma omp parallel for
+        for (index_t x=0; x<num0; x++) {
+            const dim_t baseIndex = first0+x*params.multiplier[0]
+                                  +(first1+y*params.multiplier[1])*myN0;
+            const dim_t srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
+            if (!bm::isnan(values[srcIndex])) {
+                for (index_t m1=0; m1<params.multiplier[1]; m1++) {
+                    for (index_t m0=0; m0<params.multiplier[0]; m0++) {
+                        const dim_t dataIndex = baseIndex+m0+m1*myN0;
+                        double* dest = out.getSampleDataRW(dataIndex);
+                        for (index_t q=0; q<dpp; q++) {
+                            *dest++ = values[srcIndex];
+                        }
+                    }
+                }
+            }
+        }
+    }
+#else
+    throw SpeckleyException("readNcGrid(): not compiled with netCDF support");
+#endif
+}
+
+#else
+
 void Rectangle::readNcGrid(escript::Data& out, std::string filename,
         std::string varname, const ReaderParameters& params) const
 {
@@ -319,6 +471,8 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
     throw SpeckleyException("readNcGrid(): not compiled with netCDF support");
 #endif
 }
+
+#endif
 
 void Rectangle::readBinaryGrid(escript::Data& out, std::string filename,
                                const ReaderParameters& params) const
