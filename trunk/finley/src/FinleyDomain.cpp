@@ -253,7 +253,7 @@ void FinleyDomain::dump(const string& fileName) const
     }
     catch (exceptions::NcException e)
     {
-        throw FinleyException("Error - DataExpanded:: opening of netCDF file for output failed.");
+        throw FinleyException("Error - FinleyDomain:: opening of netCDF file for output failed.");
     }    
     
     
