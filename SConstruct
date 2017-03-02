@@ -173,22 +173,6 @@ env = Environment(tools = ['default'], options = vars,
 def mkclang(env):
     env['CXX']='clang++'
 
-# Covert env['netcdf'] into one of False, 3, 4
-# Also choose default values for libraries
-pos1=netcdf_flavours.index('False')
-pos2=netcdf_flavours.index('3')
-mypos=netcdf_flavours.index(env['netcdf'])
-if 0 <= mypos <=pos1:
-    env['netcdf']=False
-elif pos1 < mypos <= pos2:
-    env['netcdf']=3
-    if env['netcdf_libs']=='DEFAULT':
-        env['netcdf_libs']=['netcdf_c++', 'netcdf']
-else:   # netcdf4
-    env['netcdf']=4
-    if env['netcdf_libs']=='DEFAULT':
-        env['netcdf_libs']=['netcdf_c++4']
-    
 if env['tools_names'] != ['default']:
     zz=env['tools_names']
     if 'clang' in zz:
@@ -196,6 +180,23 @@ if env['tools_names'] != ['default']:
         zz.insert(0, mkclang)
     env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
+
+# Covert env['netcdf'] into one of False, 3, 4
+# Also choose default values for libraries
+pos1=netcdf_flavours.index('False')
+pos2=netcdf_flavours.index('3')
+mypos=netcdf_flavours.index(env['netcdf'])
+if 0 <= mypos <=pos1:
+    env['netcdf']=0
+elif pos1 < mypos <= pos2:
+    env['netcdf']=3
+    print(env['netcdf'])
+    if env['netcdf_libs']=='DEFAULT':
+        env['netcdf_libs']=['netcdf_c++', 'netcdf']
+else:   # netcdf4
+    env['netcdf']=4
+    if env['netcdf_libs']=='DEFAULT':
+        env['netcdf_libs']=['netcdf_c++4']
 
 if options_file:
     opts_valid=False
