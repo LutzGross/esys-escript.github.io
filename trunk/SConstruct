@@ -54,6 +54,9 @@ if not os.path.isfile(options_file):
 
 default_prefix='/usr'
 mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
+netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
+                   'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
+                   '4')
 all_domains = ['dudley','finley','ripley','speckley']
 
 #Note that scons construction vars the the following purposes:
@@ -94,9 +97,9 @@ vars.AddVariables(
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
   ('cuda_prefix', 'Prefix/Paths to NVidia CUDA installation', default_prefix),
-  BoolVariable('netcdf', 'Enable netCDF file support', False),
+  EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
-  ('netcdf_libs', 'netCDF libraries to link with', ['netcdf_c++', 'netcdf']),
+  ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),
   BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
   ('parmetis_prefix', 'Prefix/Paths of ParMETIS installation', default_prefix),
   ('parmetis_libs', 'ParMETIS libraries to link with', ['parmetis', 'metis']),
@@ -170,6 +173,22 @@ env = Environment(tools = ['default'], options = vars,
 def mkclang(env):
     env['CXX']='clang++'
 
+# Covert env['netcdf'] into one of False, 3, 4
+# Also choose default values for libraries
+pos1=netcdf_flavours.index('False')
+pos2=netcdf_flavours.index('3')
+mypos=netcdf_flavours.index(env['netcdf'])
+if 0 <= mypos <=pos1:
+    env['netcdf']=False
+elif pos1 < mypos <= pos2:
+    env['netcdf']=3
+    if env['netcdf_libs']=='DEFAULT':
+        env['netcdf_libs']=['netcdf_c++', 'netcdf']
+else:   # netcdf4
+    env['netcdf']=4
+    if env['netcdf_libs']=='DEFAULT':
+        env['netcdf_libs']=['netcdf_c++4']
+    
 if env['tools_names'] != ['default']:
     zz=env['tools_names']
     if 'clang' in zz:
@@ -751,10 +770,15 @@ def print_summary():
     else:
         print("   Direct solver:  NONE")
     print("         domains:  %s"%(", ".join(env['domains'])))
-
+    if env['netcdf']==4:
+        print("          netcdf:  YES (4 + 3)")
+    elif env['netcdf']==3:
+        print("          netcdf:  YES (3)")
+    else:
+        print("          netcdf:  NO")
     e_list=[]
-    for i in 'weipa','debug','openmp','boomeramg','cppunit','gdal','mkl',\
-             'netcdf','papi','pyproj','scipy','silo','sympy','umfpack','visit':
+    for i in ('weipa','debug','openmp','boomeramg','cppunit','gdal','mkl',
+             'papi','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

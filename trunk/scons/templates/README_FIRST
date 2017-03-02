@@ -132,9 +132,21 @@ cuda = True
 cuda_prefix = '/usr/local'
   Prefix or paths to NVidia CUDA installation. See note above. [new in 202]
 
-netcdf = True
+netcdf = False
   Whether to use the netCDF library for dump file support and netCDF-based
-  downunder data import. Requires the legacy netCDF C++ libraries and headers.
+  downunder data import. 
+  This used to be a boolean value but now selects between 3 options:
+    none - no netcdf support
+    ~~~~
+       none, no, off, False are all synonyms for this
+    3    - support netcdf 3 files
+    ~~
+       Requires the legacy netCDF C++ libraries.
+       on, yes, 3, True are synonyms for this
+    4
+    ~~   - support both version 3 and version 4 formats
+       Requires the netCDF4 C++ headers and libraries
+       4 is the only specifier for this.
   DEFAULT: False
 
 netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
