@@ -350,6 +350,8 @@ def checkOptionalLibraries(env):
         env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF'])
         env['buildvars']['netcdf_inc_path']=netcdf_inc_path
         env['buildvars']['netcdf_lib_path']=netcdf_lib_path
+        if env['netcdf']==4:
+            env.Append(CPPDEFINES = ['NETCDF4'])
     env['buildvars']['netcdf']=int(env['netcdf'])
 
     ######## PAPI
