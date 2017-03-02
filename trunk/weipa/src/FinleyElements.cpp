@@ -31,11 +31,22 @@
 #include <iostream>
 
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncVar.h>
+  #include <ncAtt.h>
+  #include <escript/NCHelper.h>
+ #else
+   #include <netcdfcpp.h>
+ #endif
 #endif
+
 
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
+#endif
+
+#ifdef NETCDF4
+using namespace netCDF;
 #endif
 
 
@@ -260,6 +271,114 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
 //
 // Reads element data from given NetCDF file
 //
+#ifdef NETCDF4
+
+bool FinleyElements::readFromNc(netCDF::NcFile& ncfile)
+{
+#if ESYS_HAVE_NETCDF
+    string num_str("num_");
+    num_str += name;
+
+    NcGroupAtt att = ncfile.getAtt(num_str.c_str());
+    att.getValues(&numElements);
+
+    // Only attempt to read further if there are any elements.
+    // Having no elements is not an error.
+    if (numElements > 0) {
+        att = ncfile.getAtt((num_str + string("_numNodes")).c_str());
+        att.getValues(&nodesPerElement);
+
+        nodes.insert(nodes.end(), numElements*nodesPerElement, 0);
+        NcVar var = ncfile.getVar((name + string("_Nodes")).c_str());
+        var.getVar(&nodes[0]);  // numElements, nodesPerElement
+
+        color.insert(color.end(), numElements, 0);
+        var = ncfile.getVar((name + string("_Color")).c_str());
+        var.getVar(&color[0]);  // numElements
+
+        ID.insert(ID.end(), numElements, 0);
+        var = ncfile.getVar((name + string("_Id")).c_str());
+        var.getVar(&ID[0]); // numElements
+
+        owner.insert(owner.end(), numElements, 0);
+        var = ncfile.getVar((name + string("_Owner")).c_str());
+        var.getVar(&owner[0]);  // numElements
+
+        tag.insert(tag.end(), numElements, 0);
+        var = ncfile.getVar((name + string("_Tag")).c_str());
+        var.getVar(&tag[0]);    // numElements
+
+        att = ncfile.getAtt((name + string("_TypeId")).c_str());
+        int temp;
+        att.getValues(&temp);
+        finleyTypeId = (finley::ElementTypeId)temp;
+        FinleyElementInfo f = getFinleyTypeInfo(finleyTypeId);
+        type = f.elementType;
+        elementFactor = f.elementFactor;
+        if (f.elementFactor > 1 || f.reducedElementSize != nodesPerElement)
+            buildReducedElements(f);
+
+        // if we don't link with finley we can't get the quadrature nodes
+        // and hence cannot interpolate data properly
+#if not defined VISIT_PLUGIN && defined USE_FINLEY
+        if (f.useQuadNodes) {
+            att = ncfile.getAtt("order");
+            int order;
+            att.getValues(&order);
+            att = ncfile.getAtt("reduced_order");
+            int reduced_order;
+            att.getValues(&reduced_order);
+            finley::const_ReferenceElementSet_ptr refElements(
+                    new finley::ReferenceElementSet(finleyTypeId, order,
+                        reduced_order));
+
+            CoordArray quadNodes;
+            int numQuadNodes;
+            finley::const_ShapeFunction_ptr sf = refElements->referenceElement
+                ->Parametrization;
+            numQuadNodes = sf->numQuadNodes;
+            for (int i=0; i<f.quadDim; i++) {
+                const double* srcPtr = &sf->QuadNodes[i];
+                float* c = new float[numQuadNodes];
+                quadNodes.push_back(c);
+                for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
+                    *c++ = (float) *srcPtr;
+                }
+            }
+            quadMask = buildQuadMask(quadNodes, numQuadNodes);
+            for (int i=0; i<f.quadDim; i++)
+                delete[] quadNodes[i];
+            quadNodes.clear();
+
+            // now the reduced quadrature
+            sf = refElements->referenceElementReducedQuadrature->Parametrization;
+            numQuadNodes = sf->numQuadNodes;
+            for (int i=0; i<f.quadDim; i++) {
+                const double* srcPtr = &sf->QuadNodes[i];
+                float* c = new float[numQuadNodes];
+                quadNodes.push_back(c);
+                for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
+                    *c++ = (float) *srcPtr;
+                }
+            }
+            reducedQuadMask = buildQuadMask(quadNodes, numQuadNodes);
+            for (int i=0; i<f.quadDim; i++)
+                delete[] quadNodes[i];
+            quadNodes.clear();
+        }
+#endif // VISIT_PLUGIN,USE_FINLEY
+
+        buildMeshes();
+    }
+
+    return true;
+#else // !ESYS_HAVE_NETCDF
+    return false;
+#endif
+}
+
+#else
+
 bool FinleyElements::readFromNc(NcFile* ncfile)
 {
 #if ESYS_HAVE_NETCDF
@@ -359,6 +478,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
     return false;
 #endif
 }
+#endif
 
 //
 //

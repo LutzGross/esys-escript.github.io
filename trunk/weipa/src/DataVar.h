@@ -21,7 +21,7 @@
 #include <ostream>
 
 class DBfile;
-class NcFile;
+//class NcFile;
 
 namespace escript {
     class Data;

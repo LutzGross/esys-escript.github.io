@@ -29,8 +29,15 @@
 
 #include <iostream>
 
-#if ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+
+#ifdef ESYS_HAVE_NETCDF
+ #ifdef NETCDF4
+  #include <ncVar.h>
+  #include <ncDim.h>
+  #include <escript/NCHelper.h>
+ #else
+   #include <netcdfcpp.h>
+ #endif
 #endif
 
 #ifdef ESYS_HAVE_SILO
@@ -38,6 +45,9 @@
 #endif
 
 using namespace std;
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
 
 namespace weipa {
 
@@ -136,6 +146,40 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 //
 // Reads mesh and element data from NetCDF file with given name
 //
+#ifdef NETCDF4
+
+bool FinleyDomain::initFromFile(const string& filename)
+{
+    cleanup();
+
+#if ESYS_HAVE_NETCDF
+    NcFile input;
+    if (!openNcFile(input, filename))
+    {
+        cerr << "Could not open input file " << filename << "." << endl;
+        return false;
+    }     
+
+    nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
+    if (!nodes->readFromNc(input))
+        return false;
+
+    // Read all element types
+    cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
+    cells->readFromNc(input);
+    faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
+    faces->readFromNc(input);
+    contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
+    contacts->readFromNc(input);
+
+    initialized = true;
+#endif
+
+    return initialized;
+}
+
+#else
+
 bool FinleyDomain::initFromFile(const string& filename)
 {
     cleanup();
@@ -169,6 +213,7 @@ bool FinleyDomain::initFromFile(const string& filename)
 
     return initialized;
 }
+#endif
 
 Centering FinleyDomain::getCenteringForFunctionSpace(int fsCode) const
 {

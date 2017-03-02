@@ -20,7 +20,15 @@
 #include <weipa/NodeData.h>
 
 class DBfile;
-class NcFile;
+
+#ifdef NETCDF4
+#include <ncFile.h>
+#define NCFTYPE netCDF::NcFile&
+
+#else
+class NcFile;  
+#define NCFTYPE NcFile*
+#endif
 
 namespace finley {
     class NodeFile;
@@ -61,7 +69,7 @@ public:
     bool initFromFinley(const finley::NodeFile* finleyFile);
 
     /// \brief Reads node data from a NetCDF file.
-    bool readFromNc(NcFile* ncFile);
+    bool readFromNc(NCFTYPE ncFile);
 
     /// \brief Writes node data to a Silo file.
     bool writeToSilo(DBfile* dbfile);
@@ -130,5 +138,6 @@ inline std::string FinleyNodes::getFullSiloName() const
 
 } // namespace weipa
 
+#undef NCFTYPE
 #endif // __WEIPA_FINLEYNODES_H__
 
