@@ -27,7 +27,13 @@ using escript::DataTypes::index_t;
 #endif // VISIT_PLUGIN
 
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncVar.h>
+  #include <ncAtt.h>
+  #include <escript/NCHelper.h>
+ #else
+   #include <netcdfcpp.h>
+ #endif
 #endif
 
 #ifdef ESYS_HAVE_SILO
@@ -35,6 +41,10 @@ using escript::DataTypes::index_t;
 #endif
 
 using namespace std;
+
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
 
 namespace weipa {
 
@@ -224,6 +234,88 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 //
 //
 //
+
+#ifdef NETCDF4
+
+bool FinleyNodes::readFromNc(netCDF::NcFile& ncFile)
+{
+#if ESYS_HAVE_NETCDF
+    NcGroupAtt att;
+    NcVar var;
+ 
+    att = ncFile.getAtt("numDim");
+    att.getValues(&numDims);
+
+    att = ncFile.getAtt("numNodes");
+    att.getValues(&numNodes);
+
+    att = ncFile.getAtt("mpi_size");
+    int mpisize;
+    att.getValues(&mpisize);
+
+    nodeDist.clear();
+    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
+    var = ncFile.getVar("Nodes_NodeDistribution");
+    var.getVar(&nodeDist[0]);    // mpisize+1
+
+    CoordArray::iterator it;
+    for (it = coords.begin(); it != coords.end(); it++)
+        delete[] *it;
+    coords.clear();
+    nodeID.clear();
+    nodeTag.clear();
+    nodeGDOF.clear();
+    nodeGNI.clear();
+    nodeGRDFI.clear();
+    nodeGRNI.clear();
+
+    // Only attempt to read further if there are any nodes.
+    // Having no nodes is not an error.
+    if (numNodes > 0) {
+        var = ncFile.getVar("Nodes_Coordinates");
+        for (int i=0; i<numDims; i++) {
+            float* c = new float[numNodes];
+            std::vector<size_t> v;
+            v.push_back(0);
+            v.push_back(i);
+            //var->set_cur(0, i);
+            //var->get(c, numNodes, 1);
+            var.getVar(v, c);
+            coords.push_back(c);
+        }
+
+        nodeID.insert(nodeID.end(), numNodes, 0);
+        var = ncFile.getVar("Nodes_Id");
+        var.getVar(&nodeID[0]);  // numNodes
+
+        nodeTag.insert(nodeTag.end(), numNodes, 0);
+        var = ncFile.getVar("Nodes_Tag");
+        var.getVar(&nodeTag[0]);    // numNodes
+
+        nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
+        var = ncFile.getVar("Nodes_gDOF");
+        var.getVar(&nodeGDOF[0]);   // numNodes
+
+        nodeGNI.insert(nodeGNI.end(), numNodes, 0);
+        var = ncFile.getVar("Nodes_gNI");
+        var.getVar(&nodeGNI[0]);    // numNodes
+
+        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
+        var = ncFile.getVar("Nodes_grDfI");
+        var.getVar(&nodeGRDFI[0]);  // numNodes
+
+        nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
+        var = ncFile.getVar("Nodes_grNI");
+        var.getVar(&nodeGRNI[0]);   // numNodes
+    }
+
+    return true;
+#else // !ESYS_HAVE_NETCDF
+    return false;
+#endif
+}
+#else
+
 bool FinleyNodes::readFromNc(NcFile* ncFile)
 {
 #if ESYS_HAVE_NETCDF
@@ -297,6 +389,7 @@ bool FinleyNodes::readFromNc(NcFile* ncFile)
 #endif
 }
 
+#endif
 //
 //
 //

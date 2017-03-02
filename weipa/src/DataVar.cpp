@@ -23,7 +23,13 @@
 #endif
 
 #ifdef ESYS_HAVE_NETCDF
-#include <netcdfcpp.h>
+ #ifdef NETCDF4
+  #include <ncVar.h>
+  #include <ncDim.h>
+  #include <escript/NCHelper.h>
+ #else
+   #include <netcdfcpp.h>
+ #endif
 #endif
 
 #ifdef ESYS_HAVE_SILO
@@ -32,9 +38,14 @@
 
 #include <numeric> // for accumulate
 #include <iostream> // for cerr
+#include <sstream>
 #include <stdio.h>
 
 using namespace std;
+
+#ifdef NETCDF4
+using namespace netCDF;
+#endif
 
 namespace weipa {
     
@@ -217,6 +228,110 @@ bool DataVar::initFromMeshData(const_DomainChunk_ptr dom, const IntVec& data,
 //
 // Reads variable data from dump file
 //
+#ifdef NETCDF4
+bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
+{
+    cleanup();
+    
+#if ESYS_HAVE_NETCDF
+
+    NcFile input;
+    if (!openNcFile(input, filename))
+    {
+        cerr << "Could not open input file " << filename << "." << endl;
+        return false;
+    }      
+
+    NcDim dim;
+    NcGroupAtt att;
+
+    att = input.getAtt("type_id");
+    int typeID;
+    att.getValues(&typeID);
+    if (typeID != 2) {
+        cerr << "WARNING: Only expanded data supported!" << endl;
+        return false;
+    }
+
+    att = input.getAtt("rank");
+    att.getValues(&rank);
+
+    dim = input.getDim("num_data_points_per_sample");
+    ptsPerSample = dim.getSize();
+
+    att = input.getAtt("function_space_type");
+    att.getValues(&funcSpace);
+
+    centering = dom->getCenteringForFunctionSpace(funcSpace);
+
+    dim = input.getDim("num_samples");
+    numSamples = dim.getSize();
+
+#ifdef _DEBUG
+    cout << varName << ":\t" << numSamples << " samples,  "
+        << ptsPerSample << " pts/s,  rank: " << rank << endl;
+#endif
+
+    domain = dom;
+    NodeData_ptr nodes = domain->getMeshForFunctionSpace(funcSpace);
+    if (nodes == NULL) {
+        return false;
+    }
+
+    meshName = nodes->getName();
+    siloMeshName = nodes->getFullSiloName();
+    initialized = true;
+
+    size_t dimSize = 1;
+    vector<long> counts;
+
+    if (rank > 0) {
+        dim = input.getDim("d0");
+        int d = dim.getSize();
+        shape.push_back(d);
+        counts.push_back(d);
+        dimSize *= d;
+    }
+    if (rank > 1) {
+        dim = input.getDim("d1");
+        int d = dim.getSize();
+        shape.push_back(d);
+        counts.push_back(d);
+        dimSize *= d;
+    }
+    if (rank > 2) {
+        cerr << "WARNING: Rank " << rank << " data is not supported!\n";
+        initialized = false;
+    }
+ 
+    if (initialized && numSamples > 0) {
+        sampleID.insert(sampleID.end(), numSamples, 0);
+        NcVar var = input.getVar("id");
+        var.getVar(&sampleID[0]);   // numSamples
+
+        size_t dataSize = dimSize*numSamples*ptsPerSample;
+        counts.push_back(ptsPerSample);
+        counts.push_back(numSamples);
+        float* tempData = new float[dataSize];
+        var = input.getVar("data");
+        var.getVar(tempData);   // &counts[0]
+
+        const float* srcPtr = tempData;
+        for (size_t i=0; i < dimSize; i++, srcPtr++) {
+            float* c = averageData(srcPtr, dimSize);
+            dataArray.push_back(c);
+        }
+        delete[] tempData;
+
+        initialized = reorderSamples();
+    }
+#endif // ESYS_HAVE_NETCDF
+
+    return initialized;
+}
+
+#else
+
 bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 {
     cleanup();
@@ -320,6 +435,7 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 
     return initialized;
 }
+#endif
 
 //
 // Returns true if the data values are nodal, false if they are zonal.
